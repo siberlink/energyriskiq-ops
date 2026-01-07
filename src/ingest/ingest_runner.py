@@ -17,6 +17,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+INSERT_SUCCESS = "inserted"
+INSERT_DUPLICATE = "duplicate"
+INSERT_FAILED = "failed"
+
 def start_ingestion_run() -> int:
     result = execute_one(
         "INSERT INTO ingestion_runs (status, total_items, inserted_items, skipped_duplicates, failed_items) VALUES ('running', 0, 0, 0, 0) RETURNING id"
@@ -38,7 +42,7 @@ def finish_ingestion_run(run_id: int, status: str, total: int, inserted: int, sk
         )
     logger.info(f"Finished ingestion run #{run_id} with status: {status}")
 
-def insert_event(event: dict, category: str, region: str, severity: int, classification_reason: str) -> Tuple[bool, str]:
+def insert_event(event: dict, category: str, region: str, severity: int, classification_reason: str) -> Tuple[str, str]:
     insert_sql = """
     INSERT INTO events (title, source_name, source_url, category, region, severity_score, event_time, raw_text, classification_reason)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -62,13 +66,13 @@ def insert_event(event: dict, category: str, region: str, severity: int, classif
             result = cursor.fetchone()
             
             if result:
-                return True, f"Inserted event #{result['id']}"
+                return INSERT_SUCCESS, f"Inserted event #{result['id']}"
             else:
-                return False, "Duplicate (skipped)"
+                return INSERT_DUPLICATE, "Duplicate (skipped)"
     
     except Exception as e:
         logger.error(f"Error inserting event: {e}")
-        return False, str(e)
+        return INSERT_FAILED, str(e)
 
 def run_ingestion():
     logger.info("=" * 60)
@@ -96,14 +100,17 @@ def run_ingestion():
                     event.get('category_hint')
                 )
                 
-                success, message = insert_event(event, category, region, severity, classification_reason)
+                status, message = insert_event(event, category, region, severity, classification_reason)
                 
-                if success:
+                if status == INSERT_SUCCESS:
                     inserted_count += 1
                     logger.debug(f"Inserted: {event['title'][:50]}... ({category}, {region}, sev={severity})")
-                else:
+                elif status == INSERT_DUPLICATE:
                     skipped_count += 1
                     logger.debug(f"Skipped: {event['title'][:50]}... - {message}")
+                else:
+                    error_count += 1
+                    logger.error(f"Failed to insert: {event['title'][:50]}... - {message}")
             
             except Exception as e:
                 error_count += 1
