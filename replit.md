@@ -1,9 +1,9 @@
-# EnergyRiskIQ - Event Ingestion & AI Analysis Pipeline
+# EnergyRiskIQ - Event Ingestion & Risk Intelligence Pipeline
 
 ## Overview
-EnergyRiskIQ is an event ingestion, classification, and AI analysis pipeline for energy risk intelligence. It fetches news events from RSS feeds, classifies them, and enriches them with AI-generated summaries and market impact analysis.
+EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scoring pipeline for energy risk intelligence. It fetches news events from RSS feeds, classifies them, enriches them with AI, and computes quantitative risk scores.
 
-**Current State**: Step 2 complete - AI processing worker with OpenAI integration for event enrichment.
+**Current State**: Step 3 complete - Risk scoring engine with regional indices and asset-level risk.
 
 ## Project Architecture
 
@@ -20,10 +20,13 @@ EnergyRiskIQ is an event ingestion, classification, and AI analysis pipeline for
     ingest_runner.py  # Orchestrates ingestion with detailed stats
   /ai
     ai_worker.py      # AI processing worker using OpenAI
+  /risk
+    risk_engine.py    # Risk scoring and aggregation engine
   /api
     app.py            # FastAPI application with CORS
-    routes.py         # API endpoints including AI stats
-  main.py             # Main entrypoint (--mode api/ingest/ai)
+    routes.py         # Event API endpoints
+    risk_routes.py    # Risk API endpoints
+  main.py             # Main entrypoint (--mode api/ingest/ai/risk)
 ```
 
 ## Tech Stack
@@ -41,8 +44,16 @@ EnergyRiskIQ is an event ingestion, classification, and AI analysis pipeline for
 - processed, ai_summary, ai_impact_json, ai_model, ai_processed_at, ai_error, ai_attempts
 
 ### ingestion_runs table
-- id, started_at, finished_at, status (running|success|failed)
-- total_items, inserted_items, skipped_duplicates, failed_items, notes
+- id, started_at, finished_at, status, total_items, inserted_items, skipped_duplicates, failed_items, notes
+
+### risk_events table
+- id, event_id (FK), region, category, base_severity, ai_confidence, weighted_score, created_at
+
+### risk_indices table
+- id, region, window_days (7|30), risk_score (0-100), trend (rising|falling|stable), calculated_at
+
+### asset_risk table
+- id, asset (oil|gas|fx|freight), region, window_days, risk_score (0-100), direction, calculated_at
 
 ## Running the Project
 
@@ -61,10 +72,15 @@ python src/main.py --mode ingest
 ```bash
 python src/main.py --mode ai
 ```
-Processes unprocessed events with AI enrichment.
+
+### Run Risk Scoring
+```bash
+python src/main.py --mode risk
+```
 
 ## API Endpoints
 
+### Events & AI
 - `GET /health` - Health check
 - `GET /events?category=&region=&min_severity=&processed=&limit=50` - Query events
 - `GET /events/latest` - Get 20 most recent events with AI summary
@@ -72,39 +88,35 @@ Processes unprocessed events with AI enrichment.
 - `GET /ai/stats` - AI processing statistics
 - `GET /ingestion-runs` - View ingestion history
 
-## AI Processing
+### Risk Intelligence
+- `GET /risk/summary?region=Europe` - Current risk summary
+- `GET /risk/regions` - Latest risk indices per region
+- `GET /risk/regions/{region}` - Historical risk for a region
+- `GET /risk/assets` - Asset-level risk by region
+- `GET /risk/events` - View scored risk events
 
-Uses Replit AI Integrations (OpenAI-compatible, no API key needed).
+## Risk Scoring Logic
 
-### Output Structure
-- **ai_summary**: 2-3 sentence neutral summary
-- **ai_impact_json**: Full structured analysis including:
-  - Impact on oil, gas, fx, freight (direction, confidence, rationale)
-  - Key facts, entities (countries, companies, commodities, routes)
-  - Risk flags (sanctions, supply_disruption, military_escalation, etc.)
-  - Time horizon estimate
+### Event-Level Weighted Score
+```
+weighted_score = base_severity × ai_confidence × category_weight × recency_decay
+```
+- category_weight: geopolitical=1.2, energy=1.5, supply_chain=1.0
+- recency_decay: exp(-days_since_event / 14)
 
-### Configuration
-- `OPENAI_MODEL`: gpt-4.1-mini (default)
-- `AI_MAX_EVENTS_PER_RUN`: 20 (default)
-- `AI_TEMPERATURE`: 0.2 (default)
+### Rolling Regional Risk Index
+1. Sum weighted_scores for events in window (7d or 30d)
+2. Normalize to 0-100 using rolling 90-day max
+3. Trend: compare current 7d vs previous 7d (±10% threshold)
 
-## Classification Logic
-
-### Categories (keyword-based with hint tie-breaking)
-- **geopolitical**: war, attack, missile, conflict, sanctions, etc.
-- **energy**: OPEC, crude, oil, gas, LNG, refinery, etc.
-- **supply_chain**: port, shipping, freight, container, strike, etc.
-
-### Regions
-Europe, Middle East, Black Sea, North Africa, Asia, North America, Global
-
-### Severity (1-5)
-Based on keyword severity: attack (+2), strike (+1), OPEC (+1), etc.
+### Asset-Level Risk
+- Aggregate AI impact directions per asset (oil, gas, fx, freight)
+- Weight by event contribution and confidence
+- Direction: majority vote with 20% threshold
 
 ## Recent Changes
-- 2026-01-07: Step 2 - Added AI processing worker
-- 2026-01-07: Added ai_summary, ai_impact_json columns
-- 2026-01-07: Added GET /events/{id} and GET /ai/stats endpoints
-- 2026-01-07: Step 1.1 - Added 3rd feed, category hints, classification tracking
-- 2026-01-07: Initial Step 1 implementation
+- 2026-01-07: Step 3 - Risk scoring engine complete
+- 2026-01-07: Added risk_events, risk_indices, asset_risk tables
+- 2026-01-07: Added /risk/* API endpoints
+- 2026-01-07: Step 2 - AI processing worker
+- 2026-01-07: Step 1 - RSS ingestion and classification

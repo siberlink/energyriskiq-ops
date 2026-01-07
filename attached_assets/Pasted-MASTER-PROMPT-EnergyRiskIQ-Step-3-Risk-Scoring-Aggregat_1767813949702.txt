@@ -1,0 +1,247 @@
+MASTER PROMPT — EnergyRiskIQ Step 3
+Risk Scoring & Aggregation Engine (API-only, v1)
+
+You are Replit AI acting as my senior backend engineer.
+Implement Step 3 ONLY. Do NOT build UI, auth, Stripe, alerts, or forecasting ML models yet.
+
+============================================================
+1) OBJECTIVE
+============================================================
+Convert AI-enriched events into:
+- Quantitative risk scores
+- Rolling regional risk indices
+- Asset-specific derived risk signals
+
+This step must answer:
+“Is Europe becoming more or less risky for energy & trade right now?”
+
+============================================================
+2) DATA MODEL (SAFE EXTENSIONS)
+============================================================
+Add the following tables (do not modify existing event data):
+
+------------------------------------------------------------
+TABLE: risk_events
+------------------------------------------------------------
+Purpose:
+Store per-event normalized risk contributions.
+
+Columns:
+- id SERIAL PRIMARY KEY
+- event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE
+- region TEXT NOT NULL
+- category TEXT NOT NULL
+- base_severity INT NOT NULL        -- from events.severity_score (1–5)
+- ai_confidence FLOAT NOT NULL      -- avg confidence from ai_impact_json
+- weighted_score FLOAT NOT NULL     -- computed score
+- created_at TIMESTAMP DEFAULT NOW()
+
+Indexes:
+- event_id
+- region
+- category
+- created_at DESC
+
+------------------------------------------------------------
+TABLE: risk_indices
+------------------------------------------------------------
+Purpose:
+Store rolling aggregate risk scores.
+
+Columns:
+- id SERIAL PRIMARY KEY
+- region TEXT NOT NULL
+- window_days INT NOT NULL          -- 7 or 30
+- risk_score FLOAT NOT NULL         -- normalized 0–100
+- trend TEXT NOT NULL               -- rising|falling|stable
+- calculated_at TIMESTAMP DEFAULT NOW()
+
+Indexes:
+- region
+- window_days
+- calculated_at DESC
+
+------------------------------------------------------------
+TABLE: asset_risk
+------------------------------------------------------------
+Purpose:
+Derived asset-specific risk signals.
+
+Columns:
+- id SERIAL PRIMARY KEY
+- asset TEXT NOT NULL               -- oil|gas|fx|freight
+- region TEXT NOT NULL
+- window_days INT NOT NULL
+- risk_score FLOAT NOT NULL         -- 0–100
+- direction TEXT NOT NULL           -- up|down|mixed|unclear
+- calculated_at TIMESTAMP DEFAULT NOW()
+
+Indexes:
+- asset
+- region
+- window_days
+- calculated_at DESC
+
+============================================================
+3) RISK SCORING LOGIC (v1 – Deterministic)
+============================================================
+
+------------------------------------------------------------
+3.1 Event-level weighted score
+------------------------------------------------------------
+For each processed event:
+
+Inputs:
+- base_severity = events.severity_score (1–5)
+- ai_confidence = average of confidences in ai_impact_json.impact
+- category_weight:
+    geopolitical = 1.2
+    energy = 1.5
+    supply_chain = 1.0
+- recency_decay:
+    decay = exp(-days_since_event / 14)
+
+Formula:
+weighted_score =
+  base_severity
+  * ai_confidence
+  * category_weight
+  * recency_decay
+
+Store this in risk_events.
+
+------------------------------------------------------------
+3.2 Rolling regional risk index
+------------------------------------------------------------
+For each region (focus on Europe first):
+
+Compute separately for:
+- 7-day window
+- 30-day window
+
+Steps:
+1) Sum weighted_score for all risk_events in window
+2) Normalize to 0–100 scale:
+   - Keep rolling max over last 90 days per region
+   - score = (current_sum / rolling_max) * 100
+   - cap at 100
+3) Trend:
+   - Compare current 7d vs previous 7d
+   - rising if +10%
+   - falling if -10%
+   - else stable
+
+Store results in risk_indices.
+
+------------------------------------------------------------
+3.3 Asset-level derived risk
+------------------------------------------------------------
+Assets:
+- oil
+- gas
+- fx
+- freight
+
+Rules:
+- Extract asset directions from ai_impact_json.impact
+- Weight event contributions by confidence
+- Aggregate per asset per region per window
+- Direction logic:
+    majority up -> up
+    majority down -> down
+    mixed -> mixed
+    insufficient data -> unclear
+
+Risk score:
+- normalized 0–100 using same rolling-max method
+
+Store results in asset_risk.
+
+============================================================
+4) WORKER IMPLEMENTATION
+============================================================
+Create a worker:
+src/risk/risk_engine.py
+
+Run modes:
+python src/main.py --mode risk
+or
+python -m src.risk.risk_engine
+
+Worker steps:
+1) Select events:
+   - processed = true
+   - NOT already in risk_events
+2) Compute weighted_score per event
+3) Insert into risk_events
+4) Recalculate:
+   - risk_indices (Europe only for now)
+   - asset_risk (Europe only for now)
+5) Log:
+   - # events processed
+   - current Europe 7d + 30d risk score
+   - trends
+
+Idempotency:
+- Do not double-insert risk_events for same event_id.
+
+============================================================
+5) API ENDPOINTS
+============================================================
+
+Add read-only endpoints:
+
+GET /risk/regions
+→ latest risk_indices per region + window
+
+GET /risk/regions/{region}
+→ full history (last 30 entries) for that region
+
+GET /risk/assets
+→ latest asset_risk per asset + window
+
+GET /risk/summary
+→ one object:
+{
+  "region": "Europe",
+  "risk_7d": 72,
+  "trend_7d": "rising",
+  "risk_30d": 58,
+  "trend_30d": "stable",
+  "assets": {
+    "oil": {"risk":78,"direction":"up"},
+    "gas": {"risk":82,"direction":"up"},
+    "fx": {"risk":55,"direction":"risk_off"},
+    "freight":{"risk":61,"direction":"up"}
+  }
+}
+
+============================================================
+6) SAFETY & QUALITY
+============================================================
+- No AI calls in Step 3
+- No UI
+- No breaking existing endpoints
+- Use clear logs
+- Handle empty data safely
+- Use transactions where needed
+
+============================================================
+7) README UPDATE
+============================================================
+Document:
+- what risk score means (0–100 relative risk)
+- how rolling normalization works
+- how to run risk engine
+- disclaimer: informational risk indicators only
+
+============================================================
+8) DELIVERABLES
+============================================================
+- New tables created safely
+- risk engine worker implemented
+- new API endpoints functional
+- sample output visible via /risk/summary
+- no UI added
+
+Start now. Build Step 3 only.

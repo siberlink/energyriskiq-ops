@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.api.routes import router
+from src.api.risk_routes import router as risk_router
 from src.db.migrations import run_migrations
 
 logging.basicConfig(
@@ -17,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="EnergyRiskIQ API",
-    description="Event Ingestion and Classification Pipeline for Energy Risk Intelligence",
-    version="0.1.0"
+    description="Event Ingestion, Classification, and Risk Intelligence Pipeline",
+    version="0.3.0"
 )
 
 app.add_middleware(
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(risk_router)
 
 @app.on_event("startup")
 async def startup_event():

@@ -1,15 +1,16 @@
-# EnergyRiskIQ - Event Ingestion & AI Analysis Pipeline (v0.2)
+# EnergyRiskIQ - Event Ingestion & Risk Intelligence Pipeline (v0.3)
 
-A Python-based event ingestion, classification, and AI analysis pipeline for energy risk intelligence.
+A Python-based event ingestion, classification, AI enrichment, and risk scoring pipeline for energy risk intelligence.
 
 ## Features
 
 - **RSS Feed Ingestion**: Fetches events from 3 news sources (geopolitical, energy, supply chain)
 - **Automatic Classification**: Categorizes events with keyword matching + category hints
 - **AI Enrichment**: Processes events with GPT to generate summaries and market impact analysis
-- **Region Detection**: Identifies geographic regions from event content
-- **Severity Scoring**: Assigns severity scores (1-5) based on keywords
-- **REST API**: Access events and AI analysis via FastAPI endpoints
+- **Risk Scoring**: Converts AI-enriched events into quantitative risk scores
+- **Rolling Risk Indices**: Computes 7-day and 30-day regional risk levels (0-100)
+- **Asset-Level Risk**: Tracks risk direction for oil, gas, fx, and freight
+- **REST API**: Access events, AI analysis, and risk data via FastAPI endpoints
 
 ## Project Structure
 
@@ -26,9 +27,12 @@ A Python-based event ingestion, classification, and AI analysis pipeline for ene
     ingest_runner.py  # Orchestrates ingestion runs
   /ai
     ai_worker.py      # AI processing worker
+  /risk
+    risk_engine.py    # Risk scoring and aggregation engine
   /api
     app.py            # FastAPI application
-    routes.py         # API endpoints
+    routes.py         # Event API endpoints
+    risk_routes.py    # Risk API endpoints
   main.py             # Main entrypoint
 ```
 
@@ -38,19 +42,11 @@ A Python-based event ingestion, classification, and AI analysis pipeline for ene
 
 The `DATABASE_URL` is automatically provided by Replit's PostgreSQL integration.
 
-**AI Processing** uses Replit AI Integrations (no API key required - charges billed to your credits):
-- `AI_INTEGRATIONS_OPENAI_BASE_URL` - Auto-configured
-- `AI_INTEGRATIONS_OPENAI_API_KEY` - Auto-configured
+**AI Processing** uses Replit AI Integrations (no API key required).
 
-Optional AI settings:
+Optional settings:
 - `OPENAI_MODEL`: Model to use (default: gpt-4.1-mini)
 - `AI_MAX_EVENTS_PER_RUN`: Max events per AI run (default: 20)
-- `AI_MAX_CHARS`: Max input chars (default: 6000)
-- `AI_TEMPERATURE`: Temperature (default: 0.2)
-
-### Configure Feeds
-
-Edit `src/config/feeds.json` to add or modify RSS feed sources.
 
 ## Usage
 
@@ -74,89 +70,99 @@ python src/main.py --mode ingest
 python src/main.py --mode ai
 ```
 
-This processes unprocessed events and generates AI summaries and impact analysis.
+### Run Risk Scoring
+
+```bash
+python src/main.py --mode risk
+```
+
+This scores AI-processed events and computes regional/asset risk indices.
 
 ## API Endpoints
 
-### Health Check
+### Events & AI
+- `GET /health` - Health check
+- `GET /events` - Query events with filters
+- `GET /events/latest` - Get 20 most recent events
+- `GET /events/{id}` - Get full event with AI analysis
+- `GET /ai/stats` - AI processing statistics
+- `GET /ingestion-runs` - View ingestion history
+
+### Risk Intelligence
+- `GET /risk/summary` - Current risk summary for a region
+- `GET /risk/regions` - Latest risk indices for all regions
+- `GET /risk/regions/{region}` - Historical risk data for a region
+- `GET /risk/assets` - Asset-level risk by region
+- `GET /risk/events` - View scored risk events
+
+## Risk Scoring System
+
+### What Risk Scores Mean
+
+Risk scores are **relative measures** from 0-100:
+- **0-25**: Low relative risk
+- **26-50**: Moderate risk
+- **51-75**: Elevated risk
+- **76-100**: High risk (near recent maximum)
+
+### How Scoring Works
+
+**Event-Level Weighted Score:**
 ```
-GET /health
+weighted_score = base_severity × ai_confidence × category_weight × recency_decay
 ```
 
-### Get Events
-```
-GET /events?category=energy&region=Europe&min_severity=3&processed=true&limit=50
-```
+Where:
+- `base_severity`: 1-5 from classification
+- `ai_confidence`: Average confidence from AI impact analysis
+- `category_weight`: geopolitical=1.2, energy=1.5, supply_chain=1.0
+- `recency_decay`: exp(-days_since_event / 14)
 
-### Get Latest Events
-```
-GET /events/latest
-```
-Returns 20 most recent events with AI summary fields.
+**Rolling Normalization:**
+- Scores are normalized to 0-100 using a rolling 90-day maximum
+- This provides relative context: "Is risk high compared to recent history?"
 
-### Get Event Detail (with full AI analysis)
-```
-GET /events/{id}
-```
-Returns complete event including `ai_impact` with market impact analysis.
+**Trend Detection:**
+- `rising`: Current 7-day score is >10% higher than previous 7 days
+- `falling`: Current 7-day score is >10% lower than previous 7 days
+- `stable`: Within ±10%
 
-### Get AI Processing Stats
-```
-GET /ai/stats
-```
-Returns processing statistics (total, processed, unprocessed, errors).
+### Asset Direction Logic
 
-### Get Ingestion Runs
-```
-GET /ingestion-runs
-```
+Asset directions (oil, gas, fx, freight) are aggregated from AI impact analysis:
+- Events vote for directions weighted by confidence
+- Majority direction wins (with 20% threshold for decisiveness)
+- `mixed` when votes are split, `unclear` when insufficient data
 
-## AI Analysis Output
+## Disclaimer
 
-Each processed event includes:
-
-- **ai_summary**: 2-3 sentence neutral summary
-- **ai_impact**: Structured market impact analysis
-  - Impact on oil, gas, fx, freight (direction, confidence, rationale)
-  - Key facts and entities extracted
-  - Risk flags (sanctions, supply_disruption, etc.)
-  - Time horizon estimate
-
-Example impact:
-```json
-{
-  "oil": {"direction": "up", "confidence": 0.8, "rationale": "Supply cuts..."},
-  "gas": {"direction": "unclear", "confidence": 0.2, "rationale": "No direct mention..."}
-}
-```
+Risk scores are **informational indicators only**. They represent relative risk levels based on news event analysis and should not be used as the sole basis for investment, trading, or business decisions. Always consult professional advisors and conduct independent research.
 
 ## Database Schema
 
-### events table
-- id, title, source_name, source_url (unique), category, region, severity_score
-- event_time, raw_text, classification_reason, inserted_at
-- processed, ai_summary, ai_impact_json, ai_model, ai_processed_at, ai_error, ai_attempts
+### Core Tables
+- **events**: News events with classification and AI enrichment
+- **ingestion_runs**: Ingestion run history
 
-### ingestion_runs table
-- id, started_at, finished_at, status
-- total_items, inserted_items, skipped_duplicates, failed_items, notes
+### Risk Tables
+- **risk_events**: Per-event normalized risk contributions
+- **risk_indices**: Rolling aggregate risk scores by region
+- **asset_risk**: Asset-specific risk signals
 
 ## Recent Changes
 
-### v0.2 (2026-01-07)
+### v0.3 (2026-01-07) - Risk Scoring Engine
+- Added risk_events, risk_indices, asset_risk tables
+- Implemented weighted scoring with recency decay
+- Rolling regional risk indices (7d, 30d)
+- Asset-level risk tracking (oil, gas, fx, freight)
+- New /risk/* API endpoints
+
+### v0.2 (2026-01-07) - AI Processing
 - Added AI processing worker with OpenAI integration
-- Added ai_summary, ai_impact_json columns for AI enrichment
-- Added GET /events/{id} endpoint for full AI analysis
-- Added GET /ai/stats endpoint for processing statistics
-- Added retry logic and error handling for AI calls
+- AI-generated summaries and market impact analysis
 
-### v0.1.1 (2026-01-07)
-- Added Al Jazeera as 3rd geopolitical RSS feed
-- Added category_hint support for classification
-- Added classification_reason tracking
-- Added detailed ingestion stats
-
-### v0.1.0 (2026-01-07)
-- Initial implementation with RSS ingestion
+### v0.1 (2026-01-07) - Initial Release
+- RSS ingestion from 3 feeds
 - Keyword-based classification
 - FastAPI endpoints

@@ -142,6 +142,57 @@ def run_migrations():
         "CREATE INDEX IF NOT EXISTS idx_events_ai_processed_at ON events (ai_processed_at);"
     ]
     
+    create_risk_events_table = """
+    CREATE TABLE IF NOT EXISTS risk_events (
+        id SERIAL PRIMARY KEY,
+        event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+        region TEXT NOT NULL,
+        category TEXT NOT NULL,
+        base_severity INT NOT NULL,
+        ai_confidence FLOAT NOT NULL,
+        weighted_score FLOAT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(event_id)
+    );
+    """
+    
+    create_risk_indices_table = """
+    CREATE TABLE IF NOT EXISTS risk_indices (
+        id SERIAL PRIMARY KEY,
+        region TEXT NOT NULL,
+        window_days INT NOT NULL,
+        risk_score FLOAT NOT NULL,
+        trend TEXT NOT NULL,
+        calculated_at TIMESTAMP DEFAULT NOW()
+    );
+    """
+    
+    create_asset_risk_table = """
+    CREATE TABLE IF NOT EXISTS asset_risk (
+        id SERIAL PRIMARY KEY,
+        asset TEXT NOT NULL,
+        region TEXT NOT NULL,
+        window_days INT NOT NULL,
+        risk_score FLOAT NOT NULL,
+        direction TEXT NOT NULL,
+        calculated_at TIMESTAMP DEFAULT NOW()
+    );
+    """
+    
+    create_risk_indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_risk_events_event_id ON risk_events (event_id);",
+        "CREATE INDEX IF NOT EXISTS idx_risk_events_region ON risk_events (region);",
+        "CREATE INDEX IF NOT EXISTS idx_risk_events_category ON risk_events (category);",
+        "CREATE INDEX IF NOT EXISTS idx_risk_events_created_at ON risk_events (created_at DESC);",
+        "CREATE INDEX IF NOT EXISTS idx_risk_indices_region ON risk_indices (region);",
+        "CREATE INDEX IF NOT EXISTS idx_risk_indices_window ON risk_indices (window_days);",
+        "CREATE INDEX IF NOT EXISTS idx_risk_indices_calculated ON risk_indices (calculated_at DESC);",
+        "CREATE INDEX IF NOT EXISTS idx_asset_risk_asset ON asset_risk (asset);",
+        "CREATE INDEX IF NOT EXISTS idx_asset_risk_region ON asset_risk (region);",
+        "CREATE INDEX IF NOT EXISTS idx_asset_risk_window ON asset_risk (window_days);",
+        "CREATE INDEX IF NOT EXISTS idx_asset_risk_calculated ON asset_risk (calculated_at DESC);"
+    ]
+    
     with get_cursor() as cursor:
         logger.info("Creating events table...")
         cursor.execute(create_events_table)
@@ -164,6 +215,19 @@ def run_migrations():
         
         logger.info("Creating AI indexes...")
         for idx_sql in create_ai_indexes:
+            cursor.execute(idx_sql)
+        
+        logger.info("Creating risk_events table...")
+        cursor.execute(create_risk_events_table)
+        
+        logger.info("Creating risk_indices table...")
+        cursor.execute(create_risk_indices_table)
+        
+        logger.info("Creating asset_risk table...")
+        cursor.execute(create_asset_risk_table)
+        
+        logger.info("Creating risk indexes...")
+        for idx_sql in create_risk_indexes:
             cursor.execute(idx_sql)
     
     logger.info("Migrations completed successfully.")
