@@ -38,6 +38,51 @@ def run_migrations():
         "CREATE INDEX IF NOT EXISTS idx_events_severity ON events (severity_score);"
     ]
     
+    alter_events_add_classification_reason = """
+    DO $$ 
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'classification_reason'
+        ) THEN
+            ALTER TABLE events ADD COLUMN classification_reason TEXT NULL;
+        END IF;
+    END $$;
+    """
+    
+    alter_ingestion_runs_add_stats = """
+    DO $$ 
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'ingestion_runs' AND column_name = 'total_items'
+        ) THEN
+            ALTER TABLE ingestion_runs ADD COLUMN total_items INT DEFAULT 0;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'ingestion_runs' AND column_name = 'inserted_items'
+        ) THEN
+            ALTER TABLE ingestion_runs ADD COLUMN inserted_items INT DEFAULT 0;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'ingestion_runs' AND column_name = 'skipped_duplicates'
+        ) THEN
+            ALTER TABLE ingestion_runs ADD COLUMN skipped_duplicates INT DEFAULT 0;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'ingestion_runs' AND column_name = 'failed_items'
+        ) THEN
+            ALTER TABLE ingestion_runs ADD COLUMN failed_items INT DEFAULT 0;
+        END IF;
+    END $$;
+    """
+    
     with get_cursor() as cursor:
         logger.info("Creating events table...")
         cursor.execute(create_events_table)
@@ -48,6 +93,12 @@ def run_migrations():
         logger.info("Creating indexes...")
         for idx_sql in create_indexes:
             cursor.execute(idx_sql)
+        
+        logger.info("Adding classification_reason column to events...")
+        cursor.execute(alter_events_add_classification_reason)
+        
+        logger.info("Adding stats columns to ingestion_runs...")
+        cursor.execute(alter_ingestion_runs_add_stats)
     
     logger.info("Migrations completed successfully.")
 

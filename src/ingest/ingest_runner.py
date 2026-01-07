@@ -19,26 +19,29 @@ logger = logging.getLogger(__name__)
 
 def start_ingestion_run() -> int:
     result = execute_one(
-        "INSERT INTO ingestion_runs (status) VALUES ('running') RETURNING id"
+        "INSERT INTO ingestion_runs (status, total_items, inserted_items, skipped_duplicates, failed_items) VALUES ('running', 0, 0, 0, 0) RETURNING id"
     )
     run_id = result['id']
     logger.info(f"Started ingestion run #{run_id}")
     return run_id
 
-def finish_ingestion_run(run_id: int, status: str, notes: str):
+def finish_ingestion_run(run_id: int, status: str, total: int, inserted: int, skipped: int, failed: int):
+    notes = f"Total: {total}, Inserted: {inserted}, Skipped: {skipped}, Failed: {failed}"
     with get_cursor() as cursor:
         cursor.execute(
             """UPDATE ingestion_runs 
-               SET finished_at = NOW(), status = %s, notes = %s 
+               SET finished_at = NOW(), status = %s, notes = %s,
+                   total_items = %s, inserted_items = %s, 
+                   skipped_duplicates = %s, failed_items = %s
                WHERE id = %s""",
-            (status, notes, run_id)
+            (status, notes, total, inserted, skipped, failed, run_id)
         )
     logger.info(f"Finished ingestion run #{run_id} with status: {status}")
 
-def insert_event(event: dict, category: str, region: str, severity: int) -> Tuple[bool, str]:
+def insert_event(event: dict, category: str, region: str, severity: int, classification_reason: str) -> Tuple[bool, str]:
     insert_sql = """
-    INSERT INTO events (title, source_name, source_url, category, region, severity_score, event_time, raw_text)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO events (title, source_name, source_url, category, region, severity_score, event_time, raw_text, classification_reason)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     ON CONFLICT (source_url) DO NOTHING
     RETURNING id
     """
@@ -53,7 +56,8 @@ def insert_event(event: dict, category: str, region: str, severity: int) -> Tupl
                 region,
                 severity,
                 event.get('event_time'),
-                event.get('raw_text')
+                event.get('raw_text'),
+                classification_reason
             ))
             result = cursor.fetchone()
             
@@ -78,18 +82,21 @@ def run_ingestion():
     inserted_count = 0
     skipped_count = 0
     error_count = 0
+    total_count = 0
     
     try:
         events = fetch_all_feeds()
+        total_count = len(events)
         
         for event in events:
             try:
-                category, region, severity = classify_event(
+                category, region, severity, classification_reason = classify_event(
                     event['title'], 
-                    event.get('raw_text', '')
+                    event.get('raw_text', ''),
+                    event.get('category_hint')
                 )
                 
-                success, message = insert_event(event, category, region, severity)
+                success, message = insert_event(event, category, region, severity, classification_reason)
                 
                 if success:
                     inserted_count += 1
@@ -102,18 +109,17 @@ def run_ingestion():
                 error_count += 1
                 logger.error(f"Error processing event '{event.get('title', 'Unknown')}': {e}")
         
-        notes = f"Inserted: {inserted_count}, Skipped: {skipped_count}, Errors: {error_count}"
-        finish_ingestion_run(run_id, 'success', notes)
+        finish_ingestion_run(run_id, 'success', total_count, inserted_count, skipped_count, error_count)
         
         logger.info("=" * 60)
-        logger.info(f"Ingestion Complete: {notes}")
+        logger.info(f"Ingestion Complete: Total={total_count}, Inserted={inserted_count}, Skipped={skipped_count}, Failed={error_count}")
         logger.info("=" * 60)
         
         return inserted_count, skipped_count, error_count
     
     except Exception as e:
         logger.error(f"Ingestion run failed: {e}")
-        finish_ingestion_run(run_id, 'failed', str(e))
+        finish_ingestion_run(run_id, 'failed', total_count, inserted_count, skipped_count, error_count)
         raise
 
 if __name__ == "__main__":

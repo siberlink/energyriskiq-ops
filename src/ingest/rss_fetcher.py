@@ -2,7 +2,7 @@ import feedparser
 import logging
 import json
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 from time import mktime
 
@@ -23,7 +23,7 @@ def load_feeds_config() -> List[Dict[str, str]]:
         logger.error(f"Invalid JSON in feeds config: {e}")
         raise
 
-def parse_published_date(entry: Dict) -> datetime:
+def parse_published_date(entry: Dict) -> Optional[datetime]:
     if hasattr(entry, 'published_parsed') and entry.published_parsed:
         try:
             return datetime.fromtimestamp(mktime(entry.published_parsed))
@@ -38,7 +38,7 @@ def parse_published_date(entry: Dict) -> datetime:
     
     return None
 
-def extract_raw_text(entry: Dict) -> str:
+def extract_raw_text(entry: Dict) -> Optional[str]:
     if hasattr(entry, 'summary') and entry.summary:
         return entry.summary[:2000]
     
@@ -55,6 +55,7 @@ def extract_raw_text(entry: Dict) -> str:
 def fetch_feed(feed_config: Dict[str, str]) -> List[Dict[str, Any]]:
     source_name = feed_config.get('source_name', 'Unknown')
     feed_url = feed_config.get('feed_url')
+    category_hint = feed_config.get('category_hint')
     
     if not feed_url:
         logger.error(f"No feed_url for source: {source_name}")
@@ -89,7 +90,8 @@ def fetch_feed(feed_config: Dict[str, str]) -> List[Dict[str, Any]]:
                 'source_name': source_name,
                 'source_url': link,
                 'event_time': parse_published_date(entry),
-                'raw_text': extract_raw_text(entry)
+                'raw_text': extract_raw_text(entry),
+                'category_hint': category_hint
             }
             events.append(event)
         

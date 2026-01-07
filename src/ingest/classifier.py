@@ -1,6 +1,5 @@
-import re
 import logging
-from typing import Tuple
+from typing import Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,8 @@ HIGH_SEVERITY_KEYWORDS = ['attack', 'missile', 'explosion', 'shutdown', 'blockad
 MEDIUM_SEVERITY_KEYWORDS = ['strike', 'disruption', 'outage', 'congestion']
 OPEC_KEYWORDS = ['opec', 'production cut']
 
+VALID_CATEGORIES = ['geopolitical', 'energy', 'supply_chain']
+
 def count_keyword_matches(text: str, keywords: list) -> int:
     text_lower = text.lower()
     count = 0
@@ -43,25 +44,52 @@ def count_keyword_matches(text: str, keywords: list) -> int:
             count += 1
     return count
 
-def classify_category(title: str, raw_text: str = "") -> str:
+def classify_category_with_reason(title: str, raw_text: str = "", category_hint: Optional[str] = None) -> Tuple[str, str]:
     combined_text = f"{title} {raw_text or ''}"
     
     geo_score = count_keyword_matches(combined_text, GEOPOLITICAL_KEYWORDS)
     energy_score = count_keyword_matches(combined_text, ENERGY_KEYWORDS)
     supply_score = count_keyword_matches(combined_text, SUPPLY_CHAIN_KEYWORDS)
     
-    scores = [
-        ('energy', energy_score),
-        ('geopolitical', geo_score),
-        ('supply_chain', supply_score)
-    ]
+    hint_valid = category_hint in VALID_CATEGORIES if category_hint else False
+    hint_str = category_hint if hint_valid else "none"
     
-    scores.sort(key=lambda x: x[1], reverse=True)
+    scores = {
+        'energy': energy_score,
+        'geopolitical': geo_score,
+        'supply_chain': supply_score
+    }
     
-    if scores[0][1] == 0:
-        return 'geopolitical'
+    max_score = max(scores.values())
     
-    return scores[0][0]
+    if max_score == 0:
+        if hint_valid:
+            chosen = category_hint
+            decision = "no_keywords_used_hint"
+        else:
+            chosen = 'geopolitical'
+            decision = "no_keywords_default_geo"
+    else:
+        top_categories = [cat for cat, score in scores.items() if score == max_score]
+        
+        if len(top_categories) == 1:
+            chosen = top_categories[0]
+            decision = "keyword_winner"
+        else:
+            if hint_valid and category_hint in top_categories:
+                chosen = category_hint
+                decision = "tie_resolved_by_hint"
+            else:
+                priority = ['energy', 'geopolitical', 'supply_chain']
+                for cat in priority:
+                    if cat in top_categories:
+                        chosen = cat
+                        decision = "tie_resolved_by_priority"
+                        break
+    
+    reason = f"energy_keywords={energy_score};geo_keywords={geo_score};sc_keywords={supply_score};hint={hint_str};chosen={chosen};decision={decision}"
+    
+    return chosen, reason
 
 def classify_region(title: str, raw_text: str = "") -> str:
     combined_text = f"{title} {raw_text or ''}".lower()
@@ -76,7 +104,7 @@ def classify_region(title: str, raw_text: str = "") -> str:
             region_scores[region] = score
     
     if not region_scores:
-        return 'global'
+        return 'Global'
     
     best_region = max(region_scores, key=region_scores.get)
     
@@ -113,11 +141,11 @@ def calculate_severity(title: str, raw_text: str = "") -> int:
     
     return max(1, min(5, score))
 
-def classify_event(title: str, raw_text: str = "") -> Tuple[str, str, int]:
-    category = classify_category(title, raw_text)
+def classify_event(title: str, raw_text: str = "", category_hint: Optional[str] = None) -> Tuple[str, str, int, str]:
+    category, classification_reason = classify_category_with_reason(title, raw_text, category_hint)
     region = classify_region(title, raw_text)
     severity = calculate_severity(title, raw_text)
     
     logger.debug(f"Classified '{title[:50]}...' as category={category}, region={region}, severity={severity}")
     
-    return category, region, severity
+    return category, region, severity, classification_reason

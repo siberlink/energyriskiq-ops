@@ -1,7 +1,7 @@
 [
   {
-    "source_name": "Reuters World News",
-    "feed_url": "https://feeds.reuters.com/Reuters/worldNews",
+    "source_name": "Al Jazeera News",
+    "feed_url": "https://www.aljazeera.com/xml/rss/all.xml",
     "category_hint": "geopolitical"
   },
   {

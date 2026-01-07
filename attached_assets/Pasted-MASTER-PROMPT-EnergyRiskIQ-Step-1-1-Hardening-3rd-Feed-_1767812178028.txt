@@ -1,0 +1,57 @@
+MASTER PROMPT — EnergyRiskIQ Step 1.1 (Hardening + 3rd Feed)
+
+You are Replit AI acting as my senior engineer. We already completed Step 1 (ingestion + classification + API). Now implement Step 1.1 improvements ONLY (no AI summaries yet, no dashboards, no auth, no Stripe).
+
+GOALS (must-do)
+1) Add a 3rd RSS feed dedicated to GEOPOLITICAL events.
+   - Add it to src/config/feeds.json (do not hardcode in code).
+   - Choose a reputable RSS feed that is stable and legal to consume via RSS.
+   - The pipeline must ingest successfully from all 3 feeds.
+
+2) Improve classification quality WITHOUT using AI:
+   A) Support a per-feed "category_hint" field in feeds.json:
+      - Example: {"source_name":"OilPrice","feed_url":"...","category_hint":"energy"}
+      - Allowed: geopolitical|energy|supply_chain
+   B) Classifier scoring:
+      - Score keyword matches as before
+      - If tie or no matches, use category_hint as tie-breaker
+      - If still unresolved, default to geopolitical
+   C) Add a new DB column: classification_reason TEXT
+      - Store something like: "energy_keywords=3;geo_keywords=1;sc_keywords=0;hint=energy;chosen=energy"
+      - This will help debugging and later model evaluation.
+
+3) Improve ingestion run stats:
+   - Add columns to ingestion_runs:
+     * total_items INT DEFAULT 0
+     * inserted_items INT DEFAULT 0
+     * skipped_duplicates INT DEFAULT 0
+     * failed_items INT DEFAULT 0
+   - Update ingest runner to populate these stats per run and store a short notes summary.
+
+4) Consistency & docs:
+   - Ensure README.md clearly states:
+     - how to run API
+     - what port it runs on (choose one and standardize)
+     - how to run ingestion once
+     - where feeds.json lives and how to add feeds
+   - Keep the project structure unchanged unless necessary.
+
+DATABASE MIGRATION REQUIREMENT
+- Add migrations safely (ALTER TABLE if columns don’t exist).
+- Do not drop tables or wipe data.
+- Keep backward compatibility.
+
+API
+- Keep existing endpoints working.
+- If you have /ingestion-runs already, keep it.
+- No new endpoints required for this step.
+
+DELIVERABLES
+- Updated feeds.json with 3 sources (geo + energy + supply_chain).
+- Updated classifier with category_hint tie-breaker.
+- DB migration adding classification_reason and ingestion_runs counters.
+- Updated ingest runner filling counters.
+- README updated and accurate.
+- Run ingestion once and confirm it inserts new events; then confirm GET /events/latest returns results.
+
+Implement now.
