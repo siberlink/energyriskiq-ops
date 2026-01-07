@@ -1,0 +1,164 @@
+MASTER PROMPT — EnergyRiskIQ Step 2 (AI Processing Worker v0.1)
+
+You are Replit AI acting as my senior engineer. Implement Step 2 ONLY: an AI processing worker that enriches events with AI summary + AI impact. Do not build dashboards, alerts, auth, Stripe, or forecasting models yet.
+
+============================================================
+1) SCOPE
+============================================================
+We already have:
+- events table
+- ingestion_runs table
+- ingestion pipeline with 3 RSS feeds
+- classification_reason column
+
+Now implement:
+A) DB schema update to support AI enrichment
+B) A Python worker that:
+   - finds events that are not yet processed
+   - calls an LLM (configurable) to produce ai_summary + ai_impact
+   - saves results back to Postgres
+   - marks processed status
+C) A minimal API endpoint to view AI-enriched fields (optional if /events already returns all fields; if not, update it carefully)
+D) Safety: do not leak API keys, do not crash on one bad event, rate limit & retries.
+
+============================================================
+2) DATABASE CHANGES (safe migrations)
+============================================================
+ALTER events table to add (if not exists):
+- processed BOOLEAN NOT NULL DEFAULT FALSE
+- ai_summary TEXT NULL
+- ai_impact_json JSONB NULL         (structured impact output)
+- ai_model TEXT NULL                (e.g., "gpt-4.1-mini" or similar)
+- ai_processed_at TIMESTAMP NULL
+- ai_error TEXT NULL                (store last error message)
+- ai_attempts INT NOT NULL DEFAULT 0
+
+Add indexes:
+- processed
+- ai_processed_at
+
+Do not drop data. Use ALTER TABLE ... ADD COLUMN IF NOT EXISTS.
+
+============================================================
+3) AI PROVIDER ABSTRACTION
+============================================================
+Implement an abstraction so we can swap providers:
+- For now, support OpenAI-style API via environment variable.
+
+Env vars:
+- AI_PROVIDER = "openai" (default)
+- OPENAI_API_KEY
+- OPENAI_MODEL (default to a cost-effective model; if not provided choose a safe default)
+- AI_MAX_EVENTS_PER_RUN (default 20)
+- AI_MAX_CHARS (default 6000)  # truncate raw_text
+- AI_TEMPERATURE (default 0.2)
+
+IMPORTANT: If raw_text is empty (common for RSS), the worker should still run using title + short description only.
+
+============================================================
+4) PROMPT + OUTPUT FORMAT (STRICT JSON)
+============================================================
+The worker must send a prompt that requests STRICT JSON output with this schema:
+
+{
+  "summary": "2-3 sentence neutral summary in English. No hype.",
+  "key_facts": ["fact1","fact2","fact3"],
+  "entities": {
+    "countries": ["..."],
+    "companies": ["..."],
+    "commodities": ["oil","gas","lng","power","freight","fx"],
+    "routes": ["Suez","Black Sea","Bosphorus","Panama","Red Sea","North Sea"]
+  },
+  "impact": {
+    "oil": {"direction":"up|down|mixed|unclear", "confidence":0-1, "rationale":"..."},
+    "gas": {"direction":"up|down|mixed|unclear", "confidence":0-1, "rationale":"..."},
+    "fx":  {"direction":"risk_off|risk_on|mixed|unclear", "confidence":0-1, "rationale":"..."},
+    "freight":{"direction":"up|down|mixed|unclear", "confidence":0-1, "rationale":"..."}
+  },
+  "time_horizon_days": 7,
+  "risk_flags": ["sanctions","supply_disruption","military_escalation","port_disruption","pipeline_outage","strike","regulatory_change"]
+}
+
+Rules:
+- Must be valid JSON only (no markdown fences)
+- If unknown, use "unclear" and low confidence
+- Must be neutral, factual, and cautious
+- Do not give investment advice
+
+Store:
+- ai_summary = output.summary
+- ai_impact_json = entire JSON object
+- ai_model = model name
+- ai_processed_at timestamp
+- processed=true
+
+============================================================
+5) WORKER LOGIC
+============================================================
+Create src/ai/ai_worker.py (or similar) with a CLI entry:
+
+Run once:
+python src/main.py --mode ai
+
+or:
+python -m src.ai.ai_worker
+
+Algorithm:
+1) Fetch up to AI_MAX_EVENTS_PER_RUN events where processed=false
+   order by inserted_at asc (oldest first)
+2) For each event:
+   - increment ai_attempts
+   - build input text:
+       title + "\n\n" + raw_text (truncate to AI_MAX_CHARS)
+   - call AI provider
+   - parse JSON safely:
+       - if invalid JSON, set ai_error and continue (processed stays false)
+       - if valid, store fields and set processed=true
+3) Rate limiting:
+   - sleep 0.5–1.0s between calls (configurable)
+4) Retries:
+   - up to 2 retries on network errors with exponential backoff
+5) Failure policy:
+   - if ai_attempts >= 3 and still failing, keep processed=false but set ai_error
+   - do not block other events
+
+Also add structured logs:
+- how many processed successfully
+- how many failed
+- average processing time
+
+============================================================
+6) API UPDATES
+============================================================
+Ensure GET /events/latest includes:
+- processed
+- ai_summary (optional, but helpful)
+- ai_processed_at
+But keep responses lightweight: do NOT return ai_impact_json by default for list endpoints unless already returned.
+If you want, add:
+GET /events/{id}
+-> returns full event including ai_impact_json
+
+Do not break existing clients.
+
+============================================================
+7) SECURITY
+============================================================
+- Never print API keys.
+- Read keys from env only.
+- Add .env.example updates.
+
+============================================================
+8) DELIVERABLES
+============================================================
+- Migration applied safely
+- New ai worker module added
+- Updated main entry to run AI mode
+- Optional GET /events/{id} endpoint for full details
+- README updated: how to set OPENAI_API_KEY and run ai worker
+- Demonstrate by:
+  1) Run ingestion once
+  2) Run AI worker once (process ~5-10 events)
+  3) Call GET /events/latest and show processed=true + ai_summary populated on some events
+
+Implement now.
