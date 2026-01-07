@@ -1,41 +1,44 @@
-# EnergyRiskIQ - Event Ingestion Pipeline
+# EnergyRiskIQ - Event Ingestion & AI Analysis Pipeline
 
 ## Overview
-EnergyRiskIQ is an event ingestion and classification pipeline for energy risk intelligence. It fetches news events from RSS feeds, classifies them by category (geopolitical, energy, supply_chain), identifies regions, and assigns severity scores.
+EnergyRiskIQ is an event ingestion, classification, and AI analysis pipeline for energy risk intelligence. It fetches news events from RSS feeds, classifies them, and enriches them with AI-generated summaries and market impact analysis.
 
-**Current State**: Step 1.1 complete - Hardened event ingestion with 3 feeds, category hints, and classification tracking.
+**Current State**: Step 2 complete - AI processing worker with OpenAI integration for event enrichment.
 
 ## Project Architecture
 
 ```
 /src
   /config
-    feeds.json        # RSS feed configuration with category_hint support
+    feeds.json        # RSS feed configuration with category_hint
   /db
     db.py             # PostgreSQL connection helper using psycopg2
-    migrations.py     # Creates tables and adds new columns safely
+    migrations.py     # Creates tables and adds columns safely
   /ingest
     rss_fetcher.py    # Fetches RSS feeds with category_hint passthrough
     classifier.py     # Keyword classification with hint tie-breaking
     ingest_runner.py  # Orchestrates ingestion with detailed stats
+  /ai
+    ai_worker.py      # AI processing worker using OpenAI
   /api
     app.py            # FastAPI application with CORS
-    routes.py         # API endpoints: /health, /events, /events/latest
-  main.py             # Main entrypoint (--mode api or --mode ingest)
+    routes.py         # API endpoints including AI stats
+  main.py             # Main entrypoint (--mode api/ingest/ai)
 ```
 
 ## Tech Stack
 - **Language**: Python 3.11
 - **Web Framework**: FastAPI with uvicorn
 - **Database**: PostgreSQL (Replit-provided)
-- **Dependencies**: feedparser, psycopg2-binary, python-dotenv
+- **AI**: OpenAI via Replit AI Integrations (gpt-4.1-mini)
+- **Dependencies**: feedparser, psycopg2-binary, openai, python-dotenv
 
 ## Database Schema
 
 ### events table
 - id, title, source_name, source_url (unique), category, region, severity_score
 - event_time, raw_text, classification_reason, inserted_at
-- Indexes on: inserted_at DESC, category, region, severity_score
+- processed, ai_summary, ai_impact_json, ai_model, ai_processed_at, ai_error, ai_attempts
 
 ### ingestion_runs table
 - id, started_at, finished_at, status (running|success|failed)
@@ -52,59 +55,56 @@ Runs on **port 5000**.
 ### Run Ingestion
 ```bash
 python src/main.py --mode ingest
-# or
-python -m src.ingest.ingest_runner
 ```
+
+### Run AI Processing
+```bash
+python src/main.py --mode ai
+```
+Processes unprocessed events with AI enrichment.
 
 ## API Endpoints
 
 - `GET /health` - Health check
-- `GET /events?category=&region=&min_severity=&limit=50` - Query events
-- `GET /events/latest` - Get 20 most recent events
-- `GET /ingestion-runs` - View ingestion history with stats
+- `GET /events?category=&region=&min_severity=&processed=&limit=50` - Query events
+- `GET /events/latest` - Get 20 most recent events with AI summary
+- `GET /events/{id}` - Get full event detail with ai_impact analysis
+- `GET /ai/stats` - AI processing statistics
+- `GET /ingestion-runs` - View ingestion history
+
+## AI Processing
+
+Uses Replit AI Integrations (OpenAI-compatible, no API key needed).
+
+### Output Structure
+- **ai_summary**: 2-3 sentence neutral summary
+- **ai_impact_json**: Full structured analysis including:
+  - Impact on oil, gas, fx, freight (direction, confidence, rationale)
+  - Key facts, entities (countries, companies, commodities, routes)
+  - Risk flags (sanctions, supply_disruption, military_escalation, etc.)
+  - Time horizon estimate
+
+### Configuration
+- `OPENAI_MODEL`: gpt-4.1-mini (default)
+- `AI_MAX_EVENTS_PER_RUN`: 20 (default)
+- `AI_TEMPERATURE`: 0.2 (default)
 
 ## Classification Logic
 
 ### Categories (keyword-based with hint tie-breaking)
-- **geopolitical**: war, attack, missile, conflict, sanctions, embargo, etc.
+- **geopolitical**: war, attack, missile, conflict, sanctions, etc.
 - **energy**: OPEC, crude, oil, gas, LNG, refinery, etc.
 - **supply_chain**: port, shipping, freight, container, strike, etc.
-
-### Classification Process
-1. Count keyword matches for each category
-2. If clear winner, use it
-3. If tie, use category_hint from feed config
-4. If still tied, priority: energy > geopolitical > supply_chain
-5. If no keywords, use hint or default to geopolitical
-
-### classification_reason Format
-```
-energy_keywords=3;geo_keywords=1;sc_keywords=0;hint=energy;chosen=energy;decision=keyword_winner
-```
 
 ### Regions
 Europe, Middle East, Black Sea, North Africa, Asia, North America, Global
 
 ### Severity (1-5)
-- Base: 2
-- +2: attack, missile, explosion, shutdown, blockade, sanctions
-- +1: strike, disruption, outage, congestion
-- +1: OPEC, production cut
-
-## Feed Configuration
-
-Edit `src/config/feeds.json`:
-```json
-[
-  {"source_name": "Al Jazeera News", "feed_url": "...", "category_hint": "geopolitical"},
-  {"source_name": "OilPrice.com", "feed_url": "...", "category_hint": "energy"},
-  {"source_name": "FreightWaves", "feed_url": "...", "category_hint": "supply_chain"}
-]
-```
+Based on keyword severity: attack (+2), strike (+1), OPEC (+1), etc.
 
 ## Recent Changes
-- 2026-01-07: Step 1.1 - Added 3rd geopolitical feed (Al Jazeera)
-- 2026-01-07: Added category_hint tie-breaker for classification
-- 2026-01-07: Added classification_reason column for debugging
-- 2026-01-07: Added detailed stats columns to ingestion_runs
-- 2026-01-07: Initial Step 1 implementation complete
+- 2026-01-07: Step 2 - Added AI processing worker
+- 2026-01-07: Added ai_summary, ai_impact_json columns
+- 2026-01-07: Added GET /events/{id} and GET /ai/stats endpoints
+- 2026-01-07: Step 1.1 - Added 3rd feed, category hints, classification tracking
+- 2026-01-07: Initial Step 1 implementation

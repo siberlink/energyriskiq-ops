@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description='EnergyRiskIQ Pipeline')
-    parser.add_argument('--mode', choices=['api', 'ingest'], default='api',
-                        help='Run mode: api (start server) or ingest (run ingestion)')
+    parser.add_argument('--mode', choices=['api', 'ingest', 'ai'], default='api',
+                        help='Run mode: api (start server), ingest (run ingestion), ai (run AI processing)')
     
     args = parser.parse_args()
     
@@ -27,6 +27,10 @@ def main():
     elif args.mode == 'ingest':
         from src.ingest.ingest_runner import run_ingestion
         run_ingestion()
+    
+    elif args.mode == 'ai':
+        from src.ai.ai_worker import run_ai_worker
+        run_ai_worker()
 
 if __name__ == "__main__":
     main()

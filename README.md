@@ -1,30 +1,31 @@
-# EnergyRiskIQ - Event Ingestion Pipeline (v0.1.1)
+# EnergyRiskIQ - Event Ingestion & AI Analysis Pipeline (v0.2)
 
-A Python-based event ingestion and classification pipeline for energy risk intelligence.
+A Python-based event ingestion, classification, and AI analysis pipeline for energy risk intelligence.
 
 ## Features
 
 - **RSS Feed Ingestion**: Fetches events from 3 news sources (geopolitical, energy, supply chain)
 - **Automatic Classification**: Categorizes events with keyword matching + category hints
+- **AI Enrichment**: Processes events with GPT to generate summaries and market impact analysis
 - **Region Detection**: Identifies geographic regions from event content
 - **Severity Scoring**: Assigns severity scores (1-5) based on keywords
-- **Classification Tracking**: Stores classification reasoning for debugging
-- **Duplicate Prevention**: Skips already-ingested events
-- **REST API**: Access events via FastAPI endpoints
+- **REST API**: Access events and AI analysis via FastAPI endpoints
 
 ## Project Structure
 
 ```
 /src
   /config
-    feeds.json        # RSS feed configuration (add/edit feeds here)
+    feeds.json        # RSS feed configuration
   /db
     db.py             # Database connection helper
     migrations.py     # Table creation and schema updates
   /ingest
-    rss_fetcher.py    # RSS feed fetching with category_hint support
+    rss_fetcher.py    # RSS feed fetching
     classifier.py     # Category/region/severity classification
-    ingest_runner.py  # Orchestrates ingestion runs with stats
+    ingest_runner.py  # Orchestrates ingestion runs
+  /ai
+    ai_worker.py      # AI processing worker
   /api
     app.py            # FastAPI application
     routes.py         # API endpoints
@@ -37,27 +38,19 @@ A Python-based event ingestion and classification pipeline for energy risk intel
 
 The `DATABASE_URL` is automatically provided by Replit's PostgreSQL integration.
 
-Optional variables:
-- `LOG_LEVEL`: Logging level (default: INFO)
-- `INGESTION_USER_AGENT`: Custom user agent for RSS fetching
+**AI Processing** uses Replit AI Integrations (no API key required - charges billed to your credits):
+- `AI_INTEGRATIONS_OPENAI_BASE_URL` - Auto-configured
+- `AI_INTEGRATIONS_OPENAI_API_KEY` - Auto-configured
+
+Optional AI settings:
+- `OPENAI_MODEL`: Model to use (default: gpt-4.1-mini)
+- `AI_MAX_EVENTS_PER_RUN`: Max events per AI run (default: 20)
+- `AI_MAX_CHARS`: Max input chars (default: 6000)
+- `AI_TEMPERATURE`: Temperature (default: 0.2)
 
 ### Configure Feeds
 
-Edit `src/config/feeds.json` to add or modify RSS feed sources:
-
-```json
-[
-  {
-    "source_name": "Source Name",
-    "feed_url": "https://example.com/rss",
-    "category_hint": "energy"
-  }
-]
-```
-
-**category_hint values**: `geopolitical`, `energy`, `supply_chain`
-
-The hint is used as a tie-breaker when keyword matching produces equal scores.
+Edit `src/config/feeds.json` to add or modify RSS feed sources.
 
 ## Usage
 
@@ -69,21 +62,19 @@ python src/main.py --mode api
 
 The API runs on **port 5000**.
 
-Or directly with uvicorn:
-```bash
-uvicorn src.api.app:app --host 0.0.0.0 --port 5000
-```
-
 ### Run Ingestion
 
 ```bash
 python src/main.py --mode ingest
 ```
 
-Or:
+### Run AI Processing
+
 ```bash
-python -m src.ingest.ingest_runner
+python src/main.py --mode ai
 ```
+
+This processes unprocessed events and generates AI summaries and impact analysis.
 
 ## API Endpoints
 
@@ -91,65 +82,60 @@ python -m src.ingest.ingest_runner
 ```
 GET /health
 ```
-Returns: `{"status": "ok"}`
 
 ### Get Events
 ```
-GET /events?category=energy&region=Europe&min_severity=3&limit=50
+GET /events?category=energy&region=Europe&min_severity=3&processed=true&limit=50
 ```
-
-Query parameters:
-- `category`: Filter by category (geopolitical, energy, supply_chain)
-- `region`: Filter by region (Europe, Middle East, Asia, etc.)
-- `min_severity`: Minimum severity score (1-5)
-- `limit`: Number of results (default: 50, max: 200)
 
 ### Get Latest Events
 ```
 GET /events/latest
 ```
-Returns the 20 most recent events.
+Returns 20 most recent events with AI summary fields.
+
+### Get Event Detail (with full AI analysis)
+```
+GET /events/{id}
+```
+Returns complete event including `ai_impact` with market impact analysis.
+
+### Get AI Processing Stats
+```
+GET /ai/stats
+```
+Returns processing statistics (total, processed, unprocessed, errors).
 
 ### Get Ingestion Runs
 ```
-GET /ingestion-runs?limit=10
-```
-Returns recent ingestion run logs with detailed stats.
-
-## Classification Logic
-
-### Categories
-- **geopolitical**: war, attack, missile, conflict, sanctions, embargo, etc.
-- **energy**: OPEC, crude, oil, gas, LNG, refinery, etc.
-- **supply_chain**: port, shipping, freight, container, strike, etc.
-
-### Classification Process
-1. Count keyword matches for each category
-2. If one category has the most matches, use it
-3. If there's a tie, use the feed's `category_hint` if it's among the tied categories
-4. If still tied, use priority order: energy > geopolitical > supply_chain
-5. If no keywords match, use `category_hint` or default to `geopolitical`
-
-Each event stores a `classification_reason` field with debug info like:
-```
-energy_keywords=3;geo_keywords=1;sc_keywords=0;hint=energy;chosen=energy;decision=keyword_winner
+GET /ingestion-runs
 ```
 
-### Regions
-- Europe, Middle East, Black Sea, North Africa, Asia, North America, Global
+## AI Analysis Output
 
-### Severity Scoring
-- Base score: 2
-- +2 for: attack, missile, explosion, shutdown, blockade, sanctions
-- +1 for: strike, disruption, outage, congestion
-- +1 for: OPEC, production cut
-- Range: 1-5
+Each processed event includes:
+
+- **ai_summary**: 2-3 sentence neutral summary
+- **ai_impact**: Structured market impact analysis
+  - Impact on oil, gas, fx, freight (direction, confidence, rationale)
+  - Key facts and entities extracted
+  - Risk flags (sanctions, supply_disruption, etc.)
+  - Time horizon estimate
+
+Example impact:
+```json
+{
+  "oil": {"direction": "up", "confidence": 0.8, "rationale": "Supply cuts..."},
+  "gas": {"direction": "unclear", "confidence": 0.2, "rationale": "No direct mention..."}
+}
+```
 
 ## Database Schema
 
 ### events table
 - id, title, source_name, source_url (unique), category, region, severity_score
 - event_time, raw_text, classification_reason, inserted_at
+- processed, ai_summary, ai_impact_json, ai_model, ai_processed_at, ai_error, ai_attempts
 
 ### ingestion_runs table
 - id, started_at, finished_at, status
@@ -157,16 +143,20 @@ energy_keywords=3;geo_keywords=1;sc_keywords=0;hint=energy;chosen=energy;decisio
 
 ## Recent Changes
 
+### v0.2 (2026-01-07)
+- Added AI processing worker with OpenAI integration
+- Added ai_summary, ai_impact_json columns for AI enrichment
+- Added GET /events/{id} endpoint for full AI analysis
+- Added GET /ai/stats endpoint for processing statistics
+- Added retry logic and error handling for AI calls
+
 ### v0.1.1 (2026-01-07)
 - Added Al Jazeera as 3rd geopolitical RSS feed
-- Added `category_hint` support for tie-breaking classification
-- Added `classification_reason` column to track classification decisions
-- Added detailed stats columns to ingestion_runs table
-- Improved README documentation
+- Added category_hint support for classification
+- Added classification_reason tracking
+- Added detailed ingestion stats
 
 ### v0.1.0 (2026-01-07)
-- Initial Step 1 implementation
-- PostgreSQL database with events and ingestion_runs tables
-- RSS ingestion from OilPrice and FreightWaves
-- Keyword-based classification for category, region, severity
-- FastAPI endpoints for querying events
+- Initial implementation with RSS ingestion
+- Keyword-based classification
+- FastAPI endpoints

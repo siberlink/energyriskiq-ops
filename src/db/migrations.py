@@ -83,6 +83,65 @@ def run_migrations():
     END $$;
     """
     
+    alter_events_add_ai_columns = """
+    DO $$ 
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'processed'
+        ) THEN
+            ALTER TABLE events ADD COLUMN processed BOOLEAN NOT NULL DEFAULT FALSE;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'ai_summary'
+        ) THEN
+            ALTER TABLE events ADD COLUMN ai_summary TEXT NULL;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'ai_impact_json'
+        ) THEN
+            ALTER TABLE events ADD COLUMN ai_impact_json JSONB NULL;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'ai_model'
+        ) THEN
+            ALTER TABLE events ADD COLUMN ai_model TEXT NULL;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'ai_processed_at'
+        ) THEN
+            ALTER TABLE events ADD COLUMN ai_processed_at TIMESTAMP NULL;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'ai_error'
+        ) THEN
+            ALTER TABLE events ADD COLUMN ai_error TEXT NULL;
+        END IF;
+        
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name = 'events' AND column_name = 'ai_attempts'
+        ) THEN
+            ALTER TABLE events ADD COLUMN ai_attempts INT NOT NULL DEFAULT 0;
+        END IF;
+    END $$;
+    """
+    
+    create_ai_indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_events_processed ON events (processed);",
+        "CREATE INDEX IF NOT EXISTS idx_events_ai_processed_at ON events (ai_processed_at);"
+    ]
+    
     with get_cursor() as cursor:
         logger.info("Creating events table...")
         cursor.execute(create_events_table)
@@ -99,6 +158,13 @@ def run_migrations():
         
         logger.info("Adding stats columns to ingestion_runs...")
         cursor.execute(alter_ingestion_runs_add_stats)
+        
+        logger.info("Adding AI columns to events...")
+        cursor.execute(alter_events_add_ai_columns)
+        
+        logger.info("Creating AI indexes...")
+        for idx_sql in create_ai_indexes:
+            cursor.execute(idx_sql)
     
     logger.info("Migrations completed successfully.")
 
