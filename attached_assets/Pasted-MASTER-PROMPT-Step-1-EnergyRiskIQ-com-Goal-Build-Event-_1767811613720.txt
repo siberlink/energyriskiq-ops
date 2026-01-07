@@ -1,0 +1,227 @@
+MASTER PROMPT (Step 1) — EnergyRiskIQ.com
+Goal: Build Event Ingestion + Classification Pipeline (v0.1) on Replit (Python + PostgreSQL)
+
+You are Replit AI acting as my senior full-stack engineer. Build ONLY Step 1. Do not build dashboards, AI summaries, alerts, auth, or Stripe yet.
+
+============================================================
+1) SCOPE (What we are building now)
+============================================================
+We need a simple, reliable pipeline that:
+A) stores “events” in PostgreSQL
+B) ingests events from 3 sources (minimal, stable, legal)
+C) classifies each event into one of:
+   - geopolitical
+   - energy
+   - supply_chain
+D) assigns region and an initial severity score (simple heuristic)
+E) avoids duplicate inserts
+F) exposes a minimal API to view ingested events
+
+Important constraints:
+- Use Python
+- Use PostgreSQL (already available on Replit)
+- Make it run locally in Replit and be deployable on Replit server
+- Keep dependencies minimal and stable
+
+============================================================
+2) DATA MODEL (PostgreSQL)
+============================================================
+Create a table named: events
+
+Columns:
+- id                 SERIAL PRIMARY KEY
+- title              TEXT NOT NULL
+- source_name         TEXT NOT NULL
+- source_url          TEXT NOT NULL
+- category           TEXT NOT NULL CHECK (category IN ('geopolitical','energy','supply_chain'))
+- region             TEXT NOT NULL
+- severity_score     INT NOT NULL CHECK (severity_score BETWEEN 1 AND 5)
+- event_time         TIMESTAMP NULL
+- raw_text           TEXT NULL
+- inserted_at        TIMESTAMP NOT NULL DEFAULT NOW()
+
+Uniqueness / de-dup:
+- Add unique constraint on (source_url)
+
+Add indexes:
+- inserted_at DESC
+- category
+- region
+- severity_score
+
+Also create a lightweight table for ingestion runs:
+table: ingestion_runs
+- id SERIAL PRIMARY KEY
+- started_at TIMESTAMP DEFAULT NOW()
+- finished_at TIMESTAMP NULL
+- status TEXT NOT NULL DEFAULT 'running'  (running|success|failed)
+- notes TEXT NULL
+
+============================================================
+3) EVENT SOURCES (3 only)
+============================================================
+Choose 3 sources that are easiest to ingest and reliable:
+
+Source A (Geopolitical): use an RSS feed from a reputable news provider.
+Source B (Energy): use an RSS feed focused on energy news.
+Source C (Supply Chain): use an RSS feed focused on shipping/logistics news.
+
+Implementation note:
+- Use RSS because it is stable.
+- For each RSS item, store:
+  - title
+  - link (as source_url)
+  - published date (event_time)
+  - short description/content if present (raw_text)
+- If the RSS feed does not include full text, store what exists; full text retrieval is not required for Step 1.
+
+IMPORTANT: Put all feed URLs in a config file so they can be changed without code edits.
+
+============================================================
+4) CLASSIFICATION LOGIC (Heuristic v0.1)
+============================================================
+Implement a deterministic classifier (no AI in Step 1).
+
+Category rules (keyword-based, case-insensitive):
+- geopolitical keywords: war, attack, missile, conflict, sanctions, embargo, pipeline, sabotage, border, NATO, coup, terrorism
+- energy keywords: OPEC, crude, oil, gas, LNG, refinery, upstream, production cut, rig, shale, brent, wti, ttf, power prices
+- supply_chain keywords: port, shipping, freight, container, strike, congestion, blockade, reroute, Suez, Panama, Bosphorus, logistics, rail disruption
+
+Classification method:
+- Score each category by number of keyword matches in (title + raw_text)
+- Pick the highest score
+- Tie-breaker priority: energy > geopolitical > supply_chain (or propose a sensible tie-break)
+- If no matches, default category = geopolitical (but include a TODO note)
+
+Region heuristic:
+- Determine region from keywords in title/raw_text:
+  - Europe, Middle East, Black Sea, North Africa, Global, Asia, North America
+- Provide a mapping list:
+  - “Ukraine”, “Russia”, “EU”, “Germany”, “France”, “Romania”, “Netherlands” => Europe
+  - “Israel”, “Iran”, “Gaza”, “Lebanon”, “Saudi”, “Yemen” => Middle East
+  - “Black Sea”, “Bosphorus”, “Turkey”, “Constanta”, “Odessa” => Black Sea
+  - “Suez”, “Egypt” => North Africa (or Middle East, but decide and document)
+  - “Panama” => Global
+- If not found, region = Global
+
+Severity score heuristic (1–5):
+- Base score = 2
+- Increase by keywords:
+  - +2 if title contains: attack, missile, explosion, shutdown, blockade, sanctions
+  - +1 if contains: strike, disruption, outage, congestion
+  - +1 if contains: OPEC, production cut
+- Cap between 1 and 5
+- Document this clearly so we can tune later
+
+============================================================
+5) PROJECT STRUCTURE (Replit-friendly)
+============================================================
+Create this structure:
+
+/src
+  /config
+    feeds.json
+  /db
+    db.py               (connection helper)
+    migrations.py       (create tables if not exist)
+  /ingest
+    rss_fetcher.py      (fetch + parse RSS)
+    classifier.py       (category/region/severity heuristics)
+    ingest_runner.py    (orchestrates one ingestion run)
+  /api
+    app.py              (FastAPI app)
+    routes.py           (GET /events)
+  main.py               (entrypoint)
+
+Also create:
+- requirements.txt
+- .env.example
+
+Dependencies:
+- fastapi
+- uvicorn
+- psycopg2-binary (or asyncpg + sqlalchemy if you prefer simplicity; pick ONE)
+- feedparser
+- python-dotenv
+
+============================================================
+6) API (Minimal)
+============================================================
+Create a FastAPI app that exposes:
+
+GET /health
+-> { "status": "ok" }
+
+GET /events?category=&region=&min_severity=&limit=50
+- returns newest first
+- default limit=50, max limit=200
+- includes fields: id, title, source_name, source_url, category, region, severity_score, event_time, inserted_at
+
+GET /events/latest
+- returns the most recent 20 events
+
+No auth yet.
+
+============================================================
+7) RUN MODES
+============================================================
+We need two commands:
+
+A) Run API server:
+- uvicorn src.api.app:app --host 0.0.0.0 --port 3000
+
+B) Run ingestion once:
+- python -m src.ingest.ingest_runner
+
+In ingestion run:
+- create ingestion_runs row
+- fetch each feed
+- parse items
+- classify them
+- insert new events (ignore duplicates by source_url)
+- update ingestion_runs status + notes (# inserted, # skipped)
+
+============================================================
+8) ENVIRONMENT / CONFIG
+============================================================
+Use environment variables:
+- DATABASE_URL (Replit Postgres URL)
+- INGESTION_USER_AGENT (optional)
+- LOG_LEVEL (optional)
+
+In feeds.json include:
+- source_name
+- category_hint (optional)
+- feed_url
+
+Example feeds.json (placeholder values, fill with real RSS URLs):
+[
+  {"source_name":"<name>","feed_url":"<rss_url>"},
+  {"source_name":"<name>","feed_url":"<rss_url>"},
+  {"source_name":"<name>","feed_url":"<rss_url>"}
+]
+
+============================================================
+9) QUALITY BAR
+============================================================
+- Add clear logging (print is ok, logging module preferred)
+- Add error handling per feed so one feed failing doesn’t break the whole run
+- Write code so it’s easy to extend later (Step 2 will add AI processing)
+- Do not overengineer
+
+============================================================
+10) DELIVERABLES (What you must output)
+============================================================
+1) Create all files + folders
+2) Implement migrations/create tables
+3) Implement ingestion runner + classifier
+4) Implement FastAPI endpoints
+5) Provide short instructions in README.md:
+   - how to set DATABASE_URL
+   - how to run ingestion
+   - how to run API
+6) Test quickly in Replit:
+   - run ingestion once
+   - call GET /events/latest and show that it returns results
+
+Start now. Build Step 1 only.

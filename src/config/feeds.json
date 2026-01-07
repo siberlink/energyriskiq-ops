@@ -1,0 +1,17 @@
+[
+  {
+    "source_name": "Reuters World News",
+    "feed_url": "https://feeds.reuters.com/Reuters/worldNews",
+    "category_hint": "geopolitical"
+  },
+  {
+    "source_name": "OilPrice.com",
+    "feed_url": "https://oilprice.com/rss/main",
+    "category_hint": "energy"
+  },
+  {
+    "source_name": "FreightWaves",
+    "feed_url": "https://www.freightwaves.com/news/feed",
+    "category_hint": "supply_chain"
+  }
+]
