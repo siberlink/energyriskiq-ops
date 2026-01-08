@@ -42,3 +42,4 @@ run = ["python", "src/main.py", "--mode", "api"]
 
 [userenv.shared]
 INTERNAL_RUNNER_TOKEN = "energyriskiq-runner-2026"
+AI_MAX_EVENTS_PER_RUN = "10"
