@@ -21,8 +21,9 @@ def main():
     if args.mode == 'api':
         import uvicorn
         from src.api.app import app
-        logger.info("Starting API server on port 5000...")
-        uvicorn.run(app, host="0.0.0.0", port=5000)
+        port = int(os.environ.get('PORT', 5000))
+        logger.info(f"Starting API server on port {port}...")
+        uvicorn.run(app, host="0.0.0.0", port=port)
     
     elif args.mode == 'ingest':
         from src.ingest.ingest_runner import run_ingestion
