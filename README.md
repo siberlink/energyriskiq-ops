@@ -71,6 +71,9 @@ The `DATABASE_URL` is automatically provided by Replit's PostgreSQL integration.
 - `TELEGRAM_BOT_TOKEN`: Your Telegram bot token
 - Users provide their `telegram_chat_id` (Pro tier only)
 
+**Internal Runner** (for external schedulers):
+- `INTERNAL_RUNNER_TOKEN`: Secret token to authenticate worker trigger requests
+
 ## Usage
 
 ### Run the API Server
@@ -143,6 +146,49 @@ python src/main.py --mode alerts
 ### Marketing
 - `GET /marketing/samples` - Sample alert messages
 - `GET /marketing/landing-copy` - Landing page copy blocks
+
+### Internal Runner (Secured)
+These endpoints trigger worker jobs and are protected by `INTERNAL_RUNNER_TOKEN`.
+
+- `POST /internal/run/ingest` - Run RSS ingestion
+- `POST /internal/run/ai` - Run AI processing
+- `POST /internal/run/risk` - Run risk scoring
+- `POST /internal/run/alerts` - Run alerts engine
+
+**Authentication**: Requires header `X-Runner-Token: <your-token>`
+
+**Example curl commands:**
+```bash
+# Run ingestion
+curl -X POST https://your-app.replit.app/internal/run/ingest \
+  -H "X-Runner-Token: your-secret-token"
+
+# Run AI processing
+curl -X POST https://your-app.replit.app/internal/run/ai \
+  -H "X-Runner-Token: your-secret-token"
+
+# Run risk scoring
+curl -X POST https://your-app.replit.app/internal/run/risk \
+  -H "X-Runner-Token: your-secret-token"
+
+# Run alerts
+curl -X POST https://your-app.replit.app/internal/run/alerts \
+  -H "X-Runner-Token: your-secret-token"
+```
+
+**Response format:**
+```json
+{
+  "status": "ok",
+  "job": "ingest",
+  "started_at": "2026-01-08T15:14:52.005173",
+  "finished_at": "2026-01-08T15:14:54.665580",
+  "duration_seconds": 2.66,
+  "details": {}
+}
+```
+
+**Locking**: Uses PostgreSQL advisory locks to prevent concurrent runs of the same job. If a job is already running, returns `409 {"status": "busy"}`.
 
 ## Alert Types
 

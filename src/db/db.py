@@ -51,3 +51,30 @@ def execute_one(query: str, params: tuple = None):
     with get_cursor() as cursor:
         cursor.execute(query, params)
         return cursor.fetchone()
+
+
+@contextmanager
+def advisory_lock(lock_id: int):
+    conn = None
+    acquired = False
+    try:
+        conn = psycopg2.connect(get_database_url())
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT pg_try_advisory_lock(%s)", (lock_id,))
+        result = cursor.fetchone()
+        acquired = result['pg_try_advisory_lock'] if result else False
+        cursor.close()
+        yield acquired
+    except Exception as e:
+        logger.error(f"Advisory lock error for {lock_id}: {e}")
+        yield False
+    finally:
+        if conn:
+            try:
+                if acquired:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT pg_advisory_unlock(%s)", (lock_id,))
+                    cursor.close()
+                conn.close()
+            except Exception as e:
+                logger.error(f"Failed to release advisory lock {lock_id}: {e}")

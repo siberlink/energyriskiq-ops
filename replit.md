@@ -133,6 +133,12 @@ python src/main.py --mode alerts
 - `GET /marketing/samples` - Sample alert messages
 - `GET /marketing/landing-copy` - Landing page copy blocks
 
+### Internal Runner (Secured with INTERNAL_RUNNER_TOKEN)
+- `POST /internal/run/ingest` - Trigger ingestion worker
+- `POST /internal/run/ai` - Trigger AI processing worker
+- `POST /internal/run/risk` - Trigger risk scoring worker
+- `POST /internal/run/alerts` - Trigger alerts engine
+
 ## Subscription Tiers
 
 | Plan | Delay | Max/Day | Asset Alerts | Telegram | Digest |
@@ -160,6 +166,9 @@ python src/main.py --mode alerts
 ### Alerts Loop
 - `ALERTS_LOOP`: true to run continuously
 - `ALERTS_LOOP_INTERVAL`: Seconds between runs (default 600)
+
+### Internal Runner
+- `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
 - 2026-01-08: Step 4 - Alerts engine with monetization

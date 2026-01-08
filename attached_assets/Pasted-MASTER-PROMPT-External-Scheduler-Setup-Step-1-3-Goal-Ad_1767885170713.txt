@@ -1,0 +1,49 @@
+MASTER PROMPT — External Scheduler Setup (Step 1/3)
+Goal: Add secure internal endpoints to trigger worker runs on Autoscale.
+Do NOT change business logic of ingest/ai/risk/alerts. Only wrap them so they can be triggered via HTTP safely.
+
+REQUIREMENTS
+1) Add env var: INTERNAL_RUNNER_TOKEN
+2) Add POST endpoints:
+   - /internal/run/ingest
+   - /internal/run/ai
+   - /internal/run/risk
+   - /internal/run/alerts
+3) Authentication:
+   - Require header: X-Runner-Token: <token>
+   - If missing/wrong -> 401
+4) DB locking to prevent overlap:
+   - Use PostgreSQL advisory lock per job type.
+   - Example lock keys:
+     ingest=1001, ai=1002, risk=1003, alerts=1004
+   - If lock not acquired -> return 409 {"status":"busy"} (do not run)
+   - Always release lock in finally.
+5) Execution:
+   - When endpoint called and lock acquired, run the corresponding worker ONCE (not in a loop).
+   - Reuse the existing functions/logic used by CLI modes.
+   - Return JSON response with:
+     { "status":"ok", "job":"ingest", "started_at":..., "finished_at":..., "details":{...} }
+     Include counts if available (inserted, processed, etc.).
+6) Safety:
+   - Add a request timeout guard if possible (but do not overcomplicate).
+   - Ensure exceptions are caught and returned as 500 with error message; lock must still be released.
+7) Keep existing CLI commands working.
+8) Update README with:
+   - How to set INTERNAL_RUNNER_TOKEN
+   - curl examples to trigger each job
+   - Note: these endpoints must NOT be exposed without the token
+
+IMPLEMENTATION HINT
+- Add helper in db layer:
+  acquire_advisory_lock(lock_id:int)->bool
+  release_advisory_lock(lock_id:int)->None
+- Add FastAPI dependency to validate token header.
+- Add new routes in API router under /internal.
+
+DELIVERABLES
+- Code changes + migrations not required
+- Verified locally:
+  - Start API
+  - Call /internal/run/ingest with correct token
+  - Confirm it runs and returns ok
+  - Call again quickly and confirm 409 busy while running (or if lock held)

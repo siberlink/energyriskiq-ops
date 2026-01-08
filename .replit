@@ -37,3 +37,8 @@ externalPort = 80
 [deployment]
 deploymentTarget = "autoscale"
 run = ["python", "src/main.py", "--mode", "api"]
+
+[userenv]
+
+[userenv.shared]
+INTERNAL_RUNNER_TOKEN = "energyriskiq-runner-2026"
