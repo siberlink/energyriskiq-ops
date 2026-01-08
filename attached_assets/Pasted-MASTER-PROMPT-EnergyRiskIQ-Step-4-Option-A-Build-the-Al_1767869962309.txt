@@ -1,0 +1,318 @@
+MASTER PROMPT — EnergyRiskIQ Step 4 (Option A)
+Build the Alerts Engine (Monetizable + Marketable + Works Exactly as Designed)
+
+You are Replit AI acting as my senior full-stack engineer on Replit (Python + PostgreSQL).
+We have Steps 1–3 completed:
+- Ingestion (3 RSS feeds) ✅
+- AI enrichment worker ✅
+- Risk engine + /risk/summary ✅
+- API on port 5000 ✅
+
+Now implement Step 4 ONLY: Alerts Engine that is:
+1) Monetizable (plan gating + upgrade hooks)
+2) Marketable (shareable sample alerts + copy blocks)
+3) Operational (scheduled checks + anti-spam + reliable sending)
+
+Do NOT build UI dashboards yet. Do NOT implement Stripe payments yet (we will in a later step), but DO implement plan tiers and gating in the DB so Stripe can connect later.
+
+============================================================
+A) PRODUCT STRATEGY (must reflect this in implementation)
+============================================================
+We will monetize alerts via subscription tiers:
+
+FREE (lead gen)
+- 1 region: Europe only
+- only “Regional Risk Spike” alerts
+- EMAIL only
+- delayed alerts: 60 minutes
+- max alerts/day: 2
+
+TRADER/OPERATOR (€29–€49/mo)
+- Europe risk spike alerts (real-time)
+- Asset alerts (oil, gas, fx, freight)
+- EMAIL alerts (real-time)
+- daily digest email
+- max alerts/day: 20
+
+PRO (€99–€149/mo)
+- custom thresholds per alert
+- Telegram alerts (and/or Slack-ready webhook later)
+- weekly PDF outlook placeholder (not generating PDF yet; store “weekly_digest_enabled” for later)
+- max alerts/day: 50
+
+TEAM/ENTERPRISE (later)
+- webhooks + API alerts + multi-user
+(prepare schema but do not fully implement)
+
+Marketing/advertising outputs:
+- Create “sample alert messages” generator endpoint + reusable templates
+- Provide landing-page copy blocks (plain text strings in repo) for:
+  - hero
+  - 3 bullets
+  - examples of alert notifications
+  - CTA text
+
+============================================================
+B) ALERT TYPES (v1)
+============================================================
+Implement 3 alert types:
+
+1) REGIONAL_RISK_SPIKE
+Trigger when Europe risk_7d:
+- crosses a threshold (default 70)
+OR
+- increases by >= 20% vs previous snapshot in last 24h
+
+2) ASSET_RISK_SPIKE (oil/gas/fx/freight)
+Trigger when asset_risk score crosses threshold (default 70)
+OR direction changes (e.g. mixed -> up)
+Note: direction for fx uses risk_off/risk_on; treat risk_off as “higher risk”.
+
+3) HIGH_IMPACT_EVENT
+Trigger when a new event appears where:
+- severity_score >= 4
+- category in (energy, geopolitical)
+- region in (Europe, Middle East, Black Sea)
+Also require processed=true for AI-enriched rationale if available; if not processed, still send a minimal alert.
+
+============================================================
+C) DATA MODEL (PostgreSQL)
+============================================================
+Add new tables with safe migrations (ALTER/CREATE IF NOT EXISTS).
+Do NOT delete existing tables.
+
+1) users (minimal placeholder until auth)
+We might not have auth yet. Create a minimal “users” table so alerts can be tied to recipients.
+
+Table: users
+- id SERIAL PRIMARY KEY
+- email TEXT UNIQUE NOT NULL
+- created_at TIMESTAMP DEFAULT NOW()
+
+2) user_plans
+Table: user_plans
+- user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE
+- plan TEXT NOT NULL CHECK (plan IN ('free','trader','pro'))
+- alerts_delay_minutes INT NOT NULL DEFAULT 0
+- max_alerts_per_day INT NOT NULL DEFAULT 20
+- allow_asset_alerts BOOLEAN NOT NULL DEFAULT FALSE
+- allow_telegram BOOLEAN NOT NULL DEFAULT FALSE
+- daily_digest_enabled BOOLEAN NOT NULL DEFAULT FALSE
+- created_at TIMESTAMP DEFAULT NOW()
+- updated_at TIMESTAMP DEFAULT NOW()
+
+Set defaults:
+- free: delay=60, max/day=2, allow_asset_alerts=false, allow_telegram=false, daily_digest=false
+- trader: delay=0, max/day=20, allow_asset_alerts=true, allow_telegram=false, daily_digest=true
+- pro: delay=0, max/day=50, allow_asset_alerts=true, allow_telegram=true, daily_digest=true
+
+3) user_alert_prefs
+Table: user_alert_prefs
+- id SERIAL PRIMARY KEY
+- user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+- region TEXT NOT NULL DEFAULT 'Europe'
+- alert_type TEXT NOT NULL CHECK (alert_type IN ('REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','HIGH_IMPACT_EVENT','DAILY_DIGEST'))
+- asset TEXT NULL CHECK (asset IN ('oil','gas','fx','freight'))
+- threshold FLOAT NULL
+- enabled BOOLEAN NOT NULL DEFAULT TRUE
+- cooldown_minutes INT NOT NULL DEFAULT 120
+- created_at TIMESTAMP DEFAULT NOW()
+- updated_at TIMESTAMP DEFAULT NOW()
+
+Rules:
+- free users: only allow REGIONAL_RISK_SPIKE enabled; if other prefs exist, ignore them at runtime.
+
+4) alerts
+Table: alerts
+- id SERIAL PRIMARY KEY
+- user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+- alert_type TEXT NOT NULL
+- region TEXT NOT NULL
+- asset TEXT NULL
+- triggered_value FLOAT NULL
+- threshold FLOAT NULL
+- title TEXT NOT NULL
+- message TEXT NOT NULL
+- channel TEXT NOT NULL CHECK (channel IN ('email','telegram'))
+- status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','sent','failed','skipped'))
+- cooldown_key TEXT NOT NULL          -- used to prevent duplicates (e.g. "user:1|type:REGIONAL|region:Europe|asset:null")
+- created_at TIMESTAMP DEFAULT NOW()
+- sent_at TIMESTAMP NULL
+- error TEXT NULL
+
+Indexes:
+- user_id, created_at DESC
+- status
+- cooldown_key, created_at DESC
+
+5) alert_state (for dedupe + trend comparisons)
+Table: alert_state
+- id SERIAL PRIMARY KEY
+- region TEXT NOT NULL
+- window_days INT NOT NULL
+- last_risk_score FLOAT NULL
+- last_checked_at TIMESTAMP DEFAULT NOW()
+- last_7d_score FLOAT NULL
+- last_30d_score FLOAT NULL
+- last_asset_scores JSONB NULL      -- {"oil": 70, "gas": 80, ...}
+- updated_at TIMESTAMP DEFAULT NOW()
+
+============================================================
+D) ALERT ENGINE WORKER
+============================================================
+Create: src/alerts/alerts_engine.py
+
+Run:
+python src/main.py --mode alerts
+
+This worker should:
+1) Load latest /risk/summary data from DB directly (no HTTP calls).
+2) Load enabled users + their plan + prefs.
+3) For each user, evaluate triggers.
+4) Apply plan gates:
+   - free: delay 60 minutes; only regional risk spike; max 2/day; email only
+   - trader: asset alerts allowed; email real-time; daily digest enabled by default
+   - pro: telegram allowed; custom thresholds allowed
+5) Apply cooldown:
+   - if same cooldown_key alerted within cooldown_minutes, skip
+6) Apply max alerts/day:
+   - count alerts sent today for that user, if >= max, skip and set status='skipped'
+7) Queue alerts in DB (status='queued') then send them.
+8) Update alerts.status to sent/failed with error text.
+
+Scheduling:
+- For now, the worker runs once when executed.
+- Add guidance in README for Replit scheduled tasks/cron to run every 10 minutes.
+- Implement a "loop mode" optional env var ALERTS_LOOP=true to run every 10 minutes (sleep), but default false.
+
+============================================================
+E) CHANNELS: EMAIL + TELEGRAM (v1)
+============================================================
+EMAIL
+- Use a transactional email provider supported on Replit (choose one):
+  Option 1: Resend
+  Option 2: Brevo (Sendinblue)
+  Option 3: SMTP generic
+Pick the simplest to implement with env vars.
+
+Env vars:
+- EMAIL_PROVIDER (resend|brevo|smtp)
+- EMAIL_FROM
+- RESEND_API_KEY or BREVO_API_KEY or SMTP creds
+
+TELEGRAM
+- Use Telegram Bot API with:
+  TELEGRAM_BOT_TOKEN
+  User provides TELEGRAM_CHAT_ID
+Store chat_id per user:
+
+Add to users table (ALTER):
+- telegram_chat_id TEXT NULL
+
+Plan gate:
+- Only pro users get telegram alerts.
+
+============================================================
+F) ALERT CONTENT TEMPLATES (marketable)
+============================================================
+Create reusable templates with strong but neutral language.
+
+For REGIONAL_RISK_SPIKE:
+Title: "🚨 Europe Geo-Energy Risk Spike"
+Include:
+- risk_7d value + change vs last
+- drivers: top 2–3 recent events (use latest events ordered by weighted_score from risk_events joined to events, include title + region + category)
+- assets likely affected: list asset directions (from /risk/summary assets)
+- disclaimer: “Informational only. Not financial advice.”
+
+For ASSET_RISK_SPIKE:
+Title: "⚠️ {ASSET} Risk Rising in Europe"
+Include:
+- asset risk score + direction + confidence hint (use aggregated direction; confidence derived from average ai_confidence of contributing events)
+- 1–2 key driver events
+
+For HIGH_IMPACT_EVENT:
+Title: "🚨 High-Impact Event Detected ({region})"
+Include:
+- event title
+- severity
+- ai_summary if present
+- link to source_url
+
+Also implement a function to generate “shareable samples”:
+- No user data
+- Use current DB snapshots to generate 3 example messages
+- Store them in /marketing/sample_alerts.md too
+
+============================================================
+G) API ENDPOINTS (read-only)
+============================================================
+Add endpoints to existing FastAPI app:
+
+1) POST /alerts/test
+Body: { "email": "user@example.com", "plan": "free|trader|pro" }
+- Create user if not exists
+- Create default plan row
+- Create default prefs:
+   free: Europe + REGIONAL_RISK_SPIKE
+   trader/pro: Europe + regional + asset alerts + high impact + daily digest
+- Run alert evaluation ONLY for this user (no sending), return generated alert previews
+
+2) GET /alerts/user/{user_id}
+- List last 50 alerts for that user
+
+3) GET /marketing/samples
+- Return 3 sample alert messages + suggested CTA lines
+
+4) GET /marketing/landing-copy
+- Return a JSON object with:
+  - hero
+  - subhero
+  - bullets
+  - example_alerts (3)
+  - CTA
+  - disclaimer
+
+Keep security simple for now; this is pre-auth MVP.
+
+============================================================
+H) README / DOCS
+============================================================
+Update README.md with:
+- How alerts are monetized (free/trader/pro gates)
+- How to run pipeline:
+  ingest -> ai -> risk -> alerts
+- How to configure email provider env vars
+- How to configure Telegram bot
+- How to schedule alerts on Replit (every 10 minutes)
+- Strong disclaimers: informational risk indicators only
+
+============================================================
+I) QUALITY BAR
+============================================================
+- Must not spam: cooldown + max/day
+- Must not crash on one user failure
+- Must log clearly
+- Must not require UI
+- Must be ready for Stripe later (plan field + upgrade hooks)
+- Keep code clean & extendable
+
+============================================================
+J) DELIVERABLES / ACCEPTANCE TEST
+============================================================
+1) Run:
+   python src/main.py --mode ingest
+   python src/main.py --mode ai
+   python src/main.py --mode risk
+   python src/main.py --mode alerts
+
+2) Create a test user:
+   POST /alerts/test with plan=free and an email
+   Confirm it returns preview alerts and respects delay + gating
+
+3) Confirm alerts stored in DB:
+   GET /alerts/user/{id}
+
+4) Confirm /marketing/landing-copy returns good copy and /marketing/samples returns sample alerts.
+
+Implement Step 4 now. Do not proceed to Step 5.

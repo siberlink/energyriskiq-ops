@@ -8,6 +8,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from src.api.routes import router
 from src.api.risk_routes import router as risk_router
+from src.api.alert_routes import router as alert_router
+from src.api.marketing_routes import router as marketing_router
 from src.db.migrations import run_migrations
 
 logging.basicConfig(
@@ -18,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="EnergyRiskIQ API",
-    description="Event Ingestion, Classification, and Risk Intelligence Pipeline",
-    version="0.3.0"
+    description="Event Ingestion, Classification, Risk Intelligence, and Alerts Pipeline",
+    version="0.4.0"
 )
 
 app.add_middleware(
@@ -32,6 +34,8 @@ app.add_middleware(
 
 app.include_router(router)
 app.include_router(risk_router)
+app.include_router(alert_router)
+app.include_router(marketing_router)
 
 @app.on_event("startup")
 async def startup_event():

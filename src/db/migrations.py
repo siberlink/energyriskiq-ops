@@ -193,6 +193,89 @@ def run_migrations():
         "CREATE INDEX IF NOT EXISTS idx_asset_risk_calculated ON asset_risk (calculated_at DESC);"
     ]
     
+    create_users_table = """
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        telegram_chat_id TEXT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    """
+    
+    create_user_plans_table = """
+    CREATE TABLE IF NOT EXISTS user_plans (
+        user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        plan TEXT NOT NULL CHECK (plan IN ('free','trader','pro')),
+        alerts_delay_minutes INT NOT NULL DEFAULT 0,
+        max_alerts_per_day INT NOT NULL DEFAULT 20,
+        allow_asset_alerts BOOLEAN NOT NULL DEFAULT FALSE,
+        allow_telegram BOOLEAN NOT NULL DEFAULT FALSE,
+        daily_digest_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        weekly_digest_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    """
+    
+    create_user_alert_prefs_table = """
+    CREATE TABLE IF NOT EXISTS user_alert_prefs (
+        id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        region TEXT NOT NULL DEFAULT 'Europe',
+        alert_type TEXT NOT NULL CHECK (alert_type IN ('REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','HIGH_IMPACT_EVENT','DAILY_DIGEST')),
+        asset TEXT NULL CHECK (asset IS NULL OR asset IN ('oil','gas','fx','freight')),
+        threshold FLOAT NULL,
+        enabled BOOLEAN NOT NULL DEFAULT TRUE,
+        cooldown_minutes INT NOT NULL DEFAULT 120,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    """
+    
+    create_alerts_table = """
+    CREATE TABLE IF NOT EXISTS alerts (
+        id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        alert_type TEXT NOT NULL,
+        region TEXT NOT NULL,
+        asset TEXT NULL,
+        triggered_value FLOAT NULL,
+        threshold FLOAT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        channel TEXT NOT NULL CHECK (channel IN ('email','telegram')),
+        status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued','sent','failed','skipped')),
+        cooldown_key TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        sent_at TIMESTAMP NULL,
+        error TEXT NULL
+    );
+    """
+    
+    create_alert_state_table = """
+    CREATE TABLE IF NOT EXISTS alert_state (
+        id SERIAL PRIMARY KEY,
+        region TEXT NOT NULL,
+        window_days INT NOT NULL DEFAULT 7,
+        last_risk_score FLOAT NULL,
+        last_checked_at TIMESTAMP DEFAULT NOW(),
+        last_7d_score FLOAT NULL,
+        last_30d_score FLOAT NULL,
+        last_asset_scores JSONB NULL,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(region, window_days)
+    );
+    """
+    
+    create_alerts_indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);",
+        "CREATE INDEX IF NOT EXISTS idx_user_alert_prefs_user ON user_alert_prefs (user_id);",
+        "CREATE INDEX IF NOT EXISTS idx_alerts_user_created ON alerts (user_id, created_at DESC);",
+        "CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts (status);",
+        "CREATE INDEX IF NOT EXISTS idx_alerts_cooldown ON alerts (cooldown_key, created_at DESC);",
+        "CREATE INDEX IF NOT EXISTS idx_alert_state_region ON alert_state (region);"
+    ]
+    
     with get_cursor() as cursor:
         logger.info("Creating events table...")
         cursor.execute(create_events_table)
@@ -228,6 +311,25 @@ def run_migrations():
         
         logger.info("Creating risk indexes...")
         for idx_sql in create_risk_indexes:
+            cursor.execute(idx_sql)
+        
+        logger.info("Creating users table...")
+        cursor.execute(create_users_table)
+        
+        logger.info("Creating user_plans table...")
+        cursor.execute(create_user_plans_table)
+        
+        logger.info("Creating user_alert_prefs table...")
+        cursor.execute(create_user_alert_prefs_table)
+        
+        logger.info("Creating alerts table...")
+        cursor.execute(create_alerts_table)
+        
+        logger.info("Creating alert_state table...")
+        cursor.execute(create_alert_state_table)
+        
+        logger.info("Creating alerts indexes...")
+        for idx_sql in create_alerts_indexes:
             cursor.execute(idx_sql)
     
     logger.info("Migrations completed successfully.")

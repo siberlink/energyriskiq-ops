@@ -3,7 +3,7 @@
 ## Overview
 EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scoring pipeline for energy risk intelligence. It fetches news events from RSS feeds, classifies them, enriches them with AI, and computes quantitative risk scores.
 
-**Current State**: Step 3 complete - Risk scoring engine with regional indices and asset-level risk.
+**Current State**: Step 4 complete - Monetizable alerts engine with plan gating.
 
 ## Project Architecture
 
@@ -22,11 +22,17 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
     ai_worker.py      # AI processing worker using OpenAI
   /risk
     risk_engine.py    # Risk scoring and aggregation engine
+  /alerts
+    alerts_engine.py  # Alert evaluation and sending
+    channels.py       # Email (Resend/Brevo) and Telegram delivery
+    templates.py      # Alert message templates and marketing copy
   /api
     app.py            # FastAPI application with CORS
     routes.py         # Event API endpoints
     risk_routes.py    # Risk API endpoints
-  main.py             # Main entrypoint (--mode api/ingest/ai/risk)
+    alert_routes.py   # Alert API endpoints
+    marketing_routes.py # Marketing copy endpoints
+  main.py             # Main entrypoint (--mode api/ingest/ai/risk/alerts)
 ```
 
 ## Tech Stack
@@ -34,7 +40,9 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 - **Web Framework**: FastAPI with uvicorn
 - **Database**: PostgreSQL (Replit-provided)
 - **AI**: OpenAI via Replit AI Integrations (gpt-4.1-mini)
-- **Dependencies**: feedparser, psycopg2-binary, openai, python-dotenv
+- **Email**: Resend or Brevo (optional)
+- **Messaging**: Telegram Bot API (optional)
+- **Dependencies**: feedparser, psycopg2-binary, openai, requests, python-dotenv
 
 ## Database Schema
 
@@ -54,6 +62,23 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 
 ### asset_risk table
 - id, asset (oil|gas|fx|freight), region, window_days, risk_score (0-100), direction, calculated_at
+
+### users table
+- id, email (unique), telegram_chat_id, created_at
+
+### user_plans table
+- user_id (PK/FK), plan (free|trader|pro), alerts_delay_minutes, max_alerts_per_day
+- allow_asset_alerts, allow_telegram, daily_digest_enabled, weekly_digest_enabled
+
+### user_alert_prefs table
+- id, user_id (FK), region, alert_type, asset, threshold, enabled, cooldown_minutes
+
+### alerts table
+- id, user_id (FK), alert_type, region, asset, triggered_value, threshold
+- title, message, channel, status, cooldown_key, created_at, sent_at, error
+
+### alert_state table
+- id, region, window_days, last_risk_score, last_7d_score, last_30d_score, last_asset_scores
 
 ## Running the Project
 
@@ -78,6 +103,11 @@ python src/main.py --mode ai
 python src/main.py --mode risk
 ```
 
+### Run Alerts Engine
+```bash
+python src/main.py --mode alerts
+```
+
 ## API Endpoints
 
 ### Events & AI
@@ -95,28 +125,44 @@ python src/main.py --mode risk
 - `GET /risk/assets` - Asset-level risk by region
 - `GET /risk/events` - View scored risk events
 
-## Risk Scoring Logic
+### Alerts
+- `POST /alerts/test` - Create test user and preview alerts
+- `GET /alerts/user/{user_id}` - View user's alert history
 
-### Event-Level Weighted Score
-```
-weighted_score = base_severity × ai_confidence × category_weight × recency_decay
-```
-- category_weight: geopolitical=1.2, energy=1.5, supply_chain=1.0
-- recency_decay: exp(-days_since_event / 14)
+### Marketing
+- `GET /marketing/samples` - Sample alert messages
+- `GET /marketing/landing-copy` - Landing page copy blocks
 
-### Rolling Regional Risk Index
-1. Sum weighted_scores for events in window (7d or 30d)
-2. Normalize to 0-100 using rolling 90-day max
-3. Trend: compare current 7d vs previous 7d (±10% threshold)
+## Subscription Tiers
 
-### Asset-Level Risk
-- Aggregate AI impact directions per asset (oil, gas, fx, freight)
-- Weight by event contribution and confidence
-- Direction: majority vote with 20% threshold
+| Plan | Delay | Max/Day | Asset Alerts | Telegram | Digest |
+|------|-------|---------|--------------|----------|--------|
+| Free | 60m | 2 | No | No | No |
+| Trader | 0 | 20 | Yes | No | Yes |
+| Pro | 0 | 50 | Yes | Yes | Yes |
+
+## Alert Types
+- **REGIONAL_RISK_SPIKE**: Europe risk crosses threshold or +20%
+- **ASSET_RISK_SPIKE**: Oil/gas/fx/freight risk crosses threshold
+- **HIGH_IMPACT_EVENT**: Severity ≥4 events in key regions
+- **DAILY_DIGEST**: Daily summary (placeholder)
+
+## Environment Variables
+
+### Email (optional)
+- `EMAIL_PROVIDER`: resend | brevo | smtp
+- `EMAIL_FROM`: Sender address
+- `RESEND_API_KEY` or `BREVO_API_KEY`
+
+### Telegram (optional)
+- `TELEGRAM_BOT_TOKEN`: Bot token
+
+### Alerts Loop
+- `ALERTS_LOOP`: true to run continuously
+- `ALERTS_LOOP_INTERVAL`: Seconds between runs (default 600)
 
 ## Recent Changes
+- 2026-01-08: Step 4 - Alerts engine with monetization
 - 2026-01-07: Step 3 - Risk scoring engine complete
-- 2026-01-07: Added risk_events, risk_indices, asset_risk tables
-- 2026-01-07: Added /risk/* API endpoints
 - 2026-01-07: Step 2 - AI processing worker
 - 2026-01-07: Step 1 - RSS ingestion and classification

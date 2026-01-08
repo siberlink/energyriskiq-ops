@@ -1,6 +1,6 @@
-# EnergyRiskIQ - Event Ingestion & Risk Intelligence Pipeline (v0.3)
+# EnergyRiskIQ - Event Ingestion & Risk Intelligence Pipeline (v0.4)
 
-A Python-based event ingestion, classification, AI enrichment, and risk scoring pipeline for energy risk intelligence.
+A Python-based event ingestion, classification, AI enrichment, risk scoring, and alerting pipeline for energy risk intelligence.
 
 ## Features
 
@@ -10,7 +10,18 @@ A Python-based event ingestion, classification, AI enrichment, and risk scoring 
 - **Risk Scoring**: Converts AI-enriched events into quantitative risk scores
 - **Rolling Risk Indices**: Computes 7-day and 30-day regional risk levels (0-100)
 - **Asset-Level Risk**: Tracks risk direction for oil, gas, fx, and freight
-- **REST API**: Access events, AI analysis, and risk data via FastAPI endpoints
+- **Monetizable Alerts**: Tiered subscription system (Free/Trader/Pro) with plan gating
+- **REST API**: Access events, AI analysis, risk data, and alerts via FastAPI endpoints
+
+## Subscription Tiers (Monetization Ready)
+
+| Feature | Free | Trader (€29-49/mo) | Pro (€99-149/mo) |
+|---------|------|-------------------|------------------|
+| Regions | Europe only | Europe | All regions |
+| Alert Types | Risk Spike only | All alerts | All alerts + custom thresholds |
+| Channels | Email (delayed 60m) | Email (real-time) | Email + Telegram |
+| Daily Digest | No | Yes | Yes |
+| Max Alerts/Day | 2 | 20 | 50 |
 
 ## Project Structure
 
@@ -29,10 +40,16 @@ A Python-based event ingestion, classification, AI enrichment, and risk scoring 
     ai_worker.py      # AI processing worker
   /risk
     risk_engine.py    # Risk scoring and aggregation engine
+  /alerts
+    alerts_engine.py  # Alert evaluation and sending
+    channels.py       # Email and Telegram delivery
+    templates.py      # Alert message templates
   /api
     app.py            # FastAPI application
     routes.py         # Event API endpoints
     risk_routes.py    # Risk API endpoints
+    alert_routes.py   # Alert API endpoints
+    marketing_routes.py # Marketing copy endpoints
   main.py             # Main entrypoint
 ```
 
@@ -44,9 +61,15 @@ The `DATABASE_URL` is automatically provided by Replit's PostgreSQL integration.
 
 **AI Processing** uses Replit AI Integrations (no API key required).
 
-Optional settings:
-- `OPENAI_MODEL`: Model to use (default: gpt-4.1-mini)
-- `AI_MAX_EVENTS_PER_RUN`: Max events per AI run (default: 20)
+**Email Sending** (optional):
+- `EMAIL_PROVIDER`: `resend` | `brevo` | `smtp`
+- `EMAIL_FROM`: Sender email address
+- `RESEND_API_KEY`: For Resend provider
+- `BREVO_API_KEY`: For Brevo provider
+
+**Telegram Alerts** (optional):
+- `TELEGRAM_BOT_TOKEN`: Your Telegram bot token
+- Users provide their `telegram_chat_id` (Pro tier only)
 
 ## Usage
 
@@ -76,7 +99,25 @@ python src/main.py --mode ai
 python src/main.py --mode risk
 ```
 
-This scores AI-processed events and computes regional/asset risk indices.
+### Run Alerts Engine
+
+```bash
+python src/main.py --mode alerts
+```
+
+For continuous alerting (every 10 minutes):
+```bash
+ALERTS_LOOP=true python src/main.py --mode alerts
+```
+
+### Full Pipeline
+
+```bash
+python src/main.py --mode ingest
+python src/main.py --mode ai
+python src/main.py --mode risk
+python src/main.py --mode alerts
+```
 
 ## API Endpoints
 
@@ -95,9 +136,32 @@ This scores AI-processed events and computes regional/asset risk indices.
 - `GET /risk/assets` - Asset-level risk by region
 - `GET /risk/events` - View scored risk events
 
-## Risk Scoring System
+### Alerts
+- `POST /alerts/test` - Create test user and preview alerts
+- `GET /alerts/user/{user_id}` - View user's alert history
 
-### What Risk Scores Mean
+### Marketing
+- `GET /marketing/samples` - Sample alert messages
+- `GET /marketing/landing-copy` - Landing page copy blocks
+
+## Alert Types
+
+### 1. Regional Risk Spike
+Triggers when Europe risk score:
+- Crosses threshold (default 70)
+- Increases by ≥20% vs previous snapshot
+
+### 2. Asset Risk Spike
+Triggers when asset risk score crosses threshold (default 70).
+Assets: oil, gas, fx, freight
+
+### 3. High-Impact Event
+Triggers for new events with:
+- Severity ≥ 4
+- Category: energy or geopolitical
+- Region: Europe, Middle East, or Black Sea
+
+## Risk Scoring System
 
 Risk scores are **relative measures** from 0-100:
 - **0-25**: Low relative risk
@@ -105,38 +169,29 @@ Risk scores are **relative measures** from 0-100:
 - **51-75**: Elevated risk
 - **76-100**: High risk (near recent maximum)
 
-### How Scoring Works
-
 **Event-Level Weighted Score:**
 ```
 weighted_score = base_severity × ai_confidence × category_weight × recency_decay
 ```
 
-Where:
-- `base_severity`: 1-5 from classification
-- `ai_confidence`: Average confidence from AI impact analysis
-- `category_weight`: geopolitical=1.2, energy=1.5, supply_chain=1.0
-- `recency_decay`: exp(-days_since_event / 14)
-
 **Rolling Normalization:**
-- Scores are normalized to 0-100 using a rolling 90-day maximum
-- This provides relative context: "Is risk high compared to recent history?"
+Scores are normalized using a rolling 90-day maximum.
 
-**Trend Detection:**
-- `rising`: Current 7-day score is >10% higher than previous 7 days
-- `falling`: Current 7-day score is >10% lower than previous 7 days
-- `stable`: Within ±10%
+## Scheduling Alerts
 
-### Asset Direction Logic
+For production, schedule the alerts engine to run every 10 minutes:
 
-Asset directions (oil, gas, fx, freight) are aggregated from AI impact analysis:
-- Events vote for directions weighted by confidence
-- Majority direction wins (with 20% threshold for decisiveness)
-- `mixed` when votes are split, `unclear` when insufficient data
+**Option 1: Replit Scheduled Tasks**
+Set up a scheduled task in Replit to run `python src/main.py --mode alerts`
+
+**Option 2: Loop Mode**
+```bash
+ALERTS_LOOP=true ALERTS_LOOP_INTERVAL=600 python src/main.py --mode alerts
+```
 
 ## Disclaimer
 
-Risk scores are **informational indicators only**. They represent relative risk levels based on news event analysis and should not be used as the sole basis for investment, trading, or business decisions. Always consult professional advisors and conduct independent research.
+EnergyRiskIQ provides **informational risk indicators only**. This is not investment advice. Always conduct your own research and consult qualified professionals before making trading or business decisions.
 
 ## Database Schema
 
@@ -149,20 +204,29 @@ Risk scores are **informational indicators only**. They represent relative risk 
 - **risk_indices**: Rolling aggregate risk scores by region
 - **asset_risk**: Asset-specific risk signals
 
+### Alerts Tables
+- **users**: User accounts (email, telegram_chat_id)
+- **user_plans**: Subscription tier and limits
+- **user_alert_prefs**: Per-user alert preferences
+- **alerts**: Alert history with status
+- **alert_state**: State for deduplication and trend comparison
+
 ## Recent Changes
 
+### v0.4 (2026-01-08) - Alerts Engine
+- Added monetizable alerts with Free/Trader/Pro tiers
+- Regional risk spike, asset risk, and high-impact event alerts
+- Email and Telegram delivery channels
+- Cooldown and max alerts/day anti-spam protections
+- Marketing endpoints with sample alerts and landing copy
+
 ### v0.3 (2026-01-07) - Risk Scoring Engine
-- Added risk_events, risk_indices, asset_risk tables
-- Implemented weighted scoring with recency decay
 - Rolling regional risk indices (7d, 30d)
 - Asset-level risk tracking (oil, gas, fx, freight)
-- New /risk/* API endpoints
 
 ### v0.2 (2026-01-07) - AI Processing
-- Added AI processing worker with OpenAI integration
 - AI-generated summaries and market impact analysis
 
 ### v0.1 (2026-01-07) - Initial Release
 - RSS ingestion from 3 feeds
 - Keyword-based classification
-- FastAPI endpoints
