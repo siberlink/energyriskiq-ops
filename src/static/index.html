@@ -1123,6 +1123,90 @@
                 gap: 1.5rem;
             }
         }
+
+        /* Section: Who It's For */
+        .section-audience {
+            background: var(--bg-white);
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .audience-card {
+            background: linear-gradient(135deg, var(--bg-light), white);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .audience-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .audience-icon {
+            font-size: 3rem;
+            margin-bottom: 1.25rem;
+            display: block;
+        }
+
+        .audience-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .audience-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .audience-tagline {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(0, 212, 170, 0.05));
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .audience-tagline p {
+            font-size: 1.15rem;
+            color: var(--secondary);
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .audience-tagline .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 768px) {
+            .audience-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+
+            .audience-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .audience-tagline p {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1518,6 +1602,39 @@
                         <span class="alert-badge">Paid Feature</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Who It's For -->
+    <section class="section section-audience">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2>Who Uses <span class="highlight">EnergyRiskIQ</span></h2>
+            </div>
+
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <span class="audience-icon">📈</span>
+                    <h3>Traders & Investors</h3>
+                    <p>Energy, commodities, FX, and macro strategies</p>
+                </div>
+
+                <div class="audience-card">
+                    <span class="audience-icon">🚢</span>
+                    <h3>Supply-Chain & Logistics Teams</h3>
+                    <p>Ports, shipping, and procurement operations</p>
+                </div>
+
+                <div class="audience-card">
+                    <span class="audience-icon">🛢</span>
+                    <h3>Energy Professionals</h3>
+                    <p>Oil & gas, LNG, and utilities sectors</p>
+                </div>
+            </div>
+
+            <div class="audience-tagline">
+                <p>If risk impacts <span class="highlight">prices, deliveries, or decisions</span> — this is for you.</p>
             </div>
         </div>
     </section>
