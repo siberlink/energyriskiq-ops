@@ -959,6 +959,170 @@
                 font-size: 1.1rem;
             }
         }
+
+        /* Section: Sample Alerts */
+        .section-alerts {
+            background: var(--bg-light);
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .alert-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .alert-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-header.critical {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+            border-bottom: 2px solid #EF4444;
+        }
+
+        .alert-header.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border-bottom: 2px solid #F59E0B;
+        }
+
+        .alert-header.info {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.05));
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .alert-icon {
+            font-size: 1.5rem;
+        }
+
+        .alert-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .alert-header.critical .alert-type {
+            color: #DC2626;
+        }
+
+        .alert-header.warning .alert-type {
+            color: #D97706;
+        }
+
+        .alert-header.info .alert-type {
+            color: var(--primary);
+        }
+
+        .alert-body {
+            padding: 1.5rem;
+        }
+
+        .alert-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        .alert-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .alert-line {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .alert-line strong {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .alert-metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .metric-up {
+            background: rgba(239, 68, 68, 0.1);
+            color: #DC2626;
+        }
+
+        .metric-high {
+            background: rgba(245, 158, 11, 0.15);
+            color: #D97706;
+        }
+
+        .alert-assets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .asset-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: var(--bg-light);
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .asset-tag .arrow {
+            color: #DC2626;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 100px;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        @media (max-width: 900px) {
+            .alerts-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1267,6 +1431,93 @@
 
             <div class="how-tagline">
                 <p>You don't need to "check" EnergyRiskIQ.<br><span class="highlight">It checks risk for you.</span></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Sample Alerts -->
+    <section class="section section-alerts">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2>What You'll Receive <span class="highlight">(Examples)</span></h2>
+            </div>
+
+            <div class="alerts-grid">
+                <!-- Regional Risk Alert -->
+                <div class="alert-card">
+                    <div class="alert-header critical">
+                        <span class="alert-icon">🚨</span>
+                        <span class="alert-type">Regional Risk Alert</span>
+                    </div>
+                    <div class="alert-body">
+                        <h4 class="alert-title">Europe Geo-Energy Risk Spike</h4>
+                        <div class="alert-content">
+                            <p class="alert-line">
+                                <strong>Risk score:</strong> 
+                                <span class="alert-metric metric-up">58 → 72 (+24%)</span>
+                            </p>
+                            <p class="alert-line">
+                                <strong>Drivers:</strong> Middle East escalation, LNG outage
+                            </p>
+                            <p class="alert-line"><strong>Assets impacted:</strong></p>
+                            <div class="alert-assets">
+                                <span class="asset-tag">Gas <span class="arrow">↑</span></span>
+                                <span class="asset-tag">Oil <span class="arrow">↑</span></span>
+                                <span class="asset-tag">FX risk-off</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Asset Risk Alert -->
+                <div class="alert-card">
+                    <div class="alert-header warning">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-type">Asset Risk Alert</span>
+                    </div>
+                    <div class="alert-body">
+                        <h4 class="alert-title">Gas Risk Rising in Europe</h4>
+                        <div class="alert-content">
+                            <p class="alert-line">
+                                <strong>Risk level:</strong> 
+                                <span class="alert-metric metric-high">High</span>
+                            </p>
+                            <p class="alert-line">
+                                <strong>Time horizon:</strong> 7 days
+                            </p>
+                            <p class="alert-line">
+                                <strong>Drivers:</strong> Pipeline disruption + cold forecast
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Digest -->
+                <div class="alert-card">
+                    <div class="alert-header info">
+                        <span class="alert-icon">🗓</span>
+                        <span class="alert-type">Daily Risk Digest</span>
+                    </div>
+                    <div class="alert-body">
+                        <h4 class="alert-title">EnergyRiskIQ Daily Digest — Europe</h4>
+                        <div class="alert-content">
+                            <p class="alert-line">
+                                <strong>Risk:</strong> 
+                                <span class="alert-metric metric-up">68 (Rising)</span>
+                            </p>
+                            <p class="alert-line">
+                                <strong>Top events:</strong> Sanctions, port congestion
+                            </p>
+                            <p class="alert-line"><strong>Asset snapshot:</strong></p>
+                            <div class="alert-assets">
+                                <span class="asset-tag">Gas <span class="arrow">↑</span></span>
+                                <span class="asset-tag">Oil <span class="arrow">↑</span></span>
+                                <span class="asset-tag">Freight <span class="arrow">↑</span></span>
+                            </div>
+                        </div>
+                        <span class="alert-badge">Paid Feature</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
