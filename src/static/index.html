@@ -402,6 +402,193 @@
                 font-size: 0.95rem;
             }
         }
+
+        /* Section: Problem */
+        .section {
+            padding: 6rem 2rem;
+            position: relative;
+        }
+
+        .section-problem {
+            background: var(--bg-light);
+        }
+
+        .section-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        h2 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            color: var(--secondary);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+        }
+
+        h2 .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .problem-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .problem-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .problem-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .problem-icon svg {
+            width: 28px;
+            height: 28px;
+            color: #EF4444;
+        }
+
+        .problem-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .problem-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .problem-contrast {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .contrast-card {
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .contrast-card.old-way {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .contrast-card.new-way {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 102, 255, 0.05));
+            border: 1px solid rgba(0, 212, 170, 0.3);
+        }
+
+        .contrast-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.35rem 0.75rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .old-way .contrast-label {
+            background: rgba(239, 68, 68, 0.15);
+            color: #DC2626;
+        }
+
+        .new-way .contrast-label {
+            background: rgba(0, 212, 170, 0.2);
+            color: #059669;
+        }
+
+        .contrast-card h4 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .old-way h4 {
+            color: #991B1B;
+        }
+
+        .new-way h4 {
+            color: #047857;
+        }
+
+        .contrast-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .section {
+                padding: 4rem 1.5rem;
+            }
+
+            .problem-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+
+            .problem-contrast {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+
+            .section-header {
+                margin-bottom: 2.5rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .section-subtitle {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -467,6 +654,64 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: The Core Problem -->
+    <section class="section section-problem">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2>Markets don't move on news.<br><span class="highlight">They move on risk escalation.</span></h2>
+                <p class="section-subtitle">
+                    Traders and supply-chain teams are overwhelmed by noise. Most tools show what happened. EnergyRiskIQ tells you when risk is rising — early.
+                </p>
+            </div>
+
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                    </div>
+                    <h3>Fragmented News</h3>
+                    <p>Critical signals buried across dozens of sources. No single view of what matters for energy and supply chains.</p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3>Delayed Reactions</h3>
+                    <p>By the time you read the headline, markets have already moved. Traditional news is reactive, not predictive.</p>
+                </div>
+
+                <div class="problem-card">
+                    <div class="problem-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3>Unclear Impact</h3>
+                    <p>How does a Baltic pipeline issue affect gas prices? What about freight rates? Traditional news doesn't connect the dots.</p>
+                </div>
+            </div>
+
+            <div class="problem-contrast">
+                <div class="contrast-card old-way">
+                    <span class="contrast-label">Most Tools</span>
+                    <h4>Show what happened</h4>
+                    <p>Reactive news feeds and delayed market reports that arrive after positions have already moved.</p>
+                </div>
+
+                <div class="contrast-card new-way">
+                    <span class="contrast-label">EnergyRiskIQ</span>
+                    <h4>Shows when risk is rising</h4>
+                    <p>AI-scored risk signals on energy, freight, and FX — before headlines hit mainstream news.</p>
+                </div>
             </div>
         </div>
     </section>
