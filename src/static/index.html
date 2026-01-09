@@ -1521,6 +1521,164 @@
             align-items: center;
             gap: 0.5rem;
         }
+
+        /* Section: Final CTA */
+        .section-final-cta {
+            background: linear-gradient(135deg, var(--secondary) 0%, #1a1a2e 100%);
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .final-cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .final-cta-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2rem;
+            line-height: 1.2;
+        }
+
+        .final-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.4);
+        }
+
+        .final-cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.5);
+        }
+
+        .final-cta-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .section-final-cta {
+                padding: 4rem 1.5rem;
+            }
+
+            .final-cta-content h2 {
+                font-size: 1.75rem;
+            }
+
+            .final-cta-btn {
+                padding: 1rem 2rem;
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--secondary);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 3rem 2rem 2rem;
+        }
+
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .footer-brand .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-brand .logo-icon svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+
+        .footer-brand span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            padding-top: 2rem;
+            text-align: center;
+        }
+
+        .footer-disclaimer {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.5);
+            max-width: 600px;
+            margin: 0 auto 1rem;
+        }
+
+        .footer-copyright {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        @media (max-width: 600px) {
+            .footer-top {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+                gap: 1.25rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2259,6 +2417,51 @@
             </div>
         </div>
     </section>
+
+    <!-- Section: Final CTA -->
+    <section class="section-final-cta">
+        <div class="final-cta-content">
+            <h2>Don't Be Surprised by Risk.</h2>
+            <a href="#signup" class="final-cta-btn">
+                Get Free Europe Risk Alerts
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="logo-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span>EnergyRiskIQ</span>
+                </div>
+                <nav class="footer-links">
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/disclaimer">Disclaimer</a>
+                    <a href="/contact">Contact</a>
+                    <a href="/status">Status</a>
+                </nav>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-disclaimer">
+                    EnergyRiskIQ provides informational risk indicators only.<br>
+                    No financial, trading, or investment advice.
+                </p>
+                <p class="footer-copyright">
+                    &copy; 2026 EnergyRiskIQ. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
 
     <script>
         document.querySelectorAll('.faq-question').forEach(button => {
