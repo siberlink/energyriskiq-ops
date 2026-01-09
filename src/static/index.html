@@ -847,6 +847,118 @@
                 padding: 1rem;
             }
         }
+
+        /* Section: How It Works */
+        .section-how {
+            background: var(--bg-white);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 48px;
+            left: 12.5%;
+            right: 12.5%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            z-index: 0;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: white;
+        }
+
+        .step-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .step-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .how-tagline {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .how-tagline p {
+            font-size: 1.25rem;
+            color: var(--secondary);
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .how-tagline p .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 900px) {
+            .steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+            }
+
+            .steps-grid::before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step-card {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .how-tagline p {
+                font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1116,6 +1228,45 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: How It Works -->
+    <section class="section section-how">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2>How <span class="highlight">EnergyRiskIQ</span> Works</h2>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Global Events Monitored</h3>
+                    <p>Geopolitics, energy markets, supply chains — continuously tracked from trusted sources</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>AI Risk Analysis</h3>
+                    <p>Each event is summarized and impact-scored by our AI engine</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Risk Index Computed</h3>
+                    <p>Rolling Europe risk score calculated over 7-day and 30-day windows</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Alerts Sent</h3>
+                    <p>You're notified only when risk rises or conditions meaningfully change</p>
+                </div>
+            </div>
+
+            <div class="how-tagline">
+                <p>You don't need to "check" EnergyRiskIQ.<br><span class="highlight">It checks risk for you.</span></p>
             </div>
         </div>
     </section>
