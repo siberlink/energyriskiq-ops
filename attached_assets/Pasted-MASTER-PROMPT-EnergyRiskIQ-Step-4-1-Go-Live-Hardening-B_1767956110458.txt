@@ -1,0 +1,155 @@
+MASTER PROMPT — EnergyRiskIQ Step 4.1 (Go-Live Hardening: Brevo + Digest + Upgrade Hooks)
+You are Replit AI acting as my senior engineer. Step 4 is already implemented and working with real email delivery via Brevo.
+Now implement Step 4.1 ONLY:
+1) Production-grade email sending validation endpoint
+2) Daily Digest (retention) worker + preview endpoint
+3) Upgrade hooks for Free users (conversion)
+4) Ensure quota/cooldown works across multiple runs (not just within a single run)
+
+Do NOT build UI dashboards, auth, Stripe, or new AI features.
+
+============================================================
+A) CURRENT STATE ASSUMPTIONS
+============================================================
+- API is deployed on Replit Autoscale with custom domain.
+- Worker triggers exist and are protected:
+  POST /internal/run/ingest, /ai, /risk, /alerts with X-Runner-Token.
+- Alerts system exists with plans: free/trader/pro.
+- Email provider is Brevo:
+  EMAIL_PROVIDER=brevo
+  BREVO_API_KEY is set
+  EMAIL_FROM is set (verified sender)
+- AI_MAX_EVENTS_PER_RUN is configured (10).
+- GitHub Actions scheduler is calling internal endpoints.
+
+============================================================
+B) TASK 1 — SEND TEST EMAIL ENDPOINT (REAL, NOT SIMULATED)
+============================================================
+Add endpoint:
+POST /alerts/send-test-email
+Body: { "email": "emilconstantine22@gmail.com" }
+
+Behavior:
+- If EMAIL_PROVIDER=brevo and BREVO_API_KEY missing -> return 500 with clear message
+- If EMAIL_FROM missing -> return 500 with clear message
+- Send a real transactional email via Brevo API:
+  Subject: "EnergyRiskIQ – Test Email"
+  Body: short plain-text message confirming Brevo is configured.
+- Return JSON:
+  { "status":"sent", "provider":"brevo", "to":"...", "from":"...", "message_id":"..." }
+
+Do NOT log secrets.
+
+============================================================
+C) TASK 2 — DAILY DIGEST (WORKER + ENDPOINTS)
+============================================================
+Purpose: increase retention and support Trader/Pro monetization.
+
+1) Add alert type: DAILY_DIGEST
+- Extend allowed alert_type values where needed (prefs table CHECKs etc.)
+- Plans:
+  - free: daily_digest_enabled=false
+  - trader: daily_digest_enabled=true by default
+  - pro: daily_digest_enabled=true by default
+
+2) Add worker mode:
+python src/main.py --mode digest
+This should:
+- Find users with daily_digest_enabled=true AND plan IN ('trader','pro')
+- Enforce 1 digest per user per day (use DB to check alerts table; alert_type='DAILY_DIGEST')
+- Build digest content using DB (no HTTP calls):
+  Include:
+   - Europe risk_7d + trend_7d
+   - Europe risk_30d + trend_30d
+   - Top 3 driver events in last 24h (by risk_events.weighted_score desc) joined to events:
+       include: title, category, region, source_url, ai_summary (if exists)
+   - Asset snapshot for Europe (latest asset_risk for window=7):
+       oil/gas/fx/freight: risk_score + direction
+  Keep email concise and scannable.
+
+Subject example:
+"EnergyRiskIQ Daily Digest — Europe Risk {risk_7d} ({trend_7d})"
+
+Send via Brevo (plain text is fine; optional HTML if easy).
+Store a row in alerts table:
+- alert_type='DAILY_DIGEST'
+- channel='email'
+- status sent/failed, sent_at
+- cooldown_key like: "user:{id}|type:DAILY_DIGEST|date:{YYYY-MM-DD}"
+
+3) Add preview endpoint:
+POST /digest/preview
+Body: { "email":"...", "plan":"free|trader|pro" }
+- Create user + plan if not exists (like /alerts/test behavior)
+- Generate subject + body WITHOUT sending
+- Return:
+  { "subject":"...", "body":"..." }
+
+4) Add internal runner endpoint:
+POST /internal/run/digest
+- Protected by X-Runner-Token
+- Uses advisory lock id digest=1005
+- Runs digest worker once
+
+============================================================
+D) TASK 3 — UPGRADE HOOKS (CONVERSION)
+============================================================
+Add upgrade hooks in alert messages and marketing copy.
+
+1) For Free plan alerts (all alert previews and real sends):
+Append a short CTA line:
+"Upgrade to Trader for real-time alerts + asset signals (oil/gas/FX/freight)."
+
+2) Update /marketing/landing-copy response to include:
+- pricing anchors (Free / Trader / Pro)
+- 3 bullets per plan (very short)
+- CTA text:
+  "Start Free — Get Europe risk alerts"
+  "Upgrade — Unlock real-time + asset alerts"
+- Keep tone professional, not hype.
+- Keep disclaimers.
+
+3) Update /marketing/samples to include:
+- 1 free-tier example (delayed spike alert + upgrade hook)
+- 1 trader-tier example (asset alert)
+- 1 pro-tier example (high-impact + telegram mention)
+
+============================================================
+E) TASK 4 — QUOTA / COOLDOWN ACROSS MULTIPLE RUNS (CRITICAL)
+============================================================
+Ensure daily max alerts/day is enforced based on DB counts, not just in-memory counters.
+- Count alerts with status='sent' AND user_id=... AND created_at::date = today (UTC)
+- Enforce before sending new alerts.
+
+Cooldown enforcement must also look at DB:
+- For a given cooldown_key, find most recent alert created_at and compare to cooldown_minutes.
+
+Make sure UTC date boundary is used consistently.
+Add a helper:
+get_utc_today_date()
+
+============================================================
+F) README UPDATES
+============================================================
+Update README:
+- how to configure Brevo env vars
+- how to test sending:
+  POST /alerts/send-test-email
+- how to run digest:
+  python src/main.py --mode digest
+  POST /internal/run/digest (for scheduler)
+- scheduling suggestion (Amsterdam time):
+  digest once daily at 07:30 Amsterdam (UTC conversion note)
+
+============================================================
+G) ACCEPTANCE TESTS
+============================================================
+1) Call POST /alerts/send-test-email and confirm real email arrives.
+2) Call POST /digest/preview for plan=trader and confirm subject/body returned.
+3) Run digest worker once:
+   python src/main.py --mode digest
+   Confirm an email is sent and alerts table contains DAILY_DIGEST entry.
+4) Trigger /marketing/samples and confirm it contains upgrade hooks for Free.
+5) Run alerts twice quickly and confirm cooldown prevents duplicates across runs.
+
+Implement Step 4.1 now, keeping the codebase clean and consistent with existing patterns.

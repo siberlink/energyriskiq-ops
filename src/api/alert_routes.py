@@ -167,30 +167,38 @@ def get_user_alerts(
 
 @router.post("/send-test-email")
 def send_test_email(request: SendTestEmailRequest):
-    email_provider = os.environ.get('EMAIL_PROVIDER', 'not set')
-    email_from = os.environ.get('EMAIL_FROM', 'not set')
-    brevo_key_set = bool(os.environ.get('BREVO_API_KEY'))
+    from src.alerts.channels import EMAIL_PROVIDER, EMAIL_FROM, BREVO_API_KEY
     
-    subject = "EnergyRiskIQ Test Email"
+    if EMAIL_PROVIDER != 'brevo':
+        raise HTTPException(
+            status_code=500, 
+            detail=f"EMAIL_PROVIDER must be 'brevo' for test emails. Current: '{EMAIL_PROVIDER}'"
+        )
+    
+    if not BREVO_API_KEY:
+        raise HTTPException(status_code=500, detail="BREVO_API_KEY is not configured")
+    
+    if not EMAIL_FROM or EMAIL_FROM == 'alerts@energyriskiq.com':
+        from_env = os.environ.get('EMAIL_FROM', '')
+        if not from_env:
+            raise HTTPException(status_code=500, detail="EMAIL_FROM is not configured in environment")
+    
+    subject = "EnergyRiskIQ – Test Email"
     body = """This is a test email from EnergyRiskIQ.
 
-If you received this, your email configuration is working correctly.
+If you received this, your Brevo email configuration is working correctly.
 
-Configuration:
-- Provider: {}
-- From: {}
-
--- EnergyRiskIQ Alerts System""".format(email_provider, email_from)
+-- EnergyRiskIQ Alerts System"""
     
-    success, error = send_email(request.email, subject, body)
+    success, error, message_id = send_email(request.email, subject, body)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail=error)
     
     return {
-        "success": success,
-        "email": request.email,
-        "config": {
-            "provider": email_provider,
-            "from": email_from,
-            "brevo_key_configured": brevo_key_set
-        },
-        "error": error
+        "status": "sent",
+        "provider": EMAIL_PROVIDER,
+        "to": request.email,
+        "from": EMAIL_FROM,
+        "message_id": message_id
     }

@@ -127,17 +127,22 @@ python src/main.py --mode alerts
 
 ### Alerts
 - `POST /alerts/test` - Create test user and preview alerts
+- `POST /alerts/send-test-email` - Send test email via Brevo
 - `GET /alerts/user/{user_id}` - View user's alert history
 
 ### Marketing
 - `GET /marketing/samples` - Sample alert messages
 - `GET /marketing/landing-copy` - Landing page copy blocks
 
+### Digest
+- `POST /digest/preview` - Preview daily digest without sending
+
 ### Internal Runner (Secured with INTERNAL_RUNNER_TOKEN)
 - `POST /internal/run/ingest` - Trigger ingestion worker
 - `POST /internal/run/ai` - Trigger AI processing worker
 - `POST /internal/run/risk` - Trigger risk scoring worker
 - `POST /internal/run/alerts` - Trigger alerts engine
+- `POST /internal/run/digest` - Trigger daily digest worker
 
 ## Subscription Tiers
 
@@ -171,6 +176,7 @@ python src/main.py --mode alerts
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
+- 2026-01-09: Step 4.1 - Go-Live Hardening (Brevo, Digest, Upgrade hooks, UTC quota)
 - 2026-01-08: Step 4 - Alerts engine with monetization
 - 2026-01-07: Step 3 - Risk scoring engine complete
 - 2026-01-07: Step 2 - AI processing worker

@@ -14,7 +14,7 @@ TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
 
 def send_email(to_email: str, subject: str, body: str) -> tuple:
     if not to_email:
-        return False, "No email address provided"
+        return False, "No email address provided", None
     
     if EMAIL_PROVIDER == 'resend':
         return _send_resend(to_email, subject, body)
@@ -47,17 +47,19 @@ def _send_resend(to_email: str, subject: str, body: str) -> tuple:
         )
         
         if response.status_code in [200, 201]:
-            logger.info(f"Email sent to {to_email}")
-            return True, None
+            data = response.json()
+            message_id = data.get('id')
+            logger.info(f"Email sent to {to_email}, message_id={message_id}")
+            return True, None, message_id
         else:
             error = f"Resend API error: {response.status_code} - {response.text}"
             logger.error(error)
-            return False, error
+            return False, error, None
     
     except Exception as e:
         error = f"Email send failed: {str(e)}"
         logger.error(error)
-        return False, error
+        return False, error, None
 
 
 def _parse_email_from(email_from: str) -> dict:
@@ -92,23 +94,25 @@ def _send_brevo(to_email: str, subject: str, body: str) -> tuple:
         )
         
         if response.status_code in [200, 201, 202]:
-            logger.info(f"Email sent to {to_email}")
-            return True, None
+            data = response.json()
+            message_id = data.get('messageId')
+            logger.info(f"Email sent to {to_email}, message_id={message_id}")
+            return True, None, message_id
         else:
             error = f"Brevo API error: {response.status_code} - {response.text}"
             logger.error(error)
-            return False, error
+            return False, error, None
     
     except Exception as e:
         error = f"Email send failed: {str(e)}"
         logger.error(error)
-        return False, error
+        return False, error, None
 
 
 def _simulate_send(to_email: str, subject: str, body: str) -> tuple:
     logger.info(f"[SIMULATED] Email to {to_email}: {subject}")
     logger.debug(f"Body preview: {body[:200]}...")
-    return True, None
+    return True, None, "simulated-message-id"
 
 
 def send_telegram(chat_id: str, message: str) -> tuple:

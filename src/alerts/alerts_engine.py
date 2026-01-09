@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, List, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -13,7 +13,8 @@ from src.db.migrations import run_migrations
 from src.alerts.templates import (
     format_regional_risk_spike,
     format_asset_risk_spike,
-    format_high_impact_event
+    format_high_impact_event,
+    add_upgrade_hook_if_free
 )
 from src.alerts.channels import send_email, send_telegram
 
@@ -175,14 +176,19 @@ def get_user_prefs(user_id: int) -> List[Dict]:
     return execute_query(query, (user_id,))
 
 
+def get_utc_today_date() -> str:
+    return datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+
 def count_alerts_today(user_id: int) -> int:
+    today_utc = get_utc_today_date()
     query = """
     SELECT COUNT(*) as cnt FROM alerts
     WHERE user_id = %s
-      AND created_at >= CURRENT_DATE
+      AND created_at::date = %s
       AND status IN ('sent', 'queued')
     """
-    result = execute_one(query, (user_id,))
+    result = execute_one(query, (user_id, today_utc))
     return result['cnt'] if result else 0
 
 
@@ -410,7 +416,7 @@ def send_alert(user: Dict, alert_data: Dict, alert_id: int) -> bool:
     if channel == 'telegram':
         success, error = send_telegram(user['telegram_chat_id'], alert_data['message'])
     else:
-        success, error = send_email(user['email'], alert_data['title'], alert_data['message'])
+        success, error, _ = send_email(user['email'], alert_data['title'], alert_data['message'])
     
     if success:
         update_alert_status(alert_id, 'sent')
@@ -444,18 +450,24 @@ def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = Non
     for user in users:
         try:
             user_id = user['id']
-            logger.debug(f"Processing user {user_id} ({user['plan']})")
+            plan = user['plan']
+            logger.debug(f"Processing user {user_id} ({plan})")
             
             generated_alerts = process_user_alerts(user, dry_run)
             
             for alert_data in generated_alerts:
                 channel = 'telegram' if user.get('allow_telegram') and user.get('telegram_chat_id') else 'email'
                 
+                message = alert_data['message']
+                if plan == 'free':
+                    message = add_upgrade_hook_if_free(message, plan)
+                    alert_data['message'] = message
+                
                 if dry_run:
                     all_alerts.append({
                         'user_id': user_id,
                         'email': user['email'],
-                        'plan': user['plan'],
+                        'plan': plan,
                         'channel': channel,
                         **alert_data
                     })
@@ -468,7 +480,7 @@ def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = Non
                         triggered_value=alert_data.get('triggered_value'),
                         threshold=alert_data.get('threshold'),
                         title=alert_data['title'],
-                        message=alert_data['message'],
+                        message=message,
                         channel=channel,
                         cooldown_key=alert_data['cooldown_key']
                     )

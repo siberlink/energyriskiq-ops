@@ -14,7 +14,8 @@ LOCK_IDS = {
     'ingest': 1001,
     'ai': 1002,
     'risk': 1003,
-    'alerts': 1004
+    'alerts': 1004,
+    'digest': 1005
 }
 
 
@@ -143,6 +144,26 @@ def run_alerts(x_runner_token: Optional[str] = Header(None)):
         return {"alerts_processed": len(alerts) if alerts else 0}
     
     response, status_code = run_job_with_lock('alerts', alerts_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
+@router.post("/run/digest")
+def run_digest(x_runner_token: Optional[str] = Header(None)):
+    validate_runner_token(x_runner_token)
+    
+    from src.alerts.digest_worker import run_digest_worker
+    
+    def digest_job():
+        stats = run_digest_worker()
+        return stats if stats else {}
+    
+    response, status_code = run_job_with_lock('digest', digest_job)
     
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)

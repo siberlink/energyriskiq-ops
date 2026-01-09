@@ -1,6 +1,8 @@
 from typing import Dict, List, Optional
 from datetime import datetime
 
+FREE_TIER_UPGRADE_HOOK = "\n\n---\nUpgrade to Trader for real-time alerts + asset signals (oil/gas/FX/freight).\nhttps://energyriskiq.com/upgrade"
+
 def format_regional_risk_spike(
     region: str,
     risk_7d: float,
@@ -41,6 +43,12 @@ KEY DRIVERS:
     message += "\n---\nInformational only. Not financial advice."
     
     return title, message
+
+
+def add_upgrade_hook_if_free(message: str, plan: str) -> str:
+    if plan == 'free':
+        return message + FREE_TIER_UPGRADE_HOOK
+    return message
 
 
 def format_asset_risk_spike(
@@ -209,5 +217,103 @@ LANDING_COPY = {
     ],
     "cta": "Start Free - Get Europe Risk Alerts Now",
     "cta_upgrade": "Upgrade to Trader for Real-Time Asset Alerts",
-    "disclaimer": "EnergyRiskIQ provides informational risk indicators only. This is not investment advice. Always conduct your own research and consult qualified professionals before making trading or business decisions."
+    "disclaimer": "EnergyRiskIQ provides informational risk indicators only. This is not investment advice. Always conduct your own research and consult qualified professionals before making trading or business decisions.",
+    "pricing": {
+        "free": {
+            "name": "Free",
+            "price": "$0/month",
+            "features": [
+                "Europe regional risk alerts (60-min delay)",
+                "Up to 2 alerts per day",
+                "Basic event notifications"
+            ]
+        },
+        "trader": {
+            "name": "Trader",
+            "price": "$29/month",
+            "features": [
+                "Real-time alerts (no delay)",
+                "Up to 20 alerts per day",
+                "Asset-level signals (oil, gas, FX, freight)",
+                "Daily risk digest email"
+            ]
+        },
+        "pro": {
+            "name": "Pro",
+            "price": "$79/month",
+            "features": [
+                "Everything in Trader",
+                "Up to 50 alerts per day",
+                "Telegram instant alerts",
+                "Priority support"
+            ]
+        }
+    }
 }
+
+
+def generate_tiered_sample_alerts() -> List[Dict]:
+    samples = []
+    
+    title, msg = format_regional_risk_spike(
+        region="Europe",
+        risk_7d=78,
+        prev_risk_7d=62,
+        trend="rising",
+        driver_events=[
+            {"title": "OPEC+ announces surprise production cuts", "region": "Middle East", "category": "energy"},
+            {"title": "Baltic Sea shipping disrupted by naval exercises", "region": "Europe", "category": "supply_chain"}
+        ],
+        assets={
+            "oil": {"risk": 82, "direction": "up"},
+            "gas": {"risk": 85, "direction": "up"}
+        }
+    )
+    msg = add_upgrade_hook_if_free(msg, 'free')
+    samples.append({
+        "type": "REGIONAL_RISK_SPIKE",
+        "tier": "free",
+        "title": title,
+        "message": msg,
+        "note": "Free tier: 60-minute delay, includes upgrade CTA"
+    })
+    
+    title, msg = format_asset_risk_spike(
+        asset="gas",
+        region="Europe",
+        risk_score=85,
+        direction="up",
+        confidence=0.78,
+        driver_events=[
+            {"title": "LNG terminal maintenance extends through winter"},
+            {"title": "Cold snap forecast across Northern Europe"}
+        ]
+    )
+    samples.append({
+        "type": "ASSET_RISK_SPIKE",
+        "tier": "trader",
+        "title": title,
+        "message": msg,
+        "note": "Trader tier: real-time, asset-level alerts"
+    })
+    
+    title, msg = format_high_impact_event(
+        event={
+            "title": "Major pipeline explosion disrupts gas flows to Central Europe",
+            "severity_score": 5,
+            "category": "energy",
+            "ai_summary": "Critical supply disruption with potential for significant price impact.",
+            "source_url": "https://example.com/breaking-news"
+        },
+        region="Europe"
+    )
+    msg += "\n\n[Also sent via Telegram for Pro subscribers]"
+    samples.append({
+        "type": "HIGH_IMPACT_EVENT",
+        "tier": "pro",
+        "title": title,
+        "message": msg,
+        "note": "Pro tier: instant Telegram delivery for critical events"
+    })
+    
+    return samples

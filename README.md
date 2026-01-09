@@ -113,6 +113,17 @@ For continuous alerting (every 10 minutes):
 ALERTS_LOOP=true python src/main.py --mode alerts
 ```
 
+### Run Daily Digest
+
+```bash
+python src/main.py --mode digest
+```
+
+Sends daily risk digests to Trader and Pro subscribers.
+
+**Scheduling suggestion (Amsterdam time):**
+Run digest once daily at 07:30 Amsterdam time (05:30 UTC in winter, 06:30 UTC in summer).
+
 ### Full Pipeline
 
 ```bash
@@ -141,7 +152,11 @@ python src/main.py --mode alerts
 
 ### Alerts
 - `POST /alerts/test` - Create test user and preview alerts
+- `POST /alerts/send-test-email` - Send a test email to verify Brevo configuration
 - `GET /alerts/user/{user_id}` - View user's alert history
+
+### Digest
+- `POST /digest/preview` - Preview daily digest without sending
 
 ### Marketing
 - `GET /marketing/samples` - Sample alert messages
@@ -154,6 +169,7 @@ These endpoints trigger worker jobs and are protected by `INTERNAL_RUNNER_TOKEN`
 - `POST /internal/run/ai` - Run AI processing
 - `POST /internal/run/risk` - Run risk scoring
 - `POST /internal/run/alerts` - Run alerts engine
+- `POST /internal/run/digest` - Run daily digest
 
 **Authentication**: Requires header `X-Runner-Token: <your-token>`
 
@@ -174,6 +190,19 @@ curl -X POST https://your-app.replit.app/internal/run/risk \
 # Run alerts
 curl -X POST https://your-app.replit.app/internal/run/alerts \
   -H "X-Runner-Token: your-secret-token"
+
+# Run daily digest
+curl -X POST https://your-app.replit.app/internal/run/digest \
+  -H "X-Runner-Token: your-secret-token"
+```
+
+### Testing Email Configuration
+
+```bash
+# Send a test email via Brevo
+curl -X POST https://your-app.replit.app/alerts/send-test-email \
+  -H "Content-Type: application/json" \
+  -d '{"email":"your-email@example.com"}'
 ```
 
 **Response format:**
