@@ -60,10 +60,20 @@ def _send_resend(to_email: str, subject: str, body: str) -> tuple:
         return False, error
 
 
+def _parse_email_from(email_from: str) -> dict:
+    import re
+    match = re.match(r'^(.+?)<(.+?)>$', email_from.strip())
+    if match:
+        return {"name": match.group(1).strip(), "email": match.group(2).strip()}
+    return {"email": email_from.strip()}
+
+
 def _send_brevo(to_email: str, subject: str, body: str) -> tuple:
     if not BREVO_API_KEY:
         logger.warning("BREVO_API_KEY not set, simulating email send")
         return _simulate_send(to_email, subject, body)
+    
+    sender = _parse_email_from(EMAIL_FROM)
     
     try:
         response = requests.post(
@@ -73,7 +83,7 @@ def _send_brevo(to_email: str, subject: str, body: str) -> tuple:
                 "Content-Type": "application/json"
             },
             json={
-                "sender": {"email": EMAIL_FROM},
+                "sender": sender,
                 "to": [{"email": to_email}],
                 "subject": subject,
                 "textContent": body

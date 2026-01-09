@@ -1,8 +1,10 @@
+import os
 from fastapi import APIRouter, Query, HTTPException, Path
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from src.db.db import execute_query, execute_one, get_cursor
 from src.alerts.alerts_engine import run_alerts_engine, PLAN_DEFAULTS
+from src.alerts.channels import send_email
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
@@ -10,6 +12,10 @@ router = APIRouter(prefix="/alerts", tags=["alerts"])
 class TestAlertRequest(BaseModel):
     email: str
     plan: str = "free"
+
+
+class SendTestEmailRequest(BaseModel):
+    email: str
 
 
 def get_or_create_user(email: str) -> int:
@@ -156,4 +162,35 @@ def get_user_alerts(
         "email": user['email'],
         "count": len(alerts),
         "alerts": alerts
+    }
+
+
+@router.post("/send-test-email")
+def send_test_email(request: SendTestEmailRequest):
+    email_provider = os.environ.get('EMAIL_PROVIDER', 'not set')
+    email_from = os.environ.get('EMAIL_FROM', 'not set')
+    brevo_key_set = bool(os.environ.get('BREVO_API_KEY'))
+    
+    subject = "EnergyRiskIQ Test Email"
+    body = """This is a test email from EnergyRiskIQ.
+
+If you received this, your email configuration is working correctly.
+
+Configuration:
+- Provider: {}
+- From: {}
+
+-- EnergyRiskIQ Alerts System""".format(email_provider, email_from)
+    
+    success, error = send_email(request.email, subject, body)
+    
+    return {
+        "success": success,
+        "email": request.email,
+        "config": {
+            "provider": email_provider,
+            "from": email_from,
+            "brevo_key_configured": brevo_key_set
+        },
+        "error": error
     }
