@@ -105,7 +105,7 @@
 
         .page-header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
         }
 
         .page-header h1 {
@@ -129,6 +129,56 @@
             margin: 0 auto;
         }
 
+        .disclaimer-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .disclaimer-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--warning);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .disclaimer-icon svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+        .disclaimer-text {
+            flex: 1;
+        }
+
+        .disclaimer-text strong {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .disclaimer-text p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .last-updated {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
         .samples-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -149,6 +199,22 @@
         .sample-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-timestamp {
+            background: linear-gradient(135deg, var(--secondary), #334155);
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-timestamp svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
         }
 
         .card-header {
@@ -201,7 +267,7 @@
             margin-bottom: 0.25rem;
         }
 
-        .card-header-text .tier-badge {
+        .card-header-text .type-badge {
             display: inline-block;
             font-size: 0.7rem;
             font-weight: 600;
@@ -209,21 +275,8 @@
             letter-spacing: 0.05em;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
-        }
-
-        .tier-badge.free {
             background: rgba(100, 116, 139, 0.1);
             color: var(--text-secondary);
-        }
-
-        .tier-badge.trader {
-            background: rgba(0, 102, 255, 0.1);
-            color: var(--primary);
-        }
-
-        .tier-badge.pro {
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.15), rgba(0, 212, 170, 0.15));
-            color: var(--secondary);
         }
 
         .card-body {
@@ -249,12 +302,69 @@
             padding: 1rem 1.5rem;
             background: var(--bg-light);
             border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .card-footer p {
+        .channel-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .channel-badge.email {
+            background: rgba(0, 102, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .channel-badge.telegram {
+            background: rgba(0, 136, 204, 0.1);
+            color: #0088cc;
+        }
+
+        .card-footer span {
             font-size: 0.8rem;
             color: var(--text-muted);
-            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-samples {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-samples h3 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-samples p {
+            color: var(--text-secondary);
         }
 
         .cta-section {
@@ -309,6 +419,10 @@
             font-size: 0.85rem;
         }
 
+        .footer a {
+            color: inherit;
+        }
+
         @media (max-width: 600px) {
             .content {
                 padding: 2rem 1rem;
@@ -324,6 +438,11 @@
 
             .header-cta {
                 display: none;
+            }
+
+            .disclaimer-banner {
+                flex-direction: column;
+                text-align: center;
             }
         }
     </style>
@@ -346,15 +465,33 @@
     <main class="content">
         <div class="page-header">
             <h1>Real <span class="highlight">Sample Alerts</span></h1>
-            <p>See exactly what EnergyRiskIQ alerts look like. These are real examples of the intelligence you'll receive.</p>
+            <p>See actual alerts that were sent to our subscribers.</p>
         </div>
 
+        <div class="disclaimer-banner">
+            <div class="disclaimer-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <div class="disclaimer-text">
+                <strong>24-Hour Delayed Samples</strong>
+                <p>These are REAL alerts that were sent to subscribers at least 24 hours ago. Displayed for sample purposes only. Not to be used as real-time intelligence. Alerts update periodically with new 24h+ delayed content.</p>
+            </div>
+        </div>
+
+        <div class="last-updated" id="last-updated"></div>
+
         <div class="samples-grid" id="samples-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Loading real alerts...</p>
+            </div>
         </div>
 
         <div class="cta-section">
-            <h2>Ready to Stay Ahead of Risk?</h2>
-            <p>Start receiving real-time energy risk intelligence today.</p>
+            <h2>Ready to Get Real-Time Alerts?</h2>
+            <p>Subscribe to receive these alerts instantly, not 24 hours later.</p>
             <a href="/#signup" class="cta-button">
                 Start Free Now
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,188 +502,120 @@
     </main>
 
     <footer class="footer">
-        <p>&copy; 2026 EnergyRiskIQ. All rights reserved. | <a href="/privacy" style="color: inherit;">Privacy</a> | <a href="/terms" style="color: inherit;">Terms</a></p>
+        <p>&copy; 2026 EnergyRiskIQ. All rights reserved. | <a href="/privacy">Privacy</a> | <a href="/terms">Terms</a></p>
     </footer>
 
     <script>
-        const sampleAlerts = [
-            {
-                type: "REGIONAL_RISK_SPIKE",
-                tier: "free",
-                title: "Europe Geo-Energy Risk Spike",
-                icon: "regional",
-                message: `REGIONAL RISK ALERT: Europe
+        const iconSvg = {
+            REGIONAL_RISK_SPIKE: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+            ASSET_RISK_SPIKE: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>',
+            HIGH_IMPACT_EVENT: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+            DAILY_DIGEST: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
+        };
 
-Current Risk Level: 78/100 (+26% vs 24h ago)
-Trend: RISING
+        const iconClass = {
+            REGIONAL_RISK_SPIKE: 'regional',
+            ASSET_RISK_SPIKE: 'asset',
+            HIGH_IMPACT_EVENT: 'high-impact',
+            DAILY_DIGEST: 'digest'
+        };
 
-KEY DRIVERS:
-1. OPEC+ announces surprise production cuts
-   Region: Middle East | Category: energy
-2. Baltic Sea shipping disrupted by naval exercises
-   Region: Europe | Category: supply_chain
-3. Natural gas storage levels drop below seasonal average
-   Region: Europe | Category: energy
+        function formatDate(isoString) {
+            if (!isoString) return 'Unknown';
+            const date = new Date(isoString);
+            return date.toLocaleString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZoneName: 'short'
+            });
+        }
 
-ASSETS LIKELY AFFECTED:
-  OIL: 82/100 (up)
-  GAS: 85/100 (up)
-  FX: 65/100 (risk_off)
-  FREIGHT: 70/100 (up)
+        function formatShortDate(isoString) {
+            if (!isoString) return '';
+            const date = new Date(isoString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
 
----
-Informational only. Not financial advice.`,
-                note: "Free tier: 60-minute delay on alerts"
-            },
-            {
-                type: "ASSET_RISK_SPIKE",
-                tier: "trader",
-                title: "GAS Risk Rising in Europe",
-                icon: "asset",
-                message: `ASSET RISK ALERT: GAS
-
-Region: Europe
-Risk Score: 85/100
-Direction: UP
-Confidence: 78%
-
-KEY DRIVERS:
-1. LNG terminal maintenance extends through winter
-2. Cold snap forecast across Northern Europe
-
----
-Informational only. Not financial advice.`,
-                note: "Trader tier: Real-time, asset-level alerts"
-            },
-            {
-                type: "HIGH_IMPACT_EVENT",
-                tier: "pro",
-                title: "High-Impact Event Detected (Europe)",
-                icon: "high-impact",
-                message: `HIGH-IMPACT EVENT ALERT
-
-Event: Major pipeline explosion disrupts gas flows to Central Europe
-Severity: 5/5
-Category: ENERGY
-Region: Europe
-
-AI Analysis:
-A significant explosion has occurred on a major natural gas pipeline serving Central European markets. Initial reports indicate substantial damage that may take weeks to repair. This represents a critical supply disruption.
-
-Source: Breaking news feed
-
----
-Informational only. Not financial advice.
-
-[Also sent via Telegram for Pro subscribers]`,
-                note: "Pro tier: Instant Telegram delivery for critical events"
-            },
-            {
-                type: "ASSET_RISK_SPIKE",
-                tier: "trader",
-                title: "OIL Risk Elevated in Europe",
-                icon: "asset",
-                message: `ASSET RISK ALERT: OIL
-
-Region: Europe
-Risk Score: 82/100
-Direction: UP
-Confidence: 85%
-
-KEY DRIVERS:
-1. Red Sea shipping disruptions force longer routes
-2. Refinery outage in Rotterdam reduces capacity
-
----
-Informational only. Not financial advice.`,
-                note: "Trader tier: Real-time, asset-level alerts"
-            },
-            {
-                type: "DAILY_DIGEST",
-                tier: "trader",
-                title: "Daily Risk Digest - Europe",
-                icon: "digest",
-                message: `DAILY RISK DIGEST: Europe
-January 9, 2026
-
-RISK OVERVIEW
-7-Day Risk: 72/100 (rising)
-30-Day Risk: 65/100
-
-ASSET RISK SUMMARY
-  OIL: 78/100 (up)
-  GAS: 82/100 (up)
-  FX: 58/100 (stable)
-  FREIGHT: 71/100 (up)
-
-TOP EVENTS TODAY
-1. EU announces new sanctions on energy imports
-2. Norway gas field maintenance extended
-3. Ukraine transit talks stall
-4. LNG spot prices reach 3-month high
-5. Baltic port workers announce strike
-
----
-Informational only. Not financial advice.`,
-                note: "Trader tier: Daily digest summarizing key developments"
-            },
-            {
-                type: "REGIONAL_RISK_SPIKE",
-                tier: "free",
-                title: "Europe Risk Level Change",
-                icon: "regional",
-                message: `REGIONAL RISK ALERT: Europe
-
-Current Risk Level: 68/100 (+15% vs 24h ago)
-Trend: RISING
-
-KEY DRIVERS:
-1. Unexpected refinery shutdown in Germany
-   Region: Europe | Category: energy
-2. EU energy ministers emergency meeting called
-   Region: Europe | Category: geopolitical
-
-ASSETS LIKELY AFFECTED:
-  OIL: 72/100 (up)
-  GAS: 75/100 (up)
-
----
-Informational only. Not financial advice.`,
-                note: "Free tier: Major regional risk changes"
+        async function loadSamples() {
+            const container = document.getElementById('samples-container');
+            const lastUpdated = document.getElementById('last-updated');
+            
+            try {
+                const response = await fetch('/marketing/real-samples');
+                const data = await response.json();
+                
+                if (data.last_updated) {
+                    lastUpdated.textContent = `Last updated: ${formatDate(data.last_updated)}`;
+                }
+                
+                if (!data.samples || data.samples.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-samples">
+                            <h3>No samples available yet</h3>
+                            <p>Check back soon for real alert samples from our system.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                data.samples.forEach(alert => {
+                    const alertType = alert.type || 'REGIONAL_RISK_SPIKE';
+                    const icon = iconSvg[alertType] || iconSvg.REGIONAL_RISK_SPIKE;
+                    const iconCls = iconClass[alertType] || 'regional';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'sample-card';
+                    card.innerHTML = `
+                        <div class="card-timestamp">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Sent: ${formatDate(alert.sent_at)}
+                        </div>
+                        <div class="card-header">
+                            <div class="alert-icon ${iconCls}">
+                                ${icon}
+                            </div>
+                            <div class="card-header-text">
+                                <h3>${alert.title || 'Alert'}</h3>
+                                <span class="type-badge">${alertType.replace(/_/g, ' ')}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert-content">${alert.message || 'No message content'}</div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="channel-badge ${alert.channel}">${alert.channel}</span>
+                            <span>${alert.region || 'Europe'}${alert.asset ? ' - ' + alert.asset.toUpperCase() : ''}</span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Failed to load samples:', error);
+                container.innerHTML = `
+                    <div class="no-samples">
+                        <h3>Unable to load samples</h3>
+                        <p>Please try again later.</p>
+                    </div>
+                `;
             }
-        ];
+        }
 
-        const container = document.getElementById('samples-container');
-
-        sampleAlerts.forEach(alert => {
-            const iconSvg = {
-                regional: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
-                asset: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>',
-                'high-impact': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
-                digest: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
-            };
-
-            const card = document.createElement('div');
-            card.className = 'sample-card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="alert-icon ${alert.icon}">
-                        ${iconSvg[alert.icon]}
-                    </div>
-                    <div class="card-header-text">
-                        <h3>${alert.title}</h3>
-                        <span class="tier-badge ${alert.tier}">${alert.tier}</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="alert-content">${alert.message}</div>
-                </div>
-                <div class="card-footer">
-                    <p>${alert.note}</p>
-                </div>
-            `;
-            container.appendChild(card);
-        });
+        loadSamples();
+        setInterval(loadSamples, 5 * 60 * 1000);
     </script>
 </body>
 </html>
