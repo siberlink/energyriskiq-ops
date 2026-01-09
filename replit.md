@@ -110,6 +110,9 @@ python src/main.py --mode alerts
 
 ## API Endpoints
 
+### Landing Page
+- `GET /` - Marketing landing page (Hero section)
+
 ### Events & AI
 - `GET /health` - Health check
 - `GET /events?category=&region=&min_severity=&processed=&limit=50` - Query events
