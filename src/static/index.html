@@ -589,6 +589,121 @@
                 font-size: 1rem;
             }
         }
+
+        /* Section: Promise */
+        .section-promise {
+            background: var(--bg-white);
+        }
+
+        .promise-box {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .promise-label {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .promise-statement {
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            font-weight: 700;
+            color: var(--secondary);
+            line-height: 1.4;
+            margin-bottom: 3rem;
+        }
+
+        .promise-statement .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .promise-bullets {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+            text-align: left;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .promise-bullet {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .bullet-icon {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        .bullet-icon svg {
+            width: 14px;
+            height: 14px;
+            color: white;
+        }
+
+        .bullet-text {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .promise-tagline {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(0, 212, 170, 0.05));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .tagline-text {
+            font-size: 1.15rem;
+            color: var(--secondary);
+            font-weight: 600;
+            line-height: 1.8;
+        }
+
+        .tagline-text span {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .promise-statement {
+                font-size: 1.35rem;
+            }
+
+            .bullet-text {
+                font-size: 1rem;
+            }
+
+            .promise-tagline {
+                padding: 1.5rem;
+            }
+
+            .tagline-text {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -711,6 +826,56 @@
                     <span class="contrast-label">EnergyRiskIQ</span>
                     <h4>Shows when risk is rising</h4>
                     <p>AI-scored risk signals on energy, freight, and FX — before headlines hit mainstream news.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Core Promise -->
+    <section class="section section-promise">
+        <div class="section-inner">
+            <div class="promise-box">
+                <span class="promise-label">Our Core Promise</span>
+                
+                <p class="promise-statement">
+                    EnergyRiskIQ alerts you when geopolitical and energy risk <span class="highlight">starts to matter</span> — not when it's already priced in.
+                </p>
+
+                <div class="promise-bullets">
+                    <div class="promise-bullet">
+                        <div class="bullet-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <span class="bullet-text">We monitor conflicts, sanctions, energy outages, and trade routes</span>
+                    </div>
+
+                    <div class="promise-bullet">
+                        <div class="bullet-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <span class="bullet-text">We convert events into quantified risk scores</span>
+                    </div>
+
+                    <div class="promise-bullet">
+                        <div class="bullet-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <span class="bullet-text">We notify you only when risk meaningfully changes</span>
+                    </div>
+                </div>
+
+                <div class="promise-tagline">
+                    <p class="tagline-text">
+                        <span>No dashboards required.</span>
+                        <span>No noise.</span>
+                        <span>Just actionable awareness.</span>
+                    </p>
                 </div>
             </div>
         </div>
