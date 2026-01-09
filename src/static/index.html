@@ -1335,6 +1335,83 @@
                 padding: 2rem;
             }
         }
+
+        /* Section: Trust & Credibility */
+        .section-trust {
+            background: var(--bg-light);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .trust-item {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .trust-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 102, 255, 0.05));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .trust-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        .trust-item p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .trust-footer {
+            text-align: center;
+            padding: 1.5rem 2rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .trust-footer p {
+            font-size: 1rem;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .trust-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .trust-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .trust-item {
+                padding: 1.25rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1829,6 +1906,57 @@
                         <a href="#pricing">Upgrade anytime →</a></p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Trust & Credibility -->
+    <section class="section section-trust">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2>Built for <span class="highlight">Signal, Not Noise</span></h2>
+            </div>
+
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                    </div>
+                    <p>No social media scraping</p>
+                </div>
+
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                    </div>
+                    <p>No hype or opinions</p>
+                </div>
+
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                    </div>
+                    <p>No trading advice</p>
+                </div>
+
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <p>Transparent, explainable alerts</p>
+                </div>
+            </div>
+
+            <div class="trust-footer">
+                <p>Informational risk intelligence only.</p>
             </div>
         </div>
     </section>
