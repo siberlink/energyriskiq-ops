@@ -42,6 +42,18 @@ STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file
 async def landing_page():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"), media_type="text/html")
 
+@app.get("/privacy", include_in_schema=False)
+async def privacy_page():
+    return FileResponse(os.path.join(STATIC_DIR, "privacy.html"), media_type="text/html")
+
+@app.get("/terms", include_in_schema=False)
+async def terms_page():
+    return FileResponse(os.path.join(STATIC_DIR, "terms.html"), media_type="text/html")
+
+@app.get("/disclaimer", include_in_schema=False)
+async def disclaimer_page():
+    return FileResponse(os.path.join(STATIC_DIR, "disclaimer.html"), media_type="text/html")
+
 app.include_router(router)
 app.include_router(risk_router)
 app.include_router(alert_router)
