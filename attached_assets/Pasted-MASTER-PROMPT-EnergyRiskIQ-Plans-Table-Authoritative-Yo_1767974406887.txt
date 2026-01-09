@@ -1,0 +1,160 @@
+MASTER PROMPT — EnergyRiskIQ Plans Table (Authoritative)
+You are Replit AI acting as my senior backend engineer.
+Create the FINAL, authoritative database table and defaults for subscription plans.
+
+Do NOT build UI.
+Do NOT integrate Stripe yet.
+Do NOT change risk logic.
+Only implement DB schema + defaults + enforcement helpers.
+
+============================================================
+1) GOAL
+============================================================
+We need a single, clean source of truth for plan limits and deliverables:
+- Email vs Telegram quotas
+- Total alerts per day
+- Feature flags (assets, digest, channels)
+- Delay for free tier
+- Enterprise extensibility
+
+This table will drive ALL alert enforcement.
+
+============================================================
+2) TABLE: user_plans
+============================================================
+CREATE TABLE IF NOT EXISTS user_plans (
+  user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+
+  -- Plan identity
+  plan TEXT NOT NULL CHECK (plan IN ('free','trader','pro','enterprise')),
+  plan_price_usd INT NOT NULL DEFAULT 0,
+
+  -- Delivery timing
+  alerts_delay_minutes INT NOT NULL DEFAULT 60,
+
+  -- Feature flags
+  allow_asset_alerts BOOLEAN NOT NULL DEFAULT FALSE,
+  allow_telegram BOOLEAN NOT NULL DEFAULT FALSE,
+  daily_digest_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  allow_webhooks BOOLEAN NOT NULL DEFAULT FALSE,
+
+  -- Quotas (PER DAY)
+  max_total_alerts_per_day INT NOT NULL,
+  max_email_alerts_per_day INT NOT NULL,
+  max_telegram_alerts_per_day INT NOT NULL,
+
+  -- Channel routing
+  preferred_realtime_channel TEXT NOT NULL
+    CHECK (preferred_realtime_channel IN ('email','telegram')),
+
+  -- Enterprise extensions
+  custom_thresholds BOOLEAN NOT NULL DEFAULT FALSE,
+  priority_processing BOOLEAN NOT NULL DEFAULT FALSE,
+
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_plans_plan ON user_plans(plan);
+
+============================================================
+3) DEFAULT VALUES BY PLAN (MUST MATCH TABLE ABOVE)
+============================================================
+Implement a helper:
+get_plan_defaults(plan: str) -> dict
+
+FREE:
+- plan_price_usd=0
+- alerts_delay_minutes=60
+- allow_asset_alerts=false
+- allow_telegram=false
+- daily_digest_enabled=false
+- allow_webhooks=false
+- max_total_alerts_per_day=2
+- max_email_alerts_per_day=1
+- max_telegram_alerts_per_day=0
+- preferred_realtime_channel='email'
+- custom_thresholds=false
+- priority_processing=false
+
+TRADER:
+- plan_price_usd=49
+- alerts_delay_minutes=0
+- allow_asset_alerts=true
+- allow_telegram=false
+- daily_digest_enabled=true
+- allow_webhooks=false
+- max_total_alerts_per_day=20
+- max_email_alerts_per_day=5
+- max_telegram_alerts_per_day=0
+- preferred_realtime_channel='email'
+- custom_thresholds=false
+- priority_processing=false
+
+PRO:
+- plan_price_usd=129
+- alerts_delay_minutes=0
+- allow_asset_alerts=true
+- allow_telegram=true
+- daily_digest_enabled=true
+- allow_webhooks=false
+- max_total_alerts_per_day=50
+- max_email_alerts_per_day=2
+- max_telegram_alerts_per_day=50
+- preferred_realtime_channel='telegram'
+- custom_thresholds=false
+- priority_processing=true
+
+ENTERPRISE:
+- plan_price_usd=299
+- alerts_delay_minutes=0
+- allow_asset_alerts=true
+- allow_telegram=true
+- daily_digest_enabled=true
+- allow_webhooks=true
+- max_total_alerts_per_day=150
+- max_email_alerts_per_day=2
+- max_telegram_alerts_per_day=999999
+- preferred_realtime_channel='telegram'
+- custom_thresholds=true
+- priority_processing=true
+
+============================================================
+4) SAFE MIGRATION / BACKFILL
+============================================================
+Create a CLI mode:
+python src/main.py --mode migrate_plans
+
+Behavior:
+- Create table if missing
+- Add missing columns safely
+- For existing users:
+  - If a column is NULL, fill from plan defaults
+  - NEVER overwrite non-null custom values
+
+============================================================
+5) ENFORCEMENT HELPERS (REQUIRED)
+============================================================
+Implement helpers:
+- can_send_total_alert(user_id)
+- can_send_email_alert(user_id)
+- can_send_telegram_alert(user_id)
+
+Each helper must:
+- Count alerts in alerts table for TODAY (UTC)
+- Compare with plan limits
+- Return boolean + reason string if blocked
+
+Daily digest counts as ONE email alert.
+
+============================================================
+6) ACCEPTANCE TESTS
+============================================================
+- Create user with each plan → verify row values match table above
+- Free user cannot exceed 1 email/day
+- Trader capped at 5 emails/day
+- Pro routes realtime alerts to Telegram
+- Enterprise allows webhook flag
+
+This table is the authoritative contract for pricing & delivery.
+Implement now.

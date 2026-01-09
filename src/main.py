@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description='EnergyRiskIQ Pipeline')
-    parser.add_argument('--mode', choices=['api', 'ingest', 'ai', 'risk', 'alerts', 'digest'], default='api',
-                        help='Run mode: api (start server), ingest (run ingestion), ai (run AI processing), risk (run risk scoring), alerts (run alerts engine), digest (run daily digest)')
+    parser.add_argument('--mode', choices=['api', 'ingest', 'ai', 'risk', 'alerts', 'digest', 'migrate_plans'], default='api',
+                        help='Run mode: api (start server), ingest (run ingestion), ai (run AI processing), risk (run risk scoring), alerts (run alerts engine), digest (run daily digest), migrate_plans (migrate user plans)')
     
     args = parser.parse_args()
     
@@ -47,6 +47,14 @@ def main():
     elif args.mode == 'digest':
         from src.alerts.digest_worker import run_digest_worker
         run_digest_worker()
+    
+    elif args.mode == 'migrate_plans':
+        from src.db.migrations import ensure_user_plans_table
+        from src.plans.plan_helpers import migrate_user_plans
+        logger.info("Running user_plans migration...")
+        ensure_user_plans_table()
+        migrate_user_plans()
+        logger.info("Migration complete.")
 
 if __name__ == "__main__":
     main()
