@@ -1,0 +1,193 @@
+🔟 Frequently Asked Questions
+Is EnergyRiskIQ financial or investment advice?
+
+No. EnergyRiskIQ provides informational risk intelligence only.
+We do not provide investment advice, price targets, trade signals, or recommendations to buy or sell any asset.
+
+Our alerts and risk scores are designed to help users understand changing geopolitical, energy, and supply-chain risk conditions, so they can make their own informed decisions in accordance with their own strategies, risk tolerance, and professional advice.
+
+How is EnergyRiskIQ different from news websites or news aggregators?
+
+Traditional news platforms show what happened.
+EnergyRiskIQ focuses on how risk is evolving.
+
+Key differences:
+
+We quantify risk using rolling indices and severity weighting
+
+We track trend direction (rising, falling, stable)
+
+We filter noise and alert only when risk meaningfully changes
+
+We connect events to energy, freight, and FX impact
+
+You don’t need to read dozens of articles — we alert you when it matters.
+
+How does EnergyRiskIQ decide when to send an alert?
+
+Alerts are triggered only when predefined risk thresholds are crossed, such as:
+
+Significant regional risk score increases
+
+High-impact geopolitical or energy events
+
+Rapid changes in asset-level risk (oil, gas, freight, FX)
+
+Each alert includes:
+
+The reason it was triggered
+
+The drivers behind the risk change
+
+The likely areas affected
+
+No constant notifications.
+No alert fatigue.
+
+What sources does EnergyRiskIQ use?
+
+EnergyRiskIQ continuously monitors:
+
+Geopolitical developments (conflicts, sanctions, disruptions)
+
+Energy markets (oil, gas, LNG, pipelines)
+
+Supply-chain events (ports, shipping routes, strikes)
+
+We combine multiple public and industry sources and process them through structured classification and AI analysis to produce consistent risk signals.
+
+Which regions are covered?
+
+Currently:
+
+🇪🇺 Europe (primary focus)
+
+Europe is prioritized because:
+
+Energy security is tightly linked to geopolitics
+
+LNG, pipelines, shipping lanes, and sanctions have immediate impact
+
+Many global supply chains route through or into Europe
+
+Additional regions will be added in the future.
+
+What assets are covered?
+
+Depending on your plan, EnergyRiskIQ analyzes risk impact across:
+
+Oil
+
+Natural Gas / LNG
+
+Freight & Shipping
+
+Foreign Exchange (FX)
+
+Free users receive regional risk alerts.
+Paid plans unlock asset-level risk signals.
+
+How often will I receive emails?
+
+EnergyRiskIQ is intentionally low-noise.
+
+Typical frequency:
+
+Free plan: occasional high-impact alerts
+
+Paid plans: selected real-time alerts + optional daily digest
+
+We cap email alerts to ensure:
+
+High signal quality
+
+Respect for inboxes
+
+Reliable delivery
+
+High-frequency alerts are delivered via non-email channels on higher plans.
+
+Is there a free plan?
+
+Yes.
+The Free plan is permanently free and does not require a credit card.
+
+It’s designed to let you:
+
+Understand how risk alerts work
+
+See how EnergyRiskIQ filters events
+
+Decide if deeper coverage is useful for you
+
+You can upgrade anytime.
+
+Can I cancel or downgrade at any time?
+
+Yes.
+All paid plans are month-to-month, with no long-term contracts.
+
+You can:
+
+Cancel
+
+Downgrade
+
+Pause usage
+
+Your account and preferences remain intact.
+
+Is my data safe?
+
+Yes.
+We only store:
+
+Your email address
+
+Alert preferences
+
+Delivery settings
+
+We do not:
+
+Sell user data
+
+Share data with third parties
+
+Track personal browsing behavior
+
+See our Privacy Policy for full details.
+
+Who is EnergyRiskIQ for — and who is it not for?
+
+EnergyRiskIQ is designed for:
+
+Traders and investors monitoring macro and energy risk
+
+Supply-chain and logistics professionals
+
+Energy and commodity professionals
+
+It is not designed for:
+
+Day-trading signals
+
+Automated trading execution
+
+Social media sentiment analysis
+
+EnergyRiskIQ is about risk awareness, not speculation.
+
+How do I get started?
+
+You can start in under a minute:
+
+Create a free account
+
+Choose your alert preferences
+
+Receive Europe risk alerts
+
+No credit card required.
+
+👉 Start Free
