@@ -26,13 +26,15 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
     alerts_engine.py  # Alert evaluation and sending
     channels.py       # Email (Resend/Brevo) and Telegram delivery
     templates.py      # Alert message templates and marketing copy
+  /plans
+    plan_helpers.py   # Plan defaults, enforcement helpers, migration
   /api
     app.py            # FastAPI application with CORS
     routes.py         # Event API endpoints
     risk_routes.py    # Risk API endpoints
     alert_routes.py   # Alert API endpoints
     marketing_routes.py # Marketing copy endpoints
-  main.py             # Main entrypoint (--mode api/ingest/ai/risk/alerts)
+  main.py             # Main entrypoint (--mode api/ingest/ai/risk/alerts/migrate_plans)
 ```
 
 ## Tech Stack
@@ -66,9 +68,12 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 ### users table
 - id, email (unique), telegram_chat_id, created_at
 
-### user_plans table
-- user_id (PK/FK), plan (free|trader|pro), alerts_delay_minutes, max_alerts_per_day
-- allow_asset_alerts, allow_telegram, daily_digest_enabled, weekly_digest_enabled
+### user_plans table (Authoritative)
+- user_id (PK/FK), plan (free|trader|pro|enterprise), plan_price_usd
+- alerts_delay_minutes, allow_asset_alerts, allow_telegram, daily_digest_enabled, allow_webhooks
+- max_total_alerts_per_day, max_email_alerts_per_day, max_telegram_alerts_per_day
+- preferred_realtime_channel (email|telegram), custom_thresholds, priority_processing
+- created_at, updated_at
 
 ### user_alert_prefs table
 - id, user_id (FK), region, alert_type, asset, threshold, enabled, cooldown_minutes
@@ -149,11 +154,12 @@ python src/main.py --mode alerts
 
 ## Subscription Tiers
 
-| Plan | Delay | Max/Day | Asset Alerts | Telegram | Digest |
-|------|-------|---------|--------------|----------|--------|
-| Free | 60m | 2 | No | No | No |
-| Trader | 0 | 20 | Yes | No | Yes |
-| Pro | 0 | 50 | Yes | Yes | Yes |
+| Plan | Price | Delay | Total/Day | Email/Day | Telegram/Day | Assets | Telegram | Digest | Webhooks |
+|------|-------|-------|-----------|-----------|--------------|--------|----------|--------|----------|
+| Free | $0 | 60m | 2 | 1 | 0 | No | No | No | No |
+| Trader | $49 | 0 | 20 | 5 | 0 | Yes | No | Yes | No |
+| Pro | $129 | 0 | 50 | 2 | 50 | Yes | Yes | Yes | No |
+| Enterprise | $299 | 0 | 150 | 2 | 999999 | Yes | Yes | Yes | Yes |
 
 ## Alert Types
 - **REGIONAL_RISK_SPIKE**: Europe risk crosses threshold or +20%
@@ -179,6 +185,7 @@ python src/main.py --mode alerts
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
+- 2026-01-09: Step 4.2 - Authoritative user_plans table with enforcement helpers
 - 2026-01-09: Step 4.1 - Go-Live Hardening (Brevo, Digest, Upgrade hooks, UTC quota)
 - 2026-01-08: Step 4 - Alerts engine with monetization
 - 2026-01-07: Step 3 - Risk scoring engine complete
