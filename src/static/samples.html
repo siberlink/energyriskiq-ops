@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Samples Preview - EnergyRiskIQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0066FF;
+            --accent: #00D4AA;
+            --secondary: #1e293b;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --bg-light: #f8fafc;
+            --border: #e2e8f0;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--secondary);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+        .logo span {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .header-cta {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .header-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem 4rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .page-header .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .samples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .sample-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sample-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .alert-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .alert-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .alert-icon.regional {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.05));
+            color: var(--primary);
+        }
+
+        .alert-icon.asset {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            color: var(--warning);
+        }
+
+        .alert-icon.high-impact {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+            color: var(--danger);
+        }
+
+        .alert-icon.digest {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+            color: var(--success);
+        }
+
+        .card-header-text h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-header-text .tier-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .tier-badge.free {
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .tier-badge.trader {
+            background: rgba(0, 102, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .tier-badge.pro {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.15), rgba(0, 212, 170, 0.15));
+            color: var(--secondary);
+        }
+
+        .card-body {
+            padding: 1.25rem 1.5rem;
+            flex: 1;
+        }
+
+        .alert-content {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .card-footer {
+            padding: 1rem 1.5rem;
+            background: var(--bg-light);
+            border-top: 1px solid var(--border);
+        }
+
+        .card-footer p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .cta-section {
+            text-align: center;
+            background: white;
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-section h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .cta-section p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 102, 255, 0.3);
+        }
+
+        .cta-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer {
+            background: var(--secondary);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 600px) {
+            .content {
+                padding: 2rem 1rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .samples-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-cta {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <span>EnergyRiskIQ</span>
+            </a>
+            <a href="/#signup" class="header-cta">Get Started Free</a>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="page-header">
+            <h1>Real <span class="highlight">Sample Alerts</span></h1>
+            <p>See exactly what EnergyRiskIQ alerts look like. These are real examples of the intelligence you'll receive.</p>
+        </div>
+
+        <div class="samples-grid" id="samples-container">
+        </div>
+
+        <div class="cta-section">
+            <h2>Ready to Stay Ahead of Risk?</h2>
+            <p>Start receiving real-time energy risk intelligence today.</p>
+            <a href="/#signup" class="cta-button">
+                Start Free Now
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </a>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 EnergyRiskIQ. All rights reserved. | <a href="/privacy" style="color: inherit;">Privacy</a> | <a href="/terms" style="color: inherit;">Terms</a></p>
+    </footer>
+
+    <script>
+        const sampleAlerts = [
+            {
+                type: "REGIONAL_RISK_SPIKE",
+                tier: "free",
+                title: "Europe Geo-Energy Risk Spike",
+                icon: "regional",
+                message: `REGIONAL RISK ALERT: Europe
+
+Current Risk Level: 78/100 (+26% vs 24h ago)
+Trend: RISING
+
+KEY DRIVERS:
+1. OPEC+ announces surprise production cuts
+   Region: Middle East | Category: energy
+2. Baltic Sea shipping disrupted by naval exercises
+   Region: Europe | Category: supply_chain
+3. Natural gas storage levels drop below seasonal average
+   Region: Europe | Category: energy
+
+ASSETS LIKELY AFFECTED:
+  OIL: 82/100 (up)
+  GAS: 85/100 (up)
+  FX: 65/100 (risk_off)
+  FREIGHT: 70/100 (up)
+
+---
+Informational only. Not financial advice.`,
+                note: "Free tier: 60-minute delay on alerts"
+            },
+            {
+                type: "ASSET_RISK_SPIKE",
+                tier: "trader",
+                title: "GAS Risk Rising in Europe",
+                icon: "asset",
+                message: `ASSET RISK ALERT: GAS
+
+Region: Europe
+Risk Score: 85/100
+Direction: UP
+Confidence: 78%
+
+KEY DRIVERS:
+1. LNG terminal maintenance extends through winter
+2. Cold snap forecast across Northern Europe
+
+---
+Informational only. Not financial advice.`,
+                note: "Trader tier: Real-time, asset-level alerts"
+            },
+            {
+                type: "HIGH_IMPACT_EVENT",
+                tier: "pro",
+                title: "High-Impact Event Detected (Europe)",
+                icon: "high-impact",
+                message: `HIGH-IMPACT EVENT ALERT
+
+Event: Major pipeline explosion disrupts gas flows to Central Europe
+Severity: 5/5
+Category: ENERGY
+Region: Europe
+
+AI Analysis:
+A significant explosion has occurred on a major natural gas pipeline serving Central European markets. Initial reports indicate substantial damage that may take weeks to repair. This represents a critical supply disruption.
+
+Source: Breaking news feed
+
+---
+Informational only. Not financial advice.
+
+[Also sent via Telegram for Pro subscribers]`,
+                note: "Pro tier: Instant Telegram delivery for critical events"
+            },
+            {
+                type: "ASSET_RISK_SPIKE",
+                tier: "trader",
+                title: "OIL Risk Elevated in Europe",
+                icon: "asset",
+                message: `ASSET RISK ALERT: OIL
+
+Region: Europe
+Risk Score: 82/100
+Direction: UP
+Confidence: 85%
+
+KEY DRIVERS:
+1. Red Sea shipping disruptions force longer routes
+2. Refinery outage in Rotterdam reduces capacity
+
+---
+Informational only. Not financial advice.`,
+                note: "Trader tier: Real-time, asset-level alerts"
+            },
+            {
+                type: "DAILY_DIGEST",
+                tier: "trader",
+                title: "Daily Risk Digest - Europe",
+                icon: "digest",
+                message: `DAILY RISK DIGEST: Europe
+January 9, 2026
+
+RISK OVERVIEW
+7-Day Risk: 72/100 (rising)
+30-Day Risk: 65/100
+
+ASSET RISK SUMMARY
+  OIL: 78/100 (up)
+  GAS: 82/100 (up)
+  FX: 58/100 (stable)
+  FREIGHT: 71/100 (up)
+
+TOP EVENTS TODAY
+1. EU announces new sanctions on energy imports
+2. Norway gas field maintenance extended
+3. Ukraine transit talks stall
+4. LNG spot prices reach 3-month high
+5. Baltic port workers announce strike
+
+---
+Informational only. Not financial advice.`,
+                note: "Trader tier: Daily digest summarizing key developments"
+            },
+            {
+                type: "REGIONAL_RISK_SPIKE",
+                tier: "free",
+                title: "Europe Risk Level Change",
+                icon: "regional",
+                message: `REGIONAL RISK ALERT: Europe
+
+Current Risk Level: 68/100 (+15% vs 24h ago)
+Trend: RISING
+
+KEY DRIVERS:
+1. Unexpected refinery shutdown in Germany
+   Region: Europe | Category: energy
+2. EU energy ministers emergency meeting called
+   Region: Europe | Category: geopolitical
+
+ASSETS LIKELY AFFECTED:
+  OIL: 72/100 (up)
+  GAS: 75/100 (up)
+
+---
+Informational only. Not financial advice.`,
+                note: "Free tier: Major regional risk changes"
+            }
+        ];
+
+        const container = document.getElementById('samples-container');
+
+        sampleAlerts.forEach(alert => {
+            const iconSvg = {
+                regional: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                asset: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>',
+                'high-impact': '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+                digest: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
+            };
+
+            const card = document.createElement('div');
+            card.className = 'sample-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="alert-icon ${alert.icon}">
+                        ${iconSvg[alert.icon]}
+                    </div>
+                    <div class="card-header-text">
+                        <h3>${alert.title}</h3>
+                        <span class="tier-badge ${alert.tier}">${alert.tier}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert-content">${alert.message}</div>
+                </div>
+                <div class="card-footer">
+                    <p>${alert.note}</p>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    </script>
+</body>
+</html>

@@ -55,6 +55,10 @@ async def terms_page():
 async def disclaimer_page():
     return FileResponse(os.path.join(STATIC_DIR, "disclaimer.html"), media_type="text/html")
 
+@app.get("/marketing/samples", include_in_schema=False)
+async def samples_page():
+    return FileResponse(os.path.join(STATIC_DIR, "samples.html"), media_type="text/html")
+
 app.include_router(router)
 app.include_router(risk_router)
 app.include_router(alert_router)
