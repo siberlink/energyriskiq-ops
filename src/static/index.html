@@ -704,6 +704,149 @@
                 font-size: 1rem;
             }
         }
+
+        /* Section: Differentiators */
+        .section-diff {
+            background: var(--bg-light);
+        }
+
+        .diff-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .comparison-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--secondary);
+        }
+
+        .comparison-header span {
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            text-align: center;
+        }
+
+        .comparison-header span:first-child {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-header span:last-child {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-row:last-child {
+            border-bottom: none;
+        }
+
+        .comparison-row span {
+            padding: 1rem 1.5rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .comparison-row .old {
+            color: var(--text-light);
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .comparison-row .new {
+            color: var(--secondary);
+            font-weight: 600;
+            background: rgba(0, 212, 170, 0.05);
+        }
+
+        .diff-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .diff-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            background: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .diff-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .diff-icon {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            background: linear-gradient(135deg, var(--primary-light), rgba(0, 212, 170, 0.1));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .diff-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+
+        .diff-text h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .diff-text p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .diff-content {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .comparison-header span,
+            .comparison-row span {
+                padding: 0.85rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .diff-item {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -876,6 +1019,102 @@
                         <span>No noise.</span>
                         <span>Just actionable awareness.</span>
                     </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: What Makes Us Different -->
+    <section class="section section-diff" id="features">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2>What Makes <span class="highlight">EnergyRiskIQ</span> Different</h2>
+            </div>
+
+            <div class="diff-content">
+                <div class="comparison-table">
+                    <div class="comparison-header">
+                        <span>Traditional News</span>
+                        <span>EnergyRiskIQ</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span class="old">Headlines</span>
+                        <span class="new">Risk signals</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span class="old">Articles</span>
+                        <span class="new">Structured alerts</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span class="old">Opinions</span>
+                        <span class="new">Probabilities & trends</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span class="old">Late reaction</span>
+                        <span class="new">Early warning</span>
+                    </div>
+                </div>
+
+                <div class="diff-list">
+                    <div class="diff-item">
+                        <div class="diff-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="diff-text">
+                            <h4>Risk Scoring Engine</h4>
+                            <p>Not just summaries — quantified risk scores you can act on</p>
+                        </div>
+                    </div>
+
+                    <div class="diff-item">
+                        <div class="diff-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                            </svg>
+                        </div>
+                        <div class="diff-text">
+                            <h4>Energy-First Focus</h4>
+                            <p>Oil, gas, LNG, and freight — the assets that matter</p>
+                        </div>
+                    </div>
+
+                    <div class="diff-item">
+                        <div class="diff-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="diff-text">
+                            <h4>Europe-Centric Intelligence</h4>
+                            <p>Deep focus on European energy markets and geopolitics</p>
+                        </div>
+                    </div>
+
+                    <div class="diff-item">
+                        <div class="diff-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                        </div>
+                        <div class="diff-text">
+                            <h4>Alert-Driven, Not Dashboard-Driven</h4>
+                            <p>Intelligence comes to you — no manual monitoring needed</p>
+                        </div>
+                    </div>
+
+                    <div class="diff-item">
+                        <div class="diff-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div class="diff-text">
+                            <h4>Built for Traders & Operators</h4>
+                            <p>Designed for decision-makers, not journalists</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
