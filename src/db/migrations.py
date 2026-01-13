@@ -449,6 +449,9 @@ def run_migrations():
     logger.info("Adding user authentication columns...")
     add_user_auth_columns()
     
+    logger.info("Migrating user_plans price column to decimal...")
+    migrate_user_plans_price_to_decimal()
+    
     logger.info("Migrations completed successfully.")
 
 

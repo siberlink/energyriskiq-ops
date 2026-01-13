@@ -68,11 +68,27 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 ### users table
 - id, email (unique), telegram_chat_id, created_at
 
-### user_plans table (User-Plan Assignment)
+### user_plans table (User-Plan Assignment + Denormalized Settings)
 - user_id (PK/FK): References users table
 - plan: free | personal | trader | pro | enterprise
+- plan_price_usd: NUMERIC(10,2) - Synced from plan_settings.monthly_price_usd
+- alerts_delay_minutes: INTEGER - Alert delivery delay (0 for pro/enterprise, 60 for others)
+- allow_asset_alerts: BOOLEAN - Derived from ASSET_RISK_SPIKE in allowed_alert_types
+- allow_telegram: BOOLEAN - Derived from delivery_config.telegram.enabled
+- daily_digest_enabled: BOOLEAN - Derived from DAILY_DIGEST in allowed_alert_types
+- allow_webhooks: BOOLEAN - Derived from delivery_config.sms.enabled
+- max_total_alerts_per_day: INTEGER - max_email_alerts_per_day * 2
+- max_email_alerts_per_day: INTEGER - Synced from plan_settings
+- max_telegram_alerts_per_day: INTEGER - Same as max_email if telegram enabled, else 0
+- preferred_realtime_channel: TEXT - Default 'email'
+- custom_thresholds: BOOLEAN - True for pro/enterprise
+- priority_processing: BOOLEAN - True for enterprise only
 - created_at, updated_at
-- NOTE: All plan features are derived from plan_settings table, not stored here
+
+**Sync Mechanism**: 
+- `apply_plan_settings_to_user(user_id, plan_code)` syncs user_plans with plan_settings
+- Called automatically on signup/upgrade via `create_user_plan()`
+- `sync_all_user_plans()` re-syncs all users (useful after admin updates plan_settings)
 
 ### user_alert_prefs table
 - id, user_id (FK), region, alert_type, asset, threshold, enabled, cooldown_minutes
@@ -231,6 +247,7 @@ See **[OPERATIONS.md](OPERATIONS.md)** for detailed documentation on:
 - Internal runner endpoints and authentication
 
 ## Recent Changes
+- 2026-01-13: User plans sync - user_plans now syncs with plan_settings via apply_plan_settings_to_user(). plan_price_usd is NUMERIC(10,2). Added sync_all_user_plans() for bulk resync.
 - 2026-01-13: Step 7 - User authentication system with signup, email verification, password/PIN setup, and account dashboard at /users.
 - 2026-01-13: Step 6 - Admin UI page at /admin with server-side authentication, header, left navigation, dashboard, and plan settings management.
 - 2026-01-13: Step 5.1 - Comprehensive migration: plan_settings is now single source of truth for all plan features. user_plans simplified to only store user-plan assignment.
