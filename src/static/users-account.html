@@ -342,6 +342,87 @@
             margin-right: 8px;
         }
 
+        .alert-type.locked {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+
+        .locked-alert {
+            opacity: 0.7;
+            background: rgba(100, 116, 139, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 8px 0;
+        }
+
+        .lock-icon {
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .upgrade-banner-small {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #a78bfa;
+        }
+
+        .alert-types-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .alert-type-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+
+        .alert-type-item.allowed {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .alert-type-item.locked {
+            border-color: #334155;
+            opacity: 0.6;
+        }
+
+        .alert-type-icon {
+            font-size: 16px;
+        }
+
+        .alert-type-item.allowed .alert-type-icon {
+            color: #4ade80;
+        }
+
+        .alert-type-item.locked .alert-type-icon {
+            color: #64748b;
+        }
+
+        .alert-type-name {
+            font-size: 13px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .upgrade-hint {
+            font-size: 11px;
+            color: #a78bfa;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 48px 24px;
@@ -632,10 +713,24 @@
         <div class="section-content" id="section-alerts">
             <div class="page-header">
                 <h1 class="page-title">My Alerts</h1>
-                <p class="page-subtitle">View your alert history</p>
+                <p class="page-subtitle">View your alert history and available alert types</p>
             </div>
 
             <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Your Alert Types</h2>
+                </div>
+                <div class="card-body">
+                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 12px;">
+                        Based on your current plan, you have access to the following alert types:
+                    </p>
+                    <div class="alert-types-grid" id="alertTypesInfo">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" style="margin-top: 24px;">
                 <div class="card-header">
                     <h2 class="card-title">Alert History</h2>
                 </div>
@@ -768,6 +863,8 @@
             }
         }
 
+        let allowedAlertTypes = [];
+
         async function loadAlerts() {
             try {
                 const response = await fetch('/users/alerts?limit=50', {
@@ -777,7 +874,9 @@
                 if (!response.ok) throw new Error('Failed to load alerts');
 
                 const data = await response.json();
-                renderAlerts(data.alerts);
+                allowedAlertTypes = data.allowed_alert_types || [];
+                renderAlerts(data.alerts, allowedAlertTypes);
+                renderAllowedAlertTypes(allowedAlertTypes);
             } catch (error) {
                 console.error('Error loading alerts:', error);
                 document.getElementById('recentAlerts').innerHTML = '<div class="empty-state">Failed to load alerts</div>';
@@ -785,7 +884,27 @@
             }
         }
 
-        function renderAlerts(alerts) {
+        function renderAllowedAlertTypes(allowedTypes) {
+            const allTypes = ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST'];
+            const container = document.getElementById('alertTypesInfo');
+            if (!container) return;
+
+            const html = allTypes.map(type => {
+                const isAllowed = allowedTypes.includes(type) || allowedTypes.includes('ALL');
+                const displayName = type.replace(/_/g, ' ');
+                return `
+                    <div class="alert-type-item ${isAllowed ? 'allowed' : 'locked'}">
+                        <span class="alert-type-icon">${isAllowed ? '&#10003;' : '&#128274;'}</span>
+                        <span class="alert-type-name">${displayName}</span>
+                        ${!isAllowed ? '<span class="upgrade-hint">Upgrade to unlock</span>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderAlerts(alerts, allowedTypes) {
             document.getElementById('alertsCount').textContent = alerts.length;
 
             if (alerts.length === 0) {
@@ -803,18 +922,23 @@
             const recentAlerts = alerts.slice(0, 5);
             const alertsHTML = (items) => `
                 <ul class="alerts-list">
-                    ${items.map(alert => `
-                        <li class="alert-item">
-                            <div class="alert-header">
-                                <span class="alert-title">
-                                    <span class="alert-type">${alert.alert_type.replace(/_/g, ' ')}</span>
-                                    ${alert.title || 'Alert'}
-                                </span>
-                                <span class="alert-time">${formatDate(alert.created_at)}</span>
-                            </div>
-                            <p class="alert-message">${alert.message || ''}</p>
-                        </li>
-                    `).join('')}
+                    ${items.map(alert => {
+                        const isAllowed = alert.allowed_by_plan;
+                        return `
+                            <li class="alert-item ${!isAllowed ? 'locked-alert' : ''}">
+                                <div class="alert-header">
+                                    <span class="alert-title">
+                                        <span class="alert-type ${!isAllowed ? 'locked' : ''}">${alert.alert_type.replace(/_/g, ' ')}</span>
+                                        ${!isAllowed ? '<span class="lock-icon">&#128274;</span>' : ''}
+                                        ${alert.title || 'Alert'}
+                                    </span>
+                                    <span class="alert-time">${formatDate(alert.created_at)}</span>
+                                </div>
+                                <p class="alert-message">${alert.message || ''}</p>
+                                ${!isAllowed ? '<div class="upgrade-banner-small">Upgrade your plan to receive this alert type</div>' : ''}
+                            </li>
+                        `;
+                    }).join('')}
                 </ul>
             `;
 

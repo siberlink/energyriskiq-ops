@@ -9,6 +9,7 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 from src.db.db import get_cursor
+from src.plans.plan_helpers import get_plan_settings
 from src.alerts.channels import send_email
 from src.plans.plan_helpers import create_user_plan
 
@@ -309,12 +310,21 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        plan_code = user['plan']
+        plan_settings = get_plan_settings(plan_code)
+        
         return {
             "id": user['id'],
             "email": user['email'],
             "telegram_chat_id": user['telegram_chat_id'],
             "created_at": user['created_at'].isoformat() if user['created_at'] else None,
-            "plan": user['plan']
+            "plan": plan_code,
+            "plan_settings": {
+                "display_name": plan_settings.get("display_name", plan_code.title()),
+                "allowed_alert_types": plan_settings.get("allowed_alert_types", []),
+                "max_email_alerts_per_day": plan_settings.get("max_email_alerts_per_day", 2),
+                "delivery_config": plan_settings.get("delivery_config", {})
+            }
         }
 
 
@@ -323,6 +333,18 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20)
     session = verify_user_session(x_user_token)
     
     with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT COALESCE(up.plan, 'free') as plan
+            FROM users u
+            LEFT JOIN user_plans up ON u.id = up.user_id
+            WHERE u.id = %s
+        """, (session["user_id"],))
+        user_plan = cursor.fetchone()
+        plan_code = user_plan['plan'] if user_plan else 'free'
+        
+        plan_settings = get_plan_settings(plan_code)
+        allowed_types = plan_settings.get("allowed_alert_types", [])
+        
         cursor.execute("""
             SELECT id, alert_type, region, asset, triggered_value, threshold,
                    title, message, channel, status, created_at, sent_at
@@ -334,9 +356,12 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20)
         
         alerts = []
         for row in cursor.fetchall():
+            alert_type = row['alert_type']
+            is_allowed = alert_type in allowed_types or 'ALL' in allowed_types
+            
             alerts.append({
                 "id": row['id'],
-                "alert_type": row['alert_type'],
+                "alert_type": alert_type,
                 "region": row['region'],
                 "asset": row['asset'],
                 "triggered_value": float(row['triggered_value']) if row['triggered_value'] else None,
@@ -346,10 +371,15 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20)
                 "channel": row['channel'],
                 "status": row['status'],
                 "created_at": row['created_at'].isoformat() if row['created_at'] else None,
-                "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None
+                "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
+                "allowed_by_plan": is_allowed
             })
         
-        return {"alerts": alerts}
+        return {
+            "alerts": alerts,
+            "plan": plan_code,
+            "allowed_alert_types": allowed_types
+        }
 
 
 @router.post("/resend-verification")
