@@ -85,6 +85,15 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 ### alert_state table
 - id, region, window_days, last_risk_score, last_7d_score, last_30d_score, last_asset_scores
 
+### plan_settings table (Admin-Configurable)
+- plan_code (PK): free | personal | trader | pro | enterprise
+- display_name: Human-readable plan name
+- monthly_price_usd: Price in USD
+- allowed_alert_types: TEXT[] of allowed alert types
+- max_email_alerts_per_day: Email quota
+- delivery_config: JSONB with email/telegram/sms/account settings
+- is_active, created_at, updated_at
+
 ## Running the Project
 
 ### API Server (default)
@@ -152,14 +161,20 @@ python src/main.py --mode alerts
 - `POST /internal/run/alerts` - Trigger alerts engine
 - `POST /internal/run/digest` - Trigger daily digest worker
 
-## Subscription Tiers
+### Admin API (Secured with X-Admin-Token header)
+- `GET /admin/plan-settings` - List all plan settings
+- `GET /admin/plan-settings/{plan_code}` - Get single plan settings
+- `PUT /admin/plan-settings/{plan_code}` - Update plan settings (price, alert types, delivery config)
 
-| Plan | Price | Delay | Total/Day | Email/Day | Telegram/Day | Assets | Telegram | Digest | Webhooks |
-|------|-------|-------|-----------|-----------|--------------|--------|----------|--------|----------|
-| Free | $0 | 60m | 2 | 1 | 0 | No | No | No | No |
-| Trader | $49 | 0 | 20 | 5 | 0 | Yes | No | Yes | No |
-| Pro | $129 | 0 | 50 | 2 | 50 | Yes | Yes | Yes | No |
-| Enterprise | $299 | 0 | 150 | 2 | 999999 | Yes | Yes | Yes | Yes |
+## Subscription Tiers (from plan_settings table)
+
+| Plan | Price | Email/Day | Alert Types | Telegram | SMS |
+|------|-------|-----------|-------------|----------|-----|
+| Free | $0 | 2 | HIGH_IMPACT_EVENT | No | No |
+| Personal | $9.95 | 4 | +REGIONAL_RISK_SPIKE | No | No |
+| Trader | $29 | 8 | +ASSET_RISK_SPIKE | Yes | No |
+| Pro | $49 | 15 | +DAILY_DIGEST | Yes | Yes |
+| Enterprise | $129 | 30 | ALL | Yes | Yes |
 
 ## Alert Types
 - **REGIONAL_RISK_SPIKE**: Europe risk crosses threshold or +20%
@@ -185,6 +200,7 @@ python src/main.py --mode alerts
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
+- 2026-01-13: Step 5 - Admin-configurable plan_settings table with GET/PUT API endpoints
 - 2026-01-09: Step 4.2 - Authoritative user_plans table with enforcement helpers
 - 2026-01-09: Step 4.1 - Go-Live Hardening (Brevo, Digest, Upgrade hooks, UTC quota)
 - 2026-01-08: Step 4 - Alerts engine with monetization

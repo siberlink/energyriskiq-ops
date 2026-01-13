@@ -15,6 +15,7 @@ from src.api.marketing_routes import router as marketing_router
 from src.api.internal_routes import router as internal_router
 from src.api.digest_routes import router as digest_router
 from src.api.contact_routes import router as contact_router
+from src.api.admin_routes import router as admin_router
 from src.db.migrations import run_migrations
 
 logging.basicConfig(
@@ -66,6 +67,7 @@ app.include_router(marketing_router)
 app.include_router(internal_router)
 app.include_router(digest_router)
 app.include_router(contact_router)
+app.include_router(admin_router)
 
 @app.on_event("startup")
 async def startup_event():

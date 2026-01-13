@@ -1,7 +1,108 @@
 import logging
+import json
 from src.db.db import get_cursor
 
 logger = logging.getLogger(__name__)
+
+PLAN_SETTINGS_SEED = [
+    {
+        "plan_code": "free",
+        "display_name": "Free",
+        "monthly_price_usd": 0.00,
+        "allowed_alert_types": ["HIGH_IMPACT_EVENT"],
+        "max_email_alerts_per_day": 2,
+        "delivery_config": {
+            "email": {"max_per_day": 2, "realtime_limit": 1, "mode": "limited"},
+            "telegram": {"enabled": False, "send_all": False},
+            "sms": {"enabled": False, "send_all": False},
+            "account": {"show_all": True}
+        }
+    },
+    {
+        "plan_code": "personal",
+        "display_name": "Personal",
+        "monthly_price_usd": 9.95,
+        "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE"],
+        "max_email_alerts_per_day": 4,
+        "delivery_config": {
+            "email": {"max_per_day": 4, "realtime_limit": 1, "mode": "limited"},
+            "telegram": {"enabled": False, "send_all": False},
+            "sms": {"enabled": False, "send_all": False},
+            "account": {"show_all": True}
+        }
+    },
+    {
+        "plan_code": "trader",
+        "display_name": "Trader",
+        "monthly_price_usd": 29.00,
+        "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE"],
+        "max_email_alerts_per_day": 8,
+        "delivery_config": {
+            "email": {"max_per_day": 8, "realtime_limit": 3, "mode": "limited"},
+            "telegram": {"enabled": True, "send_all": True},
+            "sms": {"enabled": False, "send_all": False},
+            "account": {"show_all": True}
+        }
+    },
+    {
+        "plan_code": "pro",
+        "display_name": "Pro",
+        "monthly_price_usd": 49.00,
+        "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE", "DAILY_DIGEST"],
+        "max_email_alerts_per_day": 15,
+        "delivery_config": {
+            "email": {"max_per_day": 15, "realtime_limit": None, "mode": "limited"},
+            "telegram": {"enabled": True, "send_all": True},
+            "sms": {"enabled": True, "send_all": True},
+            "account": {"show_all": True}
+        }
+    },
+    {
+        "plan_code": "enterprise",
+        "display_name": "Enterprise",
+        "monthly_price_usd": 129.00,
+        "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE", "DAILY_DIGEST"],
+        "max_email_alerts_per_day": 30,
+        "delivery_config": {
+            "email": {"max_per_day": 30, "realtime_limit": None, "mode": "limited"},
+            "telegram": {"enabled": True, "send_all": True},
+            "sms": {"enabled": True, "send_all": True},
+            "account": {"show_all": True}
+        }
+    }
+]
+
+
+def seed_plan_settings():
+    logger.info("Seeding plan_settings table...")
+    
+    with get_cursor() as cursor:
+        for plan in PLAN_SETTINGS_SEED:
+            cursor.execute(
+                """
+                INSERT INTO plan_settings (
+                    plan_code, display_name, monthly_price_usd,
+                    allowed_alert_types, max_email_alerts_per_day, delivery_config
+                ) VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (plan_code) DO UPDATE SET
+                    display_name = EXCLUDED.display_name,
+                    monthly_price_usd = EXCLUDED.monthly_price_usd,
+                    allowed_alert_types = EXCLUDED.allowed_alert_types,
+                    max_email_alerts_per_day = EXCLUDED.max_email_alerts_per_day,
+                    delivery_config = EXCLUDED.delivery_config,
+                    updated_at = NOW()
+                """,
+                (
+                    plan["plan_code"],
+                    plan["display_name"],
+                    plan["monthly_price_usd"],
+                    plan["allowed_alert_types"],
+                    plan["max_email_alerts_per_day"],
+                    json.dumps(plan["delivery_config"])
+                )
+            )
+    
+    logger.info(f"Seeded {len(PLAN_SETTINGS_SEED)} plan settings.")
 
 def run_migrations():
     logger.info("Running database migrations...")
@@ -282,6 +383,20 @@ def run_migrations():
         "CREATE INDEX IF NOT EXISTS idx_alert_state_region ON alert_state (region);"
     ]
     
+    create_plan_settings_table = """
+    CREATE TABLE IF NOT EXISTS plan_settings (
+        plan_code TEXT PRIMARY KEY,
+        display_name TEXT NOT NULL,
+        monthly_price_usd NUMERIC(8,2) NOT NULL,
+        allowed_alert_types TEXT[] NOT NULL,
+        max_email_alerts_per_day INT NOT NULL,
+        delivery_config JSONB NOT NULL,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+    """
+    
     with get_cursor() as cursor:
         logger.info("Creating events table...")
         cursor.execute(create_events_table)
@@ -337,7 +452,11 @@ def run_migrations():
         logger.info("Creating alerts indexes...")
         for idx_sql in create_alerts_indexes:
             cursor.execute(idx_sql)
+        
+        logger.info("Creating plan_settings table...")
+        cursor.execute(create_plan_settings_table)
     
+    seed_plan_settings()
     logger.info("Migrations completed successfully.")
 
 def ensure_user_plans_table():

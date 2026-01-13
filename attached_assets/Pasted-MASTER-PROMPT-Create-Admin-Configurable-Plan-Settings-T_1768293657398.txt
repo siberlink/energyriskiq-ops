@@ -1,0 +1,248 @@
+MASTER PROMPT — Create Admin-Configurable Plan Settings Table
+
+You are Replit AI acting as my senior backend engineer.
+I want a single authoritative table where an Admin can change ALL important plan settings
+without editing code.
+
+Plans and defaults:
+
+- free:       $0.00
+- personal:   $9.95
+- trader:     $29.00
+- pro:        $49.00
+- enterprise: $129.00
+
+Alert types:
+- free:       HIGH_IMPACT_EVENT
+- personal:   HIGH_IMPACT_EVENT + REGIONAL_RISK_SPIKE
+- trader:     HIGH_IMPACT_EVENT + REGIONAL_RISK_SPIKE + ASSET_RISK_SPIKE
+- pro:        trader + DAILY_DIGEST
+- enterprise: ALL (all alert types enabled)
+
+Number of alerts by email per day:
+- free:       2
+- personal:   4
+- trader:     8
+- pro:        15
+- enterprise: 30
+
+Delivery behavior (how alerts are sent):
+- free:
+    1 by email + all displayed in account
+- personal:
+    1 by email + all displayed in account
+- trader:
+    3 by email + all by Telegram + all displayed in account
+- pro:
+    all by Telegram + SMS + all displayed in account
+- enterprise:
+    all by Telegram + SMS + all displayed in account
+
+============================================================
+1) GOAL
+============================================================
+Create a new table called plan_settings that:
+
+- Stores pricing and feature configuration per plan_code
+- Encodes allowed alert types
+- Encodes email limits
+- Encodes channel delivery rules (email / telegram / sms / in-account)
+- Can be edited by an Admin via simple API endpoints
+
+Existing tables like users, user_plans, alerts must NOT be broken.
+We will later read from plan_settings when enforcing limits.
+
+============================================================
+2) TABLE SCHEMA: plan_settings
+============================================================
+Create a Postgres table:
+
+plan_settings (
+  plan_code TEXT PRIMARY KEY,            -- 'free', 'personal', 'trader', 'pro', 'enterprise'
+  display_name TEXT NOT NULL,           -- e.g. 'Free', 'Personal', ...
+
+  monthly_price_usd NUMERIC(8,2) NOT NULL,
+
+  -- Allowed alert types for this plan
+  allowed_alert_types TEXT[] NOT NULL,  -- e.g. ['HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE']
+  -- NOTE: treat 'ALL' as shorthand for all supported types in code.
+  -- Supported alert types: 'HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','DAILY_DIGEST'
+
+  -- Email quota
+  max_email_alerts_per_day INT NOT NULL,
+
+  -- Delivery configuration stored as JSONB so Admin can change behavior without schema changes
+  delivery_config JSONB NOT NULL,
+  -- Example shape per plan (see below in section 3)
+
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+Add a trigger or UPDATE hook so updated_at is refreshed on UPDATE,
+or handle updated_at in code (either is fine, but it must be consistent).
+
+============================================================
+3) INITIAL SEED VALUES (VERY IMPORTANT)
+============================================================
+After migrations, seed plan_settings with the following rows:
+
+For all examples below, use delivery_config as JSONB with this structure:
+{
+  "email": {
+    "max_per_day": <int>,            // must match max_email_alerts_per_day
+    "realtime_limit": <int|null>,    // how many can be realtime (null = all within cap)
+    "mode": "limited" | "unlimited"  // here always "limited"
+  },
+  "telegram": {
+    "enabled": <bool>,
+    "send_all": <bool>               // if true, all alerts are pushed to Telegram
+  },
+  "sms": {
+    "enabled": <bool>,
+    "send_all": <bool>
+  },
+  "account": {
+    "show_all": <bool>               // whether all alerts appear in the web account view
+  }
+}
+
+Seed rows:
+
+1) free
+- plan_code: 'free'
+- display_name: 'Free'
+- monthly_price_usd: 0.00
+- allowed_alert_types: ['HIGH_IMPACT_EVENT']
+- max_email_alerts_per_day: 2
+- delivery_config:
+  {
+    "email":    { "max_per_day": 2,  "realtime_limit": 1, "mode": "limited" },
+    "telegram": { "enabled": false, "send_all": false },
+    "sms":      { "enabled": false, "send_all": false },
+    "account":  { "show_all": true }
+  }
+
+2) personal
+- plan_code: 'personal'
+- display_name: 'Personal'
+- monthly_price_usd: 9.95
+- allowed_alert_types: ['HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE']
+- max_email_alerts_per_day: 4
+- delivery_config:
+  {
+    "email":    { "max_per_day": 4,  "realtime_limit": 1, "mode": "limited" },
+    "telegram": { "enabled": false, "send_all": false },
+    "sms":      { "enabled": false, "send_all": false },
+    "account":  { "show_all": true }
+  }
+
+3) trader
+- plan_code: 'trader'
+- display_name: 'Trader'
+- monthly_price_usd: 29.00
+- allowed_alert_types: ['HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE']
+- max_email_alerts_per_day: 8
+- delivery_config:
+  {
+    "email":    { "max_per_day": 8,  "realtime_limit": 3,  "mode": "limited" },
+    "telegram": { "enabled": true,  "send_all": true },
+    "sms":      { "enabled": false, "send_all": false },
+    "account":  { "show_all": true }
+  }
+
+4) pro
+- plan_code: 'pro'
+- display_name: 'Pro'
+- monthly_price_usd: 49.00
+- allowed_alert_types: ['HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','DAILY_DIGEST']
+- max_email_alerts_per_day: 15
+- delivery_config:
+  {
+    "email":    { "max_per_day": 15, "realtime_limit": null, "mode": "limited" },
+    "telegram": { "enabled": true,  "send_all": true },
+    "sms":      { "enabled": true,  "send_all": true },
+    "account":  { "show_all": true }
+  }
+
+5) enterprise
+- plan_code: 'enterprise'
+- display_name: 'Enterprise'
+- monthly_price_usd: 129.00
+- allowed_alert_types: ['HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','DAILY_DIGEST']  -- treat this as ALL
+- max_email_alerts_per_day: 30
+- delivery_config:
+  {
+    "email":    { "max_per_day": 30, "realtime_limit": null, "mode": "limited" },
+    "telegram": { "enabled": true,  "send_all": true },
+    "sms":      { "enabled": true,  "send_all": true },
+    "account":  { "show_all": true }
+  }
+
+============================================================
+4) HELPER FUNCTIONS
+============================================================
+Implement a helper in the data access layer:
+
+get_plan_settings(plan_code: str) -> PlanSettings
+- Reads the row from plan_settings
+- If not found, raise clear error
+- Parse delivery_config JSONB into a structured object/dict in code
+
+Also implement:
+get_allowed_alert_types(plan_code: str) -> List[str]
+- If allowed_alert_types contains 'ALL', treat it as:
+  ['HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','DAILY_DIGEST']
+
+============================================================
+5) ADMIN API ENDPOINTS
+============================================================
+Add minimal admin endpoints so settings can be inspected and changed
+without touching the DB directly.
+
+Protect them with a simple header:
+- X-Admin-Token must match ADMIN_TOKEN env var
+(You can reuse INTERNAL_RUNNER_TOKEN if we already have that, or create ADMIN_TOKEN.)
+
+Endpoints:
+
+1) GET /admin/plan-settings
+- Returns all plans with pricing, allowed_alert_types, and delivery_config
+
+2) GET /admin/plan-settings/{plan_code}
+- Returns single plan config
+
+3) PUT /admin/plan-settings/{plan_code}
+- Body can include:
+  - monthly_price_usd
+  - allowed_alert_types
+  - max_email_alerts_per_day
+  - delivery_config (full JSON)
+- Validate that plan_code is one of:
+  'free','personal','trader','pro','enterprise'
+- Validate alert types against supported list.
+
+Do not implement complex auth; header-based token is enough for now.
+
+============================================================
+6) WIRING (LIGHT TOUCH)
+============================================================
+Do NOT refactor all alert logic yet, but:
+
+- Wherever we currently hardcode plan-specific limits (email caps or allowed alert types),
+  add TODOs and, if cheap, replace them with calls to get_plan_settings(plan_code).
+
+- At minimum, use max_email_alerts_per_day from plan_settings in any new quota logic you add.
+
+============================================================
+7) ACCEPTANCE TESTS
+============================================================
+- Migration runs without errors; plan_settings table exists.
+- All 5 plans are seeded exactly as described.
+- GET /admin/plan-settings returns all 5 with correct values.
+- Updating one plan via PUT persists and changes the DB row.
+- Changing monthly_price_usd for 'pro' via admin endpoint is reflected on subsequent reads.
+
+Implement this now, keeping the codebase consistent with existing structure.

@@ -31,6 +31,12 @@ DEFAULT_THRESHOLD = 70
 HIGH_IMPACT_REGIONS = ['Europe', 'Middle East', 'Black Sea']
 HIGH_IMPACT_CATEGORIES = ['energy', 'geopolitical']
 
+# TODO: Replace PLAN_DEFAULTS with calls to get_plan_settings() from plan_settings table
+# The plan_settings table is now the authoritative source for:
+# - allowed_alert_types per plan
+# - max_email_alerts_per_day
+# - delivery_config (email/telegram/sms/account settings)
+# See: src/plans/plan_helpers.py -> get_plan_settings(), get_allowed_alert_types()
 PLAN_DEFAULTS = {
     'free': {
         'alerts_delay_minutes': 60,

@@ -1,6 +1,10 @@
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional, List
 from datetime import datetime, timezone
+import json
 from src.db.db import get_cursor
+
+ALL_ALERT_TYPES = ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE", "DAILY_DIGEST"]
+VALID_PLAN_CODES = ["free", "personal", "trader", "pro", "enterprise"]
 
 PLAN_DEFAULTS = {
     "free": {
@@ -250,3 +254,128 @@ def migrate_user_plans():
         
         print(f"Migration complete: {migrated} users migrated, {skipped} skipped (already have plans)")
         return migrated, skipped
+
+
+def get_plan_settings(plan_code: str) -> Dict:
+    if plan_code not in VALID_PLAN_CODES:
+        raise ValueError(f"Invalid plan_code: {plan_code}. Must be one of: {VALID_PLAN_CODES}")
+    
+    with get_cursor(commit=False) as cur:
+        cur.execute("""
+            SELECT plan_code, display_name, monthly_price_usd,
+                   allowed_alert_types, max_email_alerts_per_day,
+                   delivery_config, is_active, created_at, updated_at
+            FROM plan_settings
+            WHERE plan_code = %s
+        """, (plan_code,))
+        row = cur.fetchone()
+        
+        if not row:
+            raise ValueError(f"Plan settings not found for plan_code: {plan_code}")
+        
+        delivery_config = row["delivery_config"]
+        if isinstance(delivery_config, str):
+            delivery_config = json.loads(delivery_config)
+        
+        return {
+            "plan_code": row["plan_code"],
+            "display_name": row["display_name"],
+            "monthly_price_usd": float(row["monthly_price_usd"]),
+            "allowed_alert_types": list(row["allowed_alert_types"]),
+            "max_email_alerts_per_day": row["max_email_alerts_per_day"],
+            "delivery_config": delivery_config,
+            "is_active": row["is_active"],
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None
+        }
+
+
+def get_all_plan_settings() -> List[Dict]:
+    with get_cursor(commit=False) as cur:
+        cur.execute("""
+            SELECT plan_code, display_name, monthly_price_usd,
+                   allowed_alert_types, max_email_alerts_per_day,
+                   delivery_config, is_active, created_at, updated_at
+            FROM plan_settings
+            ORDER BY monthly_price_usd ASC
+        """)
+        rows = cur.fetchall()
+        
+        results = []
+        for row in rows:
+            delivery_config = row["delivery_config"]
+            if isinstance(delivery_config, str):
+                delivery_config = json.loads(delivery_config)
+            
+            results.append({
+                "plan_code": row["plan_code"],
+                "display_name": row["display_name"],
+                "monthly_price_usd": float(row["monthly_price_usd"]),
+                "allowed_alert_types": list(row["allowed_alert_types"]),
+                "max_email_alerts_per_day": row["max_email_alerts_per_day"],
+                "delivery_config": delivery_config,
+                "is_active": row["is_active"],
+                "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+                "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None
+            })
+        
+        return results
+
+
+def get_allowed_alert_types(plan_code: str) -> List[str]:
+    settings = get_plan_settings(plan_code)
+    allowed = settings["allowed_alert_types"]
+    
+    if "ALL" in allowed:
+        return ALL_ALERT_TYPES.copy()
+    
+    return allowed
+
+
+def update_plan_settings(plan_code: str, updates: Dict) -> Dict:
+    if plan_code not in VALID_PLAN_CODES:
+        raise ValueError(f"Invalid plan_code: {plan_code}. Must be one of: {VALID_PLAN_CODES}")
+    
+    if "allowed_alert_types" in updates:
+        for alert_type in updates["allowed_alert_types"]:
+            if alert_type != "ALL" and alert_type not in ALL_ALERT_TYPES:
+                raise ValueError(f"Invalid alert_type: {alert_type}. Must be one of: {ALL_ALERT_TYPES}")
+    
+    update_fields = []
+    update_values = []
+    
+    if "monthly_price_usd" in updates:
+        update_fields.append("monthly_price_usd = %s")
+        update_values.append(updates["monthly_price_usd"])
+    
+    if "allowed_alert_types" in updates:
+        update_fields.append("allowed_alert_types = %s")
+        update_values.append(updates["allowed_alert_types"])
+    
+    if "max_email_alerts_per_day" in updates:
+        update_fields.append("max_email_alerts_per_day = %s")
+        update_values.append(updates["max_email_alerts_per_day"])
+    
+    if "delivery_config" in updates:
+        update_fields.append("delivery_config = %s")
+        update_values.append(json.dumps(updates["delivery_config"]))
+    
+    if "is_active" in updates:
+        update_fields.append("is_active = %s")
+        update_values.append(updates["is_active"])
+    
+    if not update_fields:
+        return get_plan_settings(plan_code)
+    
+    update_fields.append("updated_at = NOW()")
+    update_values.append(plan_code)
+    
+    with get_cursor() as cur:
+        sql = f"""
+            UPDATE plan_settings
+            SET {", ".join(update_fields)}
+            WHERE plan_code = %s
+        """
+        cur.execute(sql, tuple(update_values))
+    
+    return get_plan_settings(plan_code)
