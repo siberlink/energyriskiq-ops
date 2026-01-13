@@ -365,6 +365,132 @@
             font-size: 12px;
             color: #64748b;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .latest-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.3); }
+        }
+
+        .alert-filters {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .filter-input {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #e2e8f0;
+            font-family: inherit;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .filter-btn.secondary {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+
+        .filter-btn.secondary:hover {
+            background: rgba(100, 116, 139, 0.3);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .upgrade-sidebar-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .upgrade-sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #a78bfa;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .upgrade-sidebar-text {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .upgrade-sidebar-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upgrade-sidebar-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
         }
 
         .alert-card-body {
@@ -762,6 +888,18 @@
                 Settings
             </a>
         </div>
+
+        <div id="upgradeSidebarCard" class="upgrade-sidebar-card" style="display: none;">
+            <div class="upgrade-sidebar-title">
+                <span>&#9889;</span> Unlock More Alerts
+            </div>
+            <p class="upgrade-sidebar-text">
+                Get real-time alerts, asset risk tracking, and priority notifications with an upgraded plan.
+            </p>
+            <button class="upgrade-sidebar-btn" onclick="showSection('plans')">
+                View Upgrade Options
+            </button>
+        </div>
     </nav>
 
     <main class="main">
@@ -831,11 +969,27 @@
 
             <div class="content-card" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h2 class="card-title">Alert History</h2>
+                    <h2 class="card-title">Alert History (Last 24 Hours)</h2>
                 </div>
-                <div class="card-body" id="allAlerts">
-                    <div class="loading">
-                        <div class="spinner"></div>
+                <div class="card-body">
+                    <div class="alert-filters">
+                        <div class="filter-group">
+                            <span class="filter-label">From:</span>
+                            <input type="date" id="filterFromDate" class="filter-input">
+                            <input type="time" id="filterFromTime" class="filter-input" style="width: 100px;">
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">To:</span>
+                            <input type="date" id="filterToDate" class="filter-input">
+                            <input type="time" id="filterToTime" class="filter-input" style="width: 100px;">
+                        </div>
+                        <button class="filter-btn" onclick="applyFilters()">Apply Filter</button>
+                        <button class="filter-btn secondary" onclick="resetFilters()">Reset</button>
+                    </div>
+                    <div id="allAlerts">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -890,6 +1044,7 @@
     <script>
         let sessionToken = null;
         let currentUser = null;
+        let allAlerts = [];
 
         function checkSession() {
             const session = localStorage.getItem('userSession');
@@ -963,13 +1118,17 @@
             if (plan === 'free') {
                 document.getElementById('upgradeBanner').style.display = 'flex';
             }
+            
+            if (plan !== 'enterprise') {
+                document.getElementById('upgradeSidebarCard').style.display = 'block';
+            }
         }
 
         let allowedAlertTypes = [];
 
         async function loadAlerts() {
             try {
-                const response = await fetch('/users/alerts?limit=50', {
+                const response = await fetch('/users/alerts?limit=100', {
                     headers: { 'X-User-Token': sessionToken }
                 });
 
@@ -980,7 +1139,10 @@
                 const lockedTypes = data.locked_alert_types || [];
                 const lockedSamples = data.locked_samples || [];
                 
-                renderAlerts(data.alerts, allowedAlertTypes);
+                allAlerts = data.alerts || [];
+                
+                initializeFilters();
+                renderAlerts(allAlerts, allowedAlertTypes);
                 renderAllowedAlertTypes(allowedAlertTypes, lockedTypes);
                 renderLockedSamples(lockedSamples);
             } catch (error) {
@@ -988,6 +1150,43 @@
                 document.getElementById('recentAlerts').innerHTML = '<div class="empty-state">Failed to load alerts</div>';
                 document.getElementById('allAlerts').innerHTML = '<div class="empty-state">Failed to load alerts</div>';
             }
+        }
+        
+        function initializeFilters() {
+            const now = new Date();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            document.getElementById('filterFromDate').value = yesterday.toISOString().split('T')[0];
+            document.getElementById('filterFromTime').value = yesterday.toTimeString().slice(0, 5);
+            document.getElementById('filterToDate').value = now.toISOString().split('T')[0];
+            document.getElementById('filterToTime').value = now.toTimeString().slice(0, 5);
+        }
+        
+        function applyFilters() {
+            const fromDate = document.getElementById('filterFromDate').value;
+            const fromTime = document.getElementById('filterFromTime').value || '00:00';
+            const toDate = document.getElementById('filterToDate').value;
+            const toTime = document.getElementById('filterToTime').value || '23:59';
+            
+            if (!fromDate || !toDate) {
+                renderAlerts(allAlerts, allowedAlertTypes);
+                return;
+            }
+            
+            const fromDateTime = new Date(`${fromDate}T${fromTime}`);
+            const toDateTime = new Date(`${toDate}T${toTime}`);
+            
+            const filtered = allAlerts.filter(alert => {
+                const alertDate = new Date(alert.created_at);
+                return alertDate >= fromDateTime && alertDate <= toDateTime;
+            });
+            
+            renderAlertsGrid(filtered, allowedAlertTypes, document.getElementById('allAlerts'));
+        }
+        
+        function resetFilters() {
+            initializeFilters();
+            renderAlerts(allAlerts, allowedAlertTypes);
         }
 
         function renderAllowedAlertTypes(allowedTypes, lockedTypes) {
@@ -1069,14 +1268,40 @@
             container.innerHTML = html;
         }
 
+        function cleanAlertMessage(message) {
+            if (!message) return '';
+            return message
+                .replace(/Upgrade to \w+ for.*?https:\/\/energyriskiq\.com\/upgrade/gi, '')
+                .replace(/https:\/\/energyriskiq\.com\/upgrade/gi, '')
+                .trim();
+        }
+        
+        function isLatestAlert(createdAt) {
+            if (!createdAt) return false;
+            const alertTime = new Date(createdAt);
+            const now = new Date();
+            const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+            return alertTime >= threeHoursAgo;
+        }
+        
+        function filterLast24Hours(alerts) {
+            const now = new Date();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            return alerts.filter(alert => {
+                const alertDate = new Date(alert.created_at);
+                return alertDate >= yesterday;
+            });
+        }
+        
         function renderAlerts(alerts, allowedTypes) {
-            document.getElementById('alertsCount').textContent = alerts.length;
+            const last24h = filterLast24Hours(alerts);
+            document.getElementById('alertsCount').textContent = last24h.length;
 
-            if (alerts.length === 0) {
+            if (last24h.length === 0) {
                 const emptyHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">&#128276;</div>
-                        <p>No alerts yet. You'll see alerts here once they're triggered.</p>
+                        <p>No alerts in the last 24 hours. You'll see alerts here once they're triggered.</p>
                     </div>
                 `;
                 document.getElementById('recentAlerts').innerHTML = emptyHTML;
@@ -1084,7 +1309,22 @@
                 return;
             }
 
-            const recentAlerts = alerts.slice(0, 4);
+            const recentAlerts = last24h.slice(0, 4);
+            
+            renderAlertsGrid(recentAlerts, allowedTypes, document.getElementById('recentAlerts'));
+            renderAlertsGrid(last24h, allowedTypes, document.getElementById('allAlerts'));
+        }
+        
+        function renderAlertsGrid(alerts, allowedTypes, container) {
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128276;</div>
+                        <p>No alerts match your filter criteria.</p>
+                    </div>
+                `;
+                return;
+            }
             
             const getAlertIcon = (type) => {
                 const icons = {
@@ -1096,46 +1336,59 @@
                 return icons[type] || '&#128276;';
             };
             
+            const getTypeLabel = (type) => {
+                const labels = {
+                    'HIGH_IMPACT_EVENT': 'High Impact',
+                    'REGIONAL_RISK_SPIKE': 'Regional Risk',
+                    'ASSET_RISK_SPIKE': 'Asset Risk',
+                    'DAILY_DIGEST': 'Daily Digest'
+                };
+                return labels[type] || type.replace(/_/g, ' ');
+            };
+            
             const alertCardHTML = (alert) => {
                 const isAllowed = alert.allowed_by_plan;
                 const isHighValue = alert.triggered_value && alert.triggered_value >= 70;
+                const isLatest = isLatestAlert(alert.created_at);
+                const cleanedMessage = cleanAlertMessage(alert.message);
+                const riskPercent = alert.triggered_value ? Math.round(alert.triggered_value) : null;
                 
                 return `
                     <div class="alert-card ${!isAllowed ? 'locked' : ''}">
                         <div class="alert-card-header">
                             <span class="alert-card-type ${alert.alert_type}">
                                 <span>${getAlertIcon(alert.alert_type)}</span>
-                                ${alert.alert_type.replace(/_/g, ' ')}
+                                ${getTypeLabel(alert.alert_type)}
                             </span>
-                            <span class="alert-card-time">${formatDate(alert.created_at)}</span>
+                            <div class="alert-card-time">
+                                ${isLatest ? '<span class="latest-badge">Latest</span>' : ''}
+                                <span>${formatDate(alert.created_at)}</span>
+                            </div>
                         </div>
                         <div class="alert-card-body">
                             <h3 class="alert-card-title">${alert.title || 'Alert Notification'}</h3>
-                            <p class="alert-card-message">${alert.message || 'No additional details available.'}</p>
+                            <p class="alert-card-message">${cleanedMessage || 'Risk level elevated in this region or asset category.'}</p>
                             <div class="alert-card-meta">
                                 ${alert.region ? `<span class="alert-card-chip"><span class="alert-card-chip-icon">&#127758;</span>${alert.region}</span>` : ''}
                                 ${alert.asset ? `<span class="alert-card-chip"><span class="alert-card-chip-icon">&#128184;</span>${alert.asset.toUpperCase()}</span>` : ''}
-                                ${alert.triggered_value ? `<span class="alert-card-value ${isHighValue ? 'high' : ''}"><span>Risk:</span> ${alert.triggered_value.toFixed(1)}${alert.threshold ? ` / ${alert.threshold}` : ''}</span>` : ''}
+                                ${riskPercent !== null ? `<span class="alert-card-value ${isHighValue ? 'high' : ''}"><span>Risk Level:</span> ${riskPercent}%</span>` : ''}
                             </div>
                         </div>
                         ${!isAllowed ? `
                             <div class="alert-card-lock-overlay">
                                 <span class="lock-icon">&#128274;</span>
-                                <span>Upgrade your plan to receive this alert type</span>
+                                <span>Available on higher tier plans</span>
                             </div>
                         ` : ''}
                     </div>
                 `;
             };
-            
-            const alertsGridHTML = (items) => `
+
+            container.innerHTML = `
                 <div class="alerts-grid">
-                    ${items.map(alert => alertCardHTML(alert)).join('')}
+                    ${alerts.map(alert => alertCardHTML(alert)).join('')}
                 </div>
             `;
-
-            document.getElementById('recentAlerts').innerHTML = alertsGridHTML(recentAlerts);
-            document.getElementById('allAlerts').innerHTML = alertsGridHTML(alerts);
         }
 
         function formatDate(isoString) {
