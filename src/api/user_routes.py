@@ -1,7 +1,6 @@
 import os
 import secrets
 import bcrypt
-import time
 import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Header
@@ -17,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-user_sessions = {}
 SESSION_DURATION = 7 * 24 * 60 * 60
 
 APP_URL = os.environ.get("APP_URL", "https://energyriskiq.replit.app")
@@ -62,15 +60,21 @@ def verify_user_session(x_user_token: Optional[str] = Header(None)):
     if not x_user_token:
         raise HTTPException(status_code=401, detail="Authentication required")
     
-    if x_user_token not in user_sessions:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    
-    session = user_sessions[x_user_token]
-    if session["expires"] < time.time():
-        del user_sessions[x_user_token]
-        raise HTTPException(status_code=401, detail="Session expired")
-    
-    return session
+    with get_cursor(commit=False) as cursor:
+        cursor.execute("""
+            SELECT user_id, expires_at FROM sessions WHERE token = %s
+        """, (x_user_token,))
+        session = cursor.fetchone()
+        
+        if not session:
+            raise HTTPException(status_code=401, detail="Invalid or expired session")
+        
+        if session["expires_at"] < datetime.utcnow():
+            with get_cursor() as del_cursor:
+                del_cursor.execute("DELETE FROM sessions WHERE token = %s", (x_user_token,))
+            raise HTTPException(status_code=401, detail="Session expired")
+        
+        return {"user_id": session["user_id"], "expires": session["expires_at"].timestamp()}
 
 
 @router.post("/signup")
@@ -218,12 +222,13 @@ def set_password(body: SetPasswordRequest):
         create_user_plan(user_id, "free")
     
     session_token = secrets.token_urlsafe(32)
-    user_sessions[session_token] = {
-        "user_id": user_id,
-        "email": email,
-        "created": time.time(),
-        "expires": time.time() + SESSION_DURATION
-    }
+    expires_at = datetime.utcnow() + timedelta(seconds=SESSION_DURATION)
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO sessions (token, user_id, expires_at)
+            VALUES (%s, %s, %s)
+        """, (session_token, user_id, expires_at))
     
     return {
         "success": True,
@@ -269,12 +274,13 @@ def signin(body: SigninRequest):
             raise HTTPException(status_code=401, detail="Invalid PIN")
     
     session_token = secrets.token_urlsafe(32)
-    user_sessions[session_token] = {
-        "user_id": user_id,
-        "email": user_email,
-        "created": time.time(),
-        "expires": time.time() + SESSION_DURATION
-    }
+    expires_at = datetime.utcnow() + timedelta(seconds=SESSION_DURATION)
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO sessions (token, user_id, expires_at)
+            VALUES (%s, %s, %s)
+        """, (session_token, user_id, expires_at))
     
     return {
         "success": True,
@@ -288,8 +294,9 @@ def signin(body: SigninRequest):
 
 @router.post("/signout")
 def signout(x_user_token: Optional[str] = Header(None)):
-    if x_user_token and x_user_token in user_sessions:
-        del user_sessions[x_user_token]
+    if x_user_token:
+        with get_cursor() as cursor:
+            cursor.execute("DELETE FROM sessions WHERE token = %s", (x_user_token,))
     return {"success": True}
 
 

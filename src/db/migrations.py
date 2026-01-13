@@ -312,6 +312,15 @@ def run_migrations():
     );
     """
     
+    create_sessions_table = """
+    CREATE TABLE IF NOT EXISTS sessions (
+        token TEXT PRIMARY KEY,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    """
+    
     create_user_alert_prefs_table = """
     CREATE TABLE IF NOT EXISTS user_alert_prefs (
         id SERIAL PRIMARY KEY,
@@ -427,6 +436,9 @@ def run_migrations():
         
         logger.info("Creating user_plans table...")
         cursor.execute(create_user_plans_table)
+        
+        logger.info("Creating sessions table...")
+        cursor.execute(create_sessions_table)
         
         logger.info("Creating user_alert_prefs table...")
         cursor.execute(create_user_alert_prefs_table)
