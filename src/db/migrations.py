@@ -445,7 +445,31 @@ def run_migrations():
         cursor.execute(create_plan_settings_table)
     
     seed_plan_settings()
+    
+    logger.info("Adding user authentication columns...")
+    add_user_auth_columns()
+    
     logger.info("Migrations completed successfully.")
+
+
+def add_user_auth_columns():
+    alter_statements = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_expires TIMESTAMP",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()",
+        "CREATE INDEX IF NOT EXISTS idx_users_verification_token ON users(verification_token)",
+        "CREATE INDEX IF NOT EXISTS idx_users_email_verified ON users(email_verified)"
+    ]
+    
+    with get_cursor() as cursor:
+        for stmt in alter_statements:
+            try:
+                cursor.execute(stmt)
+            except Exception as e:
+                logger.debug(f"Column may already exist: {e}")
 
 def ensure_user_plans_table():
     logger.info("Ensuring user_plans table has correct schema...")
