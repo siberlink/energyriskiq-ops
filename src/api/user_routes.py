@@ -355,17 +355,19 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
         locked_types = [t for t in ALL_ALERT_TYPES if t not in effective_allowed]
         
-        cursor.execute("""
-            SELECT DISTINCT ON (COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title))
-                   id, alert_type, region, asset, triggered_value, threshold,
-                   title, message, channel, status, created_at, sent_at
-            FROM alerts
-            WHERE alert_type = ANY(%s)
-              AND status = 'sent'
-            ORDER BY COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title), created_at DESC
-        """, (effective_allowed,))
-        
-        all_allowed_alerts = cursor.fetchall()
+        if effective_allowed:
+            cursor.execute("""
+                SELECT DISTINCT ON (COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title))
+                       id, alert_type, region, asset, triggered_value, threshold,
+                       title, message, channel, status, created_at, sent_at
+                FROM alerts
+                WHERE alert_type = ANY(%s)
+                  AND status = 'sent'
+                ORDER BY COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title), created_at DESC
+            """, (effective_allowed,))
+            all_allowed_alerts = cursor.fetchall()
+        else:
+            all_allowed_alerts = []
         
         sorted_alerts = sorted(all_allowed_alerts, key=lambda r: r['created_at'] or datetime.min, reverse=True)[:limit]
         
