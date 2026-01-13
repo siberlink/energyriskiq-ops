@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from src.db.db import execute_one, get_cursor
-from src.alerts.alerts_engine import PLAN_DEFAULTS
 from src.alerts.digest_worker import build_digest_content
+from src.plans.plan_helpers import get_plan_settings
 
 router = APIRouter(prefix="/digest", tags=["digest"])
 
@@ -27,7 +27,17 @@ def get_or_create_user(email: str) -> int:
 
 
 def create_user_plan(user_id: int, plan: str):
-    defaults = PLAN_DEFAULTS.get(plan, PLAN_DEFAULTS['free'])
+    try:
+        settings = get_plan_settings(plan)
+    except ValueError:
+        settings = get_plan_settings('free')
+        plan = 'free'
+    
+    delivery_config = settings.get('delivery_config', {})
+    allow_telegram = delivery_config.get('telegram', False)
+    daily_digest = 'DAILY_DIGEST' in settings.get('allowed_alert_types', [])
+    allow_asset = 'ASSET_RISK_SPIKE' in settings.get('allowed_alert_types', [])
+    alerts_delay = 60 if plan == 'free' else 0
     
     with get_cursor() as cursor:
         cursor.execute(
@@ -42,23 +52,29 @@ def create_user_plan(user_id: int, plan: str):
                    allow_telegram = EXCLUDED.allow_telegram,
                    daily_digest_enabled = EXCLUDED.daily_digest_enabled,
                    updated_at = NOW()""",
-            (user_id, plan, defaults['alerts_delay_minutes'], defaults['max_alerts_per_day'],
-             defaults['allow_asset_alerts'], defaults['allow_telegram'], defaults['daily_digest_enabled'])
+            (user_id, plan, alerts_delay, settings['max_email_alerts_per_day'],
+             allow_asset, allow_telegram, daily_digest)
         )
 
 
 @router.post("/preview")
 def preview_digest(request: DigestPreviewRequest):
-    if request.plan not in ['free', 'trader', 'pro']:
-        raise HTTPException(status_code=400, detail="Plan must be free, trader, or pro")
+    valid_plans = ['free', 'personal', 'trader', 'pro', 'enterprise']
+    if request.plan not in valid_plans:
+        raise HTTPException(status_code=400, detail=f"Plan must be one of: {', '.join(valid_plans)}")
     
     user_id = get_or_create_user(request.email)
     create_user_plan(user_id, request.plan)
     
     subject, body = build_digest_content('Europe')
     
-    plan_info = PLAN_DEFAULTS[request.plan]
-    digest_enabled = plan_info['daily_digest_enabled']
+    try:
+        settings = get_plan_settings(request.plan)
+    except ValueError:
+        settings = get_plan_settings('free')
+    
+    allowed_alert_types = settings.get('allowed_alert_types', [])
+    digest_enabled = 'DAILY_DIGEST' in allowed_alert_types
     
     return {
         "user_id": user_id,
@@ -67,5 +83,5 @@ def preview_digest(request: DigestPreviewRequest):
         "digest_enabled": digest_enabled,
         "subject": subject,
         "body": body,
-        "note": "Free plan users do not receive daily digests. Upgrade to Trader or Pro." if not digest_enabled else None
+        "note": "Free and Personal plan users do not receive daily digests. Upgrade to Trader or higher." if not digest_enabled else None
     }

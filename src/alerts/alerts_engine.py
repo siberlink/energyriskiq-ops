@@ -17,6 +17,7 @@ from src.alerts.templates import (
     add_upgrade_hook_if_free
 )
 from src.alerts.channels import send_email, send_telegram
+from src.plans.plan_helpers import get_plan_settings, get_allowed_alert_types
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -30,36 +31,6 @@ ALERTS_LOOP_INTERVAL = int(os.environ.get('ALERTS_LOOP_INTERVAL', '600'))
 DEFAULT_THRESHOLD = 70
 HIGH_IMPACT_REGIONS = ['Europe', 'Middle East', 'Black Sea']
 HIGH_IMPACT_CATEGORIES = ['energy', 'geopolitical']
-
-# TODO: Replace PLAN_DEFAULTS with calls to get_plan_settings() from plan_settings table
-# The plan_settings table is now the authoritative source for:
-# - allowed_alert_types per plan
-# - max_email_alerts_per_day
-# - delivery_config (email/telegram/sms/account settings)
-# See: src/plans/plan_helpers.py -> get_plan_settings(), get_allowed_alert_types()
-PLAN_DEFAULTS = {
-    'free': {
-        'alerts_delay_minutes': 60,
-        'max_alerts_per_day': 2,
-        'allow_asset_alerts': False,
-        'allow_telegram': False,
-        'daily_digest_enabled': False
-    },
-    'trader': {
-        'alerts_delay_minutes': 0,
-        'max_alerts_per_day': 20,
-        'allow_asset_alerts': True,
-        'allow_telegram': False,
-        'daily_digest_enabled': True
-    },
-    'pro': {
-        'alerts_delay_minutes': 0,
-        'max_alerts_per_day': 50,
-        'allow_asset_alerts': True,
-        'allow_telegram': True,
-        'daily_digest_enabled': True
-    }
-}
 
 
 def get_risk_summary(region: str = 'Europe') -> Dict:
@@ -345,8 +316,17 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
     user_id = user['id']
     plan = user['plan']
     
+    try:
+        plan_settings = get_plan_settings(plan)
+        allowed_alert_types = get_allowed_alert_types(plan)
+        max_per_day = plan_settings['max_email_alerts_per_day']
+    except ValueError:
+        logger.warning(f"Unknown plan '{plan}' for user {user_id}, using free tier defaults")
+        plan_settings = get_plan_settings('free')
+        allowed_alert_types = get_allowed_alert_types('free')
+        max_per_day = plan_settings['max_email_alerts_per_day']
+    
     alerts_today = count_alerts_today(user_id)
-    max_per_day = user.get('max_alerts_per_day', PLAN_DEFAULTS[plan]['max_alerts_per_day'])
     quota_left = max_per_day - alerts_today
     
     if quota_left <= 0 and not dry_run:
@@ -356,6 +336,9 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
     prefs = get_user_prefs(user_id)
     generated_alerts = []
     
+    delivery_config = plan_settings.get('delivery_config', {})
+    allow_telegram = delivery_config.get('telegram', False)
+    
     for pref in prefs:
         if quota_left <= 0 and not dry_run:
             logger.info(f"User {user_id} quota exhausted, skipping remaining prefs")
@@ -363,7 +346,8 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
         
         alert_type = pref['alert_type']
         
-        if plan == 'free' and alert_type not in ['REGIONAL_RISK_SPIKE']:
+        if alert_type not in allowed_alert_types:
+            logger.debug(f"Alert type {alert_type} not allowed for plan {plan}")
             continue
         
         if plan == 'free' and pref['region'] != 'Europe':
