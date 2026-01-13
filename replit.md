@@ -161,7 +161,12 @@ python src/main.py --mode alerts
 - `POST /internal/run/alerts` - Trigger alerts engine
 - `POST /internal/run/digest` - Trigger daily digest worker
 
-### Admin API (Secured with X-Admin-Token header)
+### Admin UI
+- `GET /admin` - Admin portal with login (emicon / Regen@3010 / PIN: 342256)
+
+### Admin API (Secured with X-Admin-Token header or session token)
+- `POST /admin/login` - Authenticate and get session token
+- `POST /admin/logout` - Invalidate session
 - `GET /admin/plan-settings` - List all plan settings
 - `GET /admin/plan-settings/{plan_code}` - Get single plan settings
 - `PUT /admin/plan-settings/{plan_code}` - Update plan settings (price, alert types, delivery config)
@@ -200,6 +205,7 @@ python src/main.py --mode alerts
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
+- 2026-01-13: Step 6 - Admin UI page at /admin with server-side authentication, header, left navigation, dashboard, and plan settings management.
 - 2026-01-13: Step 5.1 - Comprehensive migration: plan_settings is now single source of truth for all plan features. user_plans simplified to only store user-plan assignment.
 - 2026-01-13: Step 5 - Admin-configurable plan_settings table with GET/PUT API endpoints
 - 2026-01-09: Step 4.2 - Authoritative user_plans table with enforcement helpers
