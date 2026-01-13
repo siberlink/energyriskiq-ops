@@ -1,0 +1,82 @@
+The “EnergyRiskIQ Scheduler (Ingest/Risk/Alerts)” workflow in your GitHub Actions is there to automatically run the backend workers on a schedule, because your Replit Autoscale deployment only runs the API — it does not run background jobs on its own.
+
+Why this scheduler exists
+
+Your app has 4 separate worker processes that need to be run repeatedly, even when nobody is using the web API:
+
+Ingest — Fetches new events from RSS feeds
+
+AI — Processes unprocessed events with your AI worker
+
+Risk — Computes risk scores and indices
+
+Alerts — Evaluates triggers and sends alerts
+
+In Autoscale, nobody continuously runs in the background, so you must trigger worker runs externally. The GitHub scheduler does exactly that.
+
+What the scheduler does
+
+This specific workflow runs:
+
+- ingest
+- risk
+- alerts
+
+
+every 15 minutes (UTC cron schedule). It:
+
+Sends a POST to:
+
+/internal/run/ingest
+
+/internal/run/risk
+
+/internal/run/alerts
+
+Using your secure INTERNAL_RUNNER_TOKEN
+
+Logs results
+
+It does not run AI — AI is costly, so it’s on a separate hourly workflow (energyriskiq-ai.yml).
+
+Why it’s split this way
+👍 Autoscale API is stateless
+
+Replit Autoscale spins up the API only in response to HTTP traffic.
+It does not keep worker loops running.
+
+🚫 No background jobs on Autoscale
+
+So workers must be triggered from the outside.
+
+🕒 GitHub Actions
+
+Is a free, reliable scheduler that:
+
+Executes your jobs on a regular cadence
+
+Reaches your internal endpoints securely
+
+Logs output for debugging
+
+This gives you:
+
+Automated ingestion
+
+Up-to-date risk scoring
+
+Alerts delivered on schedule
+
+Why AI is on a separate workflow
+
+Because AI processing is expensive (OpenAI credits). So we:
+
+run it hourly (not every 15 minutes)
+
+isolate it in its own workflow
+
+This saves cost while keeping risk updates frequent.
+
+Summary (one sentence)
+
+The EnergyRiskIQ Scheduler (Ingest/Risk/Alerts) GitHub workflow is your cron job that keeps the backend data pipeline alive and fresh by automatically triggering ingestions, risk recomputation, and alert evaluation every 15 minutes.

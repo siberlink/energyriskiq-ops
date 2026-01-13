@@ -217,6 +217,16 @@ python src/main.py --mode alerts
 ### Internal Runner
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
+### Production URL
+- `APP_URL`: Production domain for email verification links (https://energyriskiq.com)
+
+## Operations & Scheduling
+
+See **[OPERATIONS.md](OPERATIONS.md)** for detailed documentation on:
+- GitHub Actions scheduler workflows
+- Background worker architecture (Ingest, AI, Risk, Alerts)
+- Internal runner endpoints and authentication
+
 ## Recent Changes
 - 2026-01-13: Step 7 - User authentication system with signup, email verification, password/PIN setup, and account dashboard at /users.
 - 2026-01-13: Step 6 - Admin UI page at /admin with server-side authentication, header, left navigation, dashboard, and plan settings management.
