@@ -306,19 +306,7 @@ def run_migrations():
     create_user_plans_table = """
     CREATE TABLE IF NOT EXISTS user_plans (
         user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-        plan TEXT NOT NULL CHECK (plan IN ('free','trader','pro','enterprise')),
-        plan_price_usd INT NOT NULL DEFAULT 0,
-        alerts_delay_minutes INT NOT NULL DEFAULT 60,
-        allow_asset_alerts BOOLEAN NOT NULL DEFAULT FALSE,
-        allow_telegram BOOLEAN NOT NULL DEFAULT FALSE,
-        daily_digest_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-        allow_webhooks BOOLEAN NOT NULL DEFAULT FALSE,
-        max_total_alerts_per_day INT NOT NULL DEFAULT 2,
-        max_email_alerts_per_day INT NOT NULL DEFAULT 1,
-        max_telegram_alerts_per_day INT NOT NULL DEFAULT 0,
-        preferred_realtime_channel TEXT NOT NULL DEFAULT 'email' CHECK (preferred_realtime_channel IN ('email','telegram')),
-        custom_thresholds BOOLEAN NOT NULL DEFAULT FALSE,
-        priority_processing BOOLEAN NOT NULL DEFAULT FALSE,
+        plan TEXT NOT NULL CHECK (plan IN ('free','personal','trader','pro','enterprise')),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
     );
@@ -462,69 +450,22 @@ def run_migrations():
 def ensure_user_plans_table():
     logger.info("Ensuring user_plans table has correct schema...")
     
-    alter_user_plans_columns = """
-    DO $$ 
-    BEGIN
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'plan_price_usd'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN plan_price_usd INT NOT NULL DEFAULT 0;
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'allow_webhooks'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN allow_webhooks BOOLEAN NOT NULL DEFAULT FALSE;
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'max_total_alerts_per_day'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN max_total_alerts_per_day INT NOT NULL DEFAULT 2;
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'max_email_alerts_per_day'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN max_email_alerts_per_day INT NOT NULL DEFAULT 1;
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'max_telegram_alerts_per_day'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN max_telegram_alerts_per_day INT NOT NULL DEFAULT 0;
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'preferred_realtime_channel'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN preferred_realtime_channel TEXT NOT NULL DEFAULT 'email';
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'custom_thresholds'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN custom_thresholds BOOLEAN NOT NULL DEFAULT FALSE;
-        END IF;
-        
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns 
-            WHERE table_name = 'user_plans' AND column_name = 'priority_processing'
-        ) THEN
-            ALTER TABLE user_plans ADD COLUMN priority_processing BOOLEAN NOT NULL DEFAULT FALSE;
-        END IF;
-    END $$;
-    """
-    
     with get_cursor() as cursor:
-        cursor.execute(alter_user_plans_columns)
+        cursor.execute("""
+            DO $$ 
+            BEGIN
+                BEGIN
+                    ALTER TABLE user_plans DROP CONSTRAINT IF EXISTS user_plans_plan_check;
+                EXCEPTION WHEN OTHERS THEN
+                    NULL;
+                END;
+                
+                ALTER TABLE user_plans ADD CONSTRAINT user_plans_plan_check 
+                    CHECK (plan IN ('free','personal','trader','pro','enterprise'));
+            EXCEPTION WHEN OTHERS THEN
+                NULL;
+            END $$;
+        """)
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_plans_plan ON user_plans(plan);")
     
     logger.info("user_plans table schema updated.")

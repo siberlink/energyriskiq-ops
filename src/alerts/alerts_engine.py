@@ -47,12 +47,13 @@ def get_risk_summary(region: str = 'Europe') -> Dict:
     trend_7d = None
     risk_30d = None
     
-    for row in idx_results:
-        if row['window_days'] == 7 and risk_7d is None:
-            risk_7d = row['risk_score']
-            trend_7d = row['trend']
-        elif row['window_days'] == 30 and risk_30d is None:
-            risk_30d = row['risk_score']
+    if idx_results:
+        for row in idx_results:
+            if row['window_days'] == 7 and risk_7d is None:
+                risk_7d = row['risk_score']
+                trend_7d = row['trend']
+            elif row['window_days'] == 30 and risk_30d is None:
+                risk_30d = row['risk_score']
     
     asset_query = """
     SELECT DISTINCT ON (asset) asset, risk_score, direction
@@ -63,11 +64,12 @@ def get_risk_summary(region: str = 'Europe') -> Dict:
     asset_results = execute_query(asset_query, (region,))
     
     assets = {}
-    for row in asset_results:
-        assets[row['asset']] = {
-            'risk': row['risk_score'],
-            'direction': row['direction']
-        }
+    if asset_results:
+        for row in asset_results:
+            assets[row['asset']] = {
+                'risk': row['risk_score'],
+                'direction': row['direction']
+            }
     
     return {
         'region': region,
@@ -110,7 +112,8 @@ def get_top_driver_events(region: str, limit: int = 3) -> List[Dict]:
     ORDER BY r.weighted_score DESC
     LIMIT %s
     """
-    return execute_query(query, (limit,))
+    results = execute_query(query, (limit,))
+    return results if results else []
 
 
 def get_high_impact_events() -> List[Dict]:
@@ -130,18 +133,18 @@ def get_high_impact_events() -> List[Dict]:
     ORDER BY e.severity_score DESC, e.inserted_at DESC
     LIMIT 10
     """
-    return execute_query(query)
+    results = execute_query(query)
+    return results if results else []
 
 
 def get_users_with_plans() -> List[Dict]:
     query = """
-    SELECT u.id, u.email, u.telegram_chat_id,
-           p.plan, p.alerts_delay_minutes, p.max_alerts_per_day,
-           p.allow_asset_alerts, p.allow_telegram, p.daily_digest_enabled
+    SELECT u.id, u.email, u.telegram_chat_id, p.plan
     FROM users u
     JOIN user_plans p ON p.user_id = u.id
     """
-    return execute_query(query)
+    results = execute_query(query)
+    return results if results else []
 
 
 def get_user_prefs(user_id: int) -> List[Dict]:
@@ -150,7 +153,8 @@ def get_user_prefs(user_id: int) -> List[Dict]:
     FROM user_alert_prefs
     WHERE user_id = %s AND enabled = TRUE
     """
-    return execute_query(query, (user_id,))
+    results = execute_query(query, (user_id,))
+    return results if results else []
 
 
 def get_utc_today_date() -> str:
@@ -248,8 +252,8 @@ def evaluate_regional_risk_spike(user: Dict, pref: Dict, summary: Dict, prev_ris
     }
 
 
-def evaluate_asset_risk_spike(user: Dict, pref: Dict, summary: Dict) -> Optional[Dict]:
-    if not user.get('allow_asset_alerts'):
+def evaluate_asset_risk_spike(user: Dict, pref: Dict, summary: Dict, allow_asset_alerts: bool) -> Optional[Dict]:
+    if not allow_asset_alerts:
         return None
     
     asset = pref.get('asset')
@@ -320,11 +324,16 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
         plan_settings = get_plan_settings(plan)
         allowed_alert_types = get_allowed_alert_types(plan)
         max_per_day = plan_settings['max_email_alerts_per_day']
+        delivery_config = plan_settings.get('delivery_config', {})
     except ValueError:
         logger.warning(f"Unknown plan '{plan}' for user {user_id}, using free tier defaults")
         plan_settings = get_plan_settings('free')
         allowed_alert_types = get_allowed_alert_types('free')
         max_per_day = plan_settings['max_email_alerts_per_day']
+        delivery_config = plan_settings.get('delivery_config', {})
+    
+    allow_telegram = delivery_config.get('telegram', False)
+    allow_asset_alerts = 'ASSET_RISK_SPIKE' in allowed_alert_types
     
     alerts_today = count_alerts_today(user_id)
     quota_left = max_per_day - alerts_today
@@ -335,9 +344,6 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
     
     prefs = get_user_prefs(user_id)
     generated_alerts = []
-    
-    delivery_config = plan_settings.get('delivery_config', {})
-    allow_telegram = delivery_config.get('telegram', False)
     
     for pref in prefs:
         if quota_left <= 0 and not dry_run:
@@ -353,9 +359,6 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
         if plan == 'free' and pref['region'] != 'Europe':
             continue
         
-        if alert_type == 'ASSET_RISK_SPIKE' and not user.get('allow_asset_alerts'):
-            continue
-        
         summary = get_risk_summary(pref['region'])
         prev_risk = get_previous_risk_score(pref['region'])
         
@@ -364,7 +367,7 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
         if alert_type == 'REGIONAL_RISK_SPIKE':
             alert_data = evaluate_regional_risk_spike(user, pref, summary, prev_risk)
         elif alert_type == 'ASSET_RISK_SPIKE':
-            alert_data = evaluate_asset_risk_spike(user, pref, summary)
+            alert_data = evaluate_asset_risk_spike(user, pref, summary, allow_asset_alerts)
         elif alert_type == 'HIGH_IMPACT_EVENT':
             event_alerts = evaluate_high_impact_events(user, pref)
             for ea in event_alerts:
@@ -393,15 +396,13 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
     return generated_alerts
 
 
-def send_alert(user: Dict, alert_data: Dict, alert_id: int) -> bool:
+def send_alert(user: Dict, alert_data: Dict, alert_id: int, plan_settings: Dict) -> bool:
+    delivery_config = plan_settings.get('delivery_config', {})
+    allow_telegram = delivery_config.get('telegram', False)
+    
     channel = 'email'
-    
-    if user.get('allow_telegram') and user.get('telegram_chat_id'):
+    if allow_telegram and user.get('telegram_chat_id'):
         channel = 'telegram'
-    
-    delay_minutes = user.get('alerts_delay_minutes', 0)
-    if delay_minutes > 0:
-        logger.info(f"Alert {alert_id} delayed by {delay_minutes} minutes (free tier)")
     
     if channel == 'telegram':
         success, error = send_telegram(user['telegram_chat_id'], alert_data['message'])
@@ -443,10 +444,18 @@ def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = Non
             plan = user['plan']
             logger.debug(f"Processing user {user_id} ({plan})")
             
+            try:
+                plan_settings = get_plan_settings(plan)
+                delivery_config = plan_settings.get('delivery_config', {})
+                allow_telegram = delivery_config.get('telegram', False)
+            except ValueError:
+                plan_settings = get_plan_settings('free')
+                allow_telegram = False
+            
             generated_alerts = process_user_alerts(user, dry_run)
             
             for alert_data in generated_alerts:
-                channel = 'telegram' if user.get('allow_telegram') and user.get('telegram_chat_id') else 'email'
+                channel = 'telegram' if allow_telegram and user.get('telegram_chat_id') else 'email'
                 
                 message = alert_data['message']
                 if plan == 'free':
@@ -476,7 +485,7 @@ def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = Non
                     )
                     
                     if alert_id:
-                        send_alert(user, alert_data, alert_id)
+                        send_alert(user, alert_data, alert_id, plan_settings)
                         all_alerts.append({'id': alert_id, **alert_data})
         
         except Exception as e:

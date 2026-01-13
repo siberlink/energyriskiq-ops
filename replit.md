@@ -68,12 +68,11 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 ### users table
 - id, email (unique), telegram_chat_id, created_at
 
-### user_plans table (Authoritative)
-- user_id (PK/FK), plan (free|trader|pro|enterprise), plan_price_usd
-- alerts_delay_minutes, allow_asset_alerts, allow_telegram, daily_digest_enabled, allow_webhooks
-- max_total_alerts_per_day, max_email_alerts_per_day, max_telegram_alerts_per_day
-- preferred_realtime_channel (email|telegram), custom_thresholds, priority_processing
+### user_plans table (User-Plan Assignment)
+- user_id (PK/FK): References users table
+- plan: free | personal | trader | pro | enterprise
 - created_at, updated_at
+- NOTE: All plan features are derived from plan_settings table, not stored here
 
 ### user_alert_prefs table
 - id, user_id (FK), region, alert_type, asset, threshold, enabled, cooldown_minutes
@@ -85,14 +84,15 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 ### alert_state table
 - id, region, window_days, last_risk_score, last_7d_score, last_30d_score, last_asset_scores
 
-### plan_settings table (Admin-Configurable)
+### plan_settings table (Authoritative Source for Plan Features)
 - plan_code (PK): free | personal | trader | pro | enterprise
 - display_name: Human-readable plan name
 - monthly_price_usd: Price in USD
 - allowed_alert_types: TEXT[] of allowed alert types
 - max_email_alerts_per_day: Email quota
-- delivery_config: JSONB with email/telegram/sms/account settings
+- delivery_config: JSONB with email/telegram/sms/account_manager settings
 - is_active, created_at, updated_at
+- NOTE: This is the single source of truth for all plan features
 
 ## Running the Project
 
@@ -200,6 +200,7 @@ python src/main.py --mode alerts
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
+- 2026-01-13: Step 5.1 - Comprehensive migration: plan_settings is now single source of truth for all plan features. user_plans simplified to only store user-plan assignment.
 - 2026-01-13: Step 5 - Admin-configurable plan_settings table with GET/PUT API endpoints
 - 2026-01-09: Step 4.2 - Authoritative user_plans table with enforcement helpers
 - 2026-01-09: Step 4.1 - Go-Live Hardening (Brevo, Digest, Upgrade hooks, UTC quota)

@@ -10,6 +10,7 @@ from src.db.db import get_cursor, execute_query, execute_one
 from src.db.migrations import run_migrations
 from src.alerts.channels import send_email
 from src.alerts.templates import format_daily_digest
+from src.plans.plan_helpers import get_plan_settings, get_allowed_alert_types
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -24,14 +25,25 @@ def get_utc_today_date() -> str:
 
 def get_digest_eligible_users() -> List[Dict]:
     query = """
-    SELECT u.id, u.email, u.telegram_chat_id,
-           p.plan, p.daily_digest_enabled
+    SELECT u.id, u.email, u.telegram_chat_id, p.plan
     FROM users u
     JOIN user_plans p ON p.user_id = u.id
-    WHERE p.daily_digest_enabled = TRUE
-      AND p.plan IN ('trader', 'pro')
     """
-    return execute_query(query)
+    all_users = execute_query(query)
+    
+    if not all_users:
+        return []
+    
+    eligible_users = []
+    for user in all_users:
+        try:
+            allowed_types = get_allowed_alert_types(user['plan'])
+            if 'DAILY_DIGEST' in allowed_types:
+                eligible_users.append(user)
+        except ValueError:
+            continue
+    
+    return eligible_users
 
 
 def has_digest_today(user_id: int, date_str: str) -> bool:
@@ -59,6 +71,14 @@ def get_risk_indices(region: str = 'Europe') -> Dict:
     trend_7d = 'stable'
     risk_30d = 0
     trend_30d = 'stable'
+    
+    if not results:
+        return {
+            'risk_7d': risk_7d,
+            'trend_7d': trend_7d,
+            'risk_30d': risk_30d,
+            'trend_30d': trend_30d
+        }
     
     seen_7d = False
     seen_30d = False
@@ -92,7 +112,8 @@ def get_top_driver_events_24h(region: str = 'Europe', limit: int = 3) -> List[Di
     ORDER BY r.weighted_score DESC
     LIMIT %s
     """
-    return execute_query(query, (limit,))
+    results = execute_query(query, (limit,))
+    return results if results else []
 
 
 def get_asset_snapshot(region: str = 'Europe') -> Dict:
@@ -105,11 +126,12 @@ def get_asset_snapshot(region: str = 'Europe') -> Dict:
     results = execute_query(query, (region,))
     
     assets = {}
-    for row in results:
-        assets[row['asset']] = {
-            'risk': row['risk_score'],
-            'direction': row['direction']
-        }
+    if results:
+        for row in results:
+            assets[row['asset']] = {
+                'risk': row['risk_score'],
+                'direction': row['direction']
+            }
     
     return assets
 

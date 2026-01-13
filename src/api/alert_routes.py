@@ -5,7 +5,7 @@ from typing import Optional
 from src.db.db import execute_query, execute_one, get_cursor
 from src.alerts.alerts_engine import run_alerts_engine
 from src.alerts.channels import send_email
-from src.plans.plan_helpers import get_plan_settings
+from src.plans.plan_helpers import get_plan_settings, create_user_plan as create_plan, VALID_PLAN_CODES
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
@@ -30,42 +30,17 @@ def get_or_create_user(email: str) -> int:
             (email,)
         )
         row = cursor.fetchone()
-        return row['id']
-
-
-def create_user_plan(user_id: int, plan: str):
-    try:
-        settings = get_plan_settings(plan)
-    except ValueError:
-        settings = get_plan_settings('free')
-        plan = 'free'
-    
-    delivery_config = settings.get('delivery_config', {})
-    allow_telegram = delivery_config.get('telegram', False)
-    daily_digest = 'DAILY_DIGEST' in settings.get('allowed_alert_types', [])
-    allow_asset = 'ASSET_RISK_SPIKE' in settings.get('allowed_alert_types', [])
-    
-    alerts_delay = 60 if plan == 'free' else 0
-    
-    with get_cursor() as cursor:
-        cursor.execute(
-            """INSERT INTO user_plans (user_id, plan, alerts_delay_minutes, max_alerts_per_day,
-                                       allow_asset_alerts, allow_telegram, daily_digest_enabled)
-               VALUES (%s, %s, %s, %s, %s, %s, %s)
-               ON CONFLICT (user_id) DO UPDATE SET
-                   plan = EXCLUDED.plan,
-                   alerts_delay_minutes = EXCLUDED.alerts_delay_minutes,
-                   max_alerts_per_day = EXCLUDED.max_alerts_per_day,
-                   allow_asset_alerts = EXCLUDED.allow_asset_alerts,
-                   allow_telegram = EXCLUDED.allow_telegram,
-                   daily_digest_enabled = EXCLUDED.daily_digest_enabled,
-                   updated_at = NOW()""",
-            (user_id, plan, alerts_delay, settings['max_email_alerts_per_day'],
-             allow_asset, allow_telegram, daily_digest)
-        )
+        return row['id'] if row else 0
 
 
 def create_default_prefs(user_id: int, plan: str):
+    try:
+        settings = get_plan_settings(plan)
+        allowed_types = settings.get('allowed_alert_types', [])
+        allow_asset_alerts = 'ASSET_RISK_SPIKE' in allowed_types or 'ALL' in allowed_types
+    except ValueError:
+        allow_asset_alerts = False
+    
     with get_cursor() as cursor:
         cursor.execute("DELETE FROM user_alert_prefs WHERE user_id = %s", (user_id,))
         
@@ -75,7 +50,7 @@ def create_default_prefs(user_id: int, plan: str):
             (user_id,)
         )
         
-        if plan in ['trader', 'pro', 'enterprise']:
+        if allow_asset_alerts:
             for asset in ['oil', 'gas', 'fx', 'freight']:
                 cursor.execute(
                     """INSERT INTO user_alert_prefs (user_id, region, alert_type, asset, threshold, cooldown_minutes)
@@ -92,13 +67,12 @@ def create_default_prefs(user_id: int, plan: str):
 
 @router.post("/test")
 def test_alerts(request: TestAlertRequest):
-    valid_plans = ['free', 'personal', 'trader', 'pro', 'enterprise']
-    if request.plan not in valid_plans:
-        raise HTTPException(status_code=400, detail=f"Plan must be one of: {', '.join(valid_plans)}")
+    if request.plan not in VALID_PLAN_CODES:
+        raise HTTPException(status_code=400, detail=f"Plan must be one of: {', '.join(VALID_PLAN_CODES)}")
     
     user_id = get_or_create_user(request.email)
     
-    create_user_plan(user_id, request.plan)
+    create_plan(user_id, request.plan)
     create_default_prefs(user_id, request.plan)
     
     alerts = run_alerts_engine(dry_run=True, user_id_filter=user_id)
@@ -118,9 +92,9 @@ def test_alerts(request: TestAlertRequest):
         "plan_features": {
             "delay_minutes": 60 if request.plan == 'free' else 0,
             "max_per_day": plan_settings['max_email_alerts_per_day'],
-            "asset_alerts": 'ASSET_RISK_SPIKE' in allowed_alert_types,
+            "asset_alerts": 'ASSET_RISK_SPIKE' in allowed_alert_types or 'ALL' in allowed_alert_types,
             "telegram": delivery_config.get('telegram', False),
-            "daily_digest": 'DAILY_DIGEST' in allowed_alert_types
+            "daily_digest": 'DAILY_DIGEST' in allowed_alert_types or 'ALL' in allowed_alert_types
         },
         "alert_previews": [
             {
@@ -159,22 +133,23 @@ def get_user_alerts(
     results = execute_query(query, (user_id, limit))
     
     alerts = []
-    for row in results:
-        alerts.append({
-            "id": row['id'],
-            "alert_type": row['alert_type'],
-            "region": row['region'],
-            "asset": row['asset'],
-            "triggered_value": row['triggered_value'],
-            "threshold": row['threshold'],
-            "title": row['title'],
-            "message": row['message'][:200] + "..." if len(row['message']) > 200 else row['message'],
-            "channel": row['channel'],
-            "status": row['status'],
-            "created_at": row['created_at'].isoformat() if row['created_at'] else None,
-            "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
-            "error": row['error']
-        })
+    if results:
+        for row in results:
+            alerts.append({
+                "id": row['id'],
+                "alert_type": row['alert_type'],
+                "region": row['region'],
+                "asset": row['asset'],
+                "triggered_value": row['triggered_value'],
+                "threshold": row['threshold'],
+                "title": row['title'],
+                "message": row['message'][:200] + "..." if len(row['message']) > 200 else row['message'],
+                "channel": row['channel'],
+                "status": row['status'],
+                "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
+                "error": row['error']
+            })
     
     return {
         "user_id": user_id,
