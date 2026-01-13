@@ -154,6 +154,9 @@ python src/main.py --mode alerts
 ### Digest
 - `POST /digest/preview` - Preview daily digest without sending
 
+### Operations
+- `GET /ops/status` - Worker freshness status (last run times, staleness indicators)
+
 ### Internal Runner (Secured with INTERNAL_RUNNER_TOKEN)
 - `POST /internal/run/ingest` - Trigger ingestion worker
 - `POST /internal/run/ai` - Trigger AI processing worker

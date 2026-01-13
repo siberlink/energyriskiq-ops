@@ -53,6 +53,28 @@ Your app has 4 separate worker processes:
 
 ---
 
+## Worker Status Endpoint
+
+`GET /ops/status` - Returns freshness status of all workers (no auth required)
+
+Response includes:
+- `now_utc`: Current UTC timestamp
+- `workers`: Object with status for each worker (ingest, ai, risk, alerts, digest)
+  - `last_run`: ISO timestamp of last successful run
+  - `count`: Number of items processed
+  - `stale`: Boolean indicating if worker is overdue
+
+**Staleness Thresholds:**
+| Worker | Stale If Older Than |
+|--------|---------------------|
+| ingest | 60 minutes |
+| ai | 6 hours |
+| risk | 60 minutes |
+| alerts | 60 minutes |
+| digest | 36 hours |
+
+---
+
 ## Internal Runner Endpoints
 
 All endpoints require `X-Internal-Token` header with `INTERNAL_RUNNER_TOKEN` value.
