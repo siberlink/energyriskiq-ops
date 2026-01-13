@@ -8,9 +8,8 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 from src.db.db import get_cursor
-from src.plans.plan_helpers import get_plan_settings
+from src.plans.plan_helpers import get_plan_settings, create_user_plan, ALL_ALERT_TYPES
 from src.alerts.channels import send_email
-from src.plans.plan_helpers import create_user_plan
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +335,7 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
 
 
 @router.get("/alerts")
-def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20):
+def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50):
     session = verify_user_session(x_user_token)
     
     with get_cursor() as cursor:
@@ -352,23 +351,29 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20)
         plan_settings = get_plan_settings(plan_code)
         allowed_types = plan_settings.get("allowed_alert_types", [])
         
+        has_all = 'ALL' in allowed_types
+        effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
+        locked_types = [t for t in ALL_ALERT_TYPES if t not in effective_allowed]
+        
         cursor.execute("""
-            SELECT id, alert_type, region, asset, triggered_value, threshold,
+            SELECT DISTINCT ON (COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title))
+                   id, alert_type, region, asset, triggered_value, threshold,
                    title, message, channel, status, created_at, sent_at
             FROM alerts
-            WHERE user_id = %s
-            ORDER BY created_at DESC
-            LIMIT %s
-        """, (session["user_id"], limit))
+            WHERE alert_type = ANY(%s)
+              AND status = 'sent'
+            ORDER BY COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title), created_at DESC
+        """, (effective_allowed,))
+        
+        all_allowed_alerts = cursor.fetchall()
+        
+        sorted_alerts = sorted(all_allowed_alerts, key=lambda r: r['created_at'] or datetime.min, reverse=True)[:limit]
         
         alerts = []
-        for row in cursor.fetchall():
-            alert_type = row['alert_type']
-            is_allowed = alert_type in allowed_types or 'ALL' in allowed_types
-            
+        for row in sorted_alerts:
             alerts.append({
                 "id": row['id'],
-                "alert_type": alert_type,
+                "alert_type": row['alert_type'],
                 "region": row['region'],
                 "asset": row['asset'],
                 "triggered_value": float(row['triggered_value']) if row['triggered_value'] else None,
@@ -379,13 +384,36 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20)
                 "status": row['status'],
                 "created_at": row['created_at'].isoformat() if row['created_at'] else None,
                 "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
-                "allowed_by_plan": is_allowed
+                "allowed_by_plan": True
             })
+        
+        locked_samples = []
+        if locked_types:
+            cursor.execute("""
+                SELECT DISTINCT ON (alert_type)
+                       id, alert_type, region, asset, title, message, created_at
+                FROM alerts
+                WHERE alert_type = ANY(%s)
+                  AND status = 'sent'
+                ORDER BY alert_type, created_at DESC
+            """, (locked_types,))
+            
+            for row in cursor.fetchall():
+                locked_samples.append({
+                    "alert_type": row['alert_type'],
+                    "region": row['region'],
+                    "asset": row['asset'],
+                    "title": row['title'],
+                    "preview": (row['message'][:100] + "...") if row['message'] and len(row['message']) > 100 else row['message'],
+                    "created_at": row['created_at'].isoformat() if row['created_at'] else None
+                })
         
         return {
             "alerts": alerts,
             "plan": plan_code,
-            "allowed_alert_types": allowed_types
+            "allowed_alert_types": effective_allowed,
+            "locked_alert_types": locked_types,
+            "locked_samples": locked_samples
         }
 
 
