@@ -182,28 +182,80 @@ def can_send_telegram_alert(user_id: int) -> Tuple[bool, str]:
     return True, "OK"
 
 
-def create_user_plan(user_id: int, plan: str) -> bool:
-    if plan not in VALID_PLAN_CODES:
-        logger.error(f"Invalid plan code: {plan}")
+def apply_plan_settings_to_user(user_id: int, plan_code: str) -> bool:
+    if plan_code not in VALID_PLAN_CODES:
+        logger.error(f"Invalid plan code: {plan_code}")
         return False
     
     try:
+        settings = get_plan_settings(plan_code)
+        delivery = settings.get("delivery_config", {})
+        allowed_types = get_allowed_alert_types(plan_code)
+        
+        telegram_config = delivery.get("telegram", {})
+        allow_telegram = telegram_config.get("enabled", False) if isinstance(telegram_config, dict) else bool(telegram_config)
+        
+        sms_config = delivery.get("sms", {})
+        allow_webhooks = sms_config.get("enabled", False) if isinstance(sms_config, dict) else bool(sms_config)
+        
         with get_cursor() as cur:
             cur.execute("""
-                INSERT INTO user_plans (user_id, plan)
-                VALUES (%s, %s)
+                INSERT INTO user_plans (
+                    user_id, plan, plan_price_usd, alerts_delay_minutes,
+                    allow_asset_alerts, allow_telegram, daily_digest_enabled, allow_webhooks,
+                    max_total_alerts_per_day, max_email_alerts_per_day, max_telegram_alerts_per_day,
+                    preferred_realtime_channel, custom_thresholds, priority_processing
+                ) VALUES (
+                    %s, %s, %s, %s,
+                    %s, %s, %s, %s,
+                    %s, %s, %s,
+                    %s, %s, %s
+                )
                 ON CONFLICT (user_id) DO UPDATE SET
                     plan = EXCLUDED.plan,
+                    plan_price_usd = EXCLUDED.plan_price_usd,
+                    alerts_delay_minutes = EXCLUDED.alerts_delay_minutes,
+                    allow_asset_alerts = EXCLUDED.allow_asset_alerts,
+                    allow_telegram = EXCLUDED.allow_telegram,
+                    daily_digest_enabled = EXCLUDED.daily_digest_enabled,
+                    allow_webhooks = EXCLUDED.allow_webhooks,
+                    max_total_alerts_per_day = EXCLUDED.max_total_alerts_per_day,
+                    max_email_alerts_per_day = EXCLUDED.max_email_alerts_per_day,
+                    max_telegram_alerts_per_day = EXCLUDED.max_telegram_alerts_per_day,
+                    preferred_realtime_channel = EXCLUDED.preferred_realtime_channel,
+                    custom_thresholds = EXCLUDED.custom_thresholds,
+                    priority_processing = EXCLUDED.priority_processing,
                     updated_at = NOW()
-            """, (user_id, plan))
+            """, (
+                user_id,
+                plan_code,
+                float(settings["monthly_price_usd"]),
+                0 if plan_code in ["pro", "enterprise"] else 60,
+                "ASSET_RISK_SPIKE" in allowed_types,
+                allow_telegram,
+                "DAILY_DIGEST" in allowed_types,
+                allow_webhooks,
+                settings["max_email_alerts_per_day"] * 2,
+                settings["max_email_alerts_per_day"],
+                settings["max_email_alerts_per_day"] if allow_telegram else 0,
+                "email",
+                plan_code in ["pro", "enterprise"],
+                plan_code == "enterprise"
+            ))
+        
+        logger.info(f"Applied plan settings '{plan_code}' to user {user_id}")
         return True
     except Exception as e:
-        logger.error(f"Error creating user plan: {e}")
+        logger.error(f"Error applying plan settings to user: {e}")
         return False
 
 
+def create_user_plan(user_id: int, plan: str) -> bool:
+    return apply_plan_settings_to_user(user_id, plan)
+
+
 def migrate_user_plans():
-    with get_cursor() as cur:
+    with get_cursor(commit=False) as cur:
         cur.execute("SELECT id FROM users")
         users = cur.fetchall()
         
@@ -219,14 +271,32 @@ def migrate_user_plans():
                 skipped += 1
                 continue
             
-            cur.execute("""
-                INSERT INTO user_plans (user_id, plan)
-                VALUES (%s, %s)
-            """, (user_id, "free"))
+            apply_plan_settings_to_user(user_id, "free")
             migrated += 1
         
         logger.info(f"Migration complete: {migrated} users migrated, {skipped} skipped (already have plans)")
         return migrated, skipped
+
+
+def sync_all_user_plans():
+    with get_cursor(commit=False) as cur:
+        cur.execute("SELECT user_id, plan FROM user_plans")
+        rows = cur.fetchall()
+        
+        synced = 0
+        errors = 0
+        
+        for row in rows:
+            user_id = row["user_id"]
+            plan_code = row["plan"]
+            
+            if apply_plan_settings_to_user(user_id, plan_code):
+                synced += 1
+            else:
+                errors += 1
+        
+        logger.info(f"Sync complete: {synced} users synced, {errors} errors")
+        return synced, errors
 
 
 def update_plan_settings(plan_code: str, updates: Dict) -> Dict:

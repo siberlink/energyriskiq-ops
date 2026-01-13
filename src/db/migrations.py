@@ -495,6 +495,30 @@ def ensure_user_plans_table():
     logger.info("user_plans table schema updated.")
 
 
+def migrate_user_plans_price_to_decimal():
+    logger.info("Migrating user_plans.plan_price_usd from INTEGER to NUMERIC(10,2)...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'user_plans' 
+                    AND column_name = 'plan_price_usd'
+                    AND data_type = 'integer'
+                ) THEN
+                    ALTER TABLE user_plans 
+                    ALTER COLUMN plan_price_usd TYPE NUMERIC(10,2) 
+                    USING plan_price_usd::NUMERIC(10,2);
+                    RAISE NOTICE 'Migrated plan_price_usd to NUMERIC(10,2)';
+                END IF;
+            END $$;
+        """)
+    
+    logger.info("user_plans.plan_price_usd migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
