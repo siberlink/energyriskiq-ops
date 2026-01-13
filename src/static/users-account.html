@@ -740,6 +740,9 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="content-card" style="margin-top: 24px; display: none;" id="lockedSamplesSection">
+            </div>
         </div>
 
         <!-- Plans Section -->
@@ -875,8 +878,12 @@
 
                 const data = await response.json();
                 allowedAlertTypes = data.allowed_alert_types || [];
+                const lockedTypes = data.locked_alert_types || [];
+                const lockedSamples = data.locked_samples || [];
+                
                 renderAlerts(data.alerts, allowedAlertTypes);
-                renderAllowedAlertTypes(allowedAlertTypes);
+                renderAllowedAlertTypes(allowedAlertTypes, lockedTypes);
+                renderLockedSamples(lockedSamples);
             } catch (error) {
                 console.error('Error loading alerts:', error);
                 document.getElementById('recentAlerts').innerHTML = '<div class="empty-state">Failed to load alerts</div>';
@@ -884,7 +891,7 @@
             }
         }
 
-        function renderAllowedAlertTypes(allowedTypes) {
+        function renderAllowedAlertTypes(allowedTypes, lockedTypes) {
             const allTypes = ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST'];
             const container = document.getElementById('alertTypesInfo');
             if (!container) return;
@@ -901,6 +908,38 @@
                 `;
             }).join('');
 
+            container.innerHTML = html;
+        }
+        
+        function renderLockedSamples(lockedSamples) {
+            const container = document.getElementById('lockedSamplesSection');
+            if (!container) return;
+            
+            if (lockedSamples.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'block';
+            const html = `
+                <h4 style="color: #f59e0b; margin-bottom: 12px;">Upgrade to unlock these alert types:</h4>
+                <ul class="alerts-list">
+                    ${lockedSamples.map(sample => `
+                        <li class="alert-item locked-alert" style="opacity: 0.7;">
+                            <div class="alert-header">
+                                <span class="alert-title">
+                                    <span class="alert-type locked">${sample.alert_type.replace(/_/g, ' ')}</span>
+                                    <span class="lock-icon">&#128274;</span>
+                                    ${sample.title || 'Alert Preview'}
+                                </span>
+                                <span class="alert-time">${formatDate(sample.created_at)}</span>
+                            </div>
+                            <p class="alert-message" style="filter: blur(2px);">${sample.preview || 'Upgrade to see full alert content'}</p>
+                            <div class="upgrade-banner-small">Upgrade your plan to receive this alert type</div>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
             container.innerHTML = html;
         }
 
