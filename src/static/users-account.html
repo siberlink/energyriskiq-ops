@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - EnergyRiskIQ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-logo {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            bottom: 0;
+            width: 260px;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            padding: 24px 16px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 32px;
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 12px;
+            margin-bottom: 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #e2e8f0;
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main {
+            margin-left: 260px;
+            margin-top: 64px;
+            padding: 32px;
+            min-height: calc(100vh - 64px);
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .stat-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .stat-badge.free {
+            background: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
+        }
+
+        .stat-badge.personal {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .stat-badge.trader {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .stat-badge.pro {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+        }
+
+        .stat-badge.enterprise {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .content-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+
+        .alerts-list {
+            list-style: none;
+        }
+
+        .alert-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 14px;
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .alert-message {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .alert-type {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            margin-right: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .upgrade-banner {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .upgrade-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .upgrade-content p {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .plan-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+        }
+
+        .plan-card.current {
+            border-color: #3b82f6;
+        }
+
+        .plan-card.current::before {
+            content: 'Current Plan';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #3b82f6;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+
+        .plan-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .plan-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #22c55e;
+            margin-bottom: 16px;
+        }
+
+        .plan-price span {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-features li::before {
+            content: '\\2713';
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .plan-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .plan-btn.current {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+
+        .plan-btn.upgrade {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <a href="/" style="text-decoration: none;">
+                <span class="header-logo">EnergyRiskIQ</span>
+            </a>
+            <span class="header-badge" id="planBadge">Free</span>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <span class="user-email" id="userEmail">Loading...</span>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-title">Account</div>
+            <a class="nav-item active" onclick="showSection('dashboard')">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="9" rx="1"/>
+                        <rect x="14" y="3" width="7" height="5" rx="1"/>
+                        <rect x="14" y="12" width="7" height="9" rx="1"/>
+                        <rect x="3" y="16" width="7" height="5" rx="1"/>
+                    </svg>
+                </span>
+                Dashboard
+            </a>
+            <a class="nav-item" onclick="showSection('alerts')">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </span>
+                My Alerts
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">Subscription</div>
+            <a class="nav-item" onclick="showSection('plans')">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </span>
+                Upgrade Plan
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">Settings</div>
+            <a class="nav-item" onclick="showSection('settings')">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </span>
+                Settings
+            </a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <!-- Dashboard Section -->
+        <div class="section-content active" id="section-dashboard">
+            <div class="page-header">
+                <h1 class="page-title">Welcome back!</h1>
+                <p class="page-subtitle">Your energy risk intelligence dashboard</p>
+            </div>
+
+            <div id="upgradeBanner" class="upgrade-banner" style="display: none;">
+                <div class="upgrade-content">
+                    <h3>Upgrade to unlock more features</h3>
+                    <p>Get real-time alerts, asset risk tracking, and more with a paid plan.</p>
+                </div>
+                <button class="upgrade-btn" onclick="showSection('plans')">View Plans</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Current Plan</div>
+                    <div class="stat-value" id="currentPlan">Free</div>
+                    <span class="stat-badge free" id="planBadgeCard">Free Tier</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Alerts Received</div>
+                    <div class="stat-value" id="alertsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Member Since</div>
+                    <div class="stat-value" id="memberSince">--</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Alerts</h2>
+                </div>
+                <div class="card-body" id="recentAlerts">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="section-content" id="section-alerts">
+            <div class="page-header">
+                <h1 class="page-title">My Alerts</h1>
+                <p class="page-subtitle">View your alert history</p>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Alert History</h2>
+                </div>
+                <div class="card-body" id="allAlerts">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plans Section -->
+        <div class="section-content" id="section-plans">
+            <div class="page-header">
+                <h1 class="page-title">Upgrade Your Plan</h1>
+                <p class="page-subtitle">Choose the plan that fits your needs</p>
+            </div>
+
+            <div class="plans-grid" id="plansGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="section-content" id="section-settings">
+            <div class="page-header">
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">Manage your account settings</p>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <h2 class="card-title">Account Information</h2>
+                </div>
+                <div class="card-body" id="accountInfo">
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" id="settingsEmail">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Plan</span>
+                        <span class="info-value" id="settingsPlan">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Account Created</span>
+                        <span class="info-value" id="settingsCreated">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let sessionToken = null;
+        let currentUser = null;
+
+        function checkSession() {
+            const session = localStorage.getItem('userSession');
+            if (!session) {
+                window.location.href = '/users';
+                return false;
+            }
+
+            const data = JSON.parse(session);
+            if (data.expires < Date.now()) {
+                localStorage.removeItem('userSession');
+                window.location.href = '/users';
+                return false;
+            }
+
+            sessionToken = data.token;
+            return true;
+        }
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/users/me', {
+                    headers: { 'X-User-Token': sessionToken }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('userSession');
+                        window.location.href = '/users';
+                        return;
+                    }
+                    throw new Error('Failed to load user');
+                }
+
+                currentUser = await response.json();
+                updateUI();
+                loadAlerts();
+            } catch (error) {
+                console.error('Error loading user:', error);
+            }
+        }
+
+        function updateUI() {
+            if (!currentUser) return;
+
+            document.getElementById('userEmail').textContent = currentUser.email;
+            document.getElementById('userAvatar').textContent = currentUser.email.charAt(0).toUpperCase();
+
+            const plan = currentUser.plan || 'free';
+            const planDisplay = plan.charAt(0).toUpperCase() + plan.slice(1);
+
+            document.getElementById('planBadge').textContent = planDisplay;
+            document.getElementById('planBadge').className = 'header-badge';
+
+            document.getElementById('currentPlan').textContent = planDisplay;
+            document.getElementById('planBadgeCard').textContent = planDisplay + ' Tier';
+            document.getElementById('planBadgeCard').className = 'stat-badge ' + plan;
+
+            if (currentUser.created_at) {
+                const date = new Date(currentUser.created_at);
+                document.getElementById('memberSince').textContent = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+                document.getElementById('settingsCreated').textContent = date.toLocaleDateString();
+            }
+
+            document.getElementById('settingsEmail').textContent = currentUser.email;
+            document.getElementById('settingsPlan').textContent = planDisplay;
+
+            if (plan === 'free') {
+                document.getElementById('upgradeBanner').style.display = 'flex';
+            }
+        }
+
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/users/alerts?limit=50', {
+                    headers: { 'X-User-Token': sessionToken }
+                });
+
+                if (!response.ok) throw new Error('Failed to load alerts');
+
+                const data = await response.json();
+                renderAlerts(data.alerts);
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('recentAlerts').innerHTML = '<div class="empty-state">Failed to load alerts</div>';
+                document.getElementById('allAlerts').innerHTML = '<div class="empty-state">Failed to load alerts</div>';
+            }
+        }
+
+        function renderAlerts(alerts) {
+            document.getElementById('alertsCount').textContent = alerts.length;
+
+            if (alerts.length === 0) {
+                const emptyHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128276;</div>
+                        <p>No alerts yet. You'll see alerts here once they're triggered.</p>
+                    </div>
+                `;
+                document.getElementById('recentAlerts').innerHTML = emptyHTML;
+                document.getElementById('allAlerts').innerHTML = emptyHTML;
+                return;
+            }
+
+            const recentAlerts = alerts.slice(0, 5);
+            const alertsHTML = (items) => `
+                <ul class="alerts-list">
+                    ${items.map(alert => `
+                        <li class="alert-item">
+                            <div class="alert-header">
+                                <span class="alert-title">
+                                    <span class="alert-type">${alert.alert_type.replace(/_/g, ' ')}</span>
+                                    ${alert.title || 'Alert'}
+                                </span>
+                                <span class="alert-time">${formatDate(alert.created_at)}</span>
+                            </div>
+                            <p class="alert-message">${alert.message || ''}</p>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+
+            document.getElementById('recentAlerts').innerHTML = alertsHTML(recentAlerts);
+            document.getElementById('allAlerts').innerHTML = alertsHTML(alerts);
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return '--';
+            const date = new Date(isoString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            document.getElementById('section-' + sectionId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (sectionId === 'plans') {
+                loadPlans();
+            }
+        }
+
+        async function loadPlans() {
+            const grid = document.getElementById('plansGrid');
+            
+            const plans = [
+                {
+                    code: 'free',
+                    name: 'Free',
+                    price: 0,
+                    features: ['2 email alerts/day', 'High impact events only', 'Basic dashboard']
+                },
+                {
+                    code: 'personal',
+                    name: 'Personal',
+                    price: 9.95,
+                    features: ['4 email alerts/day', 'Regional risk spikes', 'Email notifications']
+                },
+                {
+                    code: 'trader',
+                    name: 'Trader',
+                    price: 29,
+                    features: ['8 email alerts/day', 'Asset risk tracking', 'Telegram notifications']
+                },
+                {
+                    code: 'pro',
+                    name: 'Pro',
+                    price: 49,
+                    features: ['15 email alerts/day', 'Daily digest', 'SMS notifications', 'Priority support']
+                },
+                {
+                    code: 'enterprise',
+                    name: 'Enterprise',
+                    price: 129,
+                    features: ['30 email alerts/day', 'All alert types', 'Dedicated account manager', 'Custom integrations']
+                }
+            ];
+
+            const currentPlan = currentUser?.plan || 'free';
+
+            grid.innerHTML = plans.map(plan => `
+                <div class="plan-card ${plan.code === currentPlan ? 'current' : ''}">
+                    <div class="plan-name">${plan.name}</div>
+                    <div class="plan-price">$${plan.price}<span>/mo</span></div>
+                    <ul class="plan-features">
+                        ${plan.features.map(f => `<li>${f}</li>`).join('')}
+                    </ul>
+                    <button class="plan-btn ${plan.code === currentPlan ? 'current' : 'upgrade'}" 
+                            ${plan.code === currentPlan ? 'disabled' : ''}>
+                        ${plan.code === currentPlan ? 'Current Plan' : 'Upgrade'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function logout() {
+            try {
+                await fetch('/users/signout', {
+                    method: 'POST',
+                    headers: { 'X-User-Token': sessionToken }
+                });
+            } catch (e) {}
+
+            localStorage.removeItem('userSession');
+            window.location.href = '/users';
+        }
+
+        if (checkSession()) {
+            loadUserData();
+        }
+    </script>
+</body>
+</html>

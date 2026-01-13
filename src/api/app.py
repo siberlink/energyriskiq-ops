@@ -16,6 +16,7 @@ from src.api.internal_routes import router as internal_router
 from src.api.digest_routes import router as digest_router
 from src.api.contact_routes import router as contact_router
 from src.api.admin_routes import router as admin_router
+from src.api.user_routes import router as user_router
 from src.db.migrations import run_migrations
 
 logging.basicConfig(
@@ -64,6 +65,18 @@ async def samples_page():
 async def admin_page():
     return FileResponse(os.path.join(STATIC_DIR, "admin.html"), media_type="text/html")
 
+@app.get("/users", include_in_schema=False)
+async def users_auth_page():
+    return FileResponse(os.path.join(STATIC_DIR, "users.html"), media_type="text/html")
+
+@app.get("/users/verify", include_in_schema=False)
+async def users_verify_page():
+    return FileResponse(os.path.join(STATIC_DIR, "users.html"), media_type="text/html")
+
+@app.get("/users/account", include_in_schema=False)
+async def users_account_page():
+    return FileResponse(os.path.join(STATIC_DIR, "users-account.html"), media_type="text/html")
+
 app.include_router(router)
 app.include_router(risk_router)
 app.include_router(alert_router)
@@ -72,6 +85,7 @@ app.include_router(internal_router)
 app.include_router(digest_router)
 app.include_router(contact_router)
 app.include_router(admin_router)
+app.include_router(user_router)
 
 @app.on_event("startup")
 async def startup_event():

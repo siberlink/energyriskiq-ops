@@ -1,6 +1,6 @@
 import os
 import secrets
-import hashlib
+import bcrypt
 import time
 import logging
 from datetime import datetime, timedelta
@@ -47,7 +47,14 @@ def generate_verification_token():
 
 
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(password.encode(), hashed.encode())
+    except Exception:
+        return False
 
 
 def verify_user_session(x_user_token: Optional[str] = Header(None)):
@@ -74,7 +81,7 @@ def signup(body: SignupRequest):
         existing = cursor.fetchone()
         
         if existing:
-            if existing[1] and existing[2]:
+            if existing['email_verified'] and existing['password_hash']:
                 raise HTTPException(status_code=400, detail="An account with this email already exists. Please sign in.")
         
         token = generate_verification_token()
@@ -88,14 +95,14 @@ def signup(body: SignupRequest):
                     updated_at = NOW()
                 WHERE email = %s
             """, (token, expires, email))
-            user_id = existing[0]
+            user_id = existing['id']
         else:
             cursor.execute("""
                 INSERT INTO users (email, verification_token, verification_expires)
                 VALUES (%s, %s, %s)
                 RETURNING id
             """, (email, token, expires))
-            user_id = cursor.fetchone()[0]
+            user_id = cursor.fetchone()['id']
     
     verification_link = f"{APP_URL}/users/verify?token={token}"
     
@@ -139,7 +146,11 @@ def verify_email(body: VerifyRequest):
         if not user:
             raise HTTPException(status_code=400, detail="Invalid verification token")
         
-        user_id, email, expires, verified, password_hash = user
+        user_id = user['id']
+        email = user['email']
+        expires = user['verification_expires']
+        verified = user['email_verified']
+        password_hash = user['password_hash']
         
         if expires and expires < datetime.utcnow():
             raise HTTPException(status_code=400, detail="Verification token has expired. Please request a new one.")
@@ -179,7 +190,10 @@ def set_password(body: SetPasswordRequest):
         if not user:
             raise HTTPException(status_code=400, detail="Invalid token")
         
-        user_id, email, verified, existing_password = user
+        user_id = user['id']
+        email = user['email']
+        verified = user['email_verified']
+        existing_password = user['password_hash']
         
         if not verified:
             raise HTTPException(status_code=400, detail="Please verify your email first")
@@ -235,7 +249,11 @@ def signin(body: SigninRequest):
         if not user:
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
-        user_id, user_email, verified, password_hash, pin_hash = user
+        user_id = user['id']
+        user_email = user['email']
+        verified = user['email_verified']
+        password_hash = user['password_hash']
+        pin_hash = user['pin_hash']
         
         if not verified:
             raise HTTPException(status_code=401, detail="Please verify your email first")
@@ -243,10 +261,10 @@ def signin(body: SigninRequest):
         if not password_hash:
             raise HTTPException(status_code=401, detail="Account setup incomplete. Please complete verification.")
         
-        if hash_password(body.password) != password_hash:
+        if not verify_password(body.password, password_hash):
             raise HTTPException(status_code=401, detail="Invalid email or password")
         
-        if hash_password(body.pin) != pin_hash:
+        if not verify_password(body.pin, pin_hash):
             raise HTTPException(status_code=401, detail="Invalid PIN")
     
     session_token = secrets.token_urlsafe(32)
@@ -292,11 +310,11 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
             raise HTTPException(status_code=404, detail="User not found")
         
         return {
-            "id": user[0],
-            "email": user[1],
-            "telegram_chat_id": user[2],
-            "created_at": user[3].isoformat() if user[3] else None,
-            "plan": user[4]
+            "id": user['id'],
+            "email": user['email'],
+            "telegram_chat_id": user['telegram_chat_id'],
+            "created_at": user['created_at'].isoformat() if user['created_at'] else None,
+            "plan": user['plan']
         }
 
 
@@ -317,18 +335,18 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 20)
         alerts = []
         for row in cursor.fetchall():
             alerts.append({
-                "id": row[0],
-                "alert_type": row[1],
-                "region": row[2],
-                "asset": row[3],
-                "triggered_value": float(row[4]) if row[4] else None,
-                "threshold": float(row[5]) if row[5] else None,
-                "title": row[6],
-                "message": row[7],
-                "channel": row[8],
-                "status": row[9],
-                "created_at": row[10].isoformat() if row[10] else None,
-                "sent_at": row[11].isoformat() if row[11] else None
+                "id": row['id'],
+                "alert_type": row['alert_type'],
+                "region": row['region'],
+                "asset": row['asset'],
+                "triggered_value": float(row['triggered_value']) if row['triggered_value'] else None,
+                "threshold": float(row['threshold']) if row['threshold'] else None,
+                "title": row['title'],
+                "message": row['message'],
+                "channel": row['channel'],
+                "status": row['status'],
+                "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None
             })
         
         return {"alerts": alerts}
@@ -347,7 +365,7 @@ def resend_verification(body: SignupRequest):
         if not user:
             return {"success": True, "message": "If an account exists, a verification email will be sent."}
         
-        if user[1] and user[2]:
+        if user['email_verified'] and user['password_hash']:
             raise HTTPException(status_code=400, detail="Account already verified. Please sign in.")
         
         token = generate_verification_token()
@@ -359,7 +377,7 @@ def resend_verification(body: SignupRequest):
                 verification_expires = %s,
                 updated_at = NOW()
             WHERE id = %s
-        """, (token, expires, user[0]))
+        """, (token, expires, user['id']))
     
     verification_link = f"{APP_URL}/users/verify?token={token}"
     

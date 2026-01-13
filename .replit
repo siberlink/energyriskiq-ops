@@ -5,6 +5,7 @@ integrations = ["python_openai_ai_integrations:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
+packages = ["cargo", "libiconv", "rustc"]
 
 [workflows]
 runButton = "Project"

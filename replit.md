@@ -161,6 +161,19 @@ python src/main.py --mode alerts
 - `POST /internal/run/alerts` - Trigger alerts engine
 - `POST /internal/run/digest` - Trigger daily digest worker
 
+### User Authentication
+- `GET /users` - User signup/signin page
+- `GET /users/verify` - Email verification (redirects from email link)
+- `GET /users/account` - User account dashboard (requires authentication)
+- `POST /users/signup` - Register with email
+- `POST /users/verify` - Verify email token
+- `POST /users/set-password` - Set password and PIN after verification
+- `POST /users/signin` - Sign in with email/password/PIN
+- `POST /users/signout` - Sign out
+- `GET /users/me` - Get current user info (requires X-User-Token header)
+- `GET /users/alerts` - Get user's alert history (requires X-User-Token header)
+- `POST /users/resend-verification` - Resend verification email
+
 ### Admin UI
 - `GET /admin` - Admin portal with login (emicon / Regen@3010 / PIN: 342256)
 
@@ -205,6 +218,7 @@ python src/main.py --mode alerts
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
 ## Recent Changes
+- 2026-01-13: Step 7 - User authentication system with signup, email verification, password/PIN setup, and account dashboard at /users.
 - 2026-01-13: Step 6 - Admin UI page at /admin with server-side authentication, header, left navigation, dashboard, and plan settings management.
 - 2026-01-13: Step 5.1 - Comprehensive migration: plan_settings is now single source of truth for all plan features. user_plans simplified to only store user-plan assignment.
 - 2026-01-13: Step 5 - Admin-configurable plan_settings table with GET/PUT API endpoints
