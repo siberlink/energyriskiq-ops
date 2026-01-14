@@ -1,0 +1,124 @@
+# STEP 2 (Replit AI) — Add GitHub Actions Workflow to Run Alerts v2 (A→B→C)
+
+You are Replit AI working inside my EnergyRiskIQ.com repository.
+
+## Goal of Step 2
+Automate Alerts v2 engine execution using **GitHub Actions** by running the existing CLI runner:
+
+- `python -m src.alerts.runner --phase all`
+
+This must support:
+1) **Scheduled runs** (cron)
+2) **Manual runs** (workflow_dispatch) with parameters
+3) Safe handling of secrets via GitHub Secrets
+4) JSON logs for CI
+5) Optional dry-run mode
+
+## Current State (already implemented)
+Runner exists and works:
+- `src/alerts/runner.py`
+Supports:
+- `--phase a|b|c|all`
+- `--since-hours N`
+- `--batch-size N`
+- `--dry-run`
+- `--log-json`
+Feature flag:
+- `ALERTS_V2_ENABLED` (runner exits 0 if not true)
+
+## Non-Negotiable Constraints
+1) Do NOT hardcode secrets in repo.
+2) Use GitHub Secrets for DB URL and channel provider keys.
+3) Workflow must fail if DB is missing/invalid (runner already does this).
+4) Must not break existing code or endpoints.
+5) Keep it simple: one workflow file, one job, clear steps.
+
+---
+
+# Deliverables
+
+## A) Create Workflow File
+Create: `.github/workflows/alerts_engine_v2.yml`
+
+It must include:
+- `on:`
+  - `schedule:` with cron (use a safe default)
+  - `workflow_dispatch:` with inputs:
+    - `phase` (default: "all", options: all,a,b,c)
+    - `dry_run` (default: "false")
+    - `since_hours` (default: "24")
+    - `batch_size` (default: "200")
+    - `alerts_enabled` (default: "true")  # controls ALERTS_V2_ENABLED
+
+### Default cron
+Use:
+- Every 10 minutes: `*/10 * * * *`
+(We can change later, but implement now. GitHub cron uses UTC—add a comment.)
+
+## B) Job Requirements
+Job name: `run-alerts-engine-v2`
+
+Runs on: `ubuntu-latest`
+
+Steps:
+1) Checkout repo
+2) Setup Python (use the repo’s version if declared; otherwise use 3.11)
+3) Install dependencies
+   - If repo has `requirements.txt`, install it.
+   - If repo has `pyproject.toml`, use pip install . (or poetry if already used).
+   - Detect automatically and choose the existing approach used by the repo.
+4) Run the CLI runner with parameters from workflow inputs (or defaults for schedule)
+5) Upload logs as artifacts (always), e.g. `alerts_engine_output.txt`
+
+Logging:
+- Run with `--log-json` when in CI.
+- Capture stdout/stderr to a file too.
+
+## C) Environment Variables (from GitHub Secrets)
+Set env vars in the workflow (do not print them):
+- `DATABASE_URL` (or whatever the app uses; detect what runner expects)
+- `ALERTS_V2_ENABLED` from `alerts_enabled` input (or default true in schedule)
+- Channel provider vars if used by Phase C:
+  - Telegram: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_DEFAULT_CHAT_ID` (if applicable)
+  - Twilio: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`, etc.
+  - Email provider: whatever repo expects
+If Phase C can run without these in dry-run, still include them optionally.
+
+Important:
+- If secrets are not present, Phase C should not crash in dry-run.
+- For non-dry-run scheduled runs, assume secrets are configured.
+
+## D) Safety / Concurrency
+Add:
+- `concurrency:` group "alerts-engine-v2" with `cancel-in-progress: false`
+This prevents overlapping runs.
+
+Also add:
+- A timeout (e.g. 10 minutes) to avoid runaway.
+
+## E) Documentation Update
+Update `replit.md` (or repo README if used) with:
+- How to add required GitHub Secrets (names list)
+- How to run workflow manually
+- The schedule note (UTC)
+
+---
+
+# Implementation Steps (do them now)
+1) Inspect repo for dependency install method (`requirements.txt`, `pyproject.toml`, etc.)
+2) Add the workflow file.
+3) Update docs.
+4) Ensure workflow uses correct module path:
+   - `python -m src.alerts.runner ...`
+   If this fails due to packaging, adjust with `PYTHONPATH=.` or `python src/alerts/runner.py` but keep consistent and document it.
+
+---
+
+# Output Requirements
+When finished, respond with:
+1) The new workflow file path
+2) Any modified doc files
+3) The list of GitHub Secrets to create
+4) Example of manual run inputs and what command it triggers
+
+Proceed now.
