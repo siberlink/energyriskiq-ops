@@ -1,0 +1,108 @@
+# STEP 1 (Replit AI) — Alerts v2 CLI Runner + Safety Guards
+
+You are Replit AI working inside my EnergyRiskIQ.com repository.
+
+## Goal of Step 1
+Create a **CLI runner** that can execute the Alerts v2 engine phases from GitHub Actions:
+- Phase A only
+- Phase B only
+- Phase C only
+- All phases sequentially (A → B → C)
+
+This step should NOT implement GitHub Actions yet. Only the CLI runner and guardrails.
+
+## Important Context
+Alerts v2 architecture already exists:
+- `alert_events` (global alert events)
+- `user_alert_deliveries` (per-user delivery rows + status)
+- Phase A/B/C functions likely exist but may be scattered.
+Feature flag:
+- `ALERTS_V2_ENABLED=true` default.
+Endpoints exist (must not break them):
+- GET `/alerts/events/latest`
+- GET `/alerts/user/{id}/deliveries`
+- GET `/alerts/me?user_id=X`
+
+## Non-Negotiable Constraints
+1) `alert_events` must NEVER include `user_id` (global only).
+2) Runner must be **idempotent-friendly**: safe to rerun.
+3) Runner must **not require the web server** to be running.
+4) All secrets from env vars; never log secrets.
+5) Must exit with proper process codes:
+   - success => exit 0
+   - invalid config / runtime errors => exit 1
+
+---
+
+## What to Implement
+
+### A) Locate or Create a Single Entry Point
+Create a new module/script such as ONE of these (pick whatever matches repo structure):
+- `app/alerts/runner.py`
+- `src/alerts/runner.py`
+- `backend/alerts/runner.py`
+
+This runner should be executable like:
+- `python -m app.alerts.runner --phase a`
+- `python -m app.alerts.runner --phase b`
+- `python -m app.alerts.runner --phase c`
+- `python -m app.alerts.runner --phase all`
+
+If the repo uses a different module root, adjust accordingly, but keep the command consistent and document it.
+
+### B) CLI Interface Requirements
+Arguments:
+- `--phase` required: one of `a|b|c|all`
+- `--since-hours` optional (default 24) used by Phase B selection logic if needed
+- `--batch-size` optional (default 200) used by Phase C
+- `--dry-run` optional flag (default false)
+- `--log-json` optional flag (default true in CI)
+
+Behavior:
+- Reads `ALERTS_V2_ENABLED`; if not `"true"` (case-insensitive), print a log line and exit 0 (no-op).
+- For `--phase all`, run A then B then C.
+- Each phase prints structured summary:
+  - phase name
+  - start time, end time, duration
+  - counts returned from phase function
+  - status success/fail
+
+### C) Phase Function Integration
+Wire the runner to call existing functions (or create wrappers) with signatures like:
+- `run_phase_a(now) -> dict`
+- `run_phase_b(now, since_hours=24) -> dict`
+- `run_phase_c(now, batch_size=200, dry_run=False) -> dict`
+
+If existing functions differ, adapt by creating wrapper functions in:
+- `app/alerts/engine.py` (or similar)
+so the runner has stable calls.
+
+### D) Minimal Hard Safety Guards (must add now)
+Add explicit assertions or checks in Phase A code path:
+- Ensure inserted `alert_events` rows cannot include `user_id`.
+If schema already has `user_id`, ensure code does not set it and add a comment marking it legacy / unused.
+
+Add in runner startup:
+- Validate DB connection is available (fail fast with exit 1 if not).
+- Validate required env vars for DB exist.
+
+DO NOT require Twilio/Telegram/Email secrets in Step 1; Phase C can still run in `--dry-run` mode without them.
+
+### E) Output Requirements
+After implementing, respond with:
+1) Files created/modified and their purpose
+2) Exact CLI commands to run locally
+3) Example output snippet from running `--phase all --dry-run`
+4) Any assumptions made about repo structure
+
+---
+
+## Implementation Instructions
+1) Inspect current alerts v2 implementation and identify where Phase A/B/C live.
+2) Create the runner module with argparse (or click/typer if already used).
+3) Create stable wrapper functions for phases if needed.
+4) Ensure the CLI works locally (in Replit shell) without starting server:
+   - `python -m ... --phase all --dry-run`
+5) Do not implement GitHub Actions yet.
+
+Proceed now.

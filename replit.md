@@ -162,6 +162,16 @@ python src/main.py --mode risk
 python src/main.py --mode alerts
 ```
 
+### Run Alerts v2 CLI Runner
+```bash
+python -m src.alerts.runner --phase a          # Phase A only (generate events)
+python -m src.alerts.runner --phase b          # Phase B only (fanout)
+python -m src.alerts.runner --phase c          # Phase C only (send)
+python -m src.alerts.runner --phase all        # All phases (A→B→C)
+python -m src.alerts.runner --phase all --dry-run  # Dry run mode
+python -m src.alerts.runner --phase all --log-json # JSON output for CI
+```
+
 ## API Endpoints
 
 ### Landing Page

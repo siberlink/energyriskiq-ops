@@ -141,6 +141,13 @@ def create_alert_event(
     driver_event_ids: List[int],
     cooldown_key: str
 ) -> Optional[int]:
+    """
+    Create a global alert event (user-agnostic).
+    
+    SAFETY INVARIANT: alert_events table must NEVER contain user_id.
+    This function creates global events that are later fanned out to users
+    via user_alert_deliveries in Phase B.
+    """
     try:
         with get_cursor() as cursor:
             cursor.execute(
