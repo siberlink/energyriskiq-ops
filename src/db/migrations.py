@@ -521,6 +521,9 @@ def run_migrations():
     logger.info("Running digest tables migration...")
     run_digest_tables_migration()
     
+    logger.info("Running engine observability migration...")
+    run_engine_observability_migration()
+    
     logger.info("Migrations completed successfully.")
 
 
@@ -798,6 +801,52 @@ def run_digest_tables_migration():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digest_items_delivery ON user_alert_digest_items(delivery_id);")
     
     logger.info("Digest tables migration complete.")
+
+
+def run_engine_observability_migration():
+    """Create tables for engine run tracking (Step 6)."""
+    logger.info("Running engine observability migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS alerts_engine_runs (
+                id SERIAL PRIMARY KEY,
+                run_id TEXT NOT NULL UNIQUE,
+                triggered_by TEXT NOT NULL,
+                phase TEXT NOT NULL,
+                started_at TIMESTAMP NOT NULL,
+                finished_at TIMESTAMP NULL,
+                duration_ms INT NULL,
+                status TEXT NOT NULL CHECK (status IN ('running', 'success', 'failed', 'skipped')),
+                counts JSONB NULL,
+                error_summary TEXT NULL,
+                git_sha TEXT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS alerts_engine_run_items (
+                id SERIAL PRIMARY KEY,
+                run_id TEXT NOT NULL REFERENCES alerts_engine_runs(run_id) ON DELETE CASCADE,
+                phase TEXT NOT NULL CHECK (phase IN ('a', 'b', 'c', 'd')),
+                started_at TIMESTAMP NOT NULL,
+                finished_at TIMESTAMP NULL,
+                duration_ms INT NULL,
+                status TEXT NOT NULL CHECK (status IN ('running', 'success', 'failed', 'skipped')),
+                counts JSONB NULL,
+                error_summary TEXT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_engine_runs_started_at ON alerts_engine_runs(started_at DESC);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_engine_runs_status ON alerts_engine_runs(status);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_engine_runs_phase ON alerts_engine_runs(phase);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_engine_run_items_run_id ON alerts_engine_run_items(run_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_engine_run_items_phase ON alerts_engine_run_items(phase);")
+    
+    logger.info("Engine observability migration complete.")
 
 
 if __name__ == "__main__":

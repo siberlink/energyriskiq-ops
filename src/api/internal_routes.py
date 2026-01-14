@@ -184,3 +184,102 @@ def run_digest(x_runner_token: Optional[str] = Header(None)):
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+def validate_internal_token(x_internal_token: Optional[str] = Header(None)):
+    """Validate x-internal-token header for admin endpoints."""
+    expected_token = os.environ.get('INTERNAL_RUNNER_TOKEN')
+    
+    if not expected_token:
+        logger.error("INTERNAL_RUNNER_TOKEN not configured")
+        raise HTTPException(status_code=500, detail="Internal token not configured")
+    
+    if not x_internal_token or x_internal_token != expected_token:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    return True
+
+
+@router.get("/alerts/engine/runs")
+def get_engine_runs(
+    limit: int = 50,
+    x_internal_token: Optional[str] = Header(None)
+):
+    """Get the latest engine run records."""
+    validate_internal_token(x_internal_token)
+    
+    from src.alerts.engine_observability import get_engine_runs
+    
+    runs = get_engine_runs(limit=min(limit, 200))
+    
+    return {
+        "count": len(runs),
+        "runs": runs
+    }
+
+
+@router.get("/alerts/engine/runs/{run_id}")
+def get_engine_run_detail(
+    run_id: str,
+    x_internal_token: Optional[str] = Header(None)
+):
+    """Get detailed information about a specific engine run."""
+    validate_internal_token(x_internal_token)
+    
+    from src.alerts.engine_observability import get_engine_run_detail
+    
+    run = get_engine_run_detail(run_id)
+    
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    
+    return run
+
+
+@router.get("/alerts/engine/health")
+def get_engine_health(
+    x_internal_token: Optional[str] = Header(None)
+):
+    """Get alerts engine health metrics."""
+    validate_internal_token(x_internal_token)
+    
+    from src.alerts.engine_observability import get_delivery_health_metrics, get_digest_health_metrics
+    
+    delivery_metrics = get_delivery_health_metrics(hours=24)
+    digest_metrics = get_digest_health_metrics(days=7)
+    
+    return {
+        "deliveries_24h": delivery_metrics,
+        "digests_7d": digest_metrics,
+        "generated_at": datetime.utcnow().isoformat()
+    }
+
+
+@router.post("/alerts/engine/retry_failed")
+def retry_failed_items(
+    kind: str = "deliveries",
+    since_hours: int = 24,
+    dry_run: bool = True,
+    x_internal_token: Optional[str] = Header(None)
+):
+    """
+    Re-queue failed deliveries or digests for retry.
+    
+    Args:
+        kind: 'deliveries' or 'digests'
+        since_hours: Look back window in hours
+        dry_run: If True, only report eligible items without changing them
+    """
+    validate_internal_token(x_internal_token)
+    
+    if kind not in ['deliveries', 'digests']:
+        raise HTTPException(status_code=400, detail="kind must be 'deliveries' or 'digests'")
+    
+    from src.alerts.engine_observability import retry_failed_deliveries
+    
+    result = retry_failed_deliveries(kind=kind, since_hours=since_hours, dry_run=dry_run)
+    
+    if "error" in result:
+        raise HTTPException(status_code=500, detail=result["error"])
+    
+    return result

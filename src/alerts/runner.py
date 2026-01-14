@@ -411,41 +411,134 @@ Phase Order (for --phase all): A → B → D → C
     now = datetime.now(timezone.utc)
     results = []
     overall_status = 'success'
+    all_counts = {}
+    error_msg = None
+    
+    from src.alerts.engine_observability import EngineRunTracker
+    tracker = EngineRunTracker(phase=args.phase, dry_run=args.dry_run)
+    run_id = tracker.start()
     
     try:
         if args.phase in ['a', 'all']:
-            result_a = run_phase_a(now, dry_run=args.dry_run)
-            results.append(result_a)
-            print(format_output(result_a, args.log_json))
-            if result_a.get('status') != 'success':
-                overall_status = 'failed'
+            phase_item = None
+            try:
+                phase_item = tracker.record_phase_start('a')
+            except Exception as obs_error:
+                logger.warning(f"Observability phase start failed: {obs_error}")
+            try:
+                result_a = run_phase_a(now, dry_run=args.dry_run)
+                results.append(result_a)
+                print(format_output(result_a, args.log_json))
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, result_a.get('status', 'success'), result_a.get('counts'))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                if result_a.get('status') not in ['success', 'skipped']:
+                    overall_status = 'failed'
+                all_counts['phase_a'] = result_a.get('counts')
+            except Exception as e:
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, 'failed', error=str(e))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                raise
         
         if args.phase in ['b', 'all']:
-            result_b = run_phase_b(now, since_hours=args.since_hours, dry_run=args.dry_run)
-            results.append(result_b)
-            print(format_output(result_b, args.log_json))
-            if result_b.get('status') != 'success':
-                overall_status = 'failed'
+            phase_item = None
+            try:
+                phase_item = tracker.record_phase_start('b')
+            except Exception as obs_error:
+                logger.warning(f"Observability phase start failed: {obs_error}")
+            try:
+                result_b = run_phase_b(now, since_hours=args.since_hours, dry_run=args.dry_run)
+                results.append(result_b)
+                print(format_output(result_b, args.log_json))
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, result_b.get('status', 'success'), result_b.get('counts'))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                if result_b.get('status') not in ['success', 'skipped']:
+                    overall_status = 'failed'
+                all_counts['phase_b'] = result_b.get('counts')
+            except Exception as e:
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, 'failed', error=str(e))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                raise
         
         if args.phase in ['d', 'all']:
-            result_d = run_phase_d(now, dry_run=args.dry_run)
-            results.append(result_d)
-            print(format_output(result_d, args.log_json))
-            if result_d.get('status') != 'success':
-                overall_status = 'failed'
+            phase_item = None
+            try:
+                phase_item = tracker.record_phase_start('d')
+            except Exception as obs_error:
+                logger.warning(f"Observability phase start failed: {obs_error}")
+            try:
+                result_d = run_phase_d(now, dry_run=args.dry_run)
+                results.append(result_d)
+                print(format_output(result_d, args.log_json))
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, result_d.get('status', 'success'), result_d.get('counts'))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                if result_d.get('status') not in ['success', 'skipped']:
+                    overall_status = 'failed'
+                all_counts['phase_d'] = result_d.get('counts')
+            except Exception as e:
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, 'failed', error=str(e))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                raise
         
         if args.phase in ['c', 'all']:
-            result_c = run_phase_c(now, batch_size=args.batch_size, dry_run=args.dry_run)
-            results.append(result_c)
-            print(format_output(result_c, args.log_json))
-            if result_c.get('status') != 'success':
-                overall_status = 'failed'
+            phase_item = None
+            try:
+                phase_item = tracker.record_phase_start('c')
+            except Exception as obs_error:
+                logger.warning(f"Observability phase start failed: {obs_error}")
+            try:
+                result_c = run_phase_c(now, batch_size=args.batch_size, dry_run=args.dry_run)
+                results.append(result_c)
+                print(format_output(result_c, args.log_json))
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, result_c.get('status', 'success'), result_c.get('counts'))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                if result_c.get('status') not in ['success', 'skipped']:
+                    overall_status = 'failed'
+                all_counts['phase_c'] = result_c.get('counts')
+            except Exception as e:
+                if phase_item:
+                    try:
+                        tracker.record_phase_end(phase_item, 'failed', error=str(e))
+                    except Exception as obs_error:
+                        logger.warning(f"Observability phase end failed: {obs_error}")
+                raise
+        
+        try:
+            tracker.finish(overall_status, all_counts)
+        except Exception as obs_error:
+            logger.warning(f"Observability finish failed (continuing anyway): {obs_error}")
     
     except Exception as e:
         logger.error(f"Phase execution failed: {e}")
+        error_msg = str(e)
+        try:
+            tracker.finish('failed', all_counts, error=error_msg)
+        except Exception as obs_error:
+            logger.warning(f"Observability finish failed (continuing anyway): {obs_error}")
         error_result = {
             'status': 'failed',
             'error': str(e),
+            'run_id': run_id,
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
         print(json.dumps(error_result, indent=2))

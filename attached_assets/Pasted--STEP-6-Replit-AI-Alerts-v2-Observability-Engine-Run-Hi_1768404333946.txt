@@ -1,0 +1,167 @@
+# STEP 6 (Replit AI) — Alerts v2 Observability: Engine Run History + Metrics + Admin Endpoints
+
+You are Replit AI working inside my EnergyRiskIQ repository. Steps 1–5 are complete:
+- Runner executes A→B→D→C
+- Advisory locks + schema constraints implemented
+- Retries/backoff/channel safeguards + quotas implemented
+- Digest batching/sending implemented with idempotent digest_key
+
+## Goal of Step 6
+Add production observability for the Alerts Engine so I can:
+1) See a history of engine runs (phase, duration, counts, status, errors)
+2) See delivery health (queued/sent/failed/retried/skipped) per channel
+3) Troubleshoot quickly from the app via admin-only endpoints (no need to open DB)
+
+This must work with GitHub Actions cron and local runs.
+
+---
+
+# Non-Negotiable Constraints
+1) Do not log secrets or message bodies containing sensitive data (PII) beyond minimal identifiers.
+2) Observability writes must be idempotent-safe and never break the engine if logging fails.
+3) Must not break existing endpoints.
+4) Admin-only endpoints must require a token header:
+   - `x-internal-token` equals `INTERNAL_RUNNER_TOKEN`
+5) Must support JSON output well (for GitHub Actions logs).
+
+---
+
+# Deliverables
+
+## A) DB Tables for Run Tracking (Migrations)
+Add migrations to create:
+
+### 1) `alerts_engine_runs`
+Columns:
+- id (pk)
+- run_id TEXT UNIQUE (generate deterministic UUID per invocation, or random UUID)
+- triggered_by TEXT (e.g., 'github_actions_schedule', 'github_actions_manual', 'local')
+- phase TEXT (a|b|c|d|all)
+- started_at TIMESTAMP NOT NULL
+- finished_at TIMESTAMP NULL
+- duration_ms INT NULL
+- status TEXT NOT NULL  # running|success|failed|skipped
+- counts JSONB NULL     # phase counts; safe aggregate counts only
+- error_summary TEXT NULL (truncate to max 2000 chars)
+- git_sha TEXT NULL (read from env GITHUB_SHA if present)
+- created_at TIMESTAMP DEFAULT now()
+
+Indexes:
+- started_at desc
+- status
+- phase
+
+### 2) `alerts_engine_run_items` (optional but preferred)
+Store per-phase breakdown even when phase=all.
+Columns:
+- id (pk)
+- run_id (fk -> alerts_engine_runs.run_id)
+- phase TEXT (a|b|d|c)
+- started_at, finished_at, duration_ms
+- status (success|failed|skipped)
+- counts JSONB
+- error_summary TEXT
+
+If you prefer simpler, you can store everything in `alerts_engine_runs.counts` but per-phase rows are better.
+
+## B) Runner Integration: Automatically Create a Run Record
+Update `src/alerts/runner.py` so every invocation:
+1) Creates a run record with status='running'
+2) For each phase executed:
+   - records a run_item row (if implemented)
+3) At end, updates run status:
+   - success / failed / skipped
+4) Always records duration_ms
+5) If DB logging fails, DO NOT fail the engine run; log a warning and continue.
+
+Determine "triggered_by":
+- If env `GITHUB_ACTIONS == 'true'`:
+  - if scheduled event => 'github_actions_schedule'
+  - else => 'github_actions_manual'
+- Else 'local'
+(Use env `GITHUB_EVENT_NAME` if available.)
+
+Also capture:
+- `git_sha` from `GITHUB_SHA` if present.
+
+## C) Health Snapshot Queries (No PII)
+Create helper functions to compute:
+- Delivery counts grouped by:
+  - channel
+  - status
+  - delivery_kind (instant/digest)
+  - last 24h and last 7d
+- Digest counts grouped by:
+  - channel
+  - status
+  - last 7d
+
+Ensure these queries are efficient (use indexes where needed).
+
+## D) Admin-only Endpoints
+Add internal endpoints (FastAPI/Flask/Express—match the repo’s server framework) protected by:
+Header `x-internal-token: <INTERNAL_RUNNER_TOKEN>`
+
+Endpoints:
+
+1) GET `/internal/alerts/engine/runs?limit=50`
+Returns latest run records (summary)
+
+2) GET `/internal/alerts/engine/runs/{run_id}`
+Returns:
+- run details
+- per-phase items (if implemented)
+
+3) GET `/internal/alerts/engine/health`
+Returns:
+- queued/sent/failed/retried/skipped for deliveries by channel (24h)
+- same for digests (7d)
+- oldest queued delivery age (minutes)
+- oldest queued digest age (minutes)
+
+4) POST `/internal/alerts/engine/retry_failed?kind=deliveries|digests&since_hours=24`
+A safe admin tool that re-queues failed items within window by setting:
+- status='queued'
+- next_retry_at=NULL
+ONLY do this if attempts < ALERTS_MAX_ATTEMPTS and last_error is not permanent reason.
+If this is too risky, implement as a "report-only" endpoint first.
+
+## E) GitHub Actions Enhancement (optional but valuable)
+Update the workflow to:
+- include `INTERNAL_RUNNER_TOKEN` only if needed (it’s internal endpoints; runner doesn't need it)
+- include `GITHUB_SHA` automatically available
+- keep artifact logs
+
+This is optional; core of Step 6 is DB run tracking + endpoints.
+
+## F) Documentation
+Update `replit.md` with:
+- how to query engine runs
+- how to check health endpoint
+- what secrets/env vars required:
+  - INTERNAL_RUNNER_TOKEN
+  - any DB vars already required
+
+---
+
+# Implementation Steps
+1) Add migrations for run tracking table(s).
+2) Add run tracking module, e.g. `src/alerts/engine_observability.py`
+3) Integrate into runner with try/except so failures don't stop engine.
+4) Add internal endpoints with token auth.
+5) Add a simple test: run `--phase all --dry-run` and confirm a run record is created and visible from endpoint.
+
+---
+
+# Output Requirements
+When finished, respond with:
+1) Migration files created
+2) Files changed/added
+3) Example JSON output for:
+   - runs list
+   - a run detail
+   - health snapshot
+4) How to test locally (curl commands + runner command)
+5) Any assumptions about server framework
+
+Proceed now.

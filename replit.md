@@ -81,6 +81,68 @@ python -m src.alerts.runner --phase all --dry-run  # Test without changes
 | `ALERTS_DIGEST_PERIOD` | daily | Digest period: 'daily' or 'hourly' |
 | `ALERTS_APP_BASE_URL` | https://energyriskiq.com | Base URL for dashboard links in digests |
 
+## Engine Observability (Alerts v2)
+
+The alerts engine includes comprehensive observability for production monitoring:
+
+### Run Tracking Tables
+- `alerts_engine_runs`: Tracks each engine invocation with run_id, phase, status, duration, and counts
+- `alerts_engine_run_items`: Per-phase breakdown for multi-phase runs (e.g., --phase all)
+
+### Triggered By Detection
+- `github_actions_schedule`: Scheduled GitHub Actions run
+- `github_actions_manual`: Manual GitHub Actions dispatch
+- `local`: Local development run
+
+### Admin Endpoints (Token Protected)
+All endpoints require `x-internal-token: <INTERNAL_RUNNER_TOKEN>` header.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/internal/alerts/engine/runs` | GET | List recent engine runs |
+| `/internal/alerts/engine/runs/{run_id}` | GET | Get run detail with phase breakdown |
+| `/internal/alerts/engine/health` | GET | Delivery/digest health metrics |
+| `/internal/alerts/engine/retry_failed` | POST | Re-queue failed items for retry |
+
+### Example Curl Commands
+```bash
+# Get recent runs
+curl -H "x-internal-token: $INTERNAL_RUNNER_TOKEN" \
+  https://your-app.replit.dev/internal/alerts/engine/runs?limit=10
+
+# Get health metrics
+curl -H "x-internal-token: $INTERNAL_RUNNER_TOKEN" \
+  https://your-app.replit.dev/internal/alerts/engine/health
+
+# Get run detail
+curl -H "x-internal-token: $INTERNAL_RUNNER_TOKEN" \
+  https://your-app.replit.dev/internal/alerts/engine/runs/{run_id}
+
+# Retry failed deliveries (dry-run first)
+curl -X POST -H "x-internal-token: $INTERNAL_RUNNER_TOKEN" \
+  "https://your-app.replit.dev/internal/alerts/engine/retry_failed?kind=deliveries&dry_run=true"
+```
+
+### Health Endpoint Response Example
+```json
+{
+  "deliveries_24h": {
+    "period_hours": 24,
+    "by_channel": {
+      "email": {"sent_instant": 5, "failed_instant": 1},
+      "telegram": {"sent_instant": 3}
+    },
+    "oldest_queued_delivery_minutes": null
+  },
+  "digests_7d": {
+    "period_days": 7,
+    "by_channel": {"email": {"sent": 2}},
+    "oldest_queued_digest_minutes": null
+  },
+  "generated_at": "2026-01-14T15:30:00"
+}
+```
+
 ## External Dependencies
 
 - **Database:** PostgreSQL (Replit-provided)
