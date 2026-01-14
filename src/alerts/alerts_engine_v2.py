@@ -997,12 +997,12 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
 
 
 def _mark_digest_sent(digest_id: int, message_id: Optional[str]):
-    """Mark a digest as successfully sent."""
+    """Mark a digest as successfully sent, clearing retry metadata."""
     with get_cursor() as cursor:
         cursor.execute(
             """
             UPDATE user_alert_digests 
-            SET status = 'sent', sent_at = NOW(), last_error = NULL
+            SET status = 'sent', sent_at = NOW(), last_error = NULL, next_retry_at = NULL
             WHERE id = %s
             """,
             (digest_id,)
@@ -1010,12 +1010,12 @@ def _mark_digest_sent(digest_id: int, message_id: Optional[str]):
 
 
 def _mark_digest_failed(digest_id: int, error: str):
-    """Mark a digest as failed (permanently)."""
+    """Mark a digest as failed (permanently), clearing retry metadata."""
     with get_cursor() as cursor:
         cursor.execute(
             """
             UPDATE user_alert_digests 
-            SET status = 'failed', last_error = %s
+            SET status = 'failed', last_error = %s, next_retry_at = NULL
             WHERE id = %s
             """,
             (error, digest_id)

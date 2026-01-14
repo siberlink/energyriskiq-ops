@@ -37,6 +37,36 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Concurrency:** FastAPI with uvicorn for the API server, enabling asynchronous operations.
 - **Production Safety (Alerts v2):** Advisory locks prevent concurrent phase execution, `event_fingerprint` unique constraint prevents duplicate alerts, `fanout_completed_at` ensures idempotent fanout, and `FOR UPDATE SKIP LOCKED` prevents delivery races.
 - **Retry & Backoff (Alerts v2):** Exponential backoff with jitter for transient failures, max attempts enforcement, failure classification (transient vs permanent), and channel config validation (skips gracefully when secrets missing).
+- **Digest Batching (Alerts v2):** Groups multiple alerts into periodic digest messages (daily/hourly). Digest deliveries are batched by user+channel+period, sent as a single consolidated message.
+
+## Digest System (Alerts v2)
+
+The digest system consolidates multiple alert deliveries into periodic summary messages:
+
+### How Digests Work
+1. **Phase B** creates deliveries with `delivery_kind='digest'` for lower-tier plans
+2. **Phase D** groups these into `user_alert_digests` records by (user_id, channel, period)
+3. **Phase C** sends the consolidated digest message with all events
+
+### Digest Tables
+- `user_alert_digests`: Tracks digest batches with unique `digest_key` for idempotency
+- `user_alert_digest_items`: Links individual deliveries to their parent digest
+
+### Digest Windows
+- **Daily**: [00:00 UTC, 24:00 UTC) of previous day
+- **Hourly**: [HH:00, HH+1:00) of previous hour
+
+### Digest Idempotency
+- `digest_key` is unique (format: `{user_id}:{channel}:{period}:{window_date}`)
+- Re-running Phase D won't create duplicate digests
+- Individual deliveries are marked `status='skipped', last_error='batched_into_digest'`
+
+### CLI Commands
+```bash
+python -m src.alerts.runner --phase d          # Build digest batches only
+python -m src.alerts.runner --phase all        # Full pipeline: A → B → D → C
+python -m src.alerts.runner --phase all --dry-run  # Test without changes
+```
 
 ## Environment Variables (Alerts v2)
 
@@ -48,6 +78,8 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 | `ALERTS_RATE_LIMIT_EMAIL_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
 | `ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
 | `ALERTS_RATE_LIMIT_SMS_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
+| `ALERTS_DIGEST_PERIOD` | daily | Digest period: 'daily' or 'hourly' |
+| `ALERTS_APP_BASE_URL` | https://energyriskiq.com | Base URL for dashboard links in digests |
 
 ## External Dependencies
 
