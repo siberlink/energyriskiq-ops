@@ -467,15 +467,29 @@ The EnergyRiskIQ Team"""
     return {"success": True, "message": "If an account exists, a verification email will be sent."}
 
 
+TELEGRAM_ELIGIBLE_PLANS = ['trader', 'pro', 'enterprise']
+
+
 @router.post("/telegram/generate-code")
 def generate_telegram_link_code(x_user_token: Optional[str] = Header(None)):
     session = verify_user_session(x_user_token)
     user_id = session["user_id"]
     
-    code = secrets.token_hex(4).upper()
-    expires = datetime.utcnow() + timedelta(minutes=15)
-    
     with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT up.plan FROM user_plans up WHERE up.user_id = %s
+        """, (user_id,))
+        plan_row = cursor.fetchone()
+        
+        if not plan_row or plan_row['plan'] not in TELEGRAM_ELIGIBLE_PLANS:
+            raise HTTPException(
+                status_code=403, 
+                detail="Telegram notifications require Trader, Pro, or Enterprise plan"
+            )
+        
+        code = secrets.token_urlsafe(16)
+        expires = datetime.utcnow() + timedelta(minutes=15)
+        
         cursor.execute("""
             UPDATE users SET 
                 telegram_link_code = %s,

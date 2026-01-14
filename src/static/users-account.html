@@ -1207,7 +1207,10 @@
                     headers: { 'X-User-Token': sessionToken }
                 });
                 
-                if (!response.ok) throw new Error('Failed to generate code');
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || 'Failed to generate code');
+                }
                 
                 const data = await response.json();
                 
@@ -1218,12 +1221,13 @@
                 document.getElementById('telegramLinkStep1').style.display = 'none';
                 document.getElementById('telegramLinkStep2').style.display = 'block';
                 
+                telegramPollCount = 0;
                 setTimeout(() => {
                     checkTelegramLinked();
                 }, 5000);
             } catch (error) {
                 console.error('Error generating Telegram code:', error);
-                alert('Failed to generate linking code. Please try again.');
+                alert(error.message || 'Failed to generate linking code. Please try again.');
             }
         }
 
@@ -1232,7 +1236,18 @@
             document.getElementById('telegramLinkStep2').style.display = 'none';
         }
 
+        let telegramPollCount = 0;
+        const MAX_TELEGRAM_POLLS = 180;
+        
         async function checkTelegramLinked() {
+            telegramPollCount++;
+            
+            if (telegramPollCount > MAX_TELEGRAM_POLLS) {
+                cancelTelegramLink();
+                alert('Linking code expired. Please generate a new code.');
+                return;
+            }
+            
             try {
                 const response = await fetch('/users/me', {
                     headers: { 'X-User-Token': sessionToken }
@@ -1244,8 +1259,9 @@
                         currentUser = user;
                         updateTelegramUI();
                         cancelTelegramLink();
+                        telegramPollCount = 0;
                     } else if (document.getElementById('telegramLinkStep2').style.display === 'block') {
-                        setTimeout(checkTelegramLinked, 3000);
+                        setTimeout(checkTelegramLinked, 5000);
                     }
                 }
             } catch (error) {
