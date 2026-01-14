@@ -45,6 +45,158 @@ LOCK_KEYS = {
     'd': 'alerts_v2_phase_d',
 }
 
+REQUIRED_TABLES = [
+    'alert_events',
+    'user_alert_deliveries', 
+    'user_alert_digests',
+    'alerts_engine_runs',
+    'alerts_engine_run_items',
+    'users',
+    'user_plans',
+    'user_alert_prefs',
+]
+
+
+def run_preflight(log_json: bool = False) -> Dict:
+    """
+    Run preflight validation checks before executing phases.
+    
+    Checks:
+    1. Database connectivity
+    2. Required table existence
+    3. Channel configuration (env vars)
+    4. Optional timezone/base URL warnings
+    
+    Returns dict with:
+    - db_ok: bool
+    - migrations_ok: bool
+    - channels_configured: {email: bool, telegram: bool, sms: bool}
+    - warnings: list
+    - errors: list
+    """
+    result = {
+        'db_ok': False,
+        'migrations_ok': False,
+        'channels_configured': {'email': False, 'telegram': False, 'sms': False},
+        'tables_found': [],
+        'tables_missing': [],
+        'warnings': [],
+        'errors': [],
+    }
+    
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        result['errors'].append("DATABASE_URL environment variable is not set")
+        return result
+    
+    try:
+        from src.db.db import get_cursor
+        with get_cursor() as cursor:
+            cursor.execute("SELECT 1")
+            if cursor.fetchone():
+                result['db_ok'] = True
+                logger.info("Preflight: Database connection OK")
+    except Exception as e:
+        result['errors'].append(f"Database connection failed: {str(e)}")
+        return result
+    
+    try:
+        from src.db.db import execute_query
+        rows = execute_query("""
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        """, fetch=True)
+        existing_tables = {row['table_name'] for row in rows} if rows else set()
+        
+        for table in REQUIRED_TABLES:
+            if table in existing_tables:
+                result['tables_found'].append(table)
+            else:
+                result['tables_missing'].append(table)
+        
+        if not result['tables_missing']:
+            result['migrations_ok'] = True
+            logger.info("Preflight: All required tables exist")
+        else:
+            result['errors'].append(f"Missing tables: {', '.join(result['tables_missing'])}")
+    except Exception as e:
+        result['errors'].append(f"Table check failed: {str(e)}")
+    
+    brevo_key = os.environ.get('BREVO_API_KEY')
+    resend_key = os.environ.get('RESEND_API_KEY')
+    if brevo_key or resend_key:
+        result['channels_configured']['email'] = True
+        logger.info("Preflight: Email channel configured")
+    else:
+        result['warnings'].append("Email channel not configured (no BREVO_API_KEY or RESEND_API_KEY)")
+    
+    telegram_token = os.environ.get('TELEGRAM_BOT_TOKEN')
+    if telegram_token:
+        result['channels_configured']['telegram'] = True
+        logger.info("Preflight: Telegram channel configured")
+    else:
+        result['warnings'].append("Telegram channel not configured (no TELEGRAM_BOT_TOKEN)")
+    
+    twilio_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+    twilio_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    twilio_phone = os.environ.get('TWILIO_PHONE_NUMBER')
+    if twilio_sid and twilio_token and twilio_phone:
+        result['channels_configured']['sms'] = True
+        logger.info("Preflight: SMS channel configured")
+    else:
+        result['warnings'].append("SMS channel not configured (missing TWILIO_* vars)")
+    
+    any_channel = any(result['channels_configured'].values())
+    if not any_channel:
+        result['warnings'].append("No delivery channels configured - Phase C will skip all sends")
+    
+    base_url = os.environ.get('ALERTS_APP_BASE_URL')
+    if not base_url:
+        result['warnings'].append("ALERTS_APP_BASE_URL not set (dashboard links may be missing)")
+    
+    return result
+
+
+def run_health_check(log_json: bool = False) -> Dict:
+    """
+    Get health metrics without requiring HTTP server.
+    
+    Returns dict with:
+    - deliveries_24h: counts by channel/status
+    - digests_7d: counts by channel/status
+    - oldest_queued: minutes
+    - last_run: run info
+    """
+    from src.alerts.engine_observability import get_delivery_health_metrics, get_digest_health_metrics, get_engine_runs
+    from datetime import datetime, timezone
+    
+    result = {
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'deliveries_24h': {},
+        'digests_7d': {},
+        'last_run': None,
+        'errors': [],
+    }
+    
+    try:
+        result['deliveries_24h'] = get_delivery_health_metrics(hours=24)
+    except Exception as e:
+        result['errors'].append(f"Failed to get delivery metrics: {str(e)}")
+    
+    try:
+        result['digests_7d'] = get_digest_health_metrics(days=7)
+    except Exception as e:
+        result['errors'].append(f"Failed to get digest metrics: {str(e)}")
+    
+    try:
+        runs = get_engine_runs(limit=1)
+        if runs:
+            result['last_run'] = runs[0]
+    except Exception as e:
+        result['errors'].append(f"Failed to get last run: {str(e)}")
+    
+    return result
+
 
 def validate_environment() -> bool:
     """Validate required environment variables and database connection."""
@@ -351,9 +503,21 @@ Phase Order (for --phase all): A → B → D → C
     
     parser.add_argument(
         '--phase',
-        required=True,
+        required=False,
         choices=['a', 'b', 'c', 'd', 'all'],
         help='Phase to execute: a (generate), b (fanout), c (send), d (digest build), or all'
+    )
+    parser.add_argument(
+        '--preflight',
+        action='store_true',
+        default=False,
+        help='Run preflight validation only (check DB, tables, channels)'
+    )
+    parser.add_argument(
+        '--health',
+        action='store_true',
+        default=False,
+        help='Output health metrics JSON (deliveries, digests, last run)'
     )
     parser.add_argument(
         '--since-hours',
@@ -381,6 +545,33 @@ Phase Order (for --phase all): A → B → D → C
     )
     
     args = parser.parse_args()
+    
+    if args.preflight:
+        print("=" * 60)
+        print("EnergyRiskIQ Alerts v2 - Preflight Check")
+        print("=" * 60)
+        result = run_preflight(log_json=args.log_json)
+        print(json.dumps(result, indent=2, default=str))
+        if result['errors']:
+            print("=" * 60)
+            print("PREFLIGHT FAILED - errors detected")
+            sys.exit(1)
+        else:
+            print("=" * 60)
+            print("PREFLIGHT PASSED" + (" (with warnings)" if result['warnings'] else ""))
+            sys.exit(0)
+    
+    if args.health:
+        print("=" * 60)
+        print("EnergyRiskIQ Alerts v2 - Health Check")
+        print("=" * 60)
+        result = run_health_check(log_json=args.log_json)
+        print(json.dumps(result, indent=2, default=str))
+        print("=" * 60)
+        sys.exit(0)
+    
+    if not args.phase:
+        parser.error("--phase is required when not using --preflight or --health")
     
     print("=" * 60)
     print("EnergyRiskIQ Alerts v2 CLI Runner")

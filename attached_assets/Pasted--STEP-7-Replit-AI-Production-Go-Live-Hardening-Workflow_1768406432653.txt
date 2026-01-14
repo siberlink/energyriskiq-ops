@@ -1,0 +1,112 @@
+# STEP 7 (Replit AI) — Production Go-Live Hardening: Workflow + Preflight + Safe Rollout
+
+You are Replit AI working inside my EnergyRiskIQ repository. Steps 1–6 are complete:
+- Runner A→B→D→C works
+- Advisory locks, schema constraints, retries/backoff, digest batching, observability endpoints exist
+- GitHub Actions workflow exists and runs the CLI runner
+
+## Goal of Step 7
+Make production operation safe and predictable by adding:
+A) Preflight validation (CLI) to check env/config and fail early with clear messages
+B) Safe rollout controls (allowlist / test mode) to prevent accidental mass sending
+C) Harden GitHub Actions workflow installation logic and summarize run + health metrics in GH summary
+
+---
+
+# Deliverables
+
+## A) Preflight Validator (CLI)
+Add a runner phase or flag:
+- Option 1: `python -m src.alerts.runner --preflight`
+- Option 2: new phase `--phase preflight`
+Preferred: `--preflight` flag.
+
+Preflight should:
+1) Validate DB connectivity (already exists in runner, reuse)
+2) Validate required table existence:
+   - alert_events, user_alert_deliveries, user_alert_digests, alerts_engine_runs
+3) Validate configured channels:
+   - If not dry-run and Phase C is requested, ensure at least ONE channel is configured
+   - For each channel, validate required env vars exist, but DO NOT print secrets
+4) Validate timezone/base URL env vars if used (optional warnings only)
+5) Print a compact JSON summary:
+   - db_ok, migrations_ok, channels_configured: {email: bool, telegram: bool, sms: bool}
+   - warnings: []
+   - errors: []
+Exit codes:
+- 0 if OK (or only warnings)
+- 1 if errors
+
+## B) Safe Rollout Controls
+Implement two optional safety controls that apply to Phase B and Phase C:
+
+### 1) User allowlist
+Env var:
+- `ALERTS_SEND_ALLOWLIST_USER_IDS` = comma-separated user IDs
+If set, then:
+- Phase B only creates deliveries for allowlisted users
+- Phase C only sends deliveries/digests for allowlisted users
+If empty/not set => normal behavior
+
+### 2) Max recipients per run (circuit breaker)
+Env var:
+- `ALERTS_MAX_SEND_PER_RUN` default 1000
+Phase C must stop after sending N items (deliveries + digests combined) and return counts with:
+- stopped_early=true if limit hit
+
+This prevents unexpected spikes from dumping too many messages in one cron tick.
+
+## C) GitHub Actions Workflow Hardening
+Update `.github/workflows/alerts_engine_v2.yml`:
+
+1) Dependency install resilience:
+   - if requirements.txt exists => pip install -r requirements.txt
+   - else if pyproject.toml exists => pip install -e .
+   - else => fail with message
+
+2) Add preflight step before run:
+   - run: `python -m src.alerts.runner --preflight --log-json`
+   - If preflight fails => job fails
+
+3) Add run summary enhancement:
+   - after engine run, call internal health endpoint is not available in CI, so instead:
+     run a lightweight "health snapshot" CLI method in `engine_observability.py`
+     OR add `python -m src.alerts.runner --health` that outputs JSON without server.
+Preferred: add `--health` flag that queries DB and prints health JSON.
+
+Then append key stats to `$GITHUB_STEP_SUMMARY`:
+- sent/failed/retried/skipped in last run (use runner output if already)
+- oldest queued minutes
+- digests queued/sent
+
+4) Add env vars wiring:
+   - Support allowlist and max-per-run via secrets or variables:
+     - `ALERTS_SEND_ALLOWLIST_USER_IDS` (optional)
+     - `ALERTS_MAX_SEND_PER_RUN` (optional)
+
+## D) Documentation
+Update `replit.md` with:
+- How to configure allowlist for safe rollout
+- How to run preflight locally
+- How to interpret GH summary fields
+- Required secrets list (names only)
+
+---
+
+# Implementation Steps
+1) Add preflight + health flags to runner (no server required)
+2) Implement allowlist + max-per-run in Phase B and Phase C (deliveries + digests)
+3) Update workflow YAML accordingly
+4) Update docs
+
+---
+
+# Output Requirements
+When finished, respond with:
+1) Files modified/created
+2) Example preflight output JSON
+3) Example health output JSON
+4) Workflow changes summary
+5) How to enable safe rollout for only one test user
+
+Proceed now.
