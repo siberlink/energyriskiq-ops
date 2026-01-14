@@ -465,3 +465,47 @@ The EnergyRiskIQ Team"""
     send_email(email, email_subject, email_body)
     
     return {"success": True, "message": "If an account exists, a verification email will be sent."}
+
+
+@router.post("/telegram/generate-code")
+def generate_telegram_link_code(x_user_token: Optional[str] = Header(None)):
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    code = secrets.token_hex(4).upper()
+    expires = datetime.utcnow() + timedelta(minutes=15)
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            UPDATE users SET 
+                telegram_link_code = %s,
+                telegram_link_expires = %s,
+                updated_at = NOW()
+            WHERE id = %s
+        """, (code, expires, user_id))
+    
+    return {
+        "success": True,
+        "code": code,
+        "expires_in_minutes": 15,
+        "bot_username": os.environ.get("TELEGRAM_BOT_USERNAME", "EnergyRiskIQBot"),
+        "instructions": f"Send this code to the bot: {code}"
+    }
+
+
+@router.post("/telegram/unlink")
+def unlink_telegram(x_user_token: Optional[str] = Header(None)):
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            UPDATE users SET 
+                telegram_chat_id = NULL,
+                telegram_link_code = NULL,
+                telegram_link_expires = NULL,
+                updated_at = NOW()
+            WHERE id = %s
+        """, (user_id,))
+    
+    return {"success": True, "message": "Telegram unlinked successfully"}

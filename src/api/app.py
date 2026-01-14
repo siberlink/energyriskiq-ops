@@ -18,6 +18,7 @@ from src.api.contact_routes import router as contact_router
 from src.api.admin_routes import router as admin_router
 from src.api.user_routes import router as user_router
 from src.api.ops_routes import router as ops_router
+from src.api.telegram_routes import router as telegram_router
 from src.db.migrations import run_migrations
 
 logging.basicConfig(
@@ -88,6 +89,7 @@ app.include_router(contact_router)
 app.include_router(admin_router)
 app.include_router(user_router)
 app.include_router(ops_router)
+app.include_router(telegram_router)
 
 @app.on_event("startup")
 async def startup_event():

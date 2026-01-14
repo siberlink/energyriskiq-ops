@@ -1038,6 +1038,68 @@
                     </div>
                 </div>
             </div>
+
+            <div class="content-card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <h2 class="card-title">Telegram Notifications</h2>
+                </div>
+                <div class="card-body">
+                    <div id="telegramNotAvailable" style="display: none;">
+                        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 16px;">
+                            Telegram notifications are available on Trader, Pro, and Enterprise plans.
+                        </p>
+                        <a href="#" onclick="showSection('plans')" class="filter-btn" style="text-decoration: none; display: inline-block;">
+                            Upgrade to Enable
+                        </a>
+                    </div>
+                    
+                    <div id="telegramLinked" style="display: none;">
+                        <div class="info-row">
+                            <span class="info-label">Status</span>
+                            <span class="info-value" style="color: #4ade80;">
+                                <span style="display: inline-block; width: 8px; height: 8px; background: #4ade80; border-radius: 50%; margin-right: 8px;"></span>
+                                Connected
+                            </span>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <button class="filter-btn secondary" onclick="unlinkTelegram()">
+                                Unlink Telegram
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="telegramNotLinked" style="display: none;">
+                        <p style="color: #94a3b8; font-size: 14px; margin-bottom: 16px;">
+                            Link your Telegram account to receive instant alerts on your phone.
+                        </p>
+                        
+                        <div id="telegramLinkStep1">
+                            <button class="filter-btn" onclick="generateTelegramCode()">
+                                Link Telegram Account
+                            </button>
+                        </div>
+                        
+                        <div id="telegramLinkStep2" style="display: none;">
+                            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">Step 1: Open Telegram and search for</p>
+                                <p style="font-size: 18px; font-weight: 600; color: #60a5fa; margin-bottom: 16px;">@<span id="telegramBotUsername">EnergyRiskIQBot</span></p>
+                                
+                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">Step 2: Send this code to the bot</p>
+                                <div style="background: #0f172a; border: 2px dashed #3b82f6; border-radius: 8px; padding: 16px; text-align: center;">
+                                    <span id="telegramLinkCode" style="font-size: 28px; font-weight: 700; letter-spacing: 4px; color: #f1f5f9;">--------</span>
+                                </div>
+                                <p style="color: #64748b; font-size: 12px; margin-top: 12px; text-align: center;">
+                                    Code expires in <span id="telegramCodeExpiry">15</span> minutes
+                                </p>
+                            </div>
+                            
+                            <button class="filter-btn secondary" onclick="cancelTelegramLink()">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -1121,6 +1183,92 @@
             
             if (plan !== 'enterprise') {
                 document.getElementById('upgradeSidebarCard').style.display = 'block';
+            }
+            
+            updateTelegramUI();
+        }
+
+        function updateTelegramUI() {
+            if (!currentUser) return;
+            
+            const plan = currentUser.plan || 'free';
+            const telegramEnabled = ['trader', 'pro', 'enterprise'].includes(plan);
+            const isLinked = !!currentUser.telegram_chat_id;
+            
+            document.getElementById('telegramNotAvailable').style.display = telegramEnabled ? 'none' : 'block';
+            document.getElementById('telegramLinked').style.display = (telegramEnabled && isLinked) ? 'block' : 'none';
+            document.getElementById('telegramNotLinked').style.display = (telegramEnabled && !isLinked) ? 'block' : 'none';
+        }
+
+        async function generateTelegramCode() {
+            try {
+                const response = await fetch('/users/telegram/generate-code', {
+                    method: 'POST',
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) throw new Error('Failed to generate code');
+                
+                const data = await response.json();
+                
+                document.getElementById('telegramLinkCode').textContent = data.code;
+                document.getElementById('telegramBotUsername').textContent = data.bot_username;
+                document.getElementById('telegramCodeExpiry').textContent = data.expires_in_minutes;
+                
+                document.getElementById('telegramLinkStep1').style.display = 'none';
+                document.getElementById('telegramLinkStep2').style.display = 'block';
+                
+                setTimeout(() => {
+                    checkTelegramLinked();
+                }, 5000);
+            } catch (error) {
+                console.error('Error generating Telegram code:', error);
+                alert('Failed to generate linking code. Please try again.');
+            }
+        }
+
+        function cancelTelegramLink() {
+            document.getElementById('telegramLinkStep1').style.display = 'block';
+            document.getElementById('telegramLinkStep2').style.display = 'none';
+        }
+
+        async function checkTelegramLinked() {
+            try {
+                const response = await fetch('/users/me', {
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    if (user.telegram_chat_id) {
+                        currentUser = user;
+                        updateTelegramUI();
+                        cancelTelegramLink();
+                    } else if (document.getElementById('telegramLinkStep2').style.display === 'block') {
+                        setTimeout(checkTelegramLinked, 3000);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking Telegram status:', error);
+            }
+        }
+
+        async function unlinkTelegram() {
+            if (!confirm('Are you sure you want to unlink your Telegram account?')) return;
+            
+            try {
+                const response = await fetch('/users/telegram/unlink', {
+                    method: 'POST',
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) throw new Error('Failed to unlink');
+                
+                currentUser.telegram_chat_id = null;
+                updateTelegramUI();
+            } catch (error) {
+                console.error('Error unlinking Telegram:', error);
+                alert('Failed to unlink Telegram. Please try again.');
             }
         }
 
