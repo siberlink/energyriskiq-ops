@@ -30,9 +30,16 @@ REGION_MAPPINGS = {
     'north_america': ['usa', 'united states', 'canada', 'mexico', 'gulf of mexico']
 }
 
-HIGH_SEVERITY_KEYWORDS = ['attack', 'missile', 'explosion', 'shutdown', 'blockade', 'sanctions']
-MEDIUM_SEVERITY_KEYWORDS = ['strike', 'disruption', 'outage', 'congestion']
-OPEC_KEYWORDS = ['opec', 'production cut']
+HIGH_SEVERITY_KEYWORDS = [
+    'attack', 'missile', 'explosion', 'shutdown', 'blockade', 'sanctions',
+    'crisis', 'turmoil', 'halt', 'suspend', 'collapse', 'war', 'conflict',
+    'seize', 'capture', 'embargo', 'invasion', 'emergency', 'critical'
+]
+MEDIUM_SEVERITY_KEYWORDS = [
+    'strike', 'disruption', 'outage', 'congestion', 'shortage', 'delay',
+    'spike', 'surge', 'plunge', 'threat', 'risk', 'warning', 'tension'
+]
+OPEC_KEYWORDS = ['opec', 'production cut', 'output cut', 'supply cut']
 
 VALID_CATEGORIES = ['geopolitical', 'energy', 'supply_chain']
 

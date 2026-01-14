@@ -247,6 +247,8 @@ See **[OPERATIONS.md](OPERATIONS.md)** for detailed documentation on:
 - Internal runner endpoints and authentication
 
 ## Recent Changes
+- 2026-01-14: Alert processing fix - Expanded HIGH_SEVERITY_KEYWORDS to include crisis, turmoil, halt, suspend, collapse, war, conflict, seize, capture, embargo, invasion, emergency, critical. Previous keywords (attack, missile, explosion, shutdown, blockade, sanctions) were too restrictive.
+- 2026-01-14: Alert UI improvements - Added 24-hour filter, Latest badge for <3hr alerts, date/time filter, risk as percentage, upgrade sidebar card, cleaner type labels.
 - 2026-01-13: User plans sync - user_plans now syncs with plan_settings via apply_plan_settings_to_user(). plan_price_usd is NUMERIC(10,2). Added sync_all_user_plans() for bulk resync.
 - 2026-01-13: Step 7 - User authentication system with signup, email verification, password/PIN setup, and account dashboard at /users.
 - 2026-01-13: Step 6 - Admin UI page at /admin with server-side authentication, header, left navigation, dashboard, and plan settings management.
