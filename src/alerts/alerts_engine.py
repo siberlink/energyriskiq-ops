@@ -116,7 +116,7 @@ def get_top_driver_events(region: str, limit: int = 3) -> List[Dict]:
     return results if results else []
 
 
-def get_high_impact_events() -> List[Dict]:
+def get_high_impact_events(user_id: int) -> List[Dict]:
     query = """
     SELECT e.id, e.title, e.region, e.category, e.severity_score, e.ai_summary, e.source_url, e.processed
     FROM events e
@@ -126,14 +126,15 @@ def get_high_impact_events() -> List[Dict]:
       AND e.inserted_at >= NOW() - INTERVAL '24 hours'
       AND NOT EXISTS (
           SELECT 1 FROM alerts a 
-          WHERE a.alert_type = 'HIGH_IMPACT_EVENT' 
+          WHERE a.user_id = %s
+          AND a.alert_type = 'HIGH_IMPACT_EVENT' 
           AND a.message LIKE '%%' || e.title || '%%'
           AND a.created_at >= NOW() - INTERVAL '24 hours'
       )
     ORDER BY e.severity_score DESC, e.inserted_at DESC
     LIMIT 10
     """
-    results = execute_query(query)
+    results = execute_query(query, (user_id,))
     return results if results else []
 
 
@@ -293,7 +294,8 @@ def evaluate_asset_risk_spike(user: Dict, pref: Dict, summary: Dict, allow_asset
 
 
 def evaluate_high_impact_events(user: Dict, pref: Dict) -> List[Dict]:
-    events = get_high_impact_events()
+    user_id = user['id']
+    events = get_high_impact_events(user_id)
     alerts = []
     
     for event in events:
