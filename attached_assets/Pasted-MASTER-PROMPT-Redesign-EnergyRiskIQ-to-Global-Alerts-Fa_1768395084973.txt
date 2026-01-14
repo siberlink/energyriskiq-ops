@@ -1,0 +1,187 @@
+MASTER PROMPT — Redesign EnergyRiskIQ to Global Alerts + Fanout Delivery (vNext)
+You are Replit AI acting as my principal engineer. Redesign the backend so alerts are generated globally (not assigned to a user at creation). All existing users should receive those global alerts based on their plan settings, preferences, quotas, cooldowns, and channel availability.
+
+DO NOT build UI. Keep FastAPI + PostgreSQL. Keep internal runner endpoints + GitHub scheduler model.
+We will refactor data model + workers + endpoints safely.
+
+============================================================
+0) CORE REQUIREMENT (NON-NEGOTIABLE)
+============================================================
+- Alerts must be generated ONCE as global alert events (user-agnostic).
+- Then the system fans out alert deliveries to all eligible users.
+- Each user gets a delivery record and receives via channels based on their plan.
+
+Current state incorrectly creates alerts directly tied to a user_id. We must fix it.
+
+============================================================
+1) NEW DATA MODEL (ADD TABLES, DO NOT BREAK OLD YET)
+============================================================
+A) Global alert events (engine output)
+CREATE TABLE alert_events (
+  id SERIAL PRIMARY KEY,
+  alert_type TEXT NOT NULL CHECK (alert_type IN ('HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','DAILY_DIGEST')),
+  scope_region TEXT NULL,            -- e.g. 'Europe', 'Middle East'
+  scope_assets TEXT[] NOT NULL DEFAULT '{}',  -- e.g. ['oil','gas','fx','freight']
+  severity INT NOT NULL DEFAULT 3,   -- 1-5
+  headline TEXT NOT NULL,
+  body TEXT NOT NULL,               -- plain text or markdown
+  driver_event_ids INT[] NULL,      -- references events.id
+  cooldown_key TEXT NOT NULL,       -- used to dedupe global events
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_alert_events_created_at ON alert_events(created_at DESC);
+CREATE UNIQUE INDEX uq_alert_events_cooldown_key ON alert_events(cooldown_key);
+
+B) Per-user deliveries (delivery results)
+CREATE TABLE user_alert_deliveries (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  alert_event_id INT NOT NULL REFERENCES alert_events(id) ON DELETE CASCADE,
+  channel TEXT NOT NULL CHECK (channel IN ('email','telegram','sms','account')),
+  status TEXT NOT NULL CHECK (status IN ('queued','sent','skipped','failed')),
+  reason TEXT NULL,                 -- e.g. quota_exceeded, cooldown, missing_channel
+  provider_message_id TEXT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  sent_at TIMESTAMP NULL
+);
+CREATE INDEX idx_user_alert_deliveries_user_time ON user_alert_deliveries(user_id, created_at DESC);
+CREATE UNIQUE INDEX uq_user_alert_deliveries_unique
+  ON user_alert_deliveries(user_id, alert_event_id, channel);
+
+C) User preferences (if not already existing)
+Ensure user_alert_prefs exists or create:
+- regions_enabled TEXT[] (default ['Europe'])
+- assets_enabled TEXT[] (default ['oil','gas','fx','freight'])
+- channels_enabled JSONB (email/telegram/sms/account) and per-channel toggles
+- daily_digest_enabled boolean override (if you prefer per-user)
+
+We already have plan_settings and/or user_plans. Use whichever exists as source of entitlement; prefer plan_settings as authoritative and user_plans as per-user overrides.
+
+============================================================
+2) ALERT GENERATION ENGINE (GLOBAL)
+============================================================
+Refactor the existing alerts worker into TWO phases:
+
+Phase A: Generate global alert_events
+- Based on risk indices + event stream, determine if new alert_event should be created.
+- Use global dedupe via alert_events.cooldown_key unique constraint.
+- Example cooldown_key patterns:
+  - "REGION:Europe:RISK_SPIKE:2026-01-14:threshold_80"
+  - "ASSET:Europe:gas:SPIKE:2026-01-14"
+  - "EVENT:HIGH_IMPACT:events_id_1234"
+- If alert_event already exists (unique conflict), do not create a duplicate.
+
+IMPORTANT:
+- Do NOT look at users in this phase.
+- This phase should create alert_events only.
+
+============================================================
+3) FANOUT DELIVERY ENGINE (PER USER)
+============================================================
+Phase B: Fanout alert_events to users
+Create a worker function that:
+- Fetches recent unsent alert_events within a lookback window (e.g. last 24h)
+- For each alert_event, find eligible users:
+   - active users
+   - plan allows alert_type (plan_settings.allowed_alert_types)
+   - region/assets match user prefs (or defaults)
+- For each eligible user, decide channels and quotas:
+   - Always create an 'account' delivery record (status='sent' or 'queued' depending on your model)
+   - Determine realtime channel: email/telegram/sms per plan delivery_config
+   - Enforce per-day quotas per channel using DB counts (UTC)
+   - Enforce per-user cooldowns using delivery history (e.g. "user:{id}|{cooldown_key}|channel:{email}")
+- Insert into user_alert_deliveries with status:
+   - queued if will send
+   - skipped with reason if blocked (quota/cooldown/missing channel)
+
+Then a sender step:
+- For queued deliveries, send via provider:
+   - email via Brevo
+   - telegram via Bot API (if configured)
+   - sms via Twilio (optional; if not configured, mark failed with reason)
+- Update status sent/failed and sent_at.
+
+============================================================
+4) WORKER MODES & INTERNAL ENDPOINTS
+============================================================
+We currently have:
+- /internal/run/ingest
+- /internal/run/ai
+- /internal/run/risk
+- /internal/run/alerts
+- /internal/run/digest
+
+Replace /internal/run/alerts semantics:
+- It should run BOTH:
+  A) generate_global_alert_events()
+  B) fanout_and_send_deliveries()
+
+Add advisory locks:
+- global alerts generation lock: 2001
+- fanout lock: 2002
+- sending lock per channel optional or keep within fanout lock
+
+Keep CLI modes working:
+python src/main.py --mode alerts  => runs A+B once
+
+Digest:
+- Daily digest should be implemented as a global alert_event of type DAILY_DIGEST per region/day
+- Then fanout delivers it based on plan + prefs (Trader/Pro/Enterprise)
+
+============================================================
+5) API ENDPOINTS (PUBLIC)
+============================================================
+Replace old user-specific alerts history with delivery history:
+- GET /me/alerts (requires auth later; for now allow by user_id param)
+  returns user_alert_deliveries joined with alert_events
+- GET /alerts/events/latest
+  returns latest global alert_events for marketing/demo
+- GET /alerts/user/{id}
+  now returns deliveries (not global events)
+
+Keep existing endpoints but redirect their logic:
+- /marketing/samples should be built from alert_events templates
+- /digest/preview should generate a sample DAILY_DIGEST alert_event body (no DB insert) OR insert with a special flag; do not send.
+
+============================================================
+6) MIGRATION STRATEGY (NO BIG-BANG)
+============================================================
+A) Add new tables first (alert_events, user_alert_deliveries).
+B) Update the alerts worker to generate alert_events + deliveries going forward.
+C) Keep old alerts table (if exists) but stop writing to it.
+D) Backfill recent history optionally:
+   - Convert last N days of old user alerts into alert_events and deliveries.
+   - Not required for launch; optional.
+
+E) Add a feature flag env var:
+ALERTS_V2_ENABLED=true
+- If false, keep old behavior.
+- If true, use new global+fanout pipeline.
+Default to true after verification.
+
+============================================================
+7) ACCEPTANCE TESTS (MUST PASS)
+============================================================
+1) Create 3 users with different plans/prefs.
+2) Run full pipeline: ingest -> ai -> risk -> alerts
+3) Confirm:
+   - alert_events contains new rows (global)
+   - user_alert_deliveries contains rows for ALL eligible users
+   - No duplicates:
+       - same alert_event not re-created
+       - same user/channel not delivered twice for same event
+4) Quotas/cooldowns:
+   - exceed email quota -> deliveries marked skipped with reason, still appear in account
+5) “All users receive alerts”:
+   - A single alert_event produces multiple user deliveries
+
+============================================================
+8) DELIVERABLES
+============================================================
+- New DB tables + indexes + safe migrations
+- Refactored alerts worker into global generation + fanout delivery
+- Updated endpoints to read from new tables
+- Internal runner / CLI modes updated and still functional
+- Minimal docs in README
+
+Implement this redesign now with clean code, and keep business logic consistent.

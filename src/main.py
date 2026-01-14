@@ -38,11 +38,18 @@ def main():
         run_risk_engine()
     
     elif args.mode == 'alerts':
-        from src.alerts.alerts_engine import run_alerts_engine, run_alerts_loop, ALERTS_LOOP
-        if ALERTS_LOOP:
-            run_alerts_loop()
+        alerts_v2 = os.environ.get('ALERTS_V2_ENABLED', 'true').lower() == 'true'
+        if alerts_v2:
+            from src.alerts.alerts_engine_v2 import run_alerts_engine_v2
+            from src.db.migrations import run_migrations
+            run_migrations()
+            run_alerts_engine_v2()
         else:
-            run_alerts_engine()
+            from src.alerts.alerts_engine import run_alerts_engine, run_alerts_loop, ALERTS_LOOP
+            if ALERTS_LOOP:
+                run_alerts_loop()
+            else:
+                run_alerts_engine()
     
     elif args.mode == 'digest':
         from src.alerts.digest_worker import run_digest_worker

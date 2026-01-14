@@ -394,6 +394,44 @@ def run_migrations():
     );
     """
     
+    create_alert_events_table = """
+    CREATE TABLE IF NOT EXISTS alert_events (
+        id SERIAL PRIMARY KEY,
+        alert_type TEXT NOT NULL CHECK (alert_type IN ('HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_SPIKE','DAILY_DIGEST')),
+        scope_region TEXT NULL,
+        scope_assets TEXT[] NOT NULL DEFAULT '{}',
+        severity INT NOT NULL DEFAULT 3 CHECK (severity BETWEEN 1 AND 5),
+        headline TEXT NOT NULL,
+        body TEXT NOT NULL,
+        driver_event_ids INT[] NULL,
+        cooldown_key TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+    """
+    
+    create_user_alert_deliveries_table = """
+    CREATE TABLE IF NOT EXISTS user_alert_deliveries (
+        id SERIAL PRIMARY KEY,
+        user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        alert_event_id INT NOT NULL REFERENCES alert_events(id) ON DELETE CASCADE,
+        channel TEXT NOT NULL CHECK (channel IN ('email','telegram','sms','account')),
+        status TEXT NOT NULL CHECK (status IN ('queued','sent','skipped','failed')),
+        reason TEXT NULL,
+        provider_message_id TEXT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        sent_at TIMESTAMP NULL
+    );
+    """
+    
+    create_alert_v2_indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_alert_events_created_at ON alert_events(created_at DESC);",
+        "CREATE UNIQUE INDEX IF NOT EXISTS uq_alert_events_cooldown_key ON alert_events(cooldown_key);",
+        "CREATE INDEX IF NOT EXISTS idx_user_alert_deliveries_user_time ON user_alert_deliveries(user_id, created_at DESC);",
+        "CREATE UNIQUE INDEX IF NOT EXISTS uq_user_alert_deliveries_unique ON user_alert_deliveries(user_id, alert_event_id, channel);",
+        "CREATE INDEX IF NOT EXISTS idx_user_alert_deliveries_status ON user_alert_deliveries(status);",
+        "CREATE INDEX IF NOT EXISTS idx_user_alert_deliveries_event ON user_alert_deliveries(alert_event_id);"
+    ]
+    
     with get_cursor() as cursor:
         logger.info("Creating events table...")
         cursor.execute(create_events_table)
@@ -455,6 +493,16 @@ def run_migrations():
         
         logger.info("Creating plan_settings table...")
         cursor.execute(create_plan_settings_table)
+        
+        logger.info("Creating alert_events table (v2)...")
+        cursor.execute(create_alert_events_table)
+        
+        logger.info("Creating user_alert_deliveries table (v2)...")
+        cursor.execute(create_user_alert_deliveries_table)
+        
+        logger.info("Creating alert v2 indexes...")
+        for idx_sql in create_alert_v2_indexes:
+            cursor.execute(idx_sql)
     
     seed_plan_settings()
     

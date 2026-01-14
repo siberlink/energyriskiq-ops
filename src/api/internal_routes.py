@@ -15,7 +15,9 @@ LOCK_IDS = {
     'ai': 1002,
     'risk': 1003,
     'alerts': 1004,
-    'digest': 1005
+    'digest': 1005,
+    'alerts_generate': 2001,
+    'alerts_fanout': 2002
 }
 
 
@@ -137,13 +139,24 @@ def run_risk(x_runner_token: Optional[str] = Header(None)):
 def run_alerts(x_runner_token: Optional[str] = Header(None)):
     validate_runner_token(x_runner_token)
     
-    from src.alerts.alerts_engine import run_alerts_engine
+    alerts_v2 = os.environ.get('ALERTS_V2_ENABLED', 'true').lower() == 'true'
     
-    def alerts_job():
-        alerts = run_alerts_engine(dry_run=False)
-        return {"alerts_processed": len(alerts) if alerts else 0}
-    
-    response, status_code = run_job_with_lock('alerts', alerts_job)
+    if alerts_v2:
+        from src.alerts.alerts_engine_v2 import run_alerts_engine_v2
+        
+        def alerts_job():
+            result = run_alerts_engine_v2(dry_run=False)
+            return result
+        
+        response, status_code = run_job_with_lock('alerts', alerts_job)
+    else:
+        from src.alerts.alerts_engine import run_alerts_engine
+        
+        def alerts_job():
+            alerts = run_alerts_engine(dry_run=False)
+            return {"alerts_processed": len(alerts) if alerts else 0}
+        
+        response, status_code = run_job_with_lock('alerts', alerts_job)
     
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)
