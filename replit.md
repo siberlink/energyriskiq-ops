@@ -36,6 +36,18 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Background Workers:** Ingestion, AI, Risk, and Alerts components are designed as separate workers that can be run independently or orchestrated.
 - **Concurrency:** FastAPI with uvicorn for the API server, enabling asynchronous operations.
 - **Production Safety (Alerts v2):** Advisory locks prevent concurrent phase execution, `event_fingerprint` unique constraint prevents duplicate alerts, `fanout_completed_at` ensures idempotent fanout, and `FOR UPDATE SKIP LOCKED` prevents delivery races.
+- **Retry & Backoff (Alerts v2):** Exponential backoff with jitter for transient failures, max attempts enforcement, failure classification (transient vs permanent), and channel config validation (skips gracefully when secrets missing).
+
+## Environment Variables (Alerts v2)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ALERTS_MAX_ATTEMPTS` | 5 | Max delivery attempts before permanent failure |
+| `ALERTS_RETRY_BASE_SECONDS` | 60 | Base delay for exponential backoff |
+| `ALERTS_RETRY_MAX_SECONDS` | 3600 | Maximum retry delay cap |
+| `ALERTS_RATE_LIMIT_EMAIL_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
+| `ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
+| `ALERTS_RATE_LIMIT_SMS_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
 
 ## External Dependencies
 
