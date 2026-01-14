@@ -17,7 +17,30 @@ from src.plans.plan_helpers import get_plan_settings, get_allowed_alert_types
 logger = logging.getLogger(__name__)
 
 ALERTS_V2_ENABLED = os.environ.get('ALERTS_V2_ENABLED', 'true').lower() == 'true'
+ALERTS_SEND_ALLOWLIST_USER_IDS = os.environ.get('ALERTS_SEND_ALLOWLIST_USER_IDS', '').strip()
+ALERTS_MAX_SEND_PER_RUN = int(os.environ.get('ALERTS_MAX_SEND_PER_RUN', '1000'))
 DEFAULT_THRESHOLD = 70
+
+
+def get_allowlisted_user_ids() -> Optional[set]:
+    """
+    Parse allowlist from environment variable.
+    Returns None if no allowlist is configured (normal operation).
+    Returns set of user IDs if allowlist is configured.
+    """
+    if not ALERTS_SEND_ALLOWLIST_USER_IDS:
+        return None
+    
+    try:
+        ids = {int(uid.strip()) for uid in ALERTS_SEND_ALLOWLIST_USER_IDS.split(',') if uid.strip()}
+        if ids:
+            logger.info(f"Allowlist active: restricting to user IDs {ids}")
+            return ids
+    except ValueError as e:
+        logger.warning(f"Invalid ALERTS_SEND_ALLOWLIST_USER_IDS format: {e}")
+    return None
+
+
 HIGH_IMPACT_REGIONS = ['Europe', 'Middle East', 'Black Sea']
 HIGH_IMPACT_CATEGORIES = ['energy', 'geopolitical']
 HIGH_SEVERITY_KEYWORDS = [
@@ -521,6 +544,7 @@ def fanout_alert_events_to_users() -> Dict:
     - User preferences (channel enablement)
     - delivery_kind determination (instant vs digest)
     - Idempotency via unique constraint
+    - User allowlist filtering (if ALERTS_SEND_ALLOWLIST_USER_IDS is set)
     
     Returns structured counts for monitoring.
     """
@@ -533,6 +557,8 @@ def fanout_alert_events_to_users() -> Dict:
     
     logger.info("Phase B: Fanout alert events to eligible users...")
     
+    allowlist = get_allowlisted_user_ids()
+    
     alert_events = get_unsent_alert_events(lookback_hours=24)
     if not alert_events:
         logger.info("No recent alert events to fan out")
@@ -542,10 +568,17 @@ def fanout_alert_events_to_users() -> Dict:
             'deliveries_created': 0,
             'deliveries_skipped_quota': 0,
             'deliveries_skipped_prefs': 0,
-            'deliveries_skipped_missing_dest': 0
+            'deliveries_skipped_missing_dest': 0,
+            'allowlist_active': allowlist is not None
         }
     
     users = get_eligible_users()
+    
+    if allowlist:
+        original_count = len(users) if users else 0
+        users = [u for u in users if u['id'] in allowlist] if users else []
+        logger.info(f"Allowlist filter: {original_count} -> {len(users)} users")
+    
     if not users:
         logger.info("No eligible users found")
         return {
@@ -639,14 +672,15 @@ def fanout_alert_events_to_users() -> Dict:
         'deliveries_created': deliveries_created,
         'deliveries_skipped_quota': skipped_quota,
         'deliveries_skipped_prefs': skipped_prefs,
-        'deliveries_skipped_missing_dest': skipped_missing_dest
+        'deliveries_skipped_missing_dest': skipped_missing_dest,
+        'allowlist_active': allowlist is not None
     }
     
     logger.info(f"Phase B complete: {deliveries_created} created, skipped: quota={skipped_quota}, prefs={skipped_prefs}, missing={skipped_missing_dest}")
     return result
 
 
-def send_queued_deliveries(batch_size: int = 100) -> Dict:
+def send_queued_deliveries(batch_size: int = 100, max_per_run: int = None) -> Dict:
     """
     Phase C: Send queued deliveries with retry logic and channel safeguards.
     
@@ -660,6 +694,8 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
     - Channel config validation (skip if not configured)
     - Max attempts enforcement
     - Continues processing after individual failures
+    - User allowlist filtering (if ALERTS_SEND_ALLOWLIST_USER_IDS is set)
+    - Max per run circuit breaker (ALERTS_MAX_SEND_PER_RUN)
     
     Returns structured counts for monitoring.
     """
@@ -670,7 +706,12 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
     )
     from datetime import timedelta
     
-    logger.info(f"Phase C: Sending queued deliveries (batch_size={batch_size})...")
+    if max_per_run is None:
+        max_per_run = ALERTS_MAX_SEND_PER_RUN
+    
+    allowlist = get_allowlisted_user_ids()
+    
+    logger.info(f"Phase C: Sending queued deliveries (batch_size={batch_size}, max_per_run={max_per_run})...")
     
     counts = {
         'queued_selected': 0,
@@ -678,12 +719,19 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
         'failed': 0,
         'retried': 0,
         'skipped_not_configured': 0,
-        'skipped_missing_destination': 0
+        'skipped_missing_destination': 0,
+        'stopped_early': False,
+        'allowlist_active': allowlist is not None
     }
     
+    allowlist_clause = ""
+    params = [batch_size]
+    if allowlist:
+        allowlist_clause = "AND d.user_id = ANY(%s)"
+        params = [list(allowlist), batch_size]
+    
     with get_cursor() as cursor:
-        cursor.execute(
-            """
+        query = f"""
             SELECT d.id, d.user_id, d.alert_event_id, d.channel, d.attempts,
                    ae.headline, ae.body, ae.alert_type,
                    u.email, u.telegram_chat_id, u.phone_number,
@@ -695,12 +743,15 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
             WHERE d.status = 'queued'
               AND d.delivery_kind = 'instant'
               AND (d.next_retry_at IS NULL OR d.next_retry_at <= NOW())
+              {allowlist_clause}
             ORDER BY d.created_at ASC
             LIMIT %s
             FOR UPDATE OF d SKIP LOCKED
-            """,
-            (batch_size,)
-        )
+        """
+        if allowlist:
+            cursor.execute(query, (list(allowlist), batch_size))
+        else:
+            cursor.execute(query, (batch_size,))
         deliveries = cursor.fetchall()
         
         if not deliveries:
@@ -720,7 +771,14 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
             (delivery_ids,)
         )
     
+    total_sent_this_run = 0
+    
     for d in deliveries:
+        if total_sent_this_run >= max_per_run:
+            logger.warning(f"Max per run limit reached ({max_per_run}), stopping early")
+            counts['stopped_early'] = True
+            break
+        
         delivery_id = d['id']
         channel = d['channel']
         headline = d['headline']
@@ -742,6 +800,7 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
             elif channel == 'account':
                 _mark_delivery_sent(delivery_id, None)
                 counts['sent'] += 1
+                total_sent_this_run += 1
                 continue
             else:
                 logger.warning(f"Unknown channel '{channel}' for delivery {delivery_id}")
@@ -751,6 +810,7 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
             if result.success:
                 _mark_delivery_sent(delivery_id, result.message_id)
                 counts['sent'] += 1
+                total_sent_this_run += 1
             
             elif result.should_skip:
                 if result.skip_reason == 'channel_not_configured':
@@ -847,7 +907,7 @@ def _mark_delivery_skipped(delivery_id: int, reason: str):
         )
 
 
-def send_queued_digests(batch_size: int = 50) -> Dict:
+def send_queued_digests(batch_size: int = 50, max_per_run: int = None) -> Dict:
     """
     Phase C (part 2): Send queued digests with retry logic and channel safeguards.
     
@@ -857,6 +917,8 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
     - Channel config validation (skip if not configured)
     - Max attempts enforcement
     - Aggregates multiple events into single message
+    - User allowlist filtering (if ALERTS_SEND_ALLOWLIST_USER_IDS is set)
+    - Max per run circuit breaker (ALERTS_MAX_SEND_PER_RUN)
     
     Returns structured counts for monitoring.
     """
@@ -869,7 +931,12 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
         get_digest_events, format_email_digest, format_telegram_digest
     )
     
-    logger.info(f"Phase C (Digests): Sending queued digests (batch_size={batch_size})...")
+    if max_per_run is None:
+        max_per_run = ALERTS_MAX_SEND_PER_RUN
+    
+    allowlist = get_allowlisted_user_ids()
+    
+    logger.info(f"Phase C (Digests): Sending queued digests (batch_size={batch_size}, max_per_run={max_per_run})...")
     
     counts = {
         'digests_selected': 0,
@@ -878,12 +945,17 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
         'digests_retried': 0,
         'digests_skipped_empty': 0,
         'digests_skipped_not_configured': 0,
-        'digests_skipped_missing_destination': 0
+        'digests_skipped_missing_destination': 0,
+        'stopped_early': False,
+        'allowlist_active': allowlist is not None
     }
     
+    allowlist_clause = ""
+    if allowlist:
+        allowlist_clause = "AND d.user_id = ANY(%s)"
+    
     with get_cursor() as cursor:
-        cursor.execute(
-            """
+        query = f"""
             SELECT d.id, d.user_id, d.channel, d.period, d.window_start, d.window_end,
                    d.attempts, d.digest_key,
                    u.email, u.telegram_chat_id
@@ -891,12 +963,15 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
             JOIN users u ON u.id = d.user_id
             WHERE d.status = 'queued'
               AND (d.next_retry_at IS NULL OR d.next_retry_at <= NOW())
+              {allowlist_clause}
             ORDER BY d.created_at ASC
             LIMIT %s
             FOR UPDATE OF d SKIP LOCKED
-            """,
-            (batch_size,)
-        )
+        """
+        if allowlist:
+            cursor.execute(query, (list(allowlist), batch_size))
+        else:
+            cursor.execute(query, (batch_size,))
         digests = cursor.fetchall()
         
         if not digests:
@@ -916,7 +991,14 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
             (digest_ids,)
         )
     
+    total_sent_this_run = 0
+    
     for d in digests:
+        if total_sent_this_run >= max_per_run:
+            logger.warning(f"Max per run limit reached ({max_per_run}), stopping early")
+            counts['stopped_early'] = True
+            break
+        
         digest_id = d['id']
         channel = d['channel']
         window_start = d['window_start']
@@ -958,6 +1040,7 @@ def send_queued_digests(batch_size: int = 50) -> Dict:
             if result.success:
                 _mark_digest_sent(digest_id, result.message_id)
                 counts['digests_sent'] += 1
+                total_sent_this_run += 1
             
             elif result.should_skip:
                 if result.skip_reason == 'channel_not_configured':
