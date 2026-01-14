@@ -448,17 +448,18 @@ def create_delivery(
     alert_event_id: int,
     channel: str,
     status: str,
-    reason: Optional[str] = None
+    reason: Optional[str] = None,
+    delivery_kind: str = 'instant'
 ) -> Optional[int]:
     try:
         with get_cursor() as cursor:
             cursor.execute(
                 """INSERT INTO user_alert_deliveries
-                   (user_id, alert_event_id, channel, status, reason)
-                   VALUES (%s, %s, %s, %s, %s)
+                   (user_id, alert_event_id, channel, status, reason, delivery_kind)
+                   VALUES (%s, %s, %s, %s, %s, %s)
                    ON CONFLICT (user_id, alert_event_id, channel) DO NOTHING
                    RETURNING id""",
-                (user_id, alert_event_id, channel, status, reason)
+                (user_id, alert_event_id, channel, status, reason, delivery_kind)
             )
             result = cursor.fetchone()
             return result['id'] if result else None
@@ -512,22 +513,57 @@ def mark_fanout_completed(alert_event_id: int):
 
 
 def fanout_alert_events_to_users() -> Dict:
+    """
+    Phase B: Fanout alert events to eligible users.
+    
+    Enforces:
+    - Plan quotas (instant vs digest limits)
+    - User preferences (channel enablement)
+    - delivery_kind determination (instant vs digest)
+    - Idempotency via unique constraint
+    
+    Returns structured counts for monitoring.
+    """
+    from src.alerts.quota_helpers import (
+        check_delivery_eligibility,
+        determine_delivery_kind,
+        get_user_alert_prefs,
+        get_plan_quotas
+    )
+    
     logger.info("Phase B: Fanout alert events to eligible users...")
     
     alert_events = get_unsent_alert_events(lookback_hours=24)
     if not alert_events:
         logger.info("No recent alert events to fan out")
-        return {'processed': 0, 'deliveries_created': 0}
+        return {
+            'events_processed': 0,
+            'users_considered': 0,
+            'deliveries_created': 0,
+            'deliveries_skipped_quota': 0,
+            'deliveries_skipped_prefs': 0,
+            'deliveries_skipped_missing_dest': 0
+        }
     
     users = get_eligible_users()
     if not users:
         logger.info("No eligible users found")
-        return {'processed': len(alert_events), 'deliveries_created': 0}
+        return {
+            'events_processed': len(alert_events),
+            'users_considered': 0,
+            'deliveries_created': 0,
+            'deliveries_skipped_quota': 0,
+            'deliveries_skipped_prefs': 0,
+            'deliveries_skipped_missing_dest': 0
+        }
     
     logger.info(f"Processing {len(alert_events)} alert events for {len(users)} users")
     
     deliveries_created = 0
-    skipped = 0
+    skipped_quota = 0
+    skipped_prefs = 0
+    skipped_missing_dest = 0
+    users_considered = 0
     
     for ae in alert_events:
         alert_event_id = ae['id']
@@ -538,17 +574,14 @@ def fanout_alert_events_to_users() -> Dict:
         for user in users:
             user_id = user['id']
             plan = user['plan'] or 'free'
+            users_considered += 1
             
             try:
                 plan_settings = get_plan_settings(plan)
                 allowed_types = get_allowed_alert_types(plan)
-                delivery_config = plan_settings.get('delivery_config', {})
-                max_email = plan_settings.get('max_email_alerts_per_day', 2)
             except Exception:
                 plan_settings = get_plan_settings('free')
                 allowed_types = get_allowed_alert_types('free')
-                delivery_config = plan_settings.get('delivery_config', {})
-                max_email = 2
             
             if alert_type not in allowed_types:
                 continue
@@ -566,88 +599,89 @@ def fanout_alert_events_to_users() -> Dict:
             if alert_type not in user_enabled_types:
                 continue
             
-            account_id = create_delivery(user_id, alert_event_id, 'account', 'sent')
+            user_prefs = get_user_alert_prefs(user_id)
+            delivery_kind = determine_delivery_kind(user_prefs, plan)
+            
+            account_id = create_delivery(user_id, alert_event_id, 'account', 'sent', delivery_kind=delivery_kind)
             if account_id:
                 deliveries_created += 1
             
-            email_config = delivery_config.get('email', {})
-            if isinstance(email_config, dict):
-                email_enabled = email_config.get('mode') in ['limited', 'unlimited']
-                email_max = email_config.get('max_per_day', max_email)
-            else:
-                email_enabled = True
-                email_max = max_email
-            
-            if email_enabled and user.get('email'):
-                if check_delivery_cooldown(user_id, alert_event_id, 'email'):
-                    pass
-                elif count_deliveries_today(user_id, 'email') >= email_max:
-                    create_delivery(user_id, alert_event_id, 'email', 'skipped', 'quota_exceeded')
-                    skipped += 1
-                else:
-                    d_id = create_delivery(user_id, alert_event_id, 'email', 'queued')
-                    if d_id:
-                        deliveries_created += 1
-            
-            telegram_config = delivery_config.get('telegram', {})
-            if isinstance(telegram_config, dict):
-                telegram_enabled = telegram_config.get('enabled', False)
-            else:
-                telegram_enabled = bool(telegram_config)
-            
-            if telegram_enabled and user.get('telegram_chat_id'):
-                if check_delivery_cooldown(user_id, alert_event_id, 'telegram'):
-                    pass
-                elif count_deliveries_today(user_id, 'telegram') >= email_max:
-                    create_delivery(user_id, alert_event_id, 'telegram', 'skipped', 'quota_exceeded')
-                    skipped += 1
-                else:
-                    d_id = create_delivery(user_id, alert_event_id, 'telegram', 'queued')
-                    if d_id:
-                        deliveries_created += 1
-            
-            sms_config = delivery_config.get('sms', {})
-            if isinstance(sms_config, dict):
-                sms_enabled = sms_config.get('enabled', False)
-            else:
-                sms_enabled = bool(sms_config)
-            
-            if sms_enabled and user.get('phone_number'):
-                if not check_delivery_cooldown(user_id, alert_event_id, 'sms'):
-                    d_id = create_delivery(user_id, alert_event_id, 'sms', 'queued')
-                    if d_id:
-                        deliveries_created += 1
+            for channel in ['email', 'telegram', 'sms']:
+                eligibility = check_delivery_eligibility(
+                    user_id=user_id,
+                    user=user,
+                    channel=channel,
+                    plan=plan,
+                    alert_event_id=alert_event_id
+                )
+                
+                if not eligibility.eligible:
+                    if eligibility.skip_reason == 'missing_destination':
+                        skipped_missing_dest += 1
+                    elif eligibility.skip_reason in ('channel_disabled_by_user', 'sms_not_in_plan'):
+                        skipped_prefs += 1
+                    elif eligibility.skip_reason in ('quota_exceeded', 'plan_digest_only', 'channel_not_allowed'):
+                        skipped_quota += 1
+                    continue
+                
+                d_id = create_delivery(
+                    user_id, alert_event_id, channel, 'queued',
+                    delivery_kind=eligibility.delivery_kind
+                )
+                if d_id:
+                    deliveries_created += 1
         
         mark_fanout_completed(alert_event_id)
     
     result = {
-        'processed': len(alert_events),
-        'users_checked': len(users),
+        'events_processed': len(alert_events),
+        'users_considered': users_considered,
         'deliveries_created': deliveries_created,
-        'skipped': skipped
+        'deliveries_skipped_quota': skipped_quota,
+        'deliveries_skipped_prefs': skipped_prefs,
+        'deliveries_skipped_missing_dest': skipped_missing_dest
     }
     
-    logger.info(f"Phase B complete: {deliveries_created} deliveries created, {skipped} skipped")
+    logger.info(f"Phase B complete: {deliveries_created} created, skipped: quota={skipped_quota}, prefs={skipped_prefs}, missing={skipped_missing_dest}")
     return result
 
 
 def send_queued_deliveries(batch_size: int = 100) -> Dict:
     """
-    Phase C: Send queued deliveries with race prevention.
+    Phase C: Send queued deliveries with retry logic and channel safeguards.
     
-    Uses FOR UPDATE SKIP LOCKED to prevent concurrent sends of the same delivery.
-    Sets status='sending' before sending, then updates to 'sent' or 'failed'.
+    Features:
+    - FOR UPDATE SKIP LOCKED to prevent concurrent sends
+    - Exponential backoff with jitter for retries
+    - Failure classification (transient vs permanent)
+    - Channel config validation (skip if not configured)
+    - Max attempts enforcement
+    - Continues processing after individual failures
+    
+    Returns structured counts for monitoring.
     """
-    logger.info("Phase C: Sending queued deliveries...")
+    from src.alerts.channel_adapters import (
+        send_email_v2, send_telegram_v2, send_sms_v2,
+        classify_failure, compute_next_retry_delay, should_retry,
+        FailureType, ALERTS_MAX_ATTEMPTS
+    )
+    from datetime import timedelta
     
-    sent = 0
-    failed = 0
-    locked_skipped = 0
+    logger.info(f"Phase C: Sending queued deliveries (batch_size={batch_size})...")
+    
+    counts = {
+        'queued_selected': 0,
+        'sent': 0,
+        'failed': 0,
+        'retried': 0,
+        'skipped_not_configured': 0,
+        'skipped_missing_destination': 0
+    }
     
     with get_cursor() as cursor:
         cursor.execute(
             """
-            SELECT d.id, d.user_id, d.alert_event_id, d.channel,
+            SELECT d.id, d.user_id, d.alert_event_id, d.channel, d.attempts,
                    ae.headline, ae.body, ae.alert_type,
                    u.email, u.telegram_chat_id, u.phone_number,
                    COALESCE(up.plan, 'free') as plan
@@ -667,15 +701,16 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
         
         if not deliveries:
             logger.info("No queued deliveries to send (all locked or none available)")
-            return {'sent': 0, 'failed': 0, 'locked_skipped': 0}
+            return counts
         
+        counts['queued_selected'] = len(deliveries)
         logger.info(f"Acquired lock on {len(deliveries)} deliveries for sending")
         
         delivery_ids = [d['id'] for d in deliveries]
         cursor.execute(
             """
             UPDATE user_alert_deliveries 
-            SET status = 'sending', attempts = attempts + 1
+            SET status = 'sending', attempts = COALESCE(attempts, 0) + 1
             WHERE id = ANY(%s)
             """,
             (delivery_ids,)
@@ -687,55 +722,88 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
         headline = d['headline']
         body = d['body']
         plan = d['plan']
+        attempts = (d['attempts'] or 0) + 1
         
         if plan == 'free':
             body = add_upgrade_hook_if_free(body, plan)
         
         try:
             if channel == 'email':
-                success, error, msg_id = send_email(d['email'], headline, body)
-                if success:
-                    update_delivery_status(delivery_id, 'sent', msg_id)
-                    sent += 1
-                else:
-                    _mark_delivery_failed(delivery_id, error)
-                    failed += 1
-            
+                result = send_email_v2(d['email'], headline, body, delivery_id)
             elif channel == 'telegram':
-                success, error = send_telegram(d['telegram_chat_id'], body)
-                if success:
-                    update_delivery_status(delivery_id, 'sent')
-                    sent += 1
-                else:
-                    _mark_delivery_failed(delivery_id, error)
-                    failed += 1
-            
+                result = send_telegram_v2(d['telegram_chat_id'], body, delivery_id)
             elif channel == 'sms':
                 sms_message = f"{headline}\n{body[:500]}"
-                success, error = send_sms(d['phone_number'], sms_message)
-                if success:
-                    update_delivery_status(delivery_id, 'sent')
-                    sent += 1
-                else:
-                    _mark_delivery_failed(delivery_id, error)
-                    failed += 1
-            
+                result = send_sms_v2(d['phone_number'], sms_message, delivery_id)
             elif channel == 'account':
-                update_delivery_status(delivery_id, 'sent')
-                sent += 1
+                _mark_delivery_sent(delivery_id, None)
+                counts['sent'] += 1
+                continue
+            else:
+                logger.warning(f"Unknown channel '{channel}' for delivery {delivery_id}")
+                _mark_delivery_skipped(delivery_id, f"unknown_channel:{channel}")
+                continue
+            
+            if result.success:
+                _mark_delivery_sent(delivery_id, result.message_id)
+                counts['sent'] += 1
+            
+            elif result.should_skip:
+                if result.skip_reason == 'channel_not_configured':
+                    counts['skipped_not_configured'] += 1
+                elif result.skip_reason in ('missing_destination', 'invalid_destination'):
+                    counts['skipped_missing_destination'] += 1
+                _mark_delivery_skipped(delivery_id, result.skip_reason or result.error)
+            
+            else:
+                failure_type = result.failure_type or FailureType.TRANSIENT
+                
+                if should_retry(attempts, failure_type):
+                    delay = compute_next_retry_delay(attempts)
+                    _mark_delivery_retry(delivery_id, result.error, delay)
+                    counts['retried'] += 1
+                    logger.info(f"Delivery {delivery_id} scheduled for retry in {delay}s (attempt {attempts})")
+                else:
+                    _mark_delivery_failed(delivery_id, result.error, permanent=True)
+                    counts['failed'] += 1
+                    if failure_type == FailureType.PERMANENT:
+                        logger.warning(f"Delivery {delivery_id} failed permanently: {result.error}")
+                    else:
+                        logger.warning(f"Delivery {delivery_id} failed after max attempts ({ALERTS_MAX_ATTEMPTS})")
         
         except Exception as e:
-            logger.error(f"Error sending delivery {delivery_id}: {e}")
-            _mark_delivery_failed(delivery_id, str(e))
-            failed += 1
+            logger.error(f"Unexpected error sending delivery {delivery_id}: {e}")
+            failure_type = classify_failure(str(e))
+            
+            if should_retry(attempts, failure_type):
+                delay = compute_next_retry_delay(attempts)
+                _mark_delivery_retry(delivery_id, str(e), delay)
+                counts['retried'] += 1
+            else:
+                _mark_delivery_failed(delivery_id, str(e), permanent=True)
+                counts['failed'] += 1
     
-    result = {'sent': sent, 'failed': failed, 'locked_skipped': locked_skipped}
-    logger.info(f"Phase C complete: {sent} sent, {failed} failed")
-    return result
+    logger.info(f"Phase C complete: sent={counts['sent']}, failed={counts['failed']}, "
+                f"retried={counts['retried']}, skipped_config={counts['skipped_not_configured']}, "
+                f"skipped_dest={counts['skipped_missing_destination']}")
+    return counts
 
 
-def _mark_delivery_failed(delivery_id: int, error: str):
-    """Mark a delivery as failed and set last_error."""
+def _mark_delivery_sent(delivery_id: int, message_id: Optional[str]):
+    """Mark a delivery as successfully sent."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_deliveries 
+            SET status = 'sent', sent_at = NOW(), provider_message_id = %s, last_error = NULL
+            WHERE id = %s
+            """,
+            (message_id, delivery_id)
+        )
+
+
+def _mark_delivery_failed(delivery_id: int, error: str, permanent: bool = False):
+    """Mark a delivery as failed (permanently)."""
     with get_cursor() as cursor:
         cursor.execute(
             """
@@ -744,6 +812,34 @@ def _mark_delivery_failed(delivery_id: int, error: str):
             WHERE id = %s
             """,
             (error, delivery_id)
+        )
+
+
+def _mark_delivery_retry(delivery_id: int, error: str, delay_seconds: int):
+    """Mark a delivery for retry with backoff delay."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_deliveries 
+            SET status = 'queued', 
+                last_error = %s, 
+                next_retry_at = NOW() + make_interval(secs => %s)
+            WHERE id = %s
+            """,
+            (error, delay_seconds, delivery_id)
+        )
+
+
+def _mark_delivery_skipped(delivery_id: int, reason: str):
+    """Mark a delivery as skipped (terminal, no retry)."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_deliveries 
+            SET status = 'skipped', last_error = %s
+            WHERE id = %s
+            """,
+            (reason, delivery_id)
         )
 
 
