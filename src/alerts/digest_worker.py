@@ -279,16 +279,20 @@ def fanout_digest_to_users(alert_event_id: int, users: List[Dict]) -> Dict:
         user_id = user['id']
         email = user['email']
         
-        account_id = create_delivery(user_id, alert_event_id, 'account', 'sent')
+        if check_delivery_cooldown(user_id, alert_event_id, 'account'):
+            logger.debug(f"User {user_id} already has account delivery for alert event {alert_event_id}")
+            skipped += 1
+            continue
+        
+        create_delivery(user_id, alert_event_id, 'account', 'sent')
         
         if check_delivery_cooldown(user_id, alert_event_id, 'email'):
-            skipped += 1
+            logger.debug(f"User {user_id} already has email delivery for alert event {alert_event_id}")
             continue
         
         delivery_id = create_delivery(user_id, alert_event_id, 'email', 'queued')
         
         if not delivery_id:
-            skipped += 1
             continue
         
         success, error, msg_id = send_email(email, alert_event['headline'], alert_event['body'])
