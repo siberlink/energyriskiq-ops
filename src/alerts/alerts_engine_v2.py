@@ -650,6 +650,9 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
     """
     Phase C: Send queued deliveries with retry logic and channel safeguards.
     
+    IMPORTANT: Only processes instant deliveries (delivery_kind='instant').
+    Digest deliveries are handled by send_queued_digests().
+    
     Features:
     - FOR UPDATE SKIP LOCKED to prevent concurrent sends
     - Exponential backoff with jitter for retries
@@ -690,6 +693,7 @@ def send_queued_deliveries(batch_size: int = 100) -> Dict:
             JOIN users u ON u.id = d.user_id
             LEFT JOIN user_plans up ON up.user_id = u.id
             WHERE d.status = 'queued'
+              AND d.delivery_kind = 'instant'
               AND (d.next_retry_at IS NULL OR d.next_retry_at <= NOW())
             ORDER BY d.created_at ASC
             LIMIT %s
@@ -843,6 +847,209 @@ def _mark_delivery_skipped(delivery_id: int, reason: str):
         )
 
 
+def send_queued_digests(batch_size: int = 50) -> Dict:
+    """
+    Phase C (part 2): Send queued digests with retry logic and channel safeguards.
+    
+    Features:
+    - FOR UPDATE SKIP LOCKED to prevent concurrent digest sends
+    - Exponential backoff with jitter for retries
+    - Channel config validation (skip if not configured)
+    - Max attempts enforcement
+    - Aggregates multiple events into single message
+    
+    Returns structured counts for monitoring.
+    """
+    from src.alerts.channel_adapters import (
+        send_email_v2, send_telegram_v2,
+        classify_failure, compute_next_retry_delay, should_retry,
+        FailureType, ALERTS_MAX_ATTEMPTS
+    )
+    from src.alerts.digest_builder import (
+        get_digest_events, format_email_digest, format_telegram_digest
+    )
+    
+    logger.info(f"Phase C (Digests): Sending queued digests (batch_size={batch_size})...")
+    
+    counts = {
+        'digests_selected': 0,
+        'digests_sent': 0,
+        'digests_failed': 0,
+        'digests_retried': 0,
+        'digests_skipped_empty': 0,
+        'digests_skipped_not_configured': 0,
+        'digests_skipped_missing_destination': 0
+    }
+    
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT d.id, d.user_id, d.channel, d.period, d.window_start, d.window_end,
+                   d.attempts, d.digest_key,
+                   u.email, u.telegram_chat_id
+            FROM user_alert_digests d
+            JOIN users u ON u.id = d.user_id
+            WHERE d.status = 'queued'
+              AND (d.next_retry_at IS NULL OR d.next_retry_at <= NOW())
+            ORDER BY d.created_at ASC
+            LIMIT %s
+            FOR UPDATE OF d SKIP LOCKED
+            """,
+            (batch_size,)
+        )
+        digests = cursor.fetchall()
+        
+        if not digests:
+            logger.info("No queued digests to send")
+            return counts
+        
+        counts['digests_selected'] = len(digests)
+        logger.info(f"Acquired lock on {len(digests)} digests for sending")
+        
+        digest_ids = [d['id'] for d in digests]
+        cursor.execute(
+            """
+            UPDATE user_alert_digests 
+            SET status = 'sending', attempts = COALESCE(attempts, 0) + 1
+            WHERE id = ANY(%s)
+            """,
+            (digest_ids,)
+        )
+    
+    for d in digests:
+        digest_id = d['id']
+        channel = d['channel']
+        window_start = d['window_start']
+        window_end = d['window_end']
+        attempts = (d['attempts'] or 0) + 1
+        
+        events = get_digest_events(digest_id)
+        
+        if not events:
+            logger.info(f"Digest {digest_id} has no events, marking as skipped")
+            _mark_digest_skipped(digest_id, "no_events")
+            counts['digests_skipped_empty'] += 1
+            continue
+        
+        try:
+            if channel == 'email':
+                if not d['email']:
+                    _mark_digest_skipped(digest_id, "missing_destination")
+                    counts['digests_skipped_missing_destination'] += 1
+                    continue
+                
+                subject, body = format_email_digest(events, window_start, window_end)
+                result = send_email_v2(d['email'], subject, body, f"digest_{digest_id}")
+            
+            elif channel == 'telegram':
+                if not d['telegram_chat_id']:
+                    _mark_digest_skipped(digest_id, "missing_destination")
+                    counts['digests_skipped_missing_destination'] += 1
+                    continue
+                
+                body = format_telegram_digest(events, window_start, window_end)
+                result = send_telegram_v2(d['telegram_chat_id'], body, f"digest_{digest_id}")
+            
+            else:
+                logger.warning(f"Unsupported digest channel '{channel}' for digest {digest_id}")
+                _mark_digest_skipped(digest_id, f"unsupported_channel:{channel}")
+                continue
+            
+            if result.success:
+                _mark_digest_sent(digest_id, result.message_id)
+                counts['digests_sent'] += 1
+            
+            elif result.should_skip:
+                if result.skip_reason == 'channel_not_configured':
+                    counts['digests_skipped_not_configured'] += 1
+                elif result.skip_reason in ('missing_destination', 'invalid_destination'):
+                    counts['digests_skipped_missing_destination'] += 1
+                _mark_digest_skipped(digest_id, result.skip_reason or result.error)
+            
+            else:
+                failure_type = result.failure_type or FailureType.TRANSIENT
+                
+                if should_retry(attempts, failure_type):
+                    delay = compute_next_retry_delay(attempts)
+                    _mark_digest_retry(digest_id, result.error, delay)
+                    counts['digests_retried'] += 1
+                    logger.info(f"Digest {digest_id} scheduled for retry in {delay}s (attempt {attempts})")
+                else:
+                    _mark_digest_failed(digest_id, result.error)
+                    counts['digests_failed'] += 1
+        
+        except Exception as e:
+            logger.error(f"Unexpected error sending digest {digest_id}: {e}")
+            failure_type = classify_failure(str(e))
+            
+            if should_retry(attempts, failure_type):
+                delay = compute_next_retry_delay(attempts)
+                _mark_digest_retry(digest_id, str(e), delay)
+                counts['digests_retried'] += 1
+            else:
+                _mark_digest_failed(digest_id, str(e))
+                counts['digests_failed'] += 1
+    
+    logger.info(f"Phase C (Digests) complete: sent={counts['digests_sent']}, "
+                f"failed={counts['digests_failed']}, retried={counts['digests_retried']}, "
+                f"empty={counts['digests_skipped_empty']}")
+    return counts
+
+
+def _mark_digest_sent(digest_id: int, message_id: Optional[str]):
+    """Mark a digest as successfully sent."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_digests 
+            SET status = 'sent', sent_at = NOW(), last_error = NULL
+            WHERE id = %s
+            """,
+            (digest_id,)
+        )
+
+
+def _mark_digest_failed(digest_id: int, error: str):
+    """Mark a digest as failed (permanently)."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_digests 
+            SET status = 'failed', last_error = %s
+            WHERE id = %s
+            """,
+            (error, digest_id)
+        )
+
+
+def _mark_digest_retry(digest_id: int, error: str, delay_seconds: int):
+    """Mark a digest for retry with backoff delay."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_digests 
+            SET status = 'queued', 
+                last_error = %s, 
+                next_retry_at = NOW() + make_interval(secs => %s)
+            WHERE id = %s
+            """,
+            (error, delay_seconds, digest_id)
+        )
+
+
+def _mark_digest_skipped(digest_id: int, reason: str):
+    """Mark a digest as skipped (terminal, no retry)."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_digests 
+            SET status = 'skipped', last_error = %s
+            WHERE id = %s
+            """,
+            (reason, digest_id)
+        )
+
+
 def run_alerts_engine_v2(dry_run: bool = False) -> Dict:
     logger.info("=" * 60)
     logger.info("Starting EnergyRiskIQ Alerts Engine v2 (Global + Fanout)")
@@ -852,21 +1059,27 @@ def run_alerts_engine_v2(dry_run: bool = False) -> Dict:
     
     if dry_run:
         logger.info("Dry run mode - no database changes")
-        return {'dry_run': True, 'phase_a': {}, 'phase_b': {}, 'phase_c': {}}
+        return {'dry_run': True, 'phase_a': {}, 'phase_b': {}, 'phase_c': {}, 'phase_d': {}}
     
     phase_a_result = generate_global_alert_events()
     
     phase_b_result = fanout_alert_events_to_users()
     
+    from src.alerts.digest_builder import build_digests
+    phase_d_result = build_digests()
+    
     phase_c_result = send_queued_deliveries()
+    digest_result = send_queued_digests()
+    phase_c_result['digests'] = digest_result
     
     result = {
         'phase_a': phase_a_result,
         'phase_b': phase_b_result,
+        'phase_d': phase_d_result,
         'phase_c': phase_c_result,
         'total_events_created': phase_a_result.get('total', 0),
         'total_deliveries': phase_b_result.get('deliveries_created', 0),
-        'total_sent': phase_c_result.get('sent', 0)
+        'total_sent': phase_c_result.get('sent', 0) + digest_result.get('digests_sent', 0)
     }
     
     logger.info("=" * 60)

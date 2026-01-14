@@ -8,12 +8,17 @@ Usage:
     python -m src.alerts.runner --phase a
     python -m src.alerts.runner --phase b
     python -m src.alerts.runner --phase c
+    python -m src.alerts.runner --phase d
     python -m src.alerts.runner --phase all
     python -m src.alerts.runner --phase all --dry-run
+
+Phase Execution Order (for --phase all):
+    A (Generate Events) → B (Fanout) → D (Build Digests) → C (Send)
 
 Safety Features:
 - Advisory locks per phase prevent concurrent execution
 - If lock cannot be acquired, phase returns skip (exit 0)
+- Digest batching is idempotent via unique digest_key constraint
 """
 
 import argparse
@@ -37,6 +42,7 @@ LOCK_KEYS = {
     'a': 'alerts_v2_phase_a',
     'b': 'alerts_v2_phase_b',
     'c': 'alerts_v2_phase_c',
+    'd': 'alerts_v2_phase_d',
 }
 
 
@@ -172,14 +178,17 @@ def run_phase_b(now: datetime, since_hours: int = 24, dry_run: bool = False) -> 
 
 def run_phase_c(now: datetime, batch_size: int = 200, dry_run: bool = False) -> Dict:
     """
-    Phase C: Send queued deliveries.
+    Phase C: Send queued deliveries and digests.
     
-    Processes user_alert_deliveries with status='queued'
-    and sends via appropriate channel (email, telegram, sms).
+    Processes:
+    1. user_alert_deliveries with status='queued' and delivery_kind='instant'
+    2. user_alert_digests with status='queued'
+    
+    Sends via appropriate channel (email, telegram, sms).
     Uses advisory lock to prevent concurrent execution.
     Note: Phase C also uses FOR UPDATE SKIP LOCKED internally for row-level safety.
     """
-    from src.alerts.alerts_engine_v2 import send_queued_deliveries
+    from src.alerts.alerts_engine_v2 import send_queued_deliveries, send_queued_digests
     from src.alerts.db_locks import AdvisoryLock
     
     start_time = time.time()
@@ -190,7 +199,7 @@ def run_phase_c(now: datetime, batch_size: int = 200, dry_run: bool = False) -> 
             logger.warning("Phase C: Lock not acquired, skipping (another instance is running)")
             return {
                 'phase': 'C',
-                'phase_name': 'Send Queued Deliveries',
+                'phase_name': 'Send Queued Deliveries & Digests',
                 'start_time': now.isoformat(),
                 'end_time': datetime.now(timezone.utc).isoformat(),
                 'duration_seconds': round(time.time() - start_time, 2),
@@ -206,27 +215,98 @@ def run_phase_c(now: datetime, batch_size: int = 200, dry_run: bool = False) -> 
             logger.info("Phase C: DRY RUN - no messages sent")
             from src.db.db import execute_one
             queued_count = execute_one(
-                "SELECT COUNT(*) as cnt FROM user_alert_deliveries WHERE status = 'queued'"
+                "SELECT COUNT(*) as cnt FROM user_alert_deliveries WHERE status = 'queued' AND delivery_kind = 'instant'"
+            )
+            digest_count = execute_one(
+                "SELECT COUNT(*) as cnt FROM user_alert_digests WHERE status = 'queued'"
             )
             result = {
                 'dry_run': True, 
-                'queued_count': queued_count['cnt'] if queued_count else 0,
+                'queued_instant_count': queued_count['cnt'] if queued_count else 0,
+                'queued_digest_count': digest_count['cnt'] if digest_count else 0,
                 'sent': 0, 
-                'failed': 0
+                'failed': 0,
+                'digests': {'dry_run': True, 'digests_sent': 0}
             }
         else:
             result = send_queued_deliveries(batch_size=batch_size)
+            digest_result = send_queued_digests(batch_size=batch_size // 2)
+            result['digests'] = digest_result
     
     duration = time.time() - start_time
     
     return {
         'phase': 'C',
-        'phase_name': 'Send Queued Deliveries',
+        'phase_name': 'Send Queued Deliveries & Digests',
         'start_time': now.isoformat(),
         'end_time': datetime.now(timezone.utc).isoformat(),
         'duration_seconds': round(duration, 2),
         'dry_run': dry_run,
         'batch_size': batch_size,
+        'status': 'success',
+        'locked': True,
+        'counts': result
+    }
+
+
+def run_phase_d(now: datetime, period: str = None, dry_run: bool = False) -> Dict:
+    """
+    Phase D: Build digest batches.
+    
+    Groups digest deliveries into digest batches by (user_id, channel, period).
+    Creates user_alert_digests records and marks individual deliveries as batched.
+    
+    Uses advisory lock to prevent concurrent execution.
+    Idempotent via unique digest_key constraint.
+    """
+    from src.alerts.digest_builder import build_digests
+    from src.alerts.db_locks import AdvisoryLock
+    
+    start_time = time.time()
+    logger.info(f"Phase D starting at {now.isoformat()}, period={period or 'default'}")
+    
+    with AdvisoryLock(LOCK_KEYS['d']) as lock:
+        if not lock.acquired:
+            logger.warning("Phase D: Lock not acquired, skipping (another instance is running)")
+            return {
+                'phase': 'D',
+                'phase_name': 'Build Digest Batches',
+                'start_time': now.isoformat(),
+                'end_time': datetime.now(timezone.utc).isoformat(),
+                'duration_seconds': round(time.time() - start_time, 2),
+                'dry_run': dry_run,
+                'status': 'skipped',
+                'skipped': True,
+                'reason': 'lock_not_acquired',
+                'counts': {}
+            }
+        
+        if dry_run:
+            logger.info("Phase D: DRY RUN - no database changes")
+            from src.db.db import execute_one
+            pending_count = execute_one(
+                """SELECT COUNT(*) as cnt FROM user_alert_deliveries 
+                   WHERE delivery_kind = 'digest' AND status = 'queued'"""
+            )
+            result = {
+                'dry_run': True,
+                'pending_digest_deliveries': pending_count['cnt'] if pending_count else 0,
+                'digests_created': 0,
+                'digest_items_attached': 0,
+                'deliveries_marked_batched': 0
+            }
+        else:
+            result = build_digests(period=period, reference_time=now)
+    
+    duration = time.time() - start_time
+    
+    return {
+        'phase': 'D',
+        'phase_name': 'Build Digest Batches',
+        'start_time': now.isoformat(),
+        'end_time': datetime.now(timezone.utc).isoformat(),
+        'duration_seconds': round(duration, 2),
+        'dry_run': dry_run,
         'status': 'success',
         'locked': True,
         'counts': result
@@ -257,16 +337,23 @@ Examples:
   python -m src.alerts.runner --phase a
   python -m src.alerts.runner --phase b --since-hours 12
   python -m src.alerts.runner --phase c --batch-size 100
+  python -m src.alerts.runner --phase d
   python -m src.alerts.runner --phase all --dry-run
   python -m src.alerts.runner --phase all --log-json
+
+Phase Order (for --phase all): A → B → D → C
+  A: Generate global alert events
+  B: Fanout to eligible users  
+  D: Build digest batches
+  C: Send instant + digest messages
         """
     )
     
     parser.add_argument(
         '--phase',
         required=True,
-        choices=['a', 'b', 'c', 'all'],
-        help='Phase to execute: a (generate), b (fanout), c (send), or all'
+        choices=['a', 'b', 'c', 'd', 'all'],
+        help='Phase to execute: a (generate), b (fanout), c (send), d (digest build), or all'
     )
     parser.add_argument(
         '--since-hours',
@@ -338,6 +425,13 @@ Examples:
             results.append(result_b)
             print(format_output(result_b, args.log_json))
             if result_b.get('status') != 'success':
+                overall_status = 'failed'
+        
+        if args.phase in ['d', 'all']:
+            result_d = run_phase_d(now, dry_run=args.dry_run)
+            results.append(result_d)
+            print(format_output(result_d, args.log_json))
+            if result_d.get('status') != 'success':
                 overall_status = 'failed'
         
         if args.phase in ['c', 'all']:
