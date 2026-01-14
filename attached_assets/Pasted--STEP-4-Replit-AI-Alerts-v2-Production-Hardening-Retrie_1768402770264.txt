@@ -1,0 +1,204 @@
+# STEP 4 (Replit AI) — Alerts v2 Production Hardening: Retries/Backoff + Channel Safeguards + Quotas
+
+You are Replit AI working inside my EnergyRiskIQ repository. Step 1–3 are complete:
+- CLI runner exists at `src/alerts/runner.py`
+- Advisory locks exist and are used by phases
+- DB migrations added: event_fingerprint unique, fanout_completed_at, delivery_kind/attempts/next_retry_at/last_error, SKIP LOCKED for Phase C
+
+## Goal of Step 4
+Make Phase B and Phase C robust for production delivery:
+1) Phase C: implement retries with exponential backoff + jitter, max attempts, failure classification, and channel safety (skip when config missing).
+2) Phase B: enforce plan quotas + preferences and set `delivery_kind` (instant vs digest) correctly.
+3) Ensure the GitHub Actions cron job remains stable:
+   - never crashes on missing channel config
+   - continues processing other deliveries when one fails
+   - respects rate limits and batch sizes
+
+This step does NOT yet implement digest batching sends (that’s Step 5), but it MUST correctly enqueue digest deliveries.
+
+---
+
+# Non-Negotiable Constraints
+1) Never create duplicates (unique constraints remain the source of truth).
+2) Phase C only sends deliveries in `queued` state whose `next_retry_at <= now`.
+3) Never leak secrets into logs.
+4) If a channel is not configured, do NOT error: mark delivery as `skipped` with reason.
+5) Enforce max attempts: once exceeded, mark `failed` permanently.
+6) Backward compatible with existing endpoints and runner flags.
+
+---
+
+# Required Environment Variables / Defaults
+Implement these env vars with sensible defaults:
+- `ALERTS_SEND_BATCH_SIZE` default 200 (runner `--batch-size` should override)
+- `ALERTS_MAX_ATTEMPTS` default 5
+- `ALERTS_RETRY_BASE_SECONDS` default 60
+- `ALERTS_RETRY_MAX_SECONDS` default 3600
+- `ALERTS_RATE_LIMIT_PER_MINUTE` per channel optional (default unlimited)
+- `ALERTS_FAIL_OPEN_ON_CHANNEL_MISSING` default false (we will SKIP, not send)
+
+Also ensure the existing `--dry-run` keeps deliveries queued (safest) and does NOT change DB.
+
+---
+
+# Deliverables
+
+## A) Phase C: Implement Retry + Backoff + Failure Handling
+
+### 1) Status lifecycle
+Deliveries can be:
+- queued
+- sending
+- sent
+- failed (permanent)
+- skipped (config/prefs/disabled)
+
+Phase C algorithm must be:
+
+1) Fetch rows with:
+   - status = 'queued'
+   - (next_retry_at is null OR next_retry_at <= now)
+   - limit = batch_size
+   - use `FOR UPDATE SKIP LOCKED`
+
+2) For each row in a transaction:
+   - set status='sending'
+   - commit (so other workers won’t pick it)
+
+3) Attempt send using correct channel adapter:
+   - email / telegram / sms
+
+4) On success:
+   - set status='sent', sent_at=now, last_error=null
+
+5) On failure:
+   - attempts += 1
+   - classify failure:
+     a) transient (timeouts, 429, 5xx, network, provider unavailable)
+     b) permanent (invalid phone, invalid chat id, malformed payload, 4xx except 429)
+   - if attempts >= max_attempts OR permanent:
+       set status='failed', last_error=message
+     else:
+       compute next_retry_at using exponential backoff:
+         delay = min(RETRY_MAX, RETRY_BASE * 2^(attempts-1))
+         apply jitter: random 0–20% of delay
+       set status='queued', next_retry_at=now+delay, last_error=message
+
+6) Must continue processing remaining deliveries even after failures.
+
+### 2) Dry run behavior
+If `--dry-run`:
+- Do NOT transition status to sending/sent/failed.
+- Do NOT increment attempts.
+- Only log what WOULD be sent and return counts.
+- Leave DB unchanged.
+
+### 3) Channel config safeguards (skip instead of crash)
+Before attempting a channel send, validate required env vars exist:
+- Email (Brevo or existing provider): API key + from address, etc.
+- Telegram: bot token (and any needed chat id for the user)
+- Twilio: account sid + auth token + from number
+
+If missing:
+- mark delivery `skipped`
+- set `last_error` to e.g. "channel_not_configured"
+- do NOT retry (skipped is terminal)
+
+Also handle user-specific missing destination:
+- telegram chat id missing for user → skipped
+- phone missing → skipped
+- email missing → skipped
+
+### 4) Rate limiting (simple)
+Implement optional per-channel throttle:
+- env var like `ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE`, `..._EMAIL_...`, `..._SMS_...`
+If set, do a basic sleep-based throttle in Phase C per channel.
+Keep it simple and safe.
+
+---
+
+## B) Phase B: Eligibility + Preferences + Quotas + delivery_kind
+
+Phase B currently selects users and inserts deliveries. Harden it:
+
+### 1) delivery_kind
+Support:
+- instant
+- digest
+
+Rules (use safe defaults; can be refined later):
+- If user preference says "digest_only" OR plan is Free => delivery_kind='digest'
+- Else delivery_kind='instant'
+
+### 2) Quotas
+Implement quota checks per user, per period, per channel:
+- Use plan defaults from config (safe hardcoded map if DB plans not present yet).
+Example defaults:
+- Free: 0 instant/day, digest allowed 1/day, SMS not allowed
+- Pro: instant allowed (email+telegram), SMS optional with low cap
+- Enterprise: higher caps, SMS allowed
+
+Quota enforcement strategy:
+- Count already queued/sent deliveries in the current day (UTC or app timezone; choose consistent and document)
+- If quota exceeded:
+  - do not insert delivery
+  - optionally insert a `skipped` delivery record only if you need audit; otherwise just skip creation.
+Prefer: do NOT create a row, just count as skipped.
+
+### 3) Preferences & channel enablement
+If user has disabled a channel, do not queue that channel.
+
+### 4) Idempotency remains via unique constraint
+All inserts must use `ON CONFLICT DO NOTHING`.
+
+---
+
+## C) Logging & Counts
+Return structured counts from phases:
+Phase B:
+- events_processed
+- users_considered
+- deliveries_created
+- deliveries_skipped_quota
+- deliveries_skipped_prefs
+- deliveries_skipped_missing_dest
+
+Phase C:
+- queued_selected
+- sent
+- failed
+- retried
+- skipped_not_configured
+- skipped_missing_destination
+
+Ensure runner prints these.
+
+---
+
+# Implementation Steps
+1) Inspect current channel send implementations (email/telegram/sms) and wrap them behind a common interface:
+   - `send_email(delivery, event, user)`
+   - `send_telegram(...)`
+   - `send_sms(...)`
+2) Implement failure classification (transient vs permanent) with best-effort mapping based on exceptions/HTTP status codes.
+3) Implement backoff + jitter.
+4) Implement dry-run strict no-write behavior.
+5) Implement Phase B quota/preference logic with safe defaults, using whatever user/plan schema exists now.
+6) Run local tests:
+   - `python -m src.alerts.runner --phase c --dry-run`
+   - Insert one fake queued delivery then run Phase C (dry-run and real) in a test DB if possible.
+7) Confirm no phase crashes if secrets are missing; it should skip.
+
+---
+
+# Output Requirements
+When finished, respond with:
+1) Files modified/created (paths)
+2) Env vars added + defaults
+3) Example of log output from running Phase C with:
+   - a successful send
+   - a transient failure that schedules retry
+   - a missing-config skip
+4) Any assumptions made about user plan/preference fields
+
+Proceed now without asking questions unless blocked.
