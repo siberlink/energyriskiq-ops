@@ -34,6 +34,7 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
     risk_routes.py    # Risk API endpoints
     alert_routes.py   # Alert API endpoints
     marketing_routes.py # Marketing copy endpoints
+    telegram_routes.py # Telegram bot webhook and linking
   main.py             # Main entrypoint (--mode api/ingest/ai/risk/alerts/migrate_plans)
 ```
 
@@ -66,7 +67,7 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 - id, asset (oil|gas|fx|freight), region, window_days, risk_score (0-100), direction, calculated_at
 
 ### users table
-- id, email (unique), telegram_chat_id, created_at
+- id, email (unique), telegram_chat_id, telegram_link_code, telegram_link_expires, created_at
 
 ### user_plans table (User-Plan Assignment + Denormalized Settings)
 - user_id (PK/FK): References users table
@@ -247,6 +248,7 @@ See **[OPERATIONS.md](OPERATIONS.md)** for detailed documentation on:
 - Internal runner endpoints and authentication
 
 ## Recent Changes
+- 2026-01-14: Telegram account linking - Users on Trader/Pro/Enterprise plans can now link their Telegram accounts from the dashboard Settings page. Uses secure time-limited codes (15 min expiry), plan enforcement server-side, and bot webhook for /start, /status, /help, /unlink commands.
 - 2026-01-14: Alert processing fix - Expanded HIGH_SEVERITY_KEYWORDS to include crisis, turmoil, halt, suspend, collapse, war, conflict, seize, capture, embargo, invasion, emergency, critical. Previous keywords (attack, missile, explosion, shutdown, blockade, sanctions) were too restrictive.
 - 2026-01-14: Alert UI improvements - Added 24-hour filter, Latest badge for <3hr alerts, date/time filter, risk as percentage, upgrade sidebar card, cleaner type labels.
 - 2026-01-13: User plans sync - user_plans now syncs with plan_settings via apply_plan_settings_to_user(). plan_price_usd is NUMERIC(10,2). Added sync_all_user_plans() for bulk resync.
