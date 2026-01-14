@@ -35,6 +35,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Database:** PostgreSQL is used for persistence, with a structured schema designed for events, ingestion runs, risk data, user management, and the new global alerts system.
 - **Background Workers:** Ingestion, AI, Risk, and Alerts components are designed as separate workers that can be run independently or orchestrated.
 - **Concurrency:** FastAPI with uvicorn for the API server, enabling asynchronous operations.
+- **Production Safety (Alerts v2):** Advisory locks prevent concurrent phase execution, `event_fingerprint` unique constraint prevents duplicate alerts, `fanout_completed_at` ensures idempotent fanout, and `FOR UPDATE SKIP LOCKED` prevents delivery races.
 
 ## External Dependencies
 
