@@ -464,7 +464,21 @@ def run_migrations():
     logger.info("Migrating user_plans price column to decimal...")
     migrate_user_plans_price_to_decimal()
     
+    logger.info("Ensuring users have default alert preferences...")
+    ensure_user_alert_prefs()
+    
     logger.info("Migrations completed successfully.")
+
+
+def ensure_user_alert_prefs():
+    """Ensure all users have default alert preferences."""
+    try:
+        from src.plans.plan_helpers import migrate_user_alert_prefs
+        migrated = migrate_user_alert_prefs()
+        if migrated > 0:
+            logger.info(f"Created default alert prefs for {migrated} users")
+    except Exception as e:
+        logger.error(f"Error ensuring user alert prefs: {e}")
 
 
 def add_user_auth_columns():

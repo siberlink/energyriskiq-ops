@@ -250,8 +250,51 @@ def apply_plan_settings_to_user(user_id: int, plan_code: str) -> bool:
         return False
 
 
+def create_default_alert_prefs(user_id: int, plan_code: str) -> int:
+    """Create default alert preferences for a new user based on their plan."""
+    try:
+        allowed_types = get_allowed_alert_types(plan_code)
+        prefs_created = 0
+        
+        with get_cursor() as cursor:
+            cursor.execute("SELECT 1 FROM user_alert_prefs WHERE user_id = %s LIMIT 1", (user_id,))
+            if cursor.fetchone():
+                return 0
+            
+            if 'HIGH_IMPACT_EVENT' in allowed_types:
+                cursor.execute("""
+                    INSERT INTO user_alert_prefs (user_id, region, alert_type, threshold, enabled, cooldown_minutes)
+                    VALUES (%s, 'Europe', 'HIGH_IMPACT_EVENT', 4, TRUE, 60)
+                """, (user_id,))
+                prefs_created += 1
+            
+            if 'REGIONAL_RISK_SPIKE' in allowed_types:
+                cursor.execute("""
+                    INSERT INTO user_alert_prefs (user_id, region, alert_type, threshold, enabled, cooldown_minutes)
+                    VALUES (%s, 'Europe', 'REGIONAL_RISK_SPIKE', 70, TRUE, 120)
+                """, (user_id,))
+                prefs_created += 1
+            
+            if 'ASSET_RISK_SPIKE' in allowed_types:
+                for asset in ['oil', 'gas']:
+                    cursor.execute("""
+                        INSERT INTO user_alert_prefs (user_id, region, alert_type, asset, threshold, enabled, cooldown_minutes)
+                        VALUES (%s, 'Europe', 'ASSET_RISK_SPIKE', %s, 70, TRUE, 120)
+                    """, (user_id, asset))
+                    prefs_created += 1
+        
+        logger.info(f"Created {prefs_created} default alert prefs for user {user_id} (plan: {plan_code})")
+        return prefs_created
+    except Exception as e:
+        logger.error(f"Error creating default alert prefs for user {user_id}: {e}")
+        return 0
+
+
 def create_user_plan(user_id: int, plan: str) -> bool:
-    return apply_plan_settings_to_user(user_id, plan)
+    success = apply_plan_settings_to_user(user_id, plan)
+    if success:
+        create_default_alert_prefs(user_id, plan)
+    return success
 
 
 def migrate_user_plans():
@@ -276,6 +319,32 @@ def migrate_user_plans():
         
         logger.info(f"Migration complete: {migrated} users migrated, {skipped} skipped (already have plans)")
         return migrated, skipped
+
+
+def migrate_user_alert_prefs():
+    """Migrate existing users to have default alert preferences if they don't have any."""
+    with get_cursor(commit=False) as cur:
+        cur.execute("""
+            SELECT u.id, COALESCE(up.plan, 'free') as plan
+            FROM users u
+            LEFT JOIN user_plans up ON up.user_id = u.id
+            WHERE NOT EXISTS (
+                SELECT 1 FROM user_alert_prefs uap WHERE uap.user_id = u.id
+            )
+        """)
+        users = cur.fetchall()
+        
+        migrated = 0
+        
+        for row in users:
+            user_id = row["id"]
+            plan_code = row["plan"]
+            prefs_created = create_default_alert_prefs(user_id, plan_code)
+            if prefs_created > 0:
+                migrated += 1
+        
+        logger.info(f"Alert prefs migration complete: {migrated} users received default preferences")
+        return migrated
 
 
 def sync_all_user_plans():
