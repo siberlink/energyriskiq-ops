@@ -139,42 +139,52 @@ def create_alert_event(
     headline: str,
     body: str,
     driver_event_ids: List[int],
-    cooldown_key: str
-) -> Optional[int]:
+    cooldown_key: str,
+    event_fingerprint: Optional[str] = None
+) -> Tuple[Optional[int], bool]:
     """
     Create a global alert event (user-agnostic).
     
     SAFETY INVARIANT: alert_events table must NEVER contain user_id.
     This function creates global events that are later fanned out to users
     via user_alert_deliveries in Phase B.
+    
+    Uses event_fingerprint for uniqueness (ON CONFLICT DO NOTHING).
+    
+    Returns:
+        Tuple of (event_id or None, was_skipped_duplicate)
     """
+    if event_fingerprint is None:
+        event_fingerprint = cooldown_key
+    
     try:
         with get_cursor() as cursor:
             cursor.execute(
                 """INSERT INTO alert_events 
-                   (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                   ON CONFLICT (cooldown_key) DO NOTHING
+                   (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (event_fingerprint) DO NOTHING
                    RETURNING id""",
-                (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key)
+                (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint)
             )
             result = cursor.fetchone()
             if result:
                 logger.info(f"Created alert_event {result['id']}: {alert_type} - {headline[:50]}")
-                return result['id']
+                return result['id'], False
             else:
-                logger.debug(f"Alert event already exists: {cooldown_key}")
-                return None
+                logger.debug(f"Alert event already exists (fingerprint): {event_fingerprint}")
+                return None, True
     except Exception as e:
         logger.error(f"Error creating alert event: {e}")
-        return None
+        return None, False
 
 
-def generate_regional_risk_spike_events(regions: List[str] = None) -> List[int]:
+def generate_regional_risk_spike_events(regions: List[str] = None) -> Dict:
     if regions is None:
         regions = ['Europe', 'Middle East', 'Black Sea']
     
     created_event_ids = []
+    skipped_count = 0
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
     for region in regions:
@@ -204,6 +214,7 @@ def generate_regional_risk_spike_events(regions: List[str] = None) -> List[int]:
         )
         
         cooldown_key = f"REGION:{region}:RISK_SPIKE:{today}:threshold_{int(risk_7d)}"
+        fingerprint = f"REGIONAL_RISK_SPIKE:{region}:{today}"
         
         severity = 3
         if risk_7d >= 90:
@@ -213,7 +224,7 @@ def generate_regional_risk_spike_events(regions: List[str] = None) -> List[int]:
         elif risk_7d >= 70:
             severity = 3
         
-        event_id = create_alert_event(
+        event_id, was_skipped = create_alert_event(
             alert_type='REGIONAL_RISK_SPIKE',
             scope_region=region,
             scope_assets=[],
@@ -221,22 +232,26 @@ def generate_regional_risk_spike_events(regions: List[str] = None) -> List[int]:
             headline=title,
             body=body,
             driver_event_ids=driver_ids,
-            cooldown_key=cooldown_key
+            cooldown_key=cooldown_key,
+            event_fingerprint=fingerprint
         )
         
         if event_id:
             created_event_ids.append(event_id)
+        if was_skipped:
+            skipped_count += 1
     
-    return created_event_ids
+    return {'created': created_event_ids, 'skipped': skipped_count}
 
 
-def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str] = None) -> List[int]:
+def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str] = None) -> Dict:
     if regions is None:
         regions = ['Europe', 'Middle East', 'Black Sea']
     if assets is None:
         assets = ['oil', 'gas', 'fx', 'freight']
     
     created_event_ids = []
+    skipped_count = 0
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
     for region in regions:
@@ -266,6 +281,7 @@ def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str
             )
             
             cooldown_key = f"ASSET:{region}:{asset}:SPIKE:{today}"
+            fingerprint = f"ASSET_RISK_SPIKE:{region}:{asset}:{today}"
             
             severity = 3
             if risk_score >= 90:
@@ -273,7 +289,7 @@ def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str
             elif risk_score >= 80:
                 severity = 4
             
-            event_id = create_alert_event(
+            event_id, was_skipped = create_alert_event(
                 alert_type='ASSET_RISK_SPIKE',
                 scope_region=region,
                 scope_assets=[asset],
@@ -281,26 +297,31 @@ def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str
                 headline=title,
                 body=body,
                 driver_event_ids=driver_ids,
-                cooldown_key=cooldown_key
+                cooldown_key=cooldown_key,
+                event_fingerprint=fingerprint
             )
             
             if event_id:
                 created_event_ids.append(event_id)
+            if was_skipped:
+                skipped_count += 1
     
-    return created_event_ids
+    return {'created': created_event_ids, 'skipped': skipped_count}
 
 
-def generate_high_impact_event_alerts() -> List[int]:
+def generate_high_impact_event_alerts() -> Dict:
     events = get_high_impact_events_global()
     created_event_ids = []
+    skipped_count = 0
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
     for event in events:
         title, body = format_high_impact_event(event, event['region'])
         
         cooldown_key = f"EVENT:HIGH_IMPACT:{event['id']}:{today}"
+        fingerprint = f"HIGH_IMPACT_EVENT:{event['id']}"
         
-        event_id = create_alert_event(
+        event_id, was_skipped = create_alert_event(
             alert_type='HIGH_IMPACT_EVENT',
             scope_region=event['region'],
             scope_assets=[],
@@ -308,34 +329,49 @@ def generate_high_impact_event_alerts() -> List[int]:
             headline=title,
             body=body,
             driver_event_ids=[event['id']],
-            cooldown_key=cooldown_key
+            cooldown_key=cooldown_key,
+            event_fingerprint=fingerprint
         )
         
         if event_id:
             created_event_ids.append(event_id)
+        if was_skipped:
+            skipped_count += 1
     
-    return created_event_ids
+    return {'created': created_event_ids, 'skipped': skipped_count}
 
 
 def generate_global_alert_events() -> Dict:
     logger.info("Phase A: Generating global alert events...")
     
-    regional_ids = generate_regional_risk_spike_events()
-    asset_ids = generate_asset_risk_spike_events()
-    high_impact_ids = generate_high_impact_event_alerts()
+    regional_result = generate_regional_risk_spike_events()
+    asset_result = generate_asset_risk_spike_events()
+    high_impact_result = generate_high_impact_event_alerts()
     
     summary = get_risk_summary('Europe')
     update_alert_state('Europe', summary['risk_7d'], summary['risk_30d'], summary['assets'])
     
+    all_created = (
+        regional_result['created'] + 
+        asset_result['created'] + 
+        high_impact_result['created']
+    )
+    total_skipped = (
+        regional_result['skipped'] + 
+        asset_result['skipped'] + 
+        high_impact_result['skipped']
+    )
+    
     result = {
-        'regional_risk_spikes': len(regional_ids),
-        'asset_risk_spikes': len(asset_ids),
-        'high_impact_events': len(high_impact_ids),
-        'total': len(regional_ids) + len(asset_ids) + len(high_impact_ids),
-        'event_ids': regional_ids + asset_ids + high_impact_ids
+        'regional_risk_spikes': len(regional_result['created']),
+        'asset_risk_spikes': len(asset_result['created']),
+        'high_impact_events': len(high_impact_result['created']),
+        'total': len(all_created),
+        'skipped': total_skipped,
+        'event_ids': all_created
     }
     
-    logger.info(f"Phase A complete: {result['total']} alert events created")
+    logger.info(f"Phase A complete: {result['total']} alert events created, {total_skipped} skipped (duplicates)")
     return result
 
 
@@ -450,14 +486,29 @@ def update_delivery_status(delivery_id: int, status: str, provider_message_id: O
 
 
 def get_unsent_alert_events(lookback_hours: int = 24) -> List[Dict]:
+    """
+    Get alert events that haven't been fanned out yet.
+    Uses fanout_completed_at marker for idempotency.
+    """
     query = """
     SELECT id, alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, created_at
     FROM alert_events
     WHERE created_at >= NOW() - make_interval(hours => %s)
-    ORDER BY created_at DESC
+      AND fanout_completed_at IS NULL
+    ORDER BY created_at ASC
     """
     results = execute_query(query, (lookback_hours,))
     return results if results else []
+
+
+def mark_fanout_completed(alert_event_id: int):
+    """Mark an alert event as having completed fanout."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            "UPDATE alert_events SET fanout_completed_at = NOW() WHERE id = %s",
+            (alert_event_id,)
+        )
+        logger.debug(f"Marked fanout completed for alert_event {alert_event_id}")
 
 
 def fanout_alert_events_to_users() -> Dict:
@@ -566,6 +617,8 @@ def fanout_alert_events_to_users() -> Dict:
                     d_id = create_delivery(user_id, alert_event_id, 'sms', 'queued')
                     if d_id:
                         deliveries_created += 1
+        
+        mark_fanout_completed(alert_event_id)
     
     result = {
         'processed': len(alert_events),
@@ -578,32 +631,55 @@ def fanout_alert_events_to_users() -> Dict:
     return result
 
 
-def send_queued_deliveries() -> Dict:
-    logger.info("Phase C: Sending queued deliveries...")
-    
-    query = """
-    SELECT d.id, d.user_id, d.alert_event_id, d.channel,
-           ae.headline, ae.body, ae.alert_type,
-           u.email, u.telegram_chat_id, u.phone_number,
-           COALESCE(up.plan, 'free') as plan
-    FROM user_alert_deliveries d
-    JOIN alert_events ae ON ae.id = d.alert_event_id
-    JOIN users u ON u.id = d.user_id
-    LEFT JOIN user_plans up ON up.user_id = u.id
-    WHERE d.status = 'queued'
-    ORDER BY d.created_at ASC
-    LIMIT 100
+def send_queued_deliveries(batch_size: int = 100) -> Dict:
     """
+    Phase C: Send queued deliveries with race prevention.
     
-    deliveries = execute_query(query)
-    if not deliveries:
-        logger.info("No queued deliveries to send")
-        return {'sent': 0, 'failed': 0}
-    
-    logger.info(f"Sending {len(deliveries)} queued deliveries")
+    Uses FOR UPDATE SKIP LOCKED to prevent concurrent sends of the same delivery.
+    Sets status='sending' before sending, then updates to 'sent' or 'failed'.
+    """
+    logger.info("Phase C: Sending queued deliveries...")
     
     sent = 0
     failed = 0
+    locked_skipped = 0
+    
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT d.id, d.user_id, d.alert_event_id, d.channel,
+                   ae.headline, ae.body, ae.alert_type,
+                   u.email, u.telegram_chat_id, u.phone_number,
+                   COALESCE(up.plan, 'free') as plan
+            FROM user_alert_deliveries d
+            JOIN alert_events ae ON ae.id = d.alert_event_id
+            JOIN users u ON u.id = d.user_id
+            LEFT JOIN user_plans up ON up.user_id = u.id
+            WHERE d.status = 'queued'
+              AND (d.next_retry_at IS NULL OR d.next_retry_at <= NOW())
+            ORDER BY d.created_at ASC
+            LIMIT %s
+            FOR UPDATE OF d SKIP LOCKED
+            """,
+            (batch_size,)
+        )
+        deliveries = cursor.fetchall()
+        
+        if not deliveries:
+            logger.info("No queued deliveries to send (all locked or none available)")
+            return {'sent': 0, 'failed': 0, 'locked_skipped': 0}
+        
+        logger.info(f"Acquired lock on {len(deliveries)} deliveries for sending")
+        
+        delivery_ids = [d['id'] for d in deliveries]
+        cursor.execute(
+            """
+            UPDATE user_alert_deliveries 
+            SET status = 'sending', attempts = attempts + 1
+            WHERE id = ANY(%s)
+            """,
+            (delivery_ids,)
+        )
     
     for d in deliveries:
         delivery_id = d['id']
@@ -622,7 +698,7 @@ def send_queued_deliveries() -> Dict:
                     update_delivery_status(delivery_id, 'sent', msg_id)
                     sent += 1
                 else:
-                    update_delivery_status(delivery_id, 'failed', reason=error)
+                    _mark_delivery_failed(delivery_id, error)
                     failed += 1
             
             elif channel == 'telegram':
@@ -631,7 +707,7 @@ def send_queued_deliveries() -> Dict:
                     update_delivery_status(delivery_id, 'sent')
                     sent += 1
                 else:
-                    update_delivery_status(delivery_id, 'failed', reason=error)
+                    _mark_delivery_failed(delivery_id, error)
                     failed += 1
             
             elif channel == 'sms':
@@ -641,7 +717,7 @@ def send_queued_deliveries() -> Dict:
                     update_delivery_status(delivery_id, 'sent')
                     sent += 1
                 else:
-                    update_delivery_status(delivery_id, 'failed', reason=error)
+                    _mark_delivery_failed(delivery_id, error)
                     failed += 1
             
             elif channel == 'account':
@@ -650,12 +726,25 @@ def send_queued_deliveries() -> Dict:
         
         except Exception as e:
             logger.error(f"Error sending delivery {delivery_id}: {e}")
-            update_delivery_status(delivery_id, 'failed', reason=str(e))
+            _mark_delivery_failed(delivery_id, str(e))
             failed += 1
     
-    result = {'sent': sent, 'failed': failed}
+    result = {'sent': sent, 'failed': failed, 'locked_skipped': locked_skipped}
     logger.info(f"Phase C complete: {sent} sent, {failed} failed")
     return result
+
+
+def _mark_delivery_failed(delivery_id: int, error: str):
+    """Mark a delivery as failed and set last_error."""
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE user_alert_deliveries 
+            SET status = 'failed', last_error = %s
+            WHERE id = %s
+            """,
+            (error, delivery_id)
+        )
 
 
 def run_alerts_engine_v2(dry_run: bool = False) -> Dict:

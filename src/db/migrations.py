@@ -515,6 +515,9 @@ def run_migrations():
     logger.info("Ensuring users have default alert preferences...")
     ensure_user_alert_prefs()
     
+    logger.info("Running Alerts v2 safety schema...")
+    migrate_alerts_v2_safety_schema()
+    
     logger.info("Migrations completed successfully.")
 
 
@@ -598,6 +601,158 @@ def migrate_user_plans_price_to_decimal():
         """)
     
     logger.info("user_plans.plan_price_usd migration complete.")
+
+
+def migrate_alerts_v2_safety_schema():
+    """
+    Step 3 migrations: Add advisory lock safety columns and constraints.
+    
+    1. alert_events: Add event_fingerprint (unique), fanout_completed_at
+    2. user_alert_deliveries: Add delivery_kind, attempts, next_retry_at, last_error
+    3. Add unique constraints for idempotency
+    """
+    logger.info("Running Alerts v2 safety schema migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'alert_events' AND column_name = 'event_fingerprint'
+                ) THEN
+                    ALTER TABLE alert_events ADD COLUMN event_fingerprint TEXT;
+                    RAISE NOTICE 'Added event_fingerprint column to alert_events';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'alert_events' AND column_name = 'fanout_completed_at'
+                ) THEN
+                    ALTER TABLE alert_events ADD COLUMN fanout_completed_at TIMESTAMP NULL;
+                    RAISE NOTICE 'Added fanout_completed_at column to alert_events';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            UPDATE alert_events 
+            SET event_fingerprint = cooldown_key 
+            WHERE event_fingerprint IS NULL;
+        """)
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                ALTER TABLE alert_events ALTER COLUMN event_fingerprint SET NOT NULL;
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'event_fingerprint NOT NULL constraint may already exist: %', SQLERRM;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = 'alert_events' AND indexname = 'uq_alert_events_fingerprint'
+                ) THEN
+                    CREATE UNIQUE INDEX uq_alert_events_fingerprint ON alert_events(event_fingerprint);
+                    RAISE NOTICE 'Created unique index on event_fingerprint';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_alert_events_fanout_completed ON alert_events(fanout_completed_at);")
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'user_alert_deliveries' AND column_name = 'delivery_kind'
+                ) THEN
+                    ALTER TABLE user_alert_deliveries ADD COLUMN delivery_kind TEXT NOT NULL DEFAULT 'instant';
+                    RAISE NOTICE 'Added delivery_kind column to user_alert_deliveries';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'user_alert_deliveries' AND column_name = 'attempts'
+                ) THEN
+                    ALTER TABLE user_alert_deliveries ADD COLUMN attempts INT NOT NULL DEFAULT 0;
+                    RAISE NOTICE 'Added attempts column to user_alert_deliveries';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'user_alert_deliveries' AND column_name = 'next_retry_at'
+                ) THEN
+                    ALTER TABLE user_alert_deliveries ADD COLUMN next_retry_at TIMESTAMP NULL;
+                    RAISE NOTICE 'Added next_retry_at column to user_alert_deliveries';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns 
+                    WHERE table_name = 'user_alert_deliveries' AND column_name = 'last_error'
+                ) THEN
+                    ALTER TABLE user_alert_deliveries ADD COLUMN last_error TEXT NULL;
+                    RAISE NOTICE 'Added last_error column to user_alert_deliveries';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("""
+            ALTER TABLE user_alert_deliveries 
+            DROP CONSTRAINT IF EXISTS user_alert_deliveries_status_check;
+        """)
+        cursor.execute("""
+            ALTER TABLE user_alert_deliveries 
+            ADD CONSTRAINT user_alert_deliveries_status_check 
+            CHECK (status IN ('queued','sending','sent','failed','skipped'));
+        """)
+        
+        cursor.execute("""
+            DROP INDEX IF EXISTS uq_user_alert_deliveries_unique;
+        """)
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_indexes 
+                    WHERE tablename = 'user_alert_deliveries' AND indexname = 'uq_user_alert_deliveries_full'
+                ) THEN
+                    CREATE UNIQUE INDEX uq_user_alert_deliveries_full 
+                    ON user_alert_deliveries(alert_event_id, user_id, channel, delivery_kind);
+                    RAISE NOTICE 'Created unique index on (alert_event_id, user_id, channel, delivery_kind)';
+                END IF;
+            END $$;
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_deliveries_retry ON user_alert_deliveries(next_retry_at) WHERE next_retry_at IS NOT NULL;")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_deliveries_queued ON user_alert_deliveries(created_at) WHERE status = 'queued';")
+    
+    logger.info("Alerts v2 safety schema migration complete.")
 
 
 if __name__ == "__main__":

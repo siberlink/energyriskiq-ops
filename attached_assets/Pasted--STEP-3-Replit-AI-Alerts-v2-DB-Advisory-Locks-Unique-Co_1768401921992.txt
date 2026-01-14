@@ -1,0 +1,144 @@
+# STEP 3 (Replit AI) — Alerts v2: DB Advisory Locks + Unique Constraints + Fanout Marker
+
+You are Replit AI working inside my EnergyRiskIQ repository.
+
+## Goal of Step 3
+Make Alerts v2 safe under GitHub Actions cron by guaranteeing:
+- No duplicate global events (Phase A)
+- No duplicate per-user deliveries (Phase B)
+- No duplicate sending / concurrent send races (Phase C)
+- No overlapping phase runs (A/B/C) across multiple workflow executions
+
+You MUST implement:
+1) Postgres advisory locks (per phase)
+2) DB constraints (unique keys + required columns)
+3) A fanout completion marker on alert_events (fanout_completed_at)
+4) Update Phase A/B/C logic to use these protections
+
+This step does NOT add retries/backoff yet (that’s Step 4). Focus on locks + idempotency + fanout marker.
+
+---
+
+# Non-Negotiable Constraints
+1) `alert_events` must remain global (no user_id usage).
+2) Must remain backward compatible with existing endpoints and runner.
+3) Must work both locally and in GitHub Actions.
+4) If lock cannot be acquired, phase should log “skipped due to lock” and exit 0 (success, no-op).
+
+---
+
+# Deliverables
+
+## A) Advisory Lock Utility
+Create a small utility module, e.g.:
+- `src/alerts/db_locks.py`
+
+Implement functions:
+- `acquire_lock(conn, key: str) -> bool`
+- `release_lock(conn, key: str) -> None` (optional; session close can release automatically)
+
+Use Postgres advisory locks:
+- Prefer `pg_try_advisory_lock(bigint)`
+- Derive bigint from the string key deterministically (hash -> 64-bit integer).
+Lock keys:
+- `alerts_v2_phase_a`
+- `alerts_v2_phase_b`
+- `alerts_v2_phase_c`
+
+Integrate these locks into the phase wrappers used by:
+- `python -m src.alerts.runner`
+
+Behavior:
+- Each phase attempts to acquire its lock before doing any work.
+- If not acquired, return counts like:
+  - `{ "skipped": true, "reason": "lock_not_acquired" }`
+
+## B) Database Migrations / Schema Hardening
+Add migrations using the repo’s migration system (detect what it uses: Alembic, raw SQL migrations, etc.)
+If no migration system exists, create a `migrations/` folder and apply via existing startup scripts—use the repo’s convention.
+
+### Required schema changes
+
+### 1) alert_events
+Add columns if missing:
+- `event_fingerprint` TEXT NOT NULL
+- `fanout_completed_at` TIMESTAMP NULL
+
+Add constraint:
+- UNIQUE (`event_fingerprint`)
+
+If there is already another dedupe key, keep it, but ensure event_fingerprint exists and is unique.
+
+### 2) user_alert_deliveries
+Ensure columns exist:
+- `delivery_kind` TEXT NOT NULL DEFAULT 'instant'  # instant|digest
+- `status` TEXT NOT NULL DEFAULT 'queued'          # queued|sending|sent|failed|skipped
+- `attempts` INT NOT NULL DEFAULT 0
+- `next_retry_at` TIMESTAMP NULL
+- `last_error` TEXT NULL
+- `sent_at` TIMESTAMP NULL
+
+Add constraint:
+- UNIQUE (`alert_event_id`, `user_id`, `channel`, `delivery_kind`)
+
+If the table already has similar columns, map to existing names and keep compatibility.
+
+## C) Update Phase Logic to Use the New Guarantees
+
+### Phase A updates
+- Ensure each created event sets `event_fingerprint`.
+- Insert with `ON CONFLICT (event_fingerprint) DO NOTHING`.
+- If event already exists, count it as skipped.
+- Do not touch fanout_completed_at here.
+
+### Phase B updates (fanout marker)
+Fanout selection must use the marker:
+- Select events where `fanout_completed_at IS NULL` (and optionally within a time window).
+- After processing an event (even if 0 eligible users), set:
+  - `fanout_completed_at = now()`
+
+Delivery insert must use:
+- `ON CONFLICT DO NOTHING` with the unique constraint.
+
+### Phase C updates (race prevention)
+When selecting queued deliveries to send:
+- Use row locking:
+  - `SELECT ... FROM user_alert_deliveries WHERE status='queued' AND (next_retry_at IS NULL OR next_retry_at <= now) ORDER BY created_at ASC LIMIT :batch FOR UPDATE SKIP LOCKED`
+- Before sending, set status='sending' (within the transaction), then commit.
+- After sending, update to sent/failed accordingly.
+
+Even though Step 4 will add retries/backoff, implement the SKIP LOCKED pattern now.
+
+## D) Runner Integration
+Update runner / phase wrapper so that:
+- Lock is acquired per phase.
+- Lock failures are treated as a clean skip (exit code 0).
+- Counts include `locked: true/false` and `skipped: true/false`.
+
+---
+
+# Implementation Steps
+1) Detect DB access layer (SQLAlchemy/psycopg2/asyncpg) and implement advisory locks accordingly.
+2) Add migrations for schema changes + constraints.
+3) Update Phase A/B/C code paths to use:
+   - event_fingerprint uniqueness (Phase A)
+   - fanout_completed_at marker (Phase B)
+   - FOR UPDATE SKIP LOCKED (Phase C)
+4) Run locally:
+   - `python -m src.alerts.runner --phase all --dry-run`
+   - Then run without dry-run in a safe test environment if available.
+5) Ensure endpoints still work.
+
+---
+
+# Output Requirements
+When done, respond with:
+1) Migration files created (paths) + what they change
+2) Files modified (paths)
+3) How to verify:
+   - Run Phase A twice → no duplicates
+   - Run Phase B twice → deliveries not duplicated and fanout_completed_at set
+   - Run Phase C twice in parallel (simulate) → no duplicate sends due to SKIP LOCKED
+4) Any assumptions made
+
+Proceed now without asking questions unless you are blocked.

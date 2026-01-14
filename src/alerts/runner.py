@@ -10,6 +10,10 @@ Usage:
     python -m src.alerts.runner --phase c
     python -m src.alerts.runner --phase all
     python -m src.alerts.runner --phase all --dry-run
+
+Safety Features:
+- Advisory locks per phase prevent concurrent execution
+- If lock cannot be acquired, phase returns skip (exit 0)
 """
 
 import argparse
@@ -28,6 +32,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 ALERTS_V2_ENABLED = os.environ.get('ALERTS_V2_ENABLED', 'true').lower() == 'true'
+
+LOCK_KEYS = {
+    'a': 'alerts_v2_phase_a',
+    'b': 'alerts_v2_phase_b',
+    'c': 'alerts_v2_phase_c',
+}
 
 
 def validate_environment() -> bool:
@@ -62,17 +72,35 @@ def run_phase_a(now: datetime, dry_run: bool = False) -> Dict:
     - HIGH_IMPACT_EVENT
     
     SAFETY: alert_events table must NEVER contain user_id.
+    Uses advisory lock to prevent concurrent execution.
     """
     from src.alerts.alerts_engine_v2 import generate_global_alert_events
+    from src.alerts.db_locks import AdvisoryLock
     
     start_time = time.time()
     logger.info(f"Phase A starting at {now.isoformat()}")
     
-    if dry_run:
-        logger.info("Phase A: DRY RUN - no database changes")
-        result = {'dry_run': True, 'regional_spikes': 0, 'asset_spikes': 0, 'high_impact': 0, 'total': 0}
-    else:
-        result = generate_global_alert_events()
+    with AdvisoryLock(LOCK_KEYS['a']) as lock:
+        if not lock.acquired:
+            logger.warning("Phase A: Lock not acquired, skipping (another instance is running)")
+            return {
+                'phase': 'A',
+                'phase_name': 'Generate Global Alert Events',
+                'start_time': now.isoformat(),
+                'end_time': datetime.now(timezone.utc).isoformat(),
+                'duration_seconds': round(time.time() - start_time, 2),
+                'dry_run': dry_run,
+                'status': 'skipped',
+                'skipped': True,
+                'reason': 'lock_not_acquired',
+                'counts': {}
+            }
+        
+        if dry_run:
+            logger.info("Phase A: DRY RUN - no database changes")
+            result = {'dry_run': True, 'regional_spikes': 0, 'asset_spikes': 0, 'high_impact': 0, 'total': 0, 'skipped': 0}
+        else:
+            result = generate_global_alert_events()
     
     duration = time.time() - start_time
     
@@ -84,6 +112,7 @@ def run_phase_a(now: datetime, dry_run: bool = False) -> Dict:
         'duration_seconds': round(duration, 2),
         'dry_run': dry_run,
         'status': 'success',
+        'locked': True,
         'counts': result
     }
 
@@ -94,17 +123,36 @@ def run_phase_b(now: datetime, since_hours: int = 24, dry_run: bool = False) -> 
     
     For each alert_event, creates user_alert_deliveries rows
     for eligible users based on plan, preferences, and quotas.
+    Uses advisory lock to prevent concurrent execution.
     """
     from src.alerts.alerts_engine_v2 import fanout_alert_events_to_users
+    from src.alerts.db_locks import AdvisoryLock
     
     start_time = time.time()
     logger.info(f"Phase B starting at {now.isoformat()}, since_hours={since_hours}")
     
-    if dry_run:
-        logger.info("Phase B: DRY RUN - no database changes")
-        result = {'dry_run': True, 'processed': 0, 'deliveries_created': 0}
-    else:
-        result = fanout_alert_events_to_users()
+    with AdvisoryLock(LOCK_KEYS['b']) as lock:
+        if not lock.acquired:
+            logger.warning("Phase B: Lock not acquired, skipping (another instance is running)")
+            return {
+                'phase': 'B',
+                'phase_name': 'Fanout to Users',
+                'start_time': now.isoformat(),
+                'end_time': datetime.now(timezone.utc).isoformat(),
+                'duration_seconds': round(time.time() - start_time, 2),
+                'dry_run': dry_run,
+                'since_hours': since_hours,
+                'status': 'skipped',
+                'skipped': True,
+                'reason': 'lock_not_acquired',
+                'counts': {}
+            }
+        
+        if dry_run:
+            logger.info("Phase B: DRY RUN - no database changes")
+            result = {'dry_run': True, 'processed': 0, 'deliveries_created': 0}
+        else:
+            result = fanout_alert_events_to_users()
     
     duration = time.time() - start_time
     
@@ -117,6 +165,7 @@ def run_phase_b(now: datetime, since_hours: int = 24, dry_run: bool = False) -> 
         'dry_run': dry_run,
         'since_hours': since_hours,
         'status': 'success',
+        'locked': True,
         'counts': result
     }
 
@@ -127,26 +176,46 @@ def run_phase_c(now: datetime, batch_size: int = 200, dry_run: bool = False) -> 
     
     Processes user_alert_deliveries with status='queued'
     and sends via appropriate channel (email, telegram, sms).
+    Uses advisory lock to prevent concurrent execution.
+    Note: Phase C also uses FOR UPDATE SKIP LOCKED internally for row-level safety.
     """
     from src.alerts.alerts_engine_v2 import send_queued_deliveries
+    from src.alerts.db_locks import AdvisoryLock
     
     start_time = time.time()
     logger.info(f"Phase C starting at {now.isoformat()}, batch_size={batch_size}")
     
-    if dry_run:
-        logger.info("Phase C: DRY RUN - no messages sent")
-        from src.db.db import execute_one
-        queued_count = execute_one(
-            "SELECT COUNT(*) as cnt FROM user_alert_deliveries WHERE status = 'queued'"
-        )
-        result = {
-            'dry_run': True, 
-            'queued_count': queued_count['cnt'] if queued_count else 0,
-            'sent': 0, 
-            'failed': 0
-        }
-    else:
-        result = send_queued_deliveries()
+    with AdvisoryLock(LOCK_KEYS['c']) as lock:
+        if not lock.acquired:
+            logger.warning("Phase C: Lock not acquired, skipping (another instance is running)")
+            return {
+                'phase': 'C',
+                'phase_name': 'Send Queued Deliveries',
+                'start_time': now.isoformat(),
+                'end_time': datetime.now(timezone.utc).isoformat(),
+                'duration_seconds': round(time.time() - start_time, 2),
+                'dry_run': dry_run,
+                'batch_size': batch_size,
+                'status': 'skipped',
+                'skipped': True,
+                'reason': 'lock_not_acquired',
+                'counts': {}
+            }
+        
+        if dry_run:
+            logger.info("Phase C: DRY RUN - no messages sent")
+            from src.db.db import execute_one
+            queued_count = execute_one(
+                "SELECT COUNT(*) as cnt FROM user_alert_deliveries WHERE status = 'queued'"
+            )
+            result = {
+                'dry_run': True, 
+                'queued_count': queued_count['cnt'] if queued_count else 0,
+                'sent': 0, 
+                'failed': 0
+            }
+        else:
+            result = send_queued_deliveries(batch_size=batch_size)
     
     duration = time.time() - start_time
     
@@ -159,6 +228,7 @@ def run_phase_c(now: datetime, batch_size: int = 200, dry_run: bool = False) -> 
         'dry_run': dry_run,
         'batch_size': batch_size,
         'status': 'success',
+        'locked': True,
         'counts': result
     }
 
