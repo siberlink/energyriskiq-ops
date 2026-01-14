@@ -474,6 +474,7 @@ def add_user_auth_columns():
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_expires TIMESTAMP",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash TEXT",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20)",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW()",
         "CREATE INDEX IF NOT EXISTS idx_users_verification_token ON users(verification_token)",
         "CREATE INDEX IF NOT EXISTS idx_users_email_verified ON users(email_verified)"

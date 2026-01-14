@@ -16,7 +16,7 @@ from src.alerts.templates import (
     format_high_impact_event,
     add_upgrade_hook_if_free
 )
-from src.alerts.channels import send_email, send_telegram
+from src.alerts.channels import send_email, send_telegram, send_sms
 from src.plans.plan_helpers import get_plan_settings, get_allowed_alert_types
 
 logging.basicConfig(
@@ -140,7 +140,7 @@ def get_high_impact_events(user_id: int) -> List[Dict]:
 
 def get_users_with_plans() -> List[Dict]:
     query = """
-    SELECT u.id, u.email, u.telegram_chat_id, p.plan
+    SELECT u.id, u.email, u.telegram_chat_id, u.phone_number, p.plan
     FROM users u
     JOIN user_plans p ON p.user_id = u.id
     """
@@ -400,23 +400,59 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
 
 def send_alert(user: Dict, alert_data: Dict, alert_id: int, plan_settings: Dict) -> bool:
     delivery_config = plan_settings.get('delivery_config', {})
-    allow_telegram = delivery_config.get('telegram', False)
+    email_config = delivery_config.get('email', {})
+    telegram_config = delivery_config.get('telegram', {})
+    sms_config = delivery_config.get('sms', {})
     
-    channel = 'email'
-    if allow_telegram and user.get('telegram_chat_id'):
-        channel = 'telegram'
+    channels_sent = []
+    channels_failed = []
+    last_error = None
     
-    if channel == 'telegram':
-        success, error = send_telegram(user['telegram_chat_id'], alert_data['message'])
+    if isinstance(email_config, dict):
+        email_enabled = email_config.get('mode') in ['limited', 'unlimited']
     else:
+        email_enabled = True
+    if email_enabled and user.get('email'):
         success, error, _ = send_email(user['email'], alert_data['title'], alert_data['message'])
+        if success:
+            channels_sent.append('email')
+        else:
+            channels_failed.append('email')
+            last_error = error
     
-    if success:
-        update_alert_status(alert_id, 'sent')
+    if isinstance(telegram_config, dict):
+        telegram_enabled = telegram_config.get('enabled', False)
     else:
-        update_alert_status(alert_id, 'failed', error)
+        telegram_enabled = telegram_config
+    if telegram_enabled and user.get('telegram_chat_id'):
+        success, error = send_telegram(user['telegram_chat_id'], alert_data['message'])
+        if success:
+            channels_sent.append('telegram')
+        else:
+            channels_failed.append('telegram')
+            last_error = error
     
-    return success
+    if isinstance(sms_config, dict):
+        sms_enabled = sms_config.get('enabled', False)
+    else:
+        sms_enabled = sms_config
+    if sms_enabled and user.get('phone_number'):
+        sms_message = f"{alert_data['title']}\n{alert_data['message'][:500]}"
+        success, error = send_sms(user['phone_number'], sms_message)
+        if success:
+            channels_sent.append('sms')
+        else:
+            channels_failed.append('sms')
+            last_error = error
+    
+    if channels_sent:
+        update_alert_status(alert_id, 'sent')
+        logger.info(f"Alert {alert_id} sent via: {', '.join(channels_sent)}")
+        return True
+    else:
+        update_alert_status(alert_id, 'failed', last_error)
+        logger.warning(f"Alert {alert_id} failed on all channels: {channels_failed}")
+        return False
 
 
 def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = None):

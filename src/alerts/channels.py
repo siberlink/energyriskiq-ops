@@ -2,6 +2,7 @@ import os
 import logging
 import requests
 from typing import Optional
+from base64 import b64encode
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +11,9 @@ EMAIL_FROM = os.environ.get('EMAIL_FROM', 'alerts@energyriskiq.com')
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
 
 
 def send_email(to_email: str, subject: str, body: str) -> tuple:
@@ -151,4 +155,50 @@ def send_telegram(chat_id: str, message: str) -> tuple:
 def _simulate_telegram(chat_id: str, message: str) -> tuple:
     logger.info(f"[SIMULATED] Telegram to {chat_id}")
     logger.debug(f"Message preview: {message[:200]}...")
+    return True, None
+
+
+def send_sms(to_phone: str, message: str) -> tuple:
+    if not to_phone:
+        return False, "No phone number provided"
+    
+    if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_PHONE_NUMBER:
+        logger.warning("Twilio credentials not set, simulating SMS send")
+        return _simulate_sms(to_phone, message)
+    
+    try:
+        auth = b64encode(f"{TWILIO_ACCOUNT_SID}:{TWILIO_AUTH_TOKEN}".encode()).decode()
+        response = requests.post(
+            f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json",
+            headers={
+                "Authorization": f"Basic {auth}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            data={
+                "From": TWILIO_PHONE_NUMBER,
+                "To": to_phone,
+                "Body": message[:1600]
+            },
+            timeout=30
+        )
+        
+        if response.status_code in [200, 201]:
+            data = response.json()
+            message_sid = data.get('sid')
+            logger.info(f"SMS sent to {to_phone}, sid={message_sid}")
+            return True, None
+        else:
+            error = f"Twilio API error: {response.status_code} - {response.text}"
+            logger.error(error)
+            return False, error
+    
+    except Exception as e:
+        error = f"SMS send failed: {str(e)}"
+        logger.error(error)
+        return False, error
+
+
+def _simulate_sms(to_phone: str, message: str) -> tuple:
+    logger.info(f"[SIMULATED] SMS to {to_phone}")
+    logger.debug(f"Message preview: {message[:160]}...")
     return True, None
