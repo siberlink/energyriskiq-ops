@@ -361,10 +361,11 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                        id, alert_type, region, asset, triggered_value, threshold,
                        title, message, channel, status, created_at, sent_at
                 FROM alerts
-                WHERE alert_type = ANY(%s)
+                WHERE user_id = %s
+                  AND alert_type = ANY(%s)
                   AND status = 'sent'
                 ORDER BY COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title), created_at DESC
-            """, (effective_allowed,))
+            """, (session["user_id"], effective_allowed,))
             all_allowed_alerts = cursor.fetchall()
         else:
             all_allowed_alerts = []
