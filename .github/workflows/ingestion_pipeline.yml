@@ -1,0 +1,176 @@
+name: Ingestion Pipeline
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour at minute 0
+  
+  workflow_dispatch:
+    inputs:
+      skip_ai:
+        description: 'Skip AI enrichment (faster, for testing)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      skip_risk:
+        description: 'Skip risk scoring'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      dry_run:
+        description: 'Dry run mode (no DB changes)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: ingestion-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-ingestion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      PYTHONPATH: '.'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            pip install -e .
+          else
+            echo "ERROR: No requirements.txt or pyproject.toml found"
+            exit 1
+          fi
+
+      - name: Run RSS Ingestion
+        id: ingest
+        run: |
+          echo "=== Starting RSS Ingestion ==="
+          python -c "
+          from src.ingest.ingest_runner import run_ingestion
+          result = run_ingestion()
+          print(f'Ingestion complete: {result}')
+          " 2>&1 | tee ingest_output.txt
+          
+          echo "ingest_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Run AI Enrichment
+        id: ai
+        if: github.event.inputs.skip_ai != 'true'
+        run: |
+          echo "=== Starting AI Enrichment ==="
+          python -c "
+          from src.ai.ai_worker import run_ai_enrichment
+          result = run_ai_enrichment()
+          print(f'AI enrichment complete: {result}')
+          " 2>&1 | tee ai_output.txt
+          
+          echo "ai_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Run Risk Scoring
+        id: risk
+        if: github.event.inputs.skip_risk != 'true'
+        run: |
+          echo "=== Starting Risk Scoring ==="
+          python -c "
+          from src.risk.risk_engine import run_risk_scoring
+          result = run_risk_scoring()
+          print(f'Risk scoring complete: {result}')
+          " 2>&1 | tee risk_output.txt
+          
+          echo "risk_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ingestion-logs-${{ github.run_id }}
+          path: |
+            ingest_output.txt
+            ai_output.txt
+            risk_output.txt
+          retention-days: 7
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Ingestion Pipeline Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Trigger** | ${{ github.event_name == 'schedule' && 'Scheduled (hourly)' || 'Manual' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Skip AI** | ${{ github.event.inputs.skip_ai || 'false' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Skip Risk** | ${{ github.event.inputs.skip_risk || 'false' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Stage Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f ingest_output.txt ]; then
+            echo "| RSS Ingestion | Completed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| RSS Ingestion | Not Run |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f ai_output.txt ]; then
+            echo "| AI Enrichment | Completed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| AI Enrichment | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f risk_output.txt ]; then
+            echo "| Risk Scoring | Completed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Risk Scoring | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Ingestion Output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -30 ingest_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f ai_output.txt ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### AI Enrichment Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -30 ai_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f risk_output.txt ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Risk Scoring Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -30 risk_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
