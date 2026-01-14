@@ -18,6 +18,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+ALERTS_V2_ENABLED = os.environ.get('ALERTS_V2_ENABLED', 'true').lower() == 'true'
+
 
 def get_utc_today_date() -> str:
     return datetime.now(timezone.utc).strftime('%Y-%m-%d')
@@ -224,7 +226,124 @@ def update_digest_status(alert_id: int, status: str, error: Optional[str] = None
             )
 
 
+def create_digest_alert_event(region: str, subject: str, body: str, date_str: str) -> Optional[int]:
+    cooldown_key = f"DIGEST:{region}:{date_str}"
+    
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(
+                """INSERT INTO alert_events 
+                   (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key)
+                   VALUES ('DAILY_DIGEST', %s, '{}', 2, %s, %s, NULL, %s)
+                   ON CONFLICT (cooldown_key) DO NOTHING
+                   RETURNING id""",
+                (region, subject, body, cooldown_key)
+            )
+            result = cursor.fetchone()
+            if result:
+                logger.info(f"Created digest alert_event {result['id']} for {region}")
+                return result['id']
+            else:
+                cursor.execute(
+                    "SELECT id FROM alert_events WHERE cooldown_key = %s",
+                    (cooldown_key,)
+                )
+                existing = cursor.fetchone()
+                return existing['id'] if existing else None
+    except Exception as e:
+        logger.error(f"Error creating digest alert event: {e}")
+        return None
+
+
+def fanout_digest_to_users(alert_event_id: int, users: List[Dict]) -> Dict:
+    from src.alerts.alerts_engine_v2 import (
+        create_delivery, 
+        check_delivery_cooldown, 
+        count_deliveries_today,
+        update_delivery_status
+    )
+    
+    sent = 0
+    skipped = 0
+    failed = 0
+    
+    alert_event = execute_one(
+        "SELECT headline, body FROM alert_events WHERE id = %s",
+        (alert_event_id,)
+    )
+    
+    if not alert_event:
+        return {"sent": 0, "skipped": 0, "failed": 0}
+    
+    for user in users:
+        user_id = user['id']
+        email = user['email']
+        
+        account_id = create_delivery(user_id, alert_event_id, 'account', 'sent')
+        
+        if check_delivery_cooldown(user_id, alert_event_id, 'email'):
+            skipped += 1
+            continue
+        
+        delivery_id = create_delivery(user_id, alert_event_id, 'email', 'queued')
+        
+        if not delivery_id:
+            skipped += 1
+            continue
+        
+        success, error, msg_id = send_email(email, alert_event['headline'], alert_event['body'])
+        
+        if success:
+            update_delivery_status(delivery_id, 'sent', msg_id)
+            sent += 1
+        else:
+            update_delivery_status(delivery_id, 'failed', reason=error)
+            failed += 1
+    
+    return {"sent": sent, "skipped": skipped, "failed": failed}
+
+
+def run_digest_worker_v2() -> Dict:
+    logger.info("=" * 60)
+    logger.info("Starting EnergyRiskIQ Daily Digest Worker (v2)")
+    logger.info("=" * 60)
+    
+    run_migrations()
+    
+    date_str = get_utc_today_date()
+    users = get_digest_eligible_users()
+    
+    if not users:
+        logger.info("No users eligible for daily digest")
+        return {"processed": 0, "sent": 0, "skipped": 0, "failed": 0}
+    
+    logger.info(f"Found {len(users)} digest-eligible users")
+    
+    subject, body = build_digest_content('Europe')
+    
+    alert_event_id = create_digest_alert_event('Europe', subject, body, date_str)
+    
+    if not alert_event_id:
+        logger.error("Failed to create digest alert event")
+        return {"processed": 0, "sent": 0, "skipped": 0, "failed": len(users)}
+    
+    result = fanout_digest_to_users(alert_event_id, users)
+    
+    logger.info("=" * 60)
+    logger.info(f"Digest Worker v2 Complete: sent={result['sent']}, skipped={result['skipped']}, failed={result['failed']}")
+    logger.info("=" * 60)
+    
+    return {
+        "processed": len(users),
+        "alert_event_id": alert_event_id,
+        **result
+    }
+
+
 def run_digest_worker() -> Dict:
+    if ALERTS_V2_ENABLED:
+        return run_digest_worker_v2()
+    
     logger.info("=" * 60)
     logger.info("Starting EnergyRiskIQ Daily Digest Worker")
     logger.info("=" * 60)

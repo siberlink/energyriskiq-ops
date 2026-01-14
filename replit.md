@@ -3,7 +3,7 @@
 ## Overview
 EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scoring pipeline for energy risk intelligence. It fetches news events from RSS feeds, classifies them, enriches them with AI, and computes quantitative risk scores.
 
-**Current State**: Step 4 complete - Monetizable alerts engine with plan gating.
+**Current State**: Alerts v2 complete - Global alerts factory with fanout delivery.
 
 ## Project Architecture
 
@@ -111,6 +111,29 @@ EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scorin
 - is_active, created_at, updated_at
 - NOTE: This is the single source of truth for all plan features
 
+### alert_events table (v2 - Global Alert Events)
+- id SERIAL PK
+- alert_type: HIGH_IMPACT_EVENT | REGIONAL_RISK_SPIKE | ASSET_RISK_SPIKE | DAILY_DIGEST
+- scope_region: Region this alert applies to (e.g., 'Europe')
+- scope_assets: TEXT[] of affected assets (e.g., ['oil', 'gas'])
+- severity: 1-5 severity level
+- headline: Alert title
+- body: Full alert message body
+- driver_event_ids: INT[] referencing events.id that triggered this alert
+- cooldown_key: UNIQUE key for global deduplication
+- created_at: Timestamp
+
+### user_alert_deliveries table (v2 - Per-User Delivery Records)
+- id SERIAL PK
+- user_id: FK to users.id
+- alert_event_id: FK to alert_events.id
+- channel: email | telegram | sms | account
+- status: queued | sent | skipped | failed
+- reason: Explanation for skipped/failed (e.g., 'quota_exceeded', 'cooldown')
+- provider_message_id: External message ID from email/SMS provider
+- created_at, sent_at: Timestamps
+- UNIQUE(user_id, alert_event_id, channel)
+
 ## Running the Project
 
 ### API Server (default)
@@ -162,7 +185,10 @@ python src/main.py --mode alerts
 ### Alerts
 - `POST /alerts/test` - Create test user and preview alerts
 - `POST /alerts/send-test-email` - Send test email via Brevo
-- `GET /alerts/user/{user_id}` - View user's alert history
+- `GET /alerts/user/{user_id}` - View user's alert history (legacy)
+- `GET /alerts/events/latest` - Get latest global alert events (v2)
+- `GET /alerts/user/{user_id}/deliveries` - View user's delivery history (v2)
+- `GET /alerts/me?user_id=X` - Get my alerts with full event details (v2)
 
 ### Marketing
 - `GET /marketing/samples` - Sample alert messages
@@ -234,6 +260,9 @@ python src/main.py --mode alerts
 - `ALERTS_LOOP`: true to run continuously
 - `ALERTS_LOOP_INTERVAL`: Seconds between runs (default 600)
 
+### Alerts v2
+- `ALERTS_V2_ENABLED`: true (default) to use global alerts + fanout model
+
 ### Internal Runner
 - `INTERNAL_RUNNER_TOKEN`: Secret token for /internal/run/* endpoints
 
@@ -248,6 +277,7 @@ See **[OPERATIONS.md](OPERATIONS.md)** for detailed documentation on:
 - Internal runner endpoints and authentication
 
 ## Recent Changes
+- 2026-01-14: **Alerts v2 - Global Alerts Factory** - Complete redesign of alerts system. Alerts are now generated ONCE as global alert_events (user-agnostic), then the system fans out deliveries to all eligible users. New tables: alert_events, user_alert_deliveries. New endpoints: /alerts/events/latest, /alerts/user/{id}/deliveries, /alerts/me. Feature flag ALERTS_V2_ENABLED (default true). Supports email/telegram/sms/account channels with per-user quotas and cooldowns.
 - 2026-01-14: Telegram account linking - Users on Trader/Pro/Enterprise plans can now link their Telegram accounts from the dashboard Settings page. Uses secure time-limited codes (15 min expiry), plan enforcement server-side, and bot webhook for /start, /status, /help, /unlink commands.
 - 2026-01-14: Alert processing fix - Expanded HIGH_SEVERITY_KEYWORDS to include crisis, turmoil, halt, suspend, collapse, war, conflict, seize, capture, embargo, invasion, emergency, critical. Previous keywords (attack, missile, explosion, shutdown, blockade, sanctions) were too restrictive.
 - 2026-01-14: Alert UI improvements - Added 24-hour filter, Latest badge for <3hr alerts, date/time filter, risk as percentage, upgrade sidebar card, cleaner type labels.
