@@ -1152,7 +1152,18 @@ def run_alerts_engine_v2(dry_run: bool = False) -> Dict:
     phase_d_result = build_digests()
     
     phase_c_result = send_queued_deliveries()
-    digest_result = send_queued_digests()
+    
+    instant_sent = phase_c_result.get('sent', 0)
+    remaining_quota = max(0, ALERTS_MAX_SEND_PER_RUN - instant_sent)
+    
+    if remaining_quota > 0 and not phase_c_result.get('stopped_early', False):
+        digest_result = send_queued_digests(max_per_run=remaining_quota)
+    else:
+        digest_result = {
+            'digests_selected': 0,
+            'digests_sent': 0,
+            'digests_skipped_quota_reached': phase_c_result.get('stopped_early', False)
+        }
     phase_c_result['digests'] = digest_result
     
     result = {

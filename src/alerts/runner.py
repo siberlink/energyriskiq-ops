@@ -381,8 +381,21 @@ def run_phase_c(now: datetime, batch_size: int = 200, dry_run: bool = False) -> 
                 'digests': {'dry_run': True, 'digests_sent': 0}
             }
         else:
+            from src.alerts.alerts_engine_v2 import ALERTS_MAX_SEND_PER_RUN
+            
             result = send_queued_deliveries(batch_size=batch_size)
-            digest_result = send_queued_digests(batch_size=batch_size // 2)
+            
+            instant_sent = result.get('sent', 0)
+            remaining_quota = max(0, ALERTS_MAX_SEND_PER_RUN - instant_sent)
+            
+            if remaining_quota > 0 and not result.get('stopped_early', False):
+                digest_result = send_queued_digests(batch_size=batch_size // 2, max_per_run=remaining_quota)
+            else:
+                digest_result = {
+                    'digests_selected': 0,
+                    'digests_sent': 0,
+                    'digests_skipped_quota_reached': result.get('stopped_early', False)
+                }
             result['digests'] = digest_result
     
     duration = time.time() - start_time

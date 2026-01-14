@@ -80,6 +80,73 @@ python -m src.alerts.runner --phase all --dry-run  # Test without changes
 | `ALERTS_RATE_LIMIT_SMS_PER_MINUTE` | 0 | Optional per-channel throttle (0=unlimited) |
 | `ALERTS_DIGEST_PERIOD` | daily | Digest period: 'daily' or 'hourly' |
 | `ALERTS_APP_BASE_URL` | https://energyriskiq.com | Base URL for dashboard links in digests |
+| `ALERTS_SEND_ALLOWLIST_USER_IDS` | (none) | Comma-separated user IDs for controlled rollout |
+| `ALERTS_MAX_SEND_PER_RUN` | 1000 | Circuit breaker: max sends per engine run |
+
+## Production Hardening (Alerts v2)
+
+The alerts engine includes safety features for controlled rollout and operational stability:
+
+### Preflight Check (--preflight)
+Validates environment before running:
+- Database connectivity
+- Required tables exist
+- Channel configuration (email, telegram, sms)
+- Returns JSON with errors/warnings
+
+```bash
+python -m src.alerts.runner --preflight
+```
+
+Example output:
+```json
+{
+  "status": "ok",
+  "checks": {
+    "database": {"status": "ok"},
+    "tables": {"status": "ok", "found": ["alert_events", "user_alert_deliveries", ...]},
+    "channels": {
+      "email": {"status": "ok", "provider": "brevo"},
+      "telegram": {"status": "ok"},
+      "sms": {"status": "warning", "message": "not_configured"}
+    }
+  },
+  "errors": [],
+  "warnings": ["SMS channel not configured"]
+}
+```
+
+### Health Check (--health)
+Fetches metrics without requiring HTTP server:
+
+```bash
+python -m src.alerts.runner --health
+```
+
+### User Allowlist
+For controlled rollout, set `ALERTS_SEND_ALLOWLIST_USER_IDS`:
+- Only allowlisted users receive alerts in Phase B (fanout) and Phase C (send)
+- Comma-separated user IDs: `1,2,5,10`
+- Leave unset for normal operation
+
+### Circuit Breaker
+`ALERTS_MAX_SEND_PER_RUN` prevents runaway sends:
+- Default: 1000 sends per engine invocation
+- When limit reached, Phase C stops early with `stopped_early: true`
+- Protects against unexpected high volumes
+
+### GitHub Actions Workflow
+The `.github/workflows/alerts_engine_v2.yml` includes:
+1. Preflight check (fails fast if environment invalid)
+2. Engine run with all phases
+3. Health check output
+4. Summary annotation with metrics
+
+Manual dispatch options:
+- `skip_preflight`: Skip environment validation
+- `phase`: Choose specific phase(s)
+- `dry_run`: Test without changes
+- `batch_size`: Control delivery batch size
 
 ## Engine Observability (Alerts v2)
 
