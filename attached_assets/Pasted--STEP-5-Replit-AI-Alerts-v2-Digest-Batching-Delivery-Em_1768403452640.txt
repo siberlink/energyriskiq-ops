@@ -1,0 +1,179 @@
+# STEP 5 (Replit AI) — Alerts v2: Digest Batching & Delivery (Email + Telegram), Idempotent & Cron-safe
+
+You are Replit AI working inside my EnergyRiskIQ repository. Steps 1–4 are complete:
+- CLI runner works
+- Advisory locks + schema constraints exist
+- Phase B creates deliveries with delivery_kind = instant|digest
+- Phase C sends queued deliveries with retries/backoff and channel safeguards
+- Missing config => skipped; dry-run => no DB changes
+
+## Goal of Step 5
+Implement a real "digest" system so that deliveries with `delivery_kind='digest'` are:
+1) grouped into digest batches per user + channel + period
+2) sent as a single message (email/telegram)
+3) idempotent (no duplicate digest sends)
+4) compatible with GitHub Actions cron scheduling
+
+This step focuses on:
+- Daily digest (default)
+- Optional hourly digest for higher plans (config-driven)
+- Email + Telegram digests (SMS digest is not required; skip SMS digests)
+
+---
+
+# Non-Negotiable Constraints
+1) Digest sending must be idempotent: re-running cron must not send the same digest twice.
+2) Digest should include multiple events in a single message for the time window.
+3) Must not break instant alerts.
+4) Must work even if there are 0 digest items (clean no-op).
+5) Dry-run must not alter DB.
+6) Respect channel safeguards: missing config => skipped (no crash).
+
+---
+
+# Deliverables
+
+## A) Add Digest Batch Tracking (DB)
+Create migrations to add ONE of these approaches (choose the best fit; prefer Approach 1):
+
+### Approach 1 (preferred): New table `user_alert_digests`
+Create table:
+- id (pk)
+- user_id
+- channel  (email|telegram)
+- period   (daily|hourly)
+- window_start (timestamp)
+- window_end (timestamp)
+- digest_key (TEXT UNIQUE)  # e.g. user_id:channel:period:YYYY-MM-DD or hour bucket
+- status (queued|sending|sent|failed|skipped)
+- attempts int default 0
+- next_retry_at timestamp null
+- last_error text null
+- sent_at timestamp null
+- created_at timestamp default now()
+
+Also add a join table OR store included delivery IDs:
+Option A: `user_alert_digest_items(digest_id, delivery_id UNIQUE)`
+Option B: store delivery ids in JSONB (less ideal)
+Prefer Option A if migrations are easy.
+
+### Approach 2 (if you cannot add new tables easily)
+Use `user_alert_deliveries` only by creating a deterministic digest “header delivery”
+with a special channel/payload. This is less clean; avoid unless necessary.
+
+## B) Phase B Update: Create Digest Records (not just deliveries)
+Right now Phase B enqueues digest deliveries per event. That’s okay, but we need batching.
+
+Modify Phase B so that when delivery_kind='digest':
+- It still creates `user_alert_deliveries` rows (to track per-event inclusion), BUT:
+- It does NOT expect Phase C to send those individually.
+Instead, digest deliveries should be *consumed* by digest batching.
+
+Add a new Phase (or sub-phase) to build digests:
+- Phase D (Digest Builder): groups digest deliveries into a digest batch record.
+
+You can implement this either as:
+- A new `run_phase_d(now)` and wire it into runner as `--phase d` and into `all` as A→B→D→C
+OR
+- Integrate digest building into Phase B at the end.
+Preferred: new Phase D for clarity, but acceptable to integrate if simpler.
+
+## C) Digest Window Rules
+Implement env-driven digest periods:
+- `ALERTS_DIGEST_PERIOD=daily` default
+- optionally `hourly` supported for higher plans
+
+Define digest window:
+- Daily digest uses calendar day in app timezone (use Europe/Amsterdam per product; if repo has TZ config use it; otherwise UTC but document it).
+- Window start/end for daily: [00:00, 24:00)
+- For hourly: [HH:00, HH+1:00)
+
+Only include digest deliveries whose related events fall inside the window.
+If `alert_events.created_at` exists, use it; else use delivery created_at.
+
+## D) Digest Builder (Phase D)
+Implement:
+- Select digest-eligible deliveries:
+  - `delivery_kind='digest'`
+  - status in ('queued')  # keep using queued to mean “pending inclusion”
+  - AND not already attached to a digest item (if using digest_items table)
+- Group by (user_id, channel, period, window_bucket)
+- Create digest record with UNIQUE digest_key using `ON CONFLICT DO NOTHING`
+- Attach deliveries to the digest record (insert digest_items with UNIQUE constraint)
+- Mark individual digest deliveries as:
+  - status='skipped' with last_error='batched_into_digest'
+  OR keep them queued but exclude them from Phase C and rely on digest_items.
+Preferred: mark them `skipped` with reason batched_into_digest to prevent Phase C from trying to send them individually.
+
+Return counts:
+- digests_created
+- digest_items_attached
+- deliveries_marked_batched
+
+## E) Digest Sender (Phase C extension or separate Phase E)
+You must send digest records (not per-event digest deliveries).
+
+Implement digest sending with the same retry/backoff semantics as Phase C:
+- Select digests where status='queued' and next_retry_at <= now using `FOR UPDATE SKIP LOCKED`
+- Set status='sending'
+- Build a digest message containing:
+  - header: date/time window
+  - bullet list of events (title + severity + short reason + link/ID)
+  - “View in app” link (if you have base URL env var, use it)
+Keep message short enough for Telegram, and email can be longer.
+
+On success:
+- status='sent', sent_at
+On failure:
+- attempts/backoff similar to deliveries
+On missing channel config:
+- status='skipped'
+
+IMPORTANT:
+- If `--dry-run`, do not change DB.
+
+Wire digest sending into `--phase c` OR add `--phase e`.
+Preferred: include digest sending inside Phase C (after instant deliveries), but keep code modular.
+
+## F) Runner Integration
+Update runner to support:
+- `--phase d` (digest build) if you add Phase D
+- `--phase all` runs:
+  - A → B → D → C
+If you integrate digest build into Phase B, still update docs in `replit.md` and ensure Phase C sends digests.
+
+## G) Documentation
+Update `replit.md`:
+- Explain how digest works
+- Mention new env vars:
+  - ALERTS_DIGEST_PERIOD
+  - ALERTS_APP_BASE_URL (optional)
+- Provide commands:
+  - `python -m src.alerts.runner --phase d`
+  - `python -m src.alerts.runner --phase all`
+
+---
+
+# Implementation Steps
+1) Add migrations for digest tracking tables.
+2) Implement digest builder grouping logic.
+3) Implement digest sender with retries/backoff and channel safeguards.
+4) Ensure Phase C does NOT try to send per-event digest deliveries individually.
+5) Run local dry-run:
+   - `python -m src.alerts.runner --phase all --dry-run`
+6) If possible in test DB:
+   - Create 3 digest deliveries for one user within same day
+   - Run Phase D => one digest created with 3 items
+   - Run Phase C => one digest message “would send” in dry-run
+
+---
+
+# Output Requirements
+When finished, respond with:
+1) New/modified files list
+2) New migrations list
+3) Runner phase behavior (what `all` now does)
+4) Example digest message format for Email and Telegram
+5) How to verify idempotency (run twice => only one digest sent)
+
+Proceed now without asking questions unless blocked.

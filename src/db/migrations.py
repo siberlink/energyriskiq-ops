@@ -518,6 +518,9 @@ def run_migrations():
     logger.info("Running Alerts v2 safety schema...")
     migrate_alerts_v2_safety_schema()
     
+    logger.info("Running digest tables migration...")
+    run_digest_tables_migration()
+    
     logger.info("Migrations completed successfully.")
 
 
@@ -753,6 +756,48 @@ def migrate_alerts_v2_safety_schema():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_deliveries_queued ON user_alert_deliveries(created_at) WHERE status = 'queued';")
     
     logger.info("Alerts v2 safety schema migration complete.")
+
+
+def run_digest_tables_migration():
+    """Create tables for digest batching (Step 5)."""
+    logger.info("Running digest tables migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_alert_digests (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                channel TEXT NOT NULL CHECK (channel IN ('email', 'telegram')),
+                period TEXT NOT NULL CHECK (period IN ('daily', 'hourly')),
+                window_start TIMESTAMP NOT NULL,
+                window_end TIMESTAMP NOT NULL,
+                digest_key TEXT NOT NULL UNIQUE,
+                status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'sending', 'sent', 'failed', 'skipped')),
+                attempts INT NOT NULL DEFAULT 0,
+                next_retry_at TIMESTAMP NULL,
+                last_error TEXT NULL,
+                sent_at TIMESTAMP NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_alert_digest_items (
+                id SERIAL PRIMARY KEY,
+                digest_id INT NOT NULL REFERENCES user_alert_digests(id) ON DELETE CASCADE,
+                delivery_id INT NOT NULL REFERENCES user_alert_deliveries(id) ON DELETE CASCADE,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(digest_id, delivery_id)
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digests_status ON user_alert_digests(status);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digests_user ON user_alert_digests(user_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digests_window ON user_alert_digests(window_start, window_end);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digests_retry ON user_alert_digests(next_retry_at) WHERE next_retry_at IS NOT NULL;")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digest_items_delivery ON user_alert_digest_items(delivery_id);")
+    
+    logger.info("Digest tables migration complete.")
 
 
 if __name__ == "__main__":
