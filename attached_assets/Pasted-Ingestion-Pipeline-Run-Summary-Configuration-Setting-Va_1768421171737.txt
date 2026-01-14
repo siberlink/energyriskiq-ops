@@ -1,0 +1,50 @@
+Ingestion Pipeline Run Summary
+Configuration
+Setting	Value
+Trigger	Manual
+Skip AI	false
+Skip Risk	false
+Stage Results
+Stage	Status
+RSS Ingestion	Completed
+AI Enrichment	Completed
+Risk Scoring	Completed
+Ingestion Output
+2026-01-14 20:02:42,168 - src.db.migrations - INFO - Migrating user_plans price column to decimal...
+2026-01-14 20:02:42,168 - src.db.migrations - INFO - Migrating user_plans.plan_price_usd from INTEGER to NUMERIC(10,2)...
+2026-01-14 20:02:42,706 - src.db.migrations - INFO - user_plans.plan_price_usd migration complete.
+2026-01-14 20:02:42,706 - src.db.migrations - INFO - Ensuring users have default alert preferences...
+2026-01-14 20:02:43,157 - src.plans.plan_helpers - INFO - Alert prefs migration complete: 0 users received default preferences
+2026-01-14 20:02:43,157 - src.db.migrations - INFO - Running Alerts v2 safety schema...
+2026-01-14 20:02:43,157 - src.db.migrations - INFO - Running Alerts v2 safety schema migration...
+2026-01-14 20:02:44,581 - src.db.migrations - INFO - Alerts v2 safety schema migration complete.
+2026-01-14 20:02:44,581 - src.db.migrations - INFO - Running digest tables migration...
+2026-01-14 20:02:44,581 - src.db.migrations - INFO - Running digest tables migration...
+2026-01-14 20:02:45,389 - src.db.migrations - INFO - Digest tables migration complete.
+2026-01-14 20:02:45,389 - src.db.migrations - INFO - Running engine observability migration...
+2026-01-14 20:02:45,389 - src.db.migrations - INFO - Running engine observability migration...
+2026-01-14 20:02:46,206 - src.db.migrations - INFO - Engine observability migration complete.
+2026-01-14 20:02:46,206 - src.db.migrations - INFO - Migrations completed successfully.
+2026-01-14 20:02:46,723 - src.ingest.ingest_runner - INFO - Started ingestion run #7
+2026-01-14 20:02:46,723 - src.ingest.rss_fetcher - INFO - Loaded 3 feed configurations
+2026-01-14 20:02:46,723 - src.ingest.rss_fetcher - INFO - Fetching feed: Al Jazeera News from https://www.aljazeera.com/xml/rss/all.xml
+2026-01-14 20:02:46,864 - src.ingest.rss_fetcher - INFO - Fetched 25 events from Al Jazeera News
+2026-01-14 20:02:46,864 - src.ingest.rss_fetcher - INFO - Fetching feed: OilPrice.com from https://oilprice.com/rss/main
+2026-01-14 20:02:47,340 - src.ingest.rss_fetcher - WARNING - Feed parsing warning for OilPrice.com: rss+xml; charset=utf-8 is not an XML media type
+2026-01-14 20:02:47,340 - src.ingest.rss_fetcher - INFO - Fetched 15 events from OilPrice.com
+2026-01-14 20:02:47,340 - src.ingest.rss_fetcher - INFO - Fetching feed: FreightWaves from https://www.freightwaves.com/news/feed
+2026-01-14 20:02:47,705 - src.ingest.rss_fetcher - INFO - Fetched 56 events from FreightWaves
+2026-01-14 20:02:47,706 - src.ingest.rss_fetcher - INFO - Total events fetched from all feeds: 96
+2026-01-14 20:03:36,390 - src.ingest.ingest_runner - INFO - Finished ingestion run #7 with status: success
+2026-01-14 20:03:36,390 - src.ingest.ingest_runner - INFO - ============================================================
+2026-01-14 20:03:36,390 - src.ingest.ingest_runner - INFO - Ingestion Complete: Total=96, Inserted=96, Skipped=0, Failed=0
+2026-01-14 20:03:36,390 - src.ingest.ingest_runner - INFO - ============================================================
+Ingestion complete: (96, 0, 0)
+AI Enrichment Output
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+ImportError: cannot import name 'run_ai_enrichment' from 'src.ai.ai_worker' (/home/runner/work/energyriskiq-ops/energyriskiq-ops/src/ai/ai_worker.py)
+Risk Scoring Output
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+ImportError: cannot import name 'run_risk_scoring' from 'src.risk.risk_engine' (/home/runner/work/energyriskiq-ops/energyriskiq-ops/src/risk/risk_engine.py)

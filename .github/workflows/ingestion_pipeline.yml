@@ -85,8 +85,8 @@ jobs:
         run: |
           echo "=== Starting AI Enrichment ==="
           python -c "
-          from src.ai.ai_worker import run_ai_enrichment
-          result = run_ai_enrichment()
+          from src.ai.ai_worker import run_ai_worker
+          result = run_ai_worker()
           print(f'AI enrichment complete: {result}')
           " 2>&1 | tee ai_output.txt
           
@@ -98,8 +98,8 @@ jobs:
         run: |
           echo "=== Starting Risk Scoring ==="
           python -c "
-          from src.risk.risk_engine import run_risk_scoring
-          result = run_risk_scoring()
+          from src.risk.risk_engine import run_risk_engine
+          result = run_risk_engine()
           print(f'Risk scoring complete: {result}')
           " 2>&1 | tee risk_output.txt
           
