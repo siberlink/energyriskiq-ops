@@ -555,7 +555,17 @@
 
                 const data = await response.json();
 
-                if (response.ok) {
+                if (response.ok && data.status === 'incomplete_setup') {
+                    pendingEmail = data.email;
+                    showEmailSentView(data.email);
+                    showSuccess('authSuccess', 'Your account setup is incomplete. Please click "Resend verification email" to complete setup.');
+                    document.getElementById('authSuccess').style.display = 'none';
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'auth-success';
+                    msgDiv.style.display = 'block';
+                    msgDiv.textContent = 'Your account setup is incomplete. Click the button below to receive a verification email and complete your setup.';
+                    document.getElementById('emailSentView').insertBefore(msgDiv, document.getElementById('emailSentView').firstChild);
+                } else if (response.ok && data.success) {
                     localStorage.setItem('userSession', JSON.stringify({
                         token: data.token,
                         user: data.user,
