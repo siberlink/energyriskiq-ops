@@ -37,10 +37,10 @@ def get_real_sample_alerts():
     
     with get_cursor(commit=False) as cur:
         cur.execute("""
-            SELECT id, alert_type, region, asset, triggered_value, threshold,
-                   title, message, channel, created_at, sent_at
-            FROM alerts
-            WHERE status = 'sent'
+            SELECT id, alert_type, scope_region, scope_assets, severity,
+                   headline, body, created_at, fanout_completed_at
+            FROM alert_events
+            WHERE fanout_completed_at IS NOT NULL
               AND created_at < %s
             ORDER BY created_at DESC
             LIMIT 6
@@ -49,7 +49,7 @@ def get_real_sample_alerts():
     
     samples = []
     for row in rows:
-        sent_at = row["sent_at"] or row["created_at"]
+        sent_at = row["fanout_completed_at"] or row["created_at"]
         if sent_at:
             if hasattr(sent_at, 'isoformat'):
                 sent_at_str = sent_at.isoformat()
@@ -57,17 +57,19 @@ def get_real_sample_alerts():
                 sent_at_str = str(sent_at)
         else:
             sent_at_str = None
+        
+        assets = row["scope_assets"] or []
+        asset = assets[0] if assets else None
             
         samples.append({
             "id": row["id"],
             "type": row["alert_type"],
-            "title": row["title"],
-            "message": row["message"],
-            "region": row["region"],
-            "asset": row["asset"],
-            "channel": row["channel"],
-            "triggered_value": float(row["triggered_value"]) if row["triggered_value"] else None,
-            "threshold": float(row["threshold"]) if row["threshold"] else None,
+            "title": row["headline"],
+            "message": row["body"],
+            "region": row["scope_region"],
+            "asset": asset,
+            "channel": "email",
+            "severity": row["severity"],
             "sent_at": sent_at_str
         })
     
