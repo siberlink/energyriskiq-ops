@@ -362,14 +362,16 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         
         if effective_allowed:
             cursor.execute("""
-                SELECT DISTINCT ON (COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title))
-                       id, alert_type, region, asset, triggered_value, threshold,
-                       title, message, channel, status, created_at, sent_at
-                FROM alerts
-                WHERE user_id = %s
-                  AND alert_type = ANY(%s)
-                  AND status = 'sent'
-                ORDER BY COALESCE(cooldown_key, alert_type || '|' || COALESCE(region,'') || '|' || title), created_at DESC
+                SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
+                       uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                       ae.severity, ae.headline as title, ae.body as message,
+                       uad.channel, uad.status, ae.created_at, uad.sent_at
+                FROM user_alert_deliveries uad
+                JOIN alert_events ae ON uad.alert_event_id = ae.id
+                WHERE uad.user_id = %s
+                  AND ae.alert_type = ANY(%s)
+                  AND uad.status = 'sent'
+                ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
             """, (session["user_id"], effective_allowed,))
             all_allowed_alerts = cursor.fetchall()
         else:
@@ -379,13 +381,14 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         
         alerts = []
         for row in sorted_alerts:
+            assets = row['assets'] if row['assets'] else []
+            asset_str = assets[0] if len(assets) == 1 else ', '.join(assets) if assets else None
             alerts.append({
                 "id": row['id'],
                 "alert_type": row['alert_type'],
                 "region": row['region'],
-                "asset": row['asset'],
-                "triggered_value": float(row['triggered_value']) if row['triggered_value'] else None,
-                "threshold": float(row['threshold']) if row['threshold'] else None,
+                "asset": asset_str,
+                "severity": row['severity'],
                 "title": row['title'],
                 "message": row['message'],
                 "channel": row['channel'],
@@ -399,18 +402,20 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         if locked_types:
             cursor.execute("""
                 SELECT DISTINCT ON (alert_type)
-                       id, alert_type, region, asset, title, message, created_at
-                FROM alerts
-                WHERE alert_type = ANY(%s)
-                  AND status = 'sent'
-                ORDER BY alert_type, created_at DESC
+                       ae.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                       ae.headline as title, ae.body as message, ae.created_at
+                FROM alert_events ae
+                WHERE ae.alert_type = ANY(%s)
+                ORDER BY ae.alert_type, ae.created_at DESC
             """, (locked_types,))
             
             for row in cursor.fetchall():
+                assets = row['assets'] if row['assets'] else []
+                asset_str = assets[0] if len(assets) == 1 else ', '.join(assets) if assets else None
                 locked_samples.append({
                     "alert_type": row['alert_type'],
                     "region": row['region'],
-                    "asset": row['asset'],
+                    "asset": asset_str,
                     "title": row['title'],
                     "preview": (row['message'][:100] + "...") if row['message'] and len(row['message']) > 100 else row['message'],
                     "created_at": row['created_at'].isoformat() if row['created_at'] else None
