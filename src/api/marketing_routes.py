@@ -33,18 +33,15 @@ def get_landing_copy():
 
 @router.get("/real-samples")
 def get_real_sample_alerts():
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
-    
     with get_cursor(commit=False) as cur:
         cur.execute("""
             SELECT id, alert_type, scope_region, scope_assets, severity,
                    headline, body, created_at, fanout_completed_at
             FROM alert_events
-            WHERE fanout_completed_at IS NOT NULL
-              AND created_at < %s
+            WHERE headline IS NOT NULL
             ORDER BY created_at DESC
             LIMIT 6
-        """, (cutoff,))
+        """)
         rows = cur.fetchall()
     
     samples = []
