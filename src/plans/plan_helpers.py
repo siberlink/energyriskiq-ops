@@ -132,7 +132,7 @@ def get_today_alert_counts(user_id: int) -> Dict[str, int]:
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE channel = 'email') as email,
                 COUNT(*) FILTER (WHERE channel = 'telegram') as telegram
-            FROM alerts 
+            FROM user_alert_deliveries 
             WHERE user_id = %s 
               AND DATE(created_at AT TIME ZONE 'UTC') = %s
               AND status = 'sent'

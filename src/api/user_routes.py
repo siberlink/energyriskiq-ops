@@ -406,6 +406,7 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                        ae.headline as title, ae.body as message, ae.created_at
                 FROM alert_events ae
                 WHERE ae.alert_type = ANY(%s)
+                  AND ae.created_at >= NOW() - INTERVAL '30 days'
                 ORDER BY ae.alert_type, ae.created_at DESC
             """, (locked_types,))
             

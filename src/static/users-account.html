@@ -1512,10 +1512,11 @@
             
             const alertCardHTML = (alert) => {
                 const isAllowed = alert.allowed_by_plan;
-                const isHighValue = alert.triggered_value && alert.triggered_value >= 70;
+                const severityValue = alert.severity || alert.triggered_value;
+                const isHighValue = severityValue && severityValue >= 7;
                 const isLatest = isLatestAlert(alert.created_at);
                 const cleanedMessage = cleanAlertMessage(alert.message);
-                const riskPercent = alert.triggered_value ? Math.round(alert.triggered_value) : null;
+                const riskPercent = severityValue ? (severityValue <= 10 ? severityValue * 10 : Math.round(severityValue)) : null;
                 
                 return `
                     <div class="alert-card ${!isAllowed ? 'locked' : ''}">
