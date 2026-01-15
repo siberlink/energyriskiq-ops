@@ -161,30 +161,44 @@ def determine_delivery_kind(user_prefs: Optional[Dict], plan: str) -> str:
 
 
 def get_user_alert_prefs(user_id: int) -> Optional[Dict]:
-    """Get user alert preferences."""
-    result = execute_one(
+    """Get user alert preferences.
+    
+    The user_alert_prefs table stores per-alert-type preferences,
+    not per-channel preferences. This returns aggregated preferences.
+    """
+    results = execute_query(
         """
-        SELECT email_enabled, telegram_enabled, sms_enabled,
-               digest_only, delivery_mode, alert_types,
-               regions, cooldown_minutes
+        SELECT region, alert_type, asset, threshold, enabled, cooldown_minutes
         FROM user_alert_prefs
-        WHERE user_id = %s
+        WHERE user_id = %s AND enabled = TRUE
         """,
         (user_id,)
     )
-    return dict(result) if result else None
+    
+    if not results:
+        return None
+    
+    alert_types = list(set(r['alert_type'] for r in results if r.get('alert_type')))
+    regions = list(set(r['region'] for r in results if r.get('region')))
+    cooldowns = [r['cooldown_minutes'] for r in results if r.get('cooldown_minutes')]
+    
+    return {
+        'alert_types': alert_types,
+        'regions': regions,
+        'cooldown_minutes': min(cooldowns) if cooldowns else 60,
+        'email_enabled': True,
+        'telegram_enabled': True,
+        'sms_enabled': True
+    }
 
 
 def is_channel_enabled_for_user(user_id: int, channel: str, user_prefs: Optional[Dict] = None) -> bool:
-    """Check if a channel is enabled for a user based on their preferences."""
-    if user_prefs is None:
-        user_prefs = get_user_alert_prefs(user_id)
+    """Check if a channel is enabled for a user based on their preferences.
     
-    if not user_prefs:
-        return True
-    
-    channel_key = f'{channel}_enabled'
-    return user_prefs.get(channel_key, True)
+    Note: The current schema doesn't have per-channel preferences,
+    so all channels are enabled by default.
+    """
+    return True
 
 
 def get_user_destination(user: Dict, channel: str) -> Optional[str]:
