@@ -296,95 +296,199 @@
 
         .alerts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
         }
 
-        .alert-card {
-            background: linear-gradient(145deg, #1e293b 0%, #1a2332 100%);
-            border: 1px solid #334155;
+        .sample-card {
+            background: #1e293b;
             border-radius: 16px;
-            padding: 0;
-            transition: all 0.3s ease;
             overflow: hidden;
+            border: 1px solid #334155;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
             position: relative;
         }
 
-        .alert-card:hover {
+        .sample-card:hover {
             transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
             border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(59, 130, 246, 0.1);
         }
 
-        .alert-card-header {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .alert-card-type {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .alert-card-type.HIGH_IMPACT_EVENT {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .alert-card-type.REGIONAL_RISK_SPIKE {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        .alert-card-type.ASSET_RISK_SPIKE {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
-            color: #60a5fa;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .alert-card-type.DAILY_DIGEST {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%);
-            color: #a78bfa;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .alert-card-time {
-            font-size: 12px;
-            color: #64748b;
-            white-space: nowrap;
+        .card-timestamp {
+            background: linear-gradient(135deg, #334155, #475569);
+            color: #e2e8f0;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
         }
 
-        .latest-badge {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        .card-timestamp svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        .card-timestamp .latest-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             font-size: 10px;
             font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            animation: pulse-glow 2s ease-in-out infinite;
+            margin-left: auto;
         }
 
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            50% { box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.3); }
+        .sample-card .card-header {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid #334155;
+            background: transparent;
+        }
+
+        .alert-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .alert-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .alert-icon.regional {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            color: #fbbf24;
+        }
+
+        .alert-icon.asset {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+            color: #60a5fa;
+        }
+
+        .alert-icon.high-impact {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1));
+            color: #f87171;
+        }
+
+        .alert-icon.digest {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+            color: #a78bfa;
+        }
+
+        .card-header-text h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-header-text .type-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(100, 116, 139, 0.3);
+            color: #94a3b8;
+        }
+
+        .sample-card .card-body {
+            padding: 1.25rem 1.5rem;
+            flex: 1;
+        }
+
+        .alert-content {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .sample-card .card-footer {
+            padding: 1rem 1.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-top: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .channel-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .channel-badge.email {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .channel-badge.telegram {
+            background: rgba(0, 136, 204, 0.2);
+            color: #38bdf8;
+        }
+
+        .channel-badge.sms {
+            background: rgba(16, 185, 129, 0.2);
+            color: #4ade80;
+        }
+
+        .sample-card .card-footer span {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .sample-card.locked {
+            opacity: 0.6;
+            filter: grayscale(30%);
+        }
+
+        .sample-card.locked .alert-content {
+            filter: blur(3px);
+        }
+
+        .card-lock-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 20px;
+            background: linear-gradient(180deg, transparent 0%, rgba(139, 92, 246, 0.15) 100%);
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #a78bfa;
+        }
+
+        .lock-icon {
+            font-size: 14px;
         }
 
         .alert-filters {
@@ -491,95 +595,6 @@
         .upgrade-sidebar-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
-        }
-
-        .alert-card-body {
-            padding: 20px;
-        }
-
-        .alert-card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f1f5f9;
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .alert-card-message {
-            font-size: 14px;
-            color: #94a3b8;
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .alert-card-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .alert-card-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
-            background: rgba(51, 65, 85, 0.5);
-            border: 1px solid #475569;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #cbd5e1;
-        }
-
-        .alert-card-chip-icon {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
-        .alert-card-value {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            border-radius: 8px;
-            font-size: 13px;
-            color: #4ade80;
-            font-weight: 600;
-        }
-
-        .alert-card-value.high {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-        }
-
-        .alert-card.locked {
-            opacity: 0.6;
-            filter: grayscale(30%);
-        }
-
-        .alert-card.locked .alert-card-message {
-            filter: blur(3px);
-        }
-
-        .alert-card-lock-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 16px 20px;
-            background: linear-gradient(180deg, transparent 0%, rgba(139, 92, 246, 0.15) 100%);
-            border-top: 1px solid rgba(139, 92, 246, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #a78bfa;
-        }
-
-        .lock-icon {
-            font-size: 14px;
         }
 
         .upgrade-banner-small {
@@ -1382,14 +1397,28 @@
                 return;
             }
             
-            const getAlertIcon = (type) => {
-                const icons = {
-                    'HIGH_IMPACT_EVENT': '&#9888;',
-                    'REGIONAL_RISK_SPIKE': '&#128200;',
-                    'ASSET_RISK_SPIKE': '&#128201;',
-                    'DAILY_DIGEST': '&#128232;'
+            const iconSvg = {
+                REGIONAL_RISK_SPIKE: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                ASSET_RISK_SPIKE: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>',
+                HIGH_IMPACT_EVENT: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+                DAILY_DIGEST: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
+            };
+
+            const iconClass = {
+                REGIONAL_RISK_SPIKE: 'regional',
+                ASSET_RISK_SPIKE: 'asset',
+                HIGH_IMPACT_EVENT: 'high-impact',
+                DAILY_DIGEST: 'digest'
+            };
+            
+            const getTypeLabel = (type) => {
+                const labels = {
+                    'HIGH_IMPACT_EVENT': 'High Impact Event',
+                    'REGIONAL_RISK_SPIKE': 'Regional Risk Spike',
+                    'ASSET_RISK_SPIKE': 'Asset Risk Spike',
+                    'DAILY_DIGEST': 'Daily Digest'
                 };
-                return icons[type] || '&#128276;';
+                return labels[type] || type.replace(/_/g, ' ');
             };
             
             container.style.display = 'block';
@@ -1403,29 +1432,40 @@
                 <div class="card-body">
                     <p style="color: #94a3b8; margin-bottom: 20px;">Here's a preview of alerts available on higher plans:</p>
                     <div class="alerts-grid">
-                        ${lockedSamples.map(sample => `
-                            <div class="alert-card locked">
-                                <div class="alert-card-header">
-                                    <span class="alert-card-type ${sample.alert_type}">
-                                        <span>${getAlertIcon(sample.alert_type)}</span>
-                                        ${sample.alert_type.replace(/_/g, ' ')}
-                                    </span>
-                                    <span class="alert-card-time">${formatDate(sample.created_at)}</span>
-                                </div>
-                                <div class="alert-card-body">
-                                    <h3 class="alert-card-title">${sample.title || 'Alert Preview'}</h3>
-                                    <p class="alert-card-message">${sample.preview || 'Upgrade to see full alert content'}</p>
-                                    <div class="alert-card-meta">
-                                        ${sample.region ? `<span class="alert-card-chip"><span class="alert-card-chip-icon">&#127758;</span>${sample.region}</span>` : ''}
-                                        ${sample.asset ? `<span class="alert-card-chip"><span class="alert-card-chip-icon">&#128184;</span>${sample.asset.toUpperCase()}</span>` : ''}
+                        ${lockedSamples.map(sample => {
+                            const alertType = sample.alert_type || 'REGIONAL_RISK_SPIKE';
+                            const icon = iconSvg[alertType] || iconSvg.REGIONAL_RISK_SPIKE;
+                            const iconCls = iconClass[alertType] || 'regional';
+                            return `
+                                <div class="sample-card locked">
+                                    <div class="card-timestamp">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        ${formatDate(sample.created_at)}
+                                    </div>
+                                    <div class="card-header">
+                                        <div class="alert-icon ${iconCls}">
+                                            ${icon}
+                                        </div>
+                                        <div class="card-header-text">
+                                            <h3>${sample.title || 'Alert Preview'}</h3>
+                                            <span class="type-badge">${getTypeLabel(alertType)}</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert-content">${sample.preview || 'Upgrade to see full alert content'}</div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <span>${sample.region || ''}${sample.asset ? ' - ' + sample.asset.toUpperCase() : ''}</span>
+                                    </div>
+                                    <div class="card-lock-overlay">
+                                        <span class="lock-icon">&#128274;</span>
+                                        <span>Upgrade your plan to unlock</span>
                                     </div>
                                 </div>
-                                <div class="alert-card-lock-overlay">
-                                    <span class="lock-icon">&#128274;</span>
-                                    <span>Upgrade your plan to unlock</span>
-                                </div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -1490,21 +1530,25 @@
                 return;
             }
             
-            const getAlertIcon = (type) => {
-                const icons = {
-                    'HIGH_IMPACT_EVENT': '&#9888;',
-                    'REGIONAL_RISK_SPIKE': '&#128200;',
-                    'ASSET_RISK_SPIKE': '&#128201;',
-                    'DAILY_DIGEST': '&#128232;'
-                };
-                return icons[type] || '&#128276;';
+            const iconSvg = {
+                REGIONAL_RISK_SPIKE: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                ASSET_RISK_SPIKE: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>',
+                HIGH_IMPACT_EVENT: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+                DAILY_DIGEST: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
+            };
+
+            const iconClass = {
+                REGIONAL_RISK_SPIKE: 'regional',
+                ASSET_RISK_SPIKE: 'asset',
+                HIGH_IMPACT_EVENT: 'high-impact',
+                DAILY_DIGEST: 'digest'
             };
             
             const getTypeLabel = (type) => {
                 const labels = {
-                    'HIGH_IMPACT_EVENT': 'High Impact',
-                    'REGIONAL_RISK_SPIKE': 'Regional Risk',
-                    'ASSET_RISK_SPIKE': 'Asset Risk',
+                    'HIGH_IMPACT_EVENT': 'High Impact Event',
+                    'REGIONAL_RISK_SPIKE': 'Regional Risk Spike',
+                    'ASSET_RISK_SPIKE': 'Asset Risk Spike',
                     'DAILY_DIGEST': 'Daily Digest'
                 };
                 return labels[type] || type.replace(/_/g, ' ');
@@ -1512,35 +1556,39 @@
             
             const alertCardHTML = (alert) => {
                 const isAllowed = alert.allowed_by_plan;
-                const severityValue = alert.severity || alert.triggered_value;
-                const isHighValue = severityValue && severityValue >= 7;
                 const isLatest = isLatestAlert(alert.created_at);
-                const cleanedMessage = cleanAlertMessage(alert.message);
-                const riskPercent = severityValue ? (severityValue <= 10 ? severityValue * 10 : Math.round(severityValue)) : null;
+                const alertType = alert.alert_type || 'REGIONAL_RISK_SPIKE';
+                const icon = iconSvg[alertType] || iconSvg.REGIONAL_RISK_SPIKE;
+                const iconCls = iconClass[alertType] || 'regional';
+                const channel = alert.channel || 'email';
                 
                 return `
-                    <div class="alert-card ${!isAllowed ? 'locked' : ''}">
-                        <div class="alert-card-header">
-                            <span class="alert-card-type ${alert.alert_type}">
-                                <span>${getAlertIcon(alert.alert_type)}</span>
-                                ${getTypeLabel(alert.alert_type)}
-                            </span>
-                            <div class="alert-card-time">
-                                ${isLatest ? '<span class="latest-badge">Latest</span>' : ''}
-                                <span>${formatDate(alert.created_at)}</span>
+                    <div class="sample-card ${!isAllowed ? 'locked' : ''}">
+                        <div class="card-timestamp">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            ${formatDate(alert.created_at)}
+                            ${isLatest ? '<span class="latest-badge">Latest</span>' : ''}
+                        </div>
+                        <div class="card-header">
+                            <div class="alert-icon ${iconCls}">
+                                ${icon}
+                            </div>
+                            <div class="card-header-text">
+                                <h3>${alert.title || 'Alert'}</h3>
+                                <span class="type-badge">${getTypeLabel(alertType)}</span>
                             </div>
                         </div>
-                        <div class="alert-card-body">
-                            <h3 class="alert-card-title">${alert.title || 'Alert Notification'}</h3>
-                            <p class="alert-card-message">${cleanedMessage || 'Risk level elevated in this region or asset category.'}</p>
-                            <div class="alert-card-meta">
-                                ${alert.region ? `<span class="alert-card-chip"><span class="alert-card-chip-icon">&#127758;</span>${alert.region}</span>` : ''}
-                                ${alert.asset ? `<span class="alert-card-chip"><span class="alert-card-chip-icon">&#128184;</span>${alert.asset.toUpperCase()}</span>` : ''}
-                                ${riskPercent !== null ? `<span class="alert-card-value ${isHighValue ? 'high' : ''}"><span>Risk Level:</span> ${riskPercent}%</span>` : ''}
-                            </div>
+                        <div class="card-body">
+                            <div class="alert-content">${alert.message || 'No message content'}</div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="channel-badge ${channel}">${channel.toUpperCase()}</span>
+                            <span>${alert.region || ''}${alert.asset ? ' - ' + alert.asset.toUpperCase() : ''}</span>
                         </div>
                         ${!isAllowed ? `
-                            <div class="alert-card-lock-overlay">
+                            <div class="card-lock-overlay">
                                 <span class="lock-icon">&#128274;</span>
                                 <span>Available on higher tier plans</span>
                             </div>
