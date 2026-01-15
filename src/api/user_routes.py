@@ -106,7 +106,8 @@ def signup(body: SignupRequest):
                 VALUES (%s, %s, %s)
                 RETURNING id
             """, (email, token, expires))
-            user_id = cursor.fetchone()['id']
+            result = cursor.fetchone()
+            user_id = result['id'] if result else None
     
     verification_link = f"{APP_URL}/users/verify?token={token}"
     
@@ -360,6 +361,8 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
         locked_types = [t for t in ALL_ALERT_TYPES if t not in effective_allowed]
         
+        alerts = []
+        
         if effective_allowed:
             cursor.execute("""
                 SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
@@ -373,30 +376,56 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                   AND uad.status = 'sent'
                 ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
             """, (session["user_id"], effective_allowed,))
-            all_allowed_alerts = cursor.fetchall()
-        else:
-            all_allowed_alerts = []
+            delivered_alerts = cursor.fetchall()
+            
+            for row in delivered_alerts:
+                assets_list = row['assets'] if row['assets'] else []
+                asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
+                alerts.append({
+                    "id": row['id'],
+                    "alert_type": row['alert_type'],
+                    "region": row['region'],
+                    "asset": asset_str,
+                    "severity": row['severity'],
+                    "title": row['title'],
+                    "message": row['message'],
+                    "channel": row['channel'],
+                    "status": row['status'],
+                    "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                    "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
+                    "allowed_by_plan": True
+                })
+            
+            if not alerts:
+                cursor.execute("""
+                    SELECT ae.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                           ae.severity, ae.headline as title, ae.body as message, ae.created_at
+                    FROM alert_events ae
+                    WHERE ae.alert_type = ANY(%s)
+                      AND ae.created_at >= NOW() - INTERVAL '7 days'
+                    ORDER BY ae.created_at DESC
+                    LIMIT %s
+                """, (effective_allowed, limit))
+                
+                for row in cursor.fetchall():
+                    assets_list = row['assets'] if row['assets'] else []
+                    asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
+                    alerts.append({
+                        "id": row['id'],
+                        "alert_type": row['alert_type'],
+                        "region": row['region'],
+                        "asset": asset_str,
+                        "severity": row['severity'],
+                        "title": row['title'],
+                        "message": row['message'],
+                        "channel": "email",
+                        "status": "available",
+                        "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                        "sent_at": None,
+                        "allowed_by_plan": True
+                    })
         
-        sorted_alerts = sorted(all_allowed_alerts, key=lambda r: r['created_at'] or datetime.min, reverse=True)[:limit]
-        
-        alerts = []
-        for row in sorted_alerts:
-            assets = row['assets'] if row['assets'] else []
-            asset_str = assets[0] if len(assets) == 1 else ', '.join(assets) if assets else None
-            alerts.append({
-                "id": row['id'],
-                "alert_type": row['alert_type'],
-                "region": row['region'],
-                "asset": asset_str,
-                "severity": row['severity'],
-                "title": row['title'],
-                "message": row['message'],
-                "channel": row['channel'],
-                "status": row['status'],
-                "created_at": row['created_at'].isoformat() if row['created_at'] else None,
-                "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
-                "allowed_by_plan": True
-            })
+        alerts = sorted(alerts, key=lambda r: r['created_at'] or '', reverse=True)[:limit]
         
         locked_samples = []
         if locked_types:
