@@ -264,7 +264,12 @@ def signin(body: SigninRequest):
             raise HTTPException(status_code=401, detail="Please verify your email first")
         
         if not password_hash:
-            raise HTTPException(status_code=401, detail="Account setup incomplete. Please complete verification.")
+            return {
+                "success": False,
+                "status": "incomplete_setup",
+                "message": "Account setup incomplete. Please verify your email to complete setup.",
+                "email": user_email
+            }
         
         if not verify_password(body.password, password_hash):
             raise HTTPException(status_code=401, detail="Invalid email or password")
