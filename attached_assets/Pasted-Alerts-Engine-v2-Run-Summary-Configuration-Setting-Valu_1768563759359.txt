@@ -1,0 +1,140 @@
+Alerts Engine v2 Run Summary
+Configuration
+Setting	Value
+Phase	all
+Dry Run	false
+Trigger	Manual
+Preflight Passed	true
+Exit Code	N/A
+Preflight Check
+***26-01-16 11:40:30,640 - __main__ - INFO - Preflight: Database connection OK
+***26-01-16 11:40:31,217 - __main__ - INFO - Preflight: All required tables exist
+***26-01-16 11:40:31,217 - __main__ - INFO - Preflight: Email channel configured
+***26-01-16 11:40:31,217 - __main__ - INFO - Preflight: Telegram channel configured
+============================================================
+EnergyRiskIQ Alerts v2 - Preflight Check
+============================================================
+{
+  "db_ok": true,
+  "migrations_ok": true,
+  "channels_configured": {
+    "email": true,
+    "telegram": true,
+    "sms": false
+  },
+  "tables_found": [
+    "alert_events",
+    "user_alert_deliveries",
+    "user_alert_digests",
+    "alerts_engine_runs",
+    "alerts_engine_run_items",
+    "users",
+    "user_plans",
+    "user_alert_prefs"
+  ],
+  "tables_missing": [],
+  "warnings": [
+    "SMS channel not configured (missing TWILIO_* vars)",
+    "ALERTS_APP_BASE_URL not set (dashboard links may be missing)"
+  ],
+  "errors": []
+}
+============================================================
+PREFLIGHT PASSED (with warnings)
+Health Metrics
+============================================================
+EnergyRiskIQ Alerts v2 - Health Check
+============================================================
+{
+  "generated_at": "***26-01-16T11:41:11.255025+00:00",
+  "deliveries_24h": {
+    "period_hours": 24,
+    "by_channel": {},
+    "oldest_queued_delivery_minutes": null
+  },
+  "digests_7d": {
+    "period_days": 7,
+    "by_channel": {},
+    "oldest_queued_digest_minutes": null
+  },
+  "last_run": {
+    "run_id": "bcf19c40-e954-4bb1-8862-8b318c963346",
+    "triggered_by": "github_actions_manual",
+    "phase": "all",
+    "started_at": "***26-01-16T11:40:47.992488",
+    "finished_at": "***26-01-16T11:41:10.698106",
+    "duration_ms": 22705,
+    "status": "failed",
+    "counts": {
+      "phase_a": {
+        "total": 0,
+        "skipped": 7,
+        "event_ids": [],
+        "asset_risk_spikes": 0,
+        "high_impact_events": 0,
+        "regional_risk_spikes": 0
+      }
+    },
+    "error_summary": "column \"email_enabled\" does not exist\nLINE 2:         SELECT email_enabled, telegram_enabled, sms_enabled,\n                       ^\n",
+    "git_sha": "95054b61b53befde91fdf8955abac05a5e7c6246",
+    "created_at": "***26-01-16T11:40:48.3***163"
+  },
+  "errors": []
+}
+============================================================
+Engine Output (last 50 lines)
+***26-01-16 11:41:06,648 - __main__ - INFO - Phase B starting at ***26-01-16T11:40:47.986787+00:00, since_hours=24
+***26-01-16 11:41:07,049 - src.alerts.db_locks - INFO - Advisory lock acquired via context manager: alerts_v2_phase_b
+***26-01-16 11:41:07,051 - src.alerts.alerts_engine_v2 - INFO - Phase B: Fanout alert events to eligible users...
+***26-01-16 11:41:08,021 - src.alerts.alerts_engine_v2 - INFO - Processing 28 alert events for 1 users
+***26-01-16 11:41:10,255 - src.db.db - ERROR - Database error: column "email_enabled" does not exist
+LINE 2:         SELECT email_enabled, telegram_enabled, sms_enabled,
+                       ^
+
+***26-01-16 11:41:10,255 - src.db.db - ERROR - Database connection error: column "email_enabled" does not exist
+LINE 2:         SELECT email_enabled, telegram_enabled, sms_enabled,
+                       ^
+
+***26-01-16 11:41:10,697 - __main__ - ERROR - Phase execution failed: column "email_enabled" does not exist
+LINE 2:         SELECT email_enabled, telegram_enabled, sms_enabled,
+                       ^
+
+***26-01-16 11:41:11,163 - src.alerts.engine_observability - INFO - Engine run finished: bcf19c40-e954-4bb1-8862-8b318c963346 (status=failed, duration_ms=22705)
+============================================================
+EnergyRiskIQ Alerts v2 CLI Runner
+============================================================
+Phase: ALL
+Dry Run: False
+Since Hours: 24
+Batch Size: ***0
+Log JSON: True
+============================================================
+{
+  "phase": "A",
+  "phase_name": "Generate Global Alert Events",
+  "start_time": "***26-01-16T11:40:47.986787+00:00",
+  "end_time": "***26-01-16T11:41:06.171845+00:00",
+  "duration_seconds": 17.64,
+  "dry_run": false,
+  "status": "success",
+  "locked": true,
+  "counts": {
+    "regional_risk_spikes": 0,
+    "asset_risk_spikes": 0,
+    "high_impact_events": 0,
+    "total": 0,
+    "skipped": 7,
+    "event_ids": []
+  }
+}
+{
+  "status": "failed",
+  "error": "column \"email_enabled\" does not exist\nLINE 2:         SELECT email_enabled, telegram_enabled, sms_enabled,\n                       ^\n",
+  "run_id": "bcf19c40-e954-4bb1-8862-8b318c963346",
+  "timestamp": "***26-01-16T11:41:11.163381+00:00"
+}
+Job summary generated at run-time
+Annotations
+1 error
+run-alerts-engine-v2
+Process completed with exit code 1.
