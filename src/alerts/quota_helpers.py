@@ -2,10 +2,12 @@
 Quota and Preference Helpers for Alerts v2
 
 Provides quota enforcement, preference checking, and delivery kind determination.
+Quotas are read from the plan_settings database table.
 """
 
 import os
 import logging
+import time
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple
 
@@ -13,54 +15,114 @@ from src.db.db import execute_query, execute_one
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_PLAN_QUOTAS = {
-    'free': {
-        'instant_email_per_day': 0,
-        'instant_telegram_per_day': 0,
-        'instant_sms_per_day': 0,
-        'digest_per_day': 1,
-        'digest_only': True,
-        'sms_enabled': False
-    },
-    'personal': {
-        'instant_email_per_day': 5,
-        'instant_telegram_per_day': 5,
-        'instant_sms_per_day': 0,
-        'digest_per_day': 2,
-        'digest_only': False,
-        'sms_enabled': False
-    },
-    'trader': {
-        'instant_email_per_day': 20,
-        'instant_telegram_per_day': 20,
-        'instant_sms_per_day': 0,
-        'digest_per_day': 3,
-        'digest_only': False,
-        'sms_enabled': False
-    },
-    'pro': {
-        'instant_email_per_day': 50,
-        'instant_telegram_per_day': 50,
-        'instant_sms_per_day': 5,
-        'digest_per_day': 5,
-        'digest_only': False,
-        'sms_enabled': True
-    },
-    'enterprise': {
-        'instant_email_per_day': 200,
-        'instant_telegram_per_day': 200,
-        'instant_sms_per_day': 20,
-        'digest_per_day': 10,
-        'digest_only': False,
-        'sms_enabled': True
-    }
+_quota_cache: Dict[str, Dict] = {}
+_quota_cache_time: Dict[str, float] = {}
+QUOTA_CACHE_TTL_SECONDS = 300
+
+FALLBACK_QUOTAS = {
+    'instant_email_per_day': 0,
+    'instant_telegram_per_day': 0,
+    'instant_sms_per_day': 0,
+    'digest_per_day': 1,
+    'digest_only': True,
+    'sms_enabled': False,
+    'telegram_enabled': False
 }
 
 
+def _parse_delivery_config_to_quotas(plan_settings: Dict) -> Dict:
+    """
+    Parse plan_settings (from DB) into quota format.
+    
+    Uses delivery_config JSON and max_email_alerts_per_day.
+    """
+    delivery_config = plan_settings.get('delivery_config', {})
+    max_email = plan_settings.get('max_email_alerts_per_day', 0)
+    
+    email_config = delivery_config.get('email', {})
+    telegram_config = delivery_config.get('telegram', {})
+    sms_config = delivery_config.get('sms', {})
+    
+    email_max_per_day = email_config.get('max_per_day', max_email) or max_email
+    email_realtime_limit = email_config.get('realtime_limit')
+    email_mode = email_config.get('mode', 'limited')
+    
+    digest_only = False
+    if email_mode == 'limited' and email_realtime_limit is not None and email_realtime_limit == 0:
+        digest_only = True
+    
+    telegram_enabled = telegram_config.get('enabled', False)
+    telegram_send_all = telegram_config.get('send_all', False)
+    
+    if telegram_enabled and telegram_send_all:
+        instant_telegram = email_max_per_day
+    elif telegram_enabled:
+        instant_telegram = email_realtime_limit if email_realtime_limit else 0
+    else:
+        instant_telegram = 0
+    
+    sms_enabled = sms_config.get('enabled', False)
+    sms_send_all = sms_config.get('send_all', False)
+    
+    if sms_enabled and sms_send_all:
+        instant_sms = email_max_per_day
+    elif sms_enabled:
+        instant_sms = email_realtime_limit if email_realtime_limit else 0
+    else:
+        instant_sms = 0
+    
+    if digest_only:
+        instant_email = 0
+    elif email_realtime_limit is None:
+        instant_email = email_max_per_day
+    else:
+        instant_email = email_realtime_limit
+    
+    digest_per_day = max(1, email_max_per_day // 4) if email_max_per_day > 0 else 1
+    
+    return {
+        'instant_email_per_day': instant_email,
+        'instant_telegram_per_day': instant_telegram,
+        'instant_sms_per_day': instant_sms,
+        'digest_per_day': digest_per_day,
+        'digest_only': digest_only,
+        'sms_enabled': sms_enabled,
+        'telegram_enabled': telegram_enabled,
+        'email_max_per_day': email_max_per_day,
+        'email_realtime_limit': email_realtime_limit
+    }
+
+
 def get_plan_quotas(plan: str) -> Dict:
-    """Get quota configuration for a plan."""
-    plan_lower = plan.lower() if plan else 'free'
-    return DEFAULT_PLAN_QUOTAS.get(plan_lower, DEFAULT_PLAN_QUOTAS['free'])
+    """
+    Get quota configuration for a plan from database.
+    
+    Uses caching to avoid repeated DB queries.
+    Falls back to safe defaults if DB query fails.
+    """
+    plan_lower = (plan.lower() if plan else 'free').strip()
+    
+    if plan_lower not in ['free', 'personal', 'trader', 'pro', 'enterprise']:
+        plan_lower = 'free'
+    
+    now = time.time()
+    if plan_lower in _quota_cache:
+        cache_age = now - _quota_cache_time.get(plan_lower, 0)
+        if cache_age < QUOTA_CACHE_TTL_SECONDS:
+            return _quota_cache[plan_lower]
+    
+    try:
+        from src.plans.plan_helpers import get_plan_settings
+        plan_settings = get_plan_settings(plan_lower)
+        quotas = _parse_delivery_config_to_quotas(plan_settings)
+        
+        _quota_cache[plan_lower] = quotas
+        _quota_cache_time[plan_lower] = now
+        
+        return quotas
+    except Exception as e:
+        logger.warning(f"Failed to get plan quotas from DB for '{plan_lower}': {e}. Using fallback.")
+        return FALLBACK_QUOTAS.copy()
 
 
 def get_start_of_day_utc() -> datetime:
