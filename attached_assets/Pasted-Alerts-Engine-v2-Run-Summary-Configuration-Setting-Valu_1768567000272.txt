@@ -1,0 +1,175 @@
+Alerts Engine v2 Run Summary
+Configuration
+Setting	Value
+Phase	all
+Dry Run	false
+Trigger	Manual
+Preflight Passed	true
+Exit Code	0
+Preflight Check
+***26-01-16 12:30:05,038 - __main__ - INFO - Preflight: Database connection OK
+***26-01-16 12:30:05,472 - __main__ - INFO - Preflight: All required tables exist
+***26-01-16 12:30:05,472 - __main__ - INFO - Preflight: Email channel configured
+***26-01-16 12:30:05,472 - __main__ - INFO - Preflight: Telegram channel configured
+============================================================
+EnergyRiskIQ Alerts v2 - Preflight Check
+============================================================
+{
+  "db_ok": true,
+  "migrations_ok": true,
+  "channels_configured": {
+    "email": true,
+    "telegram": true,
+    "sms": false
+  },
+  "tables_found": [
+    "alert_events",
+    "user_alert_deliveries",
+    "user_alert_digests",
+    "alerts_engine_runs",
+    "alerts_engine_run_items",
+    "users",
+    "user_plans",
+    "user_alert_prefs"
+  ],
+  "tables_missing": [],
+  "warnings": [
+    "SMS channel not configured (missing TWILIO_* vars)",
+    "ALERTS_APP_BASE_URL not set (dashboard links may be missing)"
+  ],
+  "errors": []
+}
+============================================================
+PREFLIGHT PASSED (with warnings)
+Health Metrics
+============================================================
+EnergyRiskIQ Alerts v2 - Health Check
+============================================================
+{
+  "generated_at": "***26-01-16T12:31:12.101635+00:00",
+  "deliveries_24h": {
+    "period_hours": 24,
+    "by_channel": {},
+    "oldest_queued_delivery_minutes": null
+  },
+  "digests_7d": {
+    "period_days": 7,
+    "by_channel": {},
+    "oldest_queued_digest_minutes": null
+  },
+  "last_run": {
+    "run_id": "fb6ece27-687b-44fd-88b6-007a28abcb81",
+    "triggered_by": "github_actions_manual",
+    "phase": "all",
+    "started_at": "***26-01-16T12:30:11.567***6",
+    "finished_at": "***26-01-16T12:31:11.769124",
+    "duration_ms": 60***1,
+    "status": "success",
+    "counts": {
+      "phase_a": {
+        "total": 1,
+        "skipped": 7,
+        "event_ids": [
+          1016
+        ],
+        "asset_risk_spikes": 0,
+        "high_impact_events": 1,
+        "regional_risk_spikes": 0
+      },
+      "phase_b": {
+        "allowlist_active": false,
+        "events_processed": 27,
+        "users_considered": 27,
+        "deliveries_created": 0,
+        "deliveries_skipped_prefs": 0,
+        "deliveries_skipped_quota": 0,
+        "deliveries_skipped_missing_dest": 14
+      },
+      "phase_c": {
+        "sent": 0,
+        "failed": 0,
+        "digests": {
+          "digests_sent": 0,
+          "stopped_early": false,
+          "digests_failed": 0,
+          "digests_retried": 0,
+          "allowlist_active": false,
+          "digests_selected": 0,
+          "digests_skipped_empty": 0,
+          "digests_skipped_not_configured": 0,
+          "digests_skipped_missing_destination": 0
+        },
+        "retried": 0,
+        "stopped_early": false,
+        "queued_selected": 0,
+        "allowlist_active": false,
+        "skipped_not_configured": 0,
+        "skipped_missing_destination": 0
+      },
+      "phase_d": {
+        "period": "daily",
+        "window_end": "***26-01-16T00:00:00+00:00",
+        "window_start": "***26-01-15T00:00:00+00:00",
+        "digests_created": 0,
+        "digest_items_attached": 0,
+        "deliveries_marked_batched": 0
+      }
+    },
+    "error_summary": null,
+    "git_sha": "186d9905b1a0e48ccd4c7a43c58af2cd81bacf***",
+    "created_at": "***26-01-16T12:30:11.811462"
+  },
+  "errors": []
+}
+============================================================
+Engine Output (last 50 lines)
+      "phase_name": "Build Digest Batches",
+      "start_time": "***26-01-16T12:30:11.560370+00:00",
+      "end_time": "***26-01-16T12:31:10.148684+00:00",
+      "duration_seconds": 0.71,
+      "dry_run": false,
+      "status": "success",
+      "locked": true,
+      "counts": {
+        "digests_created": 0,
+        "digest_items_attached": 0,
+        "deliveries_marked_batched": 0,
+        "period": "daily",
+        "window_start": "***26-01-15T00:00:00+00:00",
+        "window_end": "***26-01-16T00:00:00+00:00"
+      }
+    },
+    {
+      "phase": "C",
+      "phase_name": "Send Queued Deliveries & Digests",
+      "start_time": "***26-01-16T12:30:11.560370+00:00",
+      "end_time": "***26-01-16T12:31:11.426255+00:00",
+      "duration_seconds": 0.93,
+      "dry_run": false,
+      "batch_size": ***0,
+      "status": "success",
+      "locked": true,
+      "counts": {
+        "queued_selected": 0,
+        "sent": 0,
+        "failed": 0,
+        "retried": 0,
+        "skipped_not_configured": 0,
+        "skipped_missing_destination": 0,
+        "stopped_early": false,
+        "allowlist_active": false,
+        "digests": {
+          "digests_selected": 0,
+          "digests_sent": 0,
+          "digests_failed": 0,
+          "digests_retried": 0,
+          "digests_skipped_empty": 0,
+          "digests_skipped_not_configured": 0,
+          "digests_skipped_missing_destination": 0,
+          "stopped_early": false,
+          "allowlist_active": false
+        }
+      }
+    }
+  ]
+}
