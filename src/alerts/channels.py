@@ -25,14 +25,14 @@ def send_email(to_email: str, subject: str, body: str) -> tuple:
     elif EMAIL_PROVIDER == 'brevo':
         return _send_brevo(to_email, subject, body)
     else:
-        logger.warning(f"Email provider '{EMAIL_PROVIDER}' not configured, simulating send")
-        return _simulate_send(to_email, subject, body)
+        logger.error(f"Email provider '{EMAIL_PROVIDER}' not recognized - cannot send email")
+        return False, f"Unknown email provider: {EMAIL_PROVIDER}", None
 
 
 def _send_resend(to_email: str, subject: str, body: str) -> tuple:
     if not RESEND_API_KEY:
-        logger.warning("RESEND_API_KEY not set, simulating email send")
-        return _simulate_send(to_email, subject, body)
+        logger.error("RESEND_API_KEY not set - cannot send email")
+        return False, "RESEND_API_KEY not configured", None
     
     try:
         response = requests.post(
@@ -76,8 +76,8 @@ def _parse_email_from(email_from: str) -> dict:
 
 def _send_brevo(to_email: str, subject: str, body: str) -> tuple:
     if not BREVO_API_KEY:
-        logger.warning("BREVO_API_KEY not set, simulating email send")
-        return _simulate_send(to_email, subject, body)
+        logger.error("BREVO_API_KEY not set - cannot send email")
+        return False, "BREVO_API_KEY not configured", None
     
     sender = _parse_email_from(EMAIL_FROM)
     
