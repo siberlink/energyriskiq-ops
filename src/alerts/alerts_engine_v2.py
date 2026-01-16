@@ -413,22 +413,26 @@ def get_eligible_users() -> List[Dict]:
 def get_user_regions(user_id: int) -> List[str]:
     query = """
     SELECT DISTINCT region FROM user_alert_prefs
-    WHERE user_id = %s AND enabled = TRUE
+    WHERE user_id = %s AND enabled = TRUE AND region IS NOT NULL
     """
     results = execute_query(query, (user_id,))
     if results:
-        return [r['region'] for r in results]
+        regions = [r['region'] for r in results if r.get('region')]
+        if regions:
+            return regions
     return ['Europe']
 
 
 def get_user_enabled_alert_types(user_id: int) -> List[str]:
     query = """
     SELECT DISTINCT alert_type FROM user_alert_prefs
-    WHERE user_id = %s AND enabled = TRUE
+    WHERE user_id = %s AND enabled = TRUE AND alert_type IS NOT NULL
     """
     results = execute_query(query, (user_id,))
     if results:
-        return [r['alert_type'] for r in results]
+        alert_types = [r['alert_type'] for r in results if r.get('alert_type')]
+        if alert_types:
+            return alert_types
     return ['HIGH_IMPACT_EVENT']
 
 
@@ -599,6 +603,8 @@ def fanout_alert_events_to_users() -> Dict:
     skipped_quota = 0
     skipped_prefs = 0
     skipped_missing_dest = 0
+    skipped_already_exists = 0
+    skipped_filter = 0
     users_considered = 0
     
     for ae in alert_events:
@@ -623,22 +629,26 @@ def fanout_alert_events_to_users() -> Dict:
             
             if alert_type not in allowed_types:
                 logger.info(f"User {user_id}: skipped - alert_type {alert_type} not in allowed_types {allowed_types}")
+                skipped_filter += 1
                 continue
             
             user_regions = get_user_regions(user_id)
             if scope_region and scope_region not in user_regions and 'global' not in user_regions:
                 logger.info(f"User {user_id}: skipped - region mismatch (event={scope_region}, user={user_regions})")
+                skipped_filter += 1
                 continue
             
             if alert_type == 'ASSET_RISK_SPIKE' and scope_assets:
                 user_assets = get_user_enabled_assets(user_id)
                 if not any(a in user_assets for a in scope_assets):
                     logger.info(f"User {user_id}: skipped - asset mismatch")
+                    skipped_filter += 1
                     continue
             
             user_enabled_types = get_user_enabled_alert_types(user_id)
             if alert_type not in user_enabled_types:
                 logger.info(f"User {user_id}: skipped - alert_type {alert_type} not in user_enabled_types {user_enabled_types}")
+                skipped_filter += 1
                 continue
             
             user_prefs = get_user_alert_prefs(user_id)
@@ -664,6 +674,8 @@ def fanout_alert_events_to_users() -> Dict:
                     logger.info(f"User {user_id}: {channel} not eligible - {eligibility.skip_reason}")
                     if eligibility.skip_reason == 'missing_destination':
                         skipped_missing_dest += 1
+                    elif eligibility.skip_reason == 'already_exists':
+                        skipped_already_exists += 1
                     elif eligibility.skip_reason in ('channel_disabled_by_user', 'sms_not_in_plan'):
                         skipped_prefs += 1
                     elif eligibility.skip_reason in ('quota_exceeded', 'plan_digest_only', 'channel_not_allowed'):
@@ -689,10 +701,12 @@ def fanout_alert_events_to_users() -> Dict:
         'deliveries_skipped_quota': skipped_quota,
         'deliveries_skipped_prefs': skipped_prefs,
         'deliveries_skipped_missing_dest': skipped_missing_dest,
+        'deliveries_skipped_already_exists': skipped_already_exists,
+        'deliveries_skipped_filter': skipped_filter,
         'allowlist_active': allowlist is not None
     }
     
-    logger.info(f"Phase B complete: {deliveries_created} created, skipped: quota={skipped_quota}, prefs={skipped_prefs}, missing={skipped_missing_dest}")
+    logger.info(f"Phase B complete: {deliveries_created} created, skipped: quota={skipped_quota}, prefs={skipped_prefs}, missing={skipped_missing_dest}, exists={skipped_already_exists}, filter={skipped_filter}")
     return result
 
 
