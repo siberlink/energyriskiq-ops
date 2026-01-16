@@ -19,7 +19,8 @@ from src.api.admin_routes import router as admin_router
 from src.api.user_routes import router as user_router
 from src.api.ops_routes import router as ops_router
 from src.api.telegram_routes import router as telegram_router
-from src.db.migrations import run_migrations
+from src.api.seo_routes import router as seo_router
+from src.db.migrations import run_migrations, run_seo_tables_migration
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -90,12 +91,14 @@ app.include_router(admin_router)
 app.include_router(user_router)
 app.include_router(ops_router)
 app.include_router(telegram_router)
+app.include_router(seo_router)
 
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting EnergyRiskIQ API...")
     try:
         run_migrations()
+        run_seo_tables_migration()
         logger.info("Database migrations completed")
     except Exception as e:
         logger.error(f"Failed to run migrations: {e}")

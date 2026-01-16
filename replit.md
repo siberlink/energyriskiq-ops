@@ -210,6 +210,55 @@ curl -X POST -H "x-internal-token: $INTERNAL_RUNNER_TOKEN" \
 }
 ```
 
+## Smart Organic SEO Growth System
+
+A system for generating SEO-optimized daily alerts pages with 24-hour delay for organic traffic acquisition.
+
+### URL Structure
+- `/alerts` - Alerts hub page with recent daily pages and monthly archives
+- `/alerts/daily/YYYY-MM-DD` - Daily alerts page (e.g., /alerts/daily/2026-01-15)
+- `/alerts/YYYY/MM` - Monthly archive (e.g., /alerts/2026/01)
+- `/sitemap.xml` - Dynamic XML sitemap
+- `/sitemap.html` - HTML sitemap for users
+
+### SEO Features
+- Dynamic SEO titles based on region and alert types
+- Meta descriptions enriched with risk intelligence language
+- Daily risk posture summaries (Elevated/Moderate/Stable)
+- Top risk drivers analysis
+- Internal linking for SEO authority flow
+- Mobile-responsive templates with conversion CTAs
+
+### 24-Hour Delay Enforcement
+- API endpoint enforces: dates must be <= yesterday
+- CLI allows arbitrary dates for backfill flexibility
+- GitHub Actions triggers for yesterday's content daily
+
+### CLI Commands
+```bash
+python -m src.seo.runner --yesterday           # Generate yesterday's page
+python -m src.seo.runner --date 2026-01-15     # Specific date
+python -m src.seo.runner --backfill 7          # Last 7 days
+python -m src.seo.runner --yesterday --dry-run # Preview without saving
+```
+
+### API Endpoint
+```bash
+# POST /internal/run/seo with x-internal-token header
+curl -X POST -H "x-internal-token: $INTERNAL_RUNNER_TOKEN" \
+  "https://your-app.replit.dev/internal/run/seo?backfill=7"
+```
+
+### Database Tables
+- `seo_daily_pages`: Stores generated page JSON by date
+- `seo_page_views`: Tracks page view analytics
+
+### Safety Features
+- URL sanitization removes external links from headlines/body
+- Public fields only (no premium data exposure)
+- Idempotent page generation (upsert on date)
+- GitHub Actions workflow with automatic daily triggering
+
 ## External Dependencies
 
 - **Database:** PostgreSQL (Replit-provided)

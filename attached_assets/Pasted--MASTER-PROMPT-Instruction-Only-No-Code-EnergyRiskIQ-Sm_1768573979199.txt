@@ -1,0 +1,268 @@
+# MASTER PROMPT (Instruction Only, No Code) — EnergyRiskIQ Smart Organic SEO Growth System (24h Delay, Alerts-Only)
+
+You are Replit AI working inside my EnergyRiskIQ.com repository. Do NOT output code in your response. Implement the system described below directly in the codebase using the repo’s existing stack and conventions.
+
+## High-Level Goal
+Build a **Smart Organic Growing SEO System** that automatically publishes **highly SEO-optimized “Daily Alerts” pages** for **yesterday’s alerts only** (24h delay), plus sitemap infrastructure and conversion CTAs. The pages must use **only EnergyRiskIQ alerts data** (from our DB), NOT news content, and must be fully mobile responsive.
+
+## Critical Constraints (Must Follow)
+1) **24-hour delay**: All SEO pages must be built from the previous day’s alerts only.  
+   - If today is Jan 16, the daily SEO page is for Jan 15 (00:00–23:59:59 by the chosen timezone).
+2) **Alerts-only**: Page text and summaries must be derived from alert records (global alert events + public fields).  
+   - Do not quote or paraphrase external articles beyond what is already in our alerts.
+3) **Sources**:
+   - Prefer **NOT linking sources at all**. (Best for avoiding “news aggregator” signals.)
+   - If the product UI requires showing a source, then display source *domain name only* (no hyperlink).  
+   - If a link must exist, ensure it is `rel="nofollow noreferrer noopener"` and opens in a new tab, but default is **no links**.
+4) **No premium leakage**: Pages can list all alerts that existed (even those delivered to paid plans), but show only “public summary” fields. Do not expose any paid-only analysis fields.
+5) **Performance + Mobile**: All pages must be fast, server-rendered or static-rendered, and fully responsive.
+6) **Index hygiene**:
+   - Only index canonical daily pages, hub pages, and archive pages.
+   - Avoid indexing filter param pages (use canonical or noindex).
+7) **Conversion built-in**: Every SEO page must include persuasive CTAs and strategic copy driving signups at **/users**.
+
+---
+
+# Part 1 — URL & Page Architecture (Information Ladder)
+Implement a 3-layer SEO structure that funnels authority toward the homepage “/”.
+
+## 1) Homepage “/” (Primary rank target)
+Update “/” to be the authoritative hub for:
+- “Geopolitical and Energy Risk Alerts”
+- “EU energy risk intelligence”
+- “Geopolitical risk signals”
+- “Energy supply disruption alerts” etc.
+
+Homepage must include:
+- A short “Latest (yesterday) preview” section linking to the most recent daily page
+- Strong internal links to `/alerts` and monthly archives
+- Optional links to region/category hubs if implemented
+- FAQ section + schema (FAQ) to improve ranking
+- Footer link to `/sitemap.html`
+
+## 2) Alerts Hub & Archives (Rank + distribute link equity)
+Create:
+- `/alerts` — main Alerts Hub (indexable)
+- `/alerts/YYYY/MM` — monthly archive pages (indexable)
+- (Optional but recommended) `/alerts/region/<slug>` and `/alerts/category/<slug>` hubs (indexable)
+
+Each hub page must:
+- Explain what the alerts are
+- Show recent daily pages
+- Link to “/” as the main authority page
+- Contain CTAs to `/users`
+
+## 3) Daily SEO Pages (Scale + long-tail capture)
+Create canonical daily pages:
+- `/alerts/daily/YYYY-MM-DD` (indexable)
+These pages represent **yesterday’s alerts only**.
+
+---
+
+# Part 2 — Data Rules (Public Fields Only)
+You must ensure each alert displayed on SEO pages uses ONLY “public” fields derived from alerts.
+
+For each alert event, define a “Public SEO Card” model containing:
+- `public_title` (short, unique, non-news-like phrasing)
+- `public_summary` (1–2 sentences, strictly based on alert data)
+- `severity` (1–5)
+- `category` (e.g. GEOPOLITICAL / ENERGY / SHIPPING)
+- `region`
+- `event_type` (e.g. HIGH_IMPACT_EVENT)
+- `timestamp` (event time or created_at)
+- `tags` (derived from alert categorization)
+- Optional `source_domain` as plain text (NOT linked)
+
+If the alert payload doesn’t have `public_title/public_summary`, you must generate them from existing alert fields safely and deterministically (no external lookups).
+
+---
+
+# Part 3 — Daily Page Requirements (Must be unique and not thin)
+Each daily page must NOT be a copy-paste template with only the date changed. Use the day’s alert mix to generate unique content blocks.
+
+## Required page elements
+1) **H1 Title**
+   - `Geopolitical and Energy Risk Alerts for [Date]`
+   - Date format example: “January 15, 2026”
+
+2) **SEO Title (dynamic)**
+   - Base: `Geopolitical & Energy Risk Alerts — [Date] | EnergyRiskIQ`
+   - Enriched (if enough signal): include top 1–2 regions + 1 theme tag  
+     Example: `Geopolitical & Energy Risk Alerts: Middle East, Europe, Oil — Jan 15, 2026 | EnergyRiskIQ`
+
+3) **SEO Description (algorithmic; derived from alerts)**
+Must be generated using:
+- total alerts count
+- critical/high counts
+- top 2 regions
+- top 1–2 categories/event types
+- one “why it matters” line
+
+Important:
+- Must not mention “news”, “articles”, “reported by”, etc.
+- Must sound like a risk intelligence product summary.
+
+4) **Unique “Daily Risk Posture” block**
+Generate 2–4 sentences summarizing:
+- overall posture (elevated/stable/high)
+- top drivers (based on severity + frequency)
+- what changed vs baseline (optional if you track it)
+
+5) **Top Drivers (3 bullet points)**
+Computed from the most frequent high-severity clusters (region + category + event_type).
+
+6) **Alert cards list**
+- Show all alerts for that day (including those delivered to paid plans) but only via public fields.
+- Cards must be readable on mobile (stacked layout).
+
+7) **Conversion sections**
+Include three conversion placements:
+- Top banner CTA
+- Mid-page “Unlock full analysis + delivery channels” section (public vs logged-in vs Pro/Enterprise)
+- Bottom CTA (mobile-friendly, optionally sticky)
+
+All CTAs must point to `/users` and optionally include a `next=` return parameter to come back to the daily page.
+
+8) **Navigation and internal links**
+- Link to previous/next daily pages (if exist)
+- Link to monthly archive
+- Link back to `/alerts` and `/`
+This internal linking is mandatory to help `/` rank.
+
+9) **Disclaimer**
+Include:
+- “Informational only. Not financial advice.”
+Do not include external-source references.
+
+---
+
+# Part 4 — No external-source linking policy
+Implement the strict policy:
+- Default: do NOT show source URLs on SEO pages at all.
+- If product requires any attribution: show `Source: <domain>` as plain text (no anchor).
+- Never include dofollow external links from SEO pages to sources.
+- Ensure there is no automatic linking of URLs inside summaries.
+
+---
+
+# Part 5 — Sitemap System
+You must build:
+
+## A) sitemap.xml (machine)
+- Include:
+  - `/` (highest priority)
+  - `/alerts` hub
+  - `/alerts/YYYY/MM` archives
+  - `/alerts/daily/YYYY-MM-DD` pages
+  - Optional region/category hubs
+- Exclude:
+  - any query-parameter filter URLs
+  - `/internal/*`
+  - `/api/*`
+  - authenticated-only pages (dashboard)
+- Update automatically whenever a new daily page is generated.
+
+## B) sitemap.html (human)
+- Accessible at `/sitemap.html`
+- Must include:
+  - Homepage
+  - Alerts hub
+  - Monthly archive list
+  - Latest N daily pages (e.g., 60–90)
+- Link `/sitemap.html` in the footer of “/”.
+
+---
+
+# Part 6 — Automation (GitHub Actions)
+Use GitHub Actions automation (like our Alerts Engine) to build content daily.
+
+## A) Build schedule
+Create a new workflow:
+- Runs daily at a stable time (UTC noted), but calculates “yesterday” in the chosen app timezone
+- Generates:
+  1) yesterday’s daily page
+  2) updates monthly archive and alerts hub caches (if cached)
+  3) regenerates sitemap.xml and sitemap.html
+
+## B) CLI generator
+Implement a CLI entry point (like the alerts runner) to generate:
+- `--date YYYY-MM-DD` (explicit)
+- `--yesterday` (default)
+- `--rebuild-sitemaps`
+- `--dry-run`
+
+The generator must:
+- Pull alerts from DB in the window for the date
+- Compute page model (counts, top drivers, summaries)
+- Render or store the page representation
+- Ensure idempotency (re-running should not duplicate pages)
+
+## C) Storage method
+Choose one:
+1) Store rendered HTML in DB table `seo_daily_pages` (recommended for speed and consistency)
+2) Or generate server-rendered route dynamically but cache the computed model in DB
+
+If using DB storage, include:
+- `date` unique
+- `title`
+- `description`
+- `page_json` (model)
+- `rendered_html` (optional)
+- `created_at/updated_at`
+
+---
+
+# Part 7 — Indexing & Canonical Rules
+- Daily pages: canonical to themselves.
+- Monthly pages: canonical to themselves.
+- Alerts hub: canonical to itself.
+- If you support filters (region/category queries), set:
+  - canonical to base page OR `noindex,follow`
+Do NOT allow indexed duplicates.
+
+---
+
+# Part 8 — Mobile & UX Requirements
+- All daily pages, hubs, sitemap.html, and “/” must be fully responsive.
+- Use consistent typography and card layout.
+- Ensure “Load more” or pagination if the daily list is long.
+- Use accessible headings (H1/H2/H3) and readable spacing.
+
+---
+
+# Part 9 — Success Metrics (Implement Tracking)
+Add minimal tracking (privacy-safe):
+- Page views per daily page
+- Click-throughs on CTAs to `/users`
+- This can be via existing analytics or server-side counters, but must not slow pages.
+
+---
+
+# Implementation Order (Do in this sequence)
+1) Create routes and templates:
+   - `/alerts`, `/alerts/daily/:date`, `/alerts/YYYY/MM`, `/sitemap.html`, `/sitemap.xml`
+2) Implement public alert card model and transformations
+3) Implement SEO title/description algorithms
+4) Implement daily narrative blocks (risk posture, drivers)
+5) Add internal linking ladder (daily ↔ month ↔ hub ↔ homepage)
+6) Add sitemap.xml + sitemap.html generation
+7) Implement CLI generator (yesterday default)
+8) Add GitHub Action daily job to run the generator
+9) Optimize mobile performance and avoid thin pages
+
+---
+
+# Final Output Requirement (When you are done implementing)
+After implementation, respond with:
+1) List of files created/modified
+2) New routes added
+3) New DB tables/migrations (if any)
+4) GitHub Actions workflow name + what it runs
+5) How to verify:
+   - generate yesterday page locally
+   - confirm it appears in sitemap.xml and sitemap.html
+   - confirm homepage links to latest daily page and sitemap.html
+   - confirm external sources are not linked (or nofollow if any exist)
+6) Any assumptions you made about current stack or DB schema
+
+Proceed now. Do not ask me questions unless you are blocked; make safe assumptions and implement.

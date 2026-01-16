@@ -283,3 +283,78 @@ def retry_failed_items(
         raise HTTPException(status_code=500, detail=result["error"])
     
     return result
+
+
+@router.post("/run/seo")
+def run_seo_generator(
+    date: Optional[str] = None,
+    backfill: Optional[int] = None,
+    dry_run: bool = False,
+    x_internal_token: Optional[str] = Header(None)
+):
+    """
+    Generate SEO daily pages.
+    
+    Args:
+        date: Specific date (YYYY-MM-DD) or None for yesterday. Must be <= yesterday (24h delay enforced).
+        backfill: Number of days to backfill (all dates must be <= yesterday)
+        dry_run: If True, preview without saving
+    """
+    validate_internal_token(x_internal_token)
+    
+    from datetime import datetime as dt, timedelta
+    from src.seo.seo_generator import (
+        get_yesterday_date,
+        generate_daily_page_model,
+        save_daily_page,
+        generate_sitemap_entries
+    )
+    from src.db.migrations import run_seo_tables_migration
+    
+    run_seo_tables_migration()
+    
+    yesterday = get_yesterday_date()
+    
+    results = {
+        'pages': [],
+        'sitemap_entries': 0,
+        'dry_run': dry_run
+    }
+    
+    if backfill and backfill > 0:
+        for i in range(min(backfill, 90)):
+            target = yesterday - timedelta(days=i)
+            model = generate_daily_page_model(target)
+            if not dry_run:
+                page_id = save_daily_page(target, model)
+                results['pages'].append({'date': target.isoformat(), 'page_id': page_id, 'alerts': model['stats']['total_alerts']})
+            else:
+                results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
+    elif date:
+        try:
+            target = dt.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        
+        if target > yesterday:
+            raise HTTPException(status_code=400, detail=f"24h delay enforced. Cannot generate page for {target}. Maximum allowed date is {yesterday}.")
+        
+        model = generate_daily_page_model(target)
+        if not dry_run:
+            page_id = save_daily_page(target, model)
+            results['pages'].append({'date': target.isoformat(), 'page_id': page_id, 'alerts': model['stats']['total_alerts']})
+        else:
+            results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
+    else:
+        target = yesterday
+        model = generate_daily_page_model(target)
+        if not dry_run:
+            page_id = save_daily_page(target, model)
+            results['pages'].append({'date': target.isoformat(), 'page_id': page_id, 'alerts': model['stats']['total_alerts']})
+        else:
+            results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
+    
+    entries = generate_sitemap_entries()
+    results['sitemap_entries'] = len(entries)
+    
+    return results

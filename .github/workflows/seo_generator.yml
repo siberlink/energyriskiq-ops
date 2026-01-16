@@ -1,0 +1,79 @@
+name: SEO Daily Page Generator
+
+on:
+  schedule:
+    - cron: '30 6 * * *'  # 6:30 AM UTC daily
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Specific date (YYYY-MM-DD) or leave empty for yesterday'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (preview only)'
+        required: false
+        type: boolean
+        default: false
+      backfill:
+        description: 'Backfill N days'
+        required: false
+        type: number
+
+jobs:
+  generate-seo-pages:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger SEO Generation on Replit
+        run: |
+          echo "============================================================"
+          echo "EnergyRiskIQ SEO Generator"
+          echo "============================================================"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Date: ${{ inputs.date || 'yesterday' }}"
+          echo "Dry Run: ${{ inputs.dry_run || false }}"
+          echo "Backfill: ${{ inputs.backfill || 'N/A' }}"
+          echo "============================================================"
+          
+          # Build query parameters
+          PARAMS=""
+          
+          if [ -n "${{ inputs.date }}" ]; then
+            PARAMS="date=${{ inputs.date }}"
+          fi
+          
+          if [ "${{ inputs.dry_run }}" == "true" ]; then
+            if [ -n "$PARAMS" ]; then PARAMS="$PARAMS&"; fi
+            PARAMS="${PARAMS}dry_run=true"
+          fi
+          
+          if [ -n "${{ inputs.backfill }}" ] && [ "${{ inputs.backfill }}" != "0" ]; then
+            if [ -n "$PARAMS" ]; then PARAMS="$PARAMS&"; fi
+            PARAMS="${PARAMS}backfill=${{ inputs.backfill }}"
+          fi
+          
+          URL="${{ secrets.REPLIT_APP_URL }}/internal/run/seo"
+          if [ -n "$PARAMS" ]; then
+            URL="$URL?$PARAMS"
+          fi
+          
+          echo "URL: $URL"
+          echo "============================================================"
+          
+          # Call Replit SEO generation endpoint
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-internal-token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            "$URL" || echo '{"error": "curl failed"}')
+          
+          echo "Response: $RESPONSE"
+          
+      - name: Summary
+        run: |
+          echo "## SEO Generator Run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Date | ${{ inputs.date || 'yesterday' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dry Run | ${{ inputs.dry_run || false }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY

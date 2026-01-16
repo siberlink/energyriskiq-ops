@@ -849,6 +849,46 @@ def run_engine_observability_migration():
     logger.info("Engine observability migration complete.")
 
 
+def run_seo_tables_migration():
+    """Create tables for SEO daily pages system."""
+    logger.info("Running SEO tables migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS seo_daily_pages (
+                id SERIAL PRIMARY KEY,
+                page_date DATE NOT NULL UNIQUE,
+                seo_title TEXT NOT NULL,
+                seo_description TEXT NOT NULL,
+                page_json JSONB NOT NULL,
+                alert_count INT NOT NULL DEFAULT 0,
+                generated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_daily_pages_date ON seo_daily_pages(page_date DESC);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_daily_pages_alert_count ON seo_daily_pages(alert_count);")
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS seo_page_views (
+                id SERIAL PRIMARY KEY,
+                page_type TEXT NOT NULL,
+                page_path TEXT NOT NULL,
+                view_count INT NOT NULL DEFAULT 1,
+                last_viewed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(page_type, page_path)
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_page_views_path ON seo_page_views(page_path);")
+    
+    logger.info("SEO tables migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
+    run_seo_tables_migration()
