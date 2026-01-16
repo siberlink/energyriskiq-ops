@@ -604,6 +604,8 @@ def fanout_alert_events_to_users() -> Dict:
         scope_region = ae['scope_region']
         scope_assets = ae['scope_assets'] or []
         
+        logger.debug(f"Processing alert_event {alert_event_id}: type={alert_type}, region={scope_region}")
+        
         for user in users:
             user_id = user['id']
             plan = user['plan'] or 'free'
@@ -617,19 +619,23 @@ def fanout_alert_events_to_users() -> Dict:
                 allowed_types = get_allowed_alert_types('free')
             
             if alert_type not in allowed_types:
+                logger.debug(f"User {user_id}: skipped - alert_type {alert_type} not in allowed_types {allowed_types}")
                 continue
             
             user_regions = get_user_regions(user_id)
             if scope_region and scope_region not in user_regions and 'global' not in user_regions:
+                logger.debug(f"User {user_id}: skipped - region mismatch (event={scope_region}, user={user_regions})")
                 continue
             
             if alert_type == 'ASSET_RISK_SPIKE' and scope_assets:
                 user_assets = get_user_enabled_assets(user_id)
                 if not any(a in user_assets for a in scope_assets):
+                    logger.debug(f"User {user_id}: skipped - asset mismatch")
                     continue
             
             user_enabled_types = get_user_enabled_alert_types(user_id)
             if alert_type not in user_enabled_types:
+                logger.debug(f"User {user_id}: skipped - alert_type {alert_type} not in user_enabled_types {user_enabled_types}")
                 continue
             
             user_prefs = get_user_alert_prefs(user_id)
