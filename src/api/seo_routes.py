@@ -492,6 +492,153 @@ async def alerts_hub():
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/alerts/region/{region_slug}", response_class=HTMLResponse)
+async def alerts_by_region(region_slug: str):
+    """
+    Region-specific alerts page. Currently redirects to main alerts hub.
+    In future, could filter alerts by region.
+    """
+    # Map slug back to display name for SEO
+    region_display_map = {
+        'middle-east': 'Middle East',
+        'europe': 'Europe',
+        'asia': 'Asia',
+        'africa': 'Africa',
+        'russia': 'Russia',
+        'ukraine': 'Ukraine',
+        'china': 'China',
+        'iran': 'Iran',
+        'global': 'Global',
+    }
+    
+    region_name = region_display_map.get(region_slug, region_slug.replace('-', ' ').title())
+    track_page_view("region", f"/alerts/region/{region_slug}")
+    
+    # Get recent daily pages for context
+    recent_pages = get_recent_daily_pages(limit=10)
+    pages_html = ""
+    for page in recent_pages:
+        page_date = page['page_date'].strftime('%Y-%m-%d')
+        display_date = page['page_date'].strftime('%B %d, %Y')
+        alert_count = page.get('alert_count', 0)
+        pages_html += f'<li><a href="/alerts/daily/{page_date}">{display_date}</a> ({alert_count} alerts)</li>'
+    
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{region_name} Risk Alerts | EnergyRiskIQ</title>
+    <meta name="description" content="Geopolitical and energy risk alerts for {region_name}. Monitor supply disruption signals, market volatility, and risk intelligence for {region_name}.">
+    <link rel="canonical" href="{BASE_URL}/alerts/region/{region_slug}">
+    {get_common_styles()}
+</head>
+<body>
+    {render_nav()}
+    {render_cta_section("top")}
+    <main>
+        <div class="container">
+            <div class="breadcrumbs">
+                <a href="/">Home</a> / <a href="/alerts">Alerts</a> / {region_name}
+            </div>
+            <h1>{region_name} Risk Alerts</h1>
+            <p class="meta">Geopolitical and energy risk intelligence for {region_name}. Track supply disruption signals, market volatility, and critical risk events.</p>
+            
+            <h2>Recent Alerts</h2>
+            <p>Browse daily risk alerts that may include events affecting {region_name}:</p>
+            <ul class="page-list">
+                {pages_html if pages_html else '<li>No daily pages generated yet.</li>'}
+            </ul>
+            
+            {render_cta_section("mid")}
+            
+            <p><a href="/alerts">&larr; Back to All Alerts</a></p>
+            
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This information is provided for general informational purposes only and does not constitute financial, investment, or trading advice.
+            </div>
+        </div>
+    </main>
+    {render_footer()}
+</body>
+</html>
+"""
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/alerts/category/{category_slug}", response_class=HTMLResponse)
+async def alerts_by_category(category_slug: str):
+    """
+    Category-specific alerts page. Currently shows info page with links.
+    In future, could filter alerts by category.
+    """
+    # Map slug back to display name
+    category_display_map = {
+        'geopolitical': 'Geopolitical',
+        'infrastructure': 'Infrastructure',
+        'supply-chain': 'Supply Chain',
+        'market': 'Market',
+        'energy': 'Energy',
+        'conflict': 'Conflict',
+    }
+    
+    category_name = category_display_map.get(category_slug, category_slug.replace('-', ' ').title())
+    track_page_view("category", f"/alerts/category/{category_slug}")
+    
+    # Get recent daily pages for context
+    recent_pages = get_recent_daily_pages(limit=10)
+    pages_html = ""
+    for page in recent_pages:
+        page_date = page['page_date'].strftime('%Y-%m-%d')
+        display_date = page['page_date'].strftime('%B %d, %Y')
+        alert_count = page.get('alert_count', 0)
+        pages_html += f'<li><a href="/alerts/daily/{page_date}">{display_date}</a> ({alert_count} alerts)</li>'
+    
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{category_name} Risk Alerts | EnergyRiskIQ</title>
+    <meta name="description" content="{category_name} risk alerts and intelligence. Monitor {category_name.lower()} events affecting energy markets, supply chains, and regional stability.">
+    <link rel="canonical" href="{BASE_URL}/alerts/category/{category_slug}">
+    {get_common_styles()}
+</head>
+<body>
+    {render_nav()}
+    {render_cta_section("top")}
+    <main>
+        <div class="container">
+            <div class="breadcrumbs">
+                <a href="/">Home</a> / <a href="/alerts">Alerts</a> / {category_name}
+            </div>
+            <h1>{category_name} Risk Alerts</h1>
+            <p class="meta">{category_name} risk intelligence covering events affecting energy markets, supply chains, and regional stability.</p>
+            
+            <h2>Recent Alerts</h2>
+            <p>Browse daily risk alerts that may include {category_name.lower()} events:</p>
+            <ul class="page-list">
+                {pages_html if pages_html else '<li>No daily pages generated yet.</li>'}
+            </ul>
+            
+            {render_cta_section("mid")}
+            
+            <p><a href="/alerts">&larr; Back to All Alerts</a></p>
+            
+            <div class="disclaimer">
+                <strong>Disclaimer:</strong> This information is provided for general informational purposes only and does not constitute financial, investment, or trading advice.
+            </div>
+        </div>
+    </main>
+    {render_footer()}
+</body>
+</html>
+"""
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/alerts/daily/{date_str}", response_class=HTMLResponse)
 async def daily_alerts_page(date_str: str):
     """Daily alerts page for a specific date."""
@@ -562,7 +709,7 @@ async def daily_alerts_page(date_str: str):
     else:
         alert_cards_html = visible_cards_html
     
-    # Build drivers with internal links
+    # Build drivers with internal links to region/category pages
     drivers_html = ""
     top_drivers = model.get('top_drivers', [])
     for driver in top_drivers:
@@ -570,8 +717,18 @@ async def daily_alerts_page(date_str: str):
             text = driver.get('text', '')
             region = driver.get('region')
             region_slug = driver.get('region_slug')
+            category = driver.get('category', '')
+            category_slug = driver.get('category_slug', '')
+            count = driver.get('count', 0)
+            
             if region and region_slug:
-                drivers_html += f'<li><a href="/alerts" class="driver-link">{region}</a>: {driver.get("count", 0)} {driver.get("category", "").lower()} event(s) detected</li>'
+                # Create links to both region and category filter pages
+                region_link = f'<a href="/alerts/region/{region_slug}" class="driver-link">{region}</a>'
+                if category and category_slug:
+                    category_link = f'<a href="/alerts/category/{category_slug}" class="driver-link">{category.lower()}</a>'
+                    drivers_html += f'<li>{region_link}: {count} {category_link} event(s) detected</li>'
+                else:
+                    drivers_html += f'<li>{region_link}: {count} geopolitical event(s) detected</li>'
             else:
                 drivers_html += f"<li>{text}</li>"
         else:
