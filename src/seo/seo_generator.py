@@ -113,6 +113,47 @@ def sanitize_text_for_seo(text: str) -> str:
     return sanitized
 
 
+def clean_alert_body_for_public(body: str) -> str:
+    """
+    Clean structured alert body to extract human-readable summary.
+    Removes internal prefixes like 'ASSET RISK ALERT: FREIGHT Region: Europe Risk Score: 100/100...'
+    Extracts just the KEY DRIVERS section if present.
+    """
+    import re
+    if not body:
+        return ""
+    
+    # Try to extract KEY DRIVERS section
+    key_drivers_match = re.search(r'KEY DRIVERS?:\s*(.+)', body, re.IGNORECASE | re.DOTALL)
+    if key_drivers_match:
+        drivers_text = key_drivers_match.group(1).strip()
+        # Clean up numbered list formatting
+        drivers_text = re.sub(r'^\d+\.\s*', '', drivers_text)  # Remove leading number
+        drivers_text = re.sub(r'\s+\d+\.\s+', '. ', drivers_text)  # Replace mid-text numbers with periods
+        return drivers_text
+    
+    # Try to extract content after Direction/Confidence markers
+    after_conf_match = re.search(r'Confidence:\s*\d+%\s*(.+)', body, re.IGNORECASE)
+    if after_conf_match:
+        return after_conf_match.group(1).strip()
+    
+    # Try to remove common structured prefixes
+    cleaned = re.sub(
+        r'^(ASSET RISK ALERT|REGIONAL RISK ALERT|HIGH[- ]IMPACT EVENT)[:\s]*',
+        '', body, flags=re.IGNORECASE
+    )
+    cleaned = re.sub(
+        r'^[A-Z]+\s+Region:\s*[A-Za-z\s]+Risk Score:\s*\d+/\d+\s*Direction:\s*[A-Z]+\s*Confidence:\s*\d+%\s*',
+        '', cleaned, flags=re.IGNORECASE
+    )
+    
+    if cleaned and cleaned != body:
+        return cleaned.strip()
+    
+    # Fallback: return sanitized original
+    return sanitize_text_for_seo(body)
+
+
 def transform_headline_to_risk_signal(headline: str) -> str:
     """
     Transform news-like headlines into risk-signal language.
@@ -253,7 +294,10 @@ def build_public_alert_card(alert: Dict) -> Dict:
     raw_title = sanitize_text_for_seo(alert.get('headline', 'Risk Alert'))
     public_title = transform_headline_to_risk_signal(raw_title)
     
-    public_summary = sanitize_text_for_seo(alert.get('body', ''))
+    # Clean the body to extract meaningful content (removes structured prefixes)
+    raw_body = alert.get('body', '')
+    public_summary = clean_alert_body_for_public(raw_body)
+    public_summary = sanitize_text_for_seo(public_summary)
     if public_summary and len(public_summary) > 200:
         public_summary = public_summary[:197] + '...'
     
