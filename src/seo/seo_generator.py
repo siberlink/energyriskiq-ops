@@ -20,11 +20,20 @@ logger = logging.getLogger(__name__)
 
 
 def get_openai_client() -> Optional[OpenAI]:
-    """Get OpenAI client if API key is available."""
-    api_key = os.environ.get('OPENAI_API_KEY')
-    if not api_key:
-        return None
-    return OpenAI(api_key=api_key)
+    """Get OpenAI client using Replit AI Integrations."""
+    # Use Replit AI Integrations (preferred) or fallback to standard OpenAI key
+    ai_api_key = os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
+    ai_base_url = os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL')
+    
+    if ai_api_key and ai_base_url:
+        return OpenAI(api_key=ai_api_key, base_url=ai_base_url)
+    
+    # Fallback to standard OpenAI key
+    openai_key = os.environ.get('OPENAI_API_KEY')
+    if openai_key:
+        return OpenAI(api_key=openai_key)
+    
+    return None
 
 
 def vary_duplicate_titles_with_ai(cards: List[Dict]) -> List[Dict]:
