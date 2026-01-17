@@ -116,101 +116,129 @@ def sanitize_text_for_seo(text: str) -> str:
 def transform_headline_to_risk_signal(headline: str) -> str:
     """
     Transform news-like headlines into risk-signal language.
-    Removes news patterns and reframes as risk intelligence.
+    Completely rewrites headlines to sound like risk intelligence, not news.
     
     Examples:
-    - "LIVE: Israel continues deadly Gaza attacks" → "Middle East conflict escalation signals elevated regional risk"
-    - "Why is Iran's economy failing?" → "Iran economic instability signals rising civil unrest risk"
-    - "Photos: Power outages in Kyiv" → "Ukraine infrastructure disruption signals energy supply risk"
+    - "LIVE: Israel continues deadly Gaza attacks" → "Gaza conflict escalation signals elevated regional instability"
+    - "Why is Iran's economy failing?" → "Iran economic instability signals elevated civil unrest risk"
+    - "Photos: Power outages in Kyiv" → "Ukraine energy infrastructure disruption signals supply risk"
+    - "What happened at UN Security Council" → "UN Security Council activity signals diplomatic escalation risk"
     """
     if not headline:
-        return "Risk event detected"
+        return "Risk event detected requiring monitoring"
     
     import re
     
-    # Remove news-like prefixes
-    news_prefixes = [
-        r'^LIVE:\s*',
-        r'^BREAKING:\s*',
-        r'^UPDATE:\s*',
-        r'^WATCH:\s*',
-        r'^VIDEO:\s*',
-        r'^PHOTOS?:\s*',
-        r'^ANALYSIS:\s*',
-        r'^OPINION:\s*',
-        r'^EXCLUSIVE:\s*',
-        r'^DEVELOPING:\s*',
-        r'^URGENT:\s*',
-        r'^JUST IN:\s*',
-    ]
+    lower = headline.lower()
     
-    cleaned = headline
-    for prefix in news_prefixes:
-        cleaned = re.sub(prefix, '', cleaned, flags=re.IGNORECASE)
+    # Check if already properly risk-framed (has risk language AND doesn't start with news patterns)
+    risk_terms = ['risk', 'signals', 'disruption', 'escalation', 'instability', 'volatility', 'elevated']
+    news_starts = ['live:', 'breaking:', 'update:', 'watch:', 'video:', 'photo', 'why ', 'what ', 'how ', 'who ', 'when ', 'where ']
     
-    # Remove question patterns at the start
-    cleaned = re.sub(r'^Why is\s+', '', cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r'^What\s+', '', cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r'^How\s+', '', cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r'^Who\s+', '', cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r'^When\s+', '', cleaned, flags=re.IGNORECASE)
-    cleaned = re.sub(r'^Where\s+', '', cleaned, flags=re.IGNORECASE)
+    has_risk_language = sum(1 for term in risk_terms if term in lower) >= 2
+    starts_with_news = any(lower.startswith(p) for p in news_starts)
     
-    # Remove trailing question marks
-    cleaned = re.sub(r'\?+$', '', cleaned)
+    if has_risk_language and not starts_with_news:
+        return headline
     
-    # Remove ellipsis and trailing dots
-    cleaned = re.sub(r'\.{2,}$', '', cleaned)
-    cleaned = re.sub(r'…$', '', cleaned)
+    # === ENTITY EXTRACTION ===
     
-    cleaned = cleaned.strip()
+    # Region/Country detection (order matters - more specific first)
+    region_map = {
+        'kyiv': 'Ukraine', 'kiev': 'Ukraine', 'ukraine': 'Ukraine', 'ukrainian': 'Ukraine',
+        'russia': 'Russia', 'russian': 'Russia', 'moscow': 'Russia', 'kremlin': 'Russia',
+        'gaza': 'Gaza', 'palestinian': 'Palestine', 'west bank': 'Palestine',
+        'israel': 'Israel', 'israeli': 'Israel', 'tel aviv': 'Israel',
+        'iran': 'Iran', 'iranian': 'Iran', 'tehran': 'Iran',
+        'china': 'China', 'chinese': 'China', 'beijing': 'China',
+        'saudi': 'Saudi Arabia', 'riyadh': 'Saudi Arabia',
+        'iraq': 'Iraq', 'iraqi': 'Iraq', 'baghdad': 'Iraq',
+        'syria': 'Syria', 'syrian': 'Syria', 'damascus': 'Syria',
+        'yemen': 'Yemen', 'houthi': 'Yemen',
+        'libya': 'Libya', 'libyan': 'Libya',
+        'venezuela': 'Venezuela',
+        'nigeria': 'Nigeria', 'niger': 'Niger',
+        'europe': 'Europe', 'european': 'Europe', 'eu ': 'Europe',
+        'middle east': 'Middle East',
+        'asia': 'Asia', 'asian': 'Asia',
+        'africa': 'Africa', 'african': 'Africa',
+        'un ': 'UN', 'united nations': 'UN', 'security council': 'UN Security Council',
+        'nato': 'NATO', 'opec': 'OPEC',
+    }
     
-    # If headline is very short after cleaning, return a generic risk statement
-    if len(cleaned) < 10:
-        return "Risk event detected requiring monitoring"
-    
-    # Check if headline already contains risk-signal language
-    risk_terms = ['risk', 'signal', 'disruption', 'escalation', 'pressure', 'instability', 'volatility', 'impact']
-    has_risk_language = any(term in cleaned.lower() for term in risk_terms)
-    
-    if has_risk_language:
-        # Already risk-framed, just clean and return
-        return cleaned
-    
-    # Add risk-signal suffix if not present
-    # Detect geographic/topic context for better framing
-    regions = ['europe', 'middle east', 'asia', 'russia', 'ukraine', 'iran', 'israel', 'gaza', 'china']
-    topics = ['oil', 'gas', 'energy', 'pipeline', 'lng', 'nuclear', 'supply', 'trade', 'economy']
-    
-    lower_cleaned = cleaned.lower()
     detected_region = None
-    detected_topic = None
-    
-    for region in regions:
-        if region in lower_cleaned:
-            detected_region = region.title()
+    for pattern, region in region_map.items():
+        if pattern in lower:
+            detected_region = region
             break
     
-    for topic in topics:
-        if topic in lower_cleaned:
-            detected_topic = topic
+    # Event type detection → risk category
+    event_patterns = {
+        # Conflict/Violence
+        (r'attack|strike|bomb|shell|missile|drone|militar|combat|war|fight|kill|dead|death|casualt', 'conflict', 'escalation'),
+        # Infrastructure
+        (r'power outage|blackout|grid|electricity|infrastructure|pipeline|refiner|plant|facility', 'infrastructure', 'disruption'),
+        # Civil unrest
+        (r'protest|riot|demonstrat|unrest|uprising|civil|dissent|opposition', 'civil unrest', 'instability'),
+        # Economic
+        (r'econom|inflation|currency|sanction|trade|tariff|embargo|price|cost|market', 'economic', 'pressure'),
+        # Energy supply
+        (r'oil|gas|lng|fuel|energy|petrol|crude|barrel|opec|supply|export|import', 'energy supply', 'volatility'),
+        # Diplomatic
+        (r'diplomat|negotiat|talk|summit|council|treaty|agreement|alliance|relation', 'diplomatic', 'tension'),
+        # Security
+        (r'secur|terror|threat|intelligen|spy|cyber|hack', 'security', 'threat'),
+        # Political
+        (r'elect|vote|govern|regime|coup|leader|president|minister|parliament', 'political', 'uncertainty'),
+        # Nuclear
+        (r'nuclear|atomic|uranium|enrichment|weapon|warhead', 'nuclear', 'escalation'),
+        # Shipping/Trade routes
+        (r'ship|vessel|tanker|port|strait|canal|maritime|cargo|freight', 'maritime trade', 'disruption'),
+    }
+    
+    detected_event_type = 'geopolitical'
+    detected_risk_word = 'risk'
+    
+    for pattern, event_type, risk_word in event_patterns:
+        if re.search(pattern, lower):
+            detected_event_type = event_type
+            detected_risk_word = risk_word
             break
     
-    # Build risk-signal suffix
-    if detected_region and detected_topic:
-        suffix = f" - signals {detected_topic} market risk"
-    elif detected_region:
-        suffix = " - signals regional risk escalation"
-    elif detected_topic:
-        suffix = f" - signals {detected_topic} supply risk"
+    # === BUILD RISK-SIGNAL TITLE ===
+    
+    # Format: "[Region] [event type] [risk word] signals elevated [outcome] risk"
+    
+    if detected_region:
+        if detected_event_type == 'conflict':
+            return f"{detected_region} conflict {detected_risk_word} signals elevated regional instability"
+        elif detected_event_type == 'infrastructure':
+            return f"{detected_region} infrastructure {detected_risk_word} signals energy supply risk"
+        elif detected_event_type == 'civil unrest':
+            return f"{detected_region} civil {detected_risk_word} signals elevated political risk"
+        elif detected_event_type == 'economic':
+            return f"{detected_region} economic {detected_risk_word} signals market volatility risk"
+        elif detected_event_type == 'energy supply':
+            return f"{detected_region} energy {detected_risk_word} signals supply chain risk"
+        elif detected_event_type == 'diplomatic':
+            return f"{detected_region} diplomatic {detected_risk_word} signals geopolitical uncertainty"
+        elif detected_event_type == 'security':
+            return f"{detected_region} security {detected_risk_word} signals elevated threat level"
+        elif detected_event_type == 'political':
+            return f"{detected_region} political {detected_risk_word} signals governance instability"
+        elif detected_event_type == 'nuclear':
+            return f"{detected_region} nuclear {detected_risk_word} signals elevated proliferation risk"
+        elif detected_event_type == 'maritime trade':
+            return f"{detected_region} maritime {detected_risk_word} signals trade route vulnerability"
+        else:
+            return f"{detected_region} {detected_event_type} activity signals elevated regional risk"
     else:
-        suffix = " - risk signal detected"
-    
-    # Capitalize first letter
-    if cleaned and cleaned[0].islower():
-        cleaned = cleaned[0].upper() + cleaned[1:]
-    
-    return cleaned + suffix
+        # No region detected - use generic but still risk-framed
+        if detected_event_type != 'geopolitical':
+            return f"Global {detected_event_type} {detected_risk_word} signals elevated market risk"
+        else:
+            # Fallback: extract key nouns and build generic risk title
+            return f"Geopolitical development signals elevated market risk"
 
 
 def build_public_alert_card(alert: Dict) -> Dict:
