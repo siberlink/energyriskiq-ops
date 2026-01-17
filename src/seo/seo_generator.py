@@ -513,7 +513,17 @@ def generate_daily_page_model(target_date: date) -> Dict:
     Generate the complete page model for a daily SEO page.
     """
     alerts = get_alerts_for_date(target_date)
-    alert_cards = [build_public_alert_card(a) for a in alerts]
+    all_cards = [build_public_alert_card(a) for a in alerts]
+    
+    # Deduplicate cards by public_title to avoid near-identical content blocks
+    # Keep the first (highest severity due to ORDER BY) occurrence of each title
+    seen_titles = set()
+    alert_cards = []
+    for card in all_cards:
+        title_key = card['public_title'].lower().strip()
+        if title_key not in seen_titles:
+            seen_titles.add(title_key)
+            alert_cards.append(card)
     
     # Consistent severity buckets: Critical (5/5), High (4/5), Moderate (3/5)
     critical_count = sum(1 for c in alert_cards if c['severity'] >= 5)
