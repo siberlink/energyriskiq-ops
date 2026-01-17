@@ -515,14 +515,20 @@ def generate_daily_page_model(target_date: date) -> Dict:
     alerts = get_alerts_for_date(target_date)
     all_cards = [build_public_alert_card(a) for a in alerts]
     
-    # Deduplicate cards by public_title to avoid near-identical content blocks
-    # Keep the first (highest severity due to ORDER BY) occurrence of each title
-    seen_titles = set()
+    # Deduplicate cards by title AND summary to avoid near-identical content blocks
+    # Keep the first (highest severity due to ORDER BY) occurrence
+    seen_keys = set()
     alert_cards = []
     for card in all_cards:
+        # Create composite key from title + first 100 chars of summary
         title_key = card['public_title'].lower().strip()
-        if title_key not in seen_titles:
-            seen_titles.add(title_key)
+        summary_key = card.get('public_summary', '')[:100].lower().strip()
+        composite_key = f"{title_key}|{summary_key}"
+        
+        # Also check summary alone (same content with different transformed titles)
+        if composite_key not in seen_keys and summary_key not in seen_keys:
+            seen_keys.add(composite_key)
+            seen_keys.add(summary_key)  # Prevent same summary with different title
             alert_cards.append(card)
     
     # Consistent severity buckets: Critical (5/5), High (4/5), Moderate (3/5)
