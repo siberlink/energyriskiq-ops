@@ -7,13 +7,116 @@ Uses only public alert data (no premium leakage).
 
 import logging
 import json
+import re
+import os
 from datetime import datetime, timezone, timedelta, date
 from typing import Dict, List, Optional, Any
 from collections import Counter
 
+from openai import OpenAI
 from src.db.db import get_cursor, execute_query, execute_one
 
 logger = logging.getLogger(__name__)
+
+
+def get_openai_client() -> Optional[OpenAI]:
+    """Get OpenAI client if API key is available."""
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        return None
+    return OpenAI(api_key=api_key)
+
+
+def vary_duplicate_titles_with_ai(cards: List[Dict]) -> List[Dict]:
+    """
+    Use AI to generate unique titles for cards that have duplicate generic titles.
+    Extracts specific event details from the body to create differentiated titles.
+    """
+    if not cards:
+        return cards
+    
+    # Group cards by their public_title
+    title_groups = {}
+    for i, card in enumerate(cards):
+        title = card.get('public_title', '')
+        if title not in title_groups:
+            title_groups[title] = []
+        title_groups[title].append((i, card))
+    
+    # Find groups with duplicates (2+ cards with same title)
+    duplicate_groups = {title: items for title, items in title_groups.items() if len(items) > 1}
+    
+    if not duplicate_groups:
+        return cards  # No duplicates to fix
+    
+    client = get_openai_client()
+    if not client:
+        logger.warning("OpenAI client unavailable for title variation")
+        return cards  # Return unchanged if no API key
+    
+    # Build cards list copy to modify
+    result_cards = list(cards)
+    
+    for base_title, items in duplicate_groups.items():
+        # Prepare batch request for AI
+        summaries = []
+        for idx, card in items:
+            summary = card.get('public_summary', '')[:300]
+            region = card.get('region', 'Global')
+            summaries.append(f"Card {idx}: Region: {region}. Content: {summary}")
+        
+        prompt = f"""You are creating SEO-optimized titles for energy risk intelligence alerts.
+
+The base title is: "{base_title}"
+
+These {len(items)} alerts all have this same generic title, but they describe DIFFERENT events:
+
+{chr(10).join(summaries)}
+
+Generate a unique, specific title for EACH card that:
+1. Keeps the risk-signal language style (e.g., "signals", "elevated risk", "disruption")
+2. Adds specific details from the content (e.g., "Iran airspace closure", "US strike threat", "Lebanon attacks")
+3. Is 8-15 words long
+4. Does NOT start with the region name (avoid "Middle East...")
+
+Return ONLY a JSON object like this:
+{{"0": "Specific title for card 0", "1": "Specific title for card 1", ...}}
+
+Use the original card indices as keys."""
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4.1-mini",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=500
+            )
+            
+            content = response.choices[0].message.content
+            if not content:
+                continue
+            content = content.strip()
+            # Extract JSON from response (handle markdown code blocks)
+            if '```' in content:
+                match = re.search(r'\{[^}]+\}', content, re.DOTALL)
+                if match:
+                    content = match.group()
+            
+            new_titles = json.loads(content)
+            
+            # Apply new titles to cards
+            for idx, card in items:
+                str_idx = str(idx)
+                if str_idx in new_titles:
+                    result_cards[idx] = {**card, 'public_title': new_titles[str_idx]}
+                    logger.info(f"Varied title for card {idx}: {new_titles[str_idx][:50]}...")
+        
+        except Exception as e:
+            logger.error(f"AI title variation failed for '{base_title[:30]}...': {e}")
+            # Continue with original titles on error
+    
+    return result_cards
+
 
 CATEGORY_DISPLAY = {
     'GEOPOLITICAL': 'Geopolitical',
@@ -515,21 +618,17 @@ def generate_daily_page_model(target_date: date) -> Dict:
     alerts = get_alerts_for_date(target_date)
     all_cards = [build_public_alert_card(a) for a in alerts]
     
-    # Deduplicate cards by title AND summary to avoid near-identical content blocks
-    # Keep the first (highest severity due to ORDER BY) occurrence
-    seen_keys = set()
-    alert_cards = []
+    # STEP 1: Deduplicate cards by summary to avoid near-identical content blocks
+    seen_summaries = set()
+    deduped_cards = []
     for card in all_cards:
-        # Create composite key from title + first 100 chars of summary
-        title_key = card['public_title'].lower().strip()
         summary_key = card.get('public_summary', '')[:100].lower().strip()
-        composite_key = f"{title_key}|{summary_key}"
-        
-        # Also check summary alone (same content with different transformed titles)
-        if composite_key not in seen_keys and summary_key not in seen_keys:
-            seen_keys.add(composite_key)
-            seen_keys.add(summary_key)  # Prevent same summary with different title
-            alert_cards.append(card)
+        if summary_key not in seen_summaries:
+            seen_summaries.add(summary_key)
+            deduped_cards.append(card)
+    
+    # STEP 2: Use AI to vary duplicate titles (same title, different content)
+    alert_cards = vary_duplicate_titles_with_ai(deduped_cards)
     
     # Consistent severity buckets: Critical (5/5), High (4/5), Moderate (3/5)
     critical_count = sum(1 for c in alert_cards if c['severity'] >= 5)
