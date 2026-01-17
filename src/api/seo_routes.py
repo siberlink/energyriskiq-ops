@@ -152,6 +152,8 @@ def get_common_styles() -> str:
         .nav-links { display: flex; gap: 1.5rem; align-items: center; }
         .nav-links a { color: var(--text-secondary); text-decoration: none; font-weight: 500; }
         .nav-links a:hover { color: var(--primary); }
+        .nav-links a.cta-btn { color: white; }
+        .nav-links a.cta-btn:hover { color: white; }
         .cta-btn {
             background: var(--primary);
             color: white;
