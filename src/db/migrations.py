@@ -10,6 +10,7 @@ PLAN_SETTINGS_SEED = [
         "display_name": "Free",
         "monthly_price_usd": 0.00,
         "allowed_alert_types": ["HIGH_IMPACT_EVENT"],
+        "max_regions": 1,
         "max_email_alerts_per_day": 2,
         "delivery_config": {
             "email": {"max_per_day": 2, "realtime_limit": 1, "mode": "limited"},
@@ -23,6 +24,7 @@ PLAN_SETTINGS_SEED = [
         "display_name": "Personal",
         "monthly_price_usd": 9.95,
         "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE"],
+        "max_regions": 2,
         "max_email_alerts_per_day": 4,
         "delivery_config": {
             "email": {"max_per_day": 4, "realtime_limit": 1, "mode": "limited"},
@@ -36,6 +38,7 @@ PLAN_SETTINGS_SEED = [
         "display_name": "Trader",
         "monthly_price_usd": 29.00,
         "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE"],
+        "max_regions": 3,
         "max_email_alerts_per_day": 8,
         "delivery_config": {
             "email": {"max_per_day": 8, "realtime_limit": 3, "mode": "limited"},
@@ -49,6 +52,7 @@ PLAN_SETTINGS_SEED = [
         "display_name": "Pro",
         "monthly_price_usd": 49.00,
         "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE", "DAILY_DIGEST"],
+        "max_regions": -1,
         "max_email_alerts_per_day": 15,
         "delivery_config": {
             "email": {"max_per_day": 15, "realtime_limit": None, "mode": "limited"},
@@ -62,6 +66,7 @@ PLAN_SETTINGS_SEED = [
         "display_name": "Enterprise",
         "monthly_price_usd": 129.00,
         "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE", "DAILY_DIGEST"],
+        "max_regions": -1,
         "max_email_alerts_per_day": 30,
         "delivery_config": {
             "email": {"max_per_day": 30, "realtime_limit": None, "mode": "limited"},
@@ -524,6 +529,9 @@ def run_migrations():
     logger.info("Running engine observability migration...")
     run_engine_observability_migration()
     
+    logger.info("Running user settings migration...")
+    run_user_settings_migration()
+    
     logger.info("Migrations completed successfully.")
 
 
@@ -847,6 +855,45 @@ def run_engine_observability_migration():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_engine_run_items_phase ON alerts_engine_run_items(phase);")
     
     logger.info("Engine observability migration complete.")
+
+
+def run_user_settings_migration():
+    """Create user_settings table for plan-based alert preferences."""
+    logger.info("Running user_settings migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            ALTER TABLE plan_settings 
+            ADD COLUMN IF NOT EXISTS max_regions INT DEFAULT -1;
+        """)
+        
+        for plan in PLAN_SETTINGS_SEED:
+            cursor.execute("""
+                UPDATE plan_settings 
+                SET max_regions = %s 
+                WHERE plan_code = %s
+            """, (plan.get("max_regions", -1), plan["plan_code"]))
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_settings (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                alert_type TEXT NOT NULL CHECK (alert_type IN ('HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST')),
+                region TEXT NULL,
+                asset TEXT NULL,
+                enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(user_id, alert_type, region, asset)
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_settings_alert_type ON user_settings(alert_type);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_settings_region ON user_settings(region);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_settings_enabled ON user_settings(enabled);")
+    
+    logger.info("User settings migration complete.")
 
 
 def run_seo_tables_migration():
