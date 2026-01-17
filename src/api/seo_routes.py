@@ -34,6 +34,48 @@ router = APIRouter(tags=["seo"])
 BASE_URL = os.environ.get('ALERTS_APP_BASE_URL', 'https://energyriskiq.com')
 
 
+def generate_why_matters_text(model: dict) -> str:
+    """Generate contextual 'Why This Matters' text based on alert data."""
+    stats = model.get('stats', {})
+    total = stats.get('total_alerts', 0)
+    critical = stats.get('critical_count', 0)
+    high = stats.get('high_count', 0)
+    regions = stats.get('regions', {})
+    categories = stats.get('categories', {})
+    
+    if total == 0:
+        return "No significant risk events were detected for this period. Energy markets operated within normal parameters, providing an opportunity for institutions to reassess exposures and prepare contingency strategies for future volatility."
+    
+    # Build dynamic text based on actual data
+    top_regions = list(regions.keys())[:2]
+    top_cats = list(categories.keys())[:2]
+    
+    region_str = " and ".join(top_regions) if top_regions else "global markets"
+    
+    # Build implications based on categories
+    implications = []
+    for cat in top_cats:
+        if cat == 'Geopolitical':
+            implications.append("geopolitical stability")
+        elif cat == 'Commodities':
+            implications.append("commodity pricing")
+        elif cat == 'Energy':
+            implications.append("energy supply chains")
+        else:
+            implications.append("market conditions")
+    
+    impl_str = ", ".join(implications) if implications else "market stability"
+    
+    if critical > 0:
+        severity_phrase = f"Today's {critical} critical-severity alert(s) highlight"
+    elif high > 0:
+        severity_phrase = f"Today's {high} high-severity signal(s) indicate"
+    else:
+        severity_phrase = f"Today's {total} risk signal(s) suggest"
+    
+    return f"{severity_phrase} sustained pressure across {region_str}, with implications for {impl_str}. Monitoring these signals early helps institutions prepare before market reactions occur."
+
+
 def track_page_view(page_type: str, page_path: str):
     """Track page view (privacy-safe, no cookies)."""
     try:
@@ -217,6 +259,23 @@ def get_common_styles() -> str:
         .alert-meta {
             font-size: 0.8rem;
             color: var(--text-secondary);
+        }
+        /* Why This Matters section */
+        .why-matters {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        .why-matters h2 {
+            color: var(--secondary);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .why-matters p {
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
         /* Compact card styles for collapsed alerts */
         .alert-card-compact {
@@ -409,7 +468,7 @@ def render_footer() -> str:
 
 
 def render_cta_section(position: str = "mid") -> str:
-    """Render conversion CTA section with urgency and benefit framing."""
+    """Render conversion CTA section with varied anchor text for SEO."""
     if position == "top":
         return """
         <div class="hero-banner">
@@ -423,14 +482,22 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section cta-mid">
             <h3>These are public summaries.</h3>
             <p>Pro users receive <strong>full AI analysis</strong>, <strong>instant multi-channel delivery</strong>, and <strong>priority alerts</strong> before they appear here.</p>
-            <a href="https://www.energyriskiq.com/users" class="cta-btn">Upgrade to Pro &rarr;</a>
+            <a href="https://www.energyriskiq.com/users" class="cta-btn">Unlock Full Analysis &rarr;</a>
+        </section>
+        """
+    elif position == "bottom":
+        return """
+        <section class="cta-section">
+            <h3>Don't Miss Tomorrow's Risk Signals</h3>
+            <p>Get real-time alerts delivered via Email, Telegram, or SMS — before markets react.</p>
+            <a href="https://www.energyriskiq.com/users" class="cta-btn">Get Alerts Now &rarr;</a>
         </section>
         """
     else:
         return """
         <section class="cta-section">
-            <h3>Don't Miss Tomorrow's Risk Signals</h3>
-            <p>Get real-time alerts delivered via Email, Telegram, or SMS — before markets react.</p>
+            <h3>Stay Ahead of Market Risks</h3>
+            <p>Subscribe for daily intelligence briefings and real-time risk signals.</p>
             <a href="https://www.energyriskiq.com/users" class="cta-btn">Start Free Trial &rarr;</a>
         </section>
         """
@@ -842,7 +909,7 @@ async def daily_alerts_page(date_str: str):
                 {stats_html}
                 
                 <section class="risk-posture">
-                    <h3>Daily Risk Posture <span class="risk-level {risk_level_class}">{risk_level}</span></h3>
+                    <h2>Daily Risk Posture <span class="risk-level {risk_level_class}">{risk_level}</span></h2>
                     <p>{risk_summary}</p>
                 </section>
                 
@@ -852,6 +919,11 @@ async def daily_alerts_page(date_str: str):
                 <ul class="drivers-list">
                     {drivers_html}
                 </ul>
+                
+                <section class="why-matters">
+                    <h2>Why This Matters</h2>
+                    <p>{generate_why_matters_text(model)}</p>
+                </section>
                 
                 <h2>Alert Details</h2>
                 <div class="alert-cards">
