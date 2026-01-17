@@ -218,6 +218,32 @@ def get_common_styles() -> str:
             font-size: 0.8rem;
             color: var(--text-secondary);
         }
+        /* Compact card styles for collapsed alerts */
+        .alert-card-compact {
+            padding: 0.75rem 1rem;
+        }
+        .alert-header-compact {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .alert-region-compact {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .alert-title-compact {
+            font-weight: 600;
+            font-size: 0.95rem;
+            flex: 1;
+        }
+        .alert-summary-compact {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0 0 0;
+            line-height: 1.4;
+        }
         .cta-section {
             background: linear-gradient(135deg, var(--secondary) 0%, #2D2D4A 100%);
             color: white;
@@ -665,18 +691,20 @@ async def daily_alerts_page(date_str: str):
     visible_cards = all_cards[:10]
     collapsed_cards = all_cards[10:]
     
-    def render_alert_card(card):
-        severity = card.get('severity', 3)
-        # Always derive severity label from score for consistency
-        # Critical=5, High=4, Moderate=3, Low=1-2
+    def get_severity_label(severity):
+        """Derive severity label from score for consistency."""
         if severity >= 5:
-            severity_label = 'Critical'
+            return 'Critical'
         elif severity == 4:
-            severity_label = 'High'
+            return 'High'
         elif severity == 3:
-            severity_label = 'Moderate'
-        else:
-            severity_label = 'Low'
+            return 'Moderate'
+        return 'Low'
+    
+    def render_alert_card_full(card):
+        """Full card for expanded/visible alerts."""
+        severity = card.get('severity', 3)
+        severity_label = get_severity_label(severity)
         return f"""
         <article class="alert-card severity-{severity}">
             <div class="alert-header">
@@ -692,8 +720,27 @@ async def daily_alerts_page(date_str: str):
         </article>
         """
     
-    visible_cards_html = ''.join(render_alert_card(c) for c in visible_cards)
-    collapsed_cards_html = ''.join(render_alert_card(c) for c in collapsed_cards)
+    def render_alert_card_compact(card):
+        """Compact card for collapsed alerts - reduces duplicate content blocks."""
+        severity = card.get('severity', 3)
+        severity_label = get_severity_label(severity)
+        # Truncate summary to ~100 chars for compact view
+        summary = card.get('public_summary', '')
+        if len(summary) > 120:
+            summary = summary[:117] + '...'
+        return f"""
+        <article class="alert-card alert-card-compact severity-{severity}">
+            <div class="alert-header-compact">
+                <span class="badge severity severity-{severity}">{severity_label}</span>
+                <span class="alert-region-compact">{card['region']}</span>
+                <span class="alert-title-compact">{card['public_title']}</span>
+            </div>
+            <p class="alert-summary-compact">{summary}</p>
+        </article>
+        """
+    
+    visible_cards_html = ''.join(render_alert_card_full(c) for c in visible_cards)
+    collapsed_cards_html = ''.join(render_alert_card_compact(c) for c in collapsed_cards)
     
     # Build alert cards section with show more button
     if collapsed_cards:
