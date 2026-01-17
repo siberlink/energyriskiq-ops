@@ -520,7 +520,16 @@ async def daily_alerts_page(date_str: str):
     
     def render_alert_card(card):
         severity = card.get('severity', 3)
-        severity_label = card.get('severity_label', 'Moderate')
+        # Always derive severity label from score for consistency
+        # Critical=5, High=4, Moderate=3, Low=1-2
+        if severity >= 5:
+            severity_label = 'Critical'
+        elif severity == 4:
+            severity_label = 'High'
+        elif severity == 3:
+            severity_label = 'Moderate'
+        else:
+            severity_label = 'Low'
         return f"""
         <article class="alert-card severity-{severity}">
             <div class="alert-header">
