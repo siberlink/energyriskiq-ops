@@ -9,6 +9,8 @@ from pydantic import BaseModel, EmailStr
 
 from src.db.db import get_cursor
 from src.plans.plan_helpers import get_plan_settings, create_user_plan, ALL_ALERT_TYPES
+
+AVAILABLE_REGIONS = ['Europe', 'Middle East', 'Asia', 'North America', 'Black Sea', 'North Africa', 'Global']
 from src.alerts.channels import send_email
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,12 @@ class SigninRequest(BaseModel):
     email: EmailStr
     password: str
     pin: str
+
+
+class UserSettingRequest(BaseModel):
+    alert_type: str
+    region: Optional[str] = None
+    enabled: bool = True
 
 
 def generate_verification_token():
@@ -564,3 +572,153 @@ def unlink_telegram(x_user_token: Optional[str] = Header(None)):
         """, (user_id,))
     
     return {"success": True, "message": "Telegram unlinked successfully"}
+
+
+@router.get("/settings")
+def get_user_settings(x_user_token: Optional[str] = Header(None)):
+    """Get user alert settings and plan constraints."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT COALESCE(up.plan, 'free') as plan
+            FROM users u
+            LEFT JOIN user_plans up ON u.id = up.user_id
+            WHERE u.id = %s
+        """, (user_id,))
+        user_plan = cursor.fetchone()
+        plan_code = user_plan['plan'] if user_plan else 'free'
+        
+        plan_settings = get_plan_settings(plan_code)
+        allowed_types = plan_settings.get("allowed_alert_types", [])
+        max_regions = plan_settings.get("max_regions", 1)
+        
+        has_all = 'ALL' in allowed_types
+        effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
+        
+        cursor.execute("""
+            SELECT id, alert_type, region, asset, enabled, created_at
+            FROM user_settings
+            WHERE user_id = %s
+            ORDER BY alert_type, region
+        """, (user_id,))
+        settings = cursor.fetchall()
+        
+        cursor.execute("""
+            SELECT COUNT(DISTINCT region) as region_count
+            FROM user_settings
+            WHERE user_id = %s AND region IS NOT NULL AND enabled = TRUE
+        """, (user_id,))
+        region_count_row = cursor.fetchone()
+        current_region_count = region_count_row['region_count'] if region_count_row else 0
+    
+    return {
+        "plan": plan_code,
+        "allowed_alert_types": effective_allowed,
+        "max_regions": max_regions,
+        "current_region_count": current_region_count,
+        "available_regions": AVAILABLE_REGIONS,
+        "settings": [
+            {
+                "id": s['id'],
+                "alert_type": s['alert_type'],
+                "region": s['region'],
+                "asset": s['asset'],
+                "enabled": s['enabled'],
+                "created_at": s['created_at'].isoformat() if s['created_at'] else None
+            }
+            for s in settings
+        ]
+    }
+
+
+@router.post("/settings")
+def add_user_setting(body: UserSettingRequest, x_user_token: Optional[str] = Header(None)):
+    """Add a new alert setting for the user."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT COALESCE(up.plan, 'free') as plan
+            FROM users u
+            LEFT JOIN user_plans up ON u.id = up.user_id
+            WHERE u.id = %s
+        """, (user_id,))
+        user_plan = cursor.fetchone()
+        plan_code = user_plan['plan'] if user_plan else 'free'
+        
+        plan_settings = get_plan_settings(plan_code)
+        allowed_types = plan_settings.get("allowed_alert_types", [])
+        max_regions = plan_settings.get("max_regions", 1)
+        
+        has_all = 'ALL' in allowed_types
+        effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
+        
+        if body.alert_type not in effective_allowed:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Alert type '{body.alert_type}' is not available on your plan"
+            )
+        
+        if body.region and body.region not in AVAILABLE_REGIONS:
+            raise HTTPException(status_code=400, detail=f"Invalid region: {body.region}")
+        
+        if max_regions != -1 and body.region:
+            cursor.execute("""
+                SELECT COUNT(DISTINCT region) as region_count
+                FROM user_settings
+                WHERE user_id = %s AND region IS NOT NULL AND enabled = TRUE
+                  AND region != %s
+            """, (user_id, body.region))
+            count_row = cursor.fetchone()
+            current_count = count_row['region_count'] if count_row else 0
+            
+            if current_count >= max_regions:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"You can only configure alerts for {max_regions} region(s) on your plan. Please remove a region or upgrade."
+                )
+        
+        try:
+            cursor.execute("""
+                INSERT INTO user_settings (user_id, alert_type, region, enabled)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (user_id, alert_type, region, asset) 
+                DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = NOW()
+                RETURNING id
+            """, (user_id, body.alert_type, body.region, body.enabled))
+            result = cursor.fetchone()
+            setting_id = result['id'] if result else None
+        except Exception as e:
+            logger.error(f"Error adding user setting: {e}")
+            raise HTTPException(status_code=500, detail="Failed to save setting")
+    
+    return {
+        "success": True,
+        "id": setting_id,
+        "alert_type": body.alert_type,
+        "region": body.region,
+        "enabled": body.enabled
+    }
+
+
+@router.delete("/settings/{setting_id}")
+def delete_user_setting(setting_id: int, x_user_token: Optional[str] = Header(None)):
+    """Delete a user alert setting."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            DELETE FROM user_settings
+            WHERE id = %s AND user_id = %s
+            RETURNING id
+        """, (setting_id, user_id))
+        deleted = cursor.fetchone()
+        
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Setting not found")
+    
+    return {"success": True, "deleted_id": setting_id}

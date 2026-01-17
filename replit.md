@@ -39,6 +39,32 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Retry & Backoff (Alerts v2):** Exponential backoff with jitter for transient failures, max attempts enforcement, failure classification (transient vs permanent), and channel config validation (skips gracefully when secrets missing).
 - **Digest Batching (Alerts v2):** Groups multiple alerts into periodic digest messages (daily/hourly). Digest deliveries are batched by user+channel+period, sent as a single consolidated message.
 
+## User Alert Settings
+
+Users can configure their alert preferences at `/users/account` under the Settings tab. Settings are constrained by their subscription plan.
+
+### Plan Constraints
+| Plan | Alert Types | Max Regions |
+|------|-------------|-------------|
+| **Free** | HIGH_IMPACT_EVENT | 1 |
+| **Personal** | HIGH_IMPACT_EVENT, REGIONAL_RISK_SPIKE | 2 |
+| **Trader** | HIGH_IMPACT_EVENT, REGIONAL_RISK_SPIKE, ASSET_RISK_SPIKE | 3 |
+| **Pro** | All 4 types | Unlimited |
+| **Enterprise** | All 4 types | Unlimited |
+
+### Database Table
+- `user_settings`: Stores per-user alert preferences with unique constraint on (user_id, alert_type, region, asset)
+
+### API Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/users/settings` | GET | Get user settings and plan constraints |
+| `/users/settings` | POST | Add/update alert setting (validates plan limits) |
+| `/users/settings/{id}` | DELETE | Remove an alert setting |
+
+### Available Regions
+Europe, Middle East, Asia, North America, Black Sea, North Africa, Global
+
 ## Digest System (Alerts v2)
 
 The digest system consolidates multiple alert deliveries into periodic summary messages:
