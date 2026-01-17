@@ -348,12 +348,20 @@ def get_daily_page(target_date: date) -> Optional[Dict]:
     """
     result = execute_one(query, (target_date,))
     if result:
+        page_json = result['page_json']
+        if page_json:
+            if isinstance(page_json, str):
+                model = json.loads(page_json)
+            else:
+                model = page_json
+        else:
+            model = None
         return {
             'id': result['id'],
             'page_date': result['page_date'],
             'seo_title': result['seo_title'],
             'seo_description': result['seo_description'],
-            'model': json.loads(result['page_json']) if result['page_json'] else None,
+            'model': model,
             'alert_count': result['alert_count'],
             'generated_at': result['generated_at'],
             'updated_at': result['updated_at']
