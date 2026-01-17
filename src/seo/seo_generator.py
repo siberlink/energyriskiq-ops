@@ -113,26 +113,142 @@ def sanitize_text_for_seo(text: str) -> str:
     return sanitized
 
 
+def transform_headline_to_risk_signal(headline: str) -> str:
+    """
+    Transform news-like headlines into risk-signal language.
+    Removes news patterns and reframes as risk intelligence.
+    
+    Examples:
+    - "LIVE: Israel continues deadly Gaza attacks" → "Middle East conflict escalation signals elevated regional risk"
+    - "Why is Iran's economy failing?" → "Iran economic instability signals rising civil unrest risk"
+    - "Photos: Power outages in Kyiv" → "Ukraine infrastructure disruption signals energy supply risk"
+    """
+    if not headline:
+        return "Risk event detected"
+    
+    import re
+    
+    # Remove news-like prefixes
+    news_prefixes = [
+        r'^LIVE:\s*',
+        r'^BREAKING:\s*',
+        r'^UPDATE:\s*',
+        r'^WATCH:\s*',
+        r'^VIDEO:\s*',
+        r'^PHOTOS?:\s*',
+        r'^ANALYSIS:\s*',
+        r'^OPINION:\s*',
+        r'^EXCLUSIVE:\s*',
+        r'^DEVELOPING:\s*',
+        r'^URGENT:\s*',
+        r'^JUST IN:\s*',
+    ]
+    
+    cleaned = headline
+    for prefix in news_prefixes:
+        cleaned = re.sub(prefix, '', cleaned, flags=re.IGNORECASE)
+    
+    # Remove question patterns at the start
+    cleaned = re.sub(r'^Why is\s+', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^What\s+', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^How\s+', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^Who\s+', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^When\s+', '', cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r'^Where\s+', '', cleaned, flags=re.IGNORECASE)
+    
+    # Remove trailing question marks
+    cleaned = re.sub(r'\?+$', '', cleaned)
+    
+    # Remove ellipsis and trailing dots
+    cleaned = re.sub(r'\.{2,}$', '', cleaned)
+    cleaned = re.sub(r'…$', '', cleaned)
+    
+    cleaned = cleaned.strip()
+    
+    # If headline is very short after cleaning, return a generic risk statement
+    if len(cleaned) < 10:
+        return "Risk event detected requiring monitoring"
+    
+    # Check if headline already contains risk-signal language
+    risk_terms = ['risk', 'signal', 'disruption', 'escalation', 'pressure', 'instability', 'volatility', 'impact']
+    has_risk_language = any(term in cleaned.lower() for term in risk_terms)
+    
+    if has_risk_language:
+        # Already risk-framed, just clean and return
+        return cleaned
+    
+    # Add risk-signal suffix if not present
+    # Detect geographic/topic context for better framing
+    regions = ['europe', 'middle east', 'asia', 'russia', 'ukraine', 'iran', 'israel', 'gaza', 'china']
+    topics = ['oil', 'gas', 'energy', 'pipeline', 'lng', 'nuclear', 'supply', 'trade', 'economy']
+    
+    lower_cleaned = cleaned.lower()
+    detected_region = None
+    detected_topic = None
+    
+    for region in regions:
+        if region in lower_cleaned:
+            detected_region = region.title()
+            break
+    
+    for topic in topics:
+        if topic in lower_cleaned:
+            detected_topic = topic
+            break
+    
+    # Build risk-signal suffix
+    if detected_region and detected_topic:
+        suffix = f" - signals {detected_topic} market risk"
+    elif detected_region:
+        suffix = " - signals regional risk escalation"
+    elif detected_topic:
+        suffix = f" - signals {detected_topic} supply risk"
+    else:
+        suffix = " - risk signal detected"
+    
+    # Capitalize first letter
+    if cleaned and cleaned[0].islower():
+        cleaned = cleaned[0].upper() + cleaned[1:]
+    
+    return cleaned + suffix
+
+
 def build_public_alert_card(alert: Dict) -> Dict:
     """
     Build a public-safe alert card for SEO pages.
     No premium fields exposed. URLs sanitized.
+    Headlines transformed to risk-signal language.
     """
     assets = alert.get('scope_assets') or []
     
-    public_title = sanitize_text_for_seo(alert.get('headline', 'Risk Alert'))
+    # First sanitize, then transform to risk-signal language
+    raw_title = sanitize_text_for_seo(alert.get('headline', 'Risk Alert'))
+    public_title = transform_headline_to_risk_signal(raw_title)
+    
     public_summary = sanitize_text_for_seo(alert.get('body', ''))
     if public_summary and len(public_summary) > 200:
         public_summary = public_summary[:197] + '...'
     
     alert_type = alert.get('alert_type', 'HIGH_IMPACT_EVENT')
     category = derive_category_from_alert_type(alert_type)
+    severity = alert.get('severity', 3)
+    
+    # Derive severity label for consistent display
+    if severity >= 5:
+        severity_label = 'Critical'
+    elif severity >= 4:
+        severity_label = 'High'
+    elif severity >= 3:
+        severity_label = 'Moderate'
+    else:
+        severity_label = 'Low'
     
     return {
         'id': alert['id'],
         'public_title': public_title,
         'public_summary': public_summary,
-        'severity': alert.get('severity', 3),
+        'severity': severity,
+        'severity_label': severity_label,
         'category': category,
         'region': alert.get('scope_region', 'Global'),
         'event_type': ALERT_TYPE_DISPLAY.get(alert_type, alert_type),
@@ -143,45 +259,73 @@ def build_public_alert_card(alert: Dict) -> Dict:
     }
 
 
-def compute_risk_posture(alerts: List[Dict]) -> str:
+def compute_risk_posture(alerts: List[Dict]) -> Dict:
     """
-    Generate a 2-4 sentence daily risk posture summary.
-    Based on severity distribution and alert types.
+    Generate a humanized daily risk posture summary.
+    Returns dict with posture level, summary text, and structured data.
     """
     if not alerts:
-        return "No significant risk events were detected for this day. Markets and supply chains operated within normal parameters."
+        return {
+            'level': 'STABLE',
+            'summary': "No significant risk events were detected for this period. Energy markets and supply chains operated within normal parameters, with no major geopolitical escalations requiring attention.",
+            'critical_count': 0,
+            'high_count': 0,
+            'total': 0
+        }
     
     total = len(alerts)
-    critical_count = sum(1 for a in alerts if a.get('severity', 0) >= 4)
-    high_count = sum(1 for a in alerts if a.get('severity', 0) == 3)
+    critical_count = sum(1 for a in alerts if a.get('severity', 0) >= 5)
+    high_count = sum(1 for a in alerts if a.get('severity', 0) == 4)
+    moderate_count = sum(1 for a in alerts if a.get('severity', 0) == 3)
     
     regions = Counter(a.get('scope_region', 'Global') for a in alerts)
     top_regions = [r for r, _ in regions.most_common(2)]
     
     categories = Counter(derive_category_from_alert_type(a.get('alert_type', 'HIGH_IMPACT_EVENT')) for a in alerts)
-    top_category = categories.most_common(1)[0][0] if categories else 'Geopolitical'
+    top_cats = [c for c, _ in categories.most_common(2)]
     
+    # Determine posture level
     if critical_count >= 3:
-        posture_text = f"Risk posture for this period was ELEVATED with {critical_count} critical-severity alerts detected."
+        level = 'ELEVATED'
     elif critical_count >= 1 or high_count >= 3:
-        posture_text = f"Risk posture was MODERATE with {total} total alerts, including {critical_count} critical events."
+        level = 'MODERATE'
     else:
-        posture_text = f"Risk posture remained STABLE with {total} alerts, predominantly low-to-moderate severity."
+        level = 'STABLE'
     
-    region_text = f"Primary activity concentrated in {', '.join(top_regions)}." if top_regions else ""
+    # Build humanized summary
+    region_phrase = ' and '.join(top_regions) if top_regions else 'global markets'
+    category_phrase = ' and '.join([c.lower() for c in top_cats]) if top_cats else 'geopolitical'
     
-    driver_text = f"{top_category} factors were the dominant risk drivers."
+    if level == 'ELEVATED':
+        summary = f"Risk conditions were elevated, driven by intensified {category_phrase} pressure across {region_phrase}, with {critical_count} critical-severity escalation signals detected. Market participants should monitor developments closely for potential supply disruption or price volatility."
+    elif level == 'MODERATE':
+        summary = f"Risk conditions were moderate, with {total} alerts detected across {region_phrase}. {category_phrase.capitalize()} factors were the primary drivers, with {high_count} high-severity and {critical_count} critical events requiring attention."
+    else:
+        summary = f"Risk conditions remained stable with {total} alerts of predominantly moderate severity. Activity was concentrated in {region_phrase}, with {category_phrase} factors as the main theme. No immediate supply chain or market disruption signals detected."
     
-    return f"{posture_text} {region_text} {driver_text}"
+    return {
+        'level': level,
+        'summary': summary,
+        'critical_count': critical_count,
+        'high_count': high_count,
+        'moderate_count': moderate_count,
+        'total': total
+    }
 
 
-def compute_top_drivers(alerts: List[Dict]) -> List[str]:
+def compute_top_drivers(alerts: List[Dict]) -> List[Dict]:
     """
     Compute top 3 risk drivers based on frequency and severity.
-    Returns bullet-point strings.
+    Returns list of dicts with text, region, category, and link info for internal linking.
     """
     if not alerts:
-        return ["No significant risk drivers detected for this period."]
+        return [{
+            'text': "No significant risk drivers detected for this period.",
+            'region': None,
+            'category': None,
+            'region_slug': None,
+            'category_slug': None
+        }]
     
     driver_scores = Counter()
     
@@ -203,9 +347,27 @@ def compute_top_drivers(alerts: List[Dict]) -> List[str]:
                    if a.get('scope_region') == region and 
                    derive_category_from_alert_type(a.get('alert_type', 'HIGH_IMPACT_EVENT')) == category)
         
-        top_drivers.append(f"{region}: {count} {category.lower()} event(s) with aggregate severity score {score}")
+        # Create slugs for internal linking
+        region_slug = region.lower().replace(' ', '-') if region else None
+        category_slug = category.lower().replace(' ', '-') if category else None
+        
+        top_drivers.append({
+            'text': f"{region}: {count} {category.lower()} event(s) detected",
+            'region': region,
+            'category': category,
+            'count': count,
+            'score': score,
+            'region_slug': region_slug,
+            'category_slug': category_slug
+        })
     
-    return top_drivers if top_drivers else ["No significant risk drivers detected."]
+    return top_drivers if top_drivers else [{
+        'text': "No significant risk drivers detected.",
+        'region': None,
+        'category': None,
+        'region_slug': None,
+        'category_slug': None
+    }]
 
 
 def generate_seo_title(target_date: date, alerts: List[Dict]) -> str:
@@ -238,6 +400,7 @@ def generate_seo_description(target_date: date, alerts: List[Dict]) -> str:
     """
     Generate dynamic SEO meta description.
     Sounds like risk intelligence, not news aggregation.
+    Uses consistent severity buckets: Critical (5/5), High (4/5), Moderate (3/5).
     """
     date_str = target_date.strftime("%B %d, %Y")
     
@@ -245,7 +408,9 @@ def generate_seo_description(target_date: date, alerts: List[Dict]) -> str:
         return f"No significant geopolitical or energy risk alerts detected on {date_str}. Monitor daily risk intelligence with EnergyRiskIQ."
     
     total = len(alerts)
-    critical_count = sum(1 for a in alerts if a.get('severity', 0) >= 4)
+    # Consistent severity buckets: Critical=5, High=4, Moderate=3
+    critical_count = sum(1 for a in alerts if a.get('severity', 0) >= 5)
+    high_count = sum(1 for a in alerts if a.get('severity', 0) == 4)
     
     regions = Counter(a.get('scope_region', 'Global') for a in alerts)
     top_regions = [r for r, _ in regions.most_common(2)]
@@ -258,6 +423,8 @@ def generate_seo_description(target_date: date, alerts: List[Dict]) -> str:
     
     if critical_count > 0:
         severity_str = f"{critical_count} critical-severity"
+    elif high_count > 0:
+        severity_str = f"{high_count} high-severity"
     else:
         severity_str = f"{total}"
     
@@ -276,12 +443,17 @@ def generate_daily_page_model(target_date: date) -> Dict:
     alerts = get_alerts_for_date(target_date)
     alert_cards = [build_public_alert_card(a) for a in alerts]
     
-    critical_count = sum(1 for c in alert_cards if c['severity'] >= 4)
-    high_count = sum(1 for c in alert_cards if c['severity'] == 3)
+    # Consistent severity buckets: Critical (5/5), High (4/5), Moderate (3/5)
+    critical_count = sum(1 for c in alert_cards if c['severity'] >= 5)
+    high_count = sum(1 for c in alert_cards if c['severity'] == 4)
+    moderate_count = sum(1 for c in alert_cards if c['severity'] == 3)
+    low_count = sum(1 for c in alert_cards if c['severity'] <= 2)
     
     regions = Counter(c['region'] for c in alert_cards)
     categories = Counter(c['category'] for c in alert_cards)
     alert_types = Counter(c['alert_type_raw'] for c in alert_cards if c.get('alert_type_raw'))
+    
+    risk_posture = compute_risk_posture(alerts)
     
     model = {
         'date': target_date.isoformat(),
@@ -289,12 +461,14 @@ def generate_daily_page_model(target_date: date) -> Dict:
         'h1_title': f"Geopolitical and Energy Risk Alerts for {format_date_display(target_date)}",
         'seo_title': generate_seo_title(target_date, alerts),
         'seo_description': generate_seo_description(target_date, alerts),
-        'risk_posture': compute_risk_posture(alerts),
+        'risk_posture': risk_posture,
         'top_drivers': compute_top_drivers(alerts),
         'stats': {
             'total_alerts': len(alert_cards),
             'critical_count': critical_count,
             'high_count': high_count,
+            'moderate_count': moderate_count,
+            'low_count': low_count,
             'regions': dict(regions),
             'categories': dict(categories),
             'alert_types': dict(alert_types)

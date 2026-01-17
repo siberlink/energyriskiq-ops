@@ -292,6 +292,45 @@ def get_common_styles() -> str:
             background: var(--bg-light);
             border-radius: 6px;
         }
+        .cta-mid {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2D5A87 100%);
+        }
+        .cta-mid h3 { color: #FFD700; }
+        .risk-level {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+        .risk-level.elevated { background: var(--severity-5); color: white; }
+        .risk-level.moderate { background: var(--severity-4); color: white; }
+        .risk-level.stable { background: var(--severity-1); color: white; }
+        .alerts-collapsed { display: none; }
+        .show-more-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-white);
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.2s;
+        }
+        .show-more-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+        }
+        .driver-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .driver-link:hover { text-decoration: underline; }
         @media (max-width: 768px) {
             h1 { font-size: 1.5rem; }
             .nav-links { display: none; }
@@ -318,7 +357,7 @@ def render_nav() -> str:
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-btn">Get Started</a>
+                <a href="https://www.energyriskiq.com/users" class="cta-btn">Get Started</a>
             </div>
         </div>
     </nav>
@@ -344,22 +383,31 @@ def render_footer() -> str:
 
 
 def render_cta_section(position: str = "mid") -> str:
-    """Render conversion CTA section."""
+    """Render conversion CTA section with urgency and benefit framing."""
     if position == "top":
         return """
         <div class="hero-banner">
             <div class="container">
-                Get real-time alerts delivered to your inbox. <a href="/users">Sign up free</a>
+                <strong>Get tomorrow's alerts before markets open.</strong> <a href="https://www.energyriskiq.com/users">Start free &rarr;</a>
             </div>
         </div>
         """
-    return """
-    <section class="cta-section">
-        <h3>Unlock Full Risk Intelligence</h3>
-        <p>Get real-time alerts, detailed analysis, and multi-channel delivery (Email, Telegram, SMS).</p>
-        <a href="/users" class="cta-btn">Start Free Trial</a>
-    </section>
-    """
+    elif position == "mid":
+        return """
+        <section class="cta-section cta-mid">
+            <h3>These are public summaries.</h3>
+            <p>Pro users receive <strong>full AI analysis</strong>, <strong>instant multi-channel delivery</strong>, and <strong>priority alerts</strong> before they appear here.</p>
+            <a href="https://www.energyriskiq.com/users" class="cta-btn">Upgrade to Pro &rarr;</a>
+        </section>
+        """
+    else:
+        return """
+        <section class="cta-section">
+            <h3>Don't Miss Tomorrow's Risk Signals</h3>
+            <p>Get real-time alerts delivered via Email, Telegram, or SMS — before markets react.</p>
+            <a href="https://www.energyriskiq.com/users" class="cta-btn">Start Free Trial &rarr;</a>
+        </section>
+        """
 
 
 @router.get("/alerts", response_class=HTMLResponse)
@@ -465,42 +513,95 @@ async def daily_alerts_page(date_str: str):
     else:
         model = generate_daily_page_model(target_date)
     
-    alert_cards_html = ""
-    for card in model.get('alert_cards', []):
+    # Build alert cards with collapsible sections (top 10 expanded, rest collapsed)
+    all_cards = model.get('alert_cards', [])
+    visible_cards = all_cards[:10]
+    collapsed_cards = all_cards[10:]
+    
+    def render_alert_card(card):
         severity = card.get('severity', 3)
-        alert_cards_html += f"""
+        severity_label = card.get('severity_label', 'Moderate')
+        return f"""
         <article class="alert-card severity-{severity}">
             <div class="alert-header">
                 <h3 class="alert-title">{card['public_title']}</h3>
                 <div class="alert-badges">
-                    <span class="badge severity severity-{severity}">Severity {severity}/5</span>
+                    <span class="badge severity severity-{severity}">{severity_label} ({severity}/5)</span>
                     <span class="badge">{card['category']}</span>
                     <span class="badge">{card['region']}</span>
                 </div>
             </div>
             <p class="alert-summary">{card['public_summary']}</p>
-            <div class="alert-meta">
-                {card['event_type']}
-                {f" | Source: {card['source_domain']}" if card.get('source_domain') else ""}
-            </div>
+            <div class="alert-meta">{card['event_type']}</div>
         </article>
         """
     
+    visible_cards_html = ''.join(render_alert_card(c) for c in visible_cards)
+    collapsed_cards_html = ''.join(render_alert_card(c) for c in collapsed_cards)
+    
+    # Build alert cards section with show more button
+    if collapsed_cards:
+        alert_cards_html = f"""
+        {visible_cards_html}
+        <button class="show-more-btn" onclick="document.getElementById('collapsed-alerts').classList.toggle('alerts-collapsed'); this.textContent = this.textContent.includes('Show') ? 'Hide {len(collapsed_cards)} alerts' : 'Show {len(collapsed_cards)} more alerts from this day';">
+            Show {len(collapsed_cards)} more alerts from this day
+        </button>
+        <div id="collapsed-alerts" class="alerts-collapsed">
+            {collapsed_cards_html}
+        </div>
+        """
+    else:
+        alert_cards_html = visible_cards_html
+    
+    # Build drivers with internal links
     drivers_html = ""
-    for driver in model.get('top_drivers', []):
-        drivers_html += f"<li>{driver}</li>"
+    top_drivers = model.get('top_drivers', [])
+    for driver in top_drivers:
+        if isinstance(driver, dict):
+            text = driver.get('text', '')
+            region = driver.get('region')
+            region_slug = driver.get('region_slug')
+            if region and region_slug:
+                drivers_html += f'<li><a href="/alerts" class="driver-link">{region}</a>: {driver.get("count", 0)} {driver.get("category", "").lower()} event(s) detected</li>'
+            else:
+                drivers_html += f"<li>{text}</li>"
+        else:
+            drivers_html += f"<li>{driver}</li>"
+    
+    # Handle risk_posture as dict or string (backward compatibility)
+    risk_posture = model.get('risk_posture', {})
+    if isinstance(risk_posture, dict):
+        risk_level = risk_posture.get('level', 'STABLE')
+        risk_summary = risk_posture.get('summary', '')
+        risk_level_class = risk_level.lower()
+    else:
+        risk_level = 'STABLE'
+        risk_summary = str(risk_posture)
+        risk_level_class = 'stable'
     
     stats = model.get('stats', {})
     stats_html = f"""
     <div class="stats-row">
         <div class="stat-badge"><strong>{stats.get('total_alerts', 0)}</strong> Total Alerts</div>
-        <div class="stat-badge"><strong>{stats.get('critical_count', 0)}</strong> Critical</div>
-        <div class="stat-badge"><strong>{stats.get('high_count', 0)}</strong> High Severity</div>
+        <div class="stat-badge"><strong>{stats.get('critical_count', 0)}</strong> Critical (5/5)</div>
+        <div class="stat-badge"><strong>{stats.get('high_count', 0)}</strong> High (4/5)</div>
+        <div class="stat-badge"><strong>{stats.get('moderate_count', 0)}</strong> Moderate (3/5)</div>
     </div>
     """
     
     prev_link = f'<a href="/alerts/daily/{model["prev_date"]}">&larr; Previous Day</a>' if model.get('prev_date') else '<span></span>'
     next_link = f'<a href="/alerts/daily/{model["next_date"]}">Next Day &rarr;</a>' if model.get('next_date') else '<span></span>'
+    
+    # BreadcrumbList JSON-LD schema
+    breadcrumb_json_ld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": f"{BASE_URL}/"},
+            {"@type": "ListItem", "position": 2, "name": "Alerts", "item": f"{BASE_URL}/alerts"},
+            {"@type": "ListItem", "position": 3, "name": model['date_display'], "item": f"{BASE_URL}/alerts/daily/{date_str}"}
+        ]
+    })
     
     html = f"""
     <!DOCTYPE html>
@@ -511,6 +612,7 @@ async def daily_alerts_page(date_str: str):
         <title>{model['seo_title']}</title>
         <meta name="description" content="{model['seo_description']}">
         <link rel="canonical" href="{BASE_URL}/alerts/daily/{date_str}">
+        <script type="application/ld+json">{breadcrumb_json_ld}</script>
         {get_common_styles()}
     </head>
     <body>
@@ -522,14 +624,16 @@ async def daily_alerts_page(date_str: str):
                     <a href="/">Home</a> / <a href="/alerts">Alerts</a> / {model['date_display']}
                 </div>
                 <h1>{model['h1_title']}</h1>
-                <p class="meta">Published {model['date_display']} | Updated daily with 24-hour delayed alerts</p>
+                <p class="meta">Published {model['date_display']} (alerts from the previous 24 hours)</p>
                 
                 {stats_html}
                 
                 <section class="risk-posture">
-                    <h3>Daily Risk Posture</h3>
-                    <p>{model['risk_posture']}</p>
+                    <h3>Daily Risk Posture <span class="risk-level {risk_level_class}">{risk_level}</span></h3>
+                    <p>{risk_summary}</p>
                 </section>
+                
+                {render_cta_section("mid")}
                 
                 <h2>Top Risk Drivers</h2>
                 <ul class="drivers-list">
@@ -541,7 +645,7 @@ async def daily_alerts_page(date_str: str):
                     {alert_cards_html if alert_cards_html else '<p>No alerts detected for this day.</p>'}
                 </div>
                 
-                {render_cta_section("mid")}
+                {render_cta_section("bottom")}
                 
                 <nav class="nav-pagination">
                     {prev_link}
