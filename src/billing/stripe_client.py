@@ -29,42 +29,46 @@ def get_stripe_credentials() -> Dict[str, str]:
         raise ValueError("No Replit token found for Stripe credentials")
     
     is_production = os.environ.get("REPLIT_DEPLOYMENT") == "1"
-    target_environment = "production" if is_production else "development"
     
-    url = f"https://{hostname}/api/v2/connection"
-    params = {
-        "include_secrets": "true",
-        "connector_names": "stripe",
-        "environment": target_environment
-    }
+    environments_to_try = ["production", "development"] if is_production else ["development"]
     
-    response = requests.get(url, params=params, headers={
-        "Accept": "application/json",
-        "X_REPLIT_TOKEN": x_replit_token
-    })
+    for target_environment in environments_to_try:
+        url = f"https://{hostname}/api/v2/connection"
+        params = {
+            "include_secrets": "true",
+            "connector_names": "stripe",
+            "environment": target_environment
+        }
+        
+        response = requests.get(url, params=params, headers={
+            "Accept": "application/json",
+            "X_REPLIT_TOKEN": x_replit_token
+        })
+        
+        if response.status_code != 200:
+            logger.warning(f"Stripe connector request for {target_environment} failed: {response.status_code}")
+            continue
+        
+        data = response.json()
+        items = data.get("items", [])
+        
+        if not items:
+            logger.warning(f"No Stripe connection found for {target_environment}")
+            continue
+        
+        connection = items[0]
+        settings = connection.get("settings", {})
+        
+        if settings.get("publishable") and settings.get("secret"):
+            if target_environment == "development" and is_production:
+                logger.warning("Using development/sandbox Stripe keys in production - for testing only!")
+            logger.info(f"Using Stripe {target_environment} credentials")
+            return {
+                "publishable_key": settings["publishable"],
+                "secret_key": settings["secret"]
+            }
     
-    if response.status_code != 200:
-        logger.error(f"Stripe connector request failed: {response.status_code} - {response.text}")
-        raise ValueError(f"Failed to fetch Stripe credentials: HTTP {response.status_code}")
-    
-    data = response.json()
-    items = data.get("items", [])
-    
-    if not items:
-        logger.error(f"No Stripe connection found for {target_environment}. Response: {data}")
-        raise ValueError(f"Stripe {target_environment} connection not configured. Please set up Stripe in the Integrations tab.")
-    
-    connection = items[0]
-    settings = connection.get("settings", {})
-    
-    if not settings.get("publishable") or not settings.get("secret"):
-        logger.error(f"Stripe {target_environment} connection missing keys. Settings: {list(settings.keys())}")
-        raise ValueError(f"Stripe {target_environment} connection incomplete - missing API keys")
-    
-    return {
-        "publishable_key": settings["publishable"],
-        "secret_key": settings["secret"]
-    }
+    raise ValueError("No Stripe connection configured. Please set up Stripe in Tools > Integrations.")
 
 
 def init_stripe() -> None:
