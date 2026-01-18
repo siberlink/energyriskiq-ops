@@ -81,6 +81,21 @@ async def get_billing_config():
         raise HTTPException(status_code=500, detail="Billing not configured")
 
 
+@router.post("/seed-products")
+async def seed_stripe_products(x_internal_token: Optional[str] = Header(None)):
+    internal_token = os.environ.get("INTERNAL_RUNNER_TOKEN")
+    if not internal_token or x_internal_token != internal_token:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    
+    try:
+        from src.billing.seed_products import create_products_and_prices
+        result = create_products_and_prices()
+        return {"success": True, "products": result}
+    except Exception as e:
+        logger.error(f"Error seeding Stripe products: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/plans")
 async def list_plans():
     plans = get_all_plans()
