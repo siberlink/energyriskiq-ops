@@ -532,6 +532,9 @@ def run_migrations():
     logger.info("Running user settings migration...")
     run_user_settings_migration()
     
+    logger.info("Running billing migration...")
+    run_billing_migration()
+    
     logger.info("Migrations completed successfully.")
 
 
@@ -894,6 +897,32 @@ def run_user_settings_migration():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_settings_enabled ON user_settings(enabled);")
     
     logger.info("User settings migration complete.")
+
+
+def run_billing_migration():
+    """Add billing columns to users and plan_settings tables."""
+    logger.info("Running billing migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
+            ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT,
+            ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'none',
+            ADD COLUMN IF NOT EXISTS subscription_current_period_end TIMESTAMP;
+        """)
+        
+        cursor.execute("""
+            ALTER TABLE plan_settings 
+            ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT 'EUR',
+            ADD COLUMN IF NOT EXISTS stripe_product_id TEXT,
+            ADD COLUMN IF NOT EXISTS stripe_price_id TEXT;
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_subscription_status ON users(subscription_status);")
+    
+    logger.info("Billing migration complete.")
 
 
 def run_seo_tables_migration():

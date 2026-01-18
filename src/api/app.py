@@ -20,6 +20,7 @@ from src.api.user_routes import router as user_router
 from src.api.ops_routes import router as ops_router
 from src.api.telegram_routes import router as telegram_router
 from src.api.seo_routes import router as seo_router
+from src.billing.billing_routes import router as billing_router
 from src.db.migrations import run_migrations, run_seo_tables_migration
 
 logging.basicConfig(
@@ -92,6 +93,7 @@ app.include_router(user_router)
 app.include_router(ops_router)
 app.include_router(telegram_router)
 app.include_router(seo_router)
+app.include_router(billing_router)
 
 @app.on_event("startup")
 async def startup_event():

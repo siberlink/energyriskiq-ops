@@ -1695,54 +1695,189 @@
         async function loadPlans() {
             const grid = document.getElementById('plansGrid');
             
-            const plans = [
-                {
-                    code: 'free',
-                    name: 'Free',
-                    price: 0,
-                    features: ['2 email alerts/day', 'High impact events only', 'Basic dashboard']
-                },
-                {
-                    code: 'personal',
-                    name: 'Personal',
-                    price: 9.95,
-                    features: ['4 email alerts/day', 'Regional risk spikes', 'Email notifications']
-                },
-                {
-                    code: 'trader',
-                    name: 'Trader',
-                    price: 29,
-                    features: ['8 email alerts/day', 'Asset risk tracking', 'Telegram notifications']
-                },
-                {
-                    code: 'pro',
-                    name: 'Pro',
-                    price: 49,
-                    features: ['15 email alerts/day', 'Daily digest', 'SMS notifications', 'Priority support']
-                },
-                {
-                    code: 'enterprise',
-                    name: 'Enterprise',
-                    price: 129,
-                    features: ['30 email alerts/day', 'All alert types', 'Dedicated account manager', 'Custom integrations']
+            try {
+                const response = await fetch('/billing/plans');
+                const data = await response.json();
+                const plans = data.plans || [];
+                
+                const planOrder = ['free', 'personal', 'trader', 'pro', 'enterprise'];
+                plans.sort((a, b) => planOrder.indexOf(a.plan_code) - planOrder.indexOf(b.plan_code));
+                
+                const currentPlan = currentUser?.plan || 'free';
+                const currentPlanIndex = planOrder.indexOf(currentPlan);
+
+                grid.innerHTML = plans.map(plan => {
+                    const planIndex = planOrder.indexOf(plan.plan_code);
+                    const isCurrent = plan.plan_code === currentPlan;
+                    const isUpgrade = planIndex > currentPlanIndex;
+                    const isDowngrade = planIndex < currentPlanIndex && plan.plan_code !== 'free';
+                    const isFree = plan.plan_code === 'free';
+                    
+                    let btnClass = 'plan-btn';
+                    let btnText = '';
+                    let btnDisabled = '';
+                    
+                    if (isCurrent) {
+                        btnClass += ' current';
+                        btnText = 'Current Plan';
+                        btnDisabled = 'disabled';
+                    } else if (isUpgrade) {
+                        btnClass += ' upgrade';
+                        btnText = 'Upgrade';
+                    } else if (isDowngrade) {
+                        btnClass += ' downgrade';
+                        btnText = 'Downgrade';
+                    } else if (isFree && currentPlan !== 'free') {
+                        btnClass += ' downgrade';
+                        btnText = 'Cancel Subscription';
+                    }
+                    
+                    const features = plan.features ? [
+                        `${plan.features.max_email_alerts_per_day} email alerts/day`,
+                        `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
+                        `${plan.features.alert_types?.length || 0} alert types`
+                    ] : [];
+                    
+                    return `
+                        <div class="plan-card ${isCurrent ? 'current' : ''}">
+                            <div class="plan-name">${plan.display_name}</div>
+                            <div class="plan-price">${plan.price > 0 ? '€' + plan.price.toFixed(2) : 'Free'}<span>${plan.price > 0 ? '/mo' : ''}</span></div>
+                            <ul class="plan-features">
+                                ${features.map(f => `<li>${f}</li>`).join('')}
+                            </ul>
+                            <button class="${btnClass}" 
+                                    ${btnDisabled}
+                                    onclick="openPlanModal('${plan.plan_code}', '${plan.display_name}', ${plan.price}, '${isUpgrade ? 'upgrade' : 'downgrade'}')">
+                                ${btnText}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading plans:', error);
+                grid.innerHTML = '<p style="color: #f87171;">Failed to load plans</p>';
+            }
+        }
+
+        function openPlanModal(planCode, planName, price, action) {
+            const modal = document.getElementById('planModal');
+            const modalTitle = document.getElementById('planModalTitle');
+            const modalBody = document.getElementById('planModalBody');
+            const modalBtn = document.getElementById('planModalBtn');
+            
+            if (planCode === 'free') {
+                modalTitle.textContent = 'Cancel Subscription';
+                modalBody.innerHTML = `
+                    <p>Are you sure you want to cancel your subscription?</p>
+                    <p style="color: #94a3b8; margin-top: 12px;">Your current plan benefits will remain active until the end of your billing period.</p>
+                `;
+                modalBtn.textContent = 'Cancel Subscription';
+                modalBtn.className = 'plan-btn downgrade';
+                modalBtn.onclick = () => cancelSubscription();
+            } else {
+                const actionText = action === 'upgrade' ? 'Upgrade' : 'Change';
+                modalTitle.textContent = `${actionText} to ${planName}`;
+                modalBody.innerHTML = `
+                    <p>You are about to ${action} to the <strong>${planName}</strong> plan.</p>
+                    <div style="background: #1e293b; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                        <div style="font-size: 24px; font-weight: 700; color: #f1f5f9;">€${price.toFixed(2)}<span style="font-size: 14px; color: #94a3b8;">/month</span></div>
+                    </div>
+                    ${action === 'upgrade' ? '<p style="color: #4ade80;">Your new plan will be activated immediately.</p>' : '<p style="color: #fbbf24;">Changes will take effect at the end of your current billing period.</p>'}
+                `;
+                modalBtn.textContent = `${actionText} to ${planName}`;
+                modalBtn.className = 'plan-btn upgrade';
+                modalBtn.onclick = () => startCheckout(planCode);
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function closePlanModal() {
+            document.getElementById('planModal').style.display = 'none';
+        }
+
+        async function startCheckout(planCode) {
+            const btn = document.getElementById('planModalBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/billing/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Token': sessionToken
+                    },
+                    body: JSON.stringify({ plan_code: planCode })
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to create checkout');
                 }
-            ];
+                
+                const data = await response.json();
+                
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Failed to start checkout: ' + error.message);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
 
-            const currentPlan = currentUser?.plan || 'free';
+        async function cancelSubscription() {
+            const btn = document.getElementById('planModalBtn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Cancelling...';
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/billing/cancel', {
+                    method: 'POST',
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to cancel subscription');
+                }
+                
+                closePlanModal();
+                alert('Your subscription has been cancelled. It will remain active until the end of your billing period.');
+                loadPlans();
+            } catch (error) {
+                console.error('Cancel error:', error);
+                alert('Failed to cancel subscription: ' + error.message);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
 
-            grid.innerHTML = plans.map(plan => `
-                <div class="plan-card ${plan.code === currentPlan ? 'current' : ''}">
-                    <div class="plan-name">${plan.name}</div>
-                    <div class="plan-price">$${plan.price}<span>/mo</span></div>
-                    <ul class="plan-features">
-                        ${plan.features.map(f => `<li>${f}</li>`).join('')}
-                    </ul>
-                    <button class="plan-btn ${plan.code === currentPlan ? 'current' : 'upgrade'}" 
-                            ${plan.code === currentPlan ? 'disabled' : ''}>
-                        ${plan.code === currentPlan ? 'Current Plan' : 'Upgrade'}
-                    </button>
-                </div>
-            `).join('');
+        async function openBillingPortal() {
+            try {
+                const response = await fetch('/billing/portal', {
+                    method: 'POST',
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to open billing portal');
+                }
+                
+                const data = await response.json();
+                if (data.portal_url) {
+                    window.location.href = data.portal_url;
+                }
+            } catch (error) {
+                console.error('Portal error:', error);
+                alert('Failed to open billing portal: ' + error.message);
+            }
         }
 
         async function logout() {
@@ -1908,6 +2043,105 @@
         if (checkSession()) {
             loadUserData();
         }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('billing') === 'success') {
+            setTimeout(() => {
+                alert('Payment successful! Your plan has been upgraded.');
+                window.history.replaceState({}, document.title, '/users/account');
+                loadUserData();
+            }, 500);
+        } else if (urlParams.get('billing') === 'cancelled') {
+            setTimeout(() => {
+                window.history.replaceState({}, document.title, '/users/account');
+            }, 100);
+        }
     </script>
+
+    <!-- Plan Upgrade/Downgrade Modal -->
+    <div id="planModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePlanModal()">&times;</button>
+            <h2 id="planModalTitle" class="modal-title">Upgrade Plan</h2>
+            <div id="planModalBody" class="modal-body">
+            </div>
+            <div class="modal-actions">
+                <button class="plan-btn secondary" onclick="closePlanModal()">Cancel</button>
+                <button id="planModalBtn" class="plan-btn upgrade">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 480px;
+            width: 90%;
+            position: relative;
+            border: 1px solid #334155;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .modal-close:hover {
+            color: #f1f5f9;
+        }
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #f1f5f9;
+        }
+        .modal-body {
+            color: #cbd5e1;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .modal-body strong {
+            color: #f1f5f9;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .plan-btn.secondary {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #94a3b8;
+        }
+        .plan-btn.secondary:hover {
+            background: #334155;
+            color: #f1f5f9;
+        }
+        .plan-btn.downgrade {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        .plan-btn.downgrade:hover {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        }
+    </style>
 </body>
 </html>
