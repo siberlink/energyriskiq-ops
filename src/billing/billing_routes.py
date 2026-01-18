@@ -39,7 +39,7 @@ def get_user_from_token(token: Optional[str]):
         return None
     with get_cursor(commit=False) as cur:
         cur.execute("""
-            SELECT u.id, u.email, u.name, u.stripe_customer_id, u.stripe_subscription_id, u.subscription_status
+            SELECT u.id, u.email, u.stripe_customer_id, u.stripe_subscription_id, u.subscription_status
             FROM sessions s
             JOIN users u ON u.id = s.user_id
             WHERE s.token = %s AND s.expires_at > NOW()
@@ -143,8 +143,7 @@ async def create_checkout(
         if not customer_id:
             customer = await create_customer(
                 email=user["email"],
-                user_id=user["id"],
-                name=user.get("name")
+                user_id=user["id"]
             )
             customer_id = customer["id"]
             
