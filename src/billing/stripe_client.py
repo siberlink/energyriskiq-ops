@@ -17,6 +17,15 @@ PLAN_PRICE_EUR = {
 _stripe_initialized = False
 
 def get_stripe_credentials() -> Dict[str, str]:
+    pub_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
+    secret_key = os.environ.get("STRIPE_SECRET_KEY")
+    if pub_key and secret_key:
+        logger.info("Using Stripe credentials from environment variables")
+        return {
+            "publishable_key": pub_key,
+            "secret_key": secret_key
+        }
+    
     hostname = os.environ.get("REPLIT_CONNECTORS_HOSTNAME")
     repl_identity = os.environ.get("REPL_IDENTITY")
     web_repl_renewal = os.environ.get("WEB_REPL_RENEWAL")
@@ -26,7 +35,7 @@ def get_stripe_credentials() -> Dict[str, str]:
     elif web_repl_renewal:
         x_replit_token = f"depl {web_repl_renewal}"
     else:
-        raise ValueError("No Replit token found for Stripe credentials")
+        raise ValueError("No Stripe credentials found. Set STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY.")
     
     is_production = os.environ.get("REPLIT_DEPLOYMENT") == "1"
     
@@ -68,7 +77,7 @@ def get_stripe_credentials() -> Dict[str, str]:
                 "secret_key": settings["secret"]
             }
     
-    raise ValueError("No Stripe connection configured. Please set up Stripe in Tools > Integrations.")
+    raise ValueError("No Stripe connection configured. Set STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY secrets.")
 
 
 def init_stripe() -> None:
