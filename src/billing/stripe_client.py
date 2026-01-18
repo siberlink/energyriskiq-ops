@@ -43,12 +43,23 @@ def get_stripe_credentials() -> Dict[str, str]:
         "X_REPLIT_TOKEN": x_replit_token
     })
     
+    if response.status_code != 200:
+        logger.error(f"Stripe connector request failed: {response.status_code} - {response.text}")
+        raise ValueError(f"Failed to fetch Stripe credentials: HTTP {response.status_code}")
+    
     data = response.json()
-    connection = data.get("items", [{}])[0]
+    items = data.get("items", [])
+    
+    if not items:
+        logger.error(f"No Stripe connection found for {target_environment}. Response: {data}")
+        raise ValueError(f"Stripe {target_environment} connection not configured. Please set up Stripe in the Integrations tab.")
+    
+    connection = items[0]
     settings = connection.get("settings", {})
     
     if not settings.get("publishable") or not settings.get("secret"):
-        raise ValueError(f"Stripe {target_environment} connection not found")
+        logger.error(f"Stripe {target_environment} connection missing keys. Settings: {list(settings.keys())}")
+        raise ValueError(f"Stripe {target_environment} connection incomplete - missing API keys")
     
     return {
         "publishable_key": settings["publishable"],
@@ -137,10 +148,14 @@ async def update_subscription(subscription_id: str, new_price_id: str) -> Dict[s
     ensure_stripe_initialized()
     subscription = stripe.Subscription.retrieve(subscription_id)
     
+    items_data = subscription.get("items", {}).get("data", [])
+    if not items_data:
+        raise ValueError(f"Subscription {subscription_id} has no items to update")
+    
     updated = stripe.Subscription.modify(
         subscription_id,
         items=[{
-            "id": subscription["items"]["data"][0]["id"],
+            "id": items_data[0]["id"],
             "price": new_price_id
         }],
         proration_behavior="always_invoice"
