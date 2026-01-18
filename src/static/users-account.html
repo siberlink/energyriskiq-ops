@@ -1723,13 +1723,10 @@
                         btnDisabled = 'disabled';
                     } else if (isUpgrade) {
                         btnClass += ' upgrade';
-                        btnText = 'Upgrade';
-                    } else if (isDowngrade) {
+                        btnText = `Upgrade to ${plan.display_name}`;
+                    } else if (isDowngrade || (isFree && currentPlan !== 'free')) {
                         btnClass += ' downgrade';
-                        btnText = 'Downgrade';
-                    } else if (isFree && currentPlan !== 'free') {
-                        btnClass += ' downgrade';
-                        btnText = 'Cancel Subscription';
+                        btnText = `Downgrade to ${plan.display_name}`;
                     }
                     
                     const features = plan.features ? [
@@ -1766,12 +1763,12 @@
             const modalBtn = document.getElementById('planModalBtn');
             
             if (planCode === 'free') {
-                modalTitle.textContent = 'Cancel Subscription';
+                modalTitle.textContent = 'Downgrade to Free';
                 modalBody.innerHTML = `
-                    <p>Are you sure you want to cancel your subscription?</p>
+                    <p>Are you sure you want to downgrade to the Free plan?</p>
                     <p style="color: #94a3b8; margin-top: 12px;">Your current plan benefits will remain active until the end of your billing period.</p>
                 `;
-                modalBtn.textContent = 'Cancel Subscription';
+                modalBtn.textContent = 'Downgrade to Free';
                 modalBtn.className = 'plan-btn downgrade';
                 modalBtn.onclick = () => cancelSubscription();
             } else {
