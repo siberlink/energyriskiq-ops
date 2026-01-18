@@ -80,59 +80,63 @@ def create_products_and_prices():
     created = []
     
     for plan in PLANS:
-        existing = stripe.Product.search(
-            query=f"metadata['plan_code']:'{plan['plan_code']}'"
-        )
-        
-        if existing.data:
-            logger.info(f"Product for {plan['plan_code']} already exists: {existing.data[0].id}")
-            product = existing.data[0]
-        else:
-            product = stripe.Product.create(
-                name=f"EnergyRiskIQ {plan['name']}",
-                description=plan["description"],
-                metadata={
-                    "plan_code": plan["plan_code"],
-                    "features": ", ".join(plan["features"])
-                }
+        try:
+            existing = stripe.Product.search(
+                query=f"metadata['plan_code']:'{plan['plan_code']}'"
             )
-            logger.info(f"Created product: {product.id} for {plan['plan_code']}")
-        
-        prices = stripe.Price.list(product=product.id, active=True)
-        monthly_price = None
-        
-        for price in prices.data:
-            if (price.unit_amount == plan["price_eur"] and 
-                price.currency == "eur" and 
-                price.recurring and 
-                price.recurring.interval == "month"):
-                monthly_price = price
-                logger.info(f"Price already exists for {plan['plan_code']}: {price.id}")
-                break
-        
-        if not monthly_price:
-            monthly_price = stripe.Price.create(
-                product=product.id,
-                unit_amount=plan["price_eur"],
-                currency="eur",
-                recurring={"interval": "month"},
-                metadata={"plan_code": plan["plan_code"]}
-            )
-            logger.info(f"Created price: {monthly_price.id} for {plan['plan_code']} ({plan['price_eur']/100} EUR)")
-        
-        with get_cursor() as cur:
-            cur.execute("""
-                UPDATE plan_settings 
-                SET stripe_product_id = %s, stripe_price_id = %s
-                WHERE plan_code = %s
-            """, (product.id, monthly_price.id, plan["plan_code"]))
-        
-        created.append({
-            "plan_code": plan["plan_code"],
-            "product_id": product.id,
-            "price_id": monthly_price.id,
-            "amount": plan["price_eur"]
-        })
+            
+            if existing.data:
+                logger.info(f"Product for {plan['plan_code']} already exists: {existing.data[0].id}")
+                product = existing.data[0]
+            else:
+                product = stripe.Product.create(
+                    name=f"EnergyRiskIQ {plan['name']}",
+                    description=plan["description"],
+                    metadata={
+                        "plan_code": plan["plan_code"],
+                        "features": ", ".join(plan["features"])
+                    }
+                )
+                logger.info(f"Created product: {product.id} for {plan['plan_code']}")
+            
+            prices = stripe.Price.list(product=product.id, active=True)
+            monthly_price = None
+            
+            for price in prices.data:
+                if (price.unit_amount == plan["price_eur"] and 
+                    price.currency == "eur" and 
+                    price.recurring and 
+                    price.recurring.interval == "month"):
+                    monthly_price = price
+                    logger.info(f"Price already exists for {plan['plan_code']}: {price.id}")
+                    break
+            
+            if not monthly_price:
+                monthly_price = stripe.Price.create(
+                    product=product.id,
+                    unit_amount=plan["price_eur"],
+                    currency="eur",
+                    recurring={"interval": "month"},
+                    metadata={"plan_code": plan["plan_code"]}
+                )
+                logger.info(f"Created price: {monthly_price.id} for {plan['plan_code']} ({plan['price_eur']/100} EUR)")
+            
+            with get_cursor() as cur:
+                cur.execute("""
+                    UPDATE plan_settings 
+                    SET stripe_product_id = %s, stripe_price_id = %s
+                    WHERE plan_code = %s
+                """, (product.id, monthly_price.id, plan["plan_code"]))
+            
+            created.append({
+                "plan_code": plan["plan_code"],
+                "product_id": product.id,
+                "price_id": monthly_price.id,
+                "amount": plan["price_eur"]
+            })
+        except Exception as e:
+            logger.error(f"Error processing plan {plan['plan_code']}: {e}")
+            raise
     
     logger.info("Stripe products and prices created successfully!")
     for item in created:
