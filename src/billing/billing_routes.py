@@ -168,11 +168,15 @@ async def create_checkout(
                     (customer_id, user["id"])
                 )
         
-        base_url = os.environ.get("REPLIT_DOMAINS", "").split(",")[0]
-        if base_url:
-            base_url = f"https://{base_url}"
+        app_url = os.environ.get("APP_URL")
+        if app_url:
+            base_url = app_url.rstrip("/")
         else:
-            base_url = "http://localhost:5000"
+            domain = os.environ.get("REPLIT_DOMAINS", "").split(",")[0]
+            if domain:
+                base_url = f"https://{domain}"
+            else:
+                base_url = "http://localhost:5000"
         
         session = await create_checkout_session(
             customer_id=customer_id,
@@ -203,11 +207,15 @@ async def create_portal(x_user_token: Optional[str] = Header(None)):
     try:
         init_stripe()
         
-        base_url = os.environ.get("REPLIT_DOMAINS", "").split(",")[0]
-        if base_url:
-            base_url = f"https://{base_url}"
+        app_url = os.environ.get("APP_URL")
+        if app_url:
+            base_url = app_url.rstrip("/")
         else:
-            base_url = "http://localhost:5000"
+            domain = os.environ.get("REPLIT_DOMAINS", "").split(",")[0]
+            if domain:
+                base_url = f"https://{domain}"
+            else:
+                base_url = "http://localhost:5000"
         
         session = await create_billing_portal_session(
             customer_id=user["stripe_customer_id"],
