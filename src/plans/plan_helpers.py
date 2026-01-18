@@ -245,7 +245,7 @@ def apply_plan_settings_to_user(user_id: int, plan_code: str) -> bool:
         
         logger.info(f"Applied plan settings '{plan_code}' to user {user_id}")
         
-        sync_user_settings_on_upgrade(user_id, plan_code)
+        sync_user_settings_on_plan_change(user_id, plan_code)
         
         return True
     except Exception as e:
@@ -264,6 +264,80 @@ PLAN_MAX_REGIONS = {
 }
 
 DEFAULT_REGION = "Europe"
+
+
+def prune_user_settings_on_downgrade(user_id: int, new_plan_code: str) -> int:
+    """
+    Prune user_settings when a user downgrades their plan.
+    Removes settings for alert types not available on the new plan,
+    and trims regions to fit within the new plan's limits.
+    Returns the number of settings removed.
+    """
+    try:
+        new_allowed_types = get_allowed_alert_types(new_plan_code)
+        max_regions = PLAN_MAX_REGIONS.get(new_plan_code, 1)
+        settings_removed = 0
+        
+        with get_cursor() as cur:
+            cur.execute("""
+                DELETE FROM user_settings 
+                WHERE user_id = %s AND alert_type NOT IN %s
+                RETURNING id
+            """, (user_id, tuple(new_allowed_types) if new_allowed_types else ('__none__',)))
+            removed_types = cur.fetchall()
+            settings_removed += len(removed_types)
+            if removed_types:
+                logger.info(f"Removed {len(removed_types)} settings with disallowed alert types for user {user_id}")
+            
+            if max_regions != -1:
+                cur.execute("""
+                    SELECT DISTINCT region FROM user_settings 
+                    WHERE user_id = %s AND region IS NOT NULL
+                    ORDER BY region
+                """, (user_id,))
+                regions = [row["region"] for row in cur.fetchall()]
+                
+                if len(regions) > max_regions:
+                    regions_to_keep = regions[:max_regions]
+                    regions_to_remove = regions[max_regions:]
+                    
+                    cur.execute("""
+                        DELETE FROM user_settings 
+                        WHERE user_id = %s AND region = ANY(%s)
+                        RETURNING id
+                    """, (user_id, regions_to_remove))
+                    removed_regions = cur.fetchall()
+                    settings_removed += len(removed_regions)
+                    logger.info(f"Removed {len(removed_regions)} settings for excess regions for user {user_id}: {regions_to_remove}")
+            
+            cur.execute("""
+                DELETE FROM user_alert_prefs 
+                WHERE user_id = %s AND alert_type NOT IN %s
+                RETURNING id
+            """, (user_id, tuple(new_allowed_types) if new_allowed_types else ('__none__',)))
+            removed_prefs = cur.fetchall()
+            if removed_prefs:
+                logger.info(f"Removed {len(removed_prefs)} alert prefs with disallowed types for user {user_id}")
+        
+        if settings_removed > 0:
+            logger.info(f"Pruned {settings_removed} settings for user {user_id} on downgrade to {new_plan_code}")
+        
+        return settings_removed
+    except Exception as e:
+        logger.error(f"Error pruning user settings on downgrade for user {user_id}: {e}")
+        return 0
+
+
+def sync_user_settings_on_plan_change(user_id: int, new_plan_code: str) -> dict:
+    """
+    Sync user settings when plan changes (upgrade or downgrade).
+    - For upgrades: adds default settings for newly available types
+    - For downgrades: prunes settings that exceed new plan limits
+    Returns dict with settings_added and settings_removed counts.
+    """
+    pruned = prune_user_settings_on_downgrade(user_id, new_plan_code)
+    added = sync_user_settings_on_upgrade(user_id, new_plan_code)
+    return {"settings_added": added, "settings_removed": pruned}
 
 
 def sync_user_settings_on_upgrade(user_id: int, new_plan_code: str) -> int:

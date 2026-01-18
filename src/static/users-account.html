@@ -1762,27 +1762,57 @@
             const modalBody = document.getElementById('planModalBody');
             const modalBtn = document.getElementById('planModalBtn');
             
+            const planLimits = {
+                'free': { regions: 1, types: ['HIGH_IMPACT_EVENT'] },
+                'personal': { regions: 2, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE'] },
+                'trader': { regions: 3, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE'] },
+                'pro': { regions: 4, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST'] },
+                'enterprise': { regions: -1, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST'] }
+            };
+            
+            const limits = planLimits[planCode] || planLimits['free'];
+            const regionsText = limits.regions === -1 ? 'Unlimited regions' : `${limits.regions} region${limits.regions > 1 ? 's' : ''}`;
+            const typesText = limits.types.map(t => t.replace(/_/g, ' ')).join(', ');
+            
+            const settingsNote = `
+                <div style="background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin-top: 16px;">
+                    <p style="color: #60a5fa; font-weight: 600; margin-bottom: 8px;">Plan Includes:</p>
+                    <ul style="color: #94a3b8; margin: 0; padding-left: 20px; font-size: 13px;">
+                        <li>${regionsText}</li>
+                        <li>Alert types: ${typesText}</li>
+                    </ul>
+                    <p style="color: #fbbf24; font-size: 12px; margin-top: 12px; margin-bottom: 0;">
+                        After changing your plan, visit the Settings tab to adjust your alert preferences.
+                    </p>
+                </div>
+            `;
+            
             if (planCode === 'free') {
                 modalTitle.textContent = 'Downgrade to Free';
                 modalBody.innerHTML = `
                     <p>Are you sure you want to downgrade to the Free plan?</p>
                     <p style="color: #94a3b8; margin-top: 12px;">Your current plan benefits will remain active until the end of your billing period.</p>
+                    <p style="color: #f87171; margin-top: 12px; font-size: 13px;">
+                        <strong>Note:</strong> Your current alert settings that exceed Free plan limits will be automatically adjusted.
+                    </p>
+                    ${settingsNote}
                 `;
                 modalBtn.textContent = 'Downgrade to Free';
                 modalBtn.className = 'plan-btn downgrade';
                 modalBtn.onclick = () => cancelSubscription();
             } else {
-                const actionText = action === 'upgrade' ? 'Upgrade' : 'Change';
+                const actionText = action === 'upgrade' ? 'Upgrade' : 'Downgrade';
                 modalTitle.textContent = `${actionText} to ${planName}`;
                 modalBody.innerHTML = `
                     <p>You are about to ${action} to the <strong>${planName}</strong> plan.</p>
                     <div style="background: #1e293b; border-radius: 8px; padding: 16px; margin: 16px 0;">
                         <div style="font-size: 24px; font-weight: 700; color: #f1f5f9;">€${price.toFixed(2)}<span style="font-size: 14px; color: #94a3b8;">/month</span></div>
                     </div>
-                    ${action === 'upgrade' ? '<p style="color: #4ade80;">Your new plan will be activated immediately.</p>' : '<p style="color: #fbbf24;">Changes will take effect at the end of your current billing period.</p>'}
+                    ${action === 'upgrade' ? '<p style="color: #4ade80;">Your new plan will be activated immediately.</p>' : '<p style="color: #fbbf24;">Changes will take effect at the end of your current billing period. Settings exceeding the new plan limits will be adjusted.</p>'}
+                    ${settingsNote}
                 `;
                 modalBtn.textContent = `${actionText} to ${planName}`;
-                modalBtn.className = 'plan-btn upgrade';
+                modalBtn.className = action === 'upgrade' ? 'plan-btn upgrade' : 'plan-btn downgrade';
                 modalBtn.onclick = () => startCheckout(planCode);
             }
             
@@ -2048,7 +2078,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('billing') === 'success') {
             setTimeout(() => {
-                alert('Payment successful! Your plan has been upgraded.');
+                alert('Payment successful! Your plan has been upgraded.\\n\\nPlease visit the Settings tab to configure your alert preferences for your new plan.');
                 window.history.replaceState({}, document.title, '/users/account');
                 loadUserData();
             }, 500);
