@@ -1821,6 +1821,10 @@
                 
                 if (data.checkout_url) {
                     window.location.href = data.checkout_url;
+                } else if (data.success) {
+                    closePlanModal();
+                    alert('Your plan has been updated successfully!');
+                    loadPlans();
                 }
             } catch (error) {
                 console.error('Checkout error:', error);
