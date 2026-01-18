@@ -65,6 +65,15 @@ Users can configure their alert preferences at `/users/account` under the Settin
 ### Available Regions
 Europe, Middle East, Asia, North America, Black Sea, North Africa, Global
 
+### Automatic Settings Sync on Plan Upgrade
+When a user upgrades their plan, `sync_user_settings_on_upgrade()` automatically:
+1. Identifies newly available alert types for the new plan
+2. Adds default settings for each new alert type (enabled, region: Europe)
+3. Preserves all existing user settings (never deletes)
+4. Respects the new plan's region limits when adding defaults
+
+This is triggered automatically by `apply_plan_settings_to_user()` whenever a plan change occurs.
+
 ## Digest System (Alerts v2)
 
 The digest system consolidates multiple alert deliveries into periodic summary messages:

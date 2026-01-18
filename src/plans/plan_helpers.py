@@ -244,10 +244,82 @@ def apply_plan_settings_to_user(user_id: int, plan_code: str) -> bool:
             ))
         
         logger.info(f"Applied plan settings '{plan_code}' to user {user_id}")
+        
+        sync_user_settings_on_upgrade(user_id, plan_code)
+        
         return True
     except Exception as e:
         logger.error(f"Error applying plan settings to user: {e}")
         return False
+
+
+AVAILABLE_REGIONS = ["Europe", "Middle East", "Asia", "North America", "Black Sea", "North Africa", "Global"]
+
+PLAN_MAX_REGIONS = {
+    "free": 1,
+    "personal": 2,
+    "trader": 3,
+    "pro": -1,
+    "enterprise": -1
+}
+
+DEFAULT_REGION = "Europe"
+
+
+def sync_user_settings_on_upgrade(user_id: int, new_plan_code: str) -> int:
+    """
+    Sync user_settings when a user upgrades their plan.
+    Adds default settings for newly available alert types without removing existing ones.
+    Returns the number of new settings added.
+    """
+    try:
+        new_allowed_types = get_allowed_alert_types(new_plan_code)
+        settings_added = 0
+        
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT DISTINCT alert_type FROM user_settings 
+                WHERE user_id = %s
+            """, (user_id,))
+            existing_types = set(row["alert_type"] for row in cur.fetchall())
+            
+            cur.execute("""
+                SELECT DISTINCT region FROM user_settings 
+                WHERE user_id = %s AND region IS NOT NULL
+            """, (user_id,))
+            existing_regions = set(row["region"] for row in cur.fetchall())
+            current_region_count = len(existing_regions)
+            
+            max_regions = PLAN_MAX_REGIONS.get(new_plan_code, 1)
+            
+            for alert_type in new_allowed_types:
+                if alert_type not in existing_types:
+                    region_to_use = DEFAULT_REGION
+                    is_new_region = region_to_use not in existing_regions
+                    
+                    if is_new_region and max_regions != -1 and current_region_count >= max_regions:
+                        continue
+                    
+                    cur.execute("""
+                        INSERT INTO user_settings (user_id, alert_type, region, enabled)
+                        VALUES (%s, %s, %s, TRUE)
+                        ON CONFLICT (user_id, alert_type, region, asset) DO NOTHING
+                    """, (user_id, alert_type, region_to_use))
+                    
+                    if cur.rowcount > 0:
+                        settings_added += 1
+                        if is_new_region:
+                            existing_regions.add(region_to_use)
+                            current_region_count += 1
+                        logger.info(f"Added default setting for user {user_id}: {alert_type} in {region_to_use}")
+        
+        if settings_added > 0:
+            logger.info(f"Synced {settings_added} new settings for user {user_id} on plan upgrade to {new_plan_code}")
+        
+        return settings_added
+    except Exception as e:
+        logger.error(f"Error syncing user settings on upgrade for user {user_id}: {e}")
+        return 0
 
 
 def create_default_alert_prefs(user_id: int, plan_code: str) -> int:
