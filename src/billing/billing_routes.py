@@ -108,18 +108,18 @@ async def create_checkout(
     request: CheckoutRequest,
     x_user_token: Optional[str] = Header(None)
 ):
-    user = get_user_from_token(x_user_token)
-    if not user:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    
-    plan = get_plan_with_stripe_ids(request.plan_code)
-    if not plan:
-        raise HTTPException(status_code=400, detail="Invalid plan")
-    
-    if not plan["stripe_price_id"]:
-        raise HTTPException(status_code=400, detail="Plan not available for purchase")
-    
     try:
+        user = get_user_from_token(x_user_token)
+        if not user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        
+        plan = get_plan_with_stripe_ids(request.plan_code)
+        if not plan:
+            raise HTTPException(status_code=400, detail="Invalid plan")
+        
+        if not plan["stripe_price_id"]:
+            raise HTTPException(status_code=400, detail="Plan not available for purchase")
+        
         init_stripe()
         
         if user["stripe_subscription_id"] and user["subscription_status"] in ("active", "trialing"):
@@ -170,9 +170,11 @@ async def create_checkout(
         
         return {"checkout_url": session["url"], "session_id": session["id"]}
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Checkout error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+        logger.error(f"Checkout error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
 
 
 @router.post("/portal")
