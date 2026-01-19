@@ -1593,11 +1593,16 @@
         }
 
         async function loadDashboard() {
+            console.log('loadDashboard started, sessionToken:', sessionToken ? 'present' : 'missing');
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 15000);
+            const timeout = setTimeout(() => {
+                console.log('Dashboard request timed out after 15s');
+                controller.abort();
+            }, 15000);
             
             try {
                 const startTime = performance.now();
+                console.log('Making API calls...');
                 
                 const [dashboardResponse, plansResponse] = await Promise.all([
                     fetch('/users/dashboard?alerts_limit=100', {
@@ -1608,6 +1613,7 @@
                 ]);
                 
                 clearTimeout(timeout);
+                console.log('API responses received:', dashboardResponse.status, plansResponse.status);
 
                 if (!dashboardResponse.ok) {
                     if (dashboardResponse.status === 401) {
@@ -2647,8 +2653,37 @@
             }
         }
 
-        if (checkSession()) {
-            loadDashboard();
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('Global error:', msg, 'at', url, 'line', line);
+            document.getElementById('recentAlerts').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">&#9888;</div>
+                    <p>An error occurred. Please refresh the page.</p>
+                </div>
+            `;
+            return false;
+        };
+
+        try {
+            if (checkSession()) {
+                loadDashboard().catch(function(err) {
+                    console.error('Dashboard load error:', err);
+                    document.getElementById('recentAlerts').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">&#9888;</div>
+                            <p>Failed to load dashboard. Please refresh the page.</p>
+                        </div>
+                    `;
+                });
+            }
+        } catch (initError) {
+            console.error('Initialization error:', initError);
+            document.getElementById('recentAlerts').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">&#9888;</div>
+                    <p>Failed to initialize. Please refresh the page.</p>
+                </div>
+            `;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
