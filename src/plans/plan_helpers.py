@@ -17,7 +17,7 @@ def get_plan_settings(plan_code: str) -> Dict:
     with get_cursor(commit=False) as cur:
         cur.execute("""
             SELECT plan_code, display_name, monthly_price_usd,
-                   allowed_alert_types, max_email_alerts_per_day,
+                   allowed_alert_types, max_regions, max_email_alerts_per_day,
                    delivery_config, is_active, created_at, updated_at
             FROM plan_settings
             WHERE plan_code = %s
@@ -36,6 +36,7 @@ def get_plan_settings(plan_code: str) -> Dict:
             "display_name": row["display_name"],
             "monthly_price_usd": float(row["monthly_price_usd"]),
             "allowed_alert_types": list(row["allowed_alert_types"]),
+            "max_regions": row["max_regions"] if row["max_regions"] is not None else 1,
             "max_email_alerts_per_day": row["max_email_alerts_per_day"],
             "delivery_config": delivery_config,
             "is_active": row["is_active"],
@@ -48,7 +49,7 @@ def get_all_plan_settings() -> List[Dict]:
     with get_cursor(commit=False) as cur:
         cur.execute("""
             SELECT plan_code, display_name, monthly_price_usd,
-                   allowed_alert_types, max_email_alerts_per_day,
+                   allowed_alert_types, max_regions, max_email_alerts_per_day,
                    delivery_config, is_active, created_at, updated_at
             FROM plan_settings
             ORDER BY monthly_price_usd ASC
@@ -66,6 +67,7 @@ def get_all_plan_settings() -> List[Dict]:
                 "display_name": row["display_name"],
                 "monthly_price_usd": float(row["monthly_price_usd"]),
                 "allowed_alert_types": list(row["allowed_alert_types"]),
+                "max_regions": row["max_regions"] if row["max_regions"] is not None else 1,
                 "max_email_alerts_per_day": row["max_email_alerts_per_day"],
                 "delivery_config": delivery_config,
                 "is_active": row["is_active"],
@@ -259,7 +261,7 @@ PLAN_MAX_REGIONS = {
     "free": 1,
     "personal": 2,
     "trader": 3,
-    "pro": -1,
+    "pro": 4,
     "enterprise": -1
 }
 
