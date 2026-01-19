@@ -2707,7 +2707,7 @@
                             if (!expectedPlan || user.plan === expectedPlan) {
                                 statusEl.remove();
                                 await loadDashboard();
-                                alert('Payment successful! Your plan has been upgraded to ' + (user.plan || 'your new plan').charAt(0).toUpperCase() + (user.plan || '').slice(1) + '.\\n\\nPlease visit the Settings tab to configure your alert preferences.');
+                                alert('Payment successful! Your plan has been upgraded to ' + (user.plan || 'your new plan').charAt(0).toUpperCase() + (user.plan || '').slice(1) + '.\n\nPlease visit the Settings tab to configure your alert preferences.');
                                 return;
                             }
                         }
@@ -2719,7 +2719,7 @@
                 
                 statusEl.remove();
                 await loadDashboard();
-                alert('Payment successful! Your plan upgrade is being processed.\\n\\nIf your plan doesn\\'t update within a few minutes, please refresh the page.');
+                alert('Payment successful! Your plan upgrade is being processed.\n\nIf your plan does not update within a few minutes, please refresh the page.');
             }
             
             waitForPlanUpdate(expectedPlan);
