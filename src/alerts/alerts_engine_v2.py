@@ -163,7 +163,11 @@ def create_alert_event(
     body: str,
     driver_event_ids: List[int],
     cooldown_key: str,
-    event_fingerprint: Optional[str] = None
+    event_fingerprint: Optional[str] = None,
+    raw_input: Optional[Dict] = None,
+    classification: Optional[Dict] = None,
+    category: Optional[str] = None,
+    confidence: Optional[float] = None
 ) -> Tuple[Optional[int], bool]:
     """
     Create a global alert event (user-agnostic).
@@ -174,21 +178,43 @@ def create_alert_event(
     
     Uses event_fingerprint for uniqueness (ON CONFLICT DO NOTHING).
     
+    Args:
+        alert_type: Type of alert (HIGH_IMPACT_EVENT, REGIONAL_RISK_SPIKE, etc.)
+        scope_region: Geographic region for the alert
+        scope_assets: List of affected assets
+        severity: Severity score (1-5)
+        headline: Alert headline
+        body: Alert body text
+        driver_event_ids: IDs of events that triggered this alert
+        cooldown_key: Key for deduplication cooldown
+        event_fingerprint: Unique fingerprint for this event
+        raw_input: Original news/signal data (JSONB)
+        classification: Processed classification result (JSONB)
+        category: Alert category (geopolitical, supply, demand, etc.)
+        confidence: Classification confidence score (0.0-1.0)
+    
     Returns:
         Tuple of (event_id or None, was_skipped_duplicate)
     """
     if event_fingerprint is None:
         event_fingerprint = cooldown_key
     
+    raw_input_json = json.dumps(raw_input) if raw_input else None
+    classification_json = json.dumps(classification) if classification else None
+    
     try:
         with get_cursor() as cursor:
             cursor.execute(
                 """INSERT INTO alert_events 
-                   (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   (alert_type, scope_region, scope_assets, severity, headline, body, 
+                    driver_event_ids, cooldown_key, event_fingerprint,
+                    raw_input, classification, category, confidence)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    ON CONFLICT (event_fingerprint) DO NOTHING
                    RETURNING id""",
-                (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint)
+                (alert_type, scope_region, scope_assets, severity, headline, body, 
+                 driver_event_ids, cooldown_key, event_fingerprint,
+                 raw_input_json, classification_json, category, confidence)
             )
             result = cursor.fetchone()
             if result:
@@ -247,6 +273,26 @@ def generate_regional_risk_spike_events(regions: List[str] = None) -> Dict:
         elif risk_7d >= 70:
             severity = 3
         
+        raw_input_data = {
+            'source': 'risk_calculation',
+            'region': region,
+            'risk_7d': risk_7d,
+            'prev_risk': prev_risk,
+            'trend': summary['trend_7d'],
+            'driver_events': [{'id': e['id'], 'title': e.get('title', '')} for e in driver_events] if driver_events else [],
+            'assets': summary['assets']
+        }
+        
+        classification_data = {
+            'trigger': 'threshold' if spike_by_threshold else 'change',
+            'threshold_value': DEFAULT_THRESHOLD,
+            'spike_by_threshold': spike_by_threshold,
+            'spike_by_change': spike_by_change,
+            'change_pct': ((risk_7d - prev_risk) / prev_risk * 100) if prev_risk and prev_risk > 0 else None
+        }
+        
+        confidence_score = min(1.0, (risk_7d / 100) * 1.1) if risk_7d > 0 else 0.5
+        
         event_id, was_skipped = create_alert_event(
             alert_type='REGIONAL_RISK_SPIKE',
             scope_region=region,
@@ -256,7 +302,11 @@ def generate_regional_risk_spike_events(regions: List[str] = None) -> Dict:
             body=body,
             driver_event_ids=driver_ids,
             cooldown_key=cooldown_key,
-            event_fingerprint=fingerprint
+            event_fingerprint=fingerprint,
+            raw_input=raw_input_data,
+            classification=classification_data,
+            category='regional_risk',
+            confidence=round(confidence_score, 3)
         )
         
         if event_id:
@@ -312,6 +362,25 @@ def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str
             elif risk_score >= 80:
                 severity = 4
             
+            raw_input_data = {
+                'source': 'asset_risk_calculation',
+                'region': region,
+                'asset': asset,
+                'risk_score': risk_score,
+                'direction': direction,
+                'driver_events': [{'id': e['id'], 'title': e.get('title', '')} for e in driver_events] if driver_events else []
+            }
+            
+            classification_data = {
+                'trigger': 'threshold',
+                'threshold_value': DEFAULT_THRESHOLD,
+                'risk_score': risk_score,
+                'direction': direction
+            }
+            
+            asset_category = f"asset_risk_{asset}"
+            confidence_score = min(1.0, (risk_score / 100) * 1.1) if risk_score > 0 else 0.5
+            
             event_id, was_skipped = create_alert_event(
                 alert_type='ASSET_RISK_SPIKE',
                 scope_region=region,
@@ -321,7 +390,11 @@ def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str
                 body=body,
                 driver_event_ids=driver_ids,
                 cooldown_key=cooldown_key,
-                event_fingerprint=fingerprint
+                event_fingerprint=fingerprint,
+                raw_input=raw_input_data,
+                classification=classification_data,
+                category=asset_category,
+                confidence=round(confidence_score, 3)
             )
             
             if event_id:
@@ -344,6 +417,28 @@ def generate_high_impact_event_alerts() -> Dict:
         cooldown_key = f"EVENT:HIGH_IMPACT:{event['id']}:{today}"
         fingerprint = f"HIGH_IMPACT_EVENT:{event['id']}"
         
+        raw_input_data = {
+            'source': 'news_event',
+            'event_id': event['id'],
+            'title': event.get('title', ''),
+            'source_name': event.get('source_name', ''),
+            'source_url': event.get('source_url', ''),
+            'raw_text': event.get('raw_text', ''),
+            'event_time': event['event_time'].isoformat() if event.get('event_time') else None
+        }
+        
+        classification_data = {
+            'trigger': 'high_impact_detection',
+            'original_category': event.get('category', ''),
+            'severity_score': event.get('severity_score', 3),
+            'classification_reason': event.get('classification_reason', ''),
+            'ai_summary': event.get('ai_summary', ''),
+            'ai_impact': event.get('ai_impact', '')
+        }
+        
+        event_category = event.get('category', 'geopolitical')
+        confidence_score = min(1.0, (event.get('severity_score', 3) / 5) * 1.2)
+        
         event_id, was_skipped = create_alert_event(
             alert_type='HIGH_IMPACT_EVENT',
             scope_region=event['region'],
@@ -353,7 +448,11 @@ def generate_high_impact_event_alerts() -> Dict:
             body=body,
             driver_event_ids=[event['id']],
             cooldown_key=cooldown_key,
-            event_fingerprint=fingerprint
+            event_fingerprint=fingerprint,
+            raw_input=raw_input_data,
+            classification=classification_data,
+            category=event_category,
+            confidence=round(confidence_score, 3)
         )
         
         if event_id:
