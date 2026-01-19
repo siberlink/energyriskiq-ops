@@ -537,9 +537,6 @@ def run_migrations():
     logger.info("Running billing migration...")
     run_billing_migration()
     
-    logger.info("Running alert metadata migration...")
-    run_alert_metadata_migration()
-    
     logger.info("Migrations completed successfully.")
 
 
@@ -928,33 +925,6 @@ def run_billing_migration():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_subscription_status ON users(subscription_status);")
     
     logger.info("Billing migration complete.")
-
-
-def run_alert_metadata_migration():
-    """Add metadata columns to alert_events for traceability and analytics.
-    
-    Adds:
-    - raw_input: JSONB storing original news/signal data
-    - classification: JSONB storing processed classification result
-    - category: TEXT for alert category (geopolitical, supply, demand, etc.)
-    - confidence: DECIMAL for classification confidence score (0.0-1.0)
-    """
-    logger.info("Running alert metadata migration...")
-    
-    with get_cursor() as cursor:
-        cursor.execute("""
-            ALTER TABLE alert_events 
-            ADD COLUMN IF NOT EXISTS raw_input JSONB NULL,
-            ADD COLUMN IF NOT EXISTS classification JSONB NULL,
-            ADD COLUMN IF NOT EXISTS category TEXT NULL,
-            ADD COLUMN IF NOT EXISTS confidence DECIMAL(4,3) NULL CHECK (confidence IS NULL OR (confidence >= 0 AND confidence <= 1));
-        """)
-        
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_alert_events_category ON alert_events(category);")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_alert_events_confidence ON alert_events(confidence);")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_alert_events_raw_input ON alert_events USING GIN(raw_input);")
-    
-    logger.info("Alert metadata migration complete.")
 
 
 def run_seo_tables_migration():

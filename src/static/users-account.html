@@ -1596,9 +1596,7 @@
                         window.location.href = '/users';
                         return;
                     }
-                    const errorText = await dashboardResponse.text();
-                    console.error('Dashboard API error:', dashboardResponse.status, errorText);
-                    throw new Error('Failed to load dashboard: ' + dashboardResponse.status);
+                    throw new Error('Failed to load dashboard');
                 }
 
                 const dashboard = await dashboardResponse.json();
@@ -1623,9 +1621,6 @@
                 console.log(`Dashboard loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
             } catch (error) {
                 console.error('Error loading dashboard:', error);
-                document.getElementById('userEmail').textContent = 'Error loading';
-                document.getElementById('recentAlerts').innerHTML = '<div class="empty-state" style="color: #ef4444;">Failed to load dashboard. Please refresh the page or try logging in again.</div>';
-                document.getElementById('allAlerts').innerHTML = '<div class="empty-state" style="color: #ef4444;">Failed to load alerts. Please refresh the page.</div>';
             }
         }
 
