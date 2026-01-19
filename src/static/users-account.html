@@ -1566,26 +1566,41 @@
             });
         }
         
+        function filterLast3Hours(alerts) {
+            const now = new Date();
+            const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+            return alerts.filter(alert => {
+                const alertDate = new Date(alert.created_at);
+                return alertDate >= threeHoursAgo;
+            });
+        }
+        
         function renderAlerts(alerts, allowedTypes) {
             const last24h = filterLast24Hours(alerts);
+            const last3h = filterLast3Hours(alerts);
             document.getElementById('alertsCount').textContent = last24h.length;
 
+            if (last3h.length === 0) {
+                document.getElementById('recentAlerts').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#128276;</div>
+                        <p>No alerts in the last 3 hours. Check the Alerts section for older activity.</p>
+                    </div>
+                `;
+            } else {
+                renderAlertsGrid(last3h.slice(0, 4), allowedTypes, document.getElementById('recentAlerts'));
+            }
+
             if (last24h.length === 0) {
-                const emptyHTML = `
+                document.getElementById('allAlerts').innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">&#128276;</div>
                         <p>No alerts in the last 24 hours. You'll see alerts here once they're triggered.</p>
                     </div>
                 `;
-                document.getElementById('recentAlerts').innerHTML = emptyHTML;
-                document.getElementById('allAlerts').innerHTML = emptyHTML;
-                return;
+            } else {
+                renderAlertsGrid(last24h, allowedTypes, document.getElementById('allAlerts'));
             }
-
-            const recentAlerts = last24h.slice(0, 4);
-            
-            renderAlertsGrid(recentAlerts, allowedTypes, document.getElementById('recentAlerts'));
-            renderAlertsGrid(last24h, allowedTypes, document.getElementById('allAlerts'));
         }
         
         function renderAlertsGrid(alerts, allowedTypes, container) {
