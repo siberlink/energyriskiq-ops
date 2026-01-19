@@ -81,6 +81,10 @@ async def users_verify_page():
 async def users_account_page():
     return FileResponse(os.path.join(STATIC_DIR, "users-account.html"), media_type="text/html")
 
+@app.get("/users/account.html", include_in_schema=False)
+async def users_account_page_html():
+    return FileResponse(os.path.join(STATIC_DIR, "users-account.html"), media_type="text/html")
+
 app.include_router(router)
 app.include_router(risk_router)
 app.include_router(alert_router)
