@@ -2616,15 +2616,43 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('billing') === 'success') {
-            setTimeout(() => {
-                alert('Payment successful! Your plan has been upgraded.\\n\\nPlease visit the Settings tab to configure your alert preferences for your new plan.');
-                window.history.replaceState({}, document.title, '/users/account');
-                loadDashboard();
-            }, 500);
+            const expectedPlan = urlParams.get('plan');
+            window.history.replaceState({}, document.title, '/users/account');
+            
+            async function waitForPlanUpdate(expectedPlan, maxAttempts = 10) {
+                const statusEl = document.createElement('div');
+                statusEl.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1e293b;border:1px solid #3b82f6;border-radius:12px;padding:24px 32px;z-index:9999;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+                statusEl.innerHTML = '<div style="font-size:18px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Activating your plan...</div><div style="color:#94a3b8;font-size:14px;">Please wait while we confirm your upgrade</div>';
+                document.body.appendChild(statusEl);
+                
+                for (let i = 0; i < maxAttempts; i++) {
+                    try {
+                        const response = await fetch('/users/me', {
+                            headers: { 'X-User-Token': sessionToken }
+                        });
+                        if (response.ok) {
+                            const user = await response.json();
+                            if (!expectedPlan || user.plan === expectedPlan) {
+                                statusEl.remove();
+                                await loadDashboard();
+                                alert('Payment successful! Your plan has been upgraded to ' + (user.plan || 'your new plan').charAt(0).toUpperCase() + (user.plan || '').slice(1) + '.\\n\\nPlease visit the Settings tab to configure your alert preferences.');
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Plan check error:', e);
+                    }
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+                
+                statusEl.remove();
+                await loadDashboard();
+                alert('Payment successful! Your plan upgrade is being processed.\\n\\nIf your plan doesn\\'t update within a few minutes, please refresh the page.');
+            }
+            
+            waitForPlanUpdate(expectedPlan);
         } else if (urlParams.get('billing') === 'cancelled') {
-            setTimeout(() => {
-                window.history.replaceState({}, document.title, '/users/account');
-            }, 100);
+            window.history.replaceState({}, document.title, '/users/account');
         }
     </script>
 
