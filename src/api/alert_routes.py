@@ -125,11 +125,14 @@ def get_user_alerts(
         raise HTTPException(status_code=404, detail="User not found")
     
     query = """
-    SELECT id, alert_type, region, asset, triggered_value, threshold,
-           title, message, channel, status, created_at, sent_at, error
-    FROM alerts
-    WHERE user_id = %s
-    ORDER BY created_at DESC
+    SELECT d.id, ae.alert_type, ae.scope_region as region, ae.scope_assets,
+           ae.severity, ae.headline as title, ae.body as message, 
+           d.channel, d.status, d.created_at, d.sent_at, d.last_error as error,
+           ae.raw_input, ae.classification, ae.category, ae.confidence
+    FROM user_alert_deliveries d
+    JOIN alert_events ae ON ae.id = d.alert_event_id
+    WHERE d.user_id = %s
+    ORDER BY d.created_at DESC
     LIMIT %s
     """
     results = execute_query(query, (user_id, limit))
@@ -137,20 +140,25 @@ def get_user_alerts(
     alerts = []
     if results:
         for row in results:
+            assets = row.get('scope_assets') or []
+            asset = assets[0] if assets else None
             alerts.append({
                 "id": row['id'],
                 "alert_type": row['alert_type'],
                 "region": row['region'],
-                "asset": row['asset'],
-                "triggered_value": row['triggered_value'],
-                "threshold": row['threshold'],
+                "asset": asset,
+                "severity": row['severity'],
                 "title": row['title'],
-                "message": row['message'][:200] + "..." if len(row['message']) > 200 else row['message'],
+                "message": row['message'][:200] + "..." if row['message'] and len(row['message']) > 200 else row['message'],
                 "channel": row['channel'],
                 "status": row['status'],
                 "created_at": row['created_at'].isoformat() if row['created_at'] else None,
                 "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
-                "error": row['error']
+                "error": row['error'],
+                "category": row.get('category'),
+                "confidence": float(row['confidence']) if row.get('confidence') else None,
+                "raw_input": row.get('raw_input'),
+                "classification": row.get('classification')
             })
     
     return {
@@ -207,7 +215,8 @@ def get_latest_alert_events(
 ):
     base_query = """
     SELECT id, alert_type, scope_region, scope_assets, severity, 
-           headline, body, driver_event_ids, created_at
+           headline, body, driver_event_ids, created_at,
+           raw_input, classification, category, confidence
     FROM alert_events
     """
     
@@ -236,9 +245,13 @@ def get_latest_alert_events(
                 "scope_assets": row['scope_assets'] or [],
                 "severity": row['severity'],
                 "headline": row['headline'],
-                "body": row['body'][:500] + "..." if len(row['body']) > 500 else row['body'],
+                "body": row['body'][:500] + "..." if row['body'] and len(row['body']) > 500 else row['body'],
                 "driver_event_ids": row['driver_event_ids'] or [],
-                "created_at": row['created_at'].isoformat() if row['created_at'] else None
+                "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                "raw_input": row.get('raw_input'),
+                "classification": row.get('classification'),
+                "category": row.get('category'),
+                "confidence": float(row['confidence']) if row.get('confidence') else None
             })
     
     return {
@@ -320,7 +333,8 @@ def get_my_alerts(
         query = """
         SELECT d.id, d.alert_event_id, d.channel, d.status, d.reason,
                d.created_at, d.sent_at,
-               ae.alert_type, ae.scope_region, ae.headline, ae.body, ae.severity
+               ae.alert_type, ae.scope_region, ae.headline, ae.body, ae.severity,
+               ae.raw_input, ae.classification, ae.category, ae.confidence
         FROM user_alert_deliveries d
         JOIN alert_events ae ON ae.id = d.alert_event_id
         WHERE d.user_id = %s
@@ -337,13 +351,17 @@ def get_my_alerts(
                     "alert_event_id": row['alert_event_id'],
                     "alert_type": row['alert_type'],
                     "headline": row['headline'],
-                    "message": row['body'][:300] + "..." if len(row['body']) > 300 else row['body'],
+                    "message": row['body'][:300] + "..." if row['body'] and len(row['body']) > 300 else row['body'],
                     "region": row['scope_region'],
                     "severity": row['severity'],
                     "channel": row['channel'],
                     "status": row['status'],
                     "created_at": row['created_at'].isoformat() if row['created_at'] else None,
-                    "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None
+                    "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
+                    "category": row.get('category'),
+                    "confidence": float(row['confidence']) if row.get('confidence') else None,
+                    "raw_input": row.get('raw_input'),
+                    "classification": row.get('classification')
                 })
         
         return {

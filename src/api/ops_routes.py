@@ -55,19 +55,21 @@ def get_worker_status():
         risk_count = risk_row['total'] if risk_row else 0
         
         cursor.execute("""
-            SELECT MAX(sent_at) as last_sent, 
-                   COUNT(*) FILTER (WHERE status = 'sent') as total_sent
-            FROM alerts
-            WHERE alert_type != 'DAILY_DIGEST'
+            SELECT MAX(uad.sent_at) as last_sent, 
+                   COUNT(*) FILTER (WHERE uad.status = 'sent') as total_sent
+            FROM user_alert_deliveries uad
+            JOIN alert_events ae ON ae.id = uad.alert_event_id
+            WHERE ae.alert_type != 'DAILY_DIGEST'
         """)
         alerts_row = cursor.fetchone()
         alerts_last = alerts_row['last_sent'] if alerts_row else None
         alerts_count = alerts_row['total_sent'] if alerts_row else 0
         
         cursor.execute("""
-            SELECT MAX(sent_at) as last_sent, COUNT(*) as total
-            FROM alerts
-            WHERE alert_type = 'DAILY_DIGEST' AND status = 'sent'
+            SELECT MAX(uad.sent_at) as last_sent, COUNT(*) as total
+            FROM user_alert_deliveries uad
+            JOIN alert_events ae ON ae.id = uad.alert_event_id
+            WHERE ae.alert_type = 'DAILY_DIGEST' AND uad.status = 'sent'
         """)
         digest_row = cursor.fetchone()
         digest_last = digest_row['last_sent'] if digest_row else None

@@ -105,7 +105,8 @@ def update_alert_state(region: str, risk_7d: float, risk_30d: float, assets: Dic
 
 def get_top_driver_events(region: str, limit: int = 3) -> List[Dict]:
     query = """
-    SELECT e.title, e.region, e.category, r.weighted_score
+    SELECT e.id, e.title, e.region, e.category, e.source_url, e.ai_summary, 
+           e.ai_impact_score, e.ai_confidence, r.weighted_score
     FROM risk_events r
     JOIN events e ON e.id = r.event_id
     WHERE r.created_at >= NOW() - INTERVAL '7 days'
@@ -125,11 +126,12 @@ def get_high_impact_events(user_id: int) -> List[Dict]:
       AND e.region IN ('Europe', 'Middle East', 'Black Sea')
       AND e.inserted_at >= NOW() - INTERVAL '24 hours'
       AND NOT EXISTS (
-          SELECT 1 FROM alerts a 
-          WHERE a.user_id = %s
-          AND a.alert_type = 'HIGH_IMPACT_EVENT' 
-          AND a.message LIKE '%%' || e.title || '%%'
-          AND a.created_at >= NOW() - INTERVAL '24 hours'
+          SELECT 1 FROM alert_events ae
+          JOIN user_alert_deliveries uad ON uad.alert_event_id = ae.id
+          WHERE uad.user_id = %s
+          AND ae.alert_type = 'HIGH_IMPACT_EVENT' 
+          AND ae.headline LIKE '%%' || e.title || '%%'
+          AND ae.created_at >= NOW() - INTERVAL '24 hours'
       )
     ORDER BY e.severity_score DESC, e.inserted_at DESC
     LIMIT 10
@@ -165,7 +167,7 @@ def get_utc_today_date() -> str:
 def count_alerts_today(user_id: int) -> int:
     today_utc = get_utc_today_date()
     query = """
-    SELECT COUNT(*) as cnt FROM alerts
+    SELECT COUNT(*) as cnt FROM user_alert_deliveries
     WHERE user_id = %s
       AND created_at::date = %s
       AND status IN ('sent', 'queued')
@@ -176,44 +178,148 @@ def count_alerts_today(user_id: int) -> int:
 
 def check_cooldown(user_id: int, cooldown_key: str, cooldown_minutes: int) -> bool:
     query = """
-    SELECT 1 FROM alerts
-    WHERE cooldown_key = %s
-      AND created_at >= NOW() - make_interval(mins => %s)
-      AND status IN ('sent', 'queued')
+    SELECT 1 FROM alert_events ae
+    JOIN user_alert_deliveries uad ON uad.alert_event_id = ae.id
+    WHERE ae.cooldown_key = %s
+      AND uad.user_id = %s
+      AND uad.created_at >= NOW() - make_interval(mins => %s)
+      AND uad.status IN ('sent', 'queued')
     LIMIT 1
     """
-    result = execute_one(query, (cooldown_key, cooldown_minutes))
+    result = execute_one(query, (cooldown_key, user_id, cooldown_minutes))
     return result is not None
 
 
-def create_alert(user_id: int, alert_type: str, region: str, asset: Optional[str],
-                 triggered_value: Optional[float], threshold: Optional[float],
-                 title: str, message: str, channel: str, cooldown_key: str,
-                 status: str = 'queued') -> int:
+def create_alert_event_and_delivery(user_id: int, alert_type: str, region: str, asset: Optional[str],
+                                     triggered_value: Optional[float], threshold: Optional[float],
+                                     title: str, message: str, channel: str, cooldown_key: str,
+                                     status: str = 'queued', event_id: Optional[int] = None,
+                                     driver_events: Optional[List[Dict]] = None) -> tuple:
+    severity = 3
+    if triggered_value and triggered_value >= 80:
+        severity = 5
+    elif triggered_value and triggered_value >= 60:
+        severity = 4
+    elif triggered_value and triggered_value >= 40:
+        severity = 3
+    else:
+        severity = 2
+    
+    category_map = {
+        'REGIONAL_RISK_SPIKE': 'regional_risk',
+        'ASSET_RISK_SPIKE': 'asset_risk',
+        'HIGH_IMPACT_EVENT': 'high_impact',
+        'DAILY_DIGEST': 'digest'
+    }
+    category = category_map.get(alert_type, 'geopolitical')
+    
+    confidence = 0.8
+    if triggered_value:
+        confidence = min(1.0, triggered_value / 100)
+    
+    raw_input_data = {
+        "alert_type": alert_type,
+        "region": region,
+        "asset": asset,
+        "triggered_value": triggered_value,
+        "threshold": threshold,
+        "event_id": event_id,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    
+    classification_data = {
+        "alert_type": alert_type,
+        "severity": severity,
+        "triggered_value": triggered_value,
+        "region": region,
+        "category": category,
+        "confidence": confidence
+    }
+    
+    if driver_events:
+        driver_summaries = []
+        for e in driver_events[:3]:
+            driver_info = {
+                "id": e.get('id'),
+                "title": e.get('title', '')[:100],
+                "category": e.get('category'),
+                "source_url": e.get('source_url'),
+                "ai_summary": e.get('ai_summary', '')[:200] if e.get('ai_summary') else None,
+                "ai_impact_score": float(e['ai_impact_score']) if e.get('ai_impact_score') else None,
+                "ai_confidence": float(e['ai_confidence']) if e.get('ai_confidence') else None,
+                "weighted_score": float(e['weighted_score']) if e.get('weighted_score') else None
+            }
+            driver_summaries.append(driver_info)
+        raw_input_data["driver_events"] = driver_summaries
+        classification_data["driver_summary"] = [d["title"] for d in driver_summaries]
+        if driver_summaries:
+            avg_confidence = sum(d.get('ai_confidence') or 0.7 for d in driver_summaries) / len(driver_summaries)
+            classification_data["avg_driver_confidence"] = round(avg_confidence, 2)
+    
+    driver_event_ids = None
+    if event_id:
+        driver_event_ids = [event_id]
+    elif driver_events:
+        driver_event_ids = [e.get('id') for e in driver_events if e.get('id')]
+    
+    if driver_event_ids:
+        sorted_ids = sorted(driver_event_ids)
+        global_cooldown_key = f"{alert_type}:{region}:{asset}:events:{'-'.join(map(str, sorted_ids))}"
+        fingerprint = f"{alert_type}:{region}:{asset}:events:{'-'.join(map(str, sorted_ids))}"
+    else:
+        date_key = datetime.now(timezone.utc).strftime('%Y%m%d')
+        global_cooldown_key = f"{alert_type}:{region}:{asset}:date:{date_key}"
+        fingerprint = f"{alert_type}:{region}:{asset}:date:{date_key}"
+    
     with get_cursor() as cursor:
         cursor.execute(
-            """INSERT INTO alerts (user_id, alert_type, region, asset, triggered_value, threshold,
-                                   title, message, channel, cooldown_key, status)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """INSERT INTO alert_events 
+               (alert_type, scope_region, scope_assets, severity, headline, body, 
+                driver_event_ids, cooldown_key, event_fingerprint, raw_input, classification, category, confidence)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (cooldown_key) DO UPDATE SET updated_at = NOW()
                RETURNING id""",
-            (user_id, alert_type, region, asset, triggered_value, threshold,
-             title, message, channel, cooldown_key, status)
+            (alert_type, region, [asset] if asset else [], severity, title, message,
+             driver_event_ids, global_cooldown_key, fingerprint, 
+             json.dumps(raw_input_data), json.dumps(classification_data),
+             category, confidence)
         )
-        result = cursor.fetchone()
-        return result['id'] if result else 0
+        ae_result = cursor.fetchone()
+        alert_event_id = ae_result['id'] if ae_result else None
+        
+        if not alert_event_id:
+            cursor.execute("SELECT id FROM alert_events WHERE cooldown_key = %s", (global_cooldown_key,))
+            existing = cursor.fetchone()
+            alert_event_id = existing['id'] if existing else None
+        
+        if not alert_event_id:
+            return None, None
+        
+        cursor.execute(
+            """INSERT INTO user_alert_deliveries 
+               (user_id, alert_event_id, channel, status)
+               VALUES (%s, %s, %s, %s)
+               ON CONFLICT DO NOTHING
+               RETURNING id""",
+            (user_id, alert_event_id, channel, status)
+        )
+        delivery_result = cursor.fetchone()
+        delivery_id = delivery_result['id'] if delivery_result else None
+        
+        return alert_event_id, delivery_id
 
 
-def update_alert_status(alert_id: int, status: str, error: Optional[str] = None):
+def update_delivery_status(delivery_id: int, status: str, error: Optional[str] = None):
     with get_cursor() as cursor:
         if status == 'sent':
             cursor.execute(
-                "UPDATE alerts SET status = %s, sent_at = NOW(), error = %s WHERE id = %s",
-                (status, error, alert_id)
+                "UPDATE user_alert_deliveries SET status = %s, sent_at = NOW(), last_error = %s WHERE id = %s",
+                (status, error, delivery_id)
             )
         else:
             cursor.execute(
-                "UPDATE alerts SET status = %s, error = %s WHERE id = %s",
-                (status, error, alert_id)
+                "UPDATE user_alert_deliveries SET status = %s, last_error = %s WHERE id = %s",
+                (status, error, delivery_id)
             )
 
 
@@ -249,7 +355,8 @@ def evaluate_regional_risk_spike(user: Dict, pref: Dict, summary: Dict, prev_ris
         'triggered_value': risk_7d,
         'threshold': threshold,
         'title': title,
-        'message': message
+        'message': message,
+        'driver_events': driver_events
     }
 
 
@@ -289,7 +396,8 @@ def evaluate_asset_risk_spike(user: Dict, pref: Dict, summary: Dict, allow_asset
         'triggered_value': risk_score,
         'threshold': threshold,
         'title': title,
-        'message': message
+        'message': message,
+        'driver_events': driver_events
     }
 
 
@@ -304,6 +412,16 @@ def evaluate_high_impact_events(user: Dict, pref: Dict) -> List[Dict]:
         
         title, message = format_high_impact_event(event, event['region'])
         
+        event_metadata = {
+            'id': event['id'],
+            'title': event['title'],
+            'region': event['region'],
+            'category': event.get('category'),
+            'source_url': event.get('source_url'),
+            'ai_summary': event.get('ai_summary'),
+            'severity_score': float(event['severity_score']) if event.get('severity_score') else None
+        }
+        
         alerts.append({
             'alert_type': 'HIGH_IMPACT_EVENT',
             'region': event['region'],
@@ -312,7 +430,8 @@ def evaluate_high_impact_events(user: Dict, pref: Dict) -> List[Dict]:
             'threshold': 4.0,
             'title': title,
             'message': message,
-            'event_id': event['id']
+            'event_id': event['id'],
+            'driver_events': [event_metadata]
         })
     
     return alerts
@@ -398,7 +517,7 @@ def process_user_alerts(user: Dict, dry_run: bool = False) -> List[Dict]:
     return generated_alerts
 
 
-def send_alert(user: Dict, alert_data: Dict, alert_id: int, plan_settings: Dict) -> bool:
+def send_alert(user: Dict, alert_data: Dict, delivery_id: int, plan_settings: Dict) -> bool:
     delivery_config = plan_settings.get('delivery_config', {})
     email_config = delivery_config.get('email', {})
     telegram_config = delivery_config.get('telegram', {})
@@ -446,12 +565,12 @@ def send_alert(user: Dict, alert_data: Dict, alert_id: int, plan_settings: Dict)
             last_error = error
     
     if channels_sent:
-        update_alert_status(alert_id, 'sent')
-        logger.info(f"Alert {alert_id} sent via: {', '.join(channels_sent)}")
+        update_delivery_status(delivery_id, 'sent')
+        logger.info(f"Delivery {delivery_id} sent via: {', '.join(channels_sent)}")
         return True
     else:
-        update_alert_status(alert_id, 'failed', last_error)
-        logger.warning(f"Alert {alert_id} failed on all channels: {channels_failed}")
+        update_delivery_status(delivery_id, 'failed', last_error)
+        logger.warning(f"Delivery {delivery_id} failed on all channels: {channels_failed}")
         return False
 
 
@@ -509,7 +628,7 @@ def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = Non
                         **alert_data
                     })
                 else:
-                    alert_id = create_alert(
+                    alert_event_id, delivery_id = create_alert_event_and_delivery(
                         user_id=user_id,
                         alert_type=alert_data['alert_type'],
                         region=alert_data['region'],
@@ -519,12 +638,14 @@ def run_alerts_engine(dry_run: bool = False, user_id_filter: Optional[int] = Non
                         title=alert_data['title'],
                         message=message,
                         channel=channel,
-                        cooldown_key=alert_data['cooldown_key']
+                        cooldown_key=alert_data['cooldown_key'],
+                        event_id=alert_data.get('event_id'),
+                        driver_events=alert_data.get('driver_events')
                     )
                     
-                    if alert_id:
-                        send_alert(user, alert_data, alert_id, plan_settings)
-                        all_alerts.append({'id': alert_id, **alert_data})
+                    if delivery_id:
+                        send_alert(user, alert_data, delivery_id, plan_settings)
+                        all_alerts.append({'id': delivery_id, 'alert_event_id': alert_event_id, **alert_data})
         
         except Exception as e:
             logger.error(f"Error processing user {user.get('id')}: {e}")

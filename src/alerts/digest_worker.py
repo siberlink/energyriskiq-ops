@@ -49,14 +49,16 @@ def get_digest_eligible_users() -> List[Dict]:
 
 
 def has_digest_today(user_id: int, date_str: str) -> bool:
-    cooldown_key = f"user:{user_id}|type:DAILY_DIGEST|date:{date_str}"
+    cooldown_key = f"DIGEST:Europe:{date_str}"
     query = """
-    SELECT 1 FROM alerts
-    WHERE cooldown_key = %s
-      AND status IN ('sent', 'queued')
+    SELECT 1 FROM alert_events ae
+    JOIN user_alert_deliveries uad ON uad.alert_event_id = ae.id
+    WHERE ae.cooldown_key = %s
+      AND uad.user_id = %s
+      AND uad.status IN ('sent', 'queued')
     LIMIT 1
     """
-    result = execute_one(query, (cooldown_key,))
+    result = execute_one(query, (cooldown_key, user_id))
     return result is not None
 
 
@@ -200,30 +202,6 @@ EnergyRiskIQ - Energy Risk Intelligence
     return subject, body
 
 
-def create_digest_alert(user_id: int, subject: str, body: str, cooldown_key: str, status: str = 'queued') -> int:
-    with get_cursor() as cursor:
-        cursor.execute(
-            """INSERT INTO alerts (user_id, alert_type, region, title, message, channel, cooldown_key, status)
-               VALUES (%s, 'DAILY_DIGEST', 'Europe', %s, %s, 'email', %s, %s)
-               RETURNING id""",
-            (user_id, subject, body, cooldown_key, status)
-        )
-        result = cursor.fetchone()
-        return result['id'] if result else 0
-
-
-def update_digest_status(alert_id: int, status: str, error: Optional[str] = None):
-    with get_cursor() as cursor:
-        if status == 'sent':
-            cursor.execute(
-                "UPDATE alerts SET status = %s, sent_at = NOW(), error = %s WHERE id = %s",
-                (status, error, alert_id)
-            )
-        else:
-            cursor.execute(
-                "UPDATE alerts SET status = %s, error = %s WHERE id = %s",
-                (status, error, alert_id)
-            )
 
 
 def safe_json_serializer(obj):
@@ -372,69 +350,7 @@ def run_digest_worker_v2() -> Dict:
 
 
 def run_digest_worker() -> Dict:
-    if ALERTS_V2_ENABLED:
-        return run_digest_worker_v2()
-    
-    logger.info("=" * 60)
-    logger.info("Starting EnergyRiskIQ Daily Digest Worker")
-    logger.info("=" * 60)
-    
-    run_migrations()
-    
-    date_str = get_utc_today_date()
-    users = get_digest_eligible_users()
-    
-    if not users:
-        logger.info("No users eligible for daily digest")
-        return {"processed": 0, "sent": 0, "skipped": 0, "failed": 0}
-    
-    logger.info(f"Found {len(users)} digest-eligible users")
-    
-    subject, body = build_digest_content('Europe')
-    
-    sent_count = 0
-    skipped_count = 0
-    failed_count = 0
-    
-    for user in users:
-        user_id = user['id']
-        email = user['email']
-        
-        if has_digest_today(user_id, date_str):
-            logger.info(f"User {user_id} already received digest today, skipping")
-            skipped_count += 1
-            continue
-        
-        cooldown_key = f"user:{user_id}|type:DAILY_DIGEST|date:{date_str}"
-        
-        alert_id = create_digest_alert(user_id, subject, body, cooldown_key)
-        
-        if not alert_id:
-            logger.error(f"Failed to create digest alert for user {user_id}")
-            failed_count += 1
-            continue
-        
-        success, error, _ = send_email(email, subject, body)
-        
-        if success:
-            update_digest_status(alert_id, 'sent')
-            logger.info(f"Digest sent to user {user_id} ({email})")
-            sent_count += 1
-        else:
-            update_digest_status(alert_id, 'failed', error)
-            logger.error(f"Failed to send digest to user {user_id}: {error}")
-            failed_count += 1
-    
-    logger.info("=" * 60)
-    logger.info(f"Digest Worker Complete: sent={sent_count}, skipped={skipped_count}, failed={failed_count}")
-    logger.info("=" * 60)
-    
-    return {
-        "processed": len(users),
-        "sent": sent_count,
-        "skipped": skipped_count,
-        "failed": failed_count
-    }
+    return run_digest_worker_v2()
 
 
 if __name__ == "__main__":
