@@ -562,6 +562,58 @@
             transform: none;
         }
 
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-toggle:hover {
+            border-color: #3b82f6;
+            color: #e2e8f0;
+        }
+
+        .filter-toggle.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .filter-toggle-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-divider {
+            width: 1px;
+            height: 24px;
+            background: #334155;
+            margin: 0 8px;
+        }
+
+        @media (max-width: 768px) {
+            .alert-filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .filter-divider {
+                display: none;
+            }
+            .filter-toggle-group {
+                width: 100%;
+            }
+        }
+
         .upgrade-sidebar-card {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
             border: 1px solid rgba(139, 92, 246, 0.3);
@@ -1289,7 +1341,26 @@
                             <input type="date" id="filterToDate" class="filter-input">
                             <input type="time" id="filterToTime" class="filter-input" style="width: 100px;">
                         </div>
-                        <button class="filter-btn" onclick="applyFilters()">Apply Filter</button>
+                        <div class="filter-divider"></div>
+                        <div class="filter-group">
+                            <span class="filter-label">Region:</span>
+                            <select id="filterRegion" class="filter-input" style="min-width: 120px;">
+                                <option value="">All Regions</option>
+                                <option value="europe">Europe</option>
+                                <option value="north_america">North America</option>
+                                <option value="asia">Asia</option>
+                                <option value="middle_east">Middle East</option>
+                                <option value="global">Global</option>
+                            </select>
+                        </div>
+                        <div class="filter-divider"></div>
+                        <div class="filter-toggle-group">
+                            <button type="button" class="filter-toggle active" id="filterOil" onclick="toggleFilter('Oil')">Oil</button>
+                            <button type="button" class="filter-toggle active" id="filterGas" onclick="toggleFilter('Gas')">Gas</button>
+                            <button type="button" class="filter-toggle active" id="filterFX" onclick="toggleFilter('FX')">FX</button>
+                        </div>
+                        <div class="filter-divider"></div>
+                        <button class="filter-btn" onclick="applyFilters()">Apply</button>
                         <button class="filter-btn secondary" onclick="resetFilters()">Reset</button>
                     </div>
                     <div id="allAlerts">
@@ -1751,6 +1822,15 @@
             document.getElementById('filterFromTime').value = yesterday.toTimeString().slice(0, 5);
             document.getElementById('filterToDate').value = now.toISOString().split('T')[0];
             document.getElementById('filterToTime').value = now.toTimeString().slice(0, 5);
+            document.getElementById('filterRegion').value = '';
+            document.getElementById('filterOil').classList.add('active');
+            document.getElementById('filterGas').classList.add('active');
+            document.getElementById('filterFX').classList.add('active');
+        }
+        
+        function toggleFilter(type) {
+            const btn = document.getElementById('filter' + type);
+            btn.classList.toggle('active');
         }
         
         function applyFilters() {
@@ -1758,19 +1838,44 @@
             const fromTime = document.getElementById('filterFromTime').value || '00:00';
             const toDate = document.getElementById('filterToDate').value;
             const toTime = document.getElementById('filterToTime').value || '23:59';
+            const selectedRegion = document.getElementById('filterRegion').value;
+            const showOil = document.getElementById('filterOil').classList.contains('active');
+            const showGas = document.getElementById('filterGas').classList.contains('active');
+            const showFX = document.getElementById('filterFX').classList.contains('active');
             
-            if (!fromDate || !toDate) {
-                renderAlerts(allAlerts, allowedAlertTypes);
-                return;
+            let filtered = allAlerts;
+            
+            if (fromDate && toDate) {
+                const fromDateTime = new Date(`${fromDate}T${fromTime}`);
+                const toDateTime = new Date(`${toDate}T${toTime}`);
+                filtered = filtered.filter(alert => {
+                    const alertDate = new Date(alert.created_at);
+                    return alertDate >= fromDateTime && alertDate <= toDateTime;
+                });
             }
             
-            const fromDateTime = new Date(`${fromDate}T${fromTime}`);
-            const toDateTime = new Date(`${toDate}T${toTime}`);
+            if (selectedRegion) {
+                filtered = filtered.filter(alert => {
+                    const alertRegion = (alert.region || '').toLowerCase().replace(/\s+/g, '_');
+                    return alertRegion === selectedRegion;
+                });
+            }
             
-            const filtered = allAlerts.filter(alert => {
-                const alertDate = new Date(alert.created_at);
-                return alertDate >= fromDateTime && alertDate <= toDateTime;
-            });
+            if (!showOil || !showGas || !showFX) {
+                filtered = filtered.filter(alert => {
+                    const asset = (alert.asset || '').toLowerCase();
+                    if (asset.includes('oil') || asset.includes('brent') || asset.includes('wti') || asset.includes('crude')) {
+                        return showOil;
+                    }
+                    if (asset.includes('gas') || asset.includes('lng') || asset.includes('natural')) {
+                        return showGas;
+                    }
+                    if (asset.includes('fx') || asset.includes('eur') || asset.includes('usd') || asset.includes('currency')) {
+                        return showFX;
+                    }
+                    return true;
+                });
+            }
             
             renderAlertsGrid(filtered, allowedAlertTypes, document.getElementById('allAlerts'));
         }
