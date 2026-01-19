@@ -52,7 +52,7 @@ PLAN_SETTINGS_SEED = [
         "display_name": "Pro",
         "monthly_price_usd": 49.00,
         "allowed_alert_types": ["HIGH_IMPACT_EVENT", "REGIONAL_RISK_SPIKE", "ASSET_RISK_SPIKE", "DAILY_DIGEST"],
-        "max_regions": -1,
+        "max_regions": 4,
         "max_email_alerts_per_day": 15,
         "delivery_config": {
             "email": {"max_per_day": 15, "realtime_limit": None, "mode": "limited"},
@@ -87,12 +87,13 @@ def seed_plan_settings():
                 """
                 INSERT INTO plan_settings (
                     plan_code, display_name, monthly_price_usd,
-                    allowed_alert_types, max_email_alerts_per_day, delivery_config
-                ) VALUES (%s, %s, %s, %s, %s, %s)
+                    allowed_alert_types, max_regions, max_email_alerts_per_day, delivery_config
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (plan_code) DO UPDATE SET
                     display_name = EXCLUDED.display_name,
                     monthly_price_usd = EXCLUDED.monthly_price_usd,
                     allowed_alert_types = EXCLUDED.allowed_alert_types,
+                    max_regions = EXCLUDED.max_regions,
                     max_email_alerts_per_day = EXCLUDED.max_email_alerts_per_day,
                     delivery_config = EXCLUDED.delivery_config,
                     updated_at = NOW()
@@ -102,6 +103,7 @@ def seed_plan_settings():
                     plan["display_name"],
                     plan["monthly_price_usd"],
                     plan["allowed_alert_types"],
+                    plan["max_regions"],
                     plan["max_email_alerts_per_day"],
                     json.dumps(plan["delivery_config"])
                 )
