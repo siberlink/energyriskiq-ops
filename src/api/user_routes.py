@@ -351,6 +351,7 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
 @router.get("/alerts")
 def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50):
     session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
     
     with get_cursor() as cursor:
         cursor.execute("""
@@ -358,7 +359,7 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
             FROM users u
             LEFT JOIN user_plans up ON u.id = up.user_id
             WHERE u.id = %s
-        """, (session["user_id"],))
+        """, (user_id,))
         user_plan = cursor.fetchone()
         plan_code = user_plan['plan'] if user_plan else 'free'
         
@@ -368,6 +369,25 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         has_all = 'ALL' in allowed_types
         effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
         locked_types = [t for t in ALL_ALERT_TYPES if t not in effective_allowed]
+        
+        cursor.execute("""
+            SELECT alert_type, region, asset, enabled
+            FROM user_settings
+            WHERE user_id = %s AND enabled = TRUE
+        """, (user_id,))
+        user_settings = cursor.fetchall()
+        
+        has_user_settings = len(user_settings) > 0
+        
+        user_setting_filters = []
+        if has_user_settings:
+            for setting in user_settings:
+                if setting['alert_type'] in effective_allowed:
+                    user_setting_filters.append({
+                        'alert_type': setting['alert_type'],
+                        'region': setting['region'],
+                        'asset': setting['asset']
+                    })
         
         alerts = []
         
@@ -383,10 +403,21 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                   AND ae.alert_type = ANY(%s)
                   AND uad.status = 'sent'
                 ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
-            """, (session["user_id"], effective_allowed,))
+            """, (user_id, effective_allowed,))
             delivered_alerts = cursor.fetchall()
             
             for row in delivered_alerts:
+                if has_user_settings:
+                    matches_setting = False
+                    for flt in user_setting_filters:
+                        type_match = row['alert_type'] == flt['alert_type']
+                        region_match = flt['region'] is None or row['region'] == flt['region']
+                        if type_match and region_match:
+                            matches_setting = True
+                            break
+                    if not matches_setting:
+                        continue
+                
                 assets_list = row['assets'] if row['assets'] else []
                 asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
                 alerts.append({
@@ -416,6 +447,17 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                 """, (effective_allowed, limit))
                 
                 for row in cursor.fetchall():
+                    if has_user_settings:
+                        matches_setting = False
+                        for flt in user_setting_filters:
+                            type_match = row['alert_type'] == flt['alert_type']
+                            region_match = flt['region'] is None or row['region'] == flt['region']
+                            if type_match and region_match:
+                                matches_setting = True
+                                break
+                        if not matches_setting:
+                            continue
+                    
                     assets_list = row['assets'] if row['assets'] else []
                     asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
                     alerts.append({
@@ -464,7 +506,9 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
             "plan": plan_code,
             "allowed_alert_types": effective_allowed,
             "locked_alert_types": locked_types,
-            "locked_samples": locked_samples
+            "locked_samples": locked_samples,
+            "has_user_settings": has_user_settings,
+            "active_settings_count": len(user_setting_filters)
         }
 
 
