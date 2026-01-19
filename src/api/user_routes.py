@@ -392,19 +392,24 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         alerts = []
         
         if effective_allowed:
-            cursor.execute("""
-                SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
-                       uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
-                       ae.severity, ae.headline as title, ae.body as message,
-                       uad.channel, uad.status, ae.created_at, uad.sent_at
-                FROM user_alert_deliveries uad
-                JOIN alert_events ae ON uad.alert_event_id = ae.id
-                WHERE uad.user_id = %s
-                  AND ae.alert_type = ANY(%s)
-                  AND uad.status = 'sent'
-                ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
-            """, (user_id, effective_allowed,))
-            delivered_alerts = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
+                           uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                           ae.severity, ae.headline as title, ae.body as message,
+                           uad.channel, uad.status, ae.created_at, uad.sent_at
+                    FROM user_alert_deliveries uad
+                    JOIN alert_events ae ON uad.alert_event_id = ae.id
+                    WHERE uad.user_id = %s
+                      AND ae.alert_type = ANY(%s)
+                      AND uad.status = 'sent'
+                    ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
+                """, (user_id, effective_allowed,))
+                delivered_alerts = cursor.fetchall()
+            except Exception as e:
+                import logging
+                logging.warning(f"Alert query failed (schema mismatch?): {e}")
+                delivered_alerts = []
             
             for row in delivered_alerts:
                 if has_user_settings:
@@ -436,17 +441,23 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                 })
             
             if not alerts:
-                cursor.execute("""
-                    SELECT ae.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
-                           ae.severity, ae.headline as title, ae.body as message, ae.created_at
-                    FROM alert_events ae
-                    WHERE ae.alert_type = ANY(%s)
-                      AND ae.created_at >= NOW() - INTERVAL '7 days'
-                    ORDER BY ae.created_at DESC
-                    LIMIT %s
-                """, (effective_allowed, limit))
+                try:
+                    cursor.execute("""
+                        SELECT ae.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                               ae.severity, ae.headline as title, ae.body as message, ae.created_at
+                        FROM alert_events ae
+                        WHERE ae.alert_type = ANY(%s)
+                          AND ae.created_at >= NOW() - INTERVAL '7 days'
+                        ORDER BY ae.created_at DESC
+                        LIMIT %s
+                    """, (effective_allowed, limit))
+                    fallback_rows = cursor.fetchall()
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Fallback alert query failed: {e}")
+                    fallback_rows = []
                 
-                for row in cursor.fetchall():
+                for row in fallback_rows:
                     if has_user_settings:
                         matches_setting = False
                         for flt in user_setting_filters:
@@ -479,17 +490,23 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         
         locked_samples = []
         if locked_types:
-            cursor.execute("""
-                SELECT DISTINCT ON (alert_type)
-                       ae.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
-                       ae.headline as title, ae.body as message, ae.created_at
-                FROM alert_events ae
-                WHERE ae.alert_type = ANY(%s)
-                  AND ae.created_at >= NOW() - INTERVAL '30 days'
-                ORDER BY ae.alert_type, ae.created_at DESC
-            """, (locked_types,))
+            try:
+                cursor.execute("""
+                    SELECT DISTINCT ON (alert_type)
+                           ae.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                           ae.headline as title, ae.body as message, ae.created_at
+                    FROM alert_events ae
+                    WHERE ae.alert_type = ANY(%s)
+                      AND ae.created_at >= NOW() - INTERVAL '30 days'
+                    ORDER BY ae.alert_type, ae.created_at DESC
+                """, (locked_types,))
+                locked_rows = cursor.fetchall()
+            except Exception as e:
+                import logging
+                logging.warning(f"Locked samples query failed: {e}")
+                locked_rows = []
             
-            for row in cursor.fetchall():
+            for row in locked_rows:
                 assets = row['assets'] if row['assets'] else []
                 asset_str = assets[0] if len(assets) == 1 else ', '.join(assets) if assets else None
                 locked_samples.append({
@@ -832,19 +849,24 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
         three_hours_ago = datetime.utcnow() - timedelta(hours=3)
         
         if effective_allowed:
-            cursor.execute("""
-                SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
-                       uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
-                       ae.severity, ae.headline as title, ae.body as message,
-                       uad.channel, uad.status, ae.created_at, uad.sent_at
-                FROM user_alert_deliveries uad
-                JOIN alert_events ae ON uad.alert_event_id = ae.id
-                WHERE uad.user_id = %s
-                  AND ae.alert_type = ANY(%s)
-                  AND uad.status = 'sent'
-                ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
-            """, (user_id, effective_allowed,))
-            delivered_alerts = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
+                           uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                           ae.severity, ae.headline as title, ae.body as message,
+                           uad.channel, uad.status, ae.created_at, uad.sent_at
+                    FROM user_alert_deliveries uad
+                    JOIN alert_events ae ON uad.alert_event_id = ae.id
+                    WHERE uad.user_id = %s
+                      AND ae.alert_type = ANY(%s)
+                      AND uad.status = 'sent'
+                    ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
+                """, (user_id, effective_allowed,))
+                delivered_alerts = cursor.fetchall()
+            except Exception as e:
+                import logging
+                logging.warning(f"Dashboard alert query failed: {e}")
+                delivered_alerts = []
             
             for row in delivered_alerts:
                 if has_user_settings:
@@ -878,16 +900,21 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
                 })
             
             if not alerts:
-                cursor.execute("""
-                    SELECT id, alert_type, scope_region as region, scope_assets as assets,
-                           severity, headline as title, body as message, created_at
-                    FROM alert_events
-                    WHERE alert_type = ANY(%s)
-                      AND created_at > NOW() - INTERVAL '7 days'
-                    ORDER BY created_at DESC
-                    LIMIT %s
-                """, (effective_allowed, alerts_limit,))
-                available_alerts = cursor.fetchall()
+                try:
+                    cursor.execute("""
+                        SELECT id, alert_type, scope_region as region, scope_assets as assets,
+                               severity, headline as title, body as message, created_at
+                        FROM alert_events
+                        WHERE alert_type = ANY(%s)
+                          AND created_at > NOW() - INTERVAL '7 days'
+                        ORDER BY created_at DESC
+                        LIMIT %s
+                    """, (effective_allowed, alerts_limit,))
+                    available_alerts = cursor.fetchall()
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Dashboard fallback query failed: {e}")
+                    available_alerts = []
                 
                 for row in available_alerts:
                     if has_user_settings:
@@ -922,15 +949,20 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
         
         locked_samples = []
         if locked_types:
-            cursor.execute("""
-                SELECT alert_type, scope_region as region, scope_assets as assets,
-                       severity, headline as title, body as message, created_at
-                FROM alert_events
-                WHERE alert_type = ANY(%s)
-                ORDER BY created_at DESC
-                LIMIT 3
-            """, (locked_types,))
-            sample_rows = cursor.fetchall()
+            try:
+                cursor.execute("""
+                    SELECT alert_type, scope_region as region, scope_assets as assets,
+                           severity, headline as title, body as message, created_at
+                    FROM alert_events
+                    WHERE alert_type = ANY(%s)
+                    ORDER BY created_at DESC
+                    LIMIT 3
+                """, (locked_types,))
+                sample_rows = cursor.fetchall()
+            except Exception as e:
+                import logging
+                logging.warning(f"Dashboard locked samples query failed: {e}")
+                sample_rows = []
             
             for row in sample_rows:
                 assets_list = row['assets'] if row['assets'] else []
