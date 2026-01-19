@@ -226,18 +226,45 @@ def update_digest_status(alert_id: int, status: str, error: Optional[str] = None
             )
 
 
-def create_digest_alert_event(region: str, subject: str, body: str, date_str: str) -> Optional[int]:
+def safe_json_serializer(obj):
+    """Custom JSON serializer for types not serializable by default json encoder."""
+    from decimal import Decimal
+    if isinstance(obj, Decimal):
+        return float(obj)
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, (set, frozenset)):
+        return list(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
+def create_digest_alert_event(region: str, subject: str, body: str, date_str: str, digest_data: dict = None) -> Optional[int]:
+    import json
     cooldown_key = f"DIGEST:{region}:{date_str}"
+    fingerprint = f"DAILY_DIGEST:{region}:{date_str}"
+    
+    raw_input_data = {
+        "type": "daily_digest",
+        "region": region,
+        "date": date_str,
+        "digest_content": digest_data or {}
+    }
+    
+    classification_data = {
+        "alert_type": "DAILY_DIGEST",
+        "summary_type": "daily",
+        "region": region
+    }
     
     try:
         with get_cursor() as cursor:
             cursor.execute(
                 """INSERT INTO alert_events 
-                   (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key)
-                   VALUES ('DAILY_DIGEST', %s, '{}', 2, %s, %s, NULL, %s)
+                   (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint, raw_input, classification, category, confidence)
+                   VALUES ('DAILY_DIGEST', %s, '{}', 2, %s, %s, NULL, %s, %s, %s, %s, %s, %s)
                    ON CONFLICT (cooldown_key) DO NOTHING
                    RETURNING id""",
-                (region, subject, body, cooldown_key)
+                (region, subject, body, cooldown_key, fingerprint, json.dumps(raw_input_data, default=safe_json_serializer), json.dumps(classification_data, default=safe_json_serializer), 'digest', 0.9)
             )
             result = cursor.fetchone()
             if result:
