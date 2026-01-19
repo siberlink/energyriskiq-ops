@@ -321,6 +321,81 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 576px) {
+            .auth-container {
+                padding: 16px;
+            }
+
+            .auth-card {
+                padding: 32px 24px;
+                border-radius: 12px;
+            }
+
+            .auth-logo h1 {
+                font-size: 24px;
+            }
+
+            .auth-logo p {
+                font-size: 13px;
+            }
+
+            .auth-tabs {
+                margin-bottom: 24px;
+            }
+
+            .auth-tab {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group input {
+                padding: 10px 14px;
+                font-size: 14px;
+            }
+
+            .submit-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .success-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 28px;
+            }
+
+            .password-requirements {
+                padding: 14px;
+            }
+
+            .password-requirements ul {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .auth-card {
+                padding: 24px 20px;
+            }
+
+            .auth-logo h1 {
+                font-size: 22px;
+            }
+
+            .form-group label {
+                font-size: 13px;
+            }
+
+            .link-text {
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>

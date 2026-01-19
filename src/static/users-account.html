@@ -843,11 +843,293 @@
             border: none;
             color: white;
         }
+
+        /* Mobile Menu Toggle Button */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 89;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* Tablet Responsive (768px) */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 90;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 24px 16px;
+            }
+
+            .header {
+                padding: 0 16px;
+            }
+
+            .user-email {
+                display: none;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .alerts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plans-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .upgrade-banner {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .card-header {
+                padding: 16px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .card-body {
+                padding: 16px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+
+        /* Mobile Responsive (576px) */
+        @media (max-width: 576px) {
+            .header-badge {
+                display: none;
+            }
+
+            .header-logo {
+                font-size: 18px;
+            }
+
+            .logout-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .main {
+                padding: 16px 12px;
+            }
+
+            .page-header {
+                margin-bottom: 20px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .page-subtitle {
+                font-size: 13px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .stat-value {
+                font-size: 28px;
+            }
+
+            .content-card {
+                border-radius: 8px;
+            }
+
+            .card-title {
+                font-size: 16px;
+            }
+
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-card {
+                padding: 20px;
+            }
+
+            .plan-name {
+                font-size: 18px;
+            }
+
+            .plan-price {
+                font-size: 28px;
+            }
+
+            .sample-card .card-header {
+                padding: 1rem;
+            }
+
+            .alert-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .alert-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .card-header-text h3 {
+                font-size: 14px;
+            }
+
+            .card-header-text p {
+                font-size: 11px;
+            }
+
+            .sample-card .card-body {
+                padding: 1rem;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
+
+            .card-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .upgrade-banner {
+                padding: 16px;
+            }
+
+            .upgrade-content h3 {
+                font-size: 16px;
+            }
+
+            .upgrade-content p {
+                font-size: 13px;
+            }
+
+            .upgrade-btn {
+                width: 100%;
+                padding: 12px 20px;
+            }
+
+            .nav-item {
+                padding: 14px 12px;
+                font-size: 15px;
+            }
+
+            .sidebar {
+                width: 280px;
+                padding: 20px 12px;
+            }
+        }
+
+        /* Small Mobile (400px) */
+        @media (max-width: 400px) {
+            .header {
+                padding: 0 12px;
+            }
+
+            .header-logo {
+                font-size: 16px;
+            }
+
+            .main {
+                padding: 12px 10px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .plan-price {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
     <header class="header">
         <div class="header-left">
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
             <a href="/" style="text-decoration: none;">
                 <span class="header-logo">EnergyRiskIQ</span>
             </a>
@@ -862,10 +1144,11 @@
         </div>
     </header>
 
-    <nav class="sidebar">
+    <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
+    <nav class="sidebar" id="sidebar">
         <div class="sidebar-section">
             <div class="sidebar-title">Account</div>
-            <a class="nav-item active" onclick="showSection('dashboard')">
+            <a class="nav-item active" onclick="showSection('dashboard'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="9" rx="1"/>
@@ -876,7 +1159,7 @@
                 </span>
                 Dashboard
             </a>
-            <a class="nav-item" onclick="showSection('alerts')">
+            <a class="nav-item" onclick="showSection('alerts'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
@@ -889,7 +1172,7 @@
 
         <div class="sidebar-section">
             <div class="sidebar-title">Subscription</div>
-            <a class="nav-item" onclick="showSection('plans')">
+            <a class="nav-item" onclick="showSection('plans'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -901,7 +1184,7 @@
 
         <div class="sidebar-section">
             <div class="sidebar-title">Settings</div>
-            <a class="nav-item" onclick="showSection('settings')">
+            <a class="nav-item" onclick="showSection('settings'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
@@ -919,7 +1202,7 @@
             <p class="upgrade-sidebar-text">
                 Get real-time alerts, asset risk tracking, and priority notifications with an upgraded plan.
             </p>
-            <button class="upgrade-sidebar-btn" onclick="showSection('plans')">
+            <button class="upgrade-sidebar-btn" onclick="showSection('plans'); closeMobileMenu();">
                 View Upgrade Options
             </button>
         </div>
@@ -1191,6 +1474,21 @@
         let currentUser = null;
         let allAlerts = [];
         let userSettings = null;
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
 
         function checkSession() {
             const session = localStorage.getItem('userSession');
