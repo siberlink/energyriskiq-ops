@@ -1562,33 +1562,52 @@
         }
 
         function checkSession() {
-            const session = localStorage.getItem('userSession');
-            if (!session) {
-                window.location.href = '/users';
-                return false;
-            }
+            try {
+                const session = localStorage.getItem('userSession');
+                if (!session) {
+                    window.location.href = '/users';
+                    return false;
+                }
 
-            const data = JSON.parse(session);
-            if (data.expires < Date.now()) {
+                const data = JSON.parse(session);
+                if (!data || !data.token || !data.expires) {
+                    localStorage.removeItem('userSession');
+                    window.location.href = '/users';
+                    return false;
+                }
+                
+                if (data.expires < Date.now()) {
+                    localStorage.removeItem('userSession');
+                    window.location.href = '/users';
+                    return false;
+                }
+
+                sessionToken = data.token;
+                return true;
+            } catch (error) {
+                console.error('Session check error:', error);
                 localStorage.removeItem('userSession');
                 window.location.href = '/users';
                 return false;
             }
-
-            sessionToken = data.token;
-            return true;
         }
 
         async function loadDashboard() {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 15000);
+            
             try {
                 const startTime = performance.now();
                 
                 const [dashboardResponse, plansResponse] = await Promise.all([
                     fetch('/users/dashboard?alerts_limit=100', {
-                        headers: { 'X-User-Token': sessionToken }
+                        headers: { 'X-User-Token': sessionToken },
+                        signal: controller.signal
                     }),
-                    fetch('/billing/plans')
+                    fetch('/billing/plans', { signal: controller.signal })
                 ]);
+                
+                clearTimeout(timeout);
 
                 if (!dashboardResponse.ok) {
                     if (dashboardResponse.status === 401) {
@@ -1620,7 +1639,25 @@
                 
                 console.log(`Dashboard loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
             } catch (error) {
+                clearTimeout(timeout);
                 console.error('Error loading dashboard:', error);
+                
+                const errorMessage = error.name === 'AbortError' 
+                    ? 'Request timed out. Please check your connection and refresh the page.'
+                    : 'Failed to load alerts. Please refresh the page or try again later.';
+                
+                document.getElementById('recentAlerts').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#9888;</div>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
+                document.getElementById('allAlerts').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">&#9888;</div>
+                        <p>${errorMessage}</p>
+                    </div>
+                `;
             }
         }
 
