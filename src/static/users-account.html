@@ -1508,6 +1508,51 @@
             return true;
         }
 
+        async function loadDashboard() {
+            try {
+                const startTime = performance.now();
+                
+                const [dashboardResponse, plansResponse] = await Promise.all([
+                    fetch('/users/dashboard?alerts_limit=100', {
+                        headers: { 'X-User-Token': sessionToken }
+                    }),
+                    fetch('/billing/plans')
+                ]);
+
+                if (!dashboardResponse.ok) {
+                    if (dashboardResponse.status === 401) {
+                        localStorage.removeItem('userSession');
+                        window.location.href = '/users';
+                        return;
+                    }
+                    throw new Error('Failed to load dashboard');
+                }
+
+                const dashboard = await dashboardResponse.json();
+                
+                currentUser = dashboard.user;
+                allAlerts = dashboard.alerts.items || [];
+                userSettings = dashboard.settings;
+                allowedAlertTypes = dashboard.alerts.allowed_types || [];
+                
+                updateUI();
+                initializeFilters();
+                renderAlerts(allAlerts, allowedAlertTypes);
+                renderAllowedAlertTypes(allowedAlertTypes, dashboard.alerts.locked_types || []);
+                renderLockedSamples(dashboard.alerts.locked_samples || []);
+                renderSettingsFromDashboard(dashboard.settings);
+                
+                if (plansResponse.ok) {
+                    const plansData = await plansResponse.json();
+                    renderPlans(plansData.plans || []);
+                }
+                
+                console.log(`Dashboard loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
         async function loadUserData() {
             try {
                 const response = await fetch('/users/me', {
@@ -2261,6 +2306,74 @@
             }
         }
 
+        function renderSettingsFromDashboard(settings) {
+            userSettings = {
+                plan: settings.plan,
+                allowed_alert_types: settings.allowed_alert_types,
+                max_regions: settings.max_regions,
+                current_region_count: settings.current_region_count,
+                available_regions: settings.available_regions,
+                settings: settings.items
+            };
+            renderAlertSettings();
+        }
+
+        function renderPlans(plans) {
+            const grid = document.getElementById('plansGrid');
+            if (!grid) return;
+            
+            const planOrder = ['free', 'personal', 'trader', 'pro', 'enterprise'];
+            plans.sort((a, b) => planOrder.indexOf(a.plan_code) - planOrder.indexOf(b.plan_code));
+            
+            const currentPlan = currentUser?.plan || 'free';
+            const currentPlanIndex = planOrder.indexOf(currentPlan);
+
+            grid.innerHTML = plans.map(plan => {
+                const planIndex = planOrder.indexOf(plan.plan_code);
+                const isCurrent = plan.plan_code === currentPlan;
+                const isUpgrade = planIndex > currentPlanIndex;
+                const isDowngrade = planIndex < currentPlanIndex && plan.plan_code !== 'free';
+                const isFree = plan.plan_code === 'free';
+                
+                let btnClass = 'plan-btn';
+                let btnText = '';
+                let btnDisabled = '';
+                
+                if (isCurrent) {
+                    btnClass += ' current';
+                    btnText = 'Current Plan';
+                    btnDisabled = 'disabled';
+                } else if (isUpgrade) {
+                    btnClass += ' upgrade';
+                    btnText = `Upgrade to ${plan.display_name}`;
+                } else if (isDowngrade || (isFree && currentPlan !== 'free')) {
+                    btnClass += ' downgrade';
+                    btnText = `Downgrade to ${plan.display_name}`;
+                }
+                
+                const features = plan.features ? [
+                    `${plan.features.max_email_alerts_per_day} email alerts/day`,
+                    `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
+                    `${plan.features.alert_types?.length || 0} alert types`
+                ] : [];
+                
+                return `
+                    <div class="plan-card ${isCurrent ? 'current' : ''}">
+                        <div class="plan-name">${plan.display_name}</div>
+                        <div class="plan-price">${plan.price > 0 ? '€' + plan.price.toFixed(2) : 'Free'}<span>${plan.price > 0 ? '/mo' : ''}</span></div>
+                        <ul class="plan-features">
+                            ${features.map(f => `<li>${f}</li>`).join('')}
+                        </ul>
+                        <button class="${btnClass}" 
+                                ${btnDisabled}
+                                onclick="openPlanModal('${plan.plan_code}', '${plan.display_name}', ${plan.price}, '${isUpgrade ? 'upgrade' : 'downgrade'}')">
+                            ${btnText}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
         function renderAlertSettings() {
             if (!userSettings) return;
 
@@ -2393,7 +2506,7 @@
         }
 
         if (checkSession()) {
-            loadUserData();
+            loadDashboard();
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -2401,7 +2514,7 @@
             setTimeout(() => {
                 alert('Payment successful! Your plan has been upgraded.\\n\\nPlease visit the Settings tab to configure your alert preferences for your new plan.');
                 window.history.replaceState({}, document.title, '/users/account');
-                loadUserData();
+                loadDashboard();
             }, 500);
         } else if (urlParams.get('billing') === 'cancelled') {
             setTimeout(() => {

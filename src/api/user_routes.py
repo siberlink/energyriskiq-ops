@@ -766,3 +766,224 @@ def delete_user_setting(setting_id: int, x_user_token: Optional[str] = Header(No
             raise HTTPException(status_code=404, detail="Setting not found")
     
     return {"success": True, "deleted_id": setting_id}
+
+
+@router.get("/dashboard")
+def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit: int = 100):
+    """
+    Combined endpoint that returns user data, alerts, and settings in a single request.
+    This reduces the number of API calls needed to load the dashboard from 4 to 1.
+    """
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT u.id, u.email, u.telegram_chat_id, u.created_at,
+                   COALESCE(up.plan, 'free') as plan
+            FROM users u
+            LEFT JOIN user_plans up ON u.id = up.user_id
+            WHERE u.id = %s
+        """, (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        plan_code = user['plan']
+        plan_settings = get_plan_settings(plan_code)
+        allowed_types = plan_settings.get("allowed_alert_types", [])
+        max_regions = plan_settings.get("max_regions", 1)
+        
+        has_all = 'ALL' in allowed_types
+        effective_allowed = ALL_ALERT_TYPES if has_all else allowed_types
+        locked_types = [t for t in ALL_ALERT_TYPES if t not in effective_allowed]
+        
+        cursor.execute("""
+            SELECT id, alert_type, region, asset, enabled, created_at
+            FROM user_settings
+            WHERE user_id = %s
+            ORDER BY alert_type, region
+        """, (user_id,))
+        settings_rows = cursor.fetchall()
+        
+        cursor.execute("""
+            SELECT COUNT(DISTINCT region) as region_count
+            FROM user_settings
+            WHERE user_id = %s AND region IS NOT NULL AND enabled = TRUE
+        """, (user_id,))
+        region_count_row = cursor.fetchone()
+        current_region_count = region_count_row['region_count'] if region_count_row else 0
+        
+        user_settings_enabled = [s for s in settings_rows if s['enabled']]
+        has_user_settings = len(user_settings_enabled) > 0
+        
+        user_setting_filters = []
+        if has_user_settings:
+            for setting in user_settings_enabled:
+                if setting['alert_type'] in effective_allowed:
+                    user_setting_filters.append({
+                        'alert_type': setting['alert_type'],
+                        'region': setting['region'],
+                        'asset': setting['asset']
+                    })
+        
+        alerts = []
+        three_hours_ago = datetime.utcnow() - timedelta(hours=3)
+        
+        if effective_allowed:
+            cursor.execute("""
+                SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
+                       uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                       ae.severity, ae.headline as title, ae.body as message,
+                       uad.channel, uad.status, ae.created_at, uad.sent_at
+                FROM user_alert_deliveries uad
+                JOIN alert_events ae ON uad.alert_event_id = ae.id
+                WHERE uad.user_id = %s
+                  AND ae.alert_type = ANY(%s)
+                  AND uad.status = 'sent'
+                ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
+            """, (user_id, effective_allowed,))
+            delivered_alerts = cursor.fetchall()
+            
+            for row in delivered_alerts:
+                if has_user_settings:
+                    matches_setting = False
+                    for flt in user_setting_filters:
+                        type_match = row['alert_type'] == flt['alert_type']
+                        region_match = flt['region'] is None or row['region'] == flt['region']
+                        if type_match and region_match:
+                            matches_setting = True
+                            break
+                    if not matches_setting:
+                        continue
+                
+                assets_list = row['assets'] if row['assets'] else []
+                asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
+                is_latest = row['created_at'] and row['created_at'] > three_hours_ago
+                alerts.append({
+                    "id": row['id'],
+                    "alert_type": row['alert_type'],
+                    "region": row['region'],
+                    "asset": asset_str,
+                    "severity": row['severity'],
+                    "title": row['title'],
+                    "message": row['message'],
+                    "channel": row['channel'],
+                    "status": row['status'],
+                    "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                    "sent_at": row['sent_at'].isoformat() if row['sent_at'] else None,
+                    "is_latest": is_latest,
+                    "allowed_by_plan": True
+                })
+            
+            if not alerts:
+                cursor.execute("""
+                    SELECT id, alert_type, scope_region as region, scope_assets as assets,
+                           severity, headline as title, body as message, created_at
+                    FROM alert_events
+                    WHERE alert_type = ANY(%s)
+                      AND created_at > NOW() - INTERVAL '7 days'
+                    ORDER BY created_at DESC
+                    LIMIT %s
+                """, (effective_allowed, alerts_limit,))
+                available_alerts = cursor.fetchall()
+                
+                for row in available_alerts:
+                    if has_user_settings:
+                        matches_setting = False
+                        for flt in user_setting_filters:
+                            type_match = row['alert_type'] == flt['alert_type']
+                            region_match = flt['region'] is None or row['region'] == flt['region']
+                            if type_match and region_match:
+                                matches_setting = True
+                                break
+                        if not matches_setting:
+                            continue
+                    
+                    assets_list = row['assets'] if row['assets'] else []
+                    asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
+                    is_latest = row['created_at'] and row['created_at'] > three_hours_ago
+                    alerts.append({
+                        "id": row['id'],
+                        "alert_type": row['alert_type'],
+                        "region": row['region'],
+                        "asset": asset_str,
+                        "severity": row['severity'],
+                        "title": row['title'],
+                        "message": row['message'],
+                        "channel": None,
+                        "status": "available",
+                        "created_at": row['created_at'].isoformat() if row['created_at'] else None,
+                        "sent_at": None,
+                        "is_latest": is_latest,
+                        "allowed_by_plan": True
+                    })
+        
+        locked_samples = []
+        if locked_types:
+            cursor.execute("""
+                SELECT alert_type, scope_region as region, scope_assets as assets,
+                       severity, headline as title, body as message, created_at
+                FROM alert_events
+                WHERE alert_type = ANY(%s)
+                ORDER BY created_at DESC
+                LIMIT 3
+            """, (locked_types,))
+            sample_rows = cursor.fetchall()
+            
+            for row in sample_rows:
+                assets_list = row['assets'] if row['assets'] else []
+                asset_str = assets_list[0] if len(assets_list) == 1 else ', '.join(assets_list) if assets_list else None
+                locked_samples.append({
+                    "alert_type": row['alert_type'],
+                    "region": row['region'],
+                    "asset": asset_str,
+                    "severity": row['severity'],
+                    "title": row['title'],
+                    "message": row['message'][:100] + "..." if row['message'] and len(row['message']) > 100 else row['message'],
+                    "created_at": row['created_at'].isoformat() if row['created_at'] else None
+                })
+    
+    return {
+        "user": {
+            "id": user['id'],
+            "email": user['email'],
+            "telegram_chat_id": user['telegram_chat_id'],
+            "created_at": user['created_at'].isoformat() if user['created_at'] else None,
+            "plan": plan_code,
+            "plan_settings": {
+                "display_name": plan_settings.get("display_name", plan_code.title()),
+                "allowed_alert_types": plan_settings.get("allowed_alert_types", []),
+                "max_regions": max_regions,
+                "max_email_alerts_per_day": plan_settings.get("max_email_alerts_per_day", 2),
+                "delivery_config": plan_settings.get("delivery_config", {})
+            }
+        },
+        "alerts": {
+            "items": alerts[:alerts_limit],
+            "total": len(alerts),
+            "allowed_types": effective_allowed,
+            "locked_types": locked_types,
+            "locked_samples": locked_samples,
+            "has_user_settings": has_user_settings
+        },
+        "settings": {
+            "plan": plan_code,
+            "allowed_alert_types": effective_allowed,
+            "max_regions": max_regions,
+            "current_region_count": current_region_count,
+            "available_regions": AVAILABLE_REGIONS,
+            "items": [
+                {
+                    "id": s['id'],
+                    "alert_type": s['alert_type'],
+                    "region": s['region'],
+                    "asset": s['asset'],
+                    "enabled": s['enabled'],
+                    "created_at": s['created_at'].isoformat() if s['created_at'] else None
+                }
+                for s in settings_rows
+            ]
+        }
+    }
