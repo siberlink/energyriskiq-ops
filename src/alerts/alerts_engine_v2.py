@@ -213,10 +213,10 @@ def create_alert_event(
                    (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint, raw_input, classification, category, confidence)
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    ON CONFLICT (event_fingerprint) DO UPDATE SET
-                       raw_input = EXCLUDED.raw_input,
-                       classification = EXCLUDED.classification,
-                       category = EXCLUDED.category,
-                       confidence = EXCLUDED.confidence
+                       raw_input = COALESCE(alert_events.raw_input, EXCLUDED.raw_input),
+                       classification = COALESCE(alert_events.classification, EXCLUDED.classification),
+                       category = COALESCE(alert_events.category, EXCLUDED.category),
+                       confidence = COALESCE(alert_events.confidence, EXCLUDED.confidence)
                    RETURNING id""",
                 (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint, raw_input_json, classification_json, category, confidence)
             )
