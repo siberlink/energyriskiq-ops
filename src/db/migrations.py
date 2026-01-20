@@ -77,6 +77,45 @@ PLAN_SETTINGS_SEED = [
     }
 ]
 
+SOURCES_SEED = [
+    # Tier 1 - EU & Policy / Regulation
+    {"name": "European Commission – Energy", "feed_url": "https://ec.europa.eu/energy/rss.xml", "category": "energy", "region": "Europe", "signal_type": "regulation", "weight": 1.0, "is_active": True},
+    {"name": "Council of the EU – Sanctions", "feed_url": "https://www.consilium.europa.eu/en/press/rss/", "category": "geopolitical", "region": "Europe", "signal_type": "policy", "weight": 1.0, "is_active": True},
+    {"name": "ACER (EU Energy Regulator)", "feed_url": "https://acer.europa.eu/rss.xml", "category": "energy", "region": "Europe", "signal_type": "regulation", "weight": 1.0, "is_active": True},
+    {"name": "ENTSO-E News", "feed_url": "https://www.entsoe.eu/news/rss/", "category": "energy", "region": "Europe", "signal_type": "infrastructure", "weight": 0.9, "is_active": True},
+    
+    # Tier 1 - Commodity & Market Intelligence
+    {"name": "S&P Global Platts", "feed_url": "https://www.spglobal.com/platts/en/rss", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.9, "is_active": True},
+    {"name": "Argus Media", "feed_url": "https://www.argusmedia.com/en/rss", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.9, "is_active": True},
+    {"name": "EIA (US Energy Info Admin)", "feed_url": "https://www.eia.gov/rss/", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.9, "is_active": True},
+    
+    # Tier 2 - Geopolitics, Conflict & Sanctions
+    {"name": "Al Jazeera News", "feed_url": "https://www.aljazeera.com/xml/rss/all.xml", "category": "geopolitical", "region": "Global", "signal_type": "conflict", "weight": 0.7, "is_active": True},
+    {"name": "Reuters Energy", "feed_url": "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best&best-sectors=commodities-energy", "category": "energy", "region": "Global", "signal_type": "market", "weight": 1.0, "is_active": True},
+    {"name": "Financial Times – Energy", "feed_url": "https://www.ft.com/rss/energy", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.9, "is_active": True},
+    {"name": "Politico Europe – Energy", "feed_url": "https://www.politico.eu/feed/", "category": "geopolitical", "region": "Europe", "signal_type": "policy", "weight": 0.8, "is_active": True},
+    {"name": "Institute for the Study of War (ISW)", "feed_url": "https://www.understandingwar.org/rss.xml", "category": "geopolitical", "region": "Global", "signal_type": "conflict", "weight": 0.9, "is_active": True},
+    {"name": "ReliefWeb (UN Crisis Feed)", "feed_url": "https://reliefweb.int/rss.xml", "category": "geopolitical", "region": "Global", "signal_type": "conflict", "weight": 0.8, "is_active": True},
+    {"name": "NATO News", "feed_url": "https://www.nato.int/cps/en/natohq/rss.htm", "category": "geopolitical", "region": "Global", "signal_type": "policy", "weight": 0.9, "is_active": True},
+    
+    # Tier 3 - LNG, Shipping, Logistics
+    {"name": "FreightWaves", "feed_url": "https://www.freightwaves.com/news/feed", "category": "supply_chain", "region": "Global", "signal_type": "shipping", "weight": 0.8, "is_active": True},
+    {"name": "gCaptain (Maritime)", "feed_url": "https://gcaptain.com/feed/", "category": "supply_chain", "region": "Global", "signal_type": "shipping", "weight": 0.7, "is_active": True},
+    {"name": "Lloyd's List", "feed_url": "https://lloydslist.maritimeintelligence.informa.com/rss", "category": "supply_chain", "region": "Global", "signal_type": "shipping", "weight": 0.9, "is_active": True},
+    {"name": "Splash247", "feed_url": "https://splash247.com/feed/", "category": "supply_chain", "region": "Global", "signal_type": "shipping", "weight": 0.7, "is_active": True},
+    {"name": "Port Strategy", "feed_url": "https://www.portstrategy.com/rss", "category": "supply_chain", "region": "Global", "signal_type": "shipping", "weight": 0.7, "is_active": True},
+    
+    # Tier 4 - Power Markets & Renewables
+    {"name": "OilPrice.com", "feed_url": "https://oilprice.com/rss/main", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.7, "is_active": True},
+    {"name": "Energy Live News", "feed_url": "https://www.energylivenews.com/feed/", "category": "energy", "region": "Europe", "signal_type": "market", "weight": 0.7, "is_active": True},
+    {"name": "Renewables Now Europe", "feed_url": "https://renewablesnow.com/news/feed/", "category": "energy", "region": "Europe", "signal_type": "market", "weight": 0.7, "is_active": True},
+    {"name": "Power Technology", "feed_url": "https://www.power-technology.com/feed/", "category": "energy", "region": "Europe", "signal_type": "infrastructure", "weight": 0.7, "is_active": True},
+    {"name": "Euractiv Energy", "feed_url": "https://www.euractiv.com/sections/energy/feed/", "category": "energy", "region": "Europe", "signal_type": "policy", "weight": 0.8, "is_active": True},
+    {"name": "Montel News", "feed_url": "https://www.montelnews.com/en/rss", "category": "energy", "region": "Europe", "signal_type": "market", "weight": 0.8, "is_active": True},
+    {"name": "ICIS Energy", "feed_url": "https://www.icis.com/explore/rss/", "category": "energy", "region": "Europe", "signal_type": "market", "weight": 0.8, "is_active": True},
+    {"name": "Ember Climate", "feed_url": "https://ember-climate.org/feed/", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.7, "is_active": True},
+]
+
 
 def seed_plan_settings():
     logger.info("Seeding plan_settings table...")
@@ -927,6 +966,67 @@ def run_billing_migration():
     logger.info("Billing migration complete.")
 
 
+def run_sources_migration():
+    """Create sources registry table for RSS feed management."""
+    logger.info("Running sources registry migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS sources (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                feed_url TEXT NOT NULL UNIQUE,
+                category TEXT NOT NULL CHECK (category IN ('geopolitical', 'energy', 'supply_chain')),
+                region TEXT NOT NULL,
+                signal_type TEXT NOT NULL CHECK (signal_type IN ('policy', 'market', 'conflict', 'infrastructure', 'shipping', 'regulation')),
+                weight NUMERIC(3, 2) NOT NULL DEFAULT 0.5 CHECK (weight >= 0 AND weight <= 1),
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                last_fetched_at TIMESTAMP,
+                fetch_error_count INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sources_category ON sources(category);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sources_region ON sources(region);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sources_signal_type ON sources(signal_type);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sources_is_active ON sources(is_active);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sources_weight ON sources(weight DESC);")
+    
+    logger.info("Sources registry table created.")
+    
+    # Seed sources
+    logger.info("Seeding sources registry...")
+    with get_cursor() as cursor:
+        for source in SOURCES_SEED:
+            cursor.execute(
+                """
+                INSERT INTO sources (name, feed_url, category, region, signal_type, weight, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (feed_url) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    category = EXCLUDED.category,
+                    region = EXCLUDED.region,
+                    signal_type = EXCLUDED.signal_type,
+                    weight = EXCLUDED.weight,
+                    is_active = EXCLUDED.is_active,
+                    updated_at = NOW()
+                """,
+                (
+                    source["name"],
+                    source["feed_url"],
+                    source["category"],
+                    source["region"],
+                    source["signal_type"],
+                    source["weight"],
+                    source["is_active"]
+                )
+            )
+    
+    logger.info(f"Seeded {len(SOURCES_SEED)} sources.")
+
+
 def run_seo_tables_migration():
     """Create tables for SEO daily pages system."""
     logger.info("Running SEO tables migration...")
@@ -970,3 +1070,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
     run_seo_tables_migration()
+    run_sources_migration()

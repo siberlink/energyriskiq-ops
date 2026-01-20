@@ -1,0 +1,160 @@
+🏛 EU & Policy / Regulation (very important for your EU audience)
+Source	Feed	Category
+European Commission – Energy	https://ec.europa.eu/energy/rss.xml
+	Regulation / Energy
+Council of the EU – Sanctions	https://www.consilium.europa.eu/en/press/rss/
+	Sanctions / Policy
+ACER (EU Energy Regulator)	https://acer.europa.eu/rss.xml
+	Regulation / Markets
+ENTSO-E News	https://www.entsoe.eu/news/rss/
+	Grid / Power Risk
+
+These are gold for regulatory alerts, market interventions, price caps, emergency measures.
+
+🛢 Commodity & Market Intelligence (Traders love this)
+Source	Feed	Category
+Bloomberg Energy	(no official free RSS – optional scraping later)	Markets
+S&P Global Platts	https://www.spglobal.com/platts/en/rss
+	Oil / Gas
+Argus Media	https://www.argusmedia.com/en/rss
+	Commodities
+EIA (US Energy Info Admin)	https://www.eia.gov/rss/
+	Energy Data
+
+These give you:
+
+OPEC signals
+
+Supply disruptions
+
+Inventory changes
+
+LNG flows
+
+Perfect for price-impact scoring later.
+
+🔴 Tier 2 – Geopolitics, Conflict & Sanctions (Very Important for “Risk IQ” branding)
+
+Right now you only have Al Jazeera + Reuters.
+
+Add:
+
+Source	Feed	Category
+Financial Times – Energy	https://www.ft.com/rss/energy
+	Markets / Energy
+Politico Europe – Energy	https://www.politico.eu/feed/
+	Policy / Geopolitics
+Institute for the Study of War (ISW)	https://www.understandingwar.org/rss.xml
+	Conflict
+ReliefWeb (UN Crisis Feed)	https://reliefweb.int/rss.xml
+	Crisis / Conflict
+NATO News	https://www.nato.int/cps/en/natohq/rss.htm
+	Security
+
+These massively improve:
+
+War escalation detection
+
+Sanctions / shipping risks
+
+Pipeline / infrastructure threats
+
+🟡 Tier 3 – LNG, Shipping, Logistics (Very valuable for supply-chain users)
+
+Since you already have FreightWaves (good choice 👌), add:
+
+Source	Feed	Category
+gCaptain (Maritime)	https://gcaptain.com/feed/
+	Shipping
+Lloyd’s List	https://lloydslist.maritimeintelligence.informa.com/rss
+	Shipping Risk
+Splash247	https://splash247.com/feed/
+	Shipping
+Port Strategy	https://www.portstrategy.com/rss
+	Ports
+
+Perfect for:
+
+Red Sea / Suez risk
+
+LNG tanker disruptions
+
+Port closures
+
+🟢 Tier 4 – Power Markets & Renewables (Complements your Europe focus)
+
+You already have good coverage here. You can add:
+
+Source	Feed
+Montel News	https://www.montelnews.com/en/rss
+
+ICIS Energy	https://www.icis.com/explore/rss/
+
+Ember Climate	https://ember-climate.org/feed/
+🧠 Strategic Advice (Very Important for Your Architecture)
+
+This is where EnergyRiskIQ can become much stronger than a simple news aggregator.
+
+1️⃣ Tag each source by “Signal Type”
+
+In your ingestion DB, add:
+
+signal_type:
+
+policy
+
+market
+
+conflict
+
+infrastructure
+
+shipping
+
+regulation
+
+This later enables:
+
+Risk scoring by signal class
+
+User alert filters by risk type
+
+2️⃣ Weight Sources by Credibility & Impact
+
+Example:
+
+Source	Weight
+Reuters	1.0 (highest)
+EU Commission	1.0
+S&P Platts	0.9
+Al Jazeera	0.7
+Blogs / niche	0.4–0.6
+
+Later your AI can compute:
+
+Risk Score = Impact × Source Weight × Topic Sensitivity
+
+
+This is exactly what institutional platforms do.
+
+3️⃣ Region Coverage Gaps (Important)
+
+Right now you are weak in:
+
+🇷🇺 Russia / Ukraine official feeds
+
+🇨🇳 China energy policy
+
+🇲🇪 Middle East oil ministries
+
+You may later add:
+
+Russian Energy Ministry (English RSS if available)
+
+China NDRC Energy news
+
+Saudi Aramco news feed
+
+QatarEnergy press feed
+
+These are extremely valuable for traders.

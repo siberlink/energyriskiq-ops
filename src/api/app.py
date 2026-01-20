@@ -21,7 +21,7 @@ from src.api.ops_routes import router as ops_router
 from src.api.telegram_routes import router as telegram_router
 from src.api.seo_routes import router as seo_router
 from src.billing.billing_routes import router as billing_router
-from src.db.migrations import run_migrations, run_seo_tables_migration
+from src.db.migrations import run_migrations, run_seo_tables_migration, run_sources_migration
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -113,6 +113,7 @@ async def startup_event():
     try:
         run_migrations()
         run_seo_tables_migration()
+        run_sources_migration()
         logger.info("Database migrations completed")
     except Exception as e:
         logger.error(f"Failed to run migrations: {e}")
