@@ -2,7 +2,7 @@ name: SEO Daily Page Generator
 
 on:
   schedule:
-    - cron: '30 21 * * *'  # 21:30 AM UTC daily
+    - cron: '30 01 * * *'  # 01:30 AM UTC daily
   workflow_dispatch:
     inputs:
       date:
