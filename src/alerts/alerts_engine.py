@@ -277,7 +277,11 @@ def create_alert_event_and_delivery(user_id: int, alert_type: str, region: str, 
                (alert_type, scope_region, scope_assets, severity, headline, body, 
                 driver_event_ids, cooldown_key, event_fingerprint, raw_input, classification, category, confidence)
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-               ON CONFLICT (cooldown_key) DO UPDATE SET updated_at = NOW()
+               ON CONFLICT (cooldown_key) DO UPDATE SET 
+                   raw_input = EXCLUDED.raw_input,
+                   classification = EXCLUDED.classification,
+                   category = EXCLUDED.category,
+                   confidence = EXCLUDED.confidence
                RETURNING id""",
             (alert_type, region, [asset] if asset else [], severity, title, message,
              driver_event_ids, global_cooldown_key, fingerprint, 
