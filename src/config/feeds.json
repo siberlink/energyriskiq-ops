@@ -1,46 +1,70 @@
 [
   {
-    "source_name": "Al Jazeera News",
-    "feed_url": "https://www.aljazeera.com/xml/rss/all.xml",
-    "category_hint": "geopolitical"
+    "source_name": "European Commission – Energy",
+    "feed_url": "https://ec.europa.eu/commission/presscorner/api/rss?topic=ener",
+    "category_hint": "energy",
+    "region_hint": "Europe",
+    "signal_type": "regulation",
+    "weight": 1.0
   },
   {
-    "source_name": "OilPrice.com",
-    "feed_url": "https://oilprice.com/rss/main",
-    "category_hint": "energy"
+    "source_name": "Reuters Energy",
+    "feed_url": "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best&best-sectors=commodities-energy",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 1.0
+  },
+  {
+    "source_name": "EIA (US Energy Info Admin)",
+    "feed_url": "https://www.eia.gov/rss/todayinenergy.xml",
+    "category_hint": "energy",
+    "region_hint": "North America",
+    "signal_type": "market",
+    "weight": 0.9
+  },
+  {
+    "source_name": "Politico Europe",
+    "feed_url": "https://www.politico.eu/feed/",
+    "category_hint": "geopolitical",
+    "region_hint": "Europe",
+    "signal_type": "policy",
+    "weight": 0.8
   },
   {
     "source_name": "FreightWaves",
     "feed_url": "https://www.freightwaves.com/news/feed",
-    "category_hint": "supply_chain"
+    "category_hint": "supply_chain",
+    "signal_type": "shipping",
+    "weight": 0.8
+  },
+  {
+    "source_name": "Al Jazeera News",
+    "feed_url": "https://www.aljazeera.com/xml/rss/all.xml",
+    "category_hint": "geopolitical",
+    "signal_type": "conflict",
+    "weight": 0.7
+  },
+  {
+    "source_name": "OilPrice.com",
+    "feed_url": "https://oilprice.com/rss/main",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 0.7
   },
   {
     "source_name": "Energy Live News",
     "feed_url": "https://www.energylivenews.com/feed/",
     "category_hint": "energy",
-    "region_hint": "Europe"
-  },
-  {
-    "source_name": "Renewables Now Europe",
-    "feed_url": "https://renewablesnow.com/news/feed/",
-    "category_hint": "energy",
-    "region_hint": "Europe"
+    "region_hint": "Europe",
+    "signal_type": "market",
+    "weight": 0.7
   },
   {
     "source_name": "Power Technology",
     "feed_url": "https://www.power-technology.com/feed/",
     "category_hint": "energy",
-    "region_hint": "Europe"
-  },
-  {
-    "source_name": "Euractiv Energy",
-    "feed_url": "https://www.euractiv.com/sections/energy/feed/",
-    "category_hint": "energy",
-    "region_hint": "Europe"
-  },
-  {
-    "source_name": "Reuters Energy",
-    "feed_url": "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best&best-sectors=commodities-energy",
-    "category_hint": "energy"
+    "region_hint": "Europe",
+    "signal_type": "infrastructure",
+    "weight": 0.7
   }
 ]

@@ -1,8 +1,9 @@
 import logging
 import os
 import sys
+import re
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Set
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -20,6 +21,14 @@ logger = logging.getLogger(__name__)
 INSERT_SUCCESS = "inserted"
 INSERT_DUPLICATE = "duplicate"
 INSERT_FAILED = "failed"
+INSERT_DEDUPE = "dedupe"
+
+def normalize_title(title: str) -> str:
+    """Normalize title for deduplication: lowercase, strip punctuation, collapse whitespace."""
+    title = title.lower().strip()
+    title = re.sub(r'[^\w\s]', '', title)
+    title = re.sub(r'\s+', ' ', title)
+    return title
 
 def start_ingestion_run() -> int:
     result = execute_one(
@@ -85,26 +94,39 @@ def run_ingestion():
     
     inserted_count = 0
     skipped_count = 0
+    dedupe_count = 0
     error_count = 0
     total_count = 0
+    
+    seen_titles: Set[str] = set()
     
     try:
         events = fetch_all_feeds()
         total_count = len(events)
         
-        for event in events:
+        events_sorted = sorted(events, key=lambda e: e.get('weight', 0.5), reverse=True)
+        
+        for event in events_sorted:
             try:
-                category, region, severity, classification_reason = classify_event(
+                normalized = normalize_title(event['title'])
+                if normalized in seen_titles:
+                    dedupe_count += 1
+                    logger.debug(f"Dedupe: {event['title'][:50]}... (similar title already processed)")
+                    continue
+                seen_titles.add(normalized)
+                
+                category, region, severity, classification_reason, confidence = classify_event(
                     event['title'], 
                     event.get('raw_text', ''),
-                    event.get('category_hint')
+                    event.get('category_hint'),
+                    event.get('signal_type')
                 )
                 
                 status, message = insert_event(event, category, region, severity, classification_reason)
                 
                 if status == INSERT_SUCCESS:
                     inserted_count += 1
-                    logger.debug(f"Inserted: {event['title'][:50]}... ({category}, {region}, sev={severity})")
+                    logger.debug(f"Inserted: {event['title'][:50]}... ({category}, {region}, sev={severity}, conf={confidence:.2f})")
                 elif status == INSERT_DUPLICATE:
                     skipped_count += 1
                     logger.debug(f"Skipped: {event['title'][:50]}... - {message}")
@@ -116,17 +138,17 @@ def run_ingestion():
                 error_count += 1
                 logger.error(f"Error processing event '{event.get('title', 'Unknown')}': {e}")
         
-        finish_ingestion_run(run_id, 'success', total_count, inserted_count, skipped_count, error_count)
+        finish_ingestion_run(run_id, 'success', total_count, inserted_count, skipped_count + dedupe_count, error_count)
         
         logger.info("=" * 60)
-        logger.info(f"Ingestion Complete: Total={total_count}, Inserted={inserted_count}, Skipped={skipped_count}, Failed={error_count}")
+        logger.info(f"Ingestion Complete: Total={total_count}, Inserted={inserted_count}, DB-Skipped={skipped_count}, Dedupe={dedupe_count}, Failed={error_count}")
         logger.info("=" * 60)
         
-        return inserted_count, skipped_count, error_count
+        return inserted_count, skipped_count + dedupe_count, error_count
     
     except Exception as e:
         logger.error(f"Ingestion run failed: {e}")
-        finish_ingestion_run(run_id, 'failed', total_count, inserted_count, skipped_count, error_count)
+        finish_ingestion_run(run_id, 'failed', total_count, inserted_count, skipped_count + dedupe_count, error_count)
         raise
 
 if __name__ == "__main__":

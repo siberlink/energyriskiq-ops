@@ -52,22 +52,31 @@ def extract_raw_text(entry: Dict) -> Optional[str]:
     
     return None
 
-def fetch_feed(feed_config: Dict[str, str]) -> List[Dict[str, Any]]:
+def fetch_feed(feed_config: Dict[str, Any]) -> List[Dict[str, Any]]:
     source_name = feed_config.get('source_name', 'Unknown')
     feed_url = feed_config.get('feed_url')
     category_hint = feed_config.get('category_hint')
+    signal_type = feed_config.get('signal_type')
+    weight = feed_config.get('weight', 0.5)
+    region_hint = feed_config.get('region_hint')
     
     if not feed_url:
         logger.error(f"No feed_url for source: {source_name}")
         return []
     
-    logger.info(f"Fetching feed: {source_name} from {feed_url}")
+    logger.info(f"Fetching feed: {source_name} (weight={weight}) from {feed_url}")
     
     try:
         user_agent = os.environ.get('INGESTION_USER_AGENT', 
                                      'EnergyRiskIQ/1.0 (+https://energyriskiq.com)')
         
-        feed = feedparser.parse(feed_url, agent=user_agent)
+        import socket
+        old_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(15)
+        try:
+            feed = feedparser.parse(feed_url, agent=user_agent)
+        finally:
+            socket.setdefaulttimeout(old_timeout)
         
         if feed.bozo and feed.bozo_exception:
             logger.warning(f"Feed parsing warning for {source_name}: {feed.bozo_exception}")
@@ -91,7 +100,10 @@ def fetch_feed(feed_config: Dict[str, str]) -> List[Dict[str, Any]]:
                 'source_url': link,
                 'event_time': parse_published_date(entry),
                 'raw_text': extract_raw_text(entry),
-                'category_hint': category_hint
+                'category_hint': category_hint,
+                'signal_type': signal_type,
+                'weight': weight,
+                'region_hint': region_hint
             }
             events.append(event)
         
