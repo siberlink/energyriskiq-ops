@@ -240,13 +240,17 @@ def create_digest_alert_event(region: str, subject: str, body: str, date_str: st
                 """INSERT INTO alert_events 
                    (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint, raw_input, classification, category, confidence)
                    VALUES ('DAILY_DIGEST', %s, '{}', 2, %s, %s, NULL, %s, %s, %s, %s, %s, %s)
-                   ON CONFLICT (cooldown_key) DO NOTHING
+                   ON CONFLICT (cooldown_key) DO UPDATE SET
+                       raw_input = COALESCE(alert_events.raw_input, EXCLUDED.raw_input),
+                       classification = COALESCE(alert_events.classification, EXCLUDED.classification),
+                       category = COALESCE(alert_events.category, EXCLUDED.category),
+                       confidence = COALESCE(alert_events.confidence, EXCLUDED.confidence)
                    RETURNING id""",
                 (region, subject, body, cooldown_key, fingerprint, json.dumps(raw_input_data, default=safe_json_serializer), json.dumps(classification_data, default=safe_json_serializer), 'digest', 0.9)
             )
             result = cursor.fetchone()
             if result:
-                logger.info(f"Created digest alert_event {result['id']} for {region}")
+                logger.info(f"Created/updated digest alert_event {result['id']} for {region}")
                 return result['id']
             else:
                 cursor.execute(
