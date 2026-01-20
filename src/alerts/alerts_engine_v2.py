@@ -212,16 +212,20 @@ def create_alert_event(
                 """INSERT INTO alert_events 
                    (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint, raw_input, classification, category, confidence)
                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                   ON CONFLICT (event_fingerprint) DO NOTHING
+                   ON CONFLICT (event_fingerprint) DO UPDATE SET
+                       raw_input = EXCLUDED.raw_input,
+                       classification = EXCLUDED.classification,
+                       category = EXCLUDED.category,
+                       confidence = EXCLUDED.confidence
                    RETURNING id""",
                 (alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, event_fingerprint, raw_input_json, classification_json, category, confidence)
             )
             result = cursor.fetchone()
             if result:
-                logger.info(f"Created alert_event {result['id']}: {alert_type} - {headline[:50]} (category={category}, confidence={confidence})")
+                logger.info(f"Created/updated alert_event {result['id']}: {alert_type} - {headline[:50]} (category={category}, confidence={confidence})")
                 return result['id'], False
             else:
-                logger.debug(f"Alert event already exists (fingerprint): {event_fingerprint}")
+                logger.debug(f"Alert event conflict without id return: {event_fingerprint}")
                 return None, True
     except Exception as e:
         logger.error(f"Error creating alert event: {e}")
