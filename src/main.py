@@ -55,6 +55,21 @@ def main():
         from src.alerts.digest_worker import run_digest_worker
         run_digest_worker()
     
+    elif args.mode == 'geri':
+        from src.geri.service import compute_yesterday
+        from src.geri import ENABLE_GERI
+        from datetime import date, timedelta
+        if not ENABLE_GERI:
+            logger.warning("GERI module is disabled (ENABLE_GERI=false)")
+        else:
+            yesterday = date.today() - timedelta(days=1)
+            logger.info(f"Computing GERI index for yesterday: {yesterday}")
+            result = compute_yesterday()
+            if result:
+                logger.info(f"GERI computed: value={result.value}, band={result.band.value}")
+            else:
+                logger.info("GERI computation skipped (already exists or no data)")
+    
     elif args.mode == 'migrate_plans':
         from src.db.migrations import ensure_user_plans_table
         from src.plans.plan_helpers import migrate_user_plans
