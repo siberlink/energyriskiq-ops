@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description='EnergyRiskIQ Pipeline')
-    parser.add_argument('--mode', choices=['api', 'ingest', 'ai', 'risk', 'alerts', 'digest', 'migrate_plans'], default='api',
-                        help='Run mode: api (start server), ingest (run ingestion), ai (run AI processing), risk (run risk scoring), alerts (run alerts engine), digest (run daily digest), migrate_plans (migrate user plans)')
+    parser.add_argument('--mode', choices=['api', 'ingest', 'ai', 'risk', 'alerts', 'digest', 'geri', 'migrate_plans'], default='api',
+                        help='Run mode: api (start server), ingest (run ingestion), ai (run AI processing), risk (run risk scoring), alerts (run alerts engine), digest (run daily digest), geri (compute daily GERI index), migrate_plans (migrate user plans)')
     
     args = parser.parse_args()
     
