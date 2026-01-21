@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from src.geri import ENABLE_GERI
 from src.geri.repo import get_latest_index, get_index_history, get_index_for_date
-from src.geri.service import compute_geri_for_date, backfill, auto_backfill
+from src.geri.service import compute_geri_for_date, compute_yesterday, backfill, auto_backfill
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +153,44 @@ async def compute_geri(request: ComputeRequest):
             }
     except Exception as e:
         logger.error(f"Error computing GERI for {target_date}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to compute GERI: {str(e)}"
+        )
+
+
+@router.post("/geri/compute-yesterday")
+async def compute_geri_yesterday():
+    """
+    Compute GERI index for yesterday (scheduler endpoint).
+    
+    Called by GitHub Actions workflow at 01:10 UTC daily.
+    """
+    check_enabled()
+    
+    from datetime import timedelta
+    yesterday = date.today() - timedelta(days=1)
+    
+    try:
+        result = compute_yesterday()
+        
+        if result:
+            return {
+                'success': True,
+                'message': f"GERI index computed for {yesterday}",
+                'date': yesterday.isoformat(),
+                'value': result.value,
+                'band': result.band.value,
+            }
+        else:
+            return {
+                'success': True,
+                'skipped': True,
+                'message': f"GERI index for {yesterday} already exists or no data",
+                'date': yesterday.isoformat(),
+            }
+    except Exception as e:
+        logger.error(f"Error computing GERI for yesterday: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to compute GERI: {str(e)}"
