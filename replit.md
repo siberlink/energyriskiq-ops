@@ -23,7 +23,8 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **User & Plan Management:** Features user signup, verification, password/PIN setup, and assigns subscription tiers based on `plan_settings`.
 - **API:** A FastAPI application serves as the primary interface for events, risk intelligence, alerts, marketing content, and internal operations.
 - **SEO Growth System:** Generates SEO-optimized daily alert pages with a 24-hour delay for organic traffic acquisition, including dynamic sitemaps and rich meta-data.
-- **Billing & Subscription:** Integrates with Stripe for subscription management, plan upgrades/downgrades, and webhook handling for payment events.
+- **Billing & Subscription:** Integrates with Stripe for subscription management, plan upgrades/dowgrades, and webhook handling for payment events.
+- **GERI v1 (Global Energy Risk Index):** Encapsulated module that computes daily risk indices from alert data. Controlled by `ENABLE_GERI` feature flag. Reads from `alert_events` (INPUT) and writes to `intel_indices_daily` (OUTPUT). Formula: 0.40*high_impact + 0.25*regional_spike + 0.20*asset_risk + 0.15*region_concentration. Risk bands: LOW (0-25), MODERATE (26-50), ELEVATED (51-75), CRITICAL (76-100). Uses 90-day rolling baseline for normalization with fallback values when <14 days history.
 
 **System Design Choices:**
 - **Database:** PostgreSQL is used for persistence, with a structured schema for all core data.
