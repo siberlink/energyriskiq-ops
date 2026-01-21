@@ -38,8 +38,8 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
         id,
         alert_type,
         severity,
-        risk_score,
-        region,
+        confidence as risk_score,
+        scope_region as region,
         1.0 as weight,
         created_at
     FROM alert_events
