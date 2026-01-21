@@ -55,13 +55,17 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
         rows = cursor.fetchall()
         
         for row in rows:
+            risk_score_val = row['risk_score']
+            if risk_score_val is not None:
+                risk_score_val = float(risk_score_val)
+            
             alerts.append(AlertRecord(
                 id=row['id'],
                 alert_type=row['alert_type'],
                 severity=row['severity'],
-                risk_score=row['risk_score'],
+                risk_score=risk_score_val,
                 region=row['region'],
-                weight=row['weight'] if row['weight'] else 1.0,
+                weight=float(row['weight']) if row['weight'] else 1.0,
                 created_at=row['created_at'],
             ))
     
