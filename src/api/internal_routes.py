@@ -358,3 +358,27 @@ def run_seo_generator(
     results['sitemap_entries'] = len(entries)
     
     return results
+
+
+@router.post("/backfill-alert-metadata")
+async def backfill_alert_metadata_endpoint(
+    dry_run: bool = False,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill raw_input, classification, category, and confidence
+    for alert_events with NULL values.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.alerts.backfill_metadata import backfill_alert_metadata
+    
+    try:
+        summary = backfill_alert_metadata(dry_run=dry_run)
+        return {
+            "status": "success",
+            "summary": summary
+        }
+    except Exception as e:
+        logger.error(f"Error during alert metadata backfill: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
