@@ -1,0 +1,26 @@
+name: Daily GERI Computation
+
+on:
+  schedule:
+    - cron: '10 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  compute-geri:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute GERI for yesterday
+        run: |
+          echo "Computing GERI index for yesterday..."
+          response=$(curl -s -X POST "https://energy-risk-iq--emilsiberlink.replit.app/api/v1/indices/geri/compute-yesterday" \
+            -H "Content-Type: application/json")
+          echo "Response: $response"
+          
+          if echo "$response" | grep -q '"success":true'; then
+            echo "GERI computation successful"
+          elif echo "$response" | grep -q '"skipped":true'; then
+            echo "GERI computation skipped (already exists)"
+          else
+            echo "GERI computation may have failed"
+            exit 1
+          fi
