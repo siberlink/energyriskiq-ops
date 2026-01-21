@@ -64,6 +64,7 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
     
     region_risk_totals: Dict[str, float] = defaultdict(float)
     severity_sum = 0.0
+    alert_scores: List[Dict[str, Any]] = []
     
     for alert in alerts:
         severity = get_effective_severity(alert)
@@ -73,6 +74,15 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
         
         severity_sum += severity
         region_risk_totals[region] += risk_score
+        
+        if alert.headline:
+            alert_scores.append({
+                'headline': alert.headline,
+                'alert_type': alert.alert_type,
+                'severity': severity,
+                'risk_score': risk_score,
+                'region': region,
+            })
         
         if alert.alert_type == 'HIGH_IMPACT_EVENT':
             components.high_impact_events += 1
@@ -107,5 +117,13 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
             max_region_risk = sorted_regions[0][1]
             components.top_region_weight = max_region_risk / total_risk
             components.region_concentration_score_raw = components.top_region_weight * 100
+    
+    if alert_scores:
+        sorted_alerts = sorted(
+            alert_scores,
+            key=lambda x: (x['severity'], x['risk_score']),
+            reverse=True
+        )
+        components.top_drivers = sorted_alerts[:5]
     
     return components
