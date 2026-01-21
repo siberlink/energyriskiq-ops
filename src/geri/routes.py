@@ -300,7 +300,15 @@ async def get_geri_public():
     top_drivers = components.get('top_drivers', [])
     top_regions = components.get('top_regions', [])
     
-    driver_headlines = [d.get('headline', '') for d in top_drivers[:5] if d.get('headline')]
+    # Deduplicate headlines (stored data may have duplicates)
+    seen = set()
+    driver_headlines = []
+    for d in top_drivers:
+        headline = d.get('headline', '')
+        if headline and headline not in seen:
+            seen.add(headline)
+            driver_headlines.append(headline)
+    
     region_names = [r.get('region', '') for r in top_regions[:3] if r.get('region')]
     
     index_date = result.get('date')
