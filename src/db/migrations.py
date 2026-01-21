@@ -1066,8 +1066,43 @@ def run_seo_tables_migration():
     logger.info("SEO tables migration complete.")
 
 
+def run_geri_migration():
+    """Create intel_indices_daily table for GERI module."""
+    logger.info("Running GERI tables migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS intel_indices_daily (
+                id SERIAL PRIMARY KEY,
+                index_id TEXT NOT NULL,
+                date DATE NOT NULL,
+                value INT NOT NULL,
+                band TEXT NOT NULL,
+                trend_1d INT,
+                trend_7d INT,
+                components JSONB NOT NULL,
+                model_version TEXT NOT NULL,
+                computed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(index_id, date)
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_intel_indices_daily_lookup 
+            ON intel_indices_daily(index_id, date DESC);
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_intel_indices_daily_date 
+            ON intel_indices_daily(date DESC);
+        """)
+    
+    logger.info("GERI tables migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
     run_seo_tables_migration()
     run_sources_migration()
+    run_geri_migration()

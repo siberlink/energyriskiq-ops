@@ -1,0 +1,264 @@
+# MASTER PROMPT — Build “GERI v1” as an Encapsulated Module (READ alert_events, WRITE ONLY intel_indices_daily)
+You are Replit AI working inside the existing EnergyRiskIQ codebase.
+
+## 🚫 Non-Negotiables (Isolation / No Side Effects)
+- Implement GERI v1 as a **self-contained module** that does **NOT** change existing alert generation, ingestion, scoring, or UI behavior.
+- IMPORTANT: `alert_events` is an **INPUT-ONLY** table for this module.
+  - You MUST ONLY **READ** from `alert_events`.
+  - You MUST NOT write any GERI values to `alert_events`.
+  - You MUST NOT alter, migrate, or add columns to `alert_events`.
+- You MAY add exactly ONE new table for indices storage:
+  - `intel_indices_daily` (or equivalent, but prefer this name).
+- You MAY add:
+  - new API endpoints under a new route prefix: `/api/v1/indices/...`
+  - a new scheduled job and/or CLI commands for compute/backfill
+- Add a feature flag env var to enable/disable the entire module:
+  - `ENABLE_GERI=true|false` (default false)
+- The module must be testable in isolation.
+
+If anything is unclear, make reasonable assumptions and proceed—do not ask me questions.
+
+---
+
+## 🎯 Goal
+Build **GERI v1** — a daily index (0–100) summarizing global geopolitical + energy risk computed from alerts stored in `alert_events`.
+
+This module must:
+1) Create and manage its own DB table: `intel_indices_daily` (GERI values are stored ONLY here)
+2) Compute index values from `alert_events` for:
+   - yesterday UTC (scheduled mode)
+   - any historical date range (backfill mode) to process the existing ~162 alerts
+3) Store daily values + components JSON for auditability
+4) Provide API endpoints to retrieve latest + history
+5) Provide CLI commands to compute and backfill safely
+6) Include unit tests for core computations (pure functions)
+
+---
+
+## ✅ Data Contract (READ INPUTS)
+### Alerts Source Table (INPUT ONLY)
+Read alerts from:
+- Table: **`alert_events`**
+
+Include only these types:
+- `HIGH_IMPACT_EVENT`
+- `REGIONAL_RISK_SPIKE`
+- `ASSET_RISK_ALERT`
+
+Filter by UTC date window:
+- `created_at >= start_of_day_utc`
+- `created_at < start_of_next_day_utc`
+
+If the timestamp column differs, adapt ONLY in the repository layer.
+
+---
+
+## ✅ Output Contract (WRITE OUTPUTS)
+### Indices Storage Table (OUTPUT ONLY)
+You MUST store computed GERI results in:
+- Table: **`intel_indices_daily`**
+- Do not store results anywhere else.
+
+---
+
+## ✅ Index Definition (v1)
+Index ID:
+- `global:geo_energy_risk`
+
+Compute window:
+- Daily UTC window (00:00:00–23:59:59 UTC).
+- Store the index row under `date = that UTC day`.
+
+Operating modes:
+1) Daily scheduled: compute for **yesterday (UTC)**
+2) Backfill: compute for any date range and store all missing days
+
+---
+
+## ✅ Components to Calculate (from alert_events for that day)
+From that day’s `alert_events` records:
+
+### 1) High Impact component
+- `high_impact_events` = count where type = `HIGH_IMPACT_EVENT`
+- `high_impact_score` = SUM(severity * weight)
+  - If `weight` exists, use it; else weight=1
+  - If `severity` missing, map from `risk_score` to 1–5 buckets
+
+### 2) Regional Spike component
+- `regional_spikes` = count where type = `REGIONAL_RISK_SPIKE`
+- `regional_spike_score` = SUM(risk_score)
+  - If missing, fallback to severity-derived value
+
+### 3) Asset Risk component
+- `asset_spikes` = count where type = `ASSET_RISK_ALERT`
+- `asset_risk_score` = SUM(risk_score)
+  - If missing, fallback to severity-derived value
+
+### 4) Region concentration (systemic clustering)
+Across all three types:
+- group by `region` (null => "Unknown")
+- `region_risk_total[region]` = SUM(risk_score fallback)
+- `regions_count` = distinct regions
+- `top_regions` = top 3 by region_risk_total
+- `top_region_weight` = max(region_risk_total) / SUM(region_risk_total)
+- `region_concentration_score_raw` = top_region_weight * 100
+
+Also compute:
+- `avg_severity` (fallback if missing)
+
+---
+
+## ✅ Normalization (v1)
+Normalize to 0–100 using rolling 90-day min/max baselines derived ONLY from `intel_indices_daily` history.
+
+Rules:
+- Use past 90 stored days prior to the index date.
+- If insufficient history (<14 days), use safe fallback normalization and mark:
+  - `"insufficient_history": true` in components JSON
+- Avoid division by zero:
+  - if max==min:
+    - raw==0 => 0
+    - else => 50
+
+Clamp 0–100.
+
+---
+
+## ✅ GERI v1 Formula
+GERI =
+  0.40 * norm_high_impact_score
++ 0.25 * norm_regional_spike_score
++ 0.20 * norm_asset_risk_score
++ 0.15 * norm_region_concentration
+
+Then:
+- round int
+- clamp 0–100
+
+---
+
+## ✅ Bands
+- 0–25 LOW
+- 26–50 MODERATE
+- 51–75 ELEVATED
+- 76–100 CRITICAL
+
+---
+
+## ✅ Trends
+Computed using stored index history in `intel_indices_daily`:
+- `trend_1d` = value - previous day
+- `trend_7d` = value - avg(previous 7 days)
+
+If missing:
+- null
+
+---
+
+## 🗄️ Migration: Create intel_indices_daily (OUTPUT TABLE)
+Create table: `intel_indices_daily`
+
+Columns:
+- id (pk) UUID/serial (project convention)
+- index_id TEXT NOT NULL
+- date DATE NOT NULL
+- value INT NOT NULL
+- band TEXT NOT NULL
+- trend_1d INT NULL
+- trend_7d INT NULL
+- components JSONB NOT NULL
+- model_version TEXT NOT NULL  (always "geri_v1")
+- computed_at TIMESTAMP NOT NULL DEFAULT now()
+
+Constraints:
+- unique(index_id, date)
+
+Indexes:
+- (index_id, date desc)
+
+DO NOT change `alert_events`.
+
+---
+
+## 🧩 Module Architecture (Encapsulated)
+Create folder:
+
+`/server/modules/geri/`
+
+Files:
+1) `index.*` — exports
+2) `types.*`
+3) `repo.*` — READ alert_events, WRITE intel_indices_daily
+4) `compute.*` — pure functions
+5) `normalize.*` — pure functions
+6) `service.*` — orchestrate compute/backfill
+7) `routes.*` — API under `/api/v1/indices`
+8) `cli.*` — compute/backfill
+9) `tests/*`
+
+Feature flag:
+- `ENABLE_GERI`
+
+When false:
+- no routes
+- no scheduler job
+
+---
+
+## ⏰ Scheduler (Daily)
+Add job at 01:10 UTC:
+- computes GERI for yesterday UTC
+- reads from alert_events
+- writes to intel_indices_daily
+
+No changes to existing behavior besides registering a new job behind ENABLE_GERI.
+
+---
+
+## 🌐 API Endpoints (New Routes Only)
+Mount under `/api/v1/indices`
+
+1) `GET /api/v1/indices/geri/latest`
+- returns latest row from intel_indices_daily for index_id global:geo_energy_risk
+
+2) `GET /api/v1/indices/geri?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- returns rows from intel_indices_daily (ascending date)
+
+3) `POST /api/v1/indices/geri/compute` (admin-only)
+Body: `{ "date": "YYYY-MM-DD", "force": false }`
+- computes index for that date window
+- writes ONLY to intel_indices_daily
+
+---
+
+## 🖥️ CLI Commands
+- `geri:compute --date YYYY-MM-DD [--force]`
+- `geri:backfill --from YYYY-MM-DD --to YYYY-MM-DD [--force]`
+
+Backfill must process the historical ~162 alerts already present in alert_events by computing daily rows across the date range.
+
+---
+
+## 🧪 Tests
+Unit tests for:
+- band mapping
+- normalization edge cases
+- formula weighting
+- region concentration calc
+- trends
+
+---
+
+## ✅ Deliverables
+When finished, output:
+1) files created/modified
+2) migration file
+3) how to enable: `ENABLE_GERI=true`
+4) how to run compute/backfill commands
+5) example API responses
+
+Now implement GERI v1 end-to-end exactly as specified:
+- READ from `alert_events`
+- WRITE results ONLY to `intel_indices_daily`
+- fully encapsulated and feature-flagged
+- no impact on other app features

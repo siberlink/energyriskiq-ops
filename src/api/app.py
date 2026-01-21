@@ -21,7 +21,9 @@ from src.api.ops_routes import router as ops_router
 from src.api.telegram_routes import router as telegram_router
 from src.api.seo_routes import router as seo_router
 from src.billing.billing_routes import router as billing_router
-from src.db.migrations import run_migrations, run_seo_tables_migration, run_sources_migration
+from src.db.migrations import run_migrations, run_seo_tables_migration, run_sources_migration, run_geri_migration
+from src.geri import ENABLE_GERI
+from src.geri.routes import router as geri_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -107,6 +109,10 @@ app.include_router(telegram_router)
 app.include_router(seo_router)
 app.include_router(billing_router)
 
+if ENABLE_GERI:
+    app.include_router(geri_router)
+    logger.info("GERI module enabled - routes registered")
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting EnergyRiskIQ API...")
@@ -114,7 +120,12 @@ async def startup_event():
         run_migrations()
         run_seo_tables_migration()
         run_sources_migration()
+        run_geri_migration()
         logger.info("Database migrations completed")
+        if ENABLE_GERI:
+            logger.info("GERI module is ENABLED")
+        else:
+            logger.info("GERI module is DISABLED (set ENABLE_GERI=true to enable)")
     except Exception as e:
         logger.error(f"Failed to run migrations: {e}")
         raise
