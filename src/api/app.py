@@ -51,6 +51,10 @@ STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file
 async def landing_page():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"), media_type="text/html")
 
+@app.get("/favicon.png", include_in_schema=False)
+async def favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon.png"), media_type="image/png")
+
 @app.get("/privacy", include_in_schema=False)
 async def privacy_page():
     return FileResponse(os.path.join(STATIC_DIR, "privacy.html"), media_type="text/html")
