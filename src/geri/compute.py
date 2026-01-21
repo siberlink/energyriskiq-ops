@@ -124,6 +124,15 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
             key=lambda x: (x['severity'], x['risk_score']),
             reverse=True
         )
-        components.top_drivers = sorted_alerts[:5]
+        # Deduplicate by headline, keeping highest-scored instance
+        seen_headlines = set()
+        unique_drivers = []
+        for alert in sorted_alerts:
+            if alert['headline'] not in seen_headlines:
+                seen_headlines.add(alert['headline'])
+                unique_drivers.append(alert)
+                if len(unique_drivers) >= 5:
+                    break
+        components.top_drivers = unique_drivers
     
     return components
