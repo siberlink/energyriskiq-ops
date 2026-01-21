@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from src.geri import ENABLE_GERI
-from src.geri.repo import get_latest_index, get_index_history, get_index_for_date
+from src.geri.repo import get_latest_index, get_index_history, get_index_for_date, get_delayed_index
 from src.geri.service import compute_geri_for_date, compute_yesterday, backfill, auto_backfill
 
 logger = logging.getLogger(__name__)
@@ -270,4 +270,54 @@ async def get_geri_status():
         'enabled': ENABLE_GERI,
         'index_id': 'global:geo_energy_risk',
         'model_version': 'geri_v1',
+    }
+
+
+@router.get("/geri/public")
+async def get_geri_public():
+    """
+    Get GERI index for public display (24h delayed).
+    
+    This is a FREE, unauthenticated endpoint for marketing/SEO.
+    Returns data from 24+ hours ago to provide value while protecting premium real-time access.
+    """
+    check_enabled()
+    
+    result = get_delayed_index(delay_days=1)
+    
+    if not result:
+        return {
+            'success': False,
+            'message': 'No GERI data available yet',
+            'data': None,
+        }
+    
+    components = result.get('components', {})
+    if isinstance(components, str):
+        import json
+        components = json.loads(components)
+    
+    top_drivers = components.get('top_drivers', [])
+    top_regions = components.get('top_regions', [])
+    
+    driver_headlines = [d.get('headline', '') for d in top_drivers[:5] if d.get('headline')]
+    region_names = [r.get('region', '') for r in top_regions[:3] if r.get('region')]
+    
+    index_date = result.get('date')
+    if hasattr(index_date, 'isoformat'):
+        index_date = index_date.isoformat()
+    
+    return {
+        'success': True,
+        'delayed': True,
+        'delay_hours': 24,
+        'data': {
+            'date': index_date,
+            'value': result.get('value'),
+            'band': result.get('band'),
+            'trend_1d': result.get('trend_1d'),
+            'trend_7d': result.get('trend_7d'),
+            'top_drivers': driver_headlines,
+            'top_regions': region_names,
+        }
     }

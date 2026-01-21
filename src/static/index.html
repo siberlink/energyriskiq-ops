@@ -1834,6 +1834,107 @@
                 gap: 1.25rem;
             }
         }
+
+        /* GERI Public Display Styles */
+        .geri-public-container {
+            margin: 2rem auto;
+            max-width: 700px;
+        }
+        .geri-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border: 2px solid #e94560;
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+            animation: geriPulse 3s ease-in-out infinite;
+        }
+        @keyframes geriPulse {
+            0%, 100% { box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3); }
+            50% { box-shadow: 0 8px 48px rgba(233, 69, 96, 0.5); }
+        }
+        .geri-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        .geri-fire {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        .geri-title-block {
+            flex: 1;
+        }
+        .geri-title {
+            color: #fff;
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0 0 0.25rem 0;
+            line-height: 1.3;
+        }
+        .geri-title span {
+            color: #e94560;
+        }
+        .geri-trend {
+            color: #b0b0b0;
+            font-size: 1rem;
+            margin: 0;
+        }
+        .geri-trend span {
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+        .geri-body {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1rem;
+        }
+        .geri-date {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        .geri-date span {
+            color: #fff;
+        }
+        .geri-drivers, .geri-regions {
+            margin-bottom: 0.75rem;
+        }
+        .geri-drivers strong, .geri-regions strong {
+            color: #e94560;
+            font-size: 0.95rem;
+        }
+        .geri-drivers ul, .geri-regions ul {
+            margin: 0.5rem 0 0 1.25rem;
+            padding: 0;
+            color: #ddd;
+        }
+        .geri-drivers li, .geri-regions li {
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+        .geri-footer {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .geri-delay-badge {
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .geri-band-LOW { color: #4ecdc4; }
+        .geri-band-MODERATE { color: #f9ca24; }
+        .geri-band-ELEVATED { color: #e17055; }
+        .geri-band-CRITICAL { color: #e94560; }
+        @media (max-width: 600px) {
+            .geri-card { padding: 1rem 1.25rem; }
+            .geri-title { font-size: 1.1rem; }
+            .geri-fire { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
@@ -1912,6 +2013,33 @@
                 <p class="section-subtitle">
                     Traders and supply-chain teams are overwhelmed by noise. Most tools show what happened. EnergyRiskIQ tells you when risk is rising — early.
                 </p>
+            </div>
+
+            <!-- GERI Public Display (24h Delayed) -->
+            <div id="geri-public-section" class="geri-public-container" style="display: none;">
+                <div class="geri-card">
+                    <div class="geri-header">
+                        <span class="geri-fire">🔥</span>
+                        <div class="geri-title-block">
+                            <h3 class="geri-title">Today's Global Energy Risk Index: <span id="geri-value">--</span> (<span id="geri-band">--</span>)</h3>
+                            <p class="geri-trend">Trend: <span id="geri-trend">--</span> vs 7-day average</p>
+                        </div>
+                    </div>
+                    <div class="geri-body">
+                        <div class="geri-date">Date: <span id="geri-date">--</span></div>
+                        <div class="geri-drivers">
+                            <strong>Top Drivers:</strong>
+                            <ul id="geri-drivers-list"></ul>
+                        </div>
+                        <div class="geri-regions">
+                            <strong>Top Regions:</strong>
+                            <ul id="geri-regions-list"></ul>
+                        </div>
+                    </div>
+                    <div class="geri-footer">
+                        <span class="geri-delay-badge">24h delayed • Real-time access with subscription</span>
+                    </div>
+                </div>
             </div>
 
             <div class="problem-grid">
@@ -2750,6 +2878,73 @@
                 submitBtn.textContent = 'Send Message';
             }
         });
+
+        // Load GERI Public Data (24h delayed)
+        async function loadGeriPublic() {
+            try {
+                const response = await fetch('/api/v1/indices/geri/public');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const data = result.data;
+                    const section = document.getElementById('geri-public-section');
+                    
+                    // Set values
+                    document.getElementById('geri-value').textContent = data.value;
+                    const bandSpan = document.getElementById('geri-band');
+                    bandSpan.textContent = data.band;
+                    bandSpan.className = 'geri-band-' + data.band;
+                    
+                    // Format trend
+                    const trend7d = data.trend_7d;
+                    const trendText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
+                    document.getElementById('geri-trend').textContent = trendText;
+                    
+                    // Format date
+                    const dateObj = new Date(data.date + 'T00:00:00');
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    document.getElementById('geri-date').textContent = dateObj.toLocaleDateString('en-US', options);
+                    
+                    // Populate drivers
+                    const driversList = document.getElementById('geri-drivers-list');
+                    driversList.innerHTML = '';
+                    if (data.top_drivers && data.top_drivers.length > 0) {
+                        data.top_drivers.slice(0, 5).forEach(driver => {
+                            const li = document.createElement('li');
+                            li.textContent = driver;
+                            driversList.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.textContent = 'No major drivers detected';
+                        driversList.appendChild(li);
+                    }
+                    
+                    // Populate regions
+                    const regionsList = document.getElementById('geri-regions-list');
+                    regionsList.innerHTML = '';
+                    if (data.top_regions && data.top_regions.length > 0) {
+                        data.top_regions.slice(0, 3).forEach(region => {
+                            const li = document.createElement('li');
+                            li.textContent = region;
+                            regionsList.appendChild(li);
+                        });
+                    } else {
+                        const li = document.createElement('li');
+                        li.textContent = 'Global';
+                        regionsList.appendChild(li);
+                    }
+                    
+                    // Show section
+                    section.style.display = 'block';
+                }
+            } catch (error) {
+                console.log('GERI data not available:', error);
+            }
+        }
+        
+        // Load GERI on page load
+        loadGeriPublic();
     </script>
 </body>
 </html>

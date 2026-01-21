@@ -134,6 +134,28 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
     return None
 
 
+def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
+    """Get index with delay (for public display). Default 24h (1 day) delay."""
+    cutoff_date = date.today() - timedelta(days=delay_days)
+    
+    sql = """
+    SELECT id, index_id, date, value, band, trend_1d, trend_7d,
+           components, model_version, computed_at
+    FROM intel_indices_daily
+    WHERE index_id = %s AND date <= %s
+    ORDER BY date DESC
+    LIMIT 1
+    """
+    
+    with get_cursor() as cursor:
+        cursor.execute(sql, (INDEX_ID, cutoff_date))
+        row = cursor.fetchone()
+        if row:
+            return dict(row)
+    
+    return None
+
+
 def get_previous_values(target_date: date, days: int = 7) -> List[int]:
     """Get previous N days of index values for trend calculation."""
     sql = """
