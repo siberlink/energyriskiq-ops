@@ -844,6 +844,39 @@ def generate_sitemap_entries() -> List[Dict]:
         'lastmod': today
     })
     
+    try:
+        from src.geri.geri_history_service import get_all_snapshot_dates, get_available_months as get_geri_months
+        
+        geri_dates = get_all_snapshot_dates()
+        geri_months = get_geri_months()
+        
+        latest_geri_date = geri_dates[0] if geri_dates else today
+        entries.append({
+            'loc': '/geri/history',
+            'priority': '0.8',
+            'changefreq': 'daily',
+            'lastmod': latest_geri_date
+        })
+        
+        for m in geri_months:
+            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
+            entries.append({
+                'loc': f"/geri/{m['year']}/{m['month']:02d}",
+                'priority': '0.7',
+                'changefreq': 'weekly',
+                'lastmod': max_date if isinstance(max_date, str) else max_date
+            })
+        
+        for geri_date in geri_dates:
+            entries.append({
+                'loc': f"/geri/{geri_date}",
+                'priority': '0.8',
+                'changefreq': 'never',
+                'lastmod': geri_date
+            })
+    except Exception:
+        pass
+    
     months = get_available_months()
     for m in months:
         max_date = m.get('max_date')

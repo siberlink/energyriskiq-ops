@@ -1,0 +1,587 @@
+# MASTER PROMPT — Replit AI (EnergyRiskIQ)
+## Implement “GERI History” end-to-end (Snapshots + History Pages + Sitemap Auto-Update)
+
+### Objective (what “done” means)
+Implement the full GERI History system with:
+1) **Snapshot storage (DB schema + access layer)**
+2) **History pages architecture**
+   - `/geri/history` (history hub)
+   - `/geri/YYYY-MM-DD` (daily snapshot pages)
+   - `/geri/YYYY/MM` (monthly archive hubs)
+3) **Automatic daily snapshot creation**
+   - via **GitHub Actions workflow** (scheduled, hands-off)
+4) **Sitemap auto-update**
+   - `/sitemap.xml` includes `/geri`, `/geri/history`, and all history URLs
+   - correct `<lastmod>` per URL (no freshness abuse)
+
+This must be production-ready, SEO-safe, and consistent with existing canonical rules:
+- Only canonical host `https://energyriskiq.com`
+- No `www`, no `http`
+
+---
+
+# A) Design decisions (must follow)
+
+## A1) Snapshot storage (Source of Truth)
+**DB is the source of truth.**
+Every GERI snapshot must be stored in a DB table so:
+- it is auditable and licensable
+- it supports API exports later
+- it can render pages dynamically (fallback)
+- it can generate static artifacts if desired
+
+## A2) Page generation strategy: Hybrid (recommended)
+Implement a **hybrid strategy** for reliability + SEO:
+- **Primary rendering**: dynamic routes that read from DB (always works)
+- **Optional static cache**: workflow writes a JSON snapshot file (for speed / redundancy)
+- Do NOT require committing hundreds of HTML files. Prefer DB-backed pages, optionally backed by generated JSON.
+
+Why hybrid:
+- Works on Replit hosting
+- No git churn from huge HTML commits
+- Still automatic and SEO-perfect
+- Easy to extend to API & licensing feeds
+
+## A3) Public vs authenticated data
+History pages must be **public + delayed** by default (indexable).
+- `/geri/history` and `/geri/YYYY-MM-DD` show delayed snapshots to public users.
+- Authenticated users can still see real-time on `/geri`, but history is typically the official published archive (delayed is fine).
+(Keep logic flexible to later allow “Pro sees same history but with intraday” if needed.)
+
+---
+
+# B) Snapshot Storage Schema (DB)
+
+## B1) Create table: `geri_snapshots`
+Add a migration (or SQL script) to create:
+
+**Table: `geri_snapshots`**
+- `id` UUID (or SERIAL) PRIMARY KEY
+- `snapshot_date` DATE NOT NULL UNIQUE  
+  - The “published day” of the snapshot (e.g., 2026-01-22)
+- `computed_at` TIMESTAMP NOT NULL DEFAULT now()
+- `value` NUMERIC(6,2) NOT NULL
+- `band` TEXT NOT NULL  -- e.g. LOW / MODERATE / ELEVATED / SEVERE
+- `trend_vs_7d` NUMERIC(6,2) NULL
+- `trend_dir` TEXT NULL  -- up/down/flat (optional)
+- `drivers` JSONB NOT NULL DEFAULT '[]'::jsonb  
+  Example array items: `{ "title": "...", "region":"Europe", "category":"energy", "source":"...", "url":"..." }`
+- `regions` JSONB NOT NULL DEFAULT '[]'::jsonb  
+  Example: `{ "region":"Europe", "score": 74 }`
+- `assets` JSONB NOT NULL DEFAULT '[]'::jsonb  
+  Example: `{ "asset":"OIL", "score": 80, "dir":"down" }`
+- `method_version` TEXT NOT NULL DEFAULT 'v1'
+- `is_delayed_public` BOOLEAN NOT NULL DEFAULT true  (published archive is delayed)
+- `created_at` TIMESTAMP NOT NULL DEFAULT now()
+
+Indexes:
+- UNIQUE(`snapshot_date`)
+- INDEX on `computed_at` (optional)
+- GIN indexes on `drivers`, `regions` (optional; only if needed)
+
+## B2) Data access layer
+Create a service module:
+- `src/services/geriHistoryService.ts`
+
+Export functions:
+- `getSnapshotByDate(date: string): Promise<GeriSnapshot | null>`
+- `listSnapshots({ from, to, limit, offset }): Promise<GeriSnapshot[]>`
+- `listMonthly(year: number, month: number): Promise<GeriSnapshot[]>`
+- `getLatestPublishedSnapshot(): Promise<GeriSnapshot>` (latest delayed/published day)
+- `upsertSnapshot(snapshot: GeriSnapshotInput): Promise<void>` (used by workflow job)
+
+---
+
+# C) History Pages (Routes + UI + SEO)
+
+## C1) Routes to implement
+### 1) History Hub
+- `GET /geri/history`
+
+Shows:
+- H1: “Global Energy Risk Index (GERI) — History”
+- Chart placeholder (optional now; add later)
+- Recent 30–90 daily snapshots table with:
+  - date
+  - value
+  - band
+  - trend
+  - link to daily page `/geri/YYYY-MM-DD`
+- Monthly navigation (last 12–24 months):
+  - links to `/geri/YYYY/MM`
+
+SEO:
+- title: `GERI History | EnergyRiskIQ`
+- canonical: `https://energyriskiq.com/geri/history`
+
+### 2) Daily Snapshot Page
+- `GET /geri/:date` where `:date` is `YYYY-MM-DD`
+
+Shows:
+- H1: “GERI — {human readable date}”
+- Value, band, trend, and the same drivers/regions sections
+- Breadcrumb links:
+  - `/geri` (today)
+  - `/geri/history`
+  - `/geri/YYYY/MM` (month hub)
+
+SEO:
+- title: `GERI {YYYY-MM-DD} | EnergyRiskIQ`
+- canonical: `https://energyriskiq.com/geri/YYYY-MM-DD`
+- `<lastmod>` in sitemap = date itself
+
+### 3) Monthly Archive Hub
+- `GET /geri/:year/:month` where month is `01..12`
+
+Shows:
+- H1: “GERI Archive — {Month YYYY}”
+- Mini summary:
+  - monthly min/max/avg
+- List all days in month with links to `/geri/YYYY-MM-DD`
+
+SEO:
+- title: `GERI Archive {Month YYYY} | EnergyRiskIQ`
+- canonical: `https://energyriskiq.com/geri/YYYY/MM`
+- `<lastmod>` in sitemap = latest snapshot date in that month
+
+## C2) Rendering & Framework Implementation
+Detect framework and implement appropriately:
+- If Next.js App Router: create `app/geri/history/page.tsx`, `app/geri/[date]/page.tsx`, `app/geri/[year]/[month]/page.tsx`
+- If Next.js Pages Router: create `pages/geri/history.tsx`, `pages/geri/[date].tsx`, `pages/geri/[year]/[month].tsx`
+- If React SPA: add routes via react-router and SSR strategy if available; otherwise ensure server returns HTML with meta tags.
+- Keep consistent Tailwind UI with existing /geri card styling.
+
+---
+
+
+# MASTER PROMPT — Replit AI (EnergyRiskIQ)
+## Implement “GERI History” end-to-end (Snapshots + History Pages + Sitemap Auto-Update)
+
+### Objective (what “done” means)
+Implement the full GERI History system with:
+1) **Snapshot storage (existing DB table + access layer)**
+2) **History pages architecture**
+   - `/geri/history` (history hub)
+   - `/geri/YYYY-MM-DD` (daily snapshot pages)
+   - `/geri/YYYY/MM` (monthly archive hubs)
+3) **Automatic daily snapshot creation**
+   - via **GitHub Actions workflow** (scheduled, hands-off)
+4) **Sitemap auto-update**
+   - `/sitemap.xml` includes `/geri`, `/geri/history`, and all history URLs
+   - correct `<lastmod>` per URL (no freshness abuse)
+
+SEO/canonical rules (non-negotiable):
+- Only canonical host `https://energyriskiq.com`
+- No `www`, no `http`
+
+Global config (required):
+- Define a single constant or env var `GERI_INDEX_ID` (the `index_id` used in `intel_indices_daily`)
+- Use `GERI_INDEX_ID` everywhere (services, pages, sitemap, workflow)
+
+---
+
+# A) Design decisions (must follow)
+
+## A1) Snapshot storage (Source of Truth)
+**The existing table `intel_indices_daily` is the single source of truth for GERI snapshots.**
+No new snapshot table and no new columns.
+
+Authoritative columns:
+- `index_id`
+- `date` (YYYY-MM-DD)  ← PRIMARY HISTORY KEY
+- `value`
+- `band`
+- `trend_1d`
+- `trend_7d`
+- `components` (JSON/JSONB)
+- `model_version`
+- `computed_at`
+
+Rules:
+1) Each row represents ONE official published snapshot for ONE day.
+2) Once published, snapshots are immutable, permanent, auditable, licensable.
+3) Snapshot selection:
+   - `/geri` real-time (authenticated): latest row by `computed_at` for today
+   - `/geri` public (unauthenticated): latest row where `date <= today - 1`
+   - History pages: query strictly by `date` (ignore authentication)
+4) No overwriting:
+   - If (`index_id`, `date`) exists, do NOT overwrite unless `--force` is explicitly provided.
+5) Uniqueness:
+   - UNIQUE constraint must exist or be enforced logically on (`index_id`, `date`).
+6) Build `geriHistoryService` on top of this table only.
+
+No secondary snapshot tables are allowed.
+
+## A2) Page generation strategy: Dynamic DB-backed (with optional JSON cache)
+Primary: render pages from DB (`intel_indices_daily`) server-side (SSR or server-rendered HTML).
+- Do NOT generate/commit static HTML for daily pages.
+- Do NOT store history pages in git.
+- Workflow inserts DB rows; sitemap exposes URLs automatically.
+
+Optional (not required for v1):
+- Workflow may write a daily JSON snapshot file for caching only.
+- DB remains authoritative.
+
+## A3) Public vs authenticated data (Index publication rules)
+History pages are the official published archive:
+- ALWAYS public, indexable, permanent, authoritative.
+- Ignore authentication for `/geri/history`, `/geri/YYYY-MM-DD`, `/geri/YYYY/MM`.
+Real-time vs delayed applies ONLY to `/geri` (today page):
+- Unauthenticated → yesterday’s published snapshot
+- Authenticated → today’s latest snapshot (by computed_at)
+
+---
+
+# B) Data Access Layer (DB)
+
+## B1) DB schema changes
+No schema changes. Use `intel_indices_daily` as defined in A1.
+
+## B2) Data access layer (DB-backed via `intel_indices_daily`)
+Create:
+- `src/services/geriHistoryService.ts`
+
+All functions accept `indexId` (use `GERI_INDEX_ID`):
+
+- `getSnapshotByDate(indexId: string, date: string): Promise<IntelIndexRow | null>`
+- `listSnapshots(indexId: string, opts: { from?: string; to?: string; limit?: number; offset?: number }): Promise<IntelIndexRow[]>`
+- `listMonthly(indexId: string, year: number, month: number): Promise<IntelIndexRow[]>`
+- `getLatestSnapshot(indexId: string): Promise<IntelIndexRow | null>` (latest by computed_at)
+- `getLatestPublishedSnapshot(indexId: string): Promise<IntelIndexRow | null>` (latest where date <= today-1)
+- `upsertSnapshot(indexId: string, snapshot: {
+    date: string;
+    value: number;
+    band: string;
+    trend_1d?: number | null;
+    trend_7d?: number | null;
+    components: any;
+    model_version: string;
+    computed_at: string;
+  }, opts?: { force?: boolean }): Promise<void>`
+  - Upsert by UNIQUE(index_id, date)
+  - Idempotent
+  - No overwrite unless force=true
+
+---
+
+# C) History Pages (Routes + UI + SEO)
+
+## C1) History Hub — `/geri/history`
+Route: `GET /geri/history`
+
+Shows:
+- H1 + subtitle (official archive)
+- Recent 30–90 snapshots (date, value, band, trend_7d) with links to `/geri/YYYY-MM-DD`
+- Month navigation (last 12–24 months) linking to `/geri/YYYY/MM`
+- Trust/methodology summary block + link to disclaimer/methodology page
+
+Data rules:
+- DB source: `intel_indices_daily` filtered by `GERI_INDEX_ID`
+- Ignore authentication (always published archive)
+- Pagination if >90 rows
+
+SEO:
+- Title: `Global Energy Risk Index History | EnergyRiskIQ`
+- Canonical:
+```html
+<link rel="canonical" href="https://energyriskiq.com/geri/history">
+
+
+
+
+
+
+Sitemap:
+- include `/geri/history`
+  - priority: 0.8
+  - changefreq: daily
+  - lastmod = latest snapshot date
+
+---
+
+## C2) Daily Snapshot Page — `/geri/YYYY-MM-DD`
+
+**Route:** `GET /geri/:date` where `:date` is `YYYY-MM-DD`
+
+**Must:**
+- Render the official published snapshot for that date from DB
+- If not found: return a true **404** (not a soft 200), with a link back to `/geri/history`
+
+**Content:**
+- H1: `Global Energy Risk Index — {Human date}`
+- Value, band, `trend_1d`, `trend_7d`, publication date
+- Drivers/regions/assets from `components`
+- Breadcrumbs: `/geri` → `/geri/history` → `/geri/YYYY/MM`
+- Prev/next day links (only if those dates exist in DB)
+
+**Data rules:**
+- DB source: `intel_indices_daily` where `index_id = GERI_INDEX_ID` and `date = :date`
+- Ignore authentication (always published archive)
+
+**SEO:**
+- Title: `Global Energy Risk Index {YYYY-MM-DD} | EnergyRiskIQ`
+- Canonical:
+```html
+<link rel="canonical" href="https://energyriskiq.com/geri/YYYY-MM-DD">
+
+
+
+
+
+Sitemap (Daily Snapshot Pages)
+
+Include every daily snapshot page:
+- priority: 0.8
+- changefreq: never
+- lastmod = snapshot date
+
+---
+
+## C3) Monthly Archive Hub — `/geri/YYYY/MM`
+
+### Route
+- `GET /geri/:year/:month`
+
+### Must
+- If month has no data:
+  - return HTTP 404 (not found)
+  - include link back to `/geri/history`
+
+### Content
+- H1: `Global Energy Risk Index — {Month YYYY}`
+- Summary section:
+  - monthly average
+  - monthly minimum (with date)
+  - monthly maximum (with date)
+  - opening value (first day of month)
+  - closing value (last published day of month)
+- Daily list:
+  - list all days in month
+  - each row links to `/geri/YYYY-MM-DD`
+- Navigation:
+  - previous month link (if exists)
+  - next month link (if exists)
+
+### Data rules
+- DB source: `intel_indices_daily`
+- Filter by:
+  - `index_id = GERI_INDEX_ID`
+  - year(date) = :year
+  - month(date) = :month
+- Ignore authentication (always published archive)
+
+### SEO
+- Title:
+  `Global Energy Risk Index {Month YYYY} | EnergyRiskIQ`
+
+- Canonical:
+```html
+<link rel="canonical" href="https://energyriskiq.com/geri/YYYY/MM">
+
+
+
+
+
+
+SITEMAP (MONTHLY PAGES)
+
+Include every month hub with:
+
+priority = 0.7
+
+changefreq = weekly
+
+lastmod = latest snapshot date in that month
+
+C4) RENDERING & FRAMEWORK IMPLEMENTATION (SSR REQUIRED FOR SEO)
+
+All /geri/* routes MUST be server-rendered with full HTML meta.
+
+Framework rules:
+
+Next.js App Router
+
+use generateMetadata()
+
+fetch DB server-side
+
+Next.js Pages Router
+
+use getServerSideProps()
+
+render meta with next/head
+
+SPA-only
+
+add SSR for /geri/* routes
+
+client-only meta is NOT sufficient for indexing
+
+UI rules
+
+keep Tailwind styling consistent with existing /geri
+
+D) SNAPSHOT PUBLICATION JOB (GITHUB ACTIONS) — OFFICIAL INDEX PUBLISHER
+
+Create workflow file:
+.github/workflows/geri_snapshot_daily.yml
+
+Schedule:
+
+run daily at 06:10 UTC
+
+allow manual trigger via workflow_dispatch
+
+Steps:
+
+checkout repository
+
+setup runtime
+
+install dependencies
+
+run snapshot command:
+
+npm run geri:snapshot OR
+
+python scripts/geri_snapshot.py
+
+Snapshot script rules:
+
+reuse existing GERI computation logic
+
+publication_date = today minus 1 day (unless policy differs)
+
+insert or upsert into intel_indices_daily
+
+always set index_id = GERI_INDEX_ID
+
+Idempotency rules:
+
+if (index_id, date) already exists
+
+do nothing
+
+exit with success
+
+Overwrite rules:
+
+overwrite ONLY when --force flag is provided
+
+Hard rules:
+
+do NOT generate HTML
+
+do NOT touch history pages
+
+Secrets required:
+
+DATABASE_URL
+
+any required internal secrets
+
+E) SITEMAP AUTO-UPDATE (DB-DRIVEN)
+
+Sitemap must be dynamic and DB-driven:
+
+no static files
+
+no file commits
+
+no workflow edits
+
+Query source:
+
+intel_indices_daily where index_id = GERI_INDEX_ID
+
+Emit URLs:
+
+/geri
+
+/geri/history
+
+/geri/YYYY/MM (all months present)
+
+/geri/YYYY-MM-DD (all snapshot dates)
+
+Rules:
+
+every <loc> MUST use canonical host https://energyriskiq.com
+
+lastmod rules:
+
+daily page → snapshot date
+
+month hub → latest date in that month
+
+history hub → latest snapshot date overall
+
+/geri → latest available snapshot date OR real-time compute time
+
+F) ADD “VIEW HISTORY” LINK ON /geri
+
+On /geri page:
+
+add button labeled View History →
+
+link to /geri/history
+
+G) TESTING CHECKLIST
+
+Page tests:
+
+/geri/history loads and lists snapshots and months
+
+/geri/YYYY-MM-DD renders valid page OR true 404
+
+/geri/YYYY/MM renders valid page OR true 404
+
+SEO tests:
+
+canonical correct on all pages
+
+sitemap contains all GERI URLs
+
+lastmod values correct
+
+Workflow tests:
+
+run snapshot job twice
+
+only one row inserted
+
+second run exits cleanly
+
+H) DELIVERABLES
+
+Final response MUST include:
+
+framework detected
+
+files created or modified
+
+confirmation that no DB schema changes were made
+
+workflow file and cron schedule
+
+sitemap query logic and sample output
+
+manual run command examples
+
+I) NON-NEGOTIABLE RULES
+
+no new snapshot tables
+
+no /pro history routes
+
+no static HTML generation for history pages
+
+no rewriting published rows automatically
+
+no deletions
+
+no URL versioning
+
+always use canonical https://energyriskiq.com
+
+BEGIN IMPLEMENTATION.

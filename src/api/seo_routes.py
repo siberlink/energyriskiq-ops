@@ -29,6 +29,18 @@ from src.seo.seo_generator import (
     generate_daily_page_model
 )
 from src.geri.geri_service import get_geri_for_user, get_geri_delayed
+from src.geri.geri_history_service import (
+    get_snapshot_by_date,
+    list_snapshots,
+    list_monthly,
+    get_available_months as get_geri_available_months,
+    get_monthly_stats,
+    get_adjacent_dates,
+    get_adjacent_months,
+    get_all_snapshot_dates,
+    get_latest_published_snapshot
+)
+from calendar import month_name as calendar_month_name
 
 router = APIRouter(tags=["seo"])
 
@@ -1384,3 +1396,489 @@ async def geri_page(request: Request):
     """
     
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=300"})
+
+
+def get_geri_common_styles():
+    """Return common styles for GERI history pages."""
+    return """
+    <style>
+        .geri-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .geri-table th, .geri-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .geri-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .geri-table tr:hover { background: #f1f5f9; }
+        .geri-table a { color: #3b82f6; text-decoration: none; }
+        .geri-table a:hover { text-decoration: underline; }
+        .band-low { color: #22c55e; }
+        .band-moderate { color: #eab308; }
+        .band-elevated { color: #f97316; }
+        .band-critical, .band-severe { color: #ef4444; }
+        .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .month-card { background: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1rem; text-align: center; }
+        .month-card a { color: #f8fafc; text-decoration: none; font-weight: 600; }
+        .month-card:hover { border-color: #3b82f6; }
+        .breadcrumbs { margin-bottom: 1.5rem; color: #9ca3af; }
+        .breadcrumbs a { color: #60a5fa; text-decoration: none; }
+        .breadcrumbs a:hover { text-decoration: underline; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 1rem; text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
+        .stat-label { font-size: 0.875rem; color: #9ca3af; margin-top: 0.25rem; }
+        .nav-arrows { display: flex; justify-content: space-between; margin: 1.5rem 0; }
+        .nav-arrow { color: #60a5fa; text-decoration: none; }
+        .nav-arrow:hover { text-decoration: underline; }
+        .nav-arrow.disabled { color: #6b7280; pointer-events: none; }
+    </style>
+    """
+
+
+@router.get("/geri/history", response_class=HTMLResponse)
+async def geri_history_page():
+    """
+    GERI History Hub - Lists all available GERI snapshots.
+    Public page showing the official published archive.
+    """
+    track_page_view("geri_history", "/geri/history")
+    
+    snapshots = list_snapshots(limit=90)
+    months = get_geri_available_months()
+    latest = get_latest_published_snapshot()
+    
+    latest_date = latest.date if latest else None
+    
+    rows_html = ""
+    for s in snapshots:
+        band_class = f"band-{s.band.lower()}"
+        trend_display = f"{s.trend_7d:+.1f}" if s.trend_7d is not None else "-"
+        rows_html += f"""
+        <tr>
+            <td><a href="/geri/{s.date}">{s.date}</a></td>
+            <td>{s.value}</td>
+            <td class="{band_class}">{s.band}</td>
+            <td>{trend_display}</td>
+        </tr>
+        """
+    
+    if not rows_html:
+        rows_html = '<tr><td colspan="4" style="text-align: center; color: #9ca3af;">No history available yet.</td></tr>'
+    
+    months_html = ""
+    for m in months[:24]:
+        month_display = f"{calendar_month_name[m['month']]} {m['year']}"
+        months_html += f"""
+        <div class="month-card">
+            <a href="/geri/{m['year']}/{m['month']:02d}">{month_display}</a>
+            <div style="color: #9ca3af; font-size: 0.875rem;">{m['snapshot_count']} days</div>
+        </div>
+        """
+    
+    if not months_html:
+        months_html = '<p style="color: #9ca3af;">No monthly archives available yet.</p>'
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Global Energy Risk Index History | EnergyRiskIQ</title>
+        <meta name="description" content="Complete history of the Global Energy Risk Index (GERI). Browse daily snapshots and monthly archives of energy market risk data.">
+        <link rel="canonical" href="{BASE_URL}/geri/history">
+        <link rel="icon" type="image/png" href="/favicon.png">
+        {get_common_styles()}
+        {get_geri_common_styles()}
+    </head>
+    <body>
+        {render_nav()}
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/geri">GERI</a> &raquo; History
+                </div>
+                
+                <h1>Global Energy Risk Index (GERI) History</h1>
+                <p style="color: #9ca3af; margin-bottom: 2rem;">
+                    The official published archive of daily GERI snapshots. 
+                    Each snapshot represents the computed energy market risk for that day.
+                </p>
+                
+                <h2>Monthly Archives</h2>
+                <div class="month-grid">
+                    {months_html}
+                </div>
+                
+                <h2>Recent Snapshots</h2>
+                <table class="geri-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Value</th>
+                            <th>Band</th>
+                            <th>7d Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows_html}
+                    </tbody>
+                </table>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="/geri" style="color: #60a5fa;">Back to Today's GERI</a>
+                </div>
+            </div>
+        </main>
+        {render_footer()}
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/geri/{date:path}", response_class=HTMLResponse)
+async def geri_daily_page(date: str):
+    """
+    GERI Daily Snapshot Page - Shows a specific day's GERI data.
+    Returns 404 if the date doesn't exist in the archive.
+    """
+    import re
+    
+    month_match = re.match(r'^(\d{4})/(\d{2})$', date)
+    if month_match:
+        year = int(month_match.group(1))
+        month = int(month_match.group(2))
+        return await geri_monthly_page(year, month)
+    
+    date_match = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', date)
+    if not date_match:
+        raise HTTPException(status_code=404, detail="Invalid date format. Use YYYY-MM-DD.")
+    
+    track_page_view("geri_daily", f"/geri/{date}")
+    
+    snapshot = get_snapshot_by_date(date)
+    
+    if not snapshot:
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>GERI {date} Not Found | EnergyRiskIQ</title>
+            <link rel="icon" type="image/png" href="/favicon.png">
+            {get_common_styles()}
+        </head>
+        <body>
+            {render_nav()}
+            <main>
+                <div class="container" style="text-align: center; padding: 4rem 0;">
+                    <h1>Snapshot Not Found</h1>
+                    <p style="color: #9ca3af;">No GERI data available for {date}.</p>
+                    <p><a href="/geri/history" style="color: #60a5fa;">Browse History</a></p>
+                </div>
+            </main>
+            {render_footer()}
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html, status_code=404)
+    
+    adjacent = get_adjacent_dates(date)
+    
+    year = int(date[:4])
+    month = int(date[5:7])
+    
+    band_colors = {
+        'LOW': '#22c55e',
+        'MODERATE': '#eab308',
+        'ELEVATED': '#f97316',
+        'CRITICAL': '#ef4444',
+        'SEVERE': '#dc2626'
+    }
+    band_color = band_colors.get(snapshot.band, '#6b7280')
+    
+    trend_display = ""
+    if snapshot.trend_7d is not None:
+        trend_arrow = "+" if snapshot.trend_7d > 0 else ""
+        trend_color = "#ef4444" if snapshot.trend_7d > 0 else "#22c55e" if snapshot.trend_7d < 0 else "#6b7280"
+        trend_display = f'<p style="color: {trend_color};">{trend_arrow}{snapshot.trend_7d:.1f} vs 7-day average</p>'
+    
+    drivers_html = ""
+    for driver in snapshot.top_drivers[:5]:
+        drivers_html += f'<li>{driver}</li>'
+    if not drivers_html:
+        drivers_html = '<li style="color: #9ca3af;">No significant drivers</li>'
+    
+    regions_html = ""
+    for region in snapshot.top_regions[:5]:
+        regions_html += f'<li>{region}</li>'
+    if not regions_html:
+        regions_html = '<li style="color: #9ca3af;">No regional hotspots</li>'
+    
+    prev_link = f'<a class="nav-arrow" href="/geri/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>' if adjacent['prev'] else '<span class="nav-arrow disabled">&larr; No earlier</span>'
+    next_link = f'<a class="nav-arrow" href="/geri/{adjacent["next"]}">{adjacent["next"]} &rarr;</a>' if adjacent['next'] else '<span class="nav-arrow disabled">No later &rarr;</span>'
+    
+    from datetime import datetime
+    human_date = datetime.strptime(date, "%Y-%m-%d").strftime("%B %d, %Y")
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Global Energy Risk Index {date} | EnergyRiskIQ</title>
+        <meta name="description" content="GERI snapshot for {human_date}. Value: {snapshot.value}, Band: {snapshot.band}. View historical energy market risk data.">
+        <link rel="canonical" href="{BASE_URL}/geri/{date}">
+        <link rel="icon" type="image/png" href="/favicon.png">
+        {get_common_styles()}
+        {get_geri_common_styles()}
+        <style>
+            .snapshot-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 1rem;
+                padding: 2rem;
+                text-align: center;
+                max-width: 400px;
+                margin: 2rem auto;
+            }}
+            .snapshot-value {{
+                font-size: 4rem;
+                font-weight: 700;
+                line-height: 1;
+            }}
+            .snapshot-band {{
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-top: 0.5rem;
+            }}
+            .snapshot-date {{
+                color: #9ca3af;
+                margin-top: 1rem;
+            }}
+            .drivers-regions {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }}
+            .section-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+            }}
+            .section-card h2 {{
+                font-size: 1.125rem;
+                margin-bottom: 1rem;
+                color: #f8fafc;
+            }}
+            .section-card ul {{
+                list-style: disc;
+                padding-left: 1.25rem;
+                color: #d1d5db;
+            }}
+            .section-card li {{
+                margin-bottom: 0.5rem;
+            }}
+        </style>
+    </head>
+    <body>
+        {render_nav()}
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/geri">GERI</a> &raquo; 
+                    <a href="/geri/history">History</a> &raquo; 
+                    <a href="/geri/{year}/{month:02d}">{calendar_month_name[month]} {year}</a> &raquo;
+                    {date}
+                </div>
+                
+                <h1>Global Energy Risk Index - {human_date}</h1>
+                
+                <div class="snapshot-card">
+                    <div class="snapshot-value" style="color: {band_color};">{snapshot.value}</div>
+                    <div class="snapshot-band" style="color: {band_color};">{snapshot.band}</div>
+                    {trend_display}
+                    <div class="snapshot-date">Published: {date}</div>
+                </div>
+                
+                <div class="drivers-regions">
+                    <div class="section-card">
+                        <h2>Top Drivers</h2>
+                        <ul>{drivers_html}</ul>
+                    </div>
+                    <div class="section-card">
+                        <h2>Top Regions</h2>
+                        <ul>{regions_html}</ul>
+                    </div>
+                </div>
+                
+                <div class="nav-arrows">
+                    {prev_link}
+                    {next_link}
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="/geri/history" style="color: #60a5fa;">View Full History</a>
+                </div>
+            </div>
+        </main>
+        {render_footer()}
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
+
+
+async def geri_monthly_page(year: int, month: int):
+    """
+    GERI Monthly Archive Hub - Shows all snapshots for a specific month.
+    """
+    if month < 1 or month > 12:
+        raise HTTPException(status_code=404, detail="Invalid month.")
+    
+    track_page_view("geri_monthly", f"/geri/{year}/{month:02d}")
+    
+    snapshots = list_monthly(year, month)
+    stats = get_monthly_stats(year, month)
+    
+    if not snapshots:
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>GERI {calendar_month_name[month]} {year} Not Found | EnergyRiskIQ</title>
+            <link rel="icon" type="image/png" href="/favicon.png">
+            {get_common_styles()}
+        </head>
+        <body>
+            {render_nav()}
+            <main>
+                <div class="container" style="text-align: center; padding: 4rem 0;">
+                    <h1>No Data Available</h1>
+                    <p style="color: #9ca3af;">No GERI data available for {calendar_month_name[month]} {year}.</p>
+                    <p><a href="/geri/history" style="color: #60a5fa;">Browse History</a></p>
+                </div>
+            </main>
+            {render_footer()}
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html, status_code=404)
+    
+    adjacent = get_adjacent_months(year, month)
+    
+    rows_html = ""
+    for s in snapshots:
+        band_class = f"band-{s.band.lower()}"
+        trend_display = f"{s.trend_7d:+.1f}" if s.trend_7d is not None else "-"
+        rows_html += f"""
+        <tr>
+            <td><a href="/geri/{s.date}">{s.date}</a></td>
+            <td>{s.value}</td>
+            <td class="{band_class}">{s.band}</td>
+            <td>{trend_display}</td>
+        </tr>
+        """
+    
+    stats_html = ""
+    if stats:
+        stats_html = f"""
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{stats.get('avg_value', 0):.0f}</div>
+                <div class="stat-label">Monthly Avg</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{stats.get('min_value', 0)}</div>
+                <div class="stat-label">Min</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{stats.get('max_value', 0)}</div>
+                <div class="stat-label">Max</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{stats.get('snapshot_count', 0)}</div>
+                <div class="stat-label">Days</div>
+            </div>
+        </div>
+        """
+    
+    prev_link = ""
+    if adjacent['prev']:
+        p = adjacent['prev']
+        prev_link = f'<a class="nav-arrow" href="/geri/{p["year"]}/{p["month"]:02d}">&larr; {calendar_month_name[p["month"]]} {p["year"]}</a>'
+    else:
+        prev_link = '<span class="nav-arrow disabled">&larr; No earlier</span>'
+    
+    next_link = ""
+    if adjacent['next']:
+        n = adjacent['next']
+        next_link = f'<a class="nav-arrow" href="/geri/{n["year"]}/{n["month"]:02d}">{calendar_month_name[n["month"]]} {n["year"]} &rarr;</a>'
+    else:
+        next_link = '<span class="nav-arrow disabled">No later &rarr;</span>'
+    
+    month_display = f"{calendar_month_name[month]} {year}"
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Global Energy Risk Index {month_display} | EnergyRiskIQ</title>
+        <meta name="description" content="GERI archive for {month_display}. View all daily energy risk index snapshots for this month.">
+        <link rel="canonical" href="{BASE_URL}/geri/{year}/{month:02d}">
+        <link rel="icon" type="image/png" href="/favicon.png">
+        {get_common_styles()}
+        {get_geri_common_styles()}
+    </head>
+    <body>
+        {render_nav()}
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/geri">GERI</a> &raquo; 
+                    <a href="/geri/history">History</a> &raquo;
+                    {month_display}
+                </div>
+                
+                <h1>Global Energy Risk Index - {month_display}</h1>
+                
+                {stats_html}
+                
+                <h2>Daily Snapshots</h2>
+                <table class="geri-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Value</th>
+                            <th>Band</th>
+                            <th>7d Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows_html}
+                    </tbody>
+                </table>
+                
+                <div class="nav-arrows">
+                    {prev_link}
+                    {next_link}
+                </div>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="/geri/history" style="color: #60a5fa;">View Full History</a>
+                </div>
+            </div>
+        </main>
+        {render_footer()}
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
