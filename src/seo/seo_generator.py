@@ -770,13 +770,14 @@ def get_monthly_pages(year: int, month: int) -> List[Dict]:
 
 
 def get_available_months() -> List[Dict]:
-    """Get list of months that have daily pages."""
+    """Get list of months that have daily pages with max date for lastmod."""
     query = """
     SELECT 
         EXTRACT(YEAR FROM page_date)::int as year,
         EXTRACT(MONTH FROM page_date)::int as month,
         COUNT(*) as page_count,
-        SUM(alert_count) as total_alerts
+        SUM(alert_count) as total_alerts,
+        MAX(page_date) as max_date
     FROM seo_daily_pages
     GROUP BY EXTRACT(YEAR FROM page_date), EXTRACT(MONTH FROM page_date)
     ORDER BY year DESC, month DESC
@@ -786,62 +787,87 @@ def get_available_months() -> List[Dict]:
 
 
 def generate_sitemap_entries() -> List[Dict]:
-    """Generate sitemap entries for all SEO pages."""
+    """Generate sitemap entries for all SEO pages with lastmod dates."""
+    from datetime import date
     entries = []
+    
+    today = date.today().isoformat()
     
     entries.append({
         'loc': '/',
         'priority': '1.0',
-        'changefreq': 'daily'
+        'changefreq': 'daily',
+        'lastmod': today
     })
     
     entries.append({
         'loc': '/alerts',
         'priority': '0.9',
-        'changefreq': 'daily'
+        'changefreq': 'daily',
+        'lastmod': today
     })
+    
+    static_lastmod = '2025-01-15'
     
     entries.append({
         'loc': '/privacy',
         'priority': '0.4',
-        'changefreq': 'monthly'
+        'changefreq': 'monthly',
+        'lastmod': static_lastmod
     })
     
     entries.append({
         'loc': '/terms',
         'priority': '0.4',
-        'changefreq': 'monthly'
+        'changefreq': 'monthly',
+        'lastmod': static_lastmod
     })
     
     entries.append({
         'loc': '/disclaimer',
         'priority': '0.4',
-        'changefreq': 'monthly'
+        'changefreq': 'monthly',
+        'lastmod': static_lastmod
     })
     
     entries.append({
         'loc': '/marketing/samples',
         'priority': '0.5',
-        'changefreq': 'monthly'
+        'changefreq': 'monthly',
+        'lastmod': static_lastmod
     })
     
     months = get_available_months()
     for m in months:
+        max_date = m.get('max_date')
+        if max_date:
+            if isinstance(max_date, str):
+                lastmod = max_date[:10]
+            else:
+                lastmod = max_date.isoformat() if hasattr(max_date, 'isoformat') else str(max_date)[:10]
+        else:
+            lastmod = f"{m['year']}-{m['month']:02d}-01"
         entries.append({
             'loc': f"/alerts/{m['year']}/{m['month']:02d}",
             'priority': '0.7',
-            'changefreq': 'weekly'
+            'changefreq': 'weekly',
+            'lastmod': lastmod
         })
     
     pages = get_recent_daily_pages(limit=90)
     for p in pages:
         page_date = p['page_date']
         if isinstance(page_date, str):
-            page_date = datetime.fromisoformat(page_date).date()
+            page_date_obj = datetime.fromisoformat(page_date).date()
+            lastmod = page_date[:10]
+        else:
+            page_date_obj = page_date
+            lastmod = page_date.isoformat()
         entries.append({
-            'loc': f"/alerts/daily/{page_date.isoformat()}",
+            'loc': f"/alerts/daily/{page_date_obj.isoformat()}",
             'priority': '0.8',
-            'changefreq': 'never'
+            'changefreq': 'never',
+            'lastmod': lastmod
         })
     
     return entries

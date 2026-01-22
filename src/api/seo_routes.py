@@ -1024,14 +1024,15 @@ async def monthly_archive_page(year: int, month: int):
 
 @router.get("/sitemap.xml", response_class=Response)
 async def sitemap_xml():
-    """Generate XML sitemap."""
+    """Generate XML sitemap with lastmod dates."""
     entries = generate_sitemap_entries()
     
     xml_entries = ""
     for e in entries:
+        lastmod_tag = f"\n        <lastmod>{e['lastmod']}</lastmod>" if e.get('lastmod') else ""
         xml_entries += f"""
     <url>
-        <loc>{BASE_URL}{e['loc']}</loc>
+        <loc>{BASE_URL}{e['loc']}</loc>{lastmod_tag}
         <priority>{e['priority']}</priority>
         <changefreq>{e['changefreq']}</changefreq>
     </url>"""
