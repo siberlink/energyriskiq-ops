@@ -801,6 +801,30 @@ def generate_sitemap_entries() -> List[Dict]:
         'changefreq': 'daily'
     })
     
+    entries.append({
+        'loc': '/privacy',
+        'priority': '0.4',
+        'changefreq': 'monthly'
+    })
+    
+    entries.append({
+        'loc': '/terms',
+        'priority': '0.4',
+        'changefreq': 'monthly'
+    })
+    
+    entries.append({
+        'loc': '/disclaimer',
+        'priority': '0.4',
+        'changefreq': 'monthly'
+    })
+    
+    entries.append({
+        'loc': '/marketing/samples',
+        'priority': '0.5',
+        'changefreq': 'monthly'
+    })
+    
     months = get_available_months()
     for m in months:
         entries.append({
