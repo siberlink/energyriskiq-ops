@@ -1,0 +1,199 @@
+# MASTER PROMPT — Replit AI
+## Goal
+Fix SEO canonical tags across the entire EnergyRiskIQ app so that **EVERY page** outputs a correct canonical link:
+
+<link rel="canonical" href="https://energyriskiq.com/CURRENT_PATH">
+
+### Must NOT output canonicals that are:
+- http
+- www
+- mixed hostnames
+- missing on any route
+
+This must be implemented **safely** and **not break any existing functionality**.
+
+---
+
+## Context / Assumptions
+- The app is currently accessible via both:
+  - https://energyriskiq.com
+  - https://www.energyriskiq.com
+  - and sometimes http redirects
+- Google indexed:
+  - https://energyriskiq.com/
+  - https://www.energyriskiq.com/marketing/samples
+- We want to consolidate SEO to ONE canonical host:
+  - **https://energyriskiq.com**
+- The canonical URL must preserve the **current path + query behavior**:
+  - canonical should include the path (e.g. /marketing/samples)
+  - canonical should generally EXCLUDE tracking query strings (utm_*, gclid, fbclid), unless we explicitly decide otherwise
+
+---
+
+## Deliverables
+1) A single canonical URL builder utility that:
+- always returns `https://energyriskiq.com` as host
+- uses the request path for CURRENT_PATH
+- strips known tracking params (utm_*, gclid, fbclid)
+- normalizes trailing slash behavior consistently (choose one approach and apply globally)
+
+2) Canonical tag injected into the `<head>` for ALL pages, including:
+- static routes
+- dynamic routes
+- nested routes like `/marketing/samples`
+- error pages (404) if they render HTML
+
+3) A lightweight verification checklist:
+- confirm canonical output on at least 10 routes (mix of static + dynamic)
+- confirm no route outputs www or http canonical
+- confirm SSR/CSR head updates don’t duplicate tags
+
+---
+
+## IMPORTANT: First Action — Detect Tech Stack
+Before coding, inspect the repository and determine which rendering approach is used:
+- Next.js (pages router or app router)
+- React SPA (Vite/CRA) with index.html + react-helmet
+- Express/EJS/Handlebars server-rendered templates
+- FastAPI/Jinja
+- Another framework
+
+Then implement the canonical fix using the **correct framework-native method**.
+
+---
+
+## Canonical Rules (Hard Requirements)
+### Host enforcement
+Canonical must ALWAYS start with:
+https://energyriskiq.com
+
+Even if request came from:
+- http://energyriskiq.com
+- https://www.energyriskiq.com
+- http://www.energyriskiq.com
+
+### Path handling
+If request path is:
+- `/` → canonical must be `https://energyriskiq.com/`
+- `/marketing/samples` → canonical must be `https://energyriskiq.com/marketing/samples`
+
+### Query handling
+Canonical should NOT include tracking params:
+- utm_source, utm_medium, utm_campaign, utm_term, utm_content
+- gclid, fbclid
+If there are other meaningful params (e.g. `?id=123`), decide:
+- include them ONLY if they change unique content
+- otherwise strip them
+
+### Trailing slash normalization
+Pick one consistent strategy:
+- either always include trailing slash for directories, or always remove
+- but do it consistently across the site
+Recommended:
+- keep `/` only for root
+- remove trailing slash for non-root paths unless the framework forces it
+
+### Single canonical tag
+There must be exactly ONE:
+<link rel="canonical" ...>
+per page render.
+
+---
+
+## Implementation Guidance (Framework-Specific)
+### If Next.js (App Router)
+- Use `generateMetadata()` at layout/page level OR define `metadata` in root layout.
+- Ensure canonical is computed from the route path.
+- Force host to `https://energyriskiq.com`.
+- Add logic to strip tracking params.
+
+### If Next.js (Pages Router)
+- Use `_document.tsx` / `_document.js` or a shared `<Head>` component.
+- Use `next/head` to inject canonical dynamically per route.
+
+### If React SPA (Vite/CRA)
+- Use `react-helmet-async` (preferred) or `react-helmet`.
+- Create a `<CanonicalHead />` component placed high in the route layout.
+- Read current path from router (react-router `useLocation()`).
+- Build canonical from path.
+- Ensure it updates on route change.
+
+### If Express server templates / SSR
+- Add canonical link in base template head.
+- Use req.path for CURRENT_PATH.
+- Build canonical using a shared helper.
+
+### If FastAPI/Jinja
+- Add canonical link in base template.
+- Use `request.url.path` and a helper to force host.
+
+---
+
+## Canonical Builder Utility — Required Behavior
+Create a new file:
+- `src/utils/canonical.ts` (or .js depending on project)
+
+It must export a function like:
+`buildCanonicalUrl({ path, searchParams })`
+
+Pseudo-logic:
+1) base = "https://energyriskiq.com"
+2) normalize path:
+   - ensure it starts with "/"
+   - if empty → "/"
+3) parse params
+4) remove tracking params:
+   - any key starting with "utm_"
+   - gclid, fbclid
+5) if remaining params materially change content (framework decision), optionally keep them
+6) return `${base}${normalizedPath}${maybeQuery}`
+
+---
+
+## Required Tasks — Implement Now
+1) Locate the global head/layout entry point.
+2) Implement canonical injection globally for all routes.
+3) Ensure no duplicates (remove any existing hardcoded canonical tags).
+4) Ensure the canonical builder is used everywhere (no manual canonicals).
+5) Add a simple dev-only debug helper:
+   - log canonical to console in dev mode OR
+   - expose a small `/__seo` dev route listing canonical outputs for key pages
+
+---
+
+## Verification Plan (Must Execute)
+After implementation, run the app and verify in browser view-source / inspect head:
+
+Check these routes (or closest equivalents):
+- `/`
+- `/marketing/samples`
+- 3 other marketing pages
+- 3 authenticated pages (if they render HTML)
+- 2 dynamic pages (e.g. /alerts/:id or similar)
+
+For each:
+✅ exactly one canonical tag  
+✅ href starts with `https://energyriskiq.com`  
+✅ href matches current path  
+✅ no `www`  
+✅ no `http`  
+✅ no utm/gclid/fbclid included  
+
+---
+
+## Output Format
+When done, respond with:
+1) What stack you detected
+2) Files changed (with paths)
+3) The exact canonical logic implemented
+4) A short list of routes tested and what canonical they output
+
+---
+
+## Constraints
+- Do NOT change database schemas.
+- Do NOT affect existing business logic (alerts, ingestion, users, plans).
+- Keep changes minimal and isolated to SEO/head rendering + utility.
+- Avoid adding heavy dependencies unless needed (e.g. only add react-helmet-async if SPA requires it).
+
+BEGIN.
