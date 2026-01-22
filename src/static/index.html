@@ -1849,6 +1849,12 @@
             padding: 1.5rem 2rem;
             box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
             animation: geriPulse 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .geri-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(233, 69, 96, 0.5);
         }
         @keyframes geriPulse {
             0%, 100% { box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3); }
@@ -2019,6 +2025,7 @@
 
             <!-- GERI Public Display (24h Delayed) -->
             <div id="geri-public-section" class="geri-public-container" style="display: none;">
+                <a href="/geri" class="geri-card-link" style="text-decoration: none; color: inherit; display: block;">
                 <div class="geri-card">
                     <div class="geri-header">
                         <span class="geri-fire">🔥</span>
@@ -2042,6 +2049,7 @@
                         <span class="geri-delay-badge">24h delayed • Real-time access with subscription</span>
                     </div>
                 </div>
+                </a>
             </div>
 
             <div class="problem-grid">
