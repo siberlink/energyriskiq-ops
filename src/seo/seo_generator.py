@@ -837,6 +837,13 @@ def generate_sitemap_entries() -> List[Dict]:
         'lastmod': static_lastmod
     })
     
+    entries.append({
+        'loc': '/geri',
+        'priority': '0.9',
+        'changefreq': 'daily',
+        'lastmod': today
+    })
+    
     months = get_available_months()
     for m in months:
         max_date = m.get('max_date')

@@ -28,6 +28,7 @@ from src.seo.seo_generator import (
     get_yesterday_date,
     generate_daily_page_model
 )
+from src.geri.geri_service import get_geri_for_user, get_geri_delayed
 
 router = APIRouter(tags=["seo"])
 
@@ -1086,6 +1087,7 @@ async def sitemap_html():
                 <h2>Main Pages</h2>
                 <ul class="page-list" style="list-style: disc; padding-left: 1.5rem;">
                     <li><a href="/">Homepage</a></li>
+                    <li><a href="/geri">Global Energy Risk Index (GERI)</a></li>
                     <li><a href="/alerts">Alerts Hub</a></li>
                     <li><a href="/users">Sign Up / Login</a></li>
                     <li><a href="/privacy">Privacy Policy</a></li>
@@ -1109,3 +1111,276 @@ async def sitemap_html():
     """
     
     return HTMLResponse(content=html)
+
+
+@router.get("/geri", response_class=HTMLResponse)
+async def geri_page(request: Request):
+    """
+    GERI Index Page - Single canonical page with plan-based data.
+    
+    - Unauthenticated: Shows 24h delayed GERI
+    - Authenticated: Shows real-time GERI
+    
+    Googlebot always sees delayed version (not logged in).
+    """
+    track_page_view("geri", "/geri")
+    
+    user_id = None
+    x_user_token = request.headers.get('x-user-token')
+    if x_user_token:
+        try:
+            from src.api.user_routes import verify_user_session
+            session = verify_user_session(x_user_token)
+            user_id = session.get('user_id')
+        except:
+            pass
+    
+    geri = get_geri_for_user(user_id)
+    
+    if not geri:
+        geri_content = """
+        <div class="geri-unavailable">
+            <h2>GERI Data Coming Soon</h2>
+            <p>The Global Energy Risk Index is being computed. Check back shortly.</p>
+        </div>
+        """
+        is_delayed = True
+        badge_label = "24h Delayed"
+        badge_class = "delayed"
+    else:
+        is_delayed = geri.is_delayed
+        badge_label = "24h Delayed" if is_delayed else "Real-time"
+        badge_class = "delayed" if is_delayed else "realtime"
+        
+        band_colors = {
+            'LOW': '#22c55e',
+            'MODERATE': '#eab308',
+            'ELEVATED': '#f97316',
+            'CRITICAL': '#ef4444',
+            'SEVERE': '#dc2626'
+        }
+        band_color = band_colors.get(geri.band, '#6b7280')
+        
+        trend_display = ""
+        if geri.trend_7d is not None:
+            trend_arrow = "+" if geri.trend_7d > 0 else ""
+            trend_color = "#ef4444" if geri.trend_7d > 0 else "#22c55e" if geri.trend_7d < 0 else "#6b7280"
+            trend_display = f'<span style="color: {trend_color}; font-size: 0.9rem;">{trend_arrow}{geri.trend_7d:.1f} vs 7-day avg</span>'
+        
+        drivers_html = ""
+        for driver in geri.top_drivers[:5]:
+            drivers_html += f'<li>{driver}</li>'
+        if not drivers_html:
+            drivers_html = '<li>No significant drivers detected</li>'
+        
+        regions_html = ""
+        for region in geri.top_regions[:5]:
+            regions_html += f'<li>{region}</li>'
+        if not regions_html:
+            regions_html = '<li>No regional hotspots</li>'
+        
+        geri_content = f"""
+        <div class="geri-metric-card">
+            <div class="geri-badge {badge_class}">{badge_label}</div>
+            <div class="geri-value" style="color: {band_color};">{geri.value}</div>
+            <div class="geri-band" style="color: {band_color};">{geri.band}</div>
+            {trend_display}
+            <div class="geri-date">As of {geri.date}</div>
+        </div>
+        
+        <div class="geri-sections">
+            <div class="geri-section">
+                <h2>Top Drivers</h2>
+                <ul class="geri-list">{drivers_html}</ul>
+            </div>
+            
+            <div class="geri-section">
+                <h2>Top Regions</h2>
+                <ul class="geri-list">{regions_html}</ul>
+            </div>
+        </div>
+        """
+    
+    cta_block = ""
+    if is_delayed:
+        cta_block = """
+        <div class="geri-cta">
+            <h3>Get Real-time Access</h3>
+            <p>Unlock instant GERI updates with a Pro subscription.</p>
+            <a href="/users" class="cta-button primary">Unlock Real-time GERI</a>
+            <a href="/alerts" class="cta-button secondary">See Alert Archive</a>
+        </div>
+        """
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Global Energy Risk Index (GERI) | EnergyRiskIQ</title>
+        <meta name="description" content="Track the Global Energy Risk Index (GERI) - a daily composite measure of energy market risk. Free 24h delayed access, real-time for Pro subscribers.">
+        <link rel="canonical" href="{BASE_URL}/geri">
+        
+        <meta property="og:title" content="Global Energy Risk Index (GERI) | EnergyRiskIQ">
+        <meta property="og:description" content="Track energy market risk with the Global Energy Risk Index. Daily updates on risk levels, drivers, and regional hotspots.">
+        <meta property="og:url" content="{BASE_URL}/geri">
+        <meta property="og:type" content="website">
+        
+        <link rel="icon" type="image/png" href="/favicon.png">
+        {get_common_styles()}
+        <style>
+            .geri-hero {{
+                text-align: center;
+                padding: 2rem 0;
+            }}
+            .geri-hero h1 {{
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }}
+            .geri-hero p {{
+                color: #9ca3af;
+                max-width: 600px;
+                margin: 0 auto;
+            }}
+            .geri-metric-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 1rem;
+                padding: 2rem;
+                text-align: center;
+                max-width: 400px;
+                margin: 2rem auto;
+                position: relative;
+            }}
+            .geri-badge {{
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                padding: 0.25rem 0.75rem;
+                border-radius: 9999px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }}
+            .geri-badge.delayed {{
+                background: #374151;
+                color: #9ca3af;
+            }}
+            .geri-badge.realtime {{
+                background: #22c55e;
+                color: #052e16;
+            }}
+            .geri-value {{
+                font-size: 4rem;
+                font-weight: 700;
+                line-height: 1;
+            }}
+            .geri-band {{
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-top: 0.5rem;
+            }}
+            .geri-date {{
+                color: #6b7280;
+                font-size: 0.875rem;
+                margin-top: 1rem;
+            }}
+            .geri-sections {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+                margin: 2rem 0;
+            }}
+            .geri-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+            }}
+            .geri-section h2 {{
+                font-size: 1.125rem;
+                margin-bottom: 1rem;
+                color: #f8fafc;
+            }}
+            .geri-list {{
+                list-style: disc;
+                padding-left: 1.25rem;
+                color: #d1d5db;
+            }}
+            .geri-list li {{
+                margin-bottom: 0.5rem;
+            }}
+            .geri-cta {{
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                border: 1px solid #3b82f6;
+                border-radius: 1rem;
+                padding: 2rem;
+                text-align: center;
+                margin: 2rem 0;
+            }}
+            .geri-cta h3 {{
+                color: #60a5fa;
+                margin-bottom: 0.5rem;
+            }}
+            .geri-cta p {{
+                color: #9ca3af;
+                margin-bottom: 1.5rem;
+            }}
+            .cta-button {{
+                display: inline-block;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                text-decoration: none;
+                margin: 0.25rem;
+            }}
+            .cta-button.primary {{
+                background: #3b82f6;
+                color: white;
+            }}
+            .cta-button.secondary {{
+                background: transparent;
+                border: 1px solid #6b7280;
+                color: #d1d5db;
+            }}
+            .geri-links {{
+                text-align: center;
+                margin: 2rem 0;
+            }}
+            .geri-links a {{
+                color: #60a5fa;
+                margin: 0 1rem;
+            }}
+            .geri-unavailable {{
+                text-align: center;
+                padding: 3rem;
+                color: #9ca3af;
+            }}
+        </style>
+    </head>
+    <body>
+        {render_nav()}
+        <main>
+            <div class="container">
+                <div class="geri-hero">
+                    <h1>Global Energy Risk Index (GERI)</h1>
+                    <p>A daily composite measure of energy market risk, computed from alert severity, regional concentration, and asset exposure.</p>
+                </div>
+                
+                {geri_content}
+                
+                {cta_block}
+                
+                <div class="geri-links">
+                    <a href="/geri/history">View History</a>
+                    <a href="/alerts">Alert Archive</a>
+                </div>
+            </div>
+        </main>
+        {render_footer()}
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=300"})

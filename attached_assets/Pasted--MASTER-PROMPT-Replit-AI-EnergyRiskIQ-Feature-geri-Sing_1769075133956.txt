@@ -1,0 +1,168 @@
+# MASTER PROMPT — Replit AI (EnergyRiskIQ)
+## Feature: /geri — Single Canonical Index Page with Plan-Based Data (Public Delayed vs Pro Real-Time)
+
+### Goal (non-negotiable)
+Implement **ONE** canonical public page:
+- **GET /geri**
+- Always canonical: `https://energyriskiq.com/geri`
+- Displays **different data** depending on user state:
+  - **Not authenticated** → show **24h delayed** GERI
+  - **Authenticated (valid user session)** → show **real-time (latest)** GERI
+
+### SEO/Safety Requirements
+- Googlebot must only ever see the **public delayed** version (because it’s not logged in).
+- Do **NOT** create /geri-public or /pro/geri routes.
+- Do **NOT** block indexing of /geri (no noindex).
+- Ensure canonical tags are correct and consistent (already fixed globally, but verify /geri too).
+
+### Constraints
+- Do NOT change existing DB schemas unless absolutely required.
+- Do NOT break existing alerts module, ingestion, users, plans.
+- Keep changes encapsulated (new route/page + service functions).
+
+---
+
+## Step 0 — Detect stack and routing
+Inspect repository and identify framework:
+- Next.js App Router / Pages Router
+- React SPA (Vite/CRA) + API
+- Express SSR
+- FastAPI templates
+Then implement /geri accordingly using the framework-native method.
+
+---
+
+## Data Definitions (what /geri must show)
+### Public (Unauthenticated) = DELAYED
+- Label: **“24h delayed”**
+- Date displayed must match the delayed record’s date (not today)
+- Must show:
+  - GERI numeric value
+  - Risk band label (LOW/MODERATE/ELEVATED/SEVERE)
+  - Trend vs 7-day average (if available)
+  - Top Drivers (from prior-day alerts index / summary)
+  - Top Regions
+- CTA: “Unlock real-time GERI” → points to pricing/subscribe path
+
+### Authenticated (User Session Exists) = REAL-TIME
+- Label: **“Real-time”**
+- Date/time displayed = latest available (today / latest computation time)
+- Must show same blocks as public view, but using latest data
+
+> IMPORTANT: If authenticated but the latest real-time GERI is unavailable (edge case), gracefully fall back to delayed with a small note.
+
+---
+
+## Source of Truth
+Use existing GERI generation logic already used for the homepage card.
+Do NOT duplicate calculation logic.
+Instead, extract to shared service functions.
+
+### Create a service layer (required)
+Create a reusable module, e.g.:
+- `src/services/geriService.ts` (or equivalent)
+
+Export:
+- `getGeriDelayed(): Promise<GeriViewModel>`
+- `getGeriRealtimeForUser(userId): Promise<GeriViewModel>` OR `getGeriLatest(): Promise<GeriViewModel>`
+
+`GeriViewModel` should include:
+- `value` (number)
+- `band` (string)
+- `date` (ISO date or datetime)
+- `trendVs7d` (number or string)
+- `topDrivers` (array of strings)
+- `topRegions` (array of strings)
+- `isDelayed` (boolean)
+
+Delayed selection rule:
+- Use the most recent GERI snapshot that is at least **24 hours old**.
+- If you already store daily “yesterday” index values, use that.
+- If not stored, compute from alerts created on day-before-yesterday (as per existing product logic).
+
+Real-time selection rule:
+- Use the latest available GERI snapshot or compute from most recent alerts window (existing logic).
+
+---
+
+## Auth Detection (required)
+Implement user detection using existing authentication middleware/session:
+- If request has valid user session → authenticated
+- Else → unauthenticated
+
+Do NOT require Pro plan check yet unless you already have it.
+For v1 per instruction:
+- authenticated = real-time
+- not authenticated = delayed
+
+(If you already have plan tiers, keep code flexible for later: `canAccessRealtime = isAuthenticated && planAllowsRealtime`.)
+
+---
+
+## UI Requirements (Conversion + Clarity)
+On /geri page, render:
+1) Hero title:
+   - H1: “Global Energy Risk Index (GERI)”
+2) Metric card:
+   - Value + Band
+   - Trend vs 7-day average
+   - Date
+   - Badge:
+     - “24h delayed” (public)
+     - “Real-time” (authenticated)
+3) Sections:
+   - “Top Drivers”
+   - “Top Regions”
+4) CTA block (only when public delayed):
+   - Button: “Unlock real-time GERI”
+   - Secondary: “See alert archive” → /alerts
+5) Internal links:
+   - Link to `/geri/history` (can be a placeholder for now if not implemented yet)
+   - Link to `/alerts`
+
+Design should match existing homepage styling (Tailwind). Keep it consistent.
+
+---
+
+## SEO Metadata (required)
+Ensure /geri has:
+- `<title>`: “Global Energy Risk Index (GERI) | EnergyRiskIQ”
+- `<meta name="description">` describing what GERI measures + 24h delayed public access
+- Canonical:
+  - `https://energyriskiq.com/geri`
+- OpenGraph tags (optional but recommended)
+
+---
+
+## Sitemap Integration (required)
+Update sitemap generator to include:
+- `/geri` (priority 0.9, changefreq daily, lastmod today/deploy date)
+
+Do NOT add history pages yet unless they exist.
+
+---
+
+## Testing Checklist (must complete)
+1) Open /geri while logged OUT:
+   - Shows delayed badge
+   - Date is NOT today (it is delayed)
+   - Data matches homepage delayed card (or the same delayed snapshot)
+2) Open /geri while logged IN:
+   - Shows real-time badge
+   - Date is latest
+3) View page source:
+   - canonical is `https://energyriskiq.com/geri`
+4) Confirm no new /pro routes created
+5) Confirm existing homepage card still works and now reuses the shared geriService
+
+---
+
+## Output (when finished)
+Respond with:
+1) Stack detected (Next.js/React/etc.)
+2) Files added/changed (paths)
+3) How auth detection was done
+4) How delayed vs real-time selection works
+5) Screenshots/notes of the two modes (logged out vs logged in)
+
+BEGIN.
