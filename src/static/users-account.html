@@ -175,6 +175,30 @@
             letter-spacing: 0.5px;
         }
 
+        .pro-badge-nav.pro-badge-locked {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            font-size: 8px;
+        }
+
+        .nav-item-disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            pointer-events: none;
+        }
+
+        .nav-item-disabled:hover {
+            background: transparent !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        .geri-upgrade-hint {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 4px 12px 8px 44px;
+            margin-top: -4px;
+            font-style: italic;
+        }
+
         .nav-icon {
             width: 20px;
             height: 20px;
@@ -1396,7 +1420,7 @@
                 </span>
                 My Alerts
             </a>
-            <a class="nav-item" id="geriNavItem" onclick="showSection('geri'); closeMobileMenu();" style="display: none;">
+            <a class="nav-item" id="geriNavItem" onclick="showSection('geri'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 2v20"/>
@@ -1406,8 +1430,11 @@
                     </svg>
                 </span>
                 Current GERI
-                <span class="pro-badge-nav">PRO</span>
+                <span class="pro-badge-nav" id="geriBadge">PRO</span>
             </a>
+            <div class="geri-upgrade-hint" id="geriUpgradeHint" style="display: none;">
+                (Upgrade your plan to Pro to access GERI)
+            </div>
         </div>
 
         <div class="sidebar-section">
@@ -1945,11 +1972,30 @@
             document.getElementById('telegramLinked').style.display = (telegramEnabled && isLinked) ? 'block' : 'none';
             document.getElementById('telegramNotLinked').style.display = (telegramEnabled && !isLinked) ? 'block' : 'none';
             
-            // Show GERI nav item for Pro and Enterprise users only
+            // Show GERI nav item for all users, but disable for non-Pro/Enterprise
             const geriEnabled = ['pro', 'enterprise'].includes(plan);
             const geriNavItem = document.getElementById('geriNavItem');
+            const geriBadge = document.getElementById('geriBadge');
+            const geriUpgradeHint = document.getElementById('geriUpgradeHint');
+            
             if (geriNavItem) {
-                geriNavItem.style.display = geriEnabled ? 'flex' : 'none';
+                if (geriEnabled) {
+                    geriNavItem.classList.remove('nav-item-disabled');
+                    geriNavItem.onclick = function() { showSection('geri'); closeMobileMenu(); };
+                    if (geriBadge) {
+                        geriBadge.textContent = 'PRO';
+                        geriBadge.classList.remove('pro-badge-locked');
+                    }
+                    if (geriUpgradeHint) geriUpgradeHint.style.display = 'none';
+                } else {
+                    geriNavItem.classList.add('nav-item-disabled');
+                    geriNavItem.onclick = function(e) { e.preventDefault(); };
+                    if (geriBadge) {
+                        geriBadge.textContent = 'Pro+ Users';
+                        geriBadge.classList.add('pro-badge-locked');
+                    }
+                    if (geriUpgradeHint) geriUpgradeHint.style.display = 'block';
+                }
             }
         }
 
