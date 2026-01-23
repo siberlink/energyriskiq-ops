@@ -2015,9 +2015,13 @@
                     `<li>${d.headline || d.type || 'Unknown'}</li>`
                 ).join('') || '<li>No data</li>';
                 
-                const regionsHtml = topRegions.slice(0, 5).map(r => 
-                    `<li>${r.region || 'Unknown'} (${(r.contribution || 0).toFixed(1)}%)</li>`
-                ).join('') || '<li>No data</li>';
+                // Calculate region contribution percentages from risk_total
+                const totalRegionRisk = topRegions.reduce((sum, r) => sum + (r.risk_total || 0), 0);
+                const regionsHtml = topRegions.slice(0, 5).map(r => {
+                    const riskTotal = r.risk_total || 0;
+                    const pct = totalRegionRisk > 0 ? ((riskTotal / totalRegionRisk) * 100).toFixed(1) : '0.0';
+                    return `<li>${r.region || 'Unknown'} (${pct}%)</li>`;
+                }).join('') || '<li>No data</li>';
                 
                 contentDiv.innerHTML = `
                     <div class="geri-display-card">
