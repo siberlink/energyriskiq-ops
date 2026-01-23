@@ -1793,6 +1793,137 @@ async def geri_methodology_page():
                 font-style: italic;
                 margin-top: 1rem;
             }}
+            .layer-card {{
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+                margin: 1.25rem 0;
+                border: 1px solid;
+            }}
+            .layer-1 {{
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%);
+                border-color: #f59e0b;
+            }}
+            .layer-2 {{
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%);
+                border-color: #3b82f6;
+            }}
+            .layer-3 {{
+                background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%);
+                border-color: #10b981;
+            }}
+            .layer-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+            }}
+            .layer-number {{
+                width: 2rem;
+                height: 2rem;
+                border-radius: 50%;
+                background: rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 1rem;
+                color: #1e293b;
+            }}
+            .layer-header h4 {{
+                margin: 0;
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #1e293b;
+            }}
+            .layer-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 0.75rem 0;
+            }}
+            .layer-list li {{
+                padding: 0.3rem 0 0.3rem 1.25rem;
+                position: relative;
+                color: #334155;
+                font-size: 0.95rem;
+            }}
+            .layer-list li::before {{
+                content: "→";
+                position: absolute;
+                left: 0;
+                color: #64748b;
+            }}
+            .layer-note {{
+                font-style: italic;
+                color: #64748b;
+                font-size: 0.9rem;
+                margin: 0.5rem 0;
+            }}
+            .layer-summary {{
+                font-weight: 600;
+                color: #0f172a;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px dashed rgba(0,0,0,0.2);
+            }}
+            .simple-list.compact {{
+                margin: 0.5rem 0;
+                gap: 0.5rem;
+            }}
+            .simple-list.compact li {{
+                padding: 0.35rem 0.75rem;
+                font-size: 0.85rem;
+            }}
+            .aggregation-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.75rem;
+                margin: 1rem 0;
+            }}
+            .aggregation-item {{
+                background: rgba(255,255,255,0.6);
+                border-radius: 0.5rem;
+                padding: 0.75rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }}
+            .agg-icon {{
+                font-size: 1.25rem;
+            }}
+            .agg-label {{
+                font-weight: 600;
+                color: #1e293b;
+                font-size: 0.9rem;
+            }}
+            .agg-detail {{
+                font-size: 0.8rem;
+                color: #64748b;
+            }}
+            .result-showcase {{
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                margin: 1.25rem 0;
+                flex-wrap: wrap;
+            }}
+            .result-item {{
+                background: rgba(255,255,255,0.7);
+                border-radius: 0.5rem;
+                padding: 1rem 1.5rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.35rem;
+                min-width: 100px;
+            }}
+            .result-icon {{
+                font-size: 1.5rem;
+            }}
+            .result-text {{
+                font-weight: 600;
+                color: #1e293b;
+                font-size: 0.95rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -1933,6 +2064,25 @@ async def geri_methodology_page():
                 }}
                 .emphasis-text {{
                     font-size: 1rem;
+                }}
+                .layer-card {{
+                    padding: 1.25rem;
+                }}
+                .layer-header h4 {{
+                    font-size: 1rem;
+                }}
+                .layer-list li {{
+                    font-size: 0.9rem;
+                }}
+                .aggregation-grid {{
+                    grid-template-columns: 1fr;
+                }}
+                .result-showcase {{
+                    gap: 1rem;
+                }}
+                .result-item {{
+                    padding: 0.75rem 1rem;
+                    min-width: 80px;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2088,6 +2238,98 @@ async def geri_methodology_page():
                             <p>A systemic risk indicator designed to describe stress in the energy system — not to predict prices or guide trades.</p>
                         </div>
                         <p class="emphasis-text">This distinction is fundamental to its credibility.</p>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🧩</span> How GERI Is Constructed — Conceptual Architecture</h3>
+                        <p>GERI is built using a multi-layer analytical framework designed to transform complex global events into a structured daily risk indicator.</p>
+                        
+                        <div class="layer-card layer-1">
+                            <div class="layer-header">
+                                <span class="layer-number">1</span>
+                                <h4>Event Layer — What is happening in the world</h4>
+                            </div>
+                            <p>EnergyRiskIQ continuously monitors high-impact events related to:</p>
+                            <ul class="layer-list">
+                                <li>Geopolitics</li>
+                                <li>Energy production</li>
+                                <li>Transport and shipping</li>
+                                <li>Sanctions and trade</li>
+                                <li>Infrastructure incidents</li>
+                                <li>Regulatory and policy decisions</li>
+                            </ul>
+                            <p class="layer-note">Only events with material relevance to energy systems are included.</p>
+                            <p>Each event is classified by:</p>
+                            <ul class="simple-list compact">
+                                <li>📍 Region</li>
+                                <li>📂 Category</li>
+                                <li>⚠️ Severity</li>
+                                <li>🔗 Relevance</li>
+                            </ul>
+                            <p class="layer-summary">This layer captures <strong>what is happening</strong>.</p>
+                        </div>
+                        
+                        <div class="layer-card layer-2">
+                            <div class="layer-header">
+                                <span class="layer-number">2</span>
+                                <h4>Risk Signal Layer — What these events mean for risk</h4>
+                            </div>
+                            <p>Raw events are not yet risk. They are translated into structured risk signals, such as:</p>
+                            <ul class="layer-list">
+                                <li>Probability of supply disruption</li>
+                                <li>Escalation risk</li>
+                                <li>Transport vulnerability</li>
+                                <li>Regulatory instability</li>
+                                <li>Regional exposure</li>
+                            </ul>
+                            <p>Signals are aggregated across:</p>
+                            <div class="aggregation-grid">
+                                <div class="aggregation-item">
+                                    <span class="agg-icon">🌍</span>
+                                    <span class="agg-label">Regions</span>
+                                    <span class="agg-detail">Europe, Middle East, Asia, Americas, etc.</span>
+                                </div>
+                                <div class="aggregation-item">
+                                    <span class="agg-icon">📊</span>
+                                    <span class="agg-label">Asset Classes</span>
+                                    <span class="agg-detail">Oil, gas, power, freight, FX, etc.</span>
+                                </div>
+                                <div class="aggregation-item">
+                                    <span class="agg-icon">🔄</span>
+                                    <span class="agg-label">Systemic Channels</span>
+                                    <span class="agg-detail">Supply, policy, logistics, demand</span>
+                                </div>
+                            </div>
+                            <p class="layer-summary">This layer captures <strong>how events affect the system</strong>.</p>
+                        </div>
+                        
+                        <div class="layer-card layer-3">
+                            <div class="layer-header">
+                                <span class="layer-number">3</span>
+                                <h4>Index Layer — Converting risk into a single indicator</h4>
+                            </div>
+                            <p>Aggregated risk signals are then transformed into:</p>
+                            <ul class="layer-list">
+                                <li>A daily numerical index value (0–100 scale)</li>
+                                <li>A qualitative risk band</li>
+                                <li>Short-term and medium-term trend indicators</li>
+                            </ul>
+                            <div class="result-showcase">
+                                <div class="result-item">
+                                    <span class="result-icon">🔢</span>
+                                    <span class="result-text">One number</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-icon">🎚️</span>
+                                    <span class="result-text">One band</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-icon">📅</span>
+                                    <span class="result-text">One daily snapshot</span>
+                                </div>
+                            </div>
+                            <p class="layer-summary">Representing the overall stress level of the global energy system.</p>
+                        </div>
                     </div>
                 </div>
                 
