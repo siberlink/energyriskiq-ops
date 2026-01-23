@@ -1534,6 +1534,191 @@ async def geri_history_page():
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/geri/methodology", response_class=HTMLResponse)
+async def geri_methodology_page():
+    """
+    GERI Methodology Page - Static page explaining the index construction.
+    """
+    track_page_view("geri_methodology", "/geri/methodology")
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Global Energy Risk Index (GERI) — Methodology & Construction | EnergyRiskIQ</title>
+        <meta name="description" content="Learn how the Global Energy Risk Index (GERI) measures systemic geopolitical and supply risk in global energy markets through daily event analysis and structured risk signals.">
+        <link rel="canonical" href="{BASE_URL}/geri/methodology">
+        
+        <meta property="og:title" content="Global Energy Risk Index (GERI) — Methodology & Construction | EnergyRiskIQ">
+        <meta property="og:description" content="Learn how GERI measures systemic geopolitical and supply risk in global energy markets through daily event analysis.">
+        <meta property="og:url" content="{BASE_URL}/geri/methodology">
+        <meta property="og:type" content="article">
+        
+        <link rel="icon" type="image/png" href="/favicon.png">
+        {get_common_styles()}
+        <style>
+            .methodology-hero {{
+                text-align: center;
+                padding: 4rem 0 2rem;
+                max-width: 800px;
+                margin: 0 auto;
+            }}
+            .methodology-hero h1 {{
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: #f8fafc;
+                margin-bottom: 0.5rem;
+                line-height: 1.2;
+            }}
+            .methodology-hero .subtitle {{
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: #0066FF;
+                margin-bottom: 1.5rem;
+            }}
+            .methodology-hero h2 {{
+                font-size: 1.25rem;
+                font-weight: 400;
+                color: #94a3b8;
+                font-style: italic;
+                max-width: 700px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }}
+            .methodology-content {{
+                max-width: 800px;
+                margin: 3rem auto;
+                padding: 0 1rem;
+            }}
+            .methodology-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 1rem;
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }}
+            .methodology-section h3 {{
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #f8fafc;
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }}
+            .methodology-section h3 .icon {{
+                width: 32px;
+                height: 32px;
+                background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+            }}
+            .methodology-section p {{
+                color: #cbd5e1;
+                line-height: 1.8;
+                margin-bottom: 1rem;
+            }}
+            .methodology-section ul {{
+                color: #cbd5e1;
+                line-height: 1.8;
+                padding-left: 1.5rem;
+            }}
+            .methodology-section li {{
+                margin-bottom: 0.5rem;
+            }}
+            .methodology-nav {{
+                display: flex;
+                justify-content: center;
+                gap: 1rem;
+                margin: 3rem 0;
+                flex-wrap: wrap;
+            }}
+            .methodology-nav a {{
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                text-decoration: none;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }}
+            .methodology-nav a.primary {{
+                background: #0066FF;
+                color: white;
+            }}
+            .methodology-nav a.primary:hover {{
+                background: #0052CC;
+            }}
+            .methodology-nav a.secondary {{
+                background: #334155;
+                color: #f8fafc;
+            }}
+            .methodology-nav a.secondary:hover {{
+                background: #475569;
+            }}
+            .breadcrumbs {{
+                color: #9ca3af;
+                margin-bottom: 1rem;
+                font-size: 0.875rem;
+            }}
+            .breadcrumbs a {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .breadcrumbs a:hover {{
+                text-decoration: underline;
+            }}
+            @media (max-width: 768px) {{
+                .methodology-hero h1 {{
+                    font-size: 1.75rem;
+                }}
+                .methodology-hero .subtitle {{
+                    font-size: 1.25rem;
+                }}
+                .methodology-hero h2 {{
+                    font-size: 1rem;
+                }}
+                .methodology-section {{
+                    padding: 1.5rem;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        {render_nav()}
+        <main style="background: #0f172a; min-height: 100vh; padding-bottom: 4rem;">
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/geri">GERI</a> &raquo; Methodology
+                </div>
+                
+                <div class="methodology-hero">
+                    <h1>Global Energy Risk Index (GERI)</h1>
+                    <div class="subtitle">Methodology & Construction</div>
+                    <h2>"Measuring systemic risk in global energy markets — daily, transparent, and institutional-grade."</h2>
+                </div>
+                
+                <div class="methodology-content">
+                    <!-- Content sections will be added here -->
+                </div>
+                
+                <div class="methodology-nav">
+                    <a href="/geri" class="primary">View Current GERI</a>
+                    <a href="/geri/history" class="secondary">Browse History</a>
+                </div>
+            </div>
+        </main>
+        {render_footer()}
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
+
+
 @router.get("/geri/{date:path}", response_class=HTMLResponse)
 async def geri_daily_page(date: str):
     """
