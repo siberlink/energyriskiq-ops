@@ -53,6 +53,7 @@ class AlertRecord:
     weight: Optional[float]
     created_at: datetime
     headline: Optional[str] = None
+    body: Optional[str] = None
 
 
 @dataclass

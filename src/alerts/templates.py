@@ -90,13 +90,14 @@ def format_high_impact_event(
     event: Dict,
     region: str
 ) -> tuple:
-    title = f"High-Impact Event Detected ({region})"
-    
     severity = event.get('severity_score', 0)
     event_title = event.get('title', 'Unknown event')
     ai_summary = event.get('ai_summary', '')
     source_url = event.get('source_url', '')
     category = event.get('category', 'Unknown')
+    
+    # Use actual event title as headline (for GERI top drivers)
+    title = event_title if event_title != 'Unknown event' else f"High-Impact Event Detected ({region})"
     
     message = f"""HIGH-IMPACT EVENT ALERT
 

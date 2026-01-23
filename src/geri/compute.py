@@ -3,7 +3,8 @@ GERI v1 Compute Functions (Pure Functions)
 
 Calculates index components from alert data.
 """
-from typing import List, Dict, Any
+import re
+from typing import List, Dict, Any, Optional
 from collections import defaultdict
 
 from src.geri.types import (
@@ -11,6 +12,20 @@ from src.geri.types import (
     GERIComponents,
     VALID_ALERT_TYPES,
 )
+
+
+def extract_event_title_from_body(body: Optional[str]) -> Optional[str]:
+    """
+    Extract actual event title from HIGH_IMPACT_EVENT body.
+    Body format: "HIGH-IMPACT EVENT ALERT\n\nEvent: <actual title>\nSeverity: ..."
+    """
+    if not body:
+        return None
+    
+    match = re.search(r'Event:\s*(.+?)(?:\n|$)', body)
+    if match:
+        return match.group(1).strip()
+    return None
 
 
 def severity_from_risk_score(risk_score: float) -> int:
@@ -76,8 +91,15 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
         region_risk_totals[region] += risk_score
         
         if alert.headline:
+            # For HIGH_IMPACT_EVENT, try to extract actual event title from body
+            display_headline = alert.headline
+            if alert.alert_type == 'HIGH_IMPACT_EVENT' and alert.body:
+                extracted_title = extract_event_title_from_body(alert.body)
+                if extracted_title:
+                    display_headline = extracted_title
+            
             alert_scores.append({
-                'headline': alert.headline,
+                'headline': display_headline,
                 'alert_type': alert.alert_type,
                 'severity': severity,
                 'risk_score': risk_score,
