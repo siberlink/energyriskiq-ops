@@ -2065,6 +2065,75 @@ async def geri_methodology_page():
             .use-icon {{
                 font-size: 1rem;
             }}
+            .governance-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1rem;
+                margin: 1.5rem 0;
+            }}
+            .governance-card {{
+                border-radius: 0.75rem;
+                padding: 1.25rem;
+                border: 1px solid;
+            }}
+            .governance-card.integrity {{
+                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+                border-color: #10b981;
+            }}
+            .governance-card.stability {{
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                border-color: #3b82f6;
+            }}
+            .governance-card h4 {{
+                margin: 0 0 0.75rem 0;
+                font-size: 1.05rem;
+                font-weight: 600;
+                color: #1e293b;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            .gov-icon {{
+                font-size: 1.1rem;
+            }}
+            .gov-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 0;
+            }}
+            .gov-list li {{
+                padding: 0.3rem 0 0.3rem 1.25rem;
+                position: relative;
+                color: #334155;
+                font-size: 0.9rem;
+            }}
+            .gov-list li::before {{
+                content: "•";
+                position: absolute;
+                left: 0.25rem;
+                color: #64748b;
+            }}
+            .ensure-grid {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                margin: 1rem 0;
+            }}
+            .ensure-item {{
+                background: #f0fdf4;
+                border: 1px solid #86efac;
+                border-radius: 2rem;
+                padding: 0.5rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                font-weight: 500;
+                font-size: 0.9rem;
+                color: #166534;
+            }}
+            .ensure-icon {{
+                font-size: 0.9rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -2252,6 +2321,22 @@ async def geri_methodology_page():
                 }}
                 .code-block code {{
                     font-size: 0.9rem;
+                }}
+                .governance-grid {{
+                    grid-template-columns: 1fr;
+                }}
+                .governance-card {{
+                    padding: 1rem;
+                }}
+                .governance-card h4 {{
+                    font-size: 1rem;
+                }}
+                .ensure-grid {{
+                    justify-content: center;
+                }}
+                .ensure-item {{
+                    font-size: 0.85rem;
+                    padding: 0.4rem 0.75rem;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2592,6 +2677,41 @@ async def geri_methodology_page():
                             <li><span class="use-icon">📜</span> Licensing</li>
                             <li><span class="use-icon">🏢</span> Institutional use</li>
                         </ul>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🔐</span> Governance, Integrity & Methodology Stability</h3>
+                        <p>GERI follows strict governance principles:</p>
+                        
+                        <div class="governance-grid">
+                            <div class="governance-card integrity">
+                                <h4><span class="gov-icon">🧾</span> Integrity Principles</h4>
+                                <ul class="gov-list">
+                                    <li>Automated computation</li>
+                                    <li>Reproducible methodology</li>
+                                    <li>Immutable historical records</li>
+                                    <li>Auditable publication process</li>
+                                    <li>Versioned models</li>
+                                </ul>
+                            </div>
+                            <div class="governance-card stability">
+                                <h4><span class="gov-icon">🏛️</span> Stability Principles</h4>
+                                <ul class="gov-list">
+                                    <li>Consistent methodology over time</li>
+                                    <li>Controlled updates</li>
+                                    <li>Documented model versions</li>
+                                    <li>Transparent publication rules</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <p>These principles ensure:</p>
+                        <div class="ensure-grid">
+                            <div class="ensure-item"><span class="ensure-icon">✅</span> Reliability</div>
+                            <div class="ensure-item"><span class="ensure-icon">✅</span> Continuity</div>
+                            <div class="ensure-item"><span class="ensure-icon">✅</span> Regulatory compatibility</div>
+                            <div class="ensure-item"><span class="ensure-icon">✅</span> Long-term credibility</div>
+                        </div>
                     </div>
                 </div>
                 
