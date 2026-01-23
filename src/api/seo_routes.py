@@ -1993,6 +1993,78 @@ async def geri_methodology_page():
             .pub-icon {{
                 font-size: 1.1rem;
             }}
+            .check-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+            }}
+            .check-list li {{
+                padding: 0.4rem 0 0.4rem 1.75rem;
+                position: relative;
+                color: #334155;
+                font-size: 0.95rem;
+            }}
+            .check-list li::before {{
+                content: "✓";
+                position: absolute;
+                left: 0.25rem;
+                color: #10b981;
+                font-weight: 700;
+            }}
+            .code-block {{
+                background: #1e293b;
+                border-radius: 0.5rem;
+                padding: 1rem 1.5rem;
+                margin: 1rem 0;
+                overflow-x: auto;
+            }}
+            .code-block code {{
+                color: #38bdf8;
+                font-family: 'Monaco', 'Consolas', monospace;
+                font-size: 1rem;
+            }}
+            .archive-benefits {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                margin: 1rem 0;
+            }}
+            .benefit-item {{
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                flex: 1;
+                min-width: 180px;
+            }}
+            .benefit-icon {{
+                font-size: 1.25rem;
+            }}
+            .use-case-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 0.5rem;
+            }}
+            .use-case-list li {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                background: #faf5ff;
+                border: 1px solid #e9d5ff;
+                border-radius: 0.375rem;
+                font-size: 0.9rem;
+                color: #6b21a8;
+            }}
+            .use-icon {{
+                font-size: 1rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -2165,6 +2237,21 @@ async def geri_methodology_page():
                 }}
                 .publish-list {{
                     grid-template-columns: 1fr;
+                }}
+                .archive-benefits {{
+                    flex-direction: column;
+                }}
+                .benefit-item {{
+                    min-width: auto;
+                }}
+                .use-case-list {{
+                    grid-template-columns: repeat(2, 1fr);
+                }}
+                .code-block {{
+                    padding: 0.75rem 1rem;
+                }}
+                .code-block code {{
+                    font-size: 0.9rem;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2458,6 +2545,53 @@ async def geri_methodology_page():
                             <li><span class="pub-icon">🛢️</span> Assets likely affected</li>
                         </ul>
                         <p class="section-summary">This allows users to understand not only <strong>how risky</strong>, but also <strong>where</strong> and <strong>why</strong>.</p>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🕰️</span> Daily Publication & Permanent Historical Archive</h3>
+                        <p>GERI is:</p>
+                        <ul class="check-list">
+                            <li>Computed once per day</li>
+                            <li>Published at a fixed schedule</li>
+                            <li>Stored permanently</li>
+                            <li>Never rewritten after publication</li>
+                        </ul>
+                        
+                        <p>Each day becomes an official historical record, accessible at:</p>
+                        <div class="code-block">
+                            <code>/geri/YYYY-MM-DD</code>
+                        </div>
+                        
+                        <p>This creates:</p>
+                        <div class="archive-benefits">
+                            <div class="benefit-item">
+                                <span class="benefit-icon">📚</span>
+                                <span>A transparent time-series archive</span>
+                            </div>
+                            <div class="benefit-item">
+                                <span class="benefit-icon">🔄</span>
+                                <span>Reproducible history</span>
+                            </div>
+                            <div class="benefit-item">
+                                <span class="benefit-icon">🏛️</span>
+                                <span>Institutional accountability</span>
+                            </div>
+                        </div>
+                        
+                        <p>Every published value remains:</p>
+                        <ul class="simple-list">
+                            <li>🌐 Public</li>
+                            <li>♾️ Permanent</li>
+                            <li>🔒 Immutable</li>
+                        </ul>
+                        
+                        <p>This historical integrity is essential for:</p>
+                        <ul class="use-case-list">
+                            <li><span class="use-icon">🔬</span> Research</li>
+                            <li><span class="use-icon">📋</span> Audits</li>
+                            <li><span class="use-icon">📜</span> Licensing</li>
+                            <li><span class="use-icon">🏢</span> Institutional use</li>
+                        </ul>
                     </div>
                 </div>
                 
