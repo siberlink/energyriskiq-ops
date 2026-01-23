@@ -3070,7 +3070,6 @@ async def geri_methodology_page():
                             <li><span class="dis-icon">✕</span> Does not constitute investment advice</li>
                             <li><span class="dis-icon">✕</span> Does not constitute trading advice</li>
                             <li><span class="dis-icon">✕</span> Does not constitute a forecast</li>
-                            <li><span class="dis-icon">✕</span> Does not guarantee accuracy or completeness</li>
                         </ul>
                         
                         <p>Users remain <strong>solely responsible</strong> for:</p>
