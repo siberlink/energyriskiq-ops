@@ -1632,6 +1632,29 @@ async def geri_methodology_page():
             .methodology-section li {{
                 margin-bottom: 0.5rem;
             }}
+            .section-icon {{
+                font-size: 1.25rem;
+                margin-right: 0.5rem;
+            }}
+            .feature-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1.5rem 0;
+            }}
+            .feature-list li {{
+                display: flex;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                background: #f1f5f9;
+                border-radius: 0.5rem;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: #334155;
+            }}
+            .list-icon {{
+                font-size: 1.25rem;
+                margin-right: 0.75rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -1703,7 +1726,20 @@ async def geri_methodology_page():
                 </div>
                 
                 <div class="methodology-content">
-                    <!-- Content sections will be added here -->
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🔹</span> Introduction — What is GERI?</h3>
+                        <p>The Global Energy Risk Index (GERI) is a daily indicator designed to measure the level of systemic risk affecting global energy markets.</p>
+                        <p>It captures how geopolitical tensions, supply disruptions, regulatory changes, and structural stresses influence the stability of:</p>
+                        <ul class="feature-list">
+                            <li><span class="list-icon">🛢️</span> Oil markets</li>
+                            <li><span class="list-icon">🔥</span> Natural gas markets</li>
+                            <li><span class="list-icon">⚡</span> Electricity systems</li>
+                            <li><span class="list-icon">🚢</span> Energy trade routes</li>
+                            <li><span class="list-icon">🔗</span> Energy-dependent supply chains</li>
+                        </ul>
+                        <p>GERI provides a single, interpretable number that reflects the current risk environment of the global energy system.</p>
+                        <p>It is published daily, archived permanently, and built for professionals who need to understand risk before it becomes price.</p>
+                    </div>
                 </div>
                 
                 <div class="methodology-nav">
