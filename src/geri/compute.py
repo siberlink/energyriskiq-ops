@@ -119,8 +119,18 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
             components.region_concentration_score_raw = components.top_region_weight * 100
     
     if alert_scores:
+        # Filter out REGIONAL_RISK_SPIKE - these are aggregated alerts, not atomic drivers
+        # Also filter out ASSET_RISK_SPIKE since they are derived alerts
+        atomic_drivers = [
+            a for a in alert_scores 
+            if a.get('alert_type') not in ('REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE')
+        ]
+        
+        # Fall back to all alerts if no atomic drivers found
+        candidates = atomic_drivers if atomic_drivers else alert_scores
+        
         sorted_alerts = sorted(
-            alert_scores,
+            candidates,
             key=lambda x: (x['severity'], x['risk_score']),
             reverse=True
         )
