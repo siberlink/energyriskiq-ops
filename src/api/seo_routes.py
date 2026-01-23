@@ -1696,17 +1696,74 @@ async def geri_methodology_page():
                 text-decoration: underline;
             }}
             @media (max-width: 768px) {{
+                .methodology-hero {{
+                    padding: 2rem 0 1rem;
+                }}
                 .methodology-hero h1 {{
-                    font-size: 1.75rem;
+                    font-size: 1.5rem;
                 }}
                 .methodology-hero .subtitle {{
-                    font-size: 1.25rem;
+                    font-size: 1.1rem;
                 }}
                 .methodology-hero h2 {{
-                    font-size: 1rem;
+                    font-size: 0.95rem;
+                    padding: 0 0.5rem;
+                }}
+                .methodology-content {{
+                    padding: 0 0.5rem;
+                    margin: 2rem auto;
                 }}
                 .methodology-section {{
-                    padding: 1.5rem;
+                    padding: 1.25rem;
+                    border-radius: 0.75rem;
+                }}
+                .methodology-section h3 {{
+                    font-size: 1.1rem;
+                    flex-wrap: wrap;
+                }}
+                .methodology-section p {{
+                    font-size: 0.95rem;
+                    line-height: 1.7;
+                }}
+                .feature-list li {{
+                    padding: 0.6rem 0.75rem;
+                    font-size: 0.9rem;
+                }}
+                .list-icon {{
+                    font-size: 1.1rem;
+                    margin-right: 0.5rem;
+                }}
+                .methodology-nav {{
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.75rem;
+                    margin: 2rem 0;
+                }}
+                .methodology-nav a {{
+                    width: 100%;
+                    max-width: 280px;
+                    text-align: center;
+                }}
+                .breadcrumbs {{
+                    font-size: 0.8rem;
+                    padding: 0 0.5rem;
+                }}
+            }}
+            @media (max-width: 480px) {{
+                .methodology-hero h1 {{
+                    font-size: 1.25rem;
+                }}
+                .methodology-hero .subtitle {{
+                    font-size: 1rem;
+                }}
+                .methodology-hero h2 {{
+                    font-size: 0.875rem;
+                }}
+                .methodology-section {{
+                    padding: 1rem;
+                }}
+                .methodology-section h3 {{
+                    font-size: 1rem;
                 }}
             }}
         </style>
@@ -1723,6 +1780,11 @@ async def geri_methodology_page():
                     <h1>Global Energy Risk Index (GERI)</h1>
                     <div class="subtitle">Methodology & Construction</div>
                     <h2>"Measuring systemic risk in global energy markets — daily, transparent, and institutional-grade."</h2>
+                </div>
+                
+                <div class="methodology-nav">
+                    <a href="/geri" class="primary">View Current GERI</a>
+                    <a href="/geri/history" class="secondary">Browse History</a>
                 </div>
                 
                 <div class="methodology-content">
