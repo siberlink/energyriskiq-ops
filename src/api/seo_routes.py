@@ -1924,6 +1924,75 @@ async def geri_methodology_page():
                 color: #1e293b;
                 font-size: 0.95rem;
             }}
+            .risk-bands {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                margin: 1.5rem 0;
+            }}
+            .risk-band {{
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem 1.25rem;
+                border-radius: 0.5rem;
+                border-left: 4px solid;
+            }}
+            .band-low {{
+                background: #ecfdf5;
+                border-color: #10b981;
+            }}
+            .band-moderate {{
+                background: #fefce8;
+                border-color: #eab308;
+            }}
+            .band-elevated {{
+                background: #fff7ed;
+                border-color: #f97316;
+            }}
+            .band-severe {{
+                background: #fef2f2;
+                border-color: #ef4444;
+            }}
+            .band-indicator {{
+                font-size: 1.5rem;
+                flex-shrink: 0;
+            }}
+            .band-content {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }}
+            .band-label {{
+                font-weight: 700;
+                font-size: 1rem;
+                color: #1e293b;
+            }}
+            .band-desc {{
+                font-size: 0.9rem;
+                color: #475569;
+            }}
+            .publish-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.5rem;
+            }}
+            .publish-list li {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                background: #f1f5f9;
+                border-radius: 0.375rem;
+                font-size: 0.9rem;
+                color: #334155;
+            }}
+            .pub-icon {{
+                font-size: 1.1rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -2083,6 +2152,19 @@ async def geri_methodology_page():
                 .result-item {{
                     padding: 0.75rem 1rem;
                     min-width: 80px;
+                }}
+                .risk-band {{
+                    padding: 0.75rem 1rem;
+                    gap: 0.75rem;
+                }}
+                .band-label {{
+                    font-size: 0.9rem;
+                }}
+                .band-desc {{
+                    font-size: 0.85rem;
+                }}
+                .publish-list {{
+                    grid-template-columns: 1fr;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2330,6 +2412,52 @@ async def geri_methodology_page():
                             </div>
                             <p class="layer-summary">Representing the overall stress level of the global energy system.</p>
                         </div>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">📊</span> How to Interpret GERI</h3>
+                        <p>GERI ranges from 0 to 100, divided into four qualitative bands:</p>
+                        
+                        <div class="risk-bands">
+                            <div class="risk-band band-low">
+                                <div class="band-indicator">🟢</div>
+                                <div class="band-content">
+                                    <span class="band-label">LOW</span>
+                                    <span class="band-desc">Stable energy environment with minimal systemic stress</span>
+                                </div>
+                            </div>
+                            <div class="risk-band band-moderate">
+                                <div class="band-indicator">🟡</div>
+                                <div class="band-content">
+                                    <span class="band-label">MODERATE</span>
+                                    <span class="band-desc">Normal structural risk typical of balanced markets</span>
+                                </div>
+                            </div>
+                            <div class="risk-band band-elevated">
+                                <div class="band-indicator">🟠</div>
+                                <div class="band-content">
+                                    <span class="band-label">ELEVATED</span>
+                                    <span class="band-desc">Rising geopolitical or supply stress with increasing fragility</span>
+                                </div>
+                            </div>
+                            <div class="risk-band band-severe">
+                                <div class="band-indicator">🔴</div>
+                                <div class="band-content">
+                                    <span class="band-label">SEVERE</span>
+                                    <span class="band-desc">Systemic disruption risk affecting multiple regions and assets</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p>In addition to the level, GERI publishes:</p>
+                        <ul class="publish-list">
+                            <li><span class="pub-icon">📈</span> Daily change (1-day)</li>
+                            <li><span class="pub-icon">📉</span> Medium-term trend (7-day)</li>
+                            <li><span class="pub-icon">⚠️</span> Main risk drivers</li>
+                            <li><span class="pub-icon">🌍</span> Regions under pressure</li>
+                            <li><span class="pub-icon">🛢️</span> Assets likely affected</li>
+                        </ul>
+                        <p class="section-summary">This allows users to understand not only <strong>how risky</strong>, but also <strong>where</strong> and <strong>why</strong>.</p>
                     </div>
                 </div>
                 
