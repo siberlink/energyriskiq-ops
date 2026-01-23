@@ -1568,7 +1568,7 @@ async def geri_methodology_page():
             .methodology-hero h1 {{
                 font-size: 2.5rem;
                 font-weight: 700;
-                color: #f8fafc;
+                color: #1a1a2e;
                 margin-bottom: 0.5rem;
                 line-height: 1.2;
             }}
@@ -1581,7 +1581,7 @@ async def geri_methodology_page():
             .methodology-hero h2 {{
                 font-size: 1.25rem;
                 font-weight: 400;
-                color: #94a3b8;
+                color: #64748b;
                 font-style: italic;
                 max-width: 700px;
                 margin: 0 auto;
@@ -1593,16 +1593,17 @@ async def geri_methodology_page():
                 padding: 0 1rem;
             }}
             .methodology-section {{
-                background: #1e293b;
-                border: 1px solid #334155;
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
                 border-radius: 1rem;
                 padding: 2rem;
                 margin-bottom: 2rem;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }}
             .methodology-section h3 {{
                 font-size: 1.25rem;
                 font-weight: 600;
-                color: #f8fafc;
+                color: #1a1a2e;
                 margin-bottom: 1rem;
                 display: flex;
                 align-items: center;
@@ -1619,12 +1620,12 @@ async def geri_methodology_page():
                 font-size: 1rem;
             }}
             .methodology-section p {{
-                color: #cbd5e1;
+                color: #475569;
                 line-height: 1.8;
                 margin-bottom: 1rem;
             }}
             .methodology-section ul {{
-                color: #cbd5e1;
+                color: #475569;
                 line-height: 1.8;
                 padding-left: 1.5rem;
             }}
@@ -1653,19 +1654,19 @@ async def geri_methodology_page():
                 background: #0052CC;
             }}
             .methodology-nav a.secondary {{
-                background: #334155;
-                color: #f8fafc;
+                background: #e2e8f0;
+                color: #1a1a2e;
             }}
             .methodology-nav a.secondary:hover {{
-                background: #475569;
+                background: #cbd5e1;
             }}
             .breadcrumbs {{
-                color: #9ca3af;
+                color: #64748b;
                 margin-bottom: 1rem;
                 font-size: 0.875rem;
             }}
             .breadcrumbs a {{
-                color: #60a5fa;
+                color: #0066FF;
                 text-decoration: none;
             }}
             .breadcrumbs a:hover {{
@@ -1689,7 +1690,7 @@ async def geri_methodology_page():
     </head>
     <body>
         {render_nav()}
-        <main style="background: #0f172a; min-height: 100vh; padding-bottom: 4rem;">
+        <main style="background: #f8fafc; min-height: 100vh; padding-bottom: 4rem;">
             <div class="container">
                 <div class="breadcrumbs">
                     <a href="/geri">GERI</a> &raquo; Methodology
