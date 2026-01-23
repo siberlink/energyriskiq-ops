@@ -675,6 +675,129 @@ If you execute only two indices well (GERI + RERI), you already have:
 
 ---
 
+## 12. Frequently Asked Questions
+
+### Q1: Should RERI be saved daily, same as GERI?
+
+**Yes.** Same discipline, same "time moat" logic.
+
+**Why:**
+- Daily storage gives you credibility and auditability
+- It enables trend regimes (weeks/months) that buyers care about
+- It creates exportable datasets (feeds/APIs) later
+
+**Rule of thumb:**
+- Compute RERI from "yesterday's alerts" and store it permanently
+- Never "rewrite history" unless you explicitly version it (e.g., `reri_v1`, `reri_v2`)
+
+---
+
+### Q2: Can RERI data create graphics that can be made into products?
+
+**Yes** — RERI is made for productized visuals. The strongest ones:
+
+**A) Regional Risk Curve (Time-Series)**
+- 30 / 90 / 365 day line chart
+- Band shading (LOW → CRITICAL)
+- *Core Pro feature*
+
+**B) "Risk Map" (Region Tiles Heatmap)**
+- A grid of regions, each tile shows: value, band, trend arrow
+- *Killer homepage widget (public delayed) + dashboard (paid live)*
+
+**C) Escalation Velocity Sparkline**
+- Small sparkline + "FAST / SLOW" tag
+- *Extremely "terminal-like" and sticky*
+
+**D) "Days in Critical" Meter**
+- A simple bar: "Days in CRITICAL (last 30d): 7"
+- *Sells to procurement/risk committees*
+
+**E) Weekly / Monthly Regional Brief (PDF)**
+- Auto-generated report: last 7/30 day curve, biggest drivers, top affected assets
+- *Standalone product: "Europe Energy Risk Weekly"*
+
+**RERI → graphics → monetizable products very naturally.**
+
+---
+
+### Q3: What are the most important Regions for RERI?
+
+Pick regions that map to real exposure buckets (energy flows, chokepoints, sanctions zones, shipping lanes). Start with 6–8.
+
+**Tier 1 (Start Here)**
+
+| Region | Why It Matters |
+|--------|----------------|
+| Middle East / Persian Gulf | Oil + LNG + conflict escalation |
+| Europe | Gas + power + sanctions + winter sensitivity |
+| Black Sea | Grain + shipping + Russia/Ukraine spillover |
+| Red Sea / Suez | Shipping disruption is directly monetizable |
+| East Asia | China demand + coal/LNG + macro energy shifts |
+| South China Sea / Taiwan Strait | Tail risk that insurers & supply chains price |
+
+**Tier 2 (Add Next)**
+
+| Region | Why It Matters |
+|--------|----------------|
+| North Africa / Med | Pipeline/LNG + migration + regional instability |
+| Caucasus / Caspian | Corridors, pipelines, geopolitics |
+| West Africa / Gulf of Guinea | Oil + piracy/shipping |
+| Latin America | Supply shocks, politics (lower immediate pricing power) |
+
+**Practical note:** Don't start with 20 regions. Start with the regions where buyers instantly say: "Yes, I need that."
+
+---
+
+### Q4: If I have past Alerts, should I generate RERI from them or start fresh?
+
+**Do both, but label it correctly.**
+
+**Best practice:**
+- A) Backfill from past alerts (so you don't waste time already accumulated)
+- B) Start fresh daily from now on (your "true" operational index stream)
+
+**The key is labeling.** Backfilled data may differ from live process because:
+- Alert model may have improved over time
+- Sources changed
+- Classification logic evolved
+
+**Labeling approach:**
+- Backfill output: `reri_v1_backfill`
+- Live output: `reri_v1`
+
+In raw_input, store:
+```json
+{
+  "backfilled": true,
+  "computed_at": "2026-01-23T10:00:00Z",
+  "model_version": "reri_v1"
+}
+```
+
+**Should you publish backfill publicly?**
+- Keep backfill internal at first
+- Use it to validate charts/UX
+- Later expose paid history (not public)
+
+**If past alerts are messy:**
+If older alerts lack consistent fields (assets/confidence), you can still backfill with fallbacks:
+- Default confidence
+- Treat missing assets as zero overlap
+- Still compute S + H reliably
+
+**Recommended Move:**
+1. Start saving RERI daily immediately (yesterday → today onward)
+2. Backfill last 30–90 days first (fast validation + immediate charts)
+3. If stable, backfill further (6–12 months), but keep it labeled
+
+This gives you:
+- Immediate product visuals
+- A growing moat
+- Clean operational dataset
+
+---
+
 ## Implementation Status
 
 | Component | Status | Notes |
