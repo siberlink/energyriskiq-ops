@@ -1255,6 +1255,19 @@ async def geri_page(request: Request):
                 max-width: 600px;
                 margin: 0 auto;
             }}
+            .geri-hero .methodology-link {{
+                margin-top: 0.75rem;
+            }}
+            .geri-hero .methodology-link a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.95rem;
+                transition: color 0.2s;
+            }}
+            .geri-hero .methodology-link a:hover {{
+                color: #93c5fd;
+                text-decoration: underline;
+            }}
             .geri-metric-card {{
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border: 1px solid #334155;
@@ -1378,6 +1391,7 @@ async def geri_page(request: Request):
                 <div class="geri-hero">
                     <h1>Global Energy Risk Index (GERI)</h1>
                     <p>A daily composite measure of energy market risk, computed from alert severity, regional concentration, and asset exposure.</p>
+                    <p class="methodology-link"><a href="/geri/methodology">(GERI Methodology & Construction)</a></p>
                 </div>
                 
                 {geri_content}
