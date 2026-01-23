@@ -3474,21 +3474,52 @@ async def geri_daily_page(request: Request, date: str):
     
     trend_display = ""
     if snapshot.trend_7d is not None:
-        trend_arrow = "+" if snapshot.trend_7d > 0 else ""
-        trend_color = "#ef4444" if snapshot.trend_7d > 0 else "#22c55e" if snapshot.trend_7d < 0 else "#6b7280"
-        trend_display = f'<p style="color: {trend_color};">{trend_arrow}{snapshot.trend_7d:.1f} vs 7-day average</p>'
+        trend_val = snapshot.trend_7d
+        if abs(trend_val) < 2:
+            trend_label = "Stable"
+            trend_color = "#6b7280"
+        elif trend_val >= 5:
+            trend_label = "Rising Sharply"
+            trend_color = "#ef4444"
+        elif trend_val >= 2:
+            trend_label = "Rising"
+            trend_color = "#f97316"
+        elif trend_val <= -5:
+            trend_label = "Falling Sharply"
+            trend_color = "#22c55e"
+        else:
+            trend_label = "Falling"
+            trend_color = "#4ade80"
+        trend_sign = "+" if trend_val > 0 else ""
+        trend_display = f'<div class="geri-trend">7-Day Trend: <span style="color: {trend_color};">{trend_label}</span> <span style="color: {trend_color};">({trend_sign}{trend_val:.0f})</span></div>'
     
     drivers_html = ""
-    for driver in snapshot.top_drivers[:5]:
-        drivers_html += f'<li>{driver}</li>'
+    for driver in snapshot.top_drivers_detailed[:5]:
+        tag_parts = []
+        if driver.get('region'):
+            tag_parts.append(driver['region'])
+        if driver.get('category'):
+            cat_formatted = driver['category'].replace('_', ' ').title()
+            tag_parts.append(cat_formatted)
+        tag_line = ' · '.join(tag_parts)
+        if tag_line:
+            drivers_html += f'<li><span class="driver-tag">{tag_line}</span><br>{driver["headline"]}</li>'
+        else:
+            drivers_html += f'<li>{driver["headline"]}</li>'
     if not drivers_html:
         drivers_html = '<li style="color: #9ca3af;">No significant drivers</li>'
     
     regions_html = ""
-    for region in snapshot.top_regions[:5]:
-        regions_html += f'<li>{region}</li>'
+    region_labels = ["Primary", "Secondary", "Tertiary"]
+    for i, region in enumerate(snapshot.top_regions[:3]):
+        label = region_labels[i] if i < len(region_labels) else ""
+        regions_html += f'<li>{region} <span class="region-label">({label})</span></li>'
     if not regions_html:
         regions_html = '<li style="color: #9ca3af;">No regional hotspots</li>'
+    
+    top_region_names = snapshot.top_regions[:2] if len(snapshot.top_regions) >= 2 else snapshot.top_regions[:1] if snapshot.top_regions else ["global markets"]
+    interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
+    interpretation_line = f"Current risk conditions indicate {snapshot.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
     
     prev_link = f'<a class="nav-arrow" href="/geri/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>' if adjacent['prev'] else '<span class="nav-arrow disabled">&larr; No earlier</span>'
     next_link = f'<a class="nav-arrow" href="/geri/{adjacent["next"]}">{adjacent["next"]} &rarr;</a>' if adjacent['next'] else '<span class="nav-arrow disabled">No later &rarr;</span>'
@@ -3514,23 +3545,36 @@ async def geri_daily_page(request: Request, date: str):
                 border: 1px solid #334155;
                 border-radius: 1rem;
                 padding: 2rem;
-                text-align: center;
-                max-width: 400px;
+                max-width: 600px;
                 margin: 2rem auto;
             }}
-            .snapshot-value {{
-                font-size: 4rem;
-                font-weight: 700;
-                line-height: 1;
+            .geri-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.5rem;
             }}
-            .snapshot-band {{
+            .geri-flame {{
+                font-size: 1.5rem;
+            }}
+            .geri-title {{
                 font-size: 1.25rem;
                 font-weight: 600;
-                margin-top: 0.5rem;
+                color: #f8fafc;
             }}
-            .snapshot-date {{
+            .geri-scale-ref {{
+                font-size: 0.8rem;
                 color: #9ca3af;
-                margin-top: 1rem;
+                margin-bottom: 0.75rem;
+            }}
+            .geri-trend {{
+                font-size: 0.95rem;
+                margin-bottom: 0.5rem;
+                color: #f8fafc;
+            }}
+            .geri-date {{
+                color: #9ca3af;
+                margin-top: 0.5rem;
             }}
             .drivers-regions {{
                 display: grid;
@@ -3544,18 +3588,36 @@ async def geri_daily_page(request: Request, date: str):
                 border-radius: 0.75rem;
                 padding: 1.5rem;
             }}
-            .section-card h2 {{
-                font-size: 1.125rem;
-                margin-bottom: 1rem;
-                color: #f8fafc;
+            .section-header-blue {{
+                color: #60a5fa !important;
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
             }}
-            .section-card ul {{
+            .geri-list {{
                 list-style: disc;
                 padding-left: 1.25rem;
                 color: #d1d5db;
             }}
-            .section-card li {{
-                margin-bottom: 0.5rem;
+            .geri-list li {{
+                margin-bottom: 0.75rem;
+                line-height: 1.4;
+            }}
+            .driver-tag {{
+                color: #4ecdc4;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }}
+            .region-label {{
+                color: #9ca3af;
+                font-size: 0.85rem;
+            }}
+            .geri-interpretation {{
+                color: #1f2937;
+                font-size: 1.05rem;
+                font-style: italic;
+                margin: 1.5rem 0;
+                line-height: 1.6;
+                text-align: center;
             }}
         </style>
     </head>
@@ -3573,21 +3635,28 @@ async def geri_daily_page(request: Request, date: str):
                 <h1>Global Energy Risk Index - {human_date}</h1>
                 
                 <div class="snapshot-card">
-                    <div class="snapshot-value" style="color: {band_color};">{snapshot.value}</div>
-                    <div class="snapshot-band" style="color: {band_color};">{snapshot.band}</div>
+                    <div class="geri-header">
+                        <span class="geri-flame">🔥</span>
+                        <span class="geri-title">Global Energy Risk Index: <span style="color: {band_color};">{snapshot.value} / 100</span> <span style="color: {band_color};">({snapshot.band})</span></span>
+                    </div>
+                    <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
                     {trend_display}
-                    <div class="snapshot-date">Published: {date}</div>
+                    <div class="geri-date">Date: {date}</div>
                 </div>
                 
                 <div class="drivers-regions">
                     <div class="section-card">
-                        <h2>Top Drivers</h2>
-                        <ul>{drivers_html}</ul>
+                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
+                        <ul class="geri-list">{drivers_html}</ul>
                     </div>
                     <div class="section-card">
-                        <h2>Top Regions</h2>
-                        <ul>{regions_html}</ul>
+                        <h2 class="section-header-blue">Top Regions Under Pressure:</h2>
+                        <ul class="geri-list">{regions_html}</ul>
                     </div>
+                </div>
+                
+                <div class="geri-interpretation">
+                    <em>{interpretation_line}</em>
                 </div>
                 
                 <div class="nav-arrows">

@@ -42,6 +42,23 @@ class GERISnapshot:
         return result
     
     @property
+    def top_drivers_detailed(self) -> List[Dict[str, str]]:
+        """Extract top drivers with region and category from components."""
+        drivers = self.components.get('top_drivers', [])
+        seen = set()
+        result = []
+        for d in drivers:
+            headline = d.get('headline', '')
+            if headline and headline not in seen:
+                seen.add(headline)
+                result.append({
+                    'headline': headline,
+                    'region': d.get('region', ''),
+                    'category': d.get('category', '')
+                })
+        return result
+    
+    @property
     def top_regions(self) -> List[str]:
         """Extract top region names from components."""
         regions = self.components.get('top_regions', [])
