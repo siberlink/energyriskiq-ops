@@ -1655,6 +1655,54 @@ async def geri_methodology_page():
                 font-size: 1.25rem;
                 margin-right: 0.75rem;
             }}
+            .simple-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }}
+            .simple-list li {{
+                background: #e0f2fe;
+                color: #0369a1;
+                padding: 0.5rem 1rem;
+                border-radius: 2rem;
+                font-weight: 500;
+                font-size: 0.95rem;
+            }}
+            .highlight-block {{
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border-left: 4px solid #f59e0b;
+                border-radius: 0.5rem;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+                text-align: center;
+            }}
+            .highlight-text {{
+                font-size: 1.1rem;
+                color: #92400e;
+                line-height: 1.8;
+                margin: 0;
+            }}
+            .highlight-text strong {{
+                color: #78350f;
+                font-size: 1.25rem;
+            }}
+            .quote-block {{
+                background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+                border-left: 4px solid #7c3aed;
+                border-radius: 0.5rem;
+                padding: 1.5rem 2rem;
+                margin: 1.5rem 0;
+            }}
+            .quote-block p {{
+                font-size: 1.15rem;
+                font-style: italic;
+                color: #5b21b6;
+                margin: 0;
+                font-weight: 500;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -1748,6 +1796,28 @@ async def geri_methodology_page():
                     font-size: 0.8rem;
                     padding: 0 0.5rem;
                 }}
+                .simple-list {{
+                    justify-content: center;
+                }}
+                .simple-list li {{
+                    font-size: 0.85rem;
+                    padding: 0.4rem 0.75rem;
+                }}
+                .highlight-block {{
+                    padding: 1rem;
+                }}
+                .highlight-text {{
+                    font-size: 1rem;
+                }}
+                .highlight-text strong {{
+                    font-size: 1.1rem;
+                }}
+                .quote-block {{
+                    padding: 1rem 1.25rem;
+                }}
+                .quote-block p {{
+                    font-size: 1rem;
+                }}
             }}
             @media (max-width: 480px) {{
                 .methodology-hero h1 {{
@@ -1801,6 +1871,35 @@ async def geri_methodology_page():
                         </ul>
                         <p>GERI provides a single, interpretable number that reflects the current risk environment of the global energy system.</p>
                         <p>It is published daily, archived permanently, and built for professionals who need to understand risk before it becomes price.</p>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🎯</span> Why GERI Exists — The Problem It Solves</h3>
+                        <p>Energy markets are no longer driven by fundamentals alone.</p>
+                        <p>They are increasingly shaped by:</p>
+                        <ul class="feature-list">
+                            <li><span class="list-icon">⚔️</span> Geopolitical conflicts</li>
+                            <li><span class="list-icon">🚫</span> Sanctions and trade restrictions</li>
+                            <li><span class="list-icon">🔧</span> Production outages</li>
+                            <li><span class="list-icon">🚢</span> Shipping disruptions</li>
+                            <li><span class="list-icon">📜</span> Regulatory interventions</li>
+                            <li><span class="list-icon">🏗️</span> Infrastructure fragility</li>
+                            <li><span class="list-icon">🌪️</span> Extreme weather</li>
+                        </ul>
+                        <div class="highlight-block">
+                            <p class="highlight-text">Prices react late.<br>Volatility reacts late.<br><strong>Risk builds early.</strong></p>
+                        </div>
+                        <p>Traditional indicators focus on:</p>
+                        <ul class="simple-list">
+                            <li>📈 Prices</li>
+                            <li>📊 Returns</li>
+                            <li>📉 Volatility</li>
+                        </ul>
+                        <p>They rarely capture the structural stress building inside the system.</p>
+                        <div class="quote-block">
+                            <p>"How risky is the global energy system today compared to normal?"</p>
+                        </div>
+                        <p>GERI was created to answer this question. By focusing on systemic risk rather than price, GERI provides early visibility into pressures that often emerge before markets move.</p>
                     </div>
                 </div>
                 
