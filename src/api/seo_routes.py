@@ -1364,7 +1364,7 @@ async def geri_page(request: Request):
                 trend_label = "Falling"
                 trend_color = "#4ade80"
             trend_sign = "+" if trend_val > 0 else ""
-            trend_display = f'<div class="geri-trend">7-Day Trend: <span style="color: {trend_color};">{trend_label}</span> <span style="color: {trend_color};">({trend_sign}{trend_val:.0f})</span></div>'
+            trend_display = f'<div class="geri-trend" style="color: #4ade80;">7-Day Trend: {trend_label} ({trend_sign}{trend_val:.0f})</div>'
         
         drivers_html = ""
         for driver in geri.top_drivers_detailed[:5]:
@@ -1403,8 +1403,9 @@ async def geri_page(request: Request):
         <div class="geri-metric-card">
             <div class="geri-header">
                 <span class="geri-flame">🔥</span>
-                <span class="geri-title">Global Energy Risk Index: <span style="color: {band_color};">{geri.value} / 100</span> <span style="color: {band_color};">({geri.band})</span></span>
+                <span class="geri-title">Global Energy Risk Index:</span>
             </div>
+            <div class="geri-value" style="font-size: 1.5rem; font-weight: bold; color: {band_color}; margin: 0.5rem 0;">{geri.value} / 100 ({geri.band})</div>
             <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
             {trend_display}
             <div class="geri-date">Date: {geri.date}</div>
@@ -3494,7 +3495,7 @@ async def geri_daily_page(request: Request, date: str):
             trend_label = "Falling"
             trend_color = "#4ade80"
         trend_sign = "+" if trend_val > 0 else ""
-        trend_display = f'<div class="geri-trend">7-Day Trend: <span style="color: {trend_color};">{trend_label}</span> <span style="color: {trend_color};">({trend_sign}{trend_val:.0f})</span></div>'
+        trend_display = f'<div class="geri-trend" style="color: #4ade80;">7-Day Trend: {trend_label} ({trend_sign}{trend_val:.0f})</div>'
     
     drivers_html = ""
     for driver in snapshot.top_drivers_detailed[:5]:
@@ -3643,8 +3644,9 @@ async def geri_daily_page(request: Request, date: str):
                 <div class="snapshot-card">
                     <div class="geri-header">
                         <span class="geri-flame">🔥</span>
-                        <span class="geri-title">Global Energy Risk Index: <span style="color: {band_color};">{snapshot.value} / 100</span> <span style="color: {band_color};">({snapshot.band})</span></span>
+                        <span class="geri-title">Global Energy Risk Index:</span>
                     </div>
+                    <div class="geri-value" style="font-size: 1.5rem; font-weight: bold; color: {band_color}; margin: 0.5rem 0;">{snapshot.value} / 100 ({snapshot.band})</div>
                     <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
                     {trend_display}
                     <div class="geri-date">Date: {date}</div>
