@@ -29,34 +29,28 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
     """
     Read alerts from alert_events for a specific UTC day.
     INPUT ONLY - does not modify alert_events.
-    Joins with events table to get actual event category.
+    Extracts event category from raw_input JSON (driver_events[0].category).
     """
     start_of_day = datetime.combine(target_date, datetime.min.time())
     end_of_day = datetime.combine(target_date + timedelta(days=1), datetime.min.time())
     
     sql = """
     SELECT 
-        ae.id,
-        ae.alert_type,
-        ae.severity,
-        ae.confidence as risk_score,
-        ae.scope_region as region,
+        id,
+        alert_type,
+        severity,
+        confidence as risk_score,
+        scope_region as region,
         1.0 as weight,
-        ae.created_at,
-        ae.headline,
-        ae.body,
-        ae.driver_event_ids,
-        (
-            SELECT e.category 
-            FROM events e 
-            WHERE e.id = ANY(ae.driver_event_ids) 
-            LIMIT 1
-        ) as event_category
-    FROM alert_events ae
-    WHERE ae.alert_type = ANY(%s)
-      AND ae.created_at >= %s
-      AND ae.created_at < %s
-    ORDER BY ae.created_at
+        created_at,
+        headline,
+        body,
+        raw_input
+    FROM alert_events
+    WHERE alert_type = ANY(%s)
+      AND created_at >= %s
+      AND created_at < %s
+    ORDER BY created_at
     """
     
     alerts = []
@@ -69,6 +63,19 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
             if risk_score_val is not None:
                 risk_score_val = float(risk_score_val)
             
+            # Extract event category from raw_input JSON
+            event_category = None
+            raw_input = row.get('raw_input')
+            if raw_input:
+                if isinstance(raw_input, str):
+                    try:
+                        raw_input = json.loads(raw_input)
+                    except:
+                        raw_input = {}
+                driver_events = raw_input.get('driver_events', [])
+                if driver_events and len(driver_events) > 0:
+                    event_category = driver_events[0].get('category')
+            
             alerts.append(AlertRecord(
                 id=row['id'],
                 alert_type=row['alert_type'],
@@ -79,7 +86,7 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
                 created_at=row['created_at'],
                 headline=row['headline'],
                 body=row.get('body'),
-                category=row.get('event_category'),
+                category=event_category,
             ))
     
     logger.info(f"Retrieved {len(alerts)} alerts for date {target_date}")
