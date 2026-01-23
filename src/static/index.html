@@ -2030,20 +2030,22 @@
                     <div class="geri-header">
                         <span class="geri-fire">🔥</span>
                         <div class="geri-title-block">
-                            <h3 class="geri-title">Today's Global Energy Risk Index: <span id="geri-value">--</span> (<span id="geri-band">--</span>)</h3>
-                            <p class="geri-trend">Trend: <span id="geri-trend">--</span> vs 7-day average</p>
+                            <h3 class="geri-title">Global Energy Risk Index: <span id="geri-value">--</span> / 100 (<span id="geri-band">--</span>)</h3>
+                            <p class="geri-scale-hint" style="font-size: 0.75rem; color: #888; margin: 0.25rem 0 0.5rem 0;">0 = minimal risk · 100 = extreme systemic stress</p>
+                            <p class="geri-trend">7-Day Trend: <span id="geri-trend-label">--</span> <span id="geri-trend-value" style="color: #666; font-size: 0.85rem;"></span></p>
                         </div>
                     </div>
                     <div class="geri-body">
                         <div class="geri-date">Date: <span id="geri-date">--</span></div>
                         <div class="geri-drivers">
-                            <strong>Top Drivers:</strong>
+                            <strong>Primary Risk Drivers:</strong>
                             <ul id="geri-drivers-list"></ul>
                         </div>
                         <div class="geri-regions">
-                            <strong>Top Regions:</strong>
+                            <strong>Top Regions Under Pressure:</strong>
                             <ul id="geri-regions-list"></ul>
                         </div>
+                        <p id="geri-interpretation" style="font-size: 0.85rem; color: #aaa; margin-top: 1rem; font-style: italic; line-height: 1.5;"></p>
                     </div>
                     <div class="geri-footer">
                         <span class="geri-delay-badge">24h delayed • Real-time access with subscription</span>
@@ -2905,20 +2907,39 @@
                     bandSpan.textContent = data.band;
                     bandSpan.className = 'geri-band-' + data.band;
                     
-                    // Format trend
-                    const trend7d = data.trend_7d;
-                    const trendText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
-                    document.getElementById('geri-trend').textContent = trendText;
+                    // Format trend with expressive label
+                    const trend7d = data.trend_7d || 0;
+                    let trendLabel = 'Stable';
+                    if (trend7d >= 5) trendLabel = 'Rising';
+                    else if (trend7d >= 2) trendLabel = 'Slightly Rising';
+                    else if (trend7d <= -5) trendLabel = 'Easing';
+                    else if (trend7d <= -2) trendLabel = 'Slightly Easing';
+                    
+                    document.getElementById('geri-trend-label').textContent = trendLabel;
+                    const trendValueText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
+                    document.getElementById('geri-trend-value').textContent = '(' + trendValueText + ')';
                     
                     // Format date
                     const dateObj = new Date(data.date + 'T00:00:00');
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
                     document.getElementById('geri-date').textContent = dateObj.toLocaleDateString('en-US', options);
                     
-                    // Populate drivers
+                    // Populate drivers with region/category tags
                     const driversList = document.getElementById('geri-drivers-list');
                     driversList.innerHTML = '';
-                    if (data.top_drivers && data.top_drivers.length > 0) {
+                    if (data.top_drivers_detailed && data.top_drivers_detailed.length > 0) {
+                        data.top_drivers_detailed.slice(0, 5).forEach(driver => {
+                            const li = document.createElement('li');
+                            const regionTag = driver.region || '';
+                            const headline = driver.headline || driver;
+                            if (regionTag) {
+                                li.innerHTML = '<span style="color: #4ecdc4; font-size: 0.8rem;">' + regionTag + '</span><br>' + headline;
+                            } else {
+                                li.textContent = headline;
+                            }
+                            driversList.appendChild(li);
+                        });
+                    } else if (data.top_drivers && data.top_drivers.length > 0) {
                         data.top_drivers.slice(0, 5).forEach(driver => {
                             const li = document.createElement('li');
                             li.textContent = driver;
@@ -2930,13 +2951,15 @@
                         driversList.appendChild(li);
                     }
                     
-                    // Populate regions
+                    // Populate regions with emphasis
                     const regionsList = document.getElementById('geri-regions-list');
                     regionsList.innerHTML = '';
+                    const regionLabels = ['Primary', 'Secondary', 'Tertiary'];
                     if (data.top_regions && data.top_regions.length > 0) {
-                        data.top_regions.slice(0, 3).forEach(region => {
+                        data.top_regions.slice(0, 3).forEach((region, idx) => {
                             const li = document.createElement('li');
-                            li.textContent = region;
+                            const label = regionLabels[idx] || '';
+                            li.innerHTML = region + ' <span style="color: #666; font-size: 0.8rem;">(' + label + ')</span>';
                             regionsList.appendChild(li);
                         });
                     } else {
@@ -2944,6 +2967,23 @@
                         li.textContent = 'Global';
                         regionsList.appendChild(li);
                     }
+                    
+                    // Generate interpretation line
+                    const bandText = data.band ? data.band.toLowerCase() : 'moderate';
+                    const topRegions = data.top_regions && data.top_regions.length > 0 
+                        ? data.top_regions.slice(0, 2).join(' and ') 
+                        : 'key regions';
+                    let interpretation = '';
+                    if (data.value <= 25) {
+                        interpretation = 'Current risk conditions indicate low structural stress in global energy markets.';
+                    } else if (data.value <= 50) {
+                        interpretation = 'Current risk conditions indicate moderate structural stress in global energy markets, with pressure concentrated in ' + topRegions + '.';
+                    } else if (data.value <= 75) {
+                        interpretation = 'Current risk conditions indicate elevated stress in global energy markets, driven primarily by developments in ' + topRegions + '.';
+                    } else {
+                        interpretation = 'Current risk conditions indicate critical systemic stress in global energy markets, with acute pressure from ' + topRegions + '.';
+                    }
+                    document.getElementById('geri-interpretation').textContent = interpretation;
                     
                     // Show section
                     section.style.display = 'block';

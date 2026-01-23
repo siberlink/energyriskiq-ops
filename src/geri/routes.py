@@ -303,11 +303,16 @@ async def get_geri_public():
     # Deduplicate headlines (stored data may have duplicates)
     seen = set()
     driver_headlines = []
+    driver_details = []
     for d in top_drivers:
         headline = d.get('headline', '')
         if headline and headline not in seen:
             seen.add(headline)
             driver_headlines.append(headline)
+            driver_details.append({
+                'headline': headline,
+                'region': d.get('region', ''),
+            })
     
     region_names = [r.get('region', '') for r in top_regions[:3] if r.get('region')]
     
@@ -326,6 +331,7 @@ async def get_geri_public():
             'trend_1d': result.get('trend_1d'),
             'trend_7d': result.get('trend_7d'),
             'top_drivers': driver_headlines,
+            'top_drivers_detailed': driver_details,
             'top_regions': region_names,
         }
     }

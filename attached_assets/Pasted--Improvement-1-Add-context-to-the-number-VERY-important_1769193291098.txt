@@ -1,0 +1,217 @@
+🔥 Improvement #1 — Add context to the number (VERY important)
+
+Right now:
+
+35  
+MODERATE
+
+
+This is good, but you should add:
+
+scale reference
+
+interpretation hint
+
+Suggested upgrade:
+
+Example:
+
+35  
+MODERATE  
+(0 = minimal risk · 100 = extreme systemic stress)
+
+
+or smaller:
+
+Risk Level: 35 / 100
+
+Why this matters:
+
+new users immediately understand the scale
+
+journalists understand how to quote it
+
+credibility increases
+
+This is a big clarity upgrade.
+
+🔥 Improvement #2 — Make the trend line more expressive
+
+Right now:
+
+0.0 vs 7-day average
+
+
+This is technically correct, but:
+
+too dry
+
+not emotionally informative
+
+not directional
+
+Suggested format:
+
+Instead of:
+
+0.0 vs 7-day average
+
+Use:
+
+Option A (professional)
+
+Trend: Stable vs 7-day average
+
+Option B (better)
+
+7-day Trend: Stable (0.0)
+
+Option C (best)
+
+Short-term Trend: Stable
+
+Why:
+
+users think in “rising / easing / stable”
+
+not in decimals
+
+You can still keep the number subtly.
+
+This improves:
+
+readability
+
+decision usefulness
+
+UX clarity
+
+🔥 Improvement #3 — Label “Top Drivers” more institutionally
+
+“Top Drivers” is good, but you can make it more authoritative.
+
+Suggested title options:
+
+🔹 Primary Risk Drivers (best, institutional tone)
+
+🔹 Main Risk Contributors
+
+🔹 Key Risk Drivers
+
+I strongly recommend:
+
+Primary Risk Drivers
+
+This is exactly the language used in:
+
+rating agencies
+
+risk reports
+
+institutional research
+
+🔥 Improvement #4 — Add categories to drivers (very powerful)
+
+Right now drivers are just headlines.
+
+You can massively increase value by subtly adding:
+
+region
+
+category
+
+Example:
+
+Instead of:
+
+Video shows severely damaged building in Ukraine from Russian attack
+
+Use:
+
+🇺🇦 Ukraine — Geopolitical
+Video shows severely damaged building in Ukraine from Russian attack
+
+or:
+
+Europe · Geopolitical
+Video shows severely damaged building in Ukraine from Russian attack
+
+Why this is huge:
+
+users immediately see pattern
+
+regions emerge naturally
+
+categories cluster
+
+analysts love this
+
+This also prepares:
+
+charts
+
+APIs
+
+enterprise feeds
+
+This is a high-impact professional feature.
+
+🔥 Improvement #5 — Expand “Top Regions” slightly
+
+Right now:
+
+Top Regions  
+Europe  
+Middle East
+
+
+This is good, but you can make it more informative with:
+
+Option A — Add order + emphasis
+
+Top Regions
+
+Europe
+
+Middle East
+
+Option B — Add intensity hint (very strong)
+
+Top Regions Under Pressure
+• Europe (Primary)
+• Middle East (Secondary)
+
+Or:
+
+Europe — Elevated
+Middle East — Elevated
+
+This starts building:
+
+regional risk analytics
+
+future heatmaps
+
+institutional tone
+
+🔥 Improvement #6 — Add one small “Interpretation line” (very powerful)
+
+This is a BIG professional trick.
+
+Under the main block, add one single sentence like:
+
+Example:
+
+Current risk conditions indicate moderate structural stress in global energy markets, driven primarily by geopolitical tensions in Europe and the Middle East.
+
+Why this is incredible:
+
+explains the index in human terms
+
+helps journalists quote you
+
+increases trust
+
+differentiates you massively
+
+This one sentence alone can turn this into a reference page.
