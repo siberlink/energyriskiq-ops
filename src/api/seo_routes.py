@@ -1116,33 +1116,88 @@ async def monthly_archive_page(year: int, month: int):
 @router.get("/robots.txt", response_class=PlainTextResponse)
 async def robots_txt():
     """
-    Robots.txt - Disallow scraping of protected GERI pages.
-    Allow indexing of methodology page for SEO.
+    Robots.txt - Allow search engines, block scrapers.
     """
     robots_content = f"""# EnergyRiskIQ Robots.txt
-User-agent: *
 
-# Allow methodology page for SEO
-Allow: /geri/methodology
-
-# Disallow scraping of GERI data pages
-Disallow: /geri
-Disallow: /geri/history
-Disallow: /geri/20
-
-# Allow other public pages
+# Allow major search engines to crawl everything (for SEO)
+User-agent: Googlebot
 Allow: /
-Allow: /alerts
-Allow: /privacy
-Allow: /terms
-Allow: /sitemap.xml
-Allow: /sitemap.html
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Block known scrapers and data miners
+User-agent: Scrapy
+Disallow: /
+
+User-agent: python-requests
+Disallow: /
+
+User-agent: curl
+Disallow: /
+
+User-agent: wget
+Disallow: /
+
+User-agent: HTTrack
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /geri
+
+User-agent: AhrefsBot
+Disallow: /geri
+
+User-agent: MJ12bot
+Disallow: /geri
+
+User-agent: DotBot
+Disallow: /geri
+
+User-agent: PetalBot
+Disallow: /geri
+
+User-agent: GPTBot
+Disallow: /geri
+
+User-agent: ClaudeBot
+Disallow: /geri
+
+User-agent: CCBot
+Disallow: /geri
+
+User-agent: ByteSpider
+Disallow: /geri
+
+# Default: Allow all other bots with crawl-delay
+User-agent: *
+Allow: /
+Crawl-delay: 5
 
 # Sitemap location
 Sitemap: {BASE_URL}/sitemap.xml
-
-# Crawl-delay for polite bots
-Crawl-delay: 5
 """
     return PlainTextResponse(content=robots_content, headers={"Cache-Control": "public, max-age=86400"})
 
