@@ -64,6 +64,8 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
                 risk_score_val = float(risk_score_val)
             
             # Extract event category from raw_input JSON
+            # For HIGH_IMPACT_EVENT: raw_input.category (flat)
+            # For REGIONAL_RISK_SPIKE: raw_input.driver_events[0].category (nested)
             event_category = None
             raw_input = row.get('raw_input')
             if raw_input:
@@ -72,9 +74,14 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
                         raw_input = json.loads(raw_input)
                     except:
                         raw_input = {}
-                driver_events = raw_input.get('driver_events', [])
-                if driver_events and len(driver_events) > 0:
-                    event_category = driver_events[0].get('category')
+                # Try flat category first (HIGH_IMPACT_EVENT)
+                if raw_input.get('category'):
+                    event_category = raw_input.get('category')
+                # Fall back to driver_events (REGIONAL_RISK_SPIKE)
+                elif raw_input.get('driver_events'):
+                    driver_events = raw_input.get('driver_events', [])
+                    if driver_events and len(driver_events) > 0:
+                        event_category = driver_events[0].get('category')
             
             alerts.append(AlertRecord(
                 id=row['id'],
