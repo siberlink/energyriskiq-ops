@@ -2013,6 +2013,93 @@
         </div>
     </section>
 
+    <!-- Section: GERI Presentation -->
+    <section class="section section-geri" id="geri-section" style="background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); padding: 4rem 0;">
+        <div class="section-inner" style="max-width: 1000px; margin: 0 auto; padding: 0 1.5rem;">
+            <div class="section-header" style="text-align: center; margin-bottom: 2.5rem;">
+                <h2 style="font-size: 2.25rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.75rem;">Global Energy Risk Index (GERI)</h2>
+                <p style="font-size: 1.1rem; color: #94a3b8; margin-bottom: 1.5rem;">The daily benchmark for systemic risk in global energy markets</p>
+                <p style="font-size: 1rem; color: #cbd5e1; line-height: 1.7; max-width: 800px; margin: 0 auto;">
+                    GERI is a daily institutional-grade risk indicator that measures structural stress across global energy markets — before it appears in prices. It aggregates geopolitical events, energy supply disruptions, sanctions, logistics shocks, and regional instability into a single transparent risk score.
+                </p>
+            </div>
+
+            <!-- Used to monitor -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Used to monitor:</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">market fragility</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">crisis escalation</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">regional exposure</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">systemic stress</span>
+                </div>
+            </div>
+
+            <!-- Key Value Points -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔎</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Early Warning Signal</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Detect risk pressure before volatility and price moves materialize.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🌍</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Systemic Coverage</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Monitors geopolitical, energy, logistics, and infrastructure risks across all major regions.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Transparent & Explainable</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Every index move is backed by visible drivers and regional contributors.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏛️</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Institutional-Grade</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Designed for analysts, trading desks, risk teams, and energy professionals.</p>
+                </div>
+            </div>
+
+            <!-- Teasing Line -->
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <p style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Today's Global Energy Risk Snapshot</p>
+            </div>
+
+            <!-- GERI Public Display (24h Delayed) -->
+            <div id="geri-public-section" class="geri-public-container" style="display: none; max-width: 500px; margin: 0 auto 1.5rem auto;">
+                <a href="/geri" class="geri-card-link" style="text-decoration: none; color: inherit; display: block;" title="Global Energy Risk Index (GERI)" aria-label="Global Energy Risk Index (GERI)">
+                <div class="geri-card" style="text-align: center; padding: 1.5rem; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                    <div class="geri-header" style="justify-content: center; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="geri-fire">🔥</span>
+                        <span style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Global Energy Risk Index: <span id="geri-value" style="color: #f97316;">--</span>/100 (<span id="geri-band" style="color: #f97316;">--</span>)</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #888; margin: 0.5rem 0;">0 = minimal risk · 100 = extreme systemic stress</p>
+                    <p id="geri-trend" style="font-size: 0.9rem; color: #4ade80; margin: 0.5rem 0;">7-Day Trend: <span id="geri-trend-label">--</span> <span id="geri-trend-value"></span></p>
+                </div>
+                </a>
+            </div>
+
+            <!-- CTA Row -->
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                <a href="/geri" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #3b82f6; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">
+                    View Today's GERI
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                <a href="/geri/history" style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #60a5fa; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; border: 1px solid #3b82f6; transition: background 0.2s;">
+                    Explore GERI History
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+
+            <!-- Trust Line -->
+            <div style="text-align: center;">
+                <p style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
+                    GERI is published daily by EnergyRiskIQ as an independent systemic risk indicator.<br>
+                    Informational only. Not financial advice.
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- Section: The Core Problem -->
     <section class="section section-problem">
         <div class="section-inner">
@@ -2021,20 +2108,6 @@
                 <p class="section-subtitle">
                     Traders and supply-chain teams are overwhelmed by noise. Most tools show what happened. EnergyRiskIQ tells you when risk is rising — early.
                 </p>
-            </div>
-
-            <!-- GERI Public Display (24h Delayed) -->
-            <div id="geri-public-section" class="geri-public-container" style="display: none;">
-                <a href="/geri" class="geri-card-link" style="text-decoration: none; color: inherit; display: block;" title="Global Energy Risk Index (GERI)" aria-label="Global Energy Risk Index (GERI)">
-                <div class="geri-card" style="text-align: center; padding: 1.5rem;">
-                    <div class="geri-header" style="justify-content: center;">
-                        <span class="geri-fire">🔥</span>
-                        <span style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Global Energy Risk Index: <span id="geri-value" style="color: #f97316;">--</span>/100 (<span id="geri-band" style="color: #f97316;">--</span>)</span>
-                    </div>
-                    <p style="font-size: 0.75rem; color: #888; margin: 0.5rem 0;">0 = minimal risk · 100 = extreme systemic stress</p>
-                    <p id="geri-trend" style="font-size: 0.9rem; color: #4ade80; margin: 0.5rem 0;">7-Day Trend: <span id="geri-trend-label">--</span> <span id="geri-trend-value"></span></p>
-                </div>
-                </a>
             </div>
 
             <div class="problem-grid">
