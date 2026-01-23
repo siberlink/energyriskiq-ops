@@ -163,6 +163,18 @@
             color: #3b82f6;
         }
 
+        .pro-badge-nav {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .nav-icon {
             width: 20px;
             height: 20px;
@@ -656,6 +668,169 @@
         .upgrade-sidebar-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        /* GERI Display Styles */
+        .geri-display-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto 24px;
+        }
+
+        .geri-loading {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .geri-loading p {
+            color: #9ca3af;
+            margin-top: 16px;
+        }
+
+        .geri-value-display {
+            font-size: 80px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .geri-band-display {
+            font-size: 24px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .geri-trend-display {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .geri-date-display {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .geri-realtime-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .geri-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .geri-detail-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .geri-detail-title {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .geri-detail-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .geri-detail-list li {
+            color: #e2e8f0;
+            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .geri-detail-list li:last-child {
+            border-bottom: none;
+        }
+
+        .geri-methodology-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .geri-methodology-link a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .geri-methodology-link a:hover {
+            text-decoration: underline;
+        }
+
+        .geri-upgrade-required {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 48px 32px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .geri-upgrade-required h3 {
+            color: #e2e8f0;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .geri-upgrade-required p {
+            color: #9ca3af;
+            margin-bottom: 24px;
+        }
+
+        .geri-upgrade-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .geri-upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .geri-details-grid {
+                grid-template-columns: 1fr;
+            }
+            .geri-value-display {
+                font-size: 60px;
+            }
+            .geri-display-card {
+                padding: 24px 16px;
+            }
         }
 
         .upgrade-banner-small {
@@ -1221,6 +1396,18 @@
                 </span>
                 My Alerts
             </a>
+            <a class="nav-item" id="geriNavItem" onclick="showSection('geri'); closeMobileMenu();" style="display: none;">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20"/>
+                        <path d="M2 12h20"/>
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6l4 6-4 6-4-6 4-6z"/>
+                    </svg>
+                </span>
+                Current GERI
+                <span class="pro-badge-nav">PRO</span>
+            </a>
         </div>
 
         <div class="sidebar-section">
@@ -1386,6 +1573,23 @@
             <div class="plans-grid" id="plansGrid">
                 <div class="loading">
                     <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GERI Section (Pro Only) -->
+        <div class="section-content" id="section-geri">
+            <div class="page-header">
+                <h1 class="page-title">Current GERI</h1>
+                <p class="page-subtitle">Global Energy Risk Index - Real-time data for Pro subscribers</p>
+            </div>
+
+            <div id="geriContent">
+                <div class="geri-display-card">
+                    <div class="geri-loading">
+                        <div class="spinner"></div>
+                        <p>Loading GERI data...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1740,6 +1944,113 @@
             document.getElementById('telegramNotAvailable').style.display = telegramEnabled ? 'none' : 'block';
             document.getElementById('telegramLinked').style.display = (telegramEnabled && isLinked) ? 'block' : 'none';
             document.getElementById('telegramNotLinked').style.display = (telegramEnabled && !isLinked) ? 'block' : 'none';
+            
+            // Show GERI nav item for Pro and Enterprise users only
+            const geriEnabled = ['pro', 'enterprise'].includes(plan);
+            const geriNavItem = document.getElementById('geriNavItem');
+            if (geriNavItem) {
+                geriNavItem.style.display = geriEnabled ? 'flex' : 'none';
+            }
+        }
+
+        async function loadGeriData() {
+            const plan = currentUser?.plan || 'free';
+            const geriEnabled = ['pro', 'enterprise'].includes(plan);
+            
+            const contentDiv = document.getElementById('geriContent');
+            if (!contentDiv) return;
+            
+            if (!geriEnabled) {
+                contentDiv.innerHTML = `
+                    <div class="geri-upgrade-required">
+                        <h3>🔒 Pro Feature</h3>
+                        <p>Real-time GERI access is available exclusively for Pro and Enterprise subscribers.</p>
+                        <button class="geri-upgrade-btn" onclick="showSection('plans')">Upgrade to Pro</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/indices/geri/latest', {
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch GERI data');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success || !result.data) {
+                    contentDiv.innerHTML = `
+                        <div class="geri-display-card">
+                            <p style="color: #9ca3af;">No GERI data available yet.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const geri = result.data;
+                const bandColors = {
+                    'LOW': '#22c55e',
+                    'MODERATE': '#eab308',
+                    'ELEVATED': '#f97316',
+                    'CRITICAL': '#ef4444'
+                };
+                const bandColor = bandColors[geri.band] || '#6b7280';
+                
+                let trendDisplay = '';
+                if (geri.trend_7d !== null && geri.trend_7d !== undefined) {
+                    const trendArrow = geri.trend_7d > 0 ? '+' : '';
+                    const trendColor = geri.trend_7d > 0 ? '#ef4444' : geri.trend_7d < 0 ? '#22c55e' : '#6b7280';
+                    trendDisplay = `<span style="color: ${trendColor};">${trendArrow}${geri.trend_7d.toFixed(1)} vs 7-day avg</span>`;
+                }
+                
+                const components = geri.components || {};
+                const topDrivers = components.top_drivers || [];
+                const topRegions = components.top_regions || [];
+                
+                const driversHtml = topDrivers.slice(0, 5).map(d => 
+                    `<li>${d.headline || d.type || 'Unknown'}</li>`
+                ).join('') || '<li>No data</li>';
+                
+                const regionsHtml = topRegions.slice(0, 5).map(r => 
+                    `<li>${r.region || 'Unknown'} (${(r.contribution || 0).toFixed(1)}%)</li>`
+                ).join('') || '<li>No data</li>';
+                
+                contentDiv.innerHTML = `
+                    <div class="geri-display-card">
+                        <div class="geri-realtime-badge">⚡ Real-Time</div>
+                        <div class="geri-value-display" style="color: ${bandColor};">${geri.value || '--'}</div>
+                        <div class="geri-band-display" style="color: ${bandColor};">${geri.band || 'N/A'}</div>
+                        <div class="geri-trend-display">${trendDisplay}</div>
+                        <div class="geri-date-display">As of ${geri.date || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="geri-details-grid">
+                        <div class="geri-detail-card">
+                            <div class="geri-detail-title">Top Risk Drivers</div>
+                            <ul class="geri-detail-list">${driversHtml}</ul>
+                        </div>
+                        <div class="geri-detail-card">
+                            <div class="geri-detail-title">Top Regions</div>
+                            <ul class="geri-detail-list">${regionsHtml}</ul>
+                        </div>
+                    </div>
+                    
+                    <div class="geri-methodology-link">
+                        <a href="/geri/methodology" target="_blank">📖 View GERI Methodology & Construction</a>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading GERI:', error);
+                contentDiv.innerHTML = `
+                    <div class="geri-display-card">
+                        <p style="color: #ef4444;">Error loading GERI data. Please try again later.</p>
+                    </div>
+                `;
+            }
         }
 
         async function generateTelegramCode() {
@@ -2204,6 +2515,8 @@
                 loadPlans();
             } else if (sectionId === 'settings') {
                 loadAlertSettings();
+            } else if (sectionId === 'geri') {
+                loadGeriData();
             }
         }
 
