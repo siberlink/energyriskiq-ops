@@ -1069,7 +1069,7 @@
         }
 
         .plan-features li::before {
-            content: '\\2713';
+            content: '✓';
             color: #22c55e;
             font-weight: bold;
         }
@@ -2608,6 +2608,7 @@
                     }
                     
                     const features = plan.features ? [
+                        ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Current GERI'] : []),
                         `${plan.features.max_email_alerts_per_day} email alerts/day`,
                         `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
                         `${plan.features.alert_types?.length || 0} alert types`
@@ -2864,6 +2865,7 @@
                 }
                 
                 const features = plan.features ? [
+                    ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Current GERI'] : []),
                     `${plan.features.max_email_alerts_per_day} email alerts/day`,
                     `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
                     `${plan.features.alert_types?.length || 0} alert types`
