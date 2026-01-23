@@ -1748,6 +1748,51 @@ async def geri_methodology_page():
                 font-weight: 500;
                 color: #065f46;
             }}
+            .warning-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }}
+            .warning-list li {{
+                background: #fee2e2;
+                color: #991b1b;
+                padding: 0.5rem 1rem;
+                border-radius: 2rem;
+                font-weight: 500;
+                font-size: 0.95rem;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+            }}
+            .warning-list li::before {{
+                content: "✕";
+                font-size: 0.8rem;
+                font-weight: 700;
+            }}
+            .definition-block {{
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+                border-left: 4px solid #2563eb;
+                border-radius: 0.5rem;
+                padding: 1.25rem 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .definition-block p {{
+                margin: 0;
+                color: #1e40af;
+            }}
+            .definition-block p:first-child {{
+                margin-bottom: 0.5rem;
+            }}
+            .emphasis-text {{
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #0f172a;
+                font-style: italic;
+                margin-top: 1rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -1875,6 +1920,19 @@ async def geri_methodology_page():
                 .section-summary {{
                     padding: 1rem 1.25rem;
                     font-size: 0.95rem;
+                }}
+                .warning-list {{
+                    justify-content: center;
+                }}
+                .warning-list li {{
+                    font-size: 0.85rem;
+                    padding: 0.4rem 0.75rem;
+                }}
+                .definition-block {{
+                    padding: 1rem 1.25rem;
+                }}
+                .emphasis-text {{
+                    font-size: 1rem;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2012,6 +2070,24 @@ async def geri_methodology_page():
                         </div>
                         
                         <p class="section-summary">GERI reflects how these forces combine to shape the structural stability of the global energy system.</p>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🚫</span> What GERI Does Not Measure</h3>
+                        <p>To avoid ambiguity:</p>
+                        <p><strong>GERI does not measure:</strong></p>
+                        <ul class="warning-list">
+                            <li>Prices</li>
+                            <li>Returns</li>
+                            <li>Forecasts</li>
+                            <li>Trading signals</li>
+                            <li>Market recommendations</li>
+                        </ul>
+                        <div class="definition-block">
+                            <p><strong>GERI is:</strong></p>
+                            <p>A systemic risk indicator designed to describe stress in the energy system — not to predict prices or guide trades.</p>
+                        </div>
+                        <p class="emphasis-text">This distinction is fundamental to its credibility.</p>
                     </div>
                 </div>
                 
