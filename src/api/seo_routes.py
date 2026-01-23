@@ -1703,6 +1703,51 @@ async def geri_methodology_page():
                 margin: 0;
                 font-weight: 500;
             }}
+            .risk-category {{
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.75rem;
+                padding: 1.25rem 1.5rem;
+                margin: 1rem 0;
+            }}
+            .risk-category h4 {{
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #1e293b;
+                margin: 0 0 0.75rem 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            .category-icon {{
+                font-size: 1.25rem;
+            }}
+            .category-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 0;
+            }}
+            .category-list li {{
+                padding: 0.35rem 0 0.35rem 1.5rem;
+                position: relative;
+                color: #475569;
+                font-size: 0.95rem;
+            }}
+            .category-list li::before {{
+                content: "•";
+                position: absolute;
+                left: 0.5rem;
+                color: #94a3b8;
+            }}
+            .section-summary {{
+                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+                border-left: 4px solid #10b981;
+                border-radius: 0.5rem;
+                padding: 1.25rem 1.5rem;
+                margin-top: 1.5rem;
+                font-weight: 500;
+                color: #065f46;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -1818,6 +1863,19 @@ async def geri_methodology_page():
                 .quote-block p {{
                     font-size: 1rem;
                 }}
+                .risk-category {{
+                    padding: 1rem 1.25rem;
+                }}
+                .risk-category h4 {{
+                    font-size: 1rem;
+                }}
+                .category-list li {{
+                    font-size: 0.9rem;
+                }}
+                .section-summary {{
+                    padding: 1rem 1.25rem;
+                    font-size: 0.95rem;
+                }}
             }}
             @media (max-width: 480px) {{
                 .methodology-hero h1 {{
@@ -1900,6 +1958,60 @@ async def geri_methodology_page():
                             <p>"How risky is the global energy system today compared to normal?"</p>
                         </div>
                         <p>GERI was created to answer this question. By focusing on systemic risk rather than price, GERI provides early visibility into pressures that often emerge before markets move.</p>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🔍</span> What GERI Measures</h3>
+                        <p>GERI measures <strong>risk pressure</strong>, not performance.</p>
+                        <p>Specifically, it monitors:</p>
+                        
+                        <div class="risk-category">
+                            <h4><span class="category-icon">⚔️</span> Geopolitical Risk</h4>
+                            <ul class="category-list">
+                                <li>Conflicts in energy-producing regions</li>
+                                <li>International tensions</li>
+                                <li>Military escalations affecting supply routes</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="risk-category">
+                            <h4><span class="category-icon">🛢️</span> Production & Infrastructure Risk</h4>
+                            <ul class="category-list">
+                                <li>Outages and unplanned shutdowns</li>
+                                <li>Refinery and terminal disruptions</li>
+                                <li>Pipeline and grid incidents</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="risk-category">
+                            <h4><span class="category-icon">🚢</span> Transport & Logistics Risk</h4>
+                            <ul class="category-list">
+                                <li>Shipping bottlenecks</li>
+                                <li>Chokepoint disruptions</li>
+                                <li>Freight and port instability</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="risk-category">
+                            <h4><span class="category-icon">🏛️</span> Policy & Regulatory Risk</h4>
+                            <ul class="category-list">
+                                <li>Sanctions</li>
+                                <li>Export restrictions</li>
+                                <li>Regulatory interventions</li>
+                                <li>Strategic reserve actions</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="risk-category">
+                            <h4><span class="category-icon">🌪️</span> Environmental & Structural Risk</h4>
+                            <ul class="category-list">
+                                <li>Extreme weather events</li>
+                                <li>Climate-related infrastructure stress</li>
+                                <li>Long-term system fragility</li>
+                            </ul>
+                        </div>
+                        
+                        <p class="section-summary">GERI reflects how these forces combine to shape the structural stability of the global energy system.</p>
                     </div>
                 </div>
                 
