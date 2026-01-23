@@ -1100,6 +1100,7 @@ async def sitemap_html():
                 <ul class="page-list" style="list-style: disc; padding-left: 1.5rem;">
                     <li><a href="/">Homepage</a></li>
                     <li><a href="/geri">Global Energy Risk Index (GERI)</a></li>
+                    <li><a href="/geri/methodology">GERI Methodology & Construction</a></li>
                     <li><a href="/alerts">Alerts Hub</a></li>
                     <li><a href="/users">Sign Up / Login</a></li>
                     <li><a href="/privacy">Privacy Policy</a></li>
