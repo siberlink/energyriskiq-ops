@@ -1352,8 +1352,18 @@ async def geri_page(request: Request):
             trend_display = f'<span style="color: {trend_color}; font-size: 0.9rem;">{trend_arrow}{geri.trend_7d:.1f} vs 7-day avg</span>'
         
         drivers_html = ""
-        for driver in geri.top_drivers[:5]:
-            drivers_html += f'<li>{driver}</li>'
+        for driver in geri.top_drivers_detailed[:5]:
+            tag_parts = []
+            if driver.region:
+                tag_parts.append(driver.region)
+            if driver.category:
+                cat_formatted = driver.category.replace('_', ' ').title()
+                tag_parts.append(cat_formatted)
+            tag_line = ' · '.join(tag_parts)
+            if tag_line:
+                drivers_html += f'<li><span class="driver-tag">{tag_line}</span><br>{driver.headline}</li>'
+            else:
+                drivers_html += f'<li>{driver.headline}</li>'
         if not drivers_html:
             drivers_html = '<li>No significant drivers detected</li>'
         
@@ -1506,7 +1516,13 @@ async def geri_page(request: Request):
                 color: #d1d5db;
             }}
             .geri-list li {{
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.75rem;
+                line-height: 1.4;
+            }}
+            .driver-tag {{
+                color: #4ecdc4;
+                font-size: 0.8rem;
+                font-weight: 500;
             }}
             .geri-cta {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);

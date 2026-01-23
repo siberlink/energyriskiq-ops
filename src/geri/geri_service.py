@@ -14,6 +14,14 @@ from .repo import get_latest_index, get_delayed_index
 
 
 @dataclass
+class DriverDetail:
+    """Detailed driver info with region and category."""
+    headline: str
+    region: str
+    category: str
+
+
+@dataclass
 class GeriViewModel:
     """View model for GERI data display."""
     value: int
@@ -22,6 +30,7 @@ class GeriViewModel:
     trend_1d: Optional[float]
     trend_7d: Optional[float]
     top_drivers: List[str]
+    top_drivers_detailed: List[DriverDetail]
     top_regions: List[str]
     is_delayed: bool
     delay_hours: int = 0
@@ -38,15 +47,21 @@ def _parse_components(result: Dict[str, Any]) -> tuple:
     
     seen = set()
     top_drivers = []
+    top_drivers_detailed = []
     for d in top_drivers_raw:
         headline = d.get('headline', '')
         if headline and headline not in seen:
             seen.add(headline)
             top_drivers.append(headline)
+            top_drivers_detailed.append(DriverDetail(
+                headline=headline,
+                region=d.get('region', ''),
+                category=d.get('category', '')
+            ))
     
     top_regions = [r.get('region', '') for r in top_regions_raw[:3] if r.get('region')]
     
-    return top_drivers, top_regions
+    return top_drivers, top_drivers_detailed, top_regions
 
 
 def _format_date(index_date) -> str:
@@ -68,7 +83,7 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
     if not result:
         return None
     
-    top_drivers, top_regions = _parse_components(result)
+    top_drivers, top_drivers_detailed, top_regions = _parse_components(result)
     
     return GeriViewModel(
         value=result.get('value', 0),
@@ -77,6 +92,7 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
         trend_1d=result.get('trend_1d'),
         trend_7d=result.get('trend_7d'),
         top_drivers=top_drivers,
+        top_drivers_detailed=top_drivers_detailed,
         top_regions=top_regions,
         is_delayed=True,
         delay_hours=24
@@ -95,7 +111,7 @@ def get_geri_latest() -> Optional[GeriViewModel]:
     if not result:
         return None
     
-    top_drivers, top_regions = _parse_components(result)
+    top_drivers, top_drivers_detailed, top_regions = _parse_components(result)
     
     return GeriViewModel(
         value=result.get('value', 0),
@@ -104,6 +120,7 @@ def get_geri_latest() -> Optional[GeriViewModel]:
         trend_1d=result.get('trend_1d'),
         trend_7d=result.get('trend_7d'),
         top_drivers=top_drivers,
+        top_drivers_detailed=top_drivers_detailed,
         top_regions=top_regions,
         is_delayed=False,
         delay_hours=0
