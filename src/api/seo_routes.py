@@ -2134,6 +2134,53 @@ async def geri_methodology_page():
             .ensure-icon {{
                 font-size: 0.9rem;
             }}
+            .audience-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.75rem;
+                margin: 1.5rem 0;
+            }}
+            .audience-item {{
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.95rem;
+                color: #334155;
+                transition: all 0.2s ease;
+            }}
+            .audience-item:hover {{
+                background: #f1f5f9;
+                border-color: #cbd5e1;
+            }}
+            .aud-icon {{
+                font-size: 1.1rem;
+            }}
+            .exposure-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }}
+            .exposure-list li {{
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border: 1px solid #f59e0b;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 500;
+                color: #92400e;
+            }}
+            .exp-icon {{
+                font-size: 1.1rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -2337,6 +2384,20 @@ async def geri_methodology_page():
                 .ensure-item {{
                     font-size: 0.85rem;
                     padding: 0.4rem 0.75rem;
+                }}
+                .audience-grid {{
+                    grid-template-columns: repeat(2, 1fr);
+                }}
+                .audience-item {{
+                    font-size: 0.9rem;
+                    padding: 0.6rem 0.75rem;
+                }}
+                .exposure-list {{
+                    justify-content: center;
+                }}
+                .exposure-list li {{
+                    padding: 0.6rem 1rem;
+                    font-size: 0.9rem;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2712,6 +2773,31 @@ async def geri_methodology_page():
                             <div class="ensure-item"><span class="ensure-icon">✅</span> Regulatory compatibility</div>
                             <div class="ensure-item"><span class="ensure-icon">✅</span> Long-term credibility</div>
                         </div>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">🏢</span> Who GERI Is Designed For</h3>
+                        <p>GERI is built for professionals exposed to energy risk, including:</p>
+                        
+                        <div class="audience-grid">
+                            <div class="audience-item"><span class="aud-icon">📈</span> Energy traders & analysts</div>
+                            <div class="audience-item"><span class="aud-icon">💹</span> Commodity desks</div>
+                            <div class="audience-item"><span class="aud-icon">⚡</span> Producers & utilities</div>
+                            <div class="audience-item"><span class="aud-icon">🚢</span> Shipping & logistics firms</div>
+                            <div class="audience-item"><span class="aud-icon">🔗</span> Supply-chain managers</div>
+                            <div class="audience-item"><span class="aud-icon">🛡️</span> Risk managers</div>
+                            <div class="audience-item"><span class="aud-icon">🏛️</span> Policymakers & regulators</div>
+                            <div class="audience-item"><span class="aud-icon">🔬</span> Institutional researchers</div>
+                        </div>
+                        
+                        <p>Any organization exposed to:</p>
+                        <ul class="exposure-list">
+                            <li><span class="exp-icon">⚡</span> Energy availability</li>
+                            <li><span class="exp-icon">💰</span> Energy prices</li>
+                            <li><span class="exp-icon">🌍</span> Geopolitical instability</li>
+                        </ul>
+                        
+                        <p class="section-summary">can use GERI as a <strong>systemic risk compass</strong>.</p>
                     </div>
                 </div>
                 
