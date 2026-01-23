@@ -97,6 +97,234 @@ This gives **cross-regional spillover**, which institutions love.
 
 ---
 
+## 3.5 Existing Alert Taxonomy (Already Ideal for RERI)
+
+The app already collects 3 types of alerts that map perfectly to RERI:
+
+### Layer A — Atomic Escalation Signals
+
+**`HIGH_IMPACT_EVENT`**
+
+This is the primary truth layer — raw geopolitical/energy shocks.
+
+Example:
+```
+alert_type: HIGH_IMPACT_EVENT
+scope_region: Middle East
+severity: 5
+headline: Kurdistan's Oil Lifeline at Risk as Baghdad Payments Fall Short Again
+category: ENERGY
+confidence: 0.950
+```
+
+These are what RERI fundamentally measures.
+
+### Layer B — Regional Synthesis
+
+**`REGIONAL_RISK_SPIKE`**
+
+This is a proto-index — already aggregated, region-specific, multi-driver, multi-asset.
+
+Example:
+```
+alert_type: REGIONAL_RISK_SPIKE
+scope_region: Europe
+severity: 5
+headline: Europe Geo-Energy Risk Spike
+Current Risk Level: 100/100
+ASSETS AFFECTED: FREIGHT, FX, GAS, OIL
+```
+
+**Important:** RERI should NOT be computed from these. These should be *derived from* RERI, not the other way around. Great for UX, but the index must come from Layer A + C.
+
+### Layer C — Asset Pressure Layer
+
+**`ASSET_RISK_SPIKE`**
+
+This is gold — provides asset overlap, direction, confidence, region coupling.
+
+Example:
+```
+alert_type: ASSET_RISK_SPIKE
+scope_region: Europe
+scope_asset: ['gas']
+severity: 5
+headline: GAS Risk Rising in Europe
+Risk Score: 100/100
+```
+
+This becomes the **Asset Overlap** component of RERI.
+
+---
+
+## 3.6 Mapping Existing Alerts → RERI Components
+
+### Component 1 — Severity Pressure (S)
+
+**Source:** `HIGH_IMPACT_EVENT` alerts
+
+Formula:
+```
+event_score = severity * category_weight * confidence
+```
+
+**Category Weights:**
+
+| Category | Weight |
+|----------|--------|
+| WAR / STRIKE / MILITARY | 1.6 |
+| SUPPLY_DISRUPTION | 1.5 |
+| ENERGY | 1.3 |
+| SANCTIONS | 1.3 |
+| POLITICAL | 1.0 |
+| DIPLOMACY | 0.7 |
+
+Example (Kurdistan crisis):
+```
+event_score = 5 * 1.3 * 0.95 ≈ 6.18
+```
+
+**RERI S = sum of all event_scores for region/day.**
+
+### Component 2 — High-Impact Concentration (H)
+
+**Source:** `HIGH_IMPACT_EVENT` + `REGIONAL_RISK_SPIKE` alerts
+
+Count as high-impact if:
+- `severity >= 4`
+- OR `alert_type = HIGH_IMPACT_EVENT`
+- OR `alert_type = REGIONAL_RISK_SPIKE`
+
+```
+H = number of high-impact alerts affecting region today
+```
+
+This captures:
+- Clustering
+- Escalation stacking
+- Regime shifts
+
+**One of the strongest predictive signals.**
+
+### Component 3 — Asset Overlap (O)
+
+**Source:** `ASSET_RISK_SPIKE` alerts
+
+```
+O = count(distinct assets with ASSET_RISK_SPIKE today)
+```
+
+Assets universe: `oil`, `gas`, `freight`, `fx`, `power`, `lng`
+
+Example: If Europe has gas + oil + freight spikes today → O = 3
+
+This captures: *"How many market channels are under pressure simultaneously"*
+
+**Institutions LOVE this.**
+
+### Component 4 — Escalation Velocity (V)
+
+Already available from trend data.
+
+```
+V = today_S - avg(S over last 3 days)
+```
+
+This captures:
+- Shock acceleration
+- Regime breaks
+- Surprise factor
+
+**This turns RERI into an early warning index.**
+
+---
+
+## 3.7 Complete RERI Formula Using Existing Data
+
+**No new pipelines needed.**
+
+### Step 1 — Collect Alerts
+
+For each region R, day D:
+```
+A = all HIGH_IMPACT_EVENT affecting R on D
+B = all ASSET_RISK_SPIKE affecting R on D
+C = all REGIONAL_RISK_SPIKE affecting R on D (for clustering only)
+```
+
+### Step 2 — Compute Components
+
+```
+Severity pressure:
+S = Σ (severity * category_weight * confidence)
+
+High-impact count:
+H = count(A) + count(C)
+
+Asset overlap:
+O = count(distinct scope_asset in B)
+
+Velocity:
+V = S - avg(S last 3 days)
+```
+
+### Step 3 — Normalize Per Region (Rolling 180 Days)
+
+**Very important: per region.**
+
+```
+S_norm = normalize(S, min_R, max_R)
+H_norm = normalize(H, min_R, max_R)
+O_norm = normalize(O, 0, max_assets)
+V_norm = normalize(V, min_R, max_R)
+```
+
+### Step 4 — Final Index
+
+**Production-grade formula:**
+
+```
+RERI =
+  0.45 * S_norm
++ 0.30 * H_norm
++ 0.15 * O_norm
++ 0.10 * V_norm
+```
+
+Clamp 0–100. Band from table.
+
+---
+
+## 3.8 Driver Storage (Already Perfect)
+
+Alert bodies already contain KEY DRIVERS. Store in RERI row:
+
+```json
+{
+  "drivers": [
+    {
+      "event_id": 16173,
+      "headline": "Kurdistan's Oil Lifeline at Risk...",
+      "category": "energy",
+      "region": "middle-east"
+    },
+    {
+      "event_id": 15709,
+      "headline": "Cracks Emerging in Iran's Oil Sector",
+      "category": "energy",
+      "region": "middle-east"
+    }
+  ]
+}
+```
+
+This gives:
+- Explainability
+- Auditability
+- Licensing value
+
+---
+
 ## 4. RERI Computation Model (v1 – Production Safe)
 
 ### Step 1 — Daily Regional Event Set
