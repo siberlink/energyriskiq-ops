@@ -1589,7 +1589,7 @@ async def geri_page(request: Request):
                 font-size: 0.85rem;
             }}
             .geri-interpretation {{
-                color: #e2e8f0;
+                color: #1f2937;
                 font-size: 1.05rem;
                 font-style: italic;
                 margin: 1.5rem 0;
