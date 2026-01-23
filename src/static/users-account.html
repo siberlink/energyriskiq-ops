@@ -2050,45 +2050,68 @@
                 };
                 const bandColor = bandColors[geri.band] || '#6b7280';
                 
-                let trendDisplay = '';
-                if (geri.trend_7d !== null && geri.trend_7d !== undefined) {
-                    const trendArrow = geri.trend_7d > 0 ? '+' : '';
-                    const trendColor = geri.trend_7d > 0 ? '#ef4444' : geri.trend_7d < 0 ? '#22c55e' : '#6b7280';
-                    trendDisplay = `<span style="color: ${trendColor};">${trendArrow}${geri.trend_7d.toFixed(1)} vs 7-day avg</span>`;
-                }
+                // Expressive trend labels matching homepage
+                let trendLabel = 'Stable';
+                const trendVal = geri.trend_7d || 0;
+                if (trendVal >= 10) trendLabel = 'Rising Sharply';
+                else if (trendVal >= 3) trendLabel = 'Rising';
+                else if (trendVal > 0) trendLabel = 'Slightly Rising';
+                else if (trendVal <= -10) trendLabel = 'Falling Sharply';
+                else if (trendVal <= -3) trendLabel = 'Falling';
+                else if (trendVal < 0) trendLabel = 'Slightly Falling';
+                
+                const trendSign = trendVal > 0 ? '+' : '';
+                const trendDisplay = `<div class="geri-trend-display" style="color: #4ade80;">7-Day Trend: ${trendLabel} (${trendSign}${trendVal.toFixed(0)})</div>`;
                 
                 const components = geri.components || {};
                 const topDrivers = components.top_drivers || [];
                 const topRegions = components.top_regions || [];
+                const interpretation = components.interpretation || '';
                 
-                const driversHtml = topDrivers.slice(0, 5).map(d => 
-                    `<li>${d.headline || d.type || 'Unknown'}</li>`
-                ).join('') || '<li>No data</li>';
-                
-                // Calculate region contribution percentages from risk_total
-                const totalRegionRisk = topRegions.reduce((sum, r) => sum + (r.risk_total || 0), 0);
-                const regionsHtml = topRegions.slice(0, 5).map(r => {
-                    const riskTotal = r.risk_total || 0;
-                    const pct = totalRegionRisk > 0 ? ((riskTotal / totalRegionRisk) * 100).toFixed(1) : '0.0';
-                    return `<li>${r.region || 'Unknown'} (${pct}%)</li>`;
+                // Drivers with region · category tags
+                const driversHtml = topDrivers.slice(0, 5).map(d => {
+                    const tagParts = [];
+                    if (d.region) tagParts.push(d.region);
+                    if (d.category) tagParts.push(d.category);
+                    const tagText = tagParts.length > 0 ? ` <span style="color: #9ca3af; font-size: 0.85rem;">(${tagParts.join(' · ')})</span>` : '';
+                    return `<li>${d.headline || d.type || 'Unknown'}${tagText}</li>`;
                 }).join('') || '<li>No data</li>';
+                
+                // Regions with Primary/Secondary/Tertiary labels
+                const regionLabels = ['Primary', 'Secondary', 'Tertiary', 'Quaternary', 'Quinary'];
+                const regionsHtml = topRegions.slice(0, 5).map((r, i) => {
+                    const label = regionLabels[i] || '';
+                    return `<li>${r.region || 'Unknown'} <span style="color: #9ca3af; font-size: 0.85rem;">(${label})</span></li>`;
+                }).join('') || '<li>No data</li>';
+                
+                // Interpretation section
+                const interpretationHtml = interpretation ? 
+                    `<div class="geri-interpretation" style="background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #60a5fa;">
+                        <p style="color: #1e293b; font-style: italic; margin: 0; line-height: 1.6;">"${interpretation}"</p>
+                    </div>` : '';
                 
                 contentDiv.innerHTML = `
                     <div class="geri-display-card">
                         <div class="geri-realtime-badge">⚡ Real-Time</div>
-                        <div class="geri-value-display" style="color: ${bandColor};">${geri.value || '--'}</div>
-                        <div class="geri-band-display" style="color: ${bandColor};">${geri.band || 'N/A'}</div>
-                        <div class="geri-trend-display">${trendDisplay}</div>
-                        <div class="geri-date-display">As of ${geri.date || 'N/A'}</div>
+                        <div class="geri-header-row" style="display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 8px;">
+                            <span style="font-size: 2rem;">🔥</span>
+                            <span style="font-size: 1.25rem; font-weight: 600; color: #e2e8f0;">Global Energy Risk Index:</span>
+                        </div>
+                        <div class="geri-value-line" style="font-size: 1.5rem; font-weight: bold; color: ${bandColor}; margin-bottom: 8px;">${geri.value || '--'} / 100 (${geri.band || 'N/A'})</div>
+                        <div class="geri-scale-ref" style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 12px;">0 = minimal risk · 100 = extreme systemic stress</div>
+                        ${trendDisplay}
+                        <div class="geri-date-display" style="margin-top: 8px;">Date: ${geri.date || 'N/A'}</div>
                     </div>
+                    
+                    ${interpretationHtml}
                     
                     <div class="geri-details-grid">
                         <div class="geri-detail-card">
-                            <div class="geri-detail-title">Top Risk Drivers</div>
+                            <div class="geri-detail-title" style="color: #60a5fa;">Primary Risk Drivers:</div>
                             <ul class="geri-detail-list">${driversHtml}</ul>
                         </div>
                         <div class="geri-detail-card">
-                            <div class="geri-detail-title">Top Regions</div>
+                            <div class="geri-detail-title" style="color: #60a5fa;">Top Regions Under Pressure:</div>
                             <ul class="geri-detail-list">${regionsHtml}</ul>
                         </div>
                     </div>
