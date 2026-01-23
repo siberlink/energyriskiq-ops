@@ -2285,6 +2285,77 @@ async def geri_methodology_page():
                 font-size: 1.1rem;
                 font-weight: 500;
             }}
+            .disclaimer-section {{
+                background: #fffbeb;
+                border: 2px solid #f59e0b;
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+                margin-top: 1.5rem;
+            }}
+            .important-notice {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: #fef3c7;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1rem;
+            }}
+            .notice-icon {{
+                font-size: 1.25rem;
+            }}
+            .notice-text {{
+                font-weight: 600;
+                color: #92400e;
+                font-size: 0.95rem;
+            }}
+            .disclaimer-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+            }}
+            .disclaimer-list li {{
+                padding: 0.4rem 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: #991b1b;
+                font-size: 0.95rem;
+            }}
+            .dis-icon {{
+                color: #dc2626;
+                font-weight: 700;
+                font-size: 0.9rem;
+            }}
+            .responsibility-list, .warranty-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 0.75rem 0 1rem 0;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }}
+            .responsibility-list li, .warranty-list li {{
+                background: #fef3c7;
+                border: 1px solid #fcd34d;
+                border-radius: 0.375rem;
+                padding: 0.4rem 0.75rem;
+                font-size: 0.9rem;
+                color: #92400e;
+            }}
+            .final-disclaimer {{
+                background: #fef2f2;
+                border: 1px solid #fca5a5;
+                border-radius: 0.5rem;
+                padding: 1rem 1.25rem;
+                margin-top: 1rem;
+                text-align: center;
+            }}
+            .final-disclaimer p {{
+                margin: 0;
+                color: #991b1b;
+                font-size: 1rem;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -2528,6 +2599,25 @@ async def geri_methodology_page():
                 }}
                 .closing-statement p {{
                     font-size: 1rem;
+                }}
+                .disclaimer-section {{
+                    padding: 1.25rem;
+                }}
+                .disclaimer-list li {{
+                    font-size: 0.9rem;
+                }}
+                .responsibility-list, .warranty-list {{
+                    gap: 0.4rem;
+                }}
+                .responsibility-list li, .warranty-list li {{
+                    font-size: 0.85rem;
+                    padding: 0.35rem 0.6rem;
+                }}
+                .final-disclaimer {{
+                    padding: 0.75rem 1rem;
+                }}
+                .final-disclaimer p {{
+                    font-size: 0.95rem;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2963,6 +3053,42 @@ async def geri_methodology_page():
                         
                         <div class="closing-statement">
                             <p>GERI is designed to support better decisions in increasingly complex energy markets.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="methodology-section disclaimer-section">
+                        <h3><span class="section-icon">⚠️</span> Transparency, Limitations & Disclaimer</h3>
+                        <div class="important-notice">
+                            <span class="notice-icon">ℹ️</span>
+                            <span class="notice-text">Important notice</span>
+                        </div>
+                        
+                        <p>GERI is provided for <strong>informational and analytical purposes only</strong>.</p>
+                        
+                        <p>It:</p>
+                        <ul class="disclaimer-list">
+                            <li><span class="dis-icon">✕</span> Does not constitute investment advice</li>
+                            <li><span class="dis-icon">✕</span> Does not constitute trading advice</li>
+                            <li><span class="dis-icon">✕</span> Does not constitute a forecast</li>
+                            <li><span class="dis-icon">✕</span> Does not guarantee accuracy or completeness</li>
+                        </ul>
+                        
+                        <p>Users remain <strong>solely responsible</strong> for:</p>
+                        <ul class="responsibility-list">
+                            <li>Investment decisions</li>
+                            <li>Trading strategies</li>
+                            <li>Risk management actions</li>
+                        </ul>
+                        
+                        <p>EnergyRiskIQ makes no representations or warranties regarding:</p>
+                        <ul class="warranty-list">
+                            <li>Future performance</li>
+                            <li>Market outcomes</li>
+                            <li>Financial results</li>
+                        </ul>
+                        
+                        <div class="final-disclaimer">
+                            <p>GERI is a <strong>descriptive risk indicator</strong>, not a recommendation engine.</p>
                         </div>
                     </div>
                 </div>
