@@ -1347,9 +1347,24 @@ async def geri_page(request: Request):
         
         trend_display = ""
         if geri.trend_7d is not None:
-            trend_arrow = "+" if geri.trend_7d > 0 else ""
-            trend_color = "#ef4444" if geri.trend_7d > 0 else "#22c55e" if geri.trend_7d < 0 else "#6b7280"
-            trend_display = f'<span style="color: {trend_color}; font-size: 0.9rem;">{trend_arrow}{geri.trend_7d:.1f} vs 7-day avg</span>'
+            trend_val = geri.trend_7d
+            if abs(trend_val) < 2:
+                trend_label = "Stable"
+                trend_color = "#6b7280"
+            elif trend_val >= 5:
+                trend_label = "Rising Sharply"
+                trend_color = "#ef4444"
+            elif trend_val >= 2:
+                trend_label = "Rising"
+                trend_color = "#f97316"
+            elif trend_val <= -5:
+                trend_label = "Falling Sharply"
+                trend_color = "#22c55e"
+            else:
+                trend_label = "Falling"
+                trend_color = "#4ade80"
+            trend_sign = "+" if trend_val > 0 else ""
+            trend_display = f'<div class="geri-trend">7-Day Trend: <span style="color: {trend_color};">{trend_label}</span> <span style="color: {trend_color};">({trend_sign}{trend_val:.0f})</span></div>'
         
         drivers_html = ""
         for driver in geri.top_drivers_detailed[:5]:
@@ -1368,31 +1383,47 @@ async def geri_page(request: Request):
             drivers_html = '<li>No significant drivers detected</li>'
         
         regions_html = ""
-        for region in geri.top_regions[:5]:
-            regions_html += f'<li>{region}</li>'
+        region_labels = ["Primary", "Secondary", "Tertiary"]
+        for i, region in enumerate(geri.top_regions[:3]):
+            label = region_labels[i] if i < len(region_labels) else ""
+            regions_html += f'<li>{region} <span class="region-label">({label})</span></li>'
         if not regions_html:
             regions_html = '<li>No regional hotspots</li>'
         
+        top_region_names = geri.top_regions[:2] if len(geri.top_regions) >= 2 else geri.top_regions[:1] if geri.top_regions else ["global markets"]
+        interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
+        interpretation_line = f"Current risk conditions indicate {geri.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
+        
+        delay_badge = '<div class="geri-delay-badge">24h delayed • Real-time access with subscription</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time data</div>'
+        
         geri_content = f"""
         <div class="geri-metric-card">
-            <div class="geri-badge {badge_class}">{badge_label}</div>
-            <div class="geri-value" style="color: {band_color};">{geri.value}</div>
-            <div class="geri-band" style="color: {band_color};">{geri.band}</div>
+            <div class="geri-header">
+                <span class="geri-flame">🔥</span>
+                <span class="geri-title">Global Energy Risk Index: <span style="color: {band_color};">{geri.value} / 100</span> <span style="color: {band_color};">({geri.band})</span></span>
+            </div>
+            <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
             {trend_display}
-            <div class="geri-date">As of {geri.date}</div>
+            <div class="geri-date">Date: {geri.date}</div>
         </div>
         
         <div class="geri-sections">
             <div class="geri-section">
-                <h2>Top Drivers</h2>
+                <h2 class="section-header-red">Primary Risk Drivers:</h2>
                 <ul class="geri-list">{drivers_html}</ul>
             </div>
             
             <div class="geri-section">
-                <h2>Top Regions</h2>
-                <ul class="geri-list">{regions_html}</ul>
+                <h2 class="section-header-red">Top Regions Under Pressure:</h2>
+                <ul class="geri-list regions-list">{regions_html}</ul>
             </div>
         </div>
+        
+        <div class="geri-interpretation">
+            <em>{interpretation_line}</em>
+        </div>
+        
+        {delay_badge}
         """
     
     cta_block = ""
@@ -1523,6 +1554,68 @@ async def geri_page(request: Request):
                 color: #4ecdc4;
                 font-size: 0.8rem;
                 font-weight: 500;
+            }}
+            .geri-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.5rem;
+            }}
+            .geri-flame {{
+                font-size: 1.5rem;
+            }}
+            .geri-title {{
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #f8fafc;
+            }}
+            .geri-scale-ref {{
+                font-size: 0.8rem;
+                color: #9ca3af;
+                margin-bottom: 0.75rem;
+            }}
+            .geri-trend {{
+                font-size: 0.95rem;
+                margin-bottom: 0.5rem;
+            }}
+            .section-header-red {{
+                color: #ef4444 !important;
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
+            }}
+            .region-label {{
+                color: #9ca3af;
+                font-size: 0.85rem;
+            }}
+            .geri-interpretation {{
+                color: #9ca3af;
+                font-size: 0.9rem;
+                font-style: italic;
+                margin: 1.5rem 0;
+                line-height: 1.5;
+            }}
+            .geri-delay-badge {{
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                border: 1px solid #3b82f6;
+                border-radius: 2rem;
+                padding: 0.5rem 1.5rem;
+                text-align: center;
+                color: #60a5fa;
+                font-size: 0.9rem;
+                margin-top: 1rem;
+            }}
+            .geri-realtime-badge {{
+                background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+                border: 1px solid #22c55e;
+                border-radius: 2rem;
+                padding: 0.5rem 1.5rem;
+                text-align: center;
+                color: #4ade80;
+                font-size: 0.9rem;
+                margin-top: 1rem;
+            }}
+            .regions-list {{
+                list-style: disc;
             }}
             .geri-cta {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
