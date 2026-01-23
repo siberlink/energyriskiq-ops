@@ -2181,6 +2181,110 @@ async def geri_methodology_page():
             .exp-icon {{
                 font-size: 1.1rem;
             }}
+            .final-section {{
+                border-top: 2px solid #e2e8f0;
+                padding-top: 2rem;
+                margin-top: 1rem;
+            }}
+            .trend-grid {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                margin: 1.25rem 0;
+                justify-content: center;
+            }}
+            .trend-item {{
+                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+                border: 1px solid #fca5a5;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 500;
+                color: #991b1b;
+            }}
+            .trend-icon {{
+                font-size: 1.1rem;
+            }}
+            .contrast-block {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 1.5rem;
+                margin: 2rem 0;
+                flex-wrap: wrap;
+            }}
+            .contrast-old, .contrast-new {{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 1.25rem 1.5rem;
+                border-radius: 0.75rem;
+                text-align: center;
+                min-width: 180px;
+            }}
+            .contrast-old {{
+                background: #f1f5f9;
+                border: 1px solid #cbd5e1;
+            }}
+            .contrast-new {{
+                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+                border: 2px solid #10b981;
+            }}
+            .contrast-label {{
+                font-size: 0.85rem;
+                color: #64748b;
+                margin-bottom: 0.35rem;
+            }}
+            .contrast-value {{
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #1e293b;
+            }}
+            .contrast-new .contrast-value {{
+                color: #065f46;
+            }}
+            .contrast-arrow {{
+                font-size: 1.75rem;
+                color: #10b981;
+                font-weight: 700;
+            }}
+            .mission-list {{
+                list-style: none;
+                padding-left: 0;
+                margin: 1rem 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 0.75rem;
+            }}
+            .mission-list li {{
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                border-radius: 0.5rem;
+                padding: 0.75rem 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.95rem;
+                color: #0369a1;
+            }}
+            .mission-icon {{
+                font-size: 1.1rem;
+            }}
+            .closing-statement {{
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                border-radius: 0.75rem;
+                padding: 1.5rem 2rem;
+                margin-top: 1.5rem;
+                text-align: center;
+            }}
+            .closing-statement p {{
+                margin: 0;
+                color: #e2e8f0;
+                font-size: 1.1rem;
+                font-weight: 500;
+            }}
             .methodology-nav {{
                 display: flex;
                 justify-content: center;
@@ -2398,6 +2502,32 @@ async def geri_methodology_page():
                 .exposure-list li {{
                     padding: 0.6rem 1rem;
                     font-size: 0.9rem;
+                }}
+                .trend-grid {{
+                    gap: 0.5rem;
+                }}
+                .trend-item {{
+                    padding: 0.6rem 1rem;
+                    font-size: 0.9rem;
+                }}
+                .contrast-block {{
+                    gap: 1rem;
+                }}
+                .contrast-old, .contrast-new {{
+                    min-width: 150px;
+                    padding: 1rem;
+                }}
+                .contrast-arrow {{
+                    font-size: 1.25rem;
+                }}
+                .mission-list {{
+                    grid-template-columns: 1fr;
+                }}
+                .closing-statement {{
+                    padding: 1.25rem 1.5rem;
+                }}
+                .closing-statement p {{
+                    font-size: 1rem;
                 }}
             }}
             @media (max-width: 480px) {{
@@ -2798,6 +2928,42 @@ async def geri_methodology_page():
                         </ul>
                         
                         <p class="section-summary">can use GERI as a <strong>systemic risk compass</strong>.</p>
+                    </div>
+                    
+                    <div class="methodology-section final-section">
+                        <h3><span class="section-icon">🌐</span> Why EnergyRiskIQ Created GERI</h3>
+                        <p>Energy systems are becoming:</p>
+                        
+                        <div class="trend-grid">
+                            <div class="trend-item"><span class="trend-icon">⚔️</span> More geopolitical</div>
+                            <div class="trend-item"><span class="trend-icon">🧩</span> More fragmented</div>
+                            <div class="trend-item"><span class="trend-icon">📜</span> More regulated</div>
+                            <div class="trend-item"><span class="trend-icon">⚠️</span> More fragile</div>
+                        </div>
+                        
+                        <div class="contrast-block">
+                            <div class="contrast-old">
+                                <span class="contrast-label">Traditional indicators focus on</span>
+                                <span class="contrast-value">what happened</span>
+                            </div>
+                            <div class="contrast-arrow">→</div>
+                            <div class="contrast-new">
+                                <span class="contrast-label">GERI focuses on</span>
+                                <span class="contrast-value">what is building</span>
+                            </div>
+                        </div>
+                        
+                        <p>Its mission is to provide:</p>
+                        <ul class="mission-list">
+                            <li><span class="mission-icon">🚨</span> Early warning signals</li>
+                            <li><span class="mission-icon">👁️</span> Systemic visibility</li>
+                            <li><span class="mission-icon">📊</span> Structured risk intelligence</li>
+                            <li><span class="mission-icon">📚</span> Historical accountability</li>
+                        </ul>
+                        
+                        <div class="closing-statement">
+                            <p>GERI is designed to support better decisions in increasingly complex energy markets.</p>
+                        </div>
                     </div>
                 </div>
                 
