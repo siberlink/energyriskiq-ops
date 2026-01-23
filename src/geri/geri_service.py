@@ -34,6 +34,7 @@ class GeriViewModel:
     top_regions: List[str]
     is_delayed: bool
     delay_hours: int = 0
+    interpretation: str = ""
 
 
 def _parse_components(result: Dict[str, Any]) -> tuple:
@@ -44,6 +45,7 @@ def _parse_components(result: Dict[str, Any]) -> tuple:
     
     top_drivers_raw = components.get('top_drivers', [])
     top_regions_raw = components.get('top_regions', [])
+    interpretation = components.get('interpretation', '')
     
     seen = set()
     top_drivers = []
@@ -61,7 +63,7 @@ def _parse_components(result: Dict[str, Any]) -> tuple:
     
     top_regions = [r.get('region', '') for r in top_regions_raw[:3] if r.get('region')]
     
-    return top_drivers, top_drivers_detailed, top_regions
+    return top_drivers, top_drivers_detailed, top_regions, interpretation
 
 
 def _format_date(index_date) -> str:
@@ -83,7 +85,7 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
     if not result:
         return None
     
-    top_drivers, top_drivers_detailed, top_regions = _parse_components(result)
+    top_drivers, top_drivers_detailed, top_regions, interpretation = _parse_components(result)
     
     return GeriViewModel(
         value=result.get('value', 0),
@@ -95,7 +97,8 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
         top_drivers_detailed=top_drivers_detailed,
         top_regions=top_regions,
         is_delayed=True,
-        delay_hours=24
+        delay_hours=24,
+        interpretation=interpretation
     )
 
 
@@ -111,7 +114,7 @@ def get_geri_latest() -> Optional[GeriViewModel]:
     if not result:
         return None
     
-    top_drivers, top_drivers_detailed, top_regions = _parse_components(result)
+    top_drivers, top_drivers_detailed, top_regions, interpretation = _parse_components(result)
     
     return GeriViewModel(
         value=result.get('value', 0),
@@ -123,7 +126,8 @@ def get_geri_latest() -> Optional[GeriViewModel]:
         top_drivers_detailed=top_drivers_detailed,
         top_regions=top_regions,
         is_delayed=False,
-        delay_hours=0
+        delay_hours=0,
+        interpretation=interpretation
     )
 
 

@@ -63,6 +63,11 @@ class GERISnapshot:
         """Extract top region names from components."""
         regions = self.components.get('top_regions', [])
         return [r.get('region', '') for r in regions[:5] if r.get('region')]
+    
+    @property
+    def interpretation(self) -> str:
+        """Get AI-generated interpretation from components."""
+        return self.components.get('interpretation', '')
 
 
 def _row_to_snapshot(row: Dict[str, Any]) -> GERISnapshot:

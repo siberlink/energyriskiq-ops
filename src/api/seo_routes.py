@@ -1390,9 +1390,12 @@ async def geri_page(request: Request):
         if not regions_html:
             regions_html = '<li>No regional hotspots</li>'
         
-        top_region_names = geri.top_regions[:2] if len(geri.top_regions) >= 2 else geri.top_regions[:1] if geri.top_regions else ["global markets"]
-        interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
-        interpretation_line = f"Current risk conditions indicate {geri.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
+        if geri.interpretation:
+            interpretation_line = geri.interpretation
+        else:
+            top_region_names = geri.top_regions[:2] if len(geri.top_regions) >= 2 else geri.top_regions[:1] if geri.top_regions else ["global markets"]
+            interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
+            interpretation_line = f"Current risk conditions indicate {geri.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
         
         delay_badge = '<div class="geri-delay-badge">24h delayed • Real-time access with subscription</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time data</div>'
         
@@ -3517,9 +3520,12 @@ async def geri_daily_page(request: Request, date: str):
     if not regions_html:
         regions_html = '<li style="color: #9ca3af;">No regional hotspots</li>'
     
-    top_region_names = snapshot.top_regions[:2] if len(snapshot.top_regions) >= 2 else snapshot.top_regions[:1] if snapshot.top_regions else ["global markets"]
-    interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
-    interpretation_line = f"Current risk conditions indicate {snapshot.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
+    if snapshot.interpretation:
+        interpretation_line = snapshot.interpretation
+    else:
+        top_region_names = snapshot.top_regions[:2] if len(snapshot.top_regions) >= 2 else snapshot.top_regions[:1] if snapshot.top_regions else ["global markets"]
+        interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
+        interpretation_line = f"Current risk conditions indicate {snapshot.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
     
     prev_link = f'<a class="nav-arrow" href="/geri/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>' if adjacent['prev'] else '<span class="nav-arrow disabled">&larr; No earlier</span>'
     next_link = f'<a class="nav-arrow" href="/geri/{adjacent["next"]}">{adjacent["next"]} &rarr;</a>' if adjacent['next'] else '<span class="nav-arrow disabled">No later &rarr;</span>'

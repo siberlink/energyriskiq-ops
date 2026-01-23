@@ -74,6 +74,7 @@ class GERIComponents:
     total_alerts: int = 0
     insufficient_history: bool = False
     top_drivers: List[Dict[str, Any]] = field(default_factory=list)
+    interpretation: str = ""
     
     norm_high_impact: float = 0.0
     norm_regional_spike: float = 0.0
@@ -96,6 +97,7 @@ class GERIComponents:
             'total_alerts': self.total_alerts,
             'insufficient_history': self.insufficient_history,
             'top_drivers': self.top_drivers,
+            'interpretation': self.interpretation,
             'normalized': {
                 'high_impact': round(self.norm_high_impact, 2),
                 'regional_spike': round(self.norm_regional_spike, 2),

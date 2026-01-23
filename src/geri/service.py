@@ -65,6 +65,18 @@ def compute_geri_for_date(target_date: date, force: bool = False) -> Optional[GE
     previous_values = get_previous_values(target_date, days=7)
     trend_1d, trend_7d = calculate_trends(value, previous_values)
     
+    from src.geri.interpretation import generate_interpretation
+    from src.geri.normalize import get_band
+    band = get_band(value)
+    top_regions = [r.get('region', '') for r in components.top_regions[:3] if r.get('region')]
+    components.interpretation = generate_interpretation(
+        value=value,
+        band=band.value,
+        top_drivers=components.top_drivers,
+        top_regions=top_regions,
+        index_date=target_date.isoformat()
+    )
+    
     result = build_result(target_date, value, components, trend_1d, trend_7d)
     
     saved = save_index(result, force=force)
