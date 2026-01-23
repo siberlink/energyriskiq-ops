@@ -43,7 +43,8 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
         1.0 as weight,
         created_at,
         headline,
-        body
+        body,
+        category
     FROM alert_events
     WHERE alert_type = ANY(%s)
       AND created_at >= %s
@@ -71,6 +72,7 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
                 created_at=row['created_at'],
                 headline=row['headline'],
                 body=row.get('body'),
+                category=row.get('category'),
             ))
     
     logger.info(f"Retrieved {len(alerts)} alerts for date {target_date}")

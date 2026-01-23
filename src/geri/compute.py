@@ -104,6 +104,7 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
                 'severity': severity,
                 'risk_score': risk_score,
                 'region': region,
+                'category': alert.category or '',
             })
         
         if alert.alert_type == 'HIGH_IMPACT_EVENT':

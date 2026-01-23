@@ -54,6 +54,7 @@ class AlertRecord:
     created_at: datetime
     headline: Optional[str] = None
     body: Optional[str] = None
+    category: Optional[str] = None
 
 
 @dataclass

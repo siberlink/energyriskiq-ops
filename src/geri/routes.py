@@ -312,6 +312,7 @@ async def get_geri_public():
             driver_details.append({
                 'headline': headline,
                 'region': d.get('region', ''),
+                'category': d.get('category', ''),
             })
     
     region_names = [r.get('region', '') for r in top_regions[:3] if r.get('region')]

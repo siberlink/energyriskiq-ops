@@ -2930,10 +2930,28 @@
                     if (data.top_drivers_detailed && data.top_drivers_detailed.length > 0) {
                         data.top_drivers_detailed.slice(0, 5).forEach(driver => {
                             const li = document.createElement('li');
-                            const regionTag = driver.region || '';
+                            const region = driver.region || '';
+                            const category = driver.category || '';
                             const headline = driver.headline || driver;
-                            if (regionTag) {
-                                li.innerHTML = '<span style="color: #4ecdc4; font-size: 0.8rem;">' + regionTag + '</span><br>' + headline;
+                            
+                            // Format category for display (title case)
+                            const formatCategory = (cat) => {
+                                if (!cat) return '';
+                                return cat.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                            };
+                            
+                            // Build tag line: "Region · Category"
+                            let tagLine = '';
+                            if (region && category) {
+                                tagLine = region + ' · ' + formatCategory(category);
+                            } else if (region) {
+                                tagLine = region;
+                            } else if (category) {
+                                tagLine = formatCategory(category);
+                            }
+                            
+                            if (tagLine) {
+                                li.innerHTML = '<span style="color: #4ecdc4; font-size: 0.8rem;">' + tagLine + '</span><br>' + headline;
                             } else {
                                 li.textContent = headline;
                             }
