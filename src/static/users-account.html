@@ -1433,7 +1433,7 @@
                         <path d="M12 6l4 6-4 6-4-6 4-6z"/>
                     </svg>
                 </span>
-                Current GERI
+                Real-Time GERI
                 <span class="pro-badge-nav" id="geriBadge">PRO</span>
             </a>
             <div class="geri-upgrade-hint" id="geriUpgradeHint" style="display: none;">
@@ -1611,7 +1611,7 @@
         <!-- GERI Section (Pro Only) -->
         <div class="section-content" id="section-geri">
             <div class="page-header">
-                <h1 class="page-title">Current GERI</h1>
+                <h1 class="page-title">Real-Time GERI</h1>
                 <p class="page-subtitle">Global Energy Risk Index - Real-time data for Pro subscribers</p>
             </div>
 
@@ -2084,11 +2084,17 @@
                     return `<li>${r.region || 'Unknown'} <span style="color: #9ca3af; font-size: 0.85rem;">(${label})</span></li>`;
                 }).join('') || '<li>No data</li>';
                 
-                // Interpretation section
+                // Interpretation section - matches page background with light grey text
                 const interpretationHtml = interpretation ? 
-                    `<div class="geri-interpretation" style="background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #60a5fa;">
-                        <p style="color: #1e293b; font-style: italic; margin: 0; line-height: 1.6;">"${interpretation}"</p>
+                    `<div class="geri-interpretation" style="background: transparent; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #60a5fa;">
+                        <p style="color: #9ca3af; font-style: italic; margin: 0; line-height: 1.6;">"${interpretation}"</p>
                     </div>` : '';
+                
+                // Format computed_at date
+                const computedAt = geri.computed_at ? new Date(geri.computed_at).toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+                }) : geri.date || 'N/A';
                 
                 contentDiv.innerHTML = `
                     <div class="geri-display-card">
@@ -2100,7 +2106,7 @@
                         <div class="geri-value-line" style="font-size: 1.5rem; font-weight: bold; color: ${bandColor}; margin-bottom: 8px;">${geri.value || '--'} / 100 (${geri.band || 'N/A'})</div>
                         <div class="geri-scale-ref" style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 12px;">0 = minimal risk · 100 = extreme systemic stress</div>
                         ${trendDisplay}
-                        <div class="geri-date-display" style="margin-top: 8px;">Date: ${geri.date || 'N/A'}</div>
+                        <div class="geri-date-display" style="margin-top: 8px;">Computed: ${computedAt}</div>
                     </div>
                     
                     ${interpretationHtml}
@@ -2635,7 +2641,7 @@
                     }
                     
                     const features = plan.features ? [
-                        ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Current GERI'] : []),
+                        ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Real-Time GERI'] : []),
                         ...(plan.plan_code === 'enterprise' ? ['Current RERI'] : []),
                         `${plan.features.max_email_alerts_per_day} email alerts/day`,
                         ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Live Telegram Alerts'] : []),
@@ -2894,7 +2900,7 @@
                 }
                 
                 const features = plan.features ? [
-                    ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Current GERI'] : []),
+                    ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Real-Time GERI'] : []),
                     ...(plan.plan_code === 'enterprise' ? ['Current RERI'] : []),
                     `${plan.features.max_email_alerts_per_day} email alerts/day`,
                     ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Live Telegram Alerts'] : []),
