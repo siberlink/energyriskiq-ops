@@ -1409,12 +1409,12 @@ async def geri_page(request: Request):
         
         <div class="geri-sections">
             <div class="geri-section">
-                <h2 class="section-header-red">Primary Risk Drivers:</h2>
+                <h2 class="section-header-blue">Primary Risk Drivers:</h2>
                 <ul class="geri-list">{drivers_html}</ul>
             </div>
             
             <div class="geri-section">
-                <h2 class="section-header-red">Top Regions Under Pressure:</h2>
+                <h2 class="section-header-blue">Top Regions Under Pressure:</h2>
                 <ul class="geri-list regions-list">{regions_html}</ul>
             </div>
         </div>
@@ -1577,9 +1577,10 @@ async def geri_page(request: Request):
             .geri-trend {{
                 font-size: 0.95rem;
                 margin-bottom: 0.5rem;
+                color: #f8fafc;
             }}
-            .section-header-red {{
-                color: #ef4444 !important;
+            .section-header-blue {{
+                color: #60a5fa !important;
                 font-size: 1rem;
                 margin-bottom: 0.75rem;
             }}
@@ -1588,11 +1589,11 @@ async def geri_page(request: Request):
                 font-size: 0.85rem;
             }}
             .geri-interpretation {{
-                color: #9ca3af;
-                font-size: 0.9rem;
+                color: #e2e8f0;
+                font-size: 1.05rem;
                 font-style: italic;
                 margin: 1.5rem 0;
-                line-height: 1.5;
+                line-height: 1.6;
             }}
             .geri-delay-badge {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
