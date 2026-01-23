@@ -2609,7 +2609,9 @@
                     
                     const features = plan.features ? [
                         ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Current GERI'] : []),
+                        ...(plan.plan_code === 'enterprise' ? ['Current RERI'] : []),
                         `${plan.features.max_email_alerts_per_day} email alerts/day`,
+                        ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Live Telegram Alerts'] : []),
                         `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
                         `${plan.features.alert_types?.length || 0} alert types`
                     ] : [];
@@ -2866,7 +2868,9 @@
                 
                 const features = plan.features ? [
                     ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Current GERI'] : []),
+                    ...(plan.plan_code === 'enterprise' ? ['Current RERI'] : []),
                     `${plan.features.max_email_alerts_per_day} email alerts/day`,
+                    ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Live Telegram Alerts'] : []),
                     `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
                     `${plan.features.alert_types?.length || 0} alert types`
                 ] : [];
