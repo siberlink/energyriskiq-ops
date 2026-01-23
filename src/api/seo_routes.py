@@ -16,7 +16,10 @@ from typing import Optional
 from calendar import month_name
 
 from fastapi import APIRouter, Request, HTTPException
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, PlainTextResponse
+import time
+import hashlib
+from collections import defaultdict
 
 from src.db.db import get_cursor, execute_one, execute_query
 from src.seo.seo_generator import (
@@ -45,6 +48,81 @@ from calendar import month_name as calendar_month_name
 router = APIRouter(tags=["seo"])
 
 BASE_URL = os.environ.get('ALERTS_APP_BASE_URL', 'https://energyriskiq.com')
+
+# Anti-scraping configuration
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX_REQUESTS = 30  # max requests per window for GERI pages
+_request_counts = defaultdict(list)  # IP -> list of timestamps
+
+BLOCKED_USER_AGENTS = [
+    'scrapy', 'python-requests', 'curl', 'wget', 'httpclient', 'libwww',
+    'crawler', 'spider', 'bot', 'scraper', 'harvest', 'extractor',
+    'dataminer', 'contentking', 'semrush', 'ahrefs', 'mj12bot',
+    'dotbot', 'petalbot', 'bytespider', 'claudebot', 'gptbot'
+]
+
+ALLOWED_BOTS = ['googlebot', 'bingbot', 'slurp', 'duckduckbot', 'facebookexternalhit', 'twitterbot']
+
+def get_client_fingerprint(request: Request) -> str:
+    """Generate a fingerprint for rate limiting."""
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "")[:100]
+    return hashlib.md5(f"{ip}:{ua}".encode()).hexdigest()[:16]
+
+def check_rate_limit(fingerprint: str) -> bool:
+    """Check if request should be rate limited. Returns True if blocked."""
+    now = time.time()
+    window_start = now - RATE_LIMIT_WINDOW
+    
+    # Clean old entries
+    _request_counts[fingerprint] = [t for t in _request_counts[fingerprint] if t > window_start]
+    
+    # Check limit
+    if len(_request_counts[fingerprint]) >= RATE_LIMIT_MAX_REQUESTS:
+        return True
+    
+    # Record this request
+    _request_counts[fingerprint].append(now)
+    return False
+
+def is_blocked_scraper(request: Request) -> bool:
+    """Check if the request appears to be from a blocked scraper."""
+    ua = request.headers.get("user-agent", "").lower()
+    
+    # Allow legitimate search engine bots
+    for allowed in ALLOWED_BOTS:
+        if allowed in ua:
+            return False
+    
+    # Block known scraper signatures
+    for blocked in BLOCKED_USER_AGENTS:
+        if blocked in ua:
+            return True
+    
+    # Block requests with no user agent
+    if not ua or len(ua) < 10:
+        return True
+    
+    return False
+
+def get_anti_scrape_headers() -> dict:
+    """Return headers that discourage scraping/archiving."""
+    return {
+        "X-Robots-Tag": "noarchive, nosnippet",
+        "Cache-Control": "private, no-store, max-age=0",
+        "X-Content-Type-Options": "nosniff",
+    }
+
+async def apply_anti_scraping(request: Request) -> None:
+    """Apply anti-scraping checks. Raises HTTPException if blocked."""
+    # Check for blocked scrapers
+    if is_blocked_scraper(request):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Check rate limit
+    fingerprint = get_client_fingerprint(request)
+    if check_rate_limit(fingerprint):
+        raise HTTPException(status_code=429, detail="Too many requests")
 
 
 def generate_why_matters_text(model: dict) -> str:
@@ -1035,6 +1113,40 @@ async def monthly_archive_page(year: int, month: int):
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
 
 
+@router.get("/robots.txt", response_class=PlainTextResponse)
+async def robots_txt():
+    """
+    Robots.txt - Disallow scraping of protected GERI pages.
+    Allow indexing of methodology page for SEO.
+    """
+    robots_content = f"""# EnergyRiskIQ Robots.txt
+User-agent: *
+
+# Allow methodology page for SEO
+Allow: /geri/methodology
+
+# Disallow scraping of GERI data pages
+Disallow: /geri
+Disallow: /geri/history
+Disallow: /geri/20
+
+# Allow other public pages
+Allow: /
+Allow: /alerts
+Allow: /privacy
+Allow: /terms
+Allow: /sitemap.xml
+Allow: /sitemap.html
+
+# Sitemap location
+Sitemap: {BASE_URL}/sitemap.xml
+
+# Crawl-delay for polite bots
+Crawl-delay: 5
+"""
+    return PlainTextResponse(content=robots_content, headers={"Cache-Control": "public, max-age=86400"})
+
+
 @router.get("/sitemap.xml", response_class=Response)
 async def sitemap_xml():
     """Generate XML sitemap with lastmod dates."""
@@ -1135,7 +1247,11 @@ async def geri_page(request: Request):
     - Authenticated: Shows real-time GERI
     
     Googlebot always sees delayed version (not logged in).
+    Protected: Anti-scraping measures applied.
     """
+    # Apply anti-scraping protection
+    await apply_anti_scraping(request)
+    
     track_page_view("geri", "/geri")
     
     user_id = None
@@ -1447,11 +1563,15 @@ def get_geri_common_styles():
 
 
 @router.get("/geri/history", response_class=HTMLResponse)
-async def geri_history_page():
+async def geri_history_page(request: Request):
     """
     GERI History Hub - Lists all available GERI snapshots.
     Public page showing the official published archive.
+    Protected: Anti-scraping measures applied.
     """
+    # Apply anti-scraping protection
+    await apply_anti_scraping(request)
+    
     track_page_view("geri_history", "/geri/history")
     
     snapshots = list_snapshots(limit=90)
@@ -3122,18 +3242,22 @@ async def geri_methodology_page():
 
 
 @router.get("/geri/{date:path}", response_class=HTMLResponse)
-async def geri_daily_page(date: str):
+async def geri_daily_page(request: Request, date: str):
     """
     GERI Daily Snapshot Page - Shows a specific day's GERI data.
     Returns 404 if the date doesn't exist in the archive.
+    Protected: Anti-scraping measures applied.
     """
+    # Apply anti-scraping protection
+    await apply_anti_scraping(request)
+    
     import re
     
     month_match = re.match(r'^(\d{4})/(\d{2})$', date)
     if month_match:
         year = int(month_match.group(1))
         month = int(month_match.group(2))
-        return await geri_monthly_page(year, month)
+        return await geri_monthly_page(request, year, month)
     
     date_match = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', date)
     if not date_match:
@@ -3319,9 +3443,10 @@ async def geri_daily_page(date: str):
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
 
 
-async def geri_monthly_page(year: int, month: int):
+async def geri_monthly_page(request: Request, year: int, month: int):
     """
     GERI Monthly Archive Hub - Shows all snapshots for a specific month.
+    Protected: Anti-scraping already applied by parent route.
     """
     if month < 1 or month > 12:
         raise HTTPException(status_code=404, detail="Invalid month.")
