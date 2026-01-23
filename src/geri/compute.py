@@ -28,6 +28,25 @@ def extract_event_title_from_body(body: Optional[str]) -> Optional[str]:
     return None
 
 
+def extract_category_from_body(body: Optional[str]) -> Optional[str]:
+    """
+    Extract category from HIGH_IMPACT_EVENT body.
+    Body format: "...Category: ENERGY\nRegion: ..."
+    Returns lowercase category (energy, geopolitical, supply_chain)
+    """
+    if not body:
+        return None
+    
+    match = re.search(r'Category:\s*(\w+)', body, re.IGNORECASE)
+    if match:
+        cat = match.group(1).strip().lower()
+        # Normalize category names
+        if cat == 'supply_chain' or cat == 'supplychain':
+            return 'supply_chain'
+        return cat
+    return None
+
+
 def severity_from_risk_score(risk_score: float) -> int:
     """Map risk_score to severity (1-5 buckets)."""
     if risk_score is None:
@@ -91,12 +110,16 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
         region_risk_totals[region] += risk_score
         
         if alert.headline:
-            # For HIGH_IMPACT_EVENT, try to extract actual event title from body
+            # For HIGH_IMPACT_EVENT, try to extract actual event title and category from body
             display_headline = alert.headline
+            display_category = alert.category or ''
             if alert.alert_type == 'HIGH_IMPACT_EVENT' and alert.body:
                 extracted_title = extract_event_title_from_body(alert.body)
                 if extracted_title:
                     display_headline = extracted_title
+                extracted_category = extract_category_from_body(alert.body)
+                if extracted_category:
+                    display_category = extracted_category
             
             alert_scores.append({
                 'headline': display_headline,
@@ -104,7 +127,7 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
                 'severity': severity,
                 'risk_score': risk_score,
                 'region': region,
-                'category': alert.category or '',
+                'category': display_category,
             })
         
         if alert.alert_type == 'HIGH_IMPACT_EVENT':
