@@ -68,6 +68,13 @@ class GERISnapshot:
     def interpretation(self) -> str:
         """Get AI-generated interpretation from components."""
         return self.components.get('interpretation', '')
+    
+    @property
+    def computed_at_formatted(self) -> str:
+        """Get computed_at date in YYYY-MM-DD format."""
+        if self.computed_at:
+            return self.computed_at[:10]
+        return self.date
 
 
 def _row_to_snapshot(row: Dict[str, Any]) -> GERISnapshot:

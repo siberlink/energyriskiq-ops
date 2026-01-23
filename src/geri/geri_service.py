@@ -35,6 +35,7 @@ class GeriViewModel:
     is_delayed: bool
     delay_hours: int = 0
     interpretation: str = ""
+    computed_at: str = ""
 
 
 def _parse_components(result: Dict[str, Any]) -> tuple:
@@ -87,6 +88,15 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
     
     top_drivers, top_drivers_detailed, top_regions, interpretation = _parse_components(result)
     
+    # Format computed_at as YYYY-MM-DD
+    computed_at = result.get('computed_at')
+    if computed_at and hasattr(computed_at, 'strftime'):
+        computed_at_str = computed_at.strftime('%Y-%m-%d')
+    elif computed_at:
+        computed_at_str = str(computed_at)[:10]
+    else:
+        computed_at_str = _format_date(result.get('date'))
+    
     return GeriViewModel(
         value=result.get('value', 0),
         band=result.get('band', 'UNKNOWN'),
@@ -98,7 +108,8 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
         top_regions=top_regions,
         is_delayed=True,
         delay_hours=24,
-        interpretation=interpretation
+        interpretation=interpretation,
+        computed_at=computed_at_str
     )
 
 
@@ -116,6 +127,15 @@ def get_geri_latest() -> Optional[GeriViewModel]:
     
     top_drivers, top_drivers_detailed, top_regions, interpretation = _parse_components(result)
     
+    # Format computed_at as YYYY-MM-DD
+    computed_at = result.get('computed_at')
+    if computed_at and hasattr(computed_at, 'strftime'):
+        computed_at_str = computed_at.strftime('%Y-%m-%d')
+    elif computed_at:
+        computed_at_str = str(computed_at)[:10]
+    else:
+        computed_at_str = _format_date(result.get('date'))
+    
     return GeriViewModel(
         value=result.get('value', 0),
         band=result.get('band', 'UNKNOWN'),
@@ -127,7 +147,8 @@ def get_geri_latest() -> Optional[GeriViewModel]:
         top_regions=top_regions,
         is_delayed=False,
         delay_hours=0,
-        interpretation=interpretation
+        interpretation=interpretation,
+        computed_at=computed_at_str
     )
 
 

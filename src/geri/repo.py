@@ -160,20 +160,18 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
 
 
 def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
-    """Get index with delay (for public display). Default 24h (1 day) delay."""
-    cutoff_date = date.today() - timedelta(days=delay_days)
-    
+    """Get the second last record from intel_indices_daily (24h delayed for public display)."""
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
            components, model_version, computed_at
     FROM intel_indices_daily
-    WHERE index_id = %s AND date <= %s
+    WHERE index_id = %s
     ORDER BY date DESC
-    LIMIT 1
+    LIMIT 1 OFFSET 1
     """
     
     with get_cursor() as cursor:
-        cursor.execute(sql, (INDEX_ID, cutoff_date))
+        cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:
             return dict(row)

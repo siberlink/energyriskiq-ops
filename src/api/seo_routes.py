@@ -1408,7 +1408,7 @@ async def geri_page(request: Request):
             <div class="geri-value" style="font-size: 1.5rem; font-weight: bold; color: {band_color}; margin: 0.5rem 0;">{geri.value} / 100 ({geri.band})</div>
             <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
             {trend_display}
-            <div class="geri-date">Date: {geri.date}</div>
+            <div class="geri-date">Date Computed: {geri.computed_at}</div>
         </div>
         
         <div class="geri-sections">
@@ -3649,7 +3649,7 @@ async def geri_daily_page(request: Request, date: str):
                     <div class="geri-value" style="font-size: 1.5rem; font-weight: bold; color: {band_color}; margin: 0.5rem 0;">{snapshot.value} / 100 ({snapshot.band})</div>
                     <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
                     {trend_display}
-                    <div class="geri-date">Date: {date}</div>
+                    <div class="geri-date">Date Computed: {snapshot.computed_at_formatted}</div>
                 </div>
                 
                 <div class="drivers-regions">
