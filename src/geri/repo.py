@@ -164,13 +164,13 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
 
 
 def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
-    """Get the latest GERI index for public display.
+    """Get the second-last GERI index for public display (true 24h delay).
     
-    Returns the most recently computed GERI. The data is already inherently 24h delayed
-    because GERI is computed for the previous day's alerts (e.g., computed on Jan 24 01:40 UTC
-    represents Jan 23's data). No additional offset is needed.
+    Returns the second most recently computed GERI. This creates a true 24h delay:
+    - Latest record (LIMIT 1) is for authenticated users (real-time)
+    - Second-last record (OFFSET 1) is for public/unauthenticated (24h delayed)
     
-    When a new GERI is computed, this function immediately returns that new record.
+    Orders by computed_at DESC to ensure proper chronological ordering.
     """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
@@ -178,7 +178,7 @@ def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
     FROM intel_indices_daily
     WHERE index_id = %s
     ORDER BY computed_at DESC
-    LIMIT 1
+    LIMIT 1 OFFSET 1
     """
     
     with get_cursor() as cursor:
