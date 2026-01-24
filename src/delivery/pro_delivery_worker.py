@@ -1,9 +1,10 @@
 """
 Pro Plan Delivery Worker
 
-Handles alert and GERI delivery for Pro Plan users:
+Handles alert and GERI delivery for Pro and Enterprise Plan users:
 - Email: Up to 15 per day (batched by 15-min windows), prioritized by risk score
 - Telegram: All alerts + GERI
+- GERI: Sent once per day per user when new index is generated (~01:45 UTC)
 """
 
 import os
@@ -26,14 +27,14 @@ GERI_EMAIL_RESERVED = 1
 
 def get_pro_users_with_telegram() -> List[Dict]:
     """
-    Get all Pro plan users with their email and Telegram chat_id.
+    Get all Pro and Enterprise plan users with their email and Telegram chat_id.
     """
     with get_cursor(commit=False) as cursor:
         cursor.execute("""
             SELECT u.id, u.email, u.telegram_chat_id
             FROM users u
             JOIN user_plans up ON u.id = up.user_id
-            WHERE up.plan = 'pro'
+            WHERE up.plan IN ('pro', 'enterprise')
               AND u.email_verified = true
         """)
         return [dict(row) for row in cursor.fetchall()]
