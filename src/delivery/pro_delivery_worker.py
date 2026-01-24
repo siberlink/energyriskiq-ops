@@ -89,58 +89,85 @@ def get_user_email_count_today(user_id: int) -> int:
 def get_unsent_alerts_for_user(user_id: int, regions: List[str], since_minutes: int = 15) -> List[Dict]:
     """
     Get alerts from the last N minutes that haven't been sent to this user.
-    Filtered by user's configured regions.
+    If regions provided, filters by those regions. Otherwise returns ALL alerts.
     Ordered by risk score (confidence) descending.
     """
     since = datetime.now(timezone.utc) - timedelta(minutes=since_minutes)
     
-    if not regions:
-        return []
-    
     with get_cursor(commit=False) as cursor:
-        cursor.execute("""
-            SELECT ae.id, ae.alert_type, ae.headline, ae.body, ae.severity,
-                   ae.scope_region as region, ae.confidence as risk_score,
-                   ae.created_at
-            FROM alert_events ae
-            WHERE ae.created_at >= %s
-              AND ae.scope_region = ANY(%s)
-              AND NOT EXISTS (
-                  SELECT 1 FROM user_alert_deliveries uad
-                  WHERE uad.alert_event_id = ae.id
-                    AND uad.user_id = %s
-                    AND uad.channel = 'email'
-              )
-            ORDER BY ae.confidence DESC NULLS LAST, ae.severity DESC NULLS LAST
-        """, (since, regions, user_id))
+        if regions:
+            cursor.execute("""
+                SELECT ae.id, ae.alert_type, ae.headline, ae.body, ae.severity,
+                       ae.scope_region as region, ae.confidence as risk_score,
+                       ae.created_at
+                FROM alert_events ae
+                WHERE ae.created_at >= %s
+                  AND ae.scope_region = ANY(%s)
+                  AND NOT EXISTS (
+                      SELECT 1 FROM user_alert_deliveries uad
+                      WHERE uad.alert_event_id = ae.id
+                        AND uad.user_id = %s
+                        AND uad.channel = 'email'
+                  )
+                ORDER BY ae.confidence DESC NULLS LAST, ae.severity DESC NULLS LAST
+            """, (since, regions, user_id))
+        else:
+            cursor.execute("""
+                SELECT ae.id, ae.alert_type, ae.headline, ae.body, ae.severity,
+                       ae.scope_region as region, ae.confidence as risk_score,
+                       ae.created_at
+                FROM alert_events ae
+                WHERE ae.created_at >= %s
+                  AND NOT EXISTS (
+                      SELECT 1 FROM user_alert_deliveries uad
+                      WHERE uad.alert_event_id = ae.id
+                        AND uad.user_id = %s
+                        AND uad.channel = 'email'
+                  )
+                ORDER BY ae.confidence DESC NULLS LAST, ae.severity DESC NULLS LAST
+            """, (since, user_id))
         return [dict(row) for row in cursor.fetchall()]
 
 
 def get_unsent_alerts_for_telegram(user_id: int, regions: List[str], since_minutes: int = 15) -> List[Dict]:
     """
     Get alerts for Telegram delivery (all alerts, not limited).
+    If regions provided, filters by those regions. Otherwise returns ALL alerts.
     """
     since = datetime.now(timezone.utc) - timedelta(minutes=since_minutes)
     
-    if not regions:
-        return []
-    
     with get_cursor(commit=False) as cursor:
-        cursor.execute("""
-            SELECT ae.id, ae.alert_type, ae.headline, ae.body, ae.severity,
-                   ae.scope_region as region, ae.confidence as risk_score,
-                   ae.created_at
-            FROM alert_events ae
-            WHERE ae.created_at >= %s
-              AND ae.scope_region = ANY(%s)
-              AND NOT EXISTS (
-                  SELECT 1 FROM user_alert_deliveries uad
-                  WHERE uad.alert_event_id = ae.id
-                    AND uad.user_id = %s
-                    AND uad.channel = 'telegram'
-              )
-            ORDER BY ae.created_at DESC
-        """, (since, regions, user_id))
+        if regions:
+            cursor.execute("""
+                SELECT ae.id, ae.alert_type, ae.headline, ae.body, ae.severity,
+                       ae.scope_region as region, ae.confidence as risk_score,
+                       ae.created_at
+                FROM alert_events ae
+                WHERE ae.created_at >= %s
+                  AND ae.scope_region = ANY(%s)
+                  AND NOT EXISTS (
+                      SELECT 1 FROM user_alert_deliveries uad
+                      WHERE uad.alert_event_id = ae.id
+                        AND uad.user_id = %s
+                        AND uad.channel = 'telegram'
+                  )
+                ORDER BY ae.created_at DESC
+            """, (since, regions, user_id))
+        else:
+            cursor.execute("""
+                SELECT ae.id, ae.alert_type, ae.headline, ae.body, ae.severity,
+                       ae.scope_region as region, ae.confidence as risk_score,
+                       ae.created_at
+                FROM alert_events ae
+                WHERE ae.created_at >= %s
+                  AND NOT EXISTS (
+                      SELECT 1 FROM user_alert_deliveries uad
+                      WHERE uad.alert_event_id = ae.id
+                        AND uad.user_id = %s
+                        AND uad.channel = 'telegram'
+                  )
+                ORDER BY ae.created_at DESC
+            """, (since, user_id))
         return [dict(row) for row in cursor.fetchall()]
 
 
@@ -206,7 +233,10 @@ def format_alert_email(alerts: List[Dict], user_regions: List[str]) -> Tuple[str
         body_parts.append("")
     
     body_parts.append("---")
-    body_parts.append(f"Your configured regions: {', '.join(user_regions)}")
+    if user_regions:
+        body_parts.append(f"Your configured regions: {', '.join(user_regions)}")
+    else:
+        body_parts.append("Your configured regions: All regions (no filter)")
     body_parts.append("To update your alert preferences, visit your account settings at:")
     body_parts.append("https://www.energyriskiq.com/users-account")
     body_parts.append("")
@@ -364,8 +394,7 @@ def run_pro_delivery(since_minutes: int = 15) -> Dict:
             regions = get_user_configured_regions(user_id)
             
             if not regions:
-                logger.warning(f"User {user_id} has no configured regions, skipping")
-                continue
+                logger.info(f"User {user_id} has no configured regions, will receive ALL alerts")
             
             emails_today = get_user_email_count_today(user_id)
             remaining_emails = DAILY_EMAIL_LIMIT - emails_today
@@ -431,16 +460,26 @@ def send_geri_to_pro_users() -> Dict:
         "errors": []
     }
     
-    subject, body = format_geri_email()
-    if not subject:
+    geri = get_latest_index()
+    if not geri:
         logger.warning("No GERI available for delivery")
+        return stats
+    
+    geri_date_value = geri.get('date')
+    if not geri_date_value:
+        logger.warning("GERI missing date field")
+        return stats
+    
+    subject, body = format_geri_email()
+    if not subject or not body:
+        logger.warning("Could not format GERI email")
         return stats
     
     telegram_message = format_geri_telegram()
     batch_window = get_current_batch_window()
     
     pro_users = get_pro_users_with_telegram()
-    logger.info(f"Sending GERI to {len(pro_users)} Pro users")
+    logger.info(f"Sending GERI for {geri_date_value} to {len(pro_users)} Pro users")
     
     for user in pro_users:
         user_id = user['id']
@@ -454,10 +493,10 @@ def send_geri_to_pro_users() -> Dict:
                 result = send_email_v2(email, subject, body)
                 if result.success:
                     stats["emails_sent"] += 1
-                    record_geri_delivery(user_id, 'email', 'sent', batch_window)
+                    record_geri_delivery(user_id, 'email', 'sent', batch_window, geri_date_value)
                 else:
                     stats["errors"].append(f"GERI email to {email}: {result.error}")
-                    record_geri_delivery(user_id, 'email', 'failed', batch_window, result.error)
+                    record_geri_delivery(user_id, 'email', 'failed', batch_window, geri_date_value, result.error)
             
             if chat_id and telegram_message:
                 result = send_telegram_v2(chat_id, telegram_message)
@@ -478,38 +517,41 @@ def send_geri_to_pro_users() -> Dict:
 
 
 def record_geri_delivery(user_id: int, channel: str, status: str, 
-                         batch_window: datetime, error: Optional[str] = None):
+                         batch_window: datetime, geri_date: date,
+                         error: Optional[str] = None):
     """
     Record a GERI delivery in user_alert_deliveries.
     Uses alert_event_id = NULL and delivery_kind = 'geri'.
-    Uses upsert to prevent duplicate counting for same batch window.
-    Matches partial unique index: idx_geri_delivery_unique (user_id, channel, batch_window) 
-    WHERE delivery_kind = 'geri' AND batch_window IS NOT NULL
+    Stores the actual GERI date for deduplication.
+    Uses upsert to prevent duplicate delivery of same GERI.
     """
     with get_cursor(commit=True) as cursor:
         cursor.execute("""
             INSERT INTO user_alert_deliveries 
                 (user_id, channel, status, delivery_kind, 
-                 created_at, sent_at, batch_window, last_error)
-            VALUES (%s, %s, %s, 'geri', NOW(), NOW(), %s, %s)
+                 created_at, sent_at, batch_window, geri_date, last_error)
+            VALUES (%s, %s, %s, 'geri', NOW(), NOW(), %s, %s, %s)
             ON CONFLICT (user_id, channel, batch_window) 
                 WHERE delivery_kind = 'geri' AND batch_window IS NOT NULL
-            DO UPDATE SET status = EXCLUDED.status, sent_at = NOW(), last_error = EXCLUDED.last_error
-        """, (user_id, channel, status, batch_window, error))
+            DO UPDATE SET status = EXCLUDED.status, sent_at = NOW(), 
+                         geri_date = EXCLUDED.geri_date, last_error = EXCLUDED.last_error
+        """, (user_id, channel, status, batch_window, geri_date, error))
 
 
 def get_last_geri_delivery_date() -> Optional[date]:
     """
     Get the date of the last GERI that was delivered.
+    Uses the geri_date column which stores the actual GERI index date.
     Returns None if no GERI has been delivered yet.
     """
     with get_cursor(commit=False) as cursor:
         cursor.execute("""
-            SELECT DATE(batch_window) as geri_date
+            SELECT geri_date
             FROM user_alert_deliveries
             WHERE delivery_kind = 'geri'
               AND status = 'sent'
-            ORDER BY batch_window DESC
+              AND geri_date IS NOT NULL
+            ORDER BY geri_date DESC
             LIMIT 1
         """)
         row = cursor.fetchone()

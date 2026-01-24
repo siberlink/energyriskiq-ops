@@ -1101,13 +1101,18 @@ def run_geri_migration():
 
 
 def run_pro_delivery_migration():
-    """Add batch_window column and indexes for Pro plan delivery."""
+    """Add batch_window and geri_date columns and indexes for Pro plan delivery."""
     logger.info("Running Pro delivery migration...")
     
     with get_cursor() as cursor:
         cursor.execute("""
             ALTER TABLE user_alert_deliveries 
             ADD COLUMN IF NOT EXISTS batch_window TIMESTAMP;
+        """)
+        
+        cursor.execute("""
+            ALTER TABLE user_alert_deliveries 
+            ADD COLUMN IF NOT EXISTS geri_date DATE;
         """)
         
         cursor.execute("""
