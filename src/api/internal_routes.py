@@ -411,8 +411,11 @@ def run_pro_delivery(
     
     if include_geri:
         geri_response, geri_status = run_job_with_lock('geri_delivery', send_geri_to_pro_users_if_new)
-        if geri_status == 200 and geri_response.get('result'):
-            response['geri_delivery'] = geri_response['result']
+        response['geri_delivery'] = {
+            'status': geri_response.get('status', 'unknown'),
+            'details': geri_response.get('details', {}),
+            'http_status': geri_status
+        }
     
     return response
 
