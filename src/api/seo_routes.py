@@ -2169,6 +2169,75 @@ async def geri_methodology_page():
                 padding-top: 0.75rem;
                 border-top: 1px dashed rgba(0,0,0,0.2);
             }}
+            .timestamp-concepts {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .timestamp-card {{
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                border: 1px solid #0ea5e9;
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+            }}
+            .timestamp-card h4 {{
+                color: #0369a1;
+                margin: 0 0 0.75rem 0;
+                font-size: 1.1rem;
+            }}
+            .timestamp-card p {{
+                margin: 0.5rem 0;
+                color: #334155;
+            }}
+            .timestamp-example {{
+                background: rgba(255,255,255,0.7);
+                border-radius: 0.5rem;
+                padding: 0.75rem;
+                margin: 1rem 0;
+                font-family: monospace;
+                font-size: 0.9rem;
+                color: #1e40af;
+            }}
+            .governance-box {{
+                background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+                border: 1px solid #eab308;
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .governance-box h4 {{
+                color: #a16207;
+                margin: 0 0 0.75rem 0;
+                font-size: 1.1rem;
+            }}
+            .governance-box p {{
+                color: #334155;
+                margin: 0.5rem 0;
+            }}
+            .governance-note {{
+                font-style: italic;
+                color: #92400e;
+                margin-top: 1rem;
+                padding-top: 0.75rem;
+                border-top: 1px dashed rgba(0,0,0,0.15);
+            }}
+            .why-matters-box {{
+                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+                border: 1px solid #22c55e;
+                border-radius: 0.75rem;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .why-matters-box h4 {{
+                color: #15803d;
+                margin: 0 0 0.75rem 0;
+                font-size: 1.1rem;
+            }}
+            .why-matters-box p {{
+                color: #334155;
+                margin: 0.5rem 0;
+            }}
             .simple-list.compact {{
                 margin: 0.5rem 0;
                 gap: 0.5rem;
@@ -3168,6 +3237,63 @@ async def geri_methodology_page():
                                 </div>
                             </div>
                             <p class="layer-summary">Representing the overall stress level of the global energy system.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="methodology-section">
+                        <h3><span class="section-icon">📅</span> Index Date vs. Computation Timestamp</h3>
+                        <p>GERI is published as a daily reference index representing systemic risk conditions for a specific calendar day.</p>
+                        <p>For accuracy, completeness, and audit integrity, the index follows a <strong>two-step publication process</strong>:</p>
+                        
+                        <div class="timestamp-concepts">
+                            <div class="timestamp-card">
+                                <h4>Index Date (Publication Date)</h4>
+                                <p>The Index Date identifies the calendar day whose risk conditions are being measured.</p>
+                                <p class="timestamp-example"><strong>Example:</strong> GERI — January 21, 2026 represents systemic energy risk conditions observed throughout January 21, 2026.</p>
+                                <p>This date is the official historical reference used in:</p>
+                                <ul class="layer-list">
+                                    <li>Archive pages</li>
+                                    <li>Charts</li>
+                                    <li>Research</li>
+                                    <li>Licensing and reporting</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="timestamp-card">
+                                <h4>Computed Date (Computation Timestamp)</h4>
+                                <p>The Computed Date records the exact timestamp when the index was calculated and published.</p>
+                                <p>Because GERI incorporates all alerts and signals generated during the full calendar day, the index is computed after the close of the observation period, typically in the early hours of the following day.</p>
+                                <p class="timestamp-example"><strong>Example:</strong><br/>Index Date: January 21, 2026<br/>Computed At: January 22, 2026, 06:10 UTC</p>
+                                <p>This ensures that:</p>
+                                <ul class="layer-list">
+                                    <li>All relevant events for the day are included</li>
+                                    <li>Late-day developments are captured</li>
+                                    <li>Daily snapshots are complete and reproducible</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="governance-box">
+                            <h4>Publication & Governance Principles</h4>
+                            <p>This methodology follows standard benchmark and index publication practices used by institutional data providers:</p>
+                            <ul class="layer-list">
+                                <li>Each index value reflects a full-day observation window</li>
+                                <li>Computation occurs after the day closes</li>
+                                <li>Each daily snapshot is: <strong>published once</strong>, <strong>immutable</strong>, <strong>auditable</strong>, and <strong>permanently archived</strong></li>
+                            </ul>
+                            <p class="governance-note">Once published, a GERI value is not revised or backfilled and represents the official historical record for that date.</p>
+                        </div>
+                        
+                        <div class="why-matters-box">
+                            <h4>Why This Matters</h4>
+                            <p>Separating the Index Date from the Computation Timestamp ensures:</p>
+                            <ul class="layer-list">
+                                <li>Full coverage of daily events and alerts</li>
+                                <li>Methodological consistency</li>
+                                <li>Stable historical time series</li>
+                                <li>Transparency for professional and institutional users</li>
+                            </ul>
+                            <p class="layer-summary">This approach guarantees that every published GERI value reflects a complete, final, and reproducible measure of systemic energy risk for the stated date.</p>
                         </div>
                     </div>
                     

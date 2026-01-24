@@ -1,0 +1,76 @@
+📅 Index Date vs. Computation Timestamp
+
+GERI is published as a daily reference index representing systemic risk conditions for a specific calendar day.
+
+For accuracy, completeness, and audit integrity, the index follows a two-step publication process:
+
+Index Date (Publication Date)
+
+The Index Date identifies the calendar day whose risk conditions are being measured.
+
+For example:
+GERI — January 21, 2026 represents systemic energy risk conditions observed throughout January 21, 2026.
+
+This date is the official historical reference used in:
+
+archive pages
+
+charts
+
+research
+
+licensing and reporting
+
+Computed Date (Computation Timestamp)
+
+The Computed Date records the exact timestamp when the index was calculated and published.
+
+Because GERI incorporates all alerts and signals generated during the full calendar day, the index is computed after the close of the observation period, typically in the early hours of the following day.
+
+Example:
+
+Index Date: January 21, 2026
+
+Computed At: January 22, 2026, 06:10 UTC
+
+This ensures that:
+
+all relevant events for the day are included
+
+late-day developments are captured
+
+daily snapshots are complete and reproducible
+
+Publication & Governance Principles
+
+This methodology follows standard benchmark and index publication practices used by institutional data providers:
+
+Each index value reflects a full-day observation window
+
+Computation occurs after the day closes
+
+Each daily snapshot is:
+
+published once
+
+immutable
+
+auditable
+
+permanently archived
+
+Once published, a GERI value is not revised or backfilled and represents the official historical record for that date.
+
+Why This Matters
+
+Separating the Index Date from the Computation Timestamp ensures:
+
+full coverage of daily events and alerts
+
+methodological consistency
+
+stable historical time series
+
+transparency for professional and institutional users
+
+This approach guarantees that every published GERI value reflects a complete, final, and reproducible measure of systemic energy risk for the stated date.
