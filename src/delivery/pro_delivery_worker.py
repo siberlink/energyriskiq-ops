@@ -523,7 +523,7 @@ def record_geri_delivery(user_id: int, channel: str, status: str,
     Record a GERI delivery in user_alert_deliveries.
     Uses alert_event_id = NULL and delivery_kind = 'geri'.
     Stores the actual GERI date for deduplication.
-    Uses upsert to prevent duplicate delivery of same GERI.
+    Uses upsert on geri_date to prevent duplicate delivery of same GERI.
     """
     with get_cursor(commit=True) as cursor:
         cursor.execute("""
@@ -531,10 +531,10 @@ def record_geri_delivery(user_id: int, channel: str, status: str,
                 (user_id, channel, status, delivery_kind, 
                  created_at, sent_at, batch_window, geri_date, last_error)
             VALUES (%s, %s, %s, 'geri', NOW(), NOW(), %s, %s, %s)
-            ON CONFLICT (user_id, channel, batch_window) 
-                WHERE delivery_kind = 'geri' AND batch_window IS NOT NULL
+            ON CONFLICT (user_id, channel, geri_date) 
+                WHERE delivery_kind = 'geri' AND geri_date IS NOT NULL
             DO UPDATE SET status = EXCLUDED.status, sent_at = NOW(), 
-                         geri_date = EXCLUDED.geri_date, last_error = EXCLUDED.last_error
+                         batch_window = EXCLUDED.batch_window, last_error = EXCLUDED.last_error
         """, (user_id, channel, status, batch_window, geri_date, error))
 
 

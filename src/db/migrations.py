@@ -1116,9 +1116,20 @@ def run_pro_delivery_migration():
         """)
         
         cursor.execute("""
+            ALTER TABLE user_alert_deliveries 
+            ALTER COLUMN alert_event_id DROP NOT NULL;
+        """)
+        
+        cursor.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS idx_geri_delivery_unique 
             ON user_alert_deliveries (user_id, channel, batch_window) 
             WHERE delivery_kind = 'geri' AND batch_window IS NOT NULL;
+        """)
+        
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_geri_delivery_by_date 
+            ON user_alert_deliveries (user_id, channel, geri_date) 
+            WHERE delivery_kind = 'geri' AND geri_date IS NOT NULL;
         """)
     
     logger.info("Pro delivery migration complete.")
