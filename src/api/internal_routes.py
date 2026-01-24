@@ -17,7 +17,9 @@ LOCK_IDS = {
     'alerts': 1004,
     'digest': 1005,
     'alerts_generate': 2001,
-    'alerts_fanout': 2002
+    'alerts_fanout': 2002,
+    'pro_delivery': 3001,
+    'geri_delivery': 3002
 }
 
 
@@ -382,3 +384,48 @@ async def backfill_alert_metadata_endpoint(
     except Exception as e:
         logger.error(f"Error during alert metadata backfill: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/run/pro-delivery")
+def run_pro_delivery(
+    since_minutes: int = 15,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Trigger Pro plan alert delivery.
+    Called every 15 minutes by GitHub Actions.
+    
+    - Sends batched email alerts (up to daily limit) prioritized by risk score
+    - Sends all alerts via Telegram to linked users
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.delivery.pro_delivery_worker import run_pro_delivery as do_pro_delivery
+    
+    response, status_code = run_job_with_lock('pro_delivery', do_pro_delivery, since_minutes)
+    
+    if status_code != 200:
+        raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    return response
+
+
+@router.post("/run/geri-delivery")
+def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
+    """
+    Trigger GERI delivery to Pro users.
+    Called immediately after GERI computation.
+    
+    - Sends GERI email (counts toward daily limit)
+    - Sends GERI via Telegram to linked users
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.delivery.pro_delivery_worker import send_geri_to_pro_users
+    
+    response, status_code = run_job_with_lock('geri_delivery', send_geri_to_pro_users)
+    
+    if status_code != 200:
+        raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    return response

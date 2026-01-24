@@ -1100,9 +1100,29 @@ def run_geri_migration():
     logger.info("GERI tables migration complete.")
 
 
+def run_pro_delivery_migration():
+    """Add batch_window column and indexes for Pro plan delivery."""
+    logger.info("Running Pro delivery migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            ALTER TABLE user_alert_deliveries 
+            ADD COLUMN IF NOT EXISTS batch_window TIMESTAMP;
+        """)
+        
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_geri_delivery_unique 
+            ON user_alert_deliveries (user_id, channel, batch_window) 
+            WHERE delivery_kind = 'geri' AND batch_window IS NOT NULL;
+        """)
+    
+    logger.info("Pro delivery migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
     run_seo_tables_migration()
     run_sources_migration()
     run_geri_migration()
+    run_pro_delivery_migration()

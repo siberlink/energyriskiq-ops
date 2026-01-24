@@ -1687,18 +1687,28 @@
                         </p>
                         
                         <div id="telegramLinkStep1">
-                            <button class="filter-btn" onclick="generateTelegramCode()">
-                                Link Telegram Account
-                            </button>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+                                <button class="filter-btn" onclick="generateTelegramCode()">
+                                    Connect via Telegram
+                                </button>
+                                <button class="filter-btn secondary" onclick="showManualChatIdEntry()">
+                                    Enter Chat ID Manually
+                                </button>
+                            </div>
                         </div>
                         
                         <div id="telegramLinkStep2" style="display: none;">
                             <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">Step 1: Open Telegram and search for</p>
-                                <p style="font-size: 18px; font-weight: 600; color: #60a5fa; margin-bottom: 16px;">@<span id="telegramBotUsername">EnergyRiskIQBot</span></p>
+                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">Click the button below to open Telegram and connect:</p>
                                 
-                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">Step 2: Send this code to the bot</p>
-                                <div style="background: #0f172a; border: 2px dashed #3b82f6; border-radius: 8px; padding: 16px; text-align: center;">
+                                <a id="telegramDeepLink" href="#" target="_blank" style="display: inline-block; background: #0088cc; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-bottom: 16px;">
+                                    Open @energyriskiq_bot in Telegram
+                                </a>
+                                
+                                <p style="color: #64748b; font-size: 12px; margin-top: 8px;">
+                                    Or search for <span style="color: #60a5fa; font-weight: 600;">@<span id="telegramBotUsername">energyriskiq_bot</span></span> and send this code:
+                                </p>
+                                <div style="background: #0f172a; border: 2px dashed #3b82f6; border-radius: 8px; padding: 16px; text-align: center; margin-top: 12px;">
                                     <span id="telegramLinkCode" style="font-size: 28px; font-weight: 700; letter-spacing: 4px; color: #f1f5f9;">--------</span>
                                 </div>
                                 <p style="color: #64748b; font-size: 12px; margin-top: 12px; text-align: center;">
@@ -1707,6 +1717,22 @@
                             </div>
                             
                             <button class="filter-btn secondary" onclick="cancelTelegramLink()">
+                                Cancel
+                            </button>
+                        </div>
+                        
+                        <div id="telegramManualEntry" style="display: none;">
+                            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                                <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px;">Enter your Telegram Chat ID:</p>
+                                <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">
+                                    To find your Chat ID, message <span style="color: #60a5fa;">@energyriskiq_bot</span> with <span style="color: #f1f5f9; font-family: monospace;">/start</span> - it will show your Chat ID.
+                                </p>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <input type="text" id="manualChatIdInput" placeholder="e.g., 123456789" style="flex: 1; min-width: 150px; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f1f5f9; font-size: 16px;">
+                                    <button class="filter-btn" onclick="linkManualChatId()">Link</button>
+                                </div>
+                            </div>
+                            <button class="filter-btn secondary" onclick="cancelManualEntry()">
                                 Cancel
                             </button>
                         </div>
@@ -2151,8 +2177,13 @@
                 document.getElementById('telegramBotUsername').textContent = data.bot_username;
                 document.getElementById('telegramCodeExpiry').textContent = data.expires_in_minutes;
                 
+                if (data.deep_link) {
+                    document.getElementById('telegramDeepLink').href = data.deep_link;
+                }
+                
                 document.getElementById('telegramLinkStep1').style.display = 'none';
                 document.getElementById('telegramLinkStep2').style.display = 'block';
+                document.getElementById('telegramManualEntry').style.display = 'none';
                 
                 telegramPollCount = 0;
                 setTimeout(() => {
@@ -2164,8 +2195,50 @@
             }
         }
 
+        function showManualChatIdEntry() {
+            document.getElementById('telegramLinkStep1').style.display = 'none';
+            document.getElementById('telegramLinkStep2').style.display = 'none';
+            document.getElementById('telegramManualEntry').style.display = 'block';
+        }
+
+        function cancelManualEntry() {
+            document.getElementById('telegramLinkStep1').style.display = 'block';
+            document.getElementById('telegramManualEntry').style.display = 'none';
+            document.getElementById('manualChatIdInput').value = '';
+        }
+
+        async function linkManualChatId() {
+            const chatId = document.getElementById('manualChatIdInput').value.trim();
+            if (!chatId) {
+                alert('Please enter your Chat ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/users/telegram/link-manual?chat_id=${encodeURIComponent(chatId)}`, {
+                    method: 'POST',
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || 'Failed to link Telegram');
+                }
+                
+                const data = await response.json();
+                currentUser.telegram_chat_id = data.chat_id;
+                updateTelegramUI();
+                cancelManualEntry();
+                alert('Telegram linked successfully!');
+            } catch (error) {
+                console.error('Error linking Telegram:', error);
+                alert(error.message || 'Failed to link Telegram. Please check your Chat ID and try again.');
+            }
+        }
+
         function cancelTelegramLink() {
             document.getElementById('telegramLinkStep1').style.display = 'block';
+            document.getElementById('telegramManualEntry').style.display = 'none';
             document.getElementById('telegramLinkStep2').style.display = 'none';
         }
 

@@ -48,26 +48,65 @@ async def telegram_webhook(secret: str, request: Request):
     
     message = data.get("message", {})
     chat_id = str(message.get("chat", {}).get("id", ""))
-    text = message.get("text", "").strip().upper()
+    raw_text = message.get("text", "").strip()
+    text_upper = raw_text.upper()
     username = message.get("from", {}).get("username", "")
     first_name = message.get("from", {}).get("first_name", "User")
     
-    if not chat_id or not text:
+    if not chat_id or not raw_text:
         return {"ok": True}
     
-    if text == "/START":
-        send_telegram_message(
-            chat_id,
-            f"Welcome to EnergyRiskIQ, {first_name}!\n\n"
-            "To link your account:\n"
-            "1. Go to your account dashboard at energyriskiq.com\n"
-            "2. Click 'Link Telegram' to get a code\n"
-            "3. Send that code here\n\n"
-            "Once linked, you'll receive real-time alerts via Telegram!"
-        )
+    if text_upper.startswith("/START"):
+        parts = raw_text.split(" ", 1)
+        if len(parts) > 1:
+            link_code = parts[1].strip()
+            with get_cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, email FROM users
+                    WHERE telegram_link_code = %s
+                      AND telegram_link_expires > NOW()
+                """, (link_code,))
+                user = cursor.fetchone()
+                
+                if user:
+                    cursor.execute("""
+                        UPDATE users SET 
+                            telegram_chat_id = %s,
+                            telegram_link_code = NULL,
+                            telegram_link_expires = NULL,
+                            telegram_connected_at = NOW(),
+                            updated_at = NOW()
+                        WHERE id = %s
+                    """, (chat_id, user['id']))
+                    
+                    send_telegram_message(
+                        chat_id,
+                        f"*Account Linked Successfully!*\n\n"
+                        f"Your Telegram is now connected to: {user['email']}\n\n"
+                        "You'll start receiving alerts based on your subscription plan."
+                    )
+                    logger.info(f"Telegram linked via deep link for user {user['id']} (chat_id: {chat_id})")
+                else:
+                    send_telegram_message(
+                        chat_id,
+                        f"Invalid or expired link code.\n\n"
+                        f"Please generate a new code from your account dashboard.\n\n"
+                        f"Your Chat ID is: `{chat_id}` (you can enter this manually)"
+                    )
+        else:
+            send_telegram_message(
+                chat_id,
+                f"Welcome to EnergyRiskIQ, {first_name}!\n\n"
+                "To link your account:\n"
+                "1. Go to your account dashboard at energyriskiq.com\n"
+                "2. Click 'Link Telegram' to get a code\n"
+                "3. Send that code here\n\n"
+                f"Your Chat ID is: `{chat_id}`\n\n"
+                "Once linked, you'll receive real-time alerts via Telegram!"
+            )
         return {"ok": True}
     
-    if text == "/HELP":
+    if text_upper == "/HELP":
         send_telegram_message(
             chat_id,
             "*EnergyRiskIQ Bot Commands*\n\n"
@@ -79,7 +118,7 @@ async def telegram_webhook(secret: str, request: Request):
         )
         return {"ok": True}
     
-    if text == "/STATUS":
+    if text_upper == "/STATUS":
         with get_cursor() as cursor:
             cursor.execute("""
                 SELECT u.email, up.plan
@@ -105,10 +144,15 @@ async def telegram_webhook(secret: str, request: Request):
             )
         return {"ok": True}
     
-    if text == "/UNLINK":
+    if text_upper == "/UNLINK":
         with get_cursor() as cursor:
             cursor.execute("""
-                UPDATE users SET telegram_chat_id = NULL, updated_at = NOW()
+                UPDATE users SET 
+                    telegram_chat_id = NULL, 
+                    telegram_connected_at = NULL,
+                    telegram_link_code = NULL,
+                    telegram_link_expires = NULL,
+                    updated_at = NOW()
                 WHERE telegram_chat_id = %s
                 RETURNING email
             """, (chat_id,))
@@ -132,7 +176,7 @@ async def telegram_webhook(secret: str, request: Request):
             SELECT id, email FROM users
             WHERE telegram_link_code = %s
               AND telegram_link_expires > NOW()
-        """, (text,))
+        """, (raw_text,))
         user = cursor.fetchone()
         
         if user:
@@ -141,6 +185,7 @@ async def telegram_webhook(secret: str, request: Request):
                     telegram_chat_id = %s,
                     telegram_link_code = NULL,
                     telegram_link_expires = NULL,
+                    telegram_connected_at = NOW(),
                     updated_at = NOW()
                 WHERE id = %s
             """, (chat_id, user['id']))

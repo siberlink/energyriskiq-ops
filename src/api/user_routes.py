@@ -608,12 +608,16 @@ def generate_telegram_link_code(x_user_token: Optional[str] = Header(None)):
             WHERE id = %s
         """, (code, expires, user_id))
     
+    bot_username = "energyriskiq_bot"
+    deep_link = f"https://t.me/{bot_username}?start={code}"
+    
     return {
         "success": True,
         "code": code,
         "expires_in_minutes": 15,
-        "bot_username": os.environ.get("TELEGRAM_BOT_USERNAME", "EnergyRiskIQBot"),
-        "instructions": f"Send this code to the bot: {code}"
+        "bot_username": bot_username,
+        "deep_link": deep_link,
+        "instructions": f"Click the link or send this code to the bot: {code}"
     }
 
 
@@ -628,11 +632,83 @@ def unlink_telegram(x_user_token: Optional[str] = Header(None)):
                 telegram_chat_id = NULL,
                 telegram_link_code = NULL,
                 telegram_link_expires = NULL,
+                telegram_connected_at = NULL,
                 updated_at = NOW()
             WHERE id = %s
         """, (user_id,))
     
     return {"success": True, "message": "Telegram unlinked successfully"}
+
+
+@router.post("/telegram/link-manual")
+def link_telegram_manual(x_user_token: Optional[str] = Header(None), chat_id: str = ""):
+    """Link Telegram using a manually-entered Chat ID."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    if not chat_id or not chat_id.strip():
+        raise HTTPException(status_code=400, detail="Chat ID is required")
+    
+    chat_id = chat_id.strip()
+    
+    if not chat_id.lstrip('-').isdigit():
+        raise HTTPException(status_code=400, detail="Invalid Chat ID format. Chat ID should be a number.")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT up.plan FROM user_plans up WHERE up.user_id = %s
+        """, (user_id,))
+        plan_row = cursor.fetchone()
+        
+        if not plan_row or plan_row['plan'] not in TELEGRAM_ELIGIBLE_PLANS:
+            raise HTTPException(
+                status_code=403, 
+                detail="Telegram notifications require Trader, Pro, or Enterprise plan"
+            )
+        
+        cursor.execute("""
+            UPDATE users SET 
+                telegram_chat_id = %s,
+                telegram_link_code = NULL,
+                telegram_link_expires = NULL,
+                telegram_connected_at = NOW(),
+                updated_at = NOW()
+            WHERE id = %s
+        """, (chat_id, user_id))
+    
+    return {"success": True, "message": "Telegram linked successfully", "chat_id": chat_id}
+
+
+@router.get("/telegram/status")
+def get_telegram_status(x_user_token: Optional[str] = Header(None)):
+    """Get current Telegram connection status."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT u.telegram_chat_id, u.telegram_connected_at, up.plan
+            FROM users u
+            LEFT JOIN user_plans up ON u.id = up.user_id
+            WHERE u.id = %s
+        """, (user_id,))
+        row = cursor.fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        plan = row.get('plan') or 'free'
+        is_eligible = plan in TELEGRAM_ELIGIBLE_PLANS
+        is_connected = row['telegram_chat_id'] is not None
+        
+        return {
+            "connected": is_connected,
+            "chat_id": row['telegram_chat_id'] if is_connected else None,
+            "connected_at": row['telegram_connected_at'].isoformat() if row.get('telegram_connected_at') else None,
+            "eligible": is_eligible,
+            "plan": plan,
+            "bot_username": "energyriskiq_bot"
+        }
 
 
 @router.get("/settings")
