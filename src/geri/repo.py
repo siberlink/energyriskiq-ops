@@ -140,13 +140,17 @@ def get_index_history(from_date: date, to_date: date) -> List[Dict[str, Any]]:
 
 
 def get_latest_index() -> Optional[Dict[str, Any]]:
-    """Get the most recent index value."""
+    """Get the most recent index value.
+    
+    Orders by computed_at DESC to ensure we get the most recently computed record,
+    which represents the latest available GERI data.
+    """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
            components, model_version, computed_at
     FROM intel_indices_daily
     WHERE index_id = %s
-    ORDER BY date DESC
+    ORDER BY computed_at DESC
     LIMIT 1
     """
     
@@ -160,13 +164,18 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
 
 
 def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
-    """Get the second last record from intel_indices_daily (24h delayed for public display)."""
+    """Get the second last record from intel_indices_daily (24h delayed for public display).
+    
+    Orders by computed_at DESC to ensure we get records in the order they were actually
+    computed, not by the date they represent. This ensures when a new GERI is computed,
+    the public page immediately shows the previous day's data.
+    """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
            components, model_version, computed_at
     FROM intel_indices_daily
     WHERE index_id = %s
-    ORDER BY date DESC
+    ORDER BY computed_at DESC
     LIMIT 1 OFFSET 1
     """
     
