@@ -42,7 +42,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Database:** PostgreSQL (Replit-provided)
 - **AI:** OpenAI via Replit AI Integrations (gpt-4.1-mini)
 - **Payment Processing:** Stripe via Replit Connector
-- **Email Service:** Resend or Brevo
+- **Email Service:** Brevo (max 1000 emails/batch, recommend 700-800 for safety)
 - **Messaging Service:** Telegram Bot API
 - **SMS Service:** Twilio (optional)
 - **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv.
