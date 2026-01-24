@@ -19,7 +19,8 @@ LOCK_IDS = {
     'alerts_generate': 2001,
     'alerts_fanout': 2002,
     'pro_delivery': 3001,
-    'geri_delivery': 3002
+    'geri_delivery': 3002,
+    'trader_delivery': 3003
 }
 
 
@@ -434,6 +435,31 @@ def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
     from src.delivery.pro_delivery_worker import send_geri_to_pro_users
     
     response, status_code = run_job_with_lock('geri_delivery', send_geri_to_pro_users)
+    
+    if status_code != 200:
+        raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    return response
+
+
+@router.post("/run/trader-delivery")
+def run_trader_delivery(
+    since_minutes: int = 30,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Trigger Trader plan alert delivery.
+    Called every 30 minutes by GitHub Actions.
+    
+    - Sends batched email alerts (up to 8 per day) prioritized by risk score
+    - Sends all alerts via Telegram to linked users
+    - No GERI (Pro+ only)
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.delivery.trader_delivery_worker import run_trader_delivery as do_trader_delivery
+    
+    response, status_code = run_job_with_lock('trader_delivery', do_trader_delivery, since_minutes)
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
