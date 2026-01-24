@@ -58,6 +58,15 @@ on:
           - 'true'
           - 'false'
 
+      include_trader_delivery:
+        description: 'Run Trader Plan delivery after alerts'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      
 concurrency:
   group: alerts-engine-v2
   cancel-in-progress: false
@@ -183,6 +192,37 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
+
+      - name: Trader Plan Alert Delivery
+        id: trader_delivery
+        if: always() && steps.run_alerts.outputs.exit_code == '0' && github.event.inputs.include_trader_delivery != 'false'
+        run: |
+          echo "Running Trader Plan delivery..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/trader-delivery?since_minutes=30" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > trader_delivery_output.txt
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::Trader delivery returned HTTP $http_code (non-blocking)"
+            echo "trader_delivery_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "Trader delivery completed successfully"
+            echo "trader_delivery_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      
+
       - name: Health Check
         id: health
         if: always() && steps.preflight.outputs.preflight_passed != 'false'
@@ -231,6 +271,14 @@ jobs:
             echo "### Pro Delivery Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             cat pro_delivery_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f trader_delivery_output.txt ]; then
+            echo "### Trader Delivery Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat trader_delivery_output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
