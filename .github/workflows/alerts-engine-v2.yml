@@ -1,0 +1,249 @@
+name: Alerts Engine v2
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'Phase to execute (a=generate, b=fanout, c=send, d=digests, all=A→B→D→C)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - a
+          - b
+          - c
+          - d
+      dry_run:
+        description: 'Dry run mode (no DB changes or messages sent)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      since_hours:
+        description: 'Lookback hours for Phase B'
+        required: false
+        default: '24'
+      batch_size:
+        description: 'Batch size for Phase C'
+        required: false
+        default: '200'
+      alerts_enabled:
+        description: 'Enable Alerts v2 (set to false to skip)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      skip_preflight:
+        description: 'Skip preflight check'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      include_pro_delivery:
+        description: 'Run Pro Plan delivery after alerts'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+concurrency:
+  group: alerts-engine-v2
+  cancel-in-progress: false
+
+jobs:
+  run-alerts-engine-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      ALERTS_V2_ENABLED: ${{ github.event.inputs.alerts_enabled || 'true' }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+      TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+      ALERTS_SEND_ALLOWLIST_USER_IDS: ${{ secrets.ALERTS_SEND_ALLOWLIST_USER_IDS }}
+      ALERTS_MAX_SEND_PER_RUN: ${{ secrets.ALERTS_MAX_SEND_PER_RUN || '1000' }}
+      PYTHONPATH: '.'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            echo "Installing from requirements.txt"
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            echo "Installing from pyproject.toml"
+            pip install -e .
+          else
+            echo "ERROR: No requirements.txt or pyproject.toml found"
+            exit 1
+          fi
+
+      - name: Preflight Check
+        id: preflight
+        if: github.event.inputs.skip_preflight != 'true'
+        run: |
+          echo "Running preflight checks..."
+          python -m src.alerts.runner --preflight 2>&1 | tee preflight_output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "::error::Preflight check failed! See output for details."
+            echo "preflight_passed=false" >> $GITHUB_OUTPUT
+          else
+            echo "preflight_passed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          exit $EXIT_CODE
+
+      - name: Run Alerts Engine v2
+        id: run_alerts
+        if: steps.preflight.outputs.preflight_passed != 'false'
+        run: |
+          set -o pipefail
+          
+          PHASE="${{ github.event.inputs.phase || 'all' }}"
+          DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
+          SINCE_HOURS="${{ github.event.inputs.since_hours || '24' }}"
+          BATCH_SIZE="${{ github.event.inputs.batch_size || '200' }}"
+          
+          echo "Running Alerts Engine v2"
+          echo "Phase: $PHASE"
+          echo "Dry Run: $DRY_RUN"
+          echo "Since Hours: $SINCE_HOURS"
+          echo "Batch Size: $BATCH_SIZE"
+          echo "Alerts Enabled: $ALERTS_V2_ENABLED"
+          
+          CMD="python -m src.alerts.runner --phase $PHASE --since-hours $SINCE_HOURS --batch-size $BATCH_SIZE --log-json"
+          
+          if [ "$DRY_RUN" = "true" ]; then
+            CMD="$CMD --dry-run"
+          fi
+          
+          echo "---"
+          
+          $CMD 2>&1 | tee alerts_engine_output.txt
+          
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $EXIT_CODE
+
+      - name: Pro Plan Alert Delivery (includes GERI)
+        id: pro_delivery
+        if: always() && steps.run_alerts.outputs.exit_code == '0' && github.event.inputs.include_pro_delivery != 'false'
+        run: |
+          echo "Running Pro Plan delivery with GERI..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/pro-delivery?since_minutes=15&include_geri=true" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > pro_delivery_output.txt
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::Pro delivery returned HTTP $http_code (non-blocking)"
+            echo "pro_delivery_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "Pro delivery completed successfully"
+            echo "pro_delivery_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
+      - name: Health Check
+        id: health
+        if: always() && steps.preflight.outputs.preflight_passed != 'false'
+        run: |
+          echo "Fetching health metrics..."
+          python -m src.alerts.runner --health 2>&1 | tee health_output.txt || true
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: alerts-engine-logs-${{ github.run_id }}
+          path: |
+            alerts_engine_output.txt
+            preflight_output.txt
+            health_output.txt
+            pro_delivery_output.txt
+          retention-days: 7
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Alerts Engine v2 Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Phase** | ${{ github.event.inputs.phase || 'all' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Dry Run** | ${{ github.event.inputs.dry_run || 'false' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Trigger** | ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Preflight Passed** | ${{ steps.preflight.outputs.preflight_passed || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Exit Code** | ${{ steps.run_alerts.outputs.exit_code || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Pro Delivery** | ${{ steps.pro_delivery.outputs.pro_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f preflight_output.txt ]; then
+            echo "### Preflight Check" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat preflight_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f pro_delivery_output.txt ]; then
+            echo "### Pro Delivery Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat pro_delivery_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f health_output.txt ]; then
+            echo "### Health Metrics" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat health_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "### Engine Output (last 50 lines)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -50 alerts_engine_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output captured" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
