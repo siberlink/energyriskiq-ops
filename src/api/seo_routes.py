@@ -3641,8 +3641,8 @@ async def geri_daily_page(request: Request, date: str):
                 
                 <h1>Global Energy Risk Index - {human_date}</h1>
                 
-                <div class="snapshot-card">
-                    <div class="geri-header">
+                <div class="snapshot-card" style="text-align: center;">
+                    <div class="geri-header" style="justify-content: center;">
                         <span class="geri-flame">🔥</span>
                         <span class="geri-title">Global Energy Risk Index:</span>
                     </div>
