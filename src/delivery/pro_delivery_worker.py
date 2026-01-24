@@ -41,12 +41,12 @@ def get_pro_users_with_telegram() -> List[Dict]:
 
 def get_user_configured_regions(user_id: int) -> List[str]:
     """
-    Get the regions a user has configured for alerts.
+    Get the regions a user has configured for alerts from user_settings table.
     """
     with get_cursor(commit=False) as cursor:
         cursor.execute("""
             SELECT DISTINCT region 
-            FROM user_alert_prefs 
+            FROM user_settings 
             WHERE user_id = %s 
               AND enabled = true
               AND region IS NOT NULL
