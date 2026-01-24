@@ -2,7 +2,7 @@ name: Pro Plan Alert Delivery
 
 on:
   schedule:
-    - cron: '*/17 * * * *'  # Every 17 minutes
+    - cron: '*/10 * * * *'  # Every 10 minutes
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
