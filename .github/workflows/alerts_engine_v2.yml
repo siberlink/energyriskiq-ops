@@ -49,6 +49,14 @@ on:
         options:
           - 'false'
           - 'true'
+      include_pro_delivery:
+        description: 'Run Pro Plan delivery after alerts'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 concurrency:
   group: alerts-engine-v2
@@ -146,6 +154,35 @@ jobs:
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
           exit $EXIT_CODE
 
+      - name: Pro Plan Alert Delivery (includes GERI)
+        id: pro_delivery
+        if: always() && steps.run_alerts.outputs.exit_code == '0' && github.event.inputs.include_pro_delivery != 'false'
+        run: |
+          echo "Running Pro Plan delivery with GERI..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/pro-delivery?since_minutes=15&include_geri=true" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > pro_delivery_output.txt
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::Pro delivery returned HTTP $http_code (non-blocking)"
+            echo "pro_delivery_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "Pro delivery completed successfully"
+            echo "pro_delivery_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
       - name: Health Check
         id: health
         if: always() && steps.preflight.outputs.preflight_passed != 'false'
@@ -162,6 +199,7 @@ jobs:
             alerts_engine_output.txt
             preflight_output.txt
             health_output.txt
+            pro_delivery_output.txt
           retention-days: 7
 
       - name: Summary
@@ -178,12 +216,21 @@ jobs:
           echo "| **Trigger** | ${{ github.event_name == 'schedule' && 'Scheduled' || 'Manual' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Preflight Passed** | ${{ steps.preflight.outputs.preflight_passed || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Exit Code** | ${{ steps.run_alerts.outputs.exit_code || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Pro Delivery** | ${{ steps.pro_delivery.outputs.pro_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ -f preflight_output.txt ]; then
             echo "### Preflight Check" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             cat preflight_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f pro_delivery_output.txt ]; then
+            echo "### Pro Delivery Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat pro_delivery_output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
