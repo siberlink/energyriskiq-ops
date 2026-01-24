@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       phase:
-        description: 'Phase to execute (a=generate, b=fanout, c=send, d=digests, all=A→B→D→C)'
+        description: 'Phase to execute (a=generate, b=fanout, c=send, d=digests, all=A-B-D-C)'
         required: false
         default: 'all'
         type: choice
