@@ -11,10 +11,10 @@ jobs:
     timeout-minutes: 5
     
     steps:
-      - name: Trigger Pro Plan Delivery
+      - name: Trigger Pro Plan Delivery (includes GERI if new)
         run: |
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.APP_URL }}/internal/run/pro-delivery?since_minutes=15" \
+            "${{ secrets.APP_URL }}/internal/run/pro-delivery?since_minutes=15&include_geri=true" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           

@@ -496,3 +496,48 @@ def record_geri_delivery(user_id: int, channel: str, status: str,
                 WHERE delivery_kind = 'geri' AND batch_window IS NOT NULL
             DO UPDATE SET status = EXCLUDED.status, sent_at = NOW(), last_error = EXCLUDED.last_error
         """, (user_id, channel, status, batch_window, error))
+
+
+def get_last_geri_delivery_date() -> Optional[date]:
+    """
+    Get the date of the last GERI that was delivered.
+    Returns None if no GERI has been delivered yet.
+    """
+    with get_cursor(commit=False) as cursor:
+        cursor.execute("""
+            SELECT DATE(batch_window) as geri_date
+            FROM user_alert_deliveries
+            WHERE delivery_kind = 'geri'
+              AND status = 'sent'
+            ORDER BY batch_window DESC
+            LIMIT 1
+        """)
+        row = cursor.fetchone()
+        return row['geri_date'] if row else None
+
+
+def send_geri_to_pro_users_if_new() -> Dict:
+    """
+    Send GERI to Pro users only if there's a new one that hasn't been sent yet.
+    Checks if the latest GERI date is newer than the last delivered GERI date.
+    
+    Returns summary statistics or empty dict if no new GERI.
+    """
+    geri = get_latest_index()
+    if not geri:
+        logger.info("No GERI available for delivery")
+        return {"skipped": True, "reason": "no_geri_available"}
+    
+    geri_date = geri.get('date')
+    if not geri_date:
+        logger.warning("GERI missing date field")
+        return {"skipped": True, "reason": "geri_missing_date"}
+    
+    last_delivered_date = get_last_geri_delivery_date()
+    
+    if last_delivered_date and last_delivered_date >= geri_date:
+        logger.info(f"GERI for {geri_date} already delivered (last: {last_delivered_date})")
+        return {"skipped": True, "reason": "already_delivered", "geri_date": str(geri_date)}
+    
+    logger.info(f"New GERI detected for {geri_date}, triggering delivery")
+    return send_geri_to_pro_users()

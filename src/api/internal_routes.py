@@ -389,6 +389,7 @@ async def backfill_alert_metadata_endpoint(
 @router.post("/run/pro-delivery")
 def run_pro_delivery(
     since_minutes: int = 15,
+    include_geri: bool = True,
     x_runner_token: Optional[str] = Header(None)
 ):
     """
@@ -397,15 +398,21 @@ def run_pro_delivery(
     
     - Sends batched email alerts (up to daily limit) prioritized by risk score
     - Sends all alerts via Telegram to linked users
+    - If include_geri=True, also sends any unsent GERI to Pro users
     """
     validate_runner_token(x_runner_token)
     
-    from src.delivery.pro_delivery_worker import run_pro_delivery as do_pro_delivery
+    from src.delivery.pro_delivery_worker import run_pro_delivery as do_pro_delivery, send_geri_to_pro_users_if_new
     
     response, status_code = run_job_with_lock('pro_delivery', do_pro_delivery, since_minutes)
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    if include_geri:
+        geri_response, geri_status = run_job_with_lock('geri_delivery', send_geri_to_pro_users_if_new)
+        if geri_status == 200 and geri_response.get('result'):
+            response['geri_delivery'] = geri_response['result']
     
     return response
 
