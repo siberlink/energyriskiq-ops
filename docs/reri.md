@@ -1695,6 +1695,146 @@ They're also very SEO-friendly as named pages.
 
 ---
 
+---
+
+## 19. Strategic Implementation Decisions (January 2026)
+
+This section documents all strategic decisions made before RERI/EERI development.
+
+### 19.1 Data Source Decisions
+
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| **Region Format** | Normalize to canonical set: `europe`, `middle-east`, `black-sea` | Fixed vocabulary enables clean filtering, indexing, and joins |
+| **Category Extraction** | Extract from `body` text (not stored column) | `category` column not populated; parse `Category: X` from alert body |
+| **Confidence Source** | Use `confidence` column from `alert_events` | Column is populated in production |
+
+### 19.2 Architecture Decisions
+
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| **Contagion Component** | **Option B:** Start without contagion | First build stable single-region RERI (Europe), add contagion after Middle East and Black Sea RERIs exist |
+| **Storage Table** | Separate `reri_indices_daily` table | RERI-specific columns (region, theme, components) differ from GERI structure |
+| **Normalization** | Fallback caps (days 1-14), rolling normalization (days 30-90+) | Preserves methodological integrity, no artificial history |
+| **Compute Frequency** | Daily v1, intraday-ready architecture | Design for future intraday but only enable daily official values initially |
+| **Feature Flag** | `ENABLE_EERI` (similar to `ENABLE_GERI`) | Controlled rollout, silent production testing, staged activation |
+
+### 19.3 EERI v1 Formula (Without Contagion)
+
+Since `Contagion_EU_norm = 0` in v1, the effective formula is:
+
+```
+EERI_v1 = 100 * clamp(
+    0.50 * ( RERI_EU / 100 ) +
+    0.28 * ThemePressure_EU_Energy_norm +
+    0.22 * AssetTransmission_EU_Energy_norm
+)
+```
+
+Weight redistribution from original:
+- `RERI_EU`: 0.45 → 0.50 (+0.05)
+- `ThemePressure`: 0.25 → 0.28 (+0.03)
+- `AssetTransmission`: 0.20 → 0.22 (+0.02)
+- `Contagion`: 0.10 → 0.00 (disabled)
+
+### 19.4 Canonical Regions (Tier 1 Focus)
+
+| Region ID | Display Name | Type | Priority |
+|-----------|--------------|------|----------|
+| `europe` | Europe | energy | v1 (EERI) |
+| `middle-east` | Middle East | conflict/energy | v2 |
+| `black-sea` | Black Sea | shipping/conflict | v2 |
+
+### 19.5 Category Weights for RERI
+
+Extracted from alert body text using regex pattern `Category:\s*(\w+)`:
+
+| Category | Weight | Multiplier for ThemePressure |
+|----------|--------|------------------------------|
+| `war`, `military`, `strike` | 1.6 | High escalation signal |
+| `supply_disruption` | 1.5 | Direct market impact |
+| `energy` | 1.3 | Core domain |
+| `sanctions` | 1.3 | Policy shock |
+| `political` | 1.0 | Baseline |
+| `diplomacy` | 0.7 | Lower urgency |
+| `unknown` (default) | 1.0 | Conservative fallback |
+
+### 19.6 Module Structure
+
+```
+src/reri/
+├── __init__.py           # Module exports
+├── types.py              # RERIResult, EERIComponents, constants
+├── compute.py            # Pure compute functions
+├── normalize.py          # Rolling normalization logic
+├── repo.py               # Database operations
+├── service.py            # Orchestration layer
+├── routes.py             # API endpoints (future)
+└── tests/
+    └── test_compute.py   # Unit tests
+```
+
+### 19.7 Database Schema
+
+**Table: `reri_indices_daily`**
+
+```sql
+CREATE TABLE reri_indices_daily (
+    id SERIAL PRIMARY KEY,
+    index_id TEXT NOT NULL,           -- "europe:eeri", "middle-east:reri"
+    region_id TEXT NOT NULL,          -- "europe", "middle-east", "black-sea"
+    date DATE NOT NULL,
+    value INTEGER NOT NULL,           -- 0-100 index value
+    band TEXT NOT NULL,               -- LOW|MODERATE|ELEVATED|CRITICAL
+    trend_1d INTEGER,                 -- Change vs yesterday
+    trend_7d INTEGER,                 -- Change vs 7-day avg
+    components JSONB NOT NULL,        -- Raw component values
+    drivers JSONB,                    -- Top 3-5 driver headlines
+    model_version TEXT NOT NULL,      -- "eeri_v1", "reri_v1"
+    computed_at TIMESTAMP NOT NULL,
+    UNIQUE(index_id, date)
+);
+
+CREATE INDEX idx_reri_lookup ON reri_indices_daily(index_id, date DESC);
+CREATE INDEX idx_reri_region ON reri_indices_daily(region_id, date DESC);
+```
+
+**Table: `reri_canonical_regions`**
+
+```sql
+CREATE TABLE reri_canonical_regions (
+    region_id TEXT PRIMARY KEY,       -- "europe"
+    region_name TEXT NOT NULL,        -- "Europe"
+    region_type TEXT NOT NULL,        -- "energy", "conflict", "shipping"
+    aliases TEXT[] NOT NULL,          -- ["EU", "European", "Western Europe"]
+    core_assets TEXT[],               -- ["gas", "oil", "power", "fx"]
+    is_active BOOLEAN DEFAULT TRUE
+);
+```
+
+### 19.8 Implementation Phases
+
+| Phase | Scope | Duration | Deliverable |
+|-------|-------|----------|-------------|
+| **Phase 1** | EERI v1 (Europe only, no contagion) | 1-2 weeks | Working EERI with daily computation |
+| **Phase 2** | RERI Middle East + Black Sea | 2 weeks | All 3 base RERIs |
+| **Phase 3** | Contagion component | 1 week | Cross-regional spillover |
+| **Phase 4** | Additional derived indices | Ongoing | EGSI, MOSRI, BSSDI |
+
+### 19.9 Feature Flag Configuration
+
+```python
+# Environment variable
+ENABLE_EERI = os.getenv("ENABLE_EERI", "false").lower() == "true"
+
+# Behavior when disabled:
+# - Compute engine does not run
+# - API returns 503 or empty results
+# - No entries written to reri_indices_daily
+```
+
+---
+
 ## Related Documents
 
 - [Indices Bible](./indices-bible.md) - Overall index strategy and access tiers
