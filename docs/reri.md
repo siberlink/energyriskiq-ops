@@ -1106,7 +1106,190 @@ EnergyRiskIQ becomes:
 
 ---
 
-## 14. How RERI Is Created Technically
+## 14. Formulas Reference (Quick Reference)
+
+Complete formula reference for RERI and all derived indices.
+
+---
+
+### 14.1 Core RERI Base Formula
+
+```
+RERI_R = 100 * clamp( 0.45 * S_norm + 0.30 * H_norm + 0.15 * O_norm + 0.10 * V_norm )
+```
+
+**Component definitions:**
+```
+S = sum( severity(e) * category_weight(e) * confidence(e) )
+H = count( high_impact_events + regional_risk_spikes )
+O = count( distinct_impacted_assets )
+V = S_today - avg(S_last_3_days)
+```
+
+**Normalization:**
+```
+S_norm = clamp( S / 25 , 0 , 1 )
+H_norm = clamp( H / 6 , 0 , 1 )
+O_norm = clamp( O / 4 , 0 , 1 )
+V_norm = clamp( ( V + 10 ) / 20 , 0 , 1 )
+```
+
+---
+
+### 14.2 Generic Derived Index Formula
+
+```
+DerivedIndex_R_T = 100 * clamp(
+    w1 * ( RERI_R / 100 ) +
+    w2 * ThemePressure_R_T_norm +
+    w3 * AssetTransmission_R_T_norm +
+    w4 * ChokepointFactor_R_T_norm +
+    w5 * Contagion_R_norm
+)
+```
+
+---
+
+### 14.3 Building Block Formulas
+
+#### ThemePressure
+```
+ThemePressure_R_T = sum( severity(e) * confidence(e) * typeMultiplier(e) )
+ThemePressure_R_T_norm = clamp( ThemePressure_R_T / ThemeCap_T , 0 , 1 )
+```
+
+#### AssetTransmission
+```
+AssetTransmission_R_T = count( distinct_assets_with_spike_for_theme_T )
+AssetTransmission_R_T_norm = clamp( AssetTransmission_R_T / MaxAssets_T , 0 , 1 )
+```
+
+Weighted version:
+```
+AssetTransmission_R_T_weighted = ( 1 / NumAssets_T ) * sum( spike_present(a) * ( riskScore_a / 100 ) * confidence_a )
+```
+
+#### ChokepointFactor
+```
+ChokepointFactor_R_T = max( severity(e) * confidence(e) )
+ChokepointFactor_R_T_norm = clamp( ChokepointFactor_R_T / ChokepointCap , 0 , 1 )
+```
+
+#### Contagion
+```
+Contagion_R = sum( ( RERI_neighbor / 100 ) * alpha_neighbor_to_R )
+Contagion_R_norm = clamp( Contagion_R , 0 , 1 )
+```
+
+---
+
+### 14.4 Europe Indices
+
+#### Europe Energy Risk Index (EERI)
+```
+EERI = 100 * clamp(
+    0.45 * ( RERI_EU / 100 ) +
+    0.25 * ThemePressure_EU_Energy_norm +
+    0.20 * AssetTransmission_EU_Energy_norm +
+    0.10 * Contagion_EU_norm
+)
+```
+
+#### Europe Gas Stress Index (EGSI)
+```
+EGSI = 100 * clamp(
+    0.35 * ( RERI_EU / 100 ) +
+    0.35 * ThemePressure_EU_Gas_norm +
+    0.20 * AssetTransmission_EU_Gas_norm +
+    0.10 * ChokepointFactor_EU_Gas_norm
+)
+```
+
+#### Europe Sanctions & Policy Shock Index (ESPSI)
+```
+ESPSI = 100 * clamp(
+    0.30 * ( RERI_EU / 100 ) +
+    0.50 * ThemePressure_EU_Sanctions_norm +
+    0.20 * AssetTransmission_EU_Sanctions_norm
+)
+```
+
+---
+
+### 14.5 Middle East Indices
+
+#### Middle East Escalation Index (MEEI)
+```
+MEEI = RERI_ME
+```
+
+#### Middle East Oil Supply Risk Index (MOSRI)
+```
+MOSRI = 100 * clamp(
+    0.40 * ( RERI_ME / 100 ) +
+    0.30 * ThemePressure_ME_Oil_norm +
+    0.20 * AssetTransmission_ME_Oil_norm +
+    0.10 * ChokepointFactor_ME_Oil_norm
+)
+```
+
+#### Middle East LNG Disruption Index (MELDI)
+```
+MELDI = 100 * clamp(
+    0.30 * ( RERI_ME / 100 ) +
+    0.35 * ThemePressure_ME_LNG_norm +
+    0.25 * AssetTransmission_ME_LNG_norm +
+    0.10 * ChokepointFactor_ME_LNG_norm
+)
+```
+
+#### Hormuz & Persian Gulf Chokepoint Index (HPCI)
+```
+HPCI = 100 * clamp(
+    0.20 * ( RERI_ME / 100 ) +
+    0.55 * ChokepointFactor_ME_Hormuz_norm +
+    0.15 * ThemePressure_ME_ShippingThreat_norm +
+    0.10 * AssetTransmission_ME_Freight_norm
+)
+```
+
+---
+
+### 14.6 Black Sea Indices
+
+#### Black Sea Conflict Risk Index (BCRI)
+```
+BCRI = 100 * clamp(
+    0.55 * ( RERI_BS / 100 ) +
+    0.25 * ThemePressure_BS_Conflict_norm +
+    0.10 * ChokepointFactor_BS_Ports_norm +
+    0.10 * Contagion_BS_norm
+)
+```
+
+#### Black Sea Shipping Disruption Index (BSSDI)
+```
+BSSDI = 100 * clamp(
+    0.25 * ( RERI_BS / 100 ) +
+    0.25 * ThemePressure_BS_Shipping_norm +
+    0.35 * ChokepointFactor_BS_Ports_norm +
+    0.15 * AssetTransmission_BS_Freight_norm
+)
+```
+
+#### Black Sea Energy Corridor Risk Index (BSECRI)
+```
+BSECRI = 100 * clamp(
+    0.35 * ( RERI_BS / 100 ) +
+    0.35 * ThemePressure_BS_EnergyCorridor_norm +
+    0.20 * ChokepointFactor_BS_Corridors_norm +
+    0.10 * AssetTransmission_BS_Energy_norm
+)
+```
+
+---
+
+## 15. How RERI Is Created Technically
 
 This section documents the technical implementation of RERI and derived indices.
 
