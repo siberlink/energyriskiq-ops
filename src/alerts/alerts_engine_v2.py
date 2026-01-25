@@ -131,13 +131,18 @@ def get_top_driver_events(region: str, limit: int = 3) -> List[Dict]:
     return results if results else []
 
 
+THEMATIC_CATEGORIES = (
+    'war', 'military', 'conflict', 'strike', 'supply_disruption',
+    'sanctions', 'energy', 'political', 'diplomacy', 'geopolitical'
+)
+
 def get_high_impact_events_global() -> List[Dict]:
     query = """
     SELECT e.id, e.title, e.region, e.category, e.severity_score, e.ai_summary, 
            e.source_url, e.published_at, e.ai_impact_score, e.ai_affected_assets, e.ai_confidence
     FROM events e
     WHERE e.severity_score >= 4
-      AND e.category IN ('energy', 'geopolitical')
+      AND e.category IN %s
       AND e.region IN ('Europe', 'Middle East', 'Black Sea')
       AND e.inserted_at >= NOW() - INTERVAL '24 hours'
       AND NOT EXISTS (
@@ -149,7 +154,7 @@ def get_high_impact_events_global() -> List[Dict]:
     ORDER BY e.severity_score DESC, e.inserted_at DESC
     LIMIT 20
     """
-    results = execute_query(query)
+    results = execute_query(query, (THEMATIC_CATEGORIES,))
     return results if results else []
 
 

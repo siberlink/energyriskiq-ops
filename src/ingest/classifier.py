@@ -55,6 +55,53 @@ OPEC_KEYWORDS = ['opec', 'production cut', 'output cut', 'supply cut']
 
 VALID_CATEGORIES = ['geopolitical', 'energy', 'supply_chain']
 
+THEMATIC_CATEGORY_KEYWORDS = {
+    'war': ['war', 'invasion', 'occupation', 'attack', 'missile', 'bombing', 'airstrike', 'shelling'],
+    'military': ['military', 'troops', 'nato', 'defense', 'army', 'navy', 'air force', 'weapons'],
+    'conflict': ['conflict', 'clashes', 'fighting', 'hostilities', 'violence', 'battle'],
+    'strike': ['strike', 'walkout', 'labor dispute', 'workers strike', 'industrial action'],
+    'supply_disruption': ['disruption', 'outage', 'shutdown', 'halt', 'suspend', 'blockade', 'congestion'],
+    'sanctions': ['sanctions', 'embargo', 'tariff', 'trade ban', 'asset freeze', 'blacklist'],
+    'energy': ['oil', 'gas', 'lng', 'opec', 'crude', 'refinery', 'pipeline', 'power', 'electricity'],
+    'political': ['government', 'election', 'parliament', 'minister', 'policy', 'legislation', 'regulation'],
+    'diplomacy': ['diplomatic', 'negotiation', 'summit', 'talks', 'agreement', 'treaty', 'ceasefire'],
+}
+
+def classify_thematic_category(title: str, raw_text: str = "") -> str:
+    """
+    Classify event into granular thematic category for EERI weighting.
+    Returns one of: war, military, conflict, strike, supply_disruption, 
+                    sanctions, energy, political, diplomacy, geopolitical
+    """
+    combined_text = f"{title} {raw_text or ''}".lower()
+    
+    scores = {}
+    for category, keywords in THEMATIC_CATEGORY_KEYWORDS.items():
+        score = 0
+        for keyword in keywords:
+            if keyword in combined_text:
+                score += 1
+        if score > 0:
+            scores[category] = score
+    
+    if not scores:
+        return 'geopolitical'
+    
+    priority_order = ['war', 'military', 'conflict', 'strike', 'sanctions', 
+                      'supply_disruption', 'energy', 'political', 'diplomacy']
+    
+    max_score = max(scores.values())
+    top_categories = [cat for cat, score in scores.items() if score == max_score]
+    
+    if len(top_categories) == 1:
+        return top_categories[0]
+    
+    for cat in priority_order:
+        if cat in top_categories:
+            return cat
+    
+    return 'geopolitical'
+
 def count_keyword_matches(text: str, keywords: list) -> int:
     text_lower = text.lower()
     count = 0
@@ -177,6 +224,10 @@ def classify_event(title: str, raw_text: str = "", category_hint: Optional[str] 
     region = classify_region(title, raw_text)
     severity = calculate_severity(title, raw_text)
     
-    logger.debug(f"Classified '{title[:50]}...' as category={category}, region={region}, severity={severity}, confidence={confidence:.2f}")
+    thematic_category = classify_thematic_category(title, raw_text)
     
-    return category, region, severity, classification_reason, confidence
+    classification_reason = f"{classification_reason};thematic={thematic_category}"
+    
+    logger.debug(f"Classified '{title[:50]}...' as category={thematic_category}, region={region}, severity={severity}, confidence={confidence:.2f}")
+    
+    return thematic_category, region, severity, classification_reason, confidence
