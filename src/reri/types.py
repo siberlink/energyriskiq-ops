@@ -66,13 +66,20 @@ RERI_WEIGHTS = {
 }
 
 EERI_WEIGHTS_V1 = {
-    'reri_eu': 0.50,
-    'theme_pressure': 0.28,
-    'asset_transmission': 0.22,
-    'contagion': 0.00,
+    'reri_eu': 0.45,
+    'theme_pressure': 0.25,
+    'asset_transmission': 0.20,
+    'contagion': 0.10,
 }
 
 EERI_WEIGHTS = EERI_WEIGHTS_V1
+
+CONTAGION_NEIGHBORS = {
+    'europe': {
+        'middle-east': 0.6,
+        'black-sea': 0.4,
+    },
+}
 
 NORMALIZATION_CAPS = {
     'severity_pressure': 25.0,

@@ -106,10 +106,27 @@ def compute_eeri_for_date(
     reri_eu_value = compute_reri_value(reri_components)
     logger.info(f"Computed RERI_EU = {reri_eu_value}")
     
+    neighbor_reri_values = {}
+    
+    me_alerts = filter_alerts_by_region(all_alerts, 'middle-east')
+    if me_alerts:
+        me_historical_s = fetch_historical_severity_values('middle-east', target_date, days=3)
+        me_components = compute_reri_components(me_alerts, me_historical_s)
+        neighbor_reri_values['middle-east'] = compute_reri_value(me_components)
+        logger.info(f"Computed RERI Middle East = {neighbor_reri_values['middle-east']} ({len(me_alerts)} alerts)")
+    
+    bs_alerts = filter_alerts_by_region(all_alerts, 'black-sea')
+    if bs_alerts:
+        bs_historical_s = fetch_historical_severity_values('black-sea', target_date, days=3)
+        bs_components = compute_reri_components(bs_alerts, bs_historical_s)
+        neighbor_reri_values['black-sea'] = compute_reri_value(bs_components)
+        logger.info(f"Computed RERI Black Sea = {neighbor_reri_values['black-sea']} ({len(bs_alerts)} alerts)")
+    
     eeri_components = compute_eeri_components(
         europe_alerts,
         reri_eu_value,
         reri_components,
+        neighbor_reri_values=neighbor_reri_values,
     )
     
     eeri_value = compute_eeri_value(eeri_components)
@@ -174,7 +191,8 @@ def get_eeri_status() -> dict:
             'value': latest.value if latest else None,
             'band': latest.band.value if latest else None,
         } if latest else None,
-        'contagion_enabled': False,
+        'contagion_enabled': True,
+        'contagion_neighbors': {'middle-east': 0.6, 'black-sea': 0.4},
     }
 
 

@@ -59,6 +59,73 @@ This document tracks updates and changes to all EnergyRiskIQ assets including Al
 
 ## EERI (Europe Energy Risk Index)
 
-*No updates yet.*
+### 2026-01-25: Updated EERI Formula with Correct Weights and Contagion
+
+**Summary:** Updated EERI to match the official specification with corrected weights, expanded theme filters, additional energy assets, and contagion enabled.
+
+**Previous Formula:**
+```
+EERI = 100 × clamp(
+    0.50 × RERI_EU +
+    0.28 × ThemePressure +
+    0.22 × AssetTransmission +
+    0.00 × Contagion  // disabled
+)
+```
+
+**New Formula:**
+```
+EERI = 100 × clamp(
+    0.45 × RERI_EU +
+    0.25 × ThemePressure +
+    0.20 × AssetTransmission +
+    0.10 × Contagion
+)
+```
+
+**Changes:**
+
+| Component | Previous | New |
+|-----------|----------|-----|
+| RERI_EU weight | 0.50 | 0.45 |
+| ThemePressure weight | 0.28 | 0.25 |
+| AssetTransmission weight | 0.22 | 0.20 |
+| Contagion weight | 0.00 | 0.10 |
+
+**Theme Filters (ThemePressure):**
+
+| Previous | New |
+|----------|-----|
+| energy, supply_chain, supply_disruption, sanctions | energy, supply_chain, supply_disruption, sanctions, **war, military, conflict, strike** |
+
+**Theme Multipliers:**
+- war/military: 1.5
+- conflict/strike: 1.4
+- supply_disruption/supply_chain/energy: 1.3
+- sanctions: 1.2
+
+**Energy Assets (AssetTransmission):**
+
+| Previous | New |
+|----------|-----|
+| gas, oil, power, lng, electricity | gas, oil, power, lng, electricity, **freight, fx** |
+
+**Contagion Implementation:**
+- Now enabled with 0.10 weight
+- Neighbors for Europe:
+  - Middle East: weight 0.6
+  - Black Sea: weight 0.4
+- Formula: `Contagion = sum(neighbor_weight × neighbor_RERI / 100)`
+
+**Files Changed:**
+- `src/reri/types.py` - Updated EERI_WEIGHTS_V1, added CONTAGION_NEIGHBORS
+- `src/reri/compute.py` - Added compute_contagion(), ENERGY_THEME_CATEGORIES, ENERGY_THEME_MULTIPLIERS, ENERGY_ASSETS
+- `src/reri/service.py` - Now computes RERI for Middle East and Black Sea neighbors, passes to EERI computation
+
+**Impact:**
+- EERI values will now include contagion risk from neighboring regions
+- Higher weight on war/military events improves risk signal accuracy
+- Freight and FX assets now tracked for transmission
+- Status endpoint now shows `contagion_enabled: true`
 
 ---

@@ -252,6 +252,22 @@ def compute_reri_value(components: RERIComponents) -> int:
     return int(round(clamp(raw_value, 0, 1) * 100))
 
 
+ENERGY_THEME_CATEGORIES = {
+    'energy', 'supply_chain', 'supply_disruption', 'sanctions', 
+    'war', 'military', 'conflict', 'strike'
+}
+
+ENERGY_THEME_MULTIPLIERS = {
+    'war': 1.5,
+    'military': 1.5,
+    'conflict': 1.4,
+    'strike': 1.4,
+    'supply_disruption': 1.3,
+    'supply_chain': 1.3,
+    'energy': 1.3,
+    'sanctions': 1.2,
+}
+
 def compute_theme_pressure(
     alerts: List[AlertRecord],
     theme: str = 'energy'
@@ -259,16 +275,18 @@ def compute_theme_pressure(
     """
     Compute ThemePressure for a specific theme.
     ThemePressure = sum(severity * confidence * typeMultiplier)
+    
+    Theme filters for 'energy':
+    - Categories: ENERGY, SUPPLY_DISRUPTION, SANCTIONS, WAR/MILITARY
     """
     total = 0.0
     
     for alert in alerts:
         category = extract_category_from_body(alert.body) if not alert.category else alert.category
+        category_lower = category.lower() if category else 'unknown'
         
-        if theme == 'energy' and category in ['energy', 'supply_chain', 'supply_disruption']:
-            multiplier = 1.3
-        elif theme == 'energy' and category in ['sanctions']:
-            multiplier = 1.2
+        if theme == 'energy' and category_lower in ENERGY_THEME_CATEGORIES:
+            multiplier = ENERGY_THEME_MULTIPLIERS.get(category_lower, 1.0)
         else:
             multiplier = 1.0
         
@@ -280,32 +298,72 @@ def compute_theme_pressure(
     return total
 
 
+ENERGY_ASSETS = {'gas', 'oil', 'power', 'lng', 'electricity', 'freight', 'fx'}
+
 def compute_asset_transmission(alerts: List[AlertRecord], theme: str = 'energy') -> float:
     """
     Compute AssetTransmission for a theme.
     Count distinct assets with spikes related to the theme.
+    
+    Energy assets: gas, power, oil, lng, freight, fx
     """
     theme_assets = set()
-    energy_assets = {'gas', 'oil', 'power', 'lng', 'electricity'}
     
     for alert in alerts:
         if alert.alert_type == 'ASSET_RISK_SPIKE' and alert.assets:
             for asset in alert.assets:
-                if asset and asset.lower() in energy_assets:
+                if asset and asset.lower() in ENERGY_ASSETS:
                     theme_assets.add(asset.lower())
     
     return float(len(theme_assets))
+
+
+def compute_contagion(
+    neighbor_reri_values: Dict[str, int],
+    target_region: str = 'europe'
+) -> float:
+    """
+    Compute Contagion component from neighboring regions.
+    Contagion = sum(neighbor_weight * neighbor_RERI / 100)
+    
+    For Europe:
+    - Middle East: weight 0.6
+    - Black Sea: weight 0.4
+    """
+    from src.reri.types import CONTAGION_NEIGHBORS
+    
+    if target_region not in CONTAGION_NEIGHBORS:
+        return 0.0
+    
+    neighbors = CONTAGION_NEIGHBORS[target_region]
+    total = 0.0
+    
+    for neighbor_id, weight in neighbors.items():
+        neighbor_reri = neighbor_reri_values.get(neighbor_id, 0)
+        total += weight * (neighbor_reri / 100.0)
+    
+    return total
 
 
 def compute_eeri_components(
     alerts: List[AlertRecord],
     reri_eu_value: int,
     reri_eu_components: RERIComponents,
+    neighbor_reri_values: Optional[Dict[str, int]] = None,
 ) -> EERIComponents:
     """
     Compute EERI (Europe Energy Risk Index) components.
-    EERI v1 formula (without contagion):
-    EERI = 100 * (0.50*RERI_EU + 0.28*ThemePressure_norm + 0.22*AssetTransmission_norm)
+    EERI formula:
+    EERI = 100 * clamp(
+        0.45*RERI_EU + 
+        0.25*ThemePressure_norm + 
+        0.20*AssetTransmission_norm + 
+        0.10*Contagion
+    )
+    
+    Theme filters: ENERGY, SUPPLY_DISRUPTION, SANCTIONS, WAR/MILITARY
+    Energy assets: gas, power, oil, lng, freight, fx
+    Contagion neighbors: Middle East (0.6), Black Sea (0.4)
     """
     components = EERIComponents()
     components.reri_eu_value = reri_eu_value
@@ -321,8 +379,12 @@ def compute_eeri_components(
         components.asset_transmission_raw / NORMALIZATION_CAPS['asset_transmission']
     )
     
-    components.contagion_raw = 0.0
-    components.contagion_norm = 0.0
+    if neighbor_reri_values:
+        components.contagion_raw = compute_contagion(neighbor_reri_values, 'europe')
+        components.contagion_norm = clamp(components.contagion_raw)
+    else:
+        components.contagion_raw = 0.0
+        components.contagion_norm = 0.0
     
     return components
 
@@ -330,7 +392,12 @@ def compute_eeri_components(
 def compute_eeri_value(components: EERIComponents) -> int:
     """
     Compute EERI value from components.
-    EERI v1 = 100 * (0.50*RERI_EU/100 + 0.28*ThemePressure_norm + 0.22*AssetTransmission_norm)
+    EERI = 100 * clamp(
+        0.45*RERI_EU/100 + 
+        0.25*ThemePressure_norm + 
+        0.20*AssetTransmission_norm +
+        0.10*Contagion_norm
+    )
     """
     weights = EERI_WEIGHTS
     
