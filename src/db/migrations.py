@@ -1144,6 +1144,68 @@ def run_pro_delivery_migration():
     logger.info("Pro delivery migration complete.")
 
 
+def run_reri_migration():
+    """Create RERI tables for regional indices (EERI, RERI, etc.)."""
+    logger.info("Running RERI tables migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS reri_canonical_regions (
+                region_id TEXT PRIMARY KEY,
+                region_name TEXT NOT NULL,
+                region_type TEXT NOT NULL,
+                aliases TEXT[] NOT NULL DEFAULT '{}',
+                core_assets TEXT[] DEFAULT '{}',
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS reri_indices_daily (
+                id SERIAL PRIMARY KEY,
+                index_id TEXT NOT NULL,
+                region_id TEXT NOT NULL,
+                date DATE NOT NULL,
+                value INT NOT NULL,
+                band TEXT NOT NULL,
+                trend_1d INT,
+                trend_7d INT,
+                components JSONB NOT NULL,
+                drivers JSONB,
+                model_version TEXT NOT NULL,
+                computed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(index_id, date)
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reri_lookup 
+            ON reri_indices_daily(index_id, date DESC);
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reri_region 
+            ON reri_indices_daily(region_id, date DESC);
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_reri_date 
+            ON reri_indices_daily(date DESC);
+        """)
+        
+        cursor.execute("""
+            INSERT INTO reri_canonical_regions (region_id, region_name, region_type, aliases, core_assets, is_active)
+            VALUES 
+                ('europe', 'Europe', 'energy', ARRAY['EU', 'European', 'Western Europe', 'Eastern Europe'], ARRAY['gas', 'oil', 'power', 'fx'], TRUE),
+                ('middle-east', 'Middle East', 'conflict', ARRAY['Middle Eastern', 'Gulf', 'MENA', 'Persian Gulf'], ARRAY['oil', 'gas', 'lng', 'freight'], TRUE),
+                ('black-sea', 'Black Sea', 'shipping', ARRAY['Black Sea Region', 'Bosphorus', 'Ukraine Region'], ARRAY['freight', 'oil', 'grain', 'gas'], TRUE)
+            ON CONFLICT (region_id) DO NOTHING;
+        """)
+    
+    logger.info("RERI tables migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
@@ -1151,3 +1213,4 @@ if __name__ == "__main__":
     run_sources_migration()
     run_geri_migration()
     run_pro_delivery_migration()
+    run_reri_migration()
