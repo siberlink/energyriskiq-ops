@@ -790,18 +790,7 @@ def migrate_alerts_v2_safety_schema():
             CHECK (status IN ('queued','sending','sent','failed','skipped'));
         """)
         
-        cursor.execute("""
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM pg_indexes 
-                    WHERE tablename = 'user_alert_deliveries' AND indexname = 'uq_user_alert_deliveries_unique'
-                ) THEN
-                    DROP INDEX uq_user_alert_deliveries_unique;
-                    RAISE NOTICE 'Dropped old unique index';
-                END IF;
-            END $$;
-        """)
+        cursor.execute("DROP INDEX IF EXISTS uq_user_alert_deliveries_unique;")
         cursor.execute("""
             DO $$
             BEGIN
