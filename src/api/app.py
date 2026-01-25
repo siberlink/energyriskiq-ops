@@ -3,7 +3,7 @@ import sys
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -93,11 +93,8 @@ async def users_account_page():
 
 @app.get("/users/account.html", include_in_schema=False)
 async def users_account_page_html():
-    response = FileResponse(os.path.join(STATIC_DIR, "users-account.html"), media_type="text/html")
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
+    """Redirect to canonical URL for SEO."""
+    return RedirectResponse(url="/users/account", status_code=301)
 
 app.include_router(router)
 app.include_router(risk_router)

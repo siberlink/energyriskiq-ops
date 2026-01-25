@@ -535,7 +535,7 @@ def render_nav() -> str:
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/alerts">Alerts</a>
-                <a href="https://www.energyriskiq.com/users" class="cta-btn">Get Started</a>
+                <a href="/users" class="cta-btn">Get Started</a>
             </div>
         </div>
     </nav>
@@ -566,7 +566,7 @@ def render_cta_section(position: str = "mid") -> str:
         return """
         <div class="hero-banner">
             <div class="container">
-                <strong>Get tomorrow's alerts before markets open.</strong> <a href="https://www.energyriskiq.com/users">Start free &rarr;</a>
+                <strong>Get tomorrow's alerts before markets open.</strong> <a href="/users">Start free &rarr;</a>
             </div>
         </div>
         """
@@ -575,7 +575,7 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section cta-mid">
             <h3>These are public summaries.</h3>
             <p>Pro users receive <strong>full AI analysis</strong>, <strong>instant multi-channel delivery</strong>, and <strong>priority alerts</strong> before they appear here.</p>
-            <a href="https://www.energyriskiq.com/users" class="cta-btn">Unlock Full Analysis &rarr;</a>
+            <a href="/users" class="cta-btn">Unlock Full Analysis &rarr;</a>
         </section>
         """
     elif position == "bottom":
@@ -583,7 +583,7 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section">
             <h3>Don't Miss Tomorrow's Risk Signals</h3>
             <p>Get real-time alerts delivered via Email, Telegram, or SMS — before markets react.</p>
-            <a href="https://www.energyriskiq.com/users" class="cta-btn">Get Alerts Now &rarr;</a>
+            <a href="/users" class="cta-btn">Get Alerts Now &rarr;</a>
         </section>
         """
     else:
@@ -591,7 +591,7 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section">
             <h3>Stay Ahead of Market Risks</h3>
             <p>Subscribe for daily intelligence briefings and real-time risk signals.</p>
-            <a href="https://www.energyriskiq.com/users" class="cta-btn">Start Free Trial &rarr;</a>
+            <a href="/users" class="cta-btn">Start Free Trial &rarr;</a>
         </section>
         """
 

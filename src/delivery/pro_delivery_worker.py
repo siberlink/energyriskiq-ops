@@ -322,7 +322,7 @@ def format_geri_email() -> Tuple[Optional[str], Optional[str]]:
     
     body_parts.append("")
     body_parts.append("---")
-    body_parts.append("View full details: https://www.energyriskiq.com/geri")
+    body_parts.append("View full details: https://energyriskiq.com/geri")
     body_parts.append("")
     body_parts.append("EnergyRiskIQ - Energy Risk Intelligence")
     body_parts.append("Informational only. Not financial advice.")
@@ -359,7 +359,7 @@ def format_geri_telegram() -> Optional[str]:
             parts.append(f"  - {region_data.get('region', 'Unknown')}")
     
     parts.append("")
-    parts.append("[View Details](https://www.energyriskiq.com/geri)")
+    parts.append("[View Details](https://energyriskiq.com/geri)")
     
     return "\n".join(parts)
 
