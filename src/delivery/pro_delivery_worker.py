@@ -239,7 +239,7 @@ def format_alert_email(alerts: List[Dict], user_regions: List[str]) -> Tuple[str
     else:
         body_parts.append("Your configured regions: All regions (no filter)")
     body_parts.append("To update your alert preferences, visit your account settings at:")
-    body_parts.append("https://www.energyriskiq.com/users-account")
+    body_parts.append("https://energyriskiq.com/users/account")
     body_parts.append("")
     body_parts.append("---")
     body_parts.append("EnergyRiskIQ - Energy Risk Intelligence")
