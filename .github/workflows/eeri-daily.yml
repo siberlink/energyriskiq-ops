@@ -1,0 +1,26 @@
+name: Daily EERI Computation
+
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  compute-eeri:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute EERI for yesterday
+        run: |
+          echo "Computing EERI index for yesterday at 01:00 UTC..."
+          response=$(curl -s -X POST "https://energy-risk-iq--emilsiberlink.replit.app/api/v1/indices/eeri/compute-yesterday" \
+            -H "Content-Type: application/json")
+          echo "Response: $response"
+          
+          if echo "$response" | grep -q '"success":true'; then
+            echo "EERI computation successful"
+          elif echo "$response" | grep -q '"skipped":true'; then
+            echo "EERI computation skipped (already exists)"
+          else
+            echo "EERI computation may have failed"
+            exit 1
+          fi

@@ -45,7 +45,8 @@ logger = logging.getLogger(__name__)
 
 def compute_eeri_for_date(
     target_date: date,
-    save: bool = True
+    save: bool = True,
+    force: bool = False
 ) -> Optional[RERIResult]:
     """
     Compute EERI (Europe Energy Risk Index) for a specific date.
@@ -53,15 +54,22 @@ def compute_eeri_for_date(
     Args:
         target_date: Date to compute EERI for
         save: Whether to save result to database
+        force: Whether to overwrite existing result
     
     Returns:
-        RERIResult or None if feature is disabled
+        RERIResult or None if feature is disabled or already exists (and not force)
     """
     if not ENABLE_EERI:
         logger.info("EERI is disabled (ENABLE_EERI=false)")
         return None
     
-    logger.info(f"Computing EERI for {target_date}")
+    from src.reri.repo import get_reri_for_date
+    existing = get_reri_for_date(EERI_INDEX_ID, target_date)
+    if existing and not force:
+        logger.info(f"EERI for {target_date} already exists (skipped). Use force=True to overwrite.")
+        return None
+    
+    logger.info(f"Computing EERI for {target_date} (force={force})")
     
     all_alerts = fetch_alerts_for_date(target_date)
     logger.info(f"Fetched {len(all_alerts)} total alerts for {target_date}")

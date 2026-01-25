@@ -240,7 +240,39 @@ When disabled, `compute_eeri_for_date()` returns `None` immediately.
 
 ---
 
-## 10. Future Roadmap (v2+)
+## 10. Scheduled Computation & API
+
+### 10.1 GitHub Actions Workflow
+
+**File:** `.github/workflows/eeri-daily.yml`
+
+| Setting | Value |
+|---------|-------|
+| Schedule | `0 1 * * *` (01:00 UTC daily) |
+| Trigger | Scheduled + Manual (workflow_dispatch) |
+| Endpoint | `POST /api/v1/indices/eeri/compute-yesterday` |
+
+The workflow runs after all alerts for the previous day are finalized, ensuring complete data for index computation.
+
+### 10.2 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/indices/eeri/latest` | GET | Get latest EERI index value |
+| `/api/v1/indices/eeri` | GET | Get EERI history (supports `from` and `to` query params) |
+| `/api/v1/indices/eeri/compute` | POST | Compute EERI for a specific date |
+| `/api/v1/indices/eeri/compute-yesterday` | POST | Compute EERI for yesterday (for scheduled runs) |
+
+### 10.3 CLI Commands
+
+```bash
+python -m src.reri.cli compute --date YYYY-MM-DD [--force]
+python -m src.reri.cli compute-yesterday [--force]
+```
+
+---
+
+## 11. Future Roadmap (v2+)
 
 ### Phase 1: Regional Expansion
 - Add Middle East RERI (`middle-east`)
@@ -258,7 +290,7 @@ When disabled, `compute_eeri_for_date()` returns `None` immediately.
 
 ---
 
-## 11. Configuration Summary
+## 12. Configuration Summary
 
 | Setting | Value |
 |---------|-------|
@@ -272,7 +304,7 @@ When disabled, `compute_eeri_for_date()` returns `None` immediately.
 
 ---
 
-## 12. Appendix: Key Code References
+## 13. Appendix: Key Code References
 
 ### Main Entry Point
 ```python

@@ -361,6 +361,73 @@ def count_days_of_history(index_id: str) -> int:
     return result[0] if result else 0
 
 
+def get_reri_history(
+    index_id: str,
+    start_date: date,
+    end_date: date
+) -> List[RERIResult]:
+    """
+    Get RERI/EERI history for a date range.
+    """
+    with get_cursor() as cursor:
+        cursor.execute("""
+            SELECT 
+                index_id, region_id, date, value, band,
+                trend_1d, trend_7d, components, drivers,
+                model_version, computed_at
+            FROM reri_indices_daily
+            WHERE index_id = %s AND date BETWEEN %s AND %s
+            ORDER BY date ASC
+        """, (index_id, start_date, end_date))
+        
+        rows = cursor.fetchall()
+    
+    results = []
+    for row in rows:
+        components_dict = row[7] if row[7] else {}
+        
+        reri_eu_components = None
+        reri_eu_data = components_dict.get('reri_eu', {})
+        if reri_eu_data.get('components'):
+            rc = reri_eu_data['components']
+            from src.reri.types import RERIComponents
+            reri_eu_components = RERIComponents(
+                severity_pressure_raw=rc.get('severity_pressure', {}).get('raw', 0),
+                severity_pressure_norm=rc.get('severity_pressure', {}).get('normalized', 0),
+                high_impact_count=rc.get('high_impact_count', {}).get('raw', 0),
+                high_impact_norm=rc.get('high_impact_count', {}).get('normalized', 0),
+                asset_overlap_count=rc.get('asset_overlap', {}).get('raw', 0),
+                asset_overlap_norm=rc.get('asset_overlap', {}).get('normalized', 0),
+                velocity_raw=rc.get('velocity', {}).get('raw', 0),
+                velocity_norm=rc.get('velocity', {}).get('normalized', 0),
+            )
+        
+        eeri_components = EERIComponents(
+            reri_eu_value=reri_eu_data.get('value', 0),
+            reri_eu_components=reri_eu_components,
+            theme_pressure_raw=components_dict.get('theme_pressure', {}).get('raw', 0),
+            theme_pressure_norm=components_dict.get('theme_pressure', {}).get('normalized', 0),
+            asset_transmission_raw=components_dict.get('asset_transmission', {}).get('raw', 0),
+            asset_transmission_norm=components_dict.get('asset_transmission', {}).get('normalized', 0),
+        )
+        
+        results.append(RERIResult(
+            index_id=row[0],
+            region_id=row[1],
+            index_date=row[2],
+            value=int(row[3]) if row[3] else 0,
+            band=get_band(int(row[3]) if row[3] else 0),
+            trend_1d=row[5],
+            trend_7d=row[6],
+            components=eeri_components,
+            drivers=row[8] if row[8] else [],
+            model_version=row[9],
+            computed_at=row[10],
+        ))
+    
+    return results
+
+
 def get_canonical_regions() -> List[Dict[str, Any]]:
     """
     Fetch all canonical regions from database.
