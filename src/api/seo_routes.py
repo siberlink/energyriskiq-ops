@@ -826,8 +826,11 @@ async def alerts_by_category(category_slug: str):
 
 
 @router.get("/alerts/daily/{date_str}", response_class=HTMLResponse)
-async def daily_alerts_page(date_str: str):
+async def daily_alerts_page(date_str: str, request: Request):
     """Daily alerts page for a specific date."""
+    # Anti-scraping protection: allow search engines, block scrapers
+    await apply_anti_scraping(request)
+    
     try:
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
@@ -1040,7 +1043,13 @@ async def daily_alerts_page(date_str: str):
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
+    # Anti-scrape headers: allow indexing but discourage archiving/extraction
+    headers = {
+        "Cache-Control": "public, max-age=86400",
+        "X-Robots-Tag": "index, follow, noarchive",
+        "X-Content-Type-Options": "nosniff",
+    }
+    return HTMLResponse(content=html, headers=headers)
 
 
 @router.get("/alerts/{year}/{month}", response_class=HTMLResponse)
