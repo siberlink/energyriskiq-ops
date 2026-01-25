@@ -1,0 +1,2109 @@
+1) How RERI is Created Technically
+A) What data flows into RERI
+
+You already have the right layers:
+
+Atomic events (truth layer)
+
+HIGH_IMPACT_EVENT
+
+carries: scope_region, severity (1–5), category, confidence, driver_event_ids, headline, created_at
+
+Asset pressure (transmission layer)
+
+ASSET_RISK_SPIKE (or ASSET_RISK_ALERT)
+
+carries: scope_region, scope_assets (e.g., ["gas"]), risk score, direction, confidence, driver_event_ids
+
+Regional synthesis (narrative layer)
+
+REGIONAL_RISK_SPIKE
+
+carries: region + top drivers + implied multi-asset stress
+
+Use it as a corroboration signal (not the core truth)
+
+B) Where “AI” is used (and where it should NOT be)
+
+AI should be upstream, not inside the index math.
+
+AI components (upstream):
+
+event classification (category, region_primary, entities, severity, confidence)
+
+asset tagging (oil, gas, freight, fx, lng, power)
+
+dedup / clustering (same story across sources)
+
+driver extraction (top driver events)
+
+Index computation (downstream):
+
+deterministic math (stable + auditable + enterprise-friendly)
+
+That separation is key for trust and licensing.
+
+C) Daily compute pipeline (simple + reliable)
+
+Choose target_day = yesterday (Europe/Amsterdam day boundary)
+
+For each region:
+
+pull that day’s HIGH_IMPACT_EVENT
+
+pull that day’s ASSET_RISK_SPIKE
+
+optionally pull REGIONAL_RISK_SPIKE as corroboration
+
+Compute components:
+
+Severity Pressure S
+
+High-impact Concentration H
+
+Asset Overlap O
+
+Velocity V (vs last 3 days)
+
+Normalize (caps / rolling windows)
+
+Output:
+
+RERI value 0–100, band, trend, top drivers
+
+Persist (Phase 0, no schema change):
+
+insert synthetic alert: alert_type="RERI_DAILY" into alert_events with details in raw_input
+
+2) “Secret” Algorithms for the Derived Indices
+
+Think of RERI as your regional baseline escalation signal.
+Derived indices are specialized lenses over the same underlying alert/event stream.
+
+Core principle (your “secret sauce” architecture)
+
+Each derived index is:
+
+DerivedIndex
+𝑅
+,
+𝑇
+(
+𝐷
+)
+=
+100
+⋅
+clamp
+(
+𝑤
+1
+⋅
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝑅
+(
+𝐷
+)
++
+𝑤
+2
+⋅
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝑅
+,
+𝑇
+(
+𝐷
+)
++
+𝑤
+3
+⋅
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝑅
+,
+𝑇
+(
+𝐷
+)
++
+𝑤
+4
+⋅
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+^
+𝑅
+,
+𝑇
+(
+𝐷
+)
++
+𝑤
+5
+⋅
+𝐶
+𝑜
+𝑛
+𝑡
+𝑎
+𝑔
+𝑖
+𝑜
+𝑛
+^
+𝑅
+(
+𝐷
+)
+)
+DerivedIndex
+R,T
+	​
+
+(D)=100⋅clamp(w
+1
+	​
+
+⋅
+RERI
+^
+R
+	​
+
+(D)+w
+2
+	​
+
+⋅
+ThemePressure
+R,T
+	​
+
+(D)+w
+3
+	​
+
+⋅
+AssetTransmission
+R,T
+	​
+
+(D)+w
+4
+	​
+
+⋅
+ChokepointFactor
+	​
+
+R,T
+	​
+
+(D)+w
+5
+	​
+
+⋅
+Contagion
+	​
+
+R
+	​
+
+(D))
+
+Where:
+
+R = region (Europe, Middle East, Black Sea)
+
+T = theme/product (Energy, Gas, Shipping, LNG, Sanctions, etc.)
+
+hats = normalized to 0..1 (caps or rolling)
+
+This makes every derived index:
+
+auditable
+
+tunable
+
+versionable
+
+licensable
+
+3) A Set of Derived Indices You Should Generate (Europe, Middle East, Black Sea)
+
+Below are high-commercial-value indices you can produce immediately.
+
+Europe (high demand)
+
+Europe Energy Risk Index (EERI)
+
+Europe Gas Stress Index (EGSI)
+
+Europe Power Risk Index (EPRI)
+
+Europe Sanctions & Policy Shock Index (ESPSI)
+
+Middle East (highest institutional appetite)
+
+Middle East Escalation Index (MEEI) (this is basically “RERI Middle East” branded)
+
+Middle East Oil Supply Risk Index (MOSRI)
+
+Middle East LNG Disruption Index (MELDI)
+
+Hormuz & Persian Gulf Chokepoint Index (HPCI)
+
+Black Sea (unique niche you can own)
+
+Black Sea Conflict Risk Index (BCRI)
+
+Black Sea Shipping Disruption Index (BSSDI)
+
+Black Sea Energy Corridor Risk Index (BSECRI)
+
+4) “Secret” Formulas for Each Index (implementable v1)
+Common building blocks (computed per region/day)
+
+1) RERI baseline
+
+Use your existing RERI output for that region/day:
+
+𝑅
+𝐸
+𝑅
+𝐼
+^
+=
+𝑅
+𝐸
+𝑅
+𝐼
+/
+100
+RERI
+^
+=RERI/100
+
+2) ThemePressure (from HIGH_IMPACT_EVENT)
+Filter events by category set relevant to theme T.
+
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+𝑅
+,
+𝑇
+=
+∑
+𝑒
+∈
+𝐴
+𝑅
+(
+𝐷
+)
+∩
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+(
+𝑇
+)
+𝑠
+𝑒
+𝑣
+𝑒
+𝑟
+𝑖
+𝑡
+𝑦
+(
+𝑒
+)
+⋅
+𝑐
+𝑜
+𝑛
+𝑓
+𝑖
+𝑑
+𝑒
+𝑛
+𝑐
+𝑒
+(
+𝑒
+)
+⋅
+𝑡
+𝑦
+𝑝
+𝑒
+𝑀
+𝑢
+𝑙
+𝑡
+𝑖
+𝑝
+𝑙
+𝑖
+𝑒
+𝑟
+(
+𝑒
+)
+ThemePressure
+R,T
+	​
+
+=
+e∈A
+R
+	​
+
+(D)∩Theme(T)
+∑
+	​
+
+severity(e)⋅confidence(e)⋅typeMultiplier(e)
+
+Normalize with a cap (v1) per theme:
+
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+=
+clamp
+(
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+/
+𝑇
+𝑐
+𝑎
+𝑝
+,
+0
+,
+1
+)
+ThemePressure
+=clamp(ThemePressure/Tcap,0,1)
+
+3) AssetTransmission (from ASSET_RISK_SPIKE)
+For theme T, count distinct relevant assets in that region/day and weight by their risk score/confidence if available.
+
+Simple v1:
+
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+𝑅
+,
+𝑇
+=
+∑
+𝑎
+∈
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑠
+(
+𝑇
+)
+1
+[
+asset spike present
+]
+AssetTransmission
+R,T
+	​
+
+=
+a∈Assets(T)
+∑
+	​
+
+1[asset spike present]
+
+Normalize by max assets:
+
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+=
+clamp
+(
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+/
+∣
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑠
+(
+𝑇
+)
+∣
+,
+0
+,
+1
+)
+AssetTransmission
+=clamp(AssetTransmission/∣Assets(T)∣,0,1)
+
+Better v1.1 (if you store asset risk score 0–100):
+
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+=
+1
+∣
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑠
+(
+𝑇
+)
+∣
+∑
+𝑎
+∈
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑠
+(
+𝑇
+)
+1
+[
+𝑠
+𝑝
+𝑖
+𝑘
+𝑒
+]
+⋅
+(
+𝑟
+𝑖
+𝑠
+𝑘
+𝑆
+𝑐
+𝑜
+𝑟
+𝑒
+𝑎
+/
+100
+)
+⋅
+𝑐
+𝑜
+𝑛
+𝑓
+𝑖
+𝑑
+𝑒
+𝑛
+𝑐
+𝑒
+𝑎
+AssetTransmission=
+∣Assets(T)∣
+1
+	​
+
+a∈Assets(T)
+∑
+	​
+
+1[spike]⋅(riskScore
+a
+	​
+
+/100)⋅confidence
+a
+	​
+
+
+4) ChokepointFactor (optional but powerful differentiator)
+If region/day includes events mentioning key corridors/straits/pipelines, boost.
+
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+𝑅
+,
+𝑇
+=
+max
+⁡
+𝑒
+(
+1
+[
+𝑒
+𝑛
+𝑡
+𝑖
+𝑡
+𝑦
+∈
+𝑐
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝑠
+]
+⋅
+𝑠
+𝑒
+𝑣
+𝑒
+𝑟
+𝑖
+𝑡
+𝑦
+⋅
+𝑐
+𝑜
+𝑛
+𝑓
+𝑖
+𝑑
+𝑒
+𝑛
+𝑐
+𝑒
+)
+ChokepointFactor
+R,T
+	​
+
+=
+e
+max
+	​
+
+(1[entity∈chokepoints]⋅severity⋅confidence)
+
+Normalize with a cap and clamp.
+
+5) Contagion (spillover)
+This is a real moat feature: regional risk can be influenced by linked regions.
+
+For Europe, contagion often comes from Middle East + Black Sea.
+For Black Sea, contagion can come from Europe + Russia/Ukraine region.
+For Middle East, contagion might come from global sanctions regime / Red Sea shipping.
+
+𝐶
+𝑜
+𝑛
+𝑡
+𝑎
+𝑔
+𝑖
+𝑜
+𝑛
+𝑅
+(
+𝐷
+)
+=
+∑
+𝑟
+′
+∈
+𝑁
+𝑒
+𝑖
+𝑔
+ℎ
+𝑏
+𝑜
+𝑟
+𝑠
+(
+𝑅
+)
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝑟
+′
+(
+𝐷
+)
+⋅
+𝛼
+𝑟
+′
+→
+𝑅
+Contagion
+R
+	​
+
+(D)=
+r
+′
+∈Neighbors(R)
+∑
+	​
+
+RERI
+^
+r
+′
+	​
+
+(D)⋅α
+r
+′
+→R
+	​
+
+
+Normalize/clamp to 0..1.
+
+Europe Indices
+1) Europe Energy Risk Index (EERI)
+
+Purpose: “How exposed is Europe to energy disruption risk today?”
+
+Theme filters:
+
+HIGH_IMPACT_EVENT categories: ENERGY, SUPPLY_DISRUPTION, SANCTIONS, WAR/MILITARY
+Assets: gas, power, oil, lng, freight, fx
+
+Secret formula (v1):
+
+𝐸
+𝐸
+𝑅
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.45
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝐸
+𝑈
++
+0.25
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝐸
+𝑈
+,
+𝐸
+𝑛
+𝑒
+𝑟
+𝑔
+𝑦
++
+0.20
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝐸
+𝑈
+,
+𝐸
+𝑛
+𝑒
+𝑟
+𝑔
+𝑦
++
+0.10
+𝐶
+𝑜
+𝑛
+𝑡
+𝑎
+𝑔
+𝑖
+𝑜
+𝑛
+𝐸
+𝑈
+)
+EERI=100⋅clamp(0.45
+RERI
+^
+EU
+	​
+
++0.25
+ThemePressure
+EU,Energy
+	​
+
++0.20
+AssetTransmission
+EU,Energy
+	​
+
++0.10Contagion
+EU
+	​
+
+)
+
+Neighbors for contagion:
+
+Middle East (0.6), Black Sea (0.4)
+
+2) Europe Gas Stress Index (EGSI)
+
+Purpose: traders + utilities + storage planners
+
+Theme filters:
+
+events mentioning: LNG, pipeline, storage, sanctions on gas, outages
+Assets: gas, lng, power (power included because gas → power)
+
+Secret formula (v1):
+
+𝐸
+𝐺
+𝑆
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.35
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝐸
+𝑈
++
+0.35
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝐸
+𝑈
+,
+𝐺
+𝑎
+𝑠
++
+0.20
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝐸
+𝑈
+,
+𝐺
+𝑎
+𝑠
++
+0.10
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+𝐸
+𝑈
+,
+𝐺
+𝑎
+𝑠
+)
+EGSI=100⋅clamp(0.35
+RERI
+^
+EU
+	​
+
++0.35
+ThemePressure
+EU,Gas
+	​
+
++0.20
+AssetTransmission
+EU,Gas
+	​
+
++0.10ChokepointFactor
+EU,Gas
+	​
+
+)
+
+Chokepoints for Europe gas (examples you can encode as entity keywords):
+
+LNG terminals, major pipelines, key interconnectors (store as keyword list)
+
+3) Europe Sanctions & Policy Shock Index (ESPSI)
+
+Purpose: banks, compliance, corporates
+
+Theme:
+
+events categorized SANCTIONS, POLITICAL, REGULATORY, plus “EU embargo” entities
+Assets: fx, freight, oil, gas
+
+Secret formula (v1):
+
+𝐸
+𝑆
+𝑃
+𝑆
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.30
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝐸
+𝑈
++
+0.50
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝐸
+𝑈
+,
+𝑆
+𝑎
+𝑛
+𝑐
+𝑡
+𝑖
+𝑜
+𝑛
+𝑠
++
+0.20
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝐸
+𝑈
+,
+𝑆
+𝑎
+𝑛
+𝑐
+𝑡
+𝑖
+𝑜
+𝑛
+𝑠
+)
+ESPSI=100⋅clamp(0.30
+RERI
+^
+EU
+	​
+
++0.50
+ThemePressure
+EU,Sanctions
+	​
+
++0.20
+AssetTransmission
+EU,Sanctions
+	​
+
+)
+Middle East Indices
+4) Middle East Escalation Index (MEEI)
+
+This is your RERI Middle East branded product.
+
+𝑀
+𝐸
+𝐸
+𝐼
+=
+𝑅
+𝐸
+𝑅
+𝐼
+𝑀
+𝐸
+MEEI=RERI
+ME
+	​
+
+
+(You can add a tiny velocity/cluster boost later, but keep v1 clean.)
+
+5) Middle East Oil Supply Risk Index (MOSRI)
+
+Purpose: oil traders, O&G, insurers
+
+Theme:
+
+categories ENERGY, WAR/MILITARY, SUPPLY_DISRUPTION, SANCTIONS
+Assets: oil, freight, fx
+
+Secret formula (v1):
+
+𝑀
+𝑂
+𝑆
+𝑅
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.40
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝑀
+𝐸
++
+0.30
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝑀
+𝐸
+,
+𝑂
+𝑖
+𝑙
++
+0.20
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝑀
+𝐸
+,
+𝑂
+𝑖
+𝑙
++
+0.10
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+𝑀
+𝐸
+,
+𝑂
+𝑖
+𝑙
+)
+MOSRI=100⋅clamp(0.40
+RERI
+^
+ME
+	​
+
++0.30
+ThemePressure
+ME,Oil
+	​
+
++0.20
+AssetTransmission
+ME,Oil
+	​
+
++0.10ChokepointFactor
+ME,Oil
+	​
+
+)
+
+Chokepoints list (keywords/entities):
+
+Hormuz, Persian Gulf ports, key export terminals, pipelines
+
+6) Middle East LNG Disruption Index (MELDI)
+
+Purpose: LNG desks, Europe supply planners
+
+Theme:
+
+LNG facilities, export outages, shipping threats, sanctions
+Assets: lng, gas, freight
+
+Secret formula (v1):
+
+𝑀
+𝐸
+𝐿
+𝐷
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.30
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝑀
+𝐸
++
+0.35
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝑀
+𝐸
+,
+𝐿
+𝑁
+𝐺
++
+0.25
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝑀
+𝐸
+,
+𝐿
+𝑁
+𝐺
++
+0.10
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+𝑀
+𝐸
+,
+𝐿
+𝑁
+𝐺
+)
+MELDI=100⋅clamp(0.30
+RERI
+^
+ME
+	​
+
++0.35
+ThemePressure
+ME,LNG
+	​
+
++0.25
+AssetTransmission
+ME,LNG
+	​
+
++0.10ChokepointFactor
+ME,LNG
+	​
+
+)
+7) Hormuz & Persian Gulf Chokepoint Index (HPCI)
+
+This is a premium “corridor index” that sells well.
+
+It should be chokepoint-dominant:
+
+𝐻
+𝑃
+𝐶
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.20
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝑀
+𝐸
++
+0.55
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+^
+𝑀
+𝐸
+,
+𝐻
+𝑜
+𝑟
+𝑚
+𝑢
+𝑧
++
+0.15
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝑀
+𝐸
+,
+𝑆
+ℎ
+𝑖
+𝑝
+𝑝
+𝑖
+𝑛
+𝑔
+𝑇
+ℎ
+𝑟
+𝑒
+𝑎
+𝑡
++
+0.10
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝑀
+𝐸
+,
+𝐹
+𝑟
+𝑒
+𝑖
+𝑔
+ℎ
+𝑡
+)
+HPCI=100⋅clamp(0.20
+RERI
+^
+ME
+	​
+
++0.55
+ChokepointFactor
+	​
+
+ME,Hormuz
+	​
+
++0.15
+ThemePressure
+ME,ShippingThreat
+	​
+
++0.10
+AssetTransmission
+ME,Freight
+	​
+
+)
+Black Sea Indices
+8) Black Sea Conflict Risk Index (BCRI)
+
+Purpose: insurers, shipping, grain/supply chain
+
+Theme:
+
+WAR/MILITARY, STRIKES, SANCTIONS, SUPPLY_DISRUPTION
+Assets: freight, oil, fx (and optionally grain later if you add it)
+
+Secret formula (v1):
+
+𝐵
+𝐶
+𝑅
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.55
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝐵
+𝑆
++
+0.25
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝐵
+𝑆
+,
+𝐶
+𝑜
+𝑛
+𝑓
+𝑙
+𝑖
+𝑐
+𝑡
++
+0.10
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+𝐵
+𝑆
+,
+𝑃
+𝑜
+𝑟
+𝑡
+𝑠
++
+0.10
+𝐶
+𝑜
+𝑛
+𝑡
+𝑎
+𝑔
+𝑖
+𝑜
+𝑛
+𝐵
+𝑆
+)
+BCRI=100⋅clamp(0.55
+RERI
+^
+BS
+	​
+
++0.25
+ThemePressure
+BS,Conflict
+	​
+
++0.10ChokepointFactor
+BS,Ports
+	​
+
++0.10Contagion
+BS
+	​
+
+)
+
+Neighbors:
+
+Europe (0.5), Middle East (0.2), “Ukraine region” (0.3) if you add it later.
+
+9) Black Sea Shipping Disruption Index (BSSDI)
+
+This is one of your most sellable niche feeds.
+
+Theme:
+
+port closures, attacks, mine threats, insurance rate spikes, rerouting
+Assets: freight, oil (freight dominates)
+
+Secret formula (v1):
+
+𝐵
+𝑆
+𝑆
+𝐷
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.25
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝐵
+𝑆
++
+0.25
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝐵
+𝑆
+,
+𝑆
+ℎ
+𝑖
+𝑝
+𝑝
+𝑖
+𝑛
+𝑔
++
+0.35
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+^
+𝐵
+𝑆
+,
+𝑃
+𝑜
+𝑟
+𝑡
+𝑠
++
+0.15
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝐵
+𝑆
+,
+𝐹
+𝑟
+𝑒
+𝑖
+𝑔
+ℎ
+𝑡
+)
+BSSDI=100⋅clamp(0.25
+RERI
+^
+BS
+	​
+
++0.25
+ThemePressure
+BS,Shipping
+	​
+
++0.35
+ChokepointFactor
+	​
+
+BS,Ports
+	​
+
++0.15
+AssetTransmission
+BS,Freight
+	​
+
+)
+10) Black Sea Energy Corridor Risk Index (BSECRI)
+
+Theme:
+
+pipeline/corridor incidents, sanctions impacting flows, infrastructure attacks
+Assets: oil, gas, freight
+
+Secret formula (v1):
+
+𝐵
+𝑆
+𝐸
+𝐶
+𝑅
+𝐼
+=
+100
+⋅
+𝑐
+𝑙
+𝑎
+𝑚
+𝑝
+(
+0.35
+𝑅
+𝐸
+𝑅
+𝐼
+^
+𝐵
+𝑆
++
+0.35
+𝑇
+ℎ
+𝑒
+𝑚
+𝑒
+𝑃
+𝑟
+𝑒
+𝑠
+𝑠
+𝑢
+𝑟
+𝑒
+^
+𝐵
+𝑆
+,
+𝐸
+𝑛
+𝑒
+𝑟
+𝑔
+𝑦
+𝐶
+𝑜
+𝑟
+𝑟
+𝑖
+𝑑
+𝑜
+𝑟
++
+0.20
+𝐶
+ℎ
+𝑜
+𝑘
+𝑒
+𝑝
+𝑜
+𝑖
+𝑛
+𝑡
+𝐹
+𝑎
+𝑐
+𝑡
+𝑜
+𝑟
+^
+𝐵
+𝑆
+,
+𝐶
+𝑜
+𝑟
+𝑟
+𝑖
+𝑑
+𝑜
+𝑟
+𝑠
++
+0.10
+𝐴
+𝑠
+𝑠
+𝑒
+𝑡
+𝑇
+𝑟
+𝑎
+𝑛
+𝑠
+𝑚
+𝑖
+𝑠
+𝑠
+𝑖
+𝑜
+𝑛
+^
+𝐵
+𝑆
+,
+𝐸
+𝑛
+𝑒
+𝑟
+𝑔
+𝑦
+)
+BSECRI=100⋅clamp(0.35
+RERI
+^
+BS
+	​
+
++0.35
+ThemePressure
+BS,EnergyCorridor
+	​
+
++0.20
+ChokepointFactor
+	​
+
+BS,Corridors
+	​
+
++0.10
+AssetTransmission
+BS,Energy
+	​
+
+)
+5) Implementation notes that make this “enterprise-grade”
+
+These are the non-obvious moves that increase value a lot:
+
+Make every derived index deterministic
+
+no LLM calls inside the compute step
+
+AI only supplies tags/scores upstream
+
+Use “caps + versioning” early
+
+caps prevent wild values before you have 6–12 months history
+
+store index_version in the synthetic alert raw_input
+
+Store explainability
+In each derived index synthetic alert raw_input, include:
+
+top driver_event_ids
+
+top driver headlines
+
+components used (ThemePressure, AssetTransmission, Chokepoint, Contagion)
+This makes enterprise audits easy.
+
+Keep public output as a teaser
+Public: value + band + trend + 2–3 drivers
+Paid: history + charts
+Enterprise: feeds + components
+
+6) What I recommend you generate first (minimal, high ROI)
+
+Start with exactly 3 derived indices (fast to ship, high commercial value):
+
+Europe Energy Risk Index (EERI)
+
+Middle East Oil Supply Risk Index (MOSRI) (or MEEI if you want simpler)
+
+Black Sea Shipping Disruption Index (BSSDI)
+
+These three cover:
+
+energy planning (Europe)
+
+oil supply shock (Middle East)
+
+logistics/insurance niche (Black Sea)
+
+They’re also very SEO-friendly as named pages.
