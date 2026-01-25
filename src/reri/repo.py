@@ -63,21 +63,21 @@ def fetch_alerts_for_date(
     
     alerts = []
     for row in rows:
-        assets = row[5] if row[5] else []
+        assets = row['scope_assets'] if row['scope_assets'] else []
         if isinstance(assets, str):
             assets = [assets]
         
         alerts.append(AlertRecord(
-            id=row[0],
-            alert_type=row[1],
-            severity=row[2],
-            confidence=float(row[3]) if row[3] else None,
-            region=row[4],
+            id=row['id'],
+            alert_type=row['alert_type'],
+            severity=row['severity'],
+            confidence=float(row['confidence']) if row['confidence'] else None,
+            region=row['scope_region'],
             assets=assets,
-            headline=row[6],
-            body=row[7],
-            category=row[8],
-            created_at=row[9],
+            headline=row['headline'],
+            body=row['body'],
+            category=row['category'],
+            created_at=row['created_at'],
         ))
     
     return alerts
@@ -141,11 +141,11 @@ def fetch_historical_component_values(
     
     return [
         {
-            'date': row[0],
-            'severity_pressure': row[1] or 0.0,
-            'high_impact_count': row[2] or 0,
-            'asset_overlap': row[3] or 0,
-            'velocity': row[4] or 0.0,
+            'date': row['date'],
+            'severity_pressure': row['severity_pressure'] or 0.0,
+            'high_impact_count': row['high_impact_count'] or 0,
+            'asset_overlap': row['asset_overlap'] or 0,
+            'velocity': row['velocity'] or 0.0,
         }
         for row in rows
     ]
@@ -173,7 +173,7 @@ def fetch_previous_values(
         
         rows = cursor.fetchall()
     
-    return [{'date': row[0], 'value': row[1]} for row in rows]
+    return [{'date': row['date'], 'value': row['value']} for row in rows]
 
 
 def compute_trends(
@@ -247,7 +247,7 @@ def save_reri_result(result: RERIResult) -> int:
         ))
         
         row = cursor.fetchone()
-        row_id = row[0] if row else 0
+        row_id = row['id'] if row else 0
     
     logger.info(f"Saved RERI result: {result.index_id} = {result.value} ({result.band.value})")
     return row_id
@@ -292,17 +292,17 @@ def get_latest_reri(index_id: str) -> Optional[RERIResult]:
         eeri_components.interpretation = components_data['interpretation']
     
     return RERIResult(
-        index_id=row[0],
-        region_id=row[1],
-        index_date=row[2],
-        value=row[3],
-        band=RiskBand(row[4]),
-        trend_1d=row[5],
-        trend_7d=row[6],
+        index_id=row['index_id'],
+        region_id=row['region_id'],
+        index_date=row['date'],
+        value=row['value'],
+        band=RiskBand(row['band']),
+        trend_1d=row['trend_1d'],
+        trend_7d=row['trend_7d'],
         components=eeri_components,
         drivers=drivers_data,
-        model_version=row[9],
-        computed_at=row[10],
+        model_version=row['model_version'],
+        computed_at=row['computed_at'],
     )
 
 
@@ -325,23 +325,23 @@ def get_reri_for_date(index_id: str, target_date: date) -> Optional[RERIResult]:
     if not row:
         return None
     
-    components_data = row[7] if isinstance(row[7], dict) else json.loads(row[7])
-    drivers_data = row[8] if isinstance(row[8], (dict, list)) else json.loads(row[8]) if row[8] else []
+    components_data = row['components'] if isinstance(row['components'], dict) else json.loads(row['components'])
+    drivers_data = row['drivers'] if isinstance(row['drivers'], (dict, list)) else json.loads(row['drivers']) if row['drivers'] else []
     
     eeri_components = EERIComponents()
     
     return RERIResult(
-        index_id=row[0],
-        region_id=row[1],
-        index_date=row[2],
-        value=row[3],
-        band=RiskBand(row[4]),
-        trend_1d=row[5],
-        trend_7d=row[6],
+        index_id=row['index_id'],
+        region_id=row['region_id'],
+        index_date=row['date'],
+        value=row['value'],
+        band=RiskBand(row['band']),
+        trend_1d=row['trend_1d'],
+        trend_7d=row['trend_7d'],
         components=eeri_components,
         drivers=drivers_data,
-        model_version=row[9],
-        computed_at=row[10],
+        model_version=row['model_version'],
+        computed_at=row['computed_at'],
     )
 
 
@@ -358,7 +358,7 @@ def count_days_of_history(index_id: str) -> int:
         
         result = cursor.fetchone()
     
-    return result[0] if result else 0
+    return result['count'] if result else 0
 
 
 def get_reri_history(
@@ -412,17 +412,17 @@ def get_reri_history(
         )
         
         results.append(RERIResult(
-            index_id=row[0],
-            region_id=row[1],
-            index_date=row[2],
-            value=int(row[3]) if row[3] else 0,
-            band=get_band(int(row[3]) if row[3] else 0),
-            trend_1d=row[5],
-            trend_7d=row[6],
+            index_id=row['index_id'],
+            region_id=row['region_id'],
+            index_date=row['date'],
+            value=int(row['value']) if row['value'] else 0,
+            band=get_band(int(row['value']) if row['value'] else 0),
+            trend_1d=row['trend_1d'],
+            trend_7d=row['trend_7d'],
             components=eeri_components,
-            drivers=row[8] if row[8] else [],
-            model_version=row[9],
-            computed_at=row[10],
+            drivers=row['drivers'] if row['drivers'] else [],
+            model_version=row['model_version'],
+            computed_at=row['computed_at'],
         ))
     
     return results
@@ -443,12 +443,12 @@ def get_canonical_regions() -> List[Dict[str, Any]]:
     
     return [
         {
-            'region_id': row[0],
-            'region_name': row[1],
-            'region_type': row[2],
-            'aliases': row[3],
-            'core_assets': row[4],
-            'is_active': row[5],
+            'region_id': row['region_id'],
+            'region_name': row['region_name'],
+            'region_type': row['region_type'],
+            'aliases': row['aliases'],
+            'core_assets': row['core_assets'],
+            'is_active': row['is_active'],
         }
         for row in rows
     ]
