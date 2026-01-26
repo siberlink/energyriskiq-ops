@@ -1,10 +1,11 @@
 import os
 import sys
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -46,6 +47,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class TrailingSlashRedirectMiddleware(BaseHTTPMiddleware):
+    """Redirect trailing slash URLs to non-trailing slash for SEO canonicalization."""
+    
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if path != "/" and path.endswith("/"):
+            new_path = path.rstrip("/")
+            if request.url.query:
+                new_url = f"{new_path}?{request.url.query}"
+            else:
+                new_url = new_path
+            return RedirectResponse(url=new_url, status_code=301)
+        return await call_next(request)
+
+
+app.add_middleware(TrailingSlashRedirectMiddleware)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 
