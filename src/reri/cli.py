@@ -82,6 +82,52 @@ def cmd_compute_yesterday(args):
         print(f"EERI for {target_date} already exists (skipped) or failed. Use --force to overwrite.")
 
 
+def cmd_backfill(args):
+    """Backfill EERI from historical alert_events."""
+    if not ENABLE_EERI:
+        print("ERROR: EERI module is disabled. Set ENABLE_EERI=true to enable.")
+        sys.exit(1)
+    
+    from src.reri.backfill import run_eeri_backfill
+    
+    run_migrations()
+    
+    start_date = None
+    end_date = None
+    
+    if args.start:
+        try:
+            start_date = datetime.strptime(args.start, "%Y-%m-%d").date()
+        except ValueError:
+            print(f"ERROR: Invalid start date '{args.start}'. Use YYYY-MM-DD.")
+            sys.exit(1)
+    
+    if args.end:
+        try:
+            end_date = datetime.strptime(args.end, "%Y-%m-%d").date()
+        except ValueError:
+            print(f"ERROR: Invalid end date '{args.end}'. Use YYYY-MM-DD.")
+            sys.exit(1)
+    
+    print(f"Starting EERI backfill...")
+    print(f"  Start: {start_date or 'auto-detect'}")
+    print(f"  End:   {end_date or 'yesterday'}")
+    print(f"  Force: {args.force}")
+    print()
+    
+    result = run_eeri_backfill(
+        start_date=start_date,
+        end_date=end_date,
+        force=args.force,
+    )
+    
+    print(f"\nBackfill Complete:")
+    print(f"  Total days:    {result['total_days']}")
+    print(f"  Computed:      {result['computed']}")
+    print(f"  Skipped:       {result['skipped']}")
+    print(f"  Errors:        {result['errors']}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='EERI v1 CLI - Europe Energy Risk Index',
@@ -97,12 +143,19 @@ def main():
     yesterday_parser = subparsers.add_parser('compute-yesterday', help='Compute EERI for yesterday')
     yesterday_parser.add_argument('--force', action='store_true', help='Overwrite existing value')
     
+    backfill_parser = subparsers.add_parser('backfill', help='Backfill EERI from historical alerts')
+    backfill_parser.add_argument('--start', help='Start date (YYYY-MM-DD), auto-detect if not specified')
+    backfill_parser.add_argument('--end', help='End date (YYYY-MM-DD), defaults to yesterday')
+    backfill_parser.add_argument('--force', action='store_true', help='Overwrite existing values')
+    
     args = parser.parse_args()
     
     if args.command == 'compute':
         cmd_compute(args)
     elif args.command == 'compute-yesterday':
         cmd_compute_yesterday(args)
+    elif args.command == 'backfill':
+        cmd_backfill(args)
     else:
         parser.print_help()
         sys.exit(1)

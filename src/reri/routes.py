@@ -177,3 +177,57 @@ async def compute_eeri_yesterday():
             'skipped': True,
             'message': f"EERI for {target_date} already exists or failed to compute.",
         }
+
+
+class BackfillRequest(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    force: bool = False
+
+
+@router.post("/eeri/backfill")
+async def backfill_eeri_endpoint(request: BackfillRequest):
+    """
+    Backfill EERI indices from historical alert_events.
+    
+    If dates not specified:
+    - start_date: auto-detected from earliest alert
+    - end_date: yesterday
+    """
+    check_enabled()
+    
+    from src.reri.backfill import run_eeri_backfill
+    
+    start = None
+    end = None
+    
+    if request.start_date:
+        try:
+            start = datetime.strptime(request.start_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid start_date format. Use YYYY-MM-DD."
+            )
+    
+    if request.end_date:
+        try:
+            end = datetime.strptime(request.end_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid end_date format. Use YYYY-MM-DD."
+            )
+    
+    logger.info(f"Starting EERI backfill: start={start}, end={end}, force={request.force}")
+    
+    result = run_eeri_backfill(
+        start_date=start,
+        end_date=end,
+        force=request.force,
+    )
+    
+    return {
+        'success': True,
+        'data': result,
+    }

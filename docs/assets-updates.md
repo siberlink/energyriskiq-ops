@@ -197,4 +197,58 @@ Raw category: high_impact
 - Works retroactively without database migration
 - Newly ingested events will have proper categories from classifier
 
+### 2026-01-26: EERI Backfill from Historical Alerts
+
+**Summary:** Added backfill functionality to compute EERI indices from historical alert_events data.
+
+**New CLI Command:**
+```bash
+python -m src.reri.cli backfill [--start YYYY-MM-DD] [--end YYYY-MM-DD] [--force]
+```
+
+Options:
+- `--start`: Start date (auto-detects from earliest alert if not specified)
+- `--end`: End date (defaults to yesterday)
+- `--force`: Overwrite existing EERI values
+
+**New API Endpoint:**
+```
+POST /api/v1/indices/eeri/backfill
+{
+  "start_date": "2025-01-01",  // optional
+  "end_date": "2026-01-25",    // optional
+  "force": false               // optional
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "total_days": 30,
+    "computed": 28,
+    "skipped": 2,
+    "errors": 0,
+    "start_date": "2025-01-01",
+    "end_date": "2026-01-25",
+    "results": [...]
+  }
+}
+```
+
+**Files Created:**
+- `src/reri/backfill.py` - Backfill logic with date range detection and progress logging
+
+**Files Changed:**
+- `src/reri/cli.py` - Added `backfill` command
+- `src/reri/routes.py` - Added `/eeri/backfill` endpoint
+
+**How It Works:**
+1. Auto-detects date range from `alert_events` if not specified
+2. Finds all dates with alerts in the range
+3. Computes EERI for each date using existing pipeline
+4. Saves results to `reri_indices_daily` table
+5. Skips dates that already have EERI (unless `force=true`)
+
 ---
