@@ -107,7 +107,7 @@ def fetch_historical_severity_values(
         
         rows = cursor.fetchall()
     
-    return [row[1] for row in rows if row[1] is not None]
+    return [row['s_value'] for row in rows if row['s_value'] is not None]
 
 
 def fetch_historical_component_values(
@@ -274,8 +274,8 @@ def get_latest_reri(index_id: str) -> Optional[RERIResult]:
     if not row:
         return None
     
-    components_data = row[7] if isinstance(row[7], dict) else json.loads(row[7])
-    drivers_data = row[8] if isinstance(row[8], (dict, list)) else json.loads(row[8]) if row[8] else []
+    components_data = row['components'] if isinstance(row['components'], dict) else json.loads(row['components'])
+    drivers_data = row['drivers'] if isinstance(row['drivers'], (dict, list)) else json.loads(row['drivers']) if row['drivers'] else []
     
     eeri_components = EERIComponents()
     if 'reri_eu' in components_data:
@@ -384,7 +384,7 @@ def get_reri_history(
     
     results = []
     for row in rows:
-        components_dict = row[7] if row[7] else {}
+        components_dict = row['components'] if row['components'] else {}
         
         reri_eu_components = None
         reri_eu_data = components_dict.get('reri_eu', {})

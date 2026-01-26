@@ -128,4 +128,32 @@ EERI = 100 × clamp(
 - Freight and FX assets now tracked for transmission
 - Status endpoint now shows `contagion_enabled: true`
 
+### 2026-01-26: Fixed Dictionary Key Access in repo.py
+
+**Summary:** Fixed runtime errors caused by using tuple indexing on dictionary rows from RealDictCursor.
+
+**Error:**
+```
+KeyError: 1
+File "src/reri/repo.py", line 110
+return [row[1] for row in rows if row[1] is not None]
+```
+
+**Fixes Applied:**
+- Line 110: `row[1]` → `row['s_value']`
+- Line 277: `row[7]` → `row['components']`
+- Line 278: `row[8]` → `row['drivers']`
+- Line 387: `row[7]` → `row['components']`
+
+**Root Cause:**
+- PostgreSQL connection uses `RealDictCursor` which returns rows as dictionaries
+- Code was using tuple indices (e.g., `row[0]`, `row[7]`) instead of column names
+
+**Files Changed:**
+- `src/reri/repo.py`
+
+**Impact:**
+- EERI daily computation now works correctly (manual and automated)
+- `/api/v1/indices/eeri/compute-yesterday` endpoint functional
+
 ---
