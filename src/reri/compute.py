@@ -411,10 +411,44 @@ def compute_eeri_value(components: EERIComponents) -> int:
     return int(round(clamp(raw_value, 0, 1) * 100))
 
 
+THEMATIC_KEYWORDS = {
+    'war': ['war', 'invasion', 'occupation', 'attack', 'missile', 'bombing', 'airstrike', 'shelling', 'drone strike'],
+    'military': ['military', 'troops', 'nato', 'defense', 'army', 'navy', 'air force', 'weapons', 'armed forces'],
+    'conflict': ['conflict', 'clashes', 'fighting', 'hostilities', 'violence', 'battle', 'combat'],
+    'strike': ['strike', 'walkout', 'labor dispute', 'workers strike', 'industrial action', 'protest'],
+    'supply_disruption': ['disruption', 'outage', 'shutdown', 'halt', 'suspend', 'blockade', 'congestion', 'shortage'],
+    'sanctions': ['sanctions', 'embargo', 'tariff', 'trade ban', 'asset freeze', 'blacklist', 'restrictions'],
+    'energy': ['oil', 'gas', 'lng', 'opec', 'crude', 'refinery', 'pipeline', 'power', 'electricity', 'fuel'],
+    'political': ['government', 'election', 'parliament', 'minister', 'policy', 'legislation', 'regulation'],
+    'diplomacy': ['diplomatic', 'negotiation', 'summit', 'talks', 'agreement', 'treaty', 'ceasefire', 'peace'],
+}
+
+
+def classify_headline_thematic(headline: str) -> str:
+    """
+    Classify headline text into thematic category based on keywords.
+    Returns the best matching category or 'geopolitical' as fallback.
+    """
+    if not headline:
+        return 'geopolitical'
+    
+    headline_lower = headline.lower()
+    
+    for category, keywords in THEMATIC_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in headline_lower:
+                return category
+    
+    return 'geopolitical'
+
+
 def extract_top_drivers(alerts: List[AlertRecord], limit: int = 5) -> List[Dict[str, Any]]:
     """
     Extract top driver events based on severity and confidence.
     Returns list of driver dicts with headline, severity, category.
+    
+    Categories are classified thematically: war, military, conflict, strike,
+    supply_disruption, sanctions, energy, political, diplomacy, geopolitical.
     """
     scored_alerts = []
     
@@ -427,7 +461,12 @@ def extract_top_drivers(alerts: List[AlertRecord], limit: int = 5) -> List[Dict[
         score = severity * confidence
         
         title = extract_event_title_from_body(alert.body) or alert.headline or "Unknown event"
-        category = extract_category_from_body(alert.body) if not alert.category else alert.category
+        
+        raw_category = extract_category_from_body(alert.body) if not alert.category else alert.category
+        if raw_category in ['high_impact', 'unknown', 'geopolitical', None]:
+            category = classify_headline_thematic(title)
+        else:
+            category = raw_category
         
         scored_alerts.append({
             'headline': title[:100],

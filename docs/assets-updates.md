@@ -156,4 +156,45 @@ return [row[1] for row in rows if row[1] is not None]
 - EERI daily computation now works correctly (manual and automated)
 - `/api/v1/indices/eeri/compute-yesterday` endpoint functional
 
+### 2026-01-26: Thematic Classification for Top Drivers (Retroactive)
+
+**Summary:** Added keyword-based thematic classification for Top Drivers to handle existing alerts with `high_impact` category.
+
+**Problem:**
+- Existing alerts in database have `category: high_impact`
+- The granular thematic categories only apply to newly ingested events
+- Top Drivers were still showing `high_impact` instead of meaningful categories
+
+**Solution:**
+- Added `classify_headline_thematic()` function that analyzes headline text
+- When raw category is `high_impact`, `unknown`, or `geopolitical`, the headline is re-classified
+- Uses keyword matching against thematic categories
+
+**Example:**
+```
+Headline: "'Not optimistic': Ukrainians doubt Russia ready to end war amid talks"
+Raw category: high_impact
+→ Matches keyword "war" 
+→ Final category: war
+```
+
+**Thematic Keywords:**
+- `war`: war, invasion, occupation, attack, missile, bombing, airstrike, shelling
+- `military`: military, troops, nato, defense, army, navy, weapons
+- `conflict`: conflict, clashes, fighting, hostilities, violence, battle
+- `strike`: strike, walkout, labor dispute, industrial action, protest
+- `supply_disruption`: disruption, outage, shutdown, halt, blockade, shortage
+- `sanctions`: sanctions, embargo, tariff, trade ban, blacklist
+- `energy`: oil, gas, lng, opec, crude, refinery, pipeline, power
+- `political`: government, election, parliament, minister, policy
+- `diplomacy`: diplomatic, negotiation, summit, talks, treaty, ceasefire
+
+**Files Changed:**
+- `src/reri/compute.py` - Added `THEMATIC_KEYWORDS`, `classify_headline_thematic()`, updated `extract_top_drivers()`
+
+**Impact:**
+- Existing alerts now show meaningful thematic categories in Top Drivers
+- Works retroactively without database migration
+- Newly ingested events will have proper categories from classifier
+
 ---
