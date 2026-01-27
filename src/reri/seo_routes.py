@@ -208,7 +208,7 @@ async def eeri_public_page(request: Request):
             <title>European Energy Risk Index (EERI) | EnergyRiskIQ</title>
             <meta name="description" content="The European Energy Risk Index (EERI) measures systemic geopolitical, supply-chain, and market disruption risks affecting European energy markets.">
             <link rel="canonical" href="{BASE_URL}/eeri">
-            <link rel="icon" type="image/png" href="/favicon.png">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
         </head>
         <body>
@@ -300,7 +300,7 @@ async def eeri_public_page(request: Request):
         <meta property="og:url" content="{BASE_URL}/eeri">
         <meta property="og:type" content="website">
         
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
     </head>
     <body>
@@ -456,7 +456,7 @@ async def eeri_methodology_page():
         <meta property="og:description" content="Methodology and calculation approach for the European Energy Risk Index (EERI).">
         <meta property="og:url" content="{BASE_URL}/eeri/methodology">
         
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
             .methodology-content {{ line-height: 1.9; color: var(--text-secondary); }}
@@ -623,7 +623,7 @@ async def eeri_history_page():
         <title>EERI History - European Energy Risk Index Archive | EnergyRiskIQ</title>
         <meta name="description" content="Historical archive of the European Energy Risk Index (EERI). Browse daily snapshots and monthly summaries of European energy market risk levels.">
         <link rel="canonical" href="{BASE_URL}/eeri/history">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
             .history-list {{ list-style: none; }}
@@ -739,7 +739,7 @@ async def eeri_daily_snapshot(date_str: str):
         <title>EERI {date_str} - European Energy Risk Index | EnergyRiskIQ</title>
         <meta name="description" content="European Energy Risk Index for {date_display}. Value: {eeri['value']}, Band: {eeri['band']}. Historical EERI data.">
         <link rel="canonical" href="{BASE_URL}/eeri/{date_str}">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
     </head>
     <body>
@@ -830,7 +830,7 @@ async def eeri_monthly_archive(year: int, month: int):
         <title>EERI {month_label} - European Energy Risk Index Archive | EnergyRiskIQ</title>
         <meta name="description" content="European Energy Risk Index data for {month_label}. {len(data)} days of EERI historical data with daily values and risk bands.">
         <link rel="canonical" href="{BASE_URL}/eeri/{year}/{month:02d}">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
             .data-table {{ width: 100%; border-collapse: collapse; }}
