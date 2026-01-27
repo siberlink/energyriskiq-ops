@@ -56,10 +56,10 @@ async def get_eeri_public():
     
     return {
         'success': True,
-        'value': result.get('index_value', 0),
+        'value': result.get('value', 0),
         'band': result.get('band', 'LOW'),
         'trend_7d': result.get('trend_7d', 0),
-        'date': result.get('index_date'),
+        'date': result.get('date'),
         'computed_at': result.get('computed_at'),
     }
 
