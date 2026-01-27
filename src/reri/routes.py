@@ -33,6 +33,37 @@ def check_enabled():
         )
 
 
+@router.get("/eeri/public")
+async def get_eeri_public():
+    """
+    Get EERI index for public display (24h delayed).
+    
+    This is a FREE, unauthenticated endpoint for marketing/SEO.
+    Returns data from 24+ hours ago to provide value while protecting premium real-time access.
+    """
+    check_enabled()
+    
+    from src.reri.eeri_history_service import get_eeri_delayed
+    
+    result = get_eeri_delayed()
+    
+    if not result:
+        return {
+            'success': False,
+            'message': 'No EERI data available yet',
+            'data': None,
+        }
+    
+    return {
+        'success': True,
+        'value': result.get('index_value', 0),
+        'band': result.get('band', 'LOW'),
+        'trend_7d': result.get('trend_7d', 0),
+        'date': result.get('index_date'),
+        'computed_at': result.get('computed_at'),
+    }
+
+
 @router.get("/eeri/latest")
 async def get_eeri_latest():
     """
