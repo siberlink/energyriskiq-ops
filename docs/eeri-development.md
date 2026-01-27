@@ -203,6 +203,41 @@ curl -s http://localhost:5000/eeri/methodology | grep -i "0\.[0-9]"
 - Sitemap includes all EERI URLs
 - 24h delay is enforced on public data
 
+## Homepage EERI Teaser Card
+
+### Implementation
+
+Added an EERI section to the homepage (`src/static/index.html`) after the GERI section:
+
+**SEO Elements:**
+- `<h2>`: "European Energy Risk Index (EERI)"
+- Subtitle: "Daily measure of geopolitical and energy supply disruption risk in Europe"
+- `<h3>` in card: "European Energy Risk Index (EERI)" with `itemprop="headline"`
+- Card description: "Daily measure of geopolitical and energy supply disruption risk in Europe" with `itemprop="description"`
+- Schema.org Article markup on the card
+- Links to `/eeri` and `/eeri/history`
+
+**Card Features:**
+- 24h delayed public data display
+- Risk level and band with color coding
+- 7-day trend indicator
+- "24h Delayed" badge for transparency
+- Hover animation effect
+
+**JavaScript Loading:**
+- `loadEeriPublic()` function fetches `/api/v1/indices/eeri/public`
+- Updates card values, band colors, and trend
+- Card is hidden by default, shown only when data is available
+
+### CSS Classes
+
+```css
+.eeri-public-container, .eeri-card, .eeri-header, .eeri-icon, 
+.eeri-title-block, .eeri-title, .eeri-subtitle, .eeri-value-display,
+.eeri-value, .eeri-band, .eeri-trend, .eeri-footer, .eeri-delay-badge
+.eeri-band-LOW, .eeri-band-MODERATE, .eeri-band-ELEVATED, .eeri-band-CRITICAL
+```
+
 ## Future Considerations
 
 1. **Rate Limiting**: Consider adding rate limits to prevent scraping
