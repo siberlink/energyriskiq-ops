@@ -1835,6 +1835,147 @@ ENABLE_EERI = os.getenv("ENABLE_EERI", "false").lower() == "true"
 
 ---
 
+## 20. EU Gas Storage Data Integration
+
+This section documents the data sources for EU gas storage monitoring, which provides key inputs for EERI and energy risk assessment.
+
+### 20.1 Data Inputs Required
+
+EERI and energy risk alerts require three core storage metrics:
+
+| Metric | Description | Source |
+|--------|-------------|--------|
+| **EU Gas Storage Level** | Current storage as % of capacity vs seasonal norm | GIE AGSI+ API |
+| **Refill Speed** | 7-day average injection/withdrawal rate (TWh/day) | GIE AGSI+ API |
+| **Winter Deviation Risk** | Current level vs target trajectory for winter security | Computed |
+
+### 20.2 Primary Data Source: GIE AGSI+ API
+
+**GIE AGSI+ (Aggregated Gas Storage Inventory)** is the official EU gas storage transparency platform.
+
+| Property | Value |
+|----------|-------|
+| **URL** | https://agsi.gie.eu/ |
+| **API Docs** | https://www.gie.eu/transparency-platform/GIE_API_documentation_v007.pdf |
+| **Update Frequency** | Twice daily (19:30 CET and 23:00 CET) |
+| **Coverage** | 18 EU Member States |
+| **Historical Data** | From 2011 onwards |
+| **Access** | Free (API key required) |
+
+**API Key Setup:**
+1. Register at https://agsi.gie.eu/account
+2. Receive personal API key via email
+3. Set environment variable: `GIE_API_KEY=your_key_here`
+
+**Module Location:** `src/ingest/gie_agsi.py`
+
+### 20.3 RSS Feeds for News/Analysis
+
+Four high-quality RSS feeds added for European gas storage news:
+
+| Source | URL | Focus | Weight |
+|--------|-----|-------|--------|
+| **ICIS Energy News** | `https://icisenergynews.podomatic.com/rss2.xml` | European gas markets, LNG, storage analysis | 0.9 |
+| **EU Energy Commission** | `https://energy.ec.europa.eu/news_en/rss.xml` | EU policy, storage regulations | 0.9 |
+| **Energy Intelligence** | `https://www.energyintel.com/rss-feed` | European energy policy analysis | 0.85 |
+| **Oil & Gas Journal** | `https://www.ogj.com/rss` | Gas infrastructure, storage, LNG | 0.8 |
+
+**Config Location:** `src/config/feeds.json`
+
+### 20.4 Seasonal Norms Reference
+
+EU gas storage seasonal targets used for deviation calculation:
+
+| Month | Seasonal Norm (%) | Context |
+|-------|-------------------|---------|
+| January | 65% | Mid-winter withdrawal |
+| February | 50% | End of heating season approach |
+| March | 40% | Seasonal low point |
+| April | 45% | Refilling begins |
+| May | 55% | Refilling ramp-up |
+| June | 65% | Active injection season |
+| July | 75% | Peak refilling |
+| August | 82% | Approaching targets |
+| September | 88% | Pre-winter buffer |
+| October | 92% | Near peak |
+| November | 90% | **EU regulatory target (Nov 1)** |
+| December | 80% | Early withdrawal season |
+
+### 20.5 Risk Score Computation
+
+The storage risk score (0-100) is computed from:
+
+```
+Risk Score = 
+    (100 - storage_percent) × 0.5     # Base: lower storage = higher risk
+  + deviation_penalty                  # Negative deviation from norm
+  + seasonal_factor                    # Winter months add +15
+  + flow_factor                        # High withdrawals add +5-10
+```
+
+**Risk Bands:**
+| Score | Band | Meaning |
+|-------|------|---------|
+| 0-25 | LOW | Normal storage conditions |
+| 26-50 | MODERATE | Monitor refill progress |
+| 51-75 | ELEVATED | Supply concerns, hedging advised |
+| 76-100 | CRITICAL | Winter security at risk |
+
+### 20.6 Alert Generation
+
+Storage alerts are generated when:
+- `risk_score >= 40` OR
+- `winter_deviation_risk` is ELEVATED/CRITICAL
+
+Alert types:
+- **STORAGE_DEVIATION**: Storage significantly below seasonal norm
+- **WINTER_RISK**: Winter supply security concerns
+- **STORAGE_LEVEL**: General low storage alert
+
+### 20.7 Integration with EERI (Planned)
+
+> **Status:** The storage module generates alerts but is not yet wired into the alerts pipeline. Integration is planned for a future release.
+
+Gas storage metrics will feed into EERI through the **AssetTransmission** component:
+
+```
+EERI = 0.45×RERI_EU + 0.25×ThemePressure + 0.20×AssetTransmission + 0.10×Contagion
+                                                ↑
+                                    Will include gas storage risk
+```
+
+**Planned behavior when integrated:**
+- Storage alerts will create `ASSET_RISK_SPIKE` alerts for `gas` asset
+- These alerts will contribute to EERI via AssetTransmission weight
+- High withdrawal rates during winter will increase ThemePressure
+
+**Current state:**
+- `run_storage_check()` returns alert dict but does not persist to database
+- RSS feeds are ingested but `tags` field is not yet processed by ingestion pipeline
+- To activate, wire `run_storage_check()` into the alerts engine scheduler
+
+### 20.8 Usage
+
+**Fetch current metrics:**
+```python
+from src.ingest.gie_agsi import run_storage_check
+
+alert = run_storage_check()
+if alert:
+    # Store in alert_events or trigger delivery
+    print(f"Alert: {alert['headline']}")
+```
+
+**Fetch raw data:**
+```python
+from src.ingest.gie_agsi import fetch_eu_storage_data, fetch_historical_storage
+
+current = fetch_eu_storage_data()
+history = fetch_historical_storage(days=7)
+```
+
+---
+
 ## Related Documents
 
 - [Indices Bible](./indices-bible.md) - Overall index strategy and access tiers

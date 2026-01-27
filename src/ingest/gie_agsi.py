@@ -219,7 +219,10 @@ def compute_storage_metrics(current_data: Dict, historical_data: List[Dict]) -> 
     days_to_target = None
     
     if current_month in [11, 12, 1, 2, 3]:
-        target_percent = EU_STORAGE_TARGET_FEB1 if current_month >= 11 else EU_STORAGE_TARGET_FEB1
+        if current_month in [11, 12]:
+            target_percent = EU_STORAGE_TARGET_NOV1
+        else:
+            target_percent = EU_STORAGE_TARGET_FEB1
         
         if eu_storage_percent < target_percent:
             winter_deviation_risk = "CRITICAL"
@@ -228,14 +231,17 @@ def compute_storage_metrics(current_data: Dict, historical_data: List[Dict]) -> 
         elif eu_storage_percent < target_percent + 20:
             winter_deviation_risk = "MODERATE"
         
-        if withdrawal_rate_7d > 0:
-            excess_storage = eu_storage_percent - target_percent
-            days_to_target = int(excess_storage / (withdrawal_rate_7d / current_data.get("working_gas_volume_twh", 1) * 100)) if excess_storage > 0 else 0
+        working_gas = current_data.get("working_gas_volume_twh", 0)
+        if withdrawal_rate_7d > 0 and working_gas > 0:
+            current_gas_twh = (eu_storage_percent / 100.0) * working_gas
+            target_gas_twh = (target_percent / 100.0) * working_gas
+            excess_gas_twh = current_gas_twh - target_gas_twh
+            days_to_target = int(excess_gas_twh / withdrawal_rate_7d) if excess_gas_twh > 0 else 0
     else:
-        if eu_storage_percent < EU_STORAGE_TARGET_NOV1 - 30:
-            winter_deviation_risk = "ELEVATED"
-        elif eu_storage_percent < EU_STORAGE_TARGET_NOV1 - 45:
+        if eu_storage_percent < EU_STORAGE_TARGET_NOV1 - 45:
             winter_deviation_risk = "CRITICAL"
+        elif eu_storage_percent < EU_STORAGE_TARGET_NOV1 - 30:
+            winter_deviation_risk = "ELEVATED"
     
     risk_score = compute_storage_risk_score(
         eu_storage_percent,
