@@ -213,7 +213,7 @@ async def eeri_public_page(request: Request):
         </head>
         <body>
             <nav class="nav"><div class="container nav-inner">
-                <a href="/" class="logo">EnergyRiskIQ</a>
+                <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
                 <div class="nav-links">
                     <a href="/alerts">Alerts</a>
                     <a href="/geri">GERI</a>
@@ -305,7 +305,7 @@ async def eeri_public_page(request: Request):
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo">EnergyRiskIQ</a>
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
@@ -472,7 +472,7 @@ async def eeri_methodology_page():
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo">EnergyRiskIQ</a>
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
@@ -637,7 +637,7 @@ async def eeri_history_page():
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo">EnergyRiskIQ</a>
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
@@ -744,7 +744,7 @@ async def eeri_daily_snapshot(date_str: str):
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo">EnergyRiskIQ</a>
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
@@ -840,7 +840,7 @@ async def eeri_monthly_archive(year: int, month: int):
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo">EnergyRiskIQ</a>
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>

@@ -529,7 +529,7 @@ def render_nav() -> str:
     <nav class="nav">
         <div class="container nav-inner">
             <a href="/" class="logo">
-                <span class="logo-icon">E</span>
+                <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
                 EnergyRiskIQ
             </a>
             <div class="nav-links">
@@ -1469,7 +1469,7 @@ async def geri_page(request: Request):
         <meta property="og:url" content="{BASE_URL}/geri">
         <meta property="og:type" content="website">
         
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
             .geri-hero {{
@@ -1800,7 +1800,7 @@ async def geri_history_page(request: Request):
         <title>Global Energy Risk Index History | EnergyRiskIQ</title>
         <meta name="description" content="Complete history of the Global Energy Risk Index (GERI). Browse daily snapshots and monthly archives of energy market risk data.">
         <link rel="canonical" href="{BASE_URL}/geri/history">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         {get_geri_common_styles()}
     </head>
@@ -1873,7 +1873,7 @@ async def geri_methodology_page():
         <meta property="og:url" content="{BASE_URL}/geri/methodology">
         <meta property="og:type" content="article">
         
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
             .methodology-hero {{
@@ -3583,7 +3583,7 @@ async def geri_daily_page(request: Request, date: str):
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>GERI {date} Not Found | EnergyRiskIQ</title>
-            <link rel="icon" type="image/png" href="/favicon.png">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
         </head>
         <body>
@@ -3682,7 +3682,7 @@ async def geri_daily_page(request: Request, date: str):
         <title>Global Energy Risk Index {date} | EnergyRiskIQ</title>
         <meta name="description" content="GERI snapshot for {human_date}. Value: {snapshot.value}, Band: {snapshot.band}. View historical energy market risk data.">
         <link rel="canonical" href="{BASE_URL}/geri/{date}">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         {get_geri_common_styles()}
         <style>
@@ -3845,7 +3845,7 @@ async def geri_monthly_page(request: Request, year: int, month: int):
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>GERI {calendar_month_name[month]} {year} Not Found | EnergyRiskIQ</title>
-            <link rel="icon" type="image/png" href="/favicon.png">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
         </head>
         <body>
@@ -3926,7 +3926,7 @@ async def geri_monthly_page(request: Request, year: int, month: int):
         <title>Global Energy Risk Index {month_display} | EnergyRiskIQ</title>
         <meta name="description" content="GERI archive for {month_display}. View all daily energy risk index snapshots for this month.">
         <link rel="canonical" href="{BASE_URL}/geri/{year}/{month:02d}">
-        <link rel="icon" type="image/png" href="/favicon.png">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         {get_geri_common_styles()}
     </head>
