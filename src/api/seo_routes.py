@@ -640,6 +640,7 @@ async def alerts_hub():
         <title>Geopolitical & Energy Risk Alerts Archive | EnergyRiskIQ</title>
         <meta name="description" content="Browse daily geopolitical and energy risk alerts for Europe and global markets. Historical archive of energy supply disruption signals and risk intelligence.">
         <link rel="canonical" href="{BASE_URL}/alerts">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
     </head>
     <body>
@@ -988,6 +989,7 @@ async def daily_alerts_page(date_str: str, request: Request):
         <title>{model['seo_title']}</title>
         <meta name="description" content="{model['seo_description']}">
         <link rel="canonical" href="{BASE_URL}/alerts/daily/{date_str}">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         <script type="application/ld+json">{breadcrumb_json_ld}</script>
         {get_common_styles()}
     </head>
@@ -1089,6 +1091,7 @@ async def monthly_archive_page(year: int, month: int):
         <title>Risk Alerts - {month_display} | EnergyRiskIQ</title>
         <meta name="description" content="Geopolitical and energy risk alerts archive for {month_display}. {len(pages)} days of risk intelligence with {total_alerts} total alerts.">
         <link rel="canonical" href="{BASE_URL}/alerts/{year}/{month:02d}">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
     </head>
     <body>
