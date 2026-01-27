@@ -884,6 +884,53 @@ def generate_sitemap_entries() -> List[Dict]:
     except Exception:
         pass
     
+    try:
+        from src.reri.eeri_history_service import get_all_eeri_dates, get_eeri_available_months
+        
+        entries.append({
+            'loc': '/eeri',
+            'priority': '0.9',
+            'changefreq': 'daily',
+            'lastmod': today
+        })
+        
+        entries.append({
+            'loc': '/eeri/methodology',
+            'priority': '0.8',
+            'changefreq': 'monthly',
+            'lastmod': today
+        })
+        
+        eeri_dates = get_all_eeri_dates()
+        eeri_months = get_eeri_available_months()
+        
+        latest_eeri_date = eeri_dates[0] if eeri_dates else today
+        entries.append({
+            'loc': '/eeri/history',
+            'priority': '0.8',
+            'changefreq': 'daily',
+            'lastmod': latest_eeri_date
+        })
+        
+        for m in eeri_months:
+            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
+            entries.append({
+                'loc': f"/eeri/{m['year']}/{m['month']:02d}",
+                'priority': '0.7',
+                'changefreq': 'weekly',
+                'lastmod': max_date if isinstance(max_date, str) else max_date
+            })
+        
+        for eeri_date in eeri_dates:
+            entries.append({
+                'loc': f"/eeri/{eeri_date}",
+                'priority': '0.8',
+                'changefreq': 'never',
+                'lastmod': eeri_date
+            })
+    except Exception:
+        pass
+    
     months = get_available_months()
     for m in months:
         max_date = m.get('max_date')

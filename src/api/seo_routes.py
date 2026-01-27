@@ -1277,6 +1277,10 @@ async def sitemap_html():
                     <li><a href="/">Homepage</a></li>
                     <li><a href="/geri">Global Energy Risk Index (GERI)</a></li>
                     <li><a href="/geri/methodology">GERI Methodology & Construction</a></li>
+                    <li><a href="/geri/history">GERI History</a></li>
+                    <li><a href="/eeri">European Energy Risk Index (EERI)</a></li>
+                    <li><a href="/eeri/methodology">EERI Methodology</a></li>
+                    <li><a href="/eeri/history">EERI History</a></li>
                     <li><a href="/alerts">Alerts Hub</a></li>
                     <li><a href="/users">Sign Up / Login</a></li>
                     <li><a href="/privacy">Privacy Policy</a></li>

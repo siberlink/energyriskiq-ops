@@ -27,6 +27,7 @@ from src.geri import ENABLE_GERI
 from src.geri.routes import router as geri_router
 from src.reri import ENABLE_EERI
 from src.reri.routes import router as eeri_router
+from src.reri.seo_routes import router as eeri_seo_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -137,6 +138,7 @@ if ENABLE_GERI:
 
 if ENABLE_EERI:
     app.include_router(eeri_router)
+    app.include_router(eeri_seo_router)
     logger.info("EERI module enabled - routes registered")
 
 @app.on_event("startup")
