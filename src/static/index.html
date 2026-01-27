@@ -2186,52 +2186,78 @@
 
     <!-- Section: EERI Presentation -->
     <section class="section section-eeri" id="eeri-section" style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); padding: 4rem 0;">
-        <div class="section-inner" style="max-width: 900px; margin: 0 auto; padding: 0 1.5rem;">
-            <div style="text-align: center; margin-bottom: 2rem;">
+        <div class="section-inner" style="max-width: 1000px; margin: 0 auto; padding: 0 1.5rem;">
+            <div class="section-header" style="text-align: center; margin-bottom: 2.5rem;">
                 <h2 style="font-size: 2.25rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.75rem;">European Energy Risk Index (EERI)</h2>
                 <p style="font-size: 1.1rem; color: #94a3b8; margin-bottom: 1.5rem;">Daily measure of geopolitical and energy supply disruption risk in Europe</p>
-                <p style="font-size: 0.95rem; color: #64748b; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+                <p style="font-size: 1rem; color: #cbd5e1; line-height: 1.7; max-width: 800px; margin: 0 auto;">
                     EERI is a specialized regional risk index focused exclusively on European energy markets. It measures geopolitical tensions, supply-chain disruptions, and cross-border contagion risks affecting Europe's energy infrastructure and commodity flows.
                 </p>
             </div>
 
-            <div style="text-align: center; margin-bottom: 1.5rem;">
+            <!-- Used to monitor -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Used to monitor:</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">EU energy security</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">regional contagion</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">supply disruptions</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">infrastructure stress</span>
+                </div>
+            </div>
+
+            <!-- Key Value Points -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🇪🇺</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Europe-Focused</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Dedicated coverage of European energy markets, pipelines, and infrastructure.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔗</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Contagion Tracking</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Monitors spillover risks from Middle East and Black Sea regions affecting Europe.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Multi-Asset Coverage</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Tracks gas, oil, power, LNG, electricity, freight, and FX transmission risks.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📈</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Theme Pressure</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Weights events by category: military, sanctions, strikes, supply disruptions.</p>
+                </div>
+            </div>
+
+            <!-- Teasing Line -->
+            <div style="text-align: center; margin-bottom: 1rem;">
                 <p style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Today's European Energy Risk Snapshot</p>
-                <p style="font-size: 0.85rem; color: #64748b;">(24-hour delayed for public display)</p>
             </div>
 
             <!-- EERI Public Display (24h Delayed) -->
             <div id="eeri-public-section" class="eeri-public-container" style="display: none; max-width: 500px; margin: 0 auto 1.5rem auto;">
                 <a href="/eeri" class="eeri-card-link" style="text-decoration: none; color: inherit; display: block;" title="European Energy Risk Index (EERI)" aria-label="European Energy Risk Index (EERI)">
-                <article class="eeri-card" style="text-align: center;" itemscope itemtype="https://schema.org/Article">
-                    <header class="eeri-header">
-                        <span class="eeri-icon">⚡</span>
-                        <div class="eeri-title-block">
-                            <h3 class="eeri-title" itemprop="headline">European Energy Risk Index (EERI)</h3>
-                            <p class="eeri-subtitle" itemprop="description">Daily measure of geopolitical and energy supply disruption risk in Europe</p>
-                        </div>
-                    </header>
-                    <div class="eeri-value-display">
-                        <div class="eeri-value" id="eeri-value" style="color: #4ade80;">--</div>
-                        <div class="eeri-band" id="eeri-band">--</div>
+                <div class="eeri-card" style="text-align: center; padding: 1.5rem; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                    <div class="eeri-header" style="justify-content: center; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="eeri-icon" style="font-size: 2.5rem;">⚡</span>
+                        <span style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">European Energy Risk Index: <span id="eeri-value" style="color: #4ade80;">--</span>/100 (<span id="eeri-band" style="color: #4ade80;">--</span>)</span>
                     </div>
-                    <p class="eeri-trend">7-Day Trend: <span id="eeri-trend-label">--</span> <span id="eeri-trend-value"></span></p>
-                    <footer class="eeri-footer">
-                        <span class="eeri-delay-badge">24h Delayed</span>
-                    </footer>
-                </article>
+                    <p style="font-size: 0.75rem; color: #888; margin: 0.5rem 0;">0 = minimal risk · 100 = extreme disruption stress</p>
+                    <p id="eeri-trend" style="font-size: 0.9rem; color: #4ade80; margin: 0.5rem 0;">7-Day Trend: <span id="eeri-trend-label">--</span> <span id="eeri-trend-value"></span></p>
+                </div>
                 </a>
             </div>
 
-            <!-- EERI CTA Buttons -->
-            <div style="text-align: center; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+            <!-- CTA Row -->
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
                 <a href="/eeri" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #3b82f6; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">
                     View Today's EERI
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
                 <a href="/eeri/history" style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #60a5fa; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; border: 1px solid #3b82f6; transition: background 0.2s;">
                     Explore EERI History
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
 
