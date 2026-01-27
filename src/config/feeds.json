@@ -66,5 +66,40 @@
     "region_hint": "Europe",
     "signal_type": "infrastructure",
     "weight": 0.7
+  },
+  {
+    "source_name": "ICIS Energy News",
+    "feed_url": "https://icisenergynews.podomatic.com/rss2.xml",
+    "category_hint": "energy",
+    "region_hint": "Europe",
+    "signal_type": "gas_storage",
+    "weight": 0.9,
+    "tags": ["gas_storage", "lng", "ttf", "winter_risk"]
+  },
+  {
+    "source_name": "EU Energy Commission",
+    "feed_url": "https://energy.ec.europa.eu/news_en/rss.xml",
+    "category_hint": "energy",
+    "region_hint": "Europe",
+    "signal_type": "regulation",
+    "weight": 0.9,
+    "tags": ["gas_storage", "eu_policy", "energy_security"]
+  },
+  {
+    "source_name": "Energy Intelligence",
+    "feed_url": "https://www.energyintel.com/rss-feed",
+    "category_hint": "energy",
+    "region_hint": "Europe",
+    "signal_type": "market",
+    "weight": 0.85,
+    "tags": ["gas_storage", "lng", "european_gas"]
+  },
+  {
+    "source_name": "Oil & Gas Journal",
+    "feed_url": "https://www.ogj.com/rss",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 0.8,
+    "tags": ["gas_storage", "lng", "infrastructure"]
   }
 ]
