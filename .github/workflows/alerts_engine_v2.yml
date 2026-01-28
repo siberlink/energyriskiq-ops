@@ -3,7 +3,7 @@ name: Alerts Engine v2
 on:
   schedule:
     - cron: '*/10 * * * *'
-  
+
   workflow_dispatch:
     inputs:
       phase:
@@ -66,7 +66,7 @@ on:
         options:
           - 'true'
           - 'false'
-      
+
 concurrency:
   group: alerts-engine-v2
   cancel-in-progress: false
@@ -75,7 +75,7 @@ jobs:
   run-alerts-engine-v2:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ALERTS_V2_ENABLED: ${{ github.event.inputs.alerts_enabled || 'true' }}
@@ -90,7 +90,7 @@ jobs:
       ALERTS_MAX_SEND_PER_RUN: ${{ secrets.ALERTS_MAX_SEND_PER_RUN || '1000' }}
       GIE_API_KEY: ${{ secrets.GIE_API_KEY }}  # <-- NEW LINE ADDED
       PYTHONPATH: '.'
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -122,14 +122,14 @@ jobs:
           echo "Running preflight checks..."
           python -m src.alerts.runner --preflight 2>&1 | tee preflight_output.txt
           EXIT_CODE=${PIPESTATUS[0]}
-          
+
           if [ $EXIT_CODE -ne 0 ]; then
             echo "::error::Preflight check failed! See output for details."
             echo "preflight_passed=false" >> $GITHUB_OUTPUT
           else
             echo "preflight_passed=true" >> $GITHUB_OUTPUT
           fi
-          
+
           exit $EXIT_CODE
 
       - name: Run Alerts Engine v2
@@ -137,29 +137,29 @@ jobs:
         if: steps.preflight.outputs.preflight_passed != 'false'
         run: |
           set -o pipefail
-          
+
           PHASE="${{ github.event.inputs.phase || 'all' }}"
           DRY_RUN="${{ github.event.inputs.dry_run || 'false' }}"
           SINCE_HOURS="${{ github.event.inputs.since_hours || '24' }}"
           BATCH_SIZE="${{ github.event.inputs.batch_size || '200' }}"
-          
+
           echo "Running Alerts Engine v2"
           echo "Phase: $PHASE"
           echo "Dry Run: $DRY_RUN"
           echo "Since Hours: $SINCE_HOURS"
           echo "Batch Size: $BATCH_SIZE"
           echo "Alerts Enabled: $ALERTS_V2_ENABLED"
-          
+
           CMD="python -m src.alerts.runner --phase $PHASE --since-hours $SINCE_HOURS --batch-size $BATCH_SIZE --log-json"
-          
+
           if [ "$DRY_RUN" = "true" ]; then
             CMD="$CMD --dry-run"
           fi
-          
+
           echo "---"
-          
+
           $CMD 2>&1 | tee alerts_engine_output.txt
-          
+
           EXIT_CODE=${PIPESTATUS[0]}
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
           exit $EXIT_CODE
@@ -169,19 +169,19 @@ jobs:
         if: always() && steps.run_alerts.outputs.exit_code == '0' && github.event.inputs.include_pro_delivery != 'false'
         run: |
           echo "Running Pro Plan delivery with GERI..."
-          
+
           response=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ secrets.APP_URL }}/internal/run/pro-delivery?since_minutes=15&include_geri=true" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "Response: $body"
           echo "HTTP Code: $http_code"
           echo "$body" > pro_delivery_output.txt
-          
+
           if [ "$http_code" -ne 200 ]; then
             echo "::warning::Pro delivery returned HTTP $http_code (non-blocking)"
             echo "pro_delivery_status=failed" >> $GITHUB_OUTPUT
@@ -199,19 +199,19 @@ jobs:
         if: always() && steps.run_alerts.outputs.exit_code == '0' && github.event.inputs.include_trader_delivery != 'false'
         run: |
           echo "Running Trader Plan delivery..."
-          
+
           response=$(curl -s -w "\n%{http_code}" -X POST \
             "${{ secrets.APP_URL }}/internal/run/trader-delivery?since_minutes=30" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
-          
+
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
-          
+
           echo "Response: $body"
           echo "HTTP Code: $http_code"
           echo "$body" > trader_delivery_output.txt
-          
+
           if [ "$http_code" -ne 200 ]; then
             echo "::warning::Trader delivery returned HTTP $http_code (non-blocking)"
             echo "trader_delivery_status=failed" >> $GITHUB_OUTPUT
@@ -222,7 +222,65 @@ jobs:
         env:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
-      
+
+      - name: EGSI-M Index Computation
+        id: egsi_compute
+        if: always() && steps.run_alerts.outputs.exit_code == '0'
+        run: |
+          echo "Running EGSI-M (Europe Gas Stress Index - Market) computation..."
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/egsi-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > egsi_compute_output.txt
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::EGSI-M computation returned HTTP $http_code (non-blocking)"
+            echo "egsi_compute_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "EGSI-M computation completed successfully"
+            echo "egsi_compute_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
+      - name: EGSI-S Index Computation
+        id: egsi_s_compute
+        if: always() && steps.run_alerts.outputs.exit_code == '0'
+        run: |
+          echo "Running EGSI-S (Europe Gas Stress Index - System) computation..."
+          echo "Using real AGSI+ storage data..."
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/egsi-s-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > egsi_s_compute_output.txt
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::EGSI-S computation returned HTTP $http_code (non-blocking)"
+            echo "egsi_s_compute_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "EGSI-S computation completed successfully"
+            echo "egsi_s_compute_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
       - name: Health Check
         id: health
@@ -241,6 +299,9 @@ jobs:
             preflight_output.txt
             health_output.txt
             pro_delivery_output.txt
+            trader_delivery_output.txt
+            egsi_compute_output.txt
+            egsi_s_compute_output.txt
           retention-days: 7
 
       - name: Summary
@@ -248,7 +309,7 @@ jobs:
         run: |
           echo "## Alerts Engine v2 Run Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           echo "### Configuration" >> $GITHUB_STEP_SUMMARY
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
@@ -258,8 +319,11 @@ jobs:
           echo "| **Preflight Passed** | ${{ steps.preflight.outputs.preflight_passed || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Exit Code** | ${{ steps.run_alerts.outputs.exit_code || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Pro Delivery** | ${{ steps.pro_delivery.outputs.pro_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Trader Delivery** | ${{ steps.trader_delivery.outputs.trader_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **EGSI-M Compute** | ${{ steps.egsi_compute.outputs.egsi_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **EGSI-S Compute** | ${{ steps.egsi_s_compute.outputs.egsi_s_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -f preflight_output.txt ]; then
             echo "### Preflight Check" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
@@ -267,7 +331,7 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -f pro_delivery_output.txt ]; then
             echo "### Pro Delivery Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
@@ -283,7 +347,23 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
+          if [ -f egsi_compute_output.txt ]; then
+            echo "### EGSI-M Computation Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat egsi_compute_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f egsi_s_compute_output.txt ]; then
+            echo "### EGSI-S Computation Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat egsi_s_compute_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
           if [ -f health_output.txt ]; then
             echo "### Health Metrics" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
@@ -291,7 +371,7 @@ jobs:
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "### Engine Output (last 50 lines)" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
           tail -50 alerts_engine_output.txt >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "No output captured" >> $GITHUB_STEP_SUMMARY
