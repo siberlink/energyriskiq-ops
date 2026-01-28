@@ -971,6 +971,394 @@ Two indices that don't cannibalize each other:
 
 ---
 
+## 23. Database Schema (Postgres)
+
+### 23.1 Core Daily Index Tables
+
+#### EGSI-M (Market / Transmission) Daily Index
+
+```sql
+CREATE TABLE IF NOT EXISTS egsi_m_daily (
+  id BIGSERIAL PRIMARY KEY,
+  index_date DATE NOT NULL,
+  region VARCHAR(32) NOT NULL DEFAULT 'Europe',
+  index_value NUMERIC(6,2) NOT NULL,            -- 0..100
+  band VARCHAR(16) NOT NULL,                    -- LOW/NORMAL/ELEVATED/HIGH/CRITICAL
+  trend_1d NUMERIC(6,2),                        -- vs prior day
+  trend_7d NUMERIC(6,2),                        -- vs 7d avg
+  components_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  explanation TEXT,                             -- 1-2 sentence interpretation
+  computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(index_date, region)
+);
+
+CREATE INDEX IF NOT EXISTS idx_egsi_m_daily_date ON egsi_m_daily(index_date);
+CREATE INDEX IF NOT EXISTS idx_egsi_m_daily_region ON egsi_m_daily(region);
+```
+
+#### EGSI-S (System) Daily Index
+
+```sql
+CREATE TABLE IF NOT EXISTS egsi_s_daily (
+  id BIGSERIAL PRIMARY KEY,
+  index_date DATE NOT NULL,
+  region VARCHAR(32) NOT NULL DEFAULT 'Europe',
+  index_value NUMERIC(6,2) NOT NULL,            -- 0..100
+  band VARCHAR(16) NOT NULL,
+  trend_1d NUMERIC(6,2),
+  trend_7d NUMERIC(6,2),
+  components_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+  explanation TEXT,
+  computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(index_date, region)
+);
+
+CREATE INDEX IF NOT EXISTS idx_egsi_s_daily_date ON egsi_s_daily(index_date);
+CREATE INDEX IF NOT EXISTS idx_egsi_s_daily_region ON egsi_s_daily(region);
+```
+
+### 23.2 Component Tables (Normalized + Raw)
+
+Shared table for both index families:
+
+```sql
+CREATE TABLE IF NOT EXISTS egsi_components_daily (
+  id BIGSERIAL PRIMARY KEY,
+  index_family VARCHAR(16) NOT NULL,  -- 'EGSI_M' or 'EGSI_S'
+  index_date DATE NOT NULL,
+  region VARCHAR(32) NOT NULL DEFAULT 'Europe',
+
+  component_key VARCHAR(64) NOT NULL, -- e.g. 'RERI_EU', 'ThemePressure', 'Supply', 'Storage'
+  raw_value NUMERIC(18,6),
+  norm_value NUMERIC(18,6),           -- 0..1
+  weight NUMERIC(10,6),               -- weight used in final formula
+  contribution NUMERIC(18,6),         -- weight * norm (or weight * raw scaled), pre-100
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+  computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(index_family, index_date, region, component_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_egsi_components_daily_date ON egsi_components_daily(index_date);
+CREATE INDEX IF NOT EXISTS idx_egsi_components_daily_family ON egsi_components_daily(index_family);
+CREATE INDEX IF NOT EXISTS idx_egsi_components_daily_key ON egsi_components_daily(component_key);
+```
+
+### 23.3 Drivers Tables
+
+Top alerts + top structured signals for UI explainability:
+
+```sql
+CREATE TABLE IF NOT EXISTS egsi_drivers_daily (
+  id BIGSERIAL PRIMARY KEY,
+  index_family VARCHAR(16) NOT NULL,     -- 'EGSI_M' or 'EGSI_S'
+  index_date DATE NOT NULL,
+  region VARCHAR(32) NOT NULL DEFAULT 'Europe',
+
+  driver_type VARCHAR(16) NOT NULL,      -- 'ALERT' or 'SIGNAL'
+  driver_rank INT NOT NULL,              -- 1..N
+  component_key VARCHAR(64),             -- which component this driver supports
+
+  -- For ALERT drivers
+  alert_id BIGINT,                       -- FK to alerts.id
+  headline TEXT,
+  source VARCHAR(128),
+  severity NUMERIC(6,2),
+  confidence NUMERIC(6,3),
+  score NUMERIC(18,6),                   -- internal driver score
+
+  -- For SIGNAL drivers (storage, refill, weather, TTF vol)
+  signal_key VARCHAR(64),                -- e.g. 'EU_STORAGE_PCT', 'EU_REFILL_SPEED', 'TTF_VOL_7D'
+  signal_value NUMERIC(18,6),
+  signal_unit VARCHAR(32),
+
+  -- Common
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  UNIQUE(index_family, index_date, region, driver_type, driver_rank)
+);
+
+CREATE INDEX IF NOT EXISTS idx_egsi_drivers_daily_date ON egsi_drivers_daily(index_date);
+CREATE INDEX IF NOT EXISTS idx_egsi_drivers_daily_family ON egsi_drivers_daily(index_family);
+CREATE INDEX IF NOT EXISTS idx_egsi_drivers_daily_alert ON egsi_drivers_daily(alert_id);
+```
+
+### 23.4 Structured Signals Table
+
+Daily "facts" table for storage/refill/winter/market:
+
+```sql
+CREATE TABLE IF NOT EXISTS egsi_signals_daily (
+  id BIGSERIAL PRIMARY KEY,
+  signal_date DATE NOT NULL,
+  region VARCHAR(32) NOT NULL DEFAULT 'Europe',
+
+  signal_key VARCHAR(64) NOT NULL,      -- 'EU_STORAGE_PCT', 'EU_STORAGE_SEASONAL_NORM', etc.
+  value NUMERIC(18,6) NOT NULL,
+  unit VARCHAR(32),
+  source VARCHAR(128),
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(signal_date, region, signal_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_egsi_signals_daily_date ON egsi_signals_daily(signal_date);
+CREATE INDEX IF NOT EXISTS idx_egsi_signals_daily_key ON egsi_signals_daily(signal_key);
+```
+
+---
+
+## 24. Normalization Rules
+
+### 24.1 Percentile-Based Robust Scaling (Recommended)
+
+Best for noisy alert streams.
+
+**Step A: Compute rolling distribution**
+* Window: 90 days minimum, 180 days once history available
+* For each component_key: compute p10, p50, p90, p95
+
+**Step B: Map raw → 0..1 using winsorized percentile**
+
+```
+norm = clamp01( (raw - p10) / (p90 - p10) )
+```
+
+If p90 == p10, fallback:
+* norm = 0.5 (neutral) or norm = clamp01(raw / small_constant)
+
+**Why this wins:**
+* Avoids "one crazy day" breaking scaling
+* Works well early even with limited history
+
+### 24.2 Rolling Min/Max (Bounded Signals Only)
+
+Use only when measure is naturally bounded and stable.
+
+**Good examples:**
+* storage % full (0..100) → scale directly: `storage_pct_norm = storage_pct / 100`
+
+**Not great for:** alert counts (max changes)
+
+### 24.3 Hybrid Approach (Best Practice)
+
+| Component Type | Scaling Method |
+|----------------|----------------|
+| Storage level | Direct bounded scaling + seasonal deviation formula |
+| Alert-based pressure | Percentile scaling |
+| Volatility and price shock | Percentile scaling (fat tails) |
+
+### 24.4 Persist Percentiles
+
+```sql
+CREATE TABLE IF NOT EXISTS egsi_norm_stats (
+  id BIGSERIAL PRIMARY KEY,
+  component_key VARCHAR(64) NOT NULL,
+  index_family VARCHAR(16) NOT NULL,       -- 'EGSI_M' or 'EGSI_S' or 'BOTH'
+  region VARCHAR(32) NOT NULL DEFAULT 'Europe',
+  as_of_date DATE NOT NULL,                -- stats computed up to this date
+  window_days INT NOT NULL DEFAULT 90,
+
+  p10 NUMERIC(18,6),
+  p50 NUMERIC(18,6),
+  p90 NUMERIC(18,6),
+  p95 NUMERIC(18,6),
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(component_key, index_family, region, as_of_date)
+);
+```
+
+---
+
+## 25. Daily Compute Job Specification
+
+### 25.1 Schedule (Europe/Amsterdam timezone)
+
+"Today's index" computed from yesterday's completed data:
+
+| Time | Task |
+|------|------|
+| 02:10 | Ingest structured signals (AGSI/storage, prices, etc.) |
+| 02:30 | Finalize alert scoring aggregation for D-1 |
+| 02:40 | Compute EGSI-M and EGSI-S for D-1 |
+| 02:45 | Publish to homepage/API (public uses delayed logic) |
+
+### 25.2 Inputs
+
+#### For EGSI-M
+
+* RERI_EU (already computed daily)
+* Alerts table for D-1:
+  * region=Europe
+  * theme=gas (ThemePressure)
+  * all EU alerts with impact_prob_gas (AssetTransmission)
+  * corridor/chokepoint entity hits (ChokepointFactor)
+
+#### For EGSI-S
+
+* Alerts table for D-1:
+  * supply disruption alerts (S)
+  * transit/geopolitical alerts (T)
+  * policy alerts (P)
+* Structured signals for D-1:
+  * EU_STORAGE_PCT
+  * EU_STORAGE_SEASONAL_NORM
+  * EU_REFILL_SPEED (injection rate)
+  * EU_EXPECTED_REFILL_SPEED (seasonal expected)
+  * TTF_VOL_7D, TTF_PRICE_SHOCK
+  * optional: WINTER_RISK_PROXY
+
+### 25.3 Transforms (High-Level)
+
+**Step 1 — Aggregate alert pressures**
+
+Create daily raw metrics:
+* ThemePressure_raw (gas alerts in EU)
+* AssetTransmission_raw (EU alerts weighted by impact_prob_gas)
+* Chokepoint_raw (EU gas chokepoint entity mentions)
+* Supply_raw / Transit_raw / Policy_raw (for EGSI-S pillars)
+
+**Step 2 — Compute structured raw signals**
+
+Storage deviation D raw:
+```
+D = max(0, (SeasonalNorm - CurrentStorageLevel)/SeasonalNorm)
+```
+
+Refill deficit V raw:
+```
+V = max(0, (Expected - Actual)/Expected)
+```
+
+Market raw: vol_raw, shock_raw
+
+**Step 3 — Update normalization stats (rolling)**
+
+For each component:
+* Compute rolling percentiles up to D-1
+* Store in egsi_norm_stats
+
+**Step 4 — Normalize**
+
+* Percentile scaling for alert-based and market components
+* Bounded scaling or formula outputs for storage components (then clamp)
+
+**Step 5 — Compute components + contributions**
+
+Insert into egsi_components_daily for each index family.
+
+**Step 6 — Compute final index values**
+
+EGSI-M:
+```
+0.35*(RERI_EU/100) + 0.35*ThemePressure_norm + 0.20*AssetTransmission_norm + 0.10*Chokepoint_norm
+```
+
+EGSI-S:
+```
+0.25*S + 0.20*T + 0.20*G + 0.20*M + 0.15*P
+```
+
+Multiply by 100, clamp 0..100.
+
+**Step 7 — Banding**
+
+| Range | Band |
+|-------|------|
+| 0–20 | LOW |
+| 21–40 | NORMAL |
+| 41–60 | ELEVATED |
+| 61–80 | HIGH |
+| 81–100 | CRITICAL |
+
+**Step 8 — Trends**
+
+* trend_1d = today - yesterday
+* trend_7d = today - avg(last 7 days)
+
+**Step 9 — Drivers**
+
+Pick top drivers:
+* For EGSI-M: top 3 alerts by impact_score + top chokepoint alert
+* For EGSI-S: top 2 alerts for Supply/Transit/Policy + top 2 signals (storage deviation, refill deficit)
+
+Insert into egsi_drivers_daily.
+
+**Step 10 — Write daily tables**
+
+Upsert into egsi_m_daily and egsi_s_daily.
+
+---
+
+## 26. Homepage Cards (Public + Pro)
+
+### 26.1 EGSI-M Card (Public, Delayed)
+
+```
+Title: Europe Gas Stress (Market Signal)
+Main line: EGSI-M: {value} / 100 — {band}
+Subline: Trend: {trend_7d:+} vs 7-day avg
+Tiny line: Updated: {index_date} (24h delayed)
+
+Drivers (2 bullets max):
+• "Transmission rising: {top_driver_headline_short}"
+• "Chokepoint watch: {top_chokepoint_label}"
+
+Interpretation (1 line):
+"Gas market stress is {rising/falling/stable} as Europe risk regime 
+and gas-linked events transmit into TTF sensitivity."
+
+CTA: "See components (Pro)"
+```
+
+### 26.2 EGSI-M Card (Pro)
+
+Everything above, plus:
+* Mini component bars: RERI anchor, Theme Pressure, Transmission, Chokepoint
+* "Top 5 Drivers" expandable list
+* 90-day chart
+* CTA: "Open EGSI-M dashboard"
+
+### 26.3 EGSI-S Card (Public, Delayed)
+
+```
+Title: Europe Gas Stress (System Condition)
+Main line: EGSI-S: {value} / 100 — {band}
+Subline: Storage vs norm: {storage_delta}% | Refill pace: {refill_status}
+Tiny line: Updated: {index_date} (24h delayed)
+
+Drivers (2 lines):
+• "Storage: {storage_pct}% (vs norm {norm_pct}%)"
+• "Refill: {actual_refill} vs expected {expected_refill}"
+
+Interpretation (1 line):
+"System stress is driven by storage deviation and refill pace, 
+with supply/transit risk contributing to winter sensitivity."
+
+CTA: "See pillars (Pro)"
+```
+
+### 26.4 EGSI-S Card (Pro)
+
+Everything above, plus:
+* 5 pillar bars: Supply / Transit / Storage / Market / Policy
+* 365-day history + seasonal overlay
+* "Winter Deviation Risk" badge (Low/Med/High)
+* Downloadable daily values (CSV/API)
+* CTA: "Open EGSI-S dashboard"
+
+---
+
+## 27. Implementation Order Summary
+
+1. **Ship EGSI-M first** (fast, uses existing alerts + RERI)
+2. **Then ship EGSI-S** once structured signals ingestion is stable (storage/refill/winter/market)
+
+---
+
 ## Related Documents
 
 - [RERI/EERI Documentation](./reri.md) - Regional/Europe Energy Risk Index
