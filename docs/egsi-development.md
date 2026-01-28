@@ -4,34 +4,98 @@
 
 ## Overview
 
-EGSI is a gas-specific stress index module that measures market transmission stress signals for European gas infrastructure. The module consists of two planned index families:
+EGSI is a gas-specific stress index module that measures market transmission stress and system stress signals for European gas infrastructure. The module consists of two index families, **both now fully implemented**:
 
-- **EGSI-M (Market/Transmission):** Daily index measuring gas market stress signal based on RERI_EU, theme pressure, asset transmission, and infrastructure chokepoint factors. **Status: IMPLEMENTED**
-- **EGSI-S (System):** Future index for storage/refill/winter stress signals. **Status: PLANNED**
+- **EGSI-M (Market/Transmission):** Daily index measuring gas market stress signal based on RERI_EU, theme pressure, asset transmission, and infrastructure chokepoint factors. **Status: ✅ COMPLETE**
+- **EGSI-S (System):** Daily index for storage/refill/winter stress signals using pluggable data sources. **Status: ✅ COMPLETE**
 
-## Current Implementation Status
+---
 
-### Completed Components
+## Quick Reference
+
+### All API Endpoints
+
+| Index | Endpoint | Method | Description |
+|-------|----------|--------|-------------|
+| EGSI-M | `/api/v1/indices/egsi-m/status` | GET | Module health check |
+| EGSI-M | `/api/v1/indices/egsi-m/public` | GET | 24h delayed data (public) |
+| EGSI-M | `/api/v1/indices/egsi-m/latest` | GET | Real-time data |
+| EGSI-M | `/api/v1/indices/egsi-m/history` | GET | Historical data |
+| EGSI-M | `/api/v1/indices/egsi-m/compute` | POST | Trigger computation |
+| EGSI-M | `/api/v1/indices/egsi-m/{date}` | GET | Specific date data |
+| EGSI-S | `/api/v1/indices/egsi-s/status` | GET | Module status + data source |
+| EGSI-S | `/api/v1/indices/egsi-s/latest` | GET | Latest EGSI-S value |
+| EGSI-S | `/api/v1/indices/egsi-s/history` | GET | Historical EGSI-S data |
+| EGSI-S | `/api/v1/indices/egsi-s/compute` | POST | Trigger computation |
+| EGSI-S | `/api/v1/indices/egsi-s/{date}` | GET | Specific date data |
+
+### SEO Public Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Main | `/egsi` | Overview of EGSI indices |
+| Methodology | `/egsi/methodology` | How EGSI is calculated |
+| History | `/egsi/history` | All historical data |
+| Daily | `/egsi/{date}` | Single day data |
+| Monthly | `/egsi/{year}/{month}` | Monthly archive |
+
+### Database Tables
+
+| Table | Index | Purpose |
+|-------|-------|---------|
+| egsi_m_daily | EGSI-M | Main index values |
+| egsi_components_daily | EGSI-M | Component breakdown |
+| egsi_drivers_daily | EGSI-M | Top drivers |
+| egsi_signals_daily | EGSI-M | Signal details |
+| egsi_norm_stats | EGSI-M | Normalization statistics |
+| egsi_s_daily | EGSI-S | System index values + components (JSONB) |
+
+---
+
+## Current Implementation Status (as of 2026-01-28)
+
+### EGSI-M Status: ✅ FULLY OPERATIONAL
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| Database Tables | ✅ Complete | 5 tables created (egsi_m_daily, egsi_components_daily, egsi_drivers_daily, egsi_signals_daily, egsi_norm_stats) |
+| Database Tables | ✅ Complete | 5 tables (egsi_m_daily, egsi_components_daily, egsi_drivers_daily, egsi_signals_daily, egsi_norm_stats) |
 | types.py | ✅ Complete | Dataclasses, constants, risk bands, Chokepoints v1 config |
-| compute.py | ✅ Complete | EGSI-M formula implementation with component calculations |
+| compute.py | ✅ Complete | EGSI-M formula with component calculations |
 | repo.py | ✅ Complete | Database operations for save/fetch |
 | service.py | ✅ Complete | Orchestration layer for daily computation |
-| routes.py | ✅ Complete | API endpoints (public, latest, status, history, compute) |
+| routes.py | ✅ Complete | API endpoints (public, latest, status, history, compute, date) |
 | Workflow Integration | ✅ Complete | Integrated into alerts-engine-v2.yml |
 | Feature Flag | ✅ Complete | ENABLE_EGSI (default: true) |
 
-### Pending/Future Work
+### EGSI-S Status: ✅ FULLY OPERATIONAL
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| EGSI-S (System Index) | 🔲 Planned | Storage/refill/winter stress - requires TTF market data integration |
-| Regression Tests | 🔲 Recommended | Add tests for route ordering and endpoint responses |
-| SEO Pages | 🔲 Not Started | Public EGSI pages similar to EERI (if needed) |
-| Pro Email Integration | 🔲 Not Started | Include EGSI-M in Pro user emails (if desired) |
+| Component | Status | Description |
+|-----------|--------|-------------|
+| Database Table | ✅ Complete | egsi_s_daily table with JSONB components |
+| types.py | ✅ Complete | EGSISResult, EGSISComponents dataclasses, MarketDataSnapshot |
+| compute_egsi_s.py | ✅ Complete | EGSI-S formula with 5-component calculation |
+| data_sources.py | ✅ Complete | Pluggable data source architecture (Mock, AGSI+, TTF, Composite) |
+| repo.py | ✅ Complete | Save/fetch operations for egsi_s_daily |
+| service_egsi_s.py | ✅ Complete | Orchestration with data source integration |
+| routes.py | ✅ Complete | API endpoints (status, latest, history, compute, date) |
+
+### SEO & Testing Status: ✅ COMPLETE
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| SEO Pages | ✅ Complete | Main, methodology, history, daily ({date}), monthly ({year}/{month}) |
+| Sitemap Integration | ✅ Complete | All EGSI pages in sitemap.xml and sitemap.html |
+| Regression Tests | ✅ Complete | 9 endpoint tests in tests/test_egsi_endpoints.py |
+| History Service | ✅ Complete | egsi_history_service.py for SEO data retrieval |
+
+### Future Enhancements (Optional)
+
+| Enhancement | Priority | Notes |
+|-------------|----------|-------|
+| Real AGSI+ Data Integration | Medium | Requires API key from agsi.gie.eu |
+| Real TTF Price Integration | Medium | Requires ICE/EEX API access |
+| Pro Email Integration | Low | Include EGSI indices in Pro user digest emails |
+| Automated EGSI-S Workflow | Medium | Add EGSI-S to alerts-engine-v2.yml (currently manual trigger) |
 
 ---
 
@@ -41,12 +105,24 @@ EGSI is a gas-specific stress index module that measures market transmission str
 
 ```
 src/egsi/
-├── __init__.py          # Module exports
-├── types.py             # Dataclasses, constants, chokepoints config
-├── compute.py           # EGSI-M formula and component calculations
-├── repo.py              # Database operations
-├── service.py           # Orchestration and daily computation
-└── routes.py            # FastAPI endpoints
+├── __init__.py              # Module exports
+├── types.py                 # Dataclasses, constants, risk bands, chokepoints config
+├── compute.py               # EGSI-M formula and component calculations
+├── compute_egsi_s.py        # EGSI-S formula and component calculations
+├── data_sources.py          # Pluggable market data providers (Mock, AGSI+, TTF, Composite)
+├── repo.py                  # Database operations (both EGSI-M and EGSI-S)
+├── service.py               # EGSI-M orchestration
+├── service_egsi_s.py        # EGSI-S orchestration
+├── routes.py                # API endpoints (both EGSI-M and EGSI-S)
+├── egsi_history_service.py  # SEO data retrieval service
+└── egsi_seo_routes.py       # Public SEO pages
+```
+
+### Test Structure
+
+```
+tests/
+└── test_egsi_endpoints.py   # 9 regression tests for route ordering and endpoints
 ```
 
 ### Database Schema
@@ -259,8 +335,11 @@ Configure via environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| ENABLE_EGSI | true | Feature flag to enable/disable EGSI module |
+| ENABLE_EGSI | true | Feature flag to enable/disable entire EGSI module |
 | INTERNAL_RUNNER_TOKEN | (required) | Token for workflow triggers |
+| EGSI_S_DATA_SOURCE | mock | Data source for EGSI-S: "mock", "agsi", "ttf", or "composite" |
+| AGSI_API_KEY | (optional) | API key for AGSI+ real storage data |
+| TTF_PRICE_API_KEY | (optional) | API key for TTF real price data |
 
 ### Normalization
 
