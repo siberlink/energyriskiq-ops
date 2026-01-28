@@ -252,6 +252,35 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
+      - name: EGSI-S Index Computation
+        id: egsi_s_compute
+        if: always() && steps.run_alerts.outputs.exit_code == '0'
+        run: |
+          echo "Running EGSI-S (Europe Gas Stress Index - System) computation..."
+          echo "Using real AGSI+ storage data..."
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/egsi-s-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > egsi_s_compute_output.txt
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::EGSI-S computation returned HTTP $http_code (non-blocking)"
+            echo "egsi_s_compute_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "EGSI-S computation completed successfully"
+            echo "egsi_s_compute_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
       - name: Health Check
         id: health
@@ -272,6 +301,7 @@ jobs:
             pro_delivery_output.txt
             trader_delivery_output.txt
             egsi_compute_output.txt
+            egsi_s_compute_output.txt
           retention-days: 7
 
       - name: Summary
@@ -291,6 +321,7 @@ jobs:
           echo "| **Pro Delivery** | ${{ steps.pro_delivery.outputs.pro_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Trader Delivery** | ${{ steps.trader_delivery.outputs.trader_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **EGSI-M Compute** | ${{ steps.egsi_compute.outputs.egsi_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **EGSI-S Compute** | ${{ steps.egsi_s_compute.outputs.egsi_s_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f preflight_output.txt ]; then
@@ -321,6 +352,14 @@ jobs:
             echo "### EGSI-M Computation Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             cat egsi_compute_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f egsi_s_compute_output.txt ]; then
+            echo "### EGSI-S Computation Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat egsi_s_compute_output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi

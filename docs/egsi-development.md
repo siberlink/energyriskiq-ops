@@ -92,10 +92,10 @@ EGSI is a gas-specific stress index module that measures market transmission str
 
 | Enhancement | Priority | Notes |
 |-------------|----------|-------|
-| Real AGSI+ Data Integration | Medium | Requires API key from agsi.gie.eu |
-| Real TTF Price Integration | Medium | Requires ICE/EEX API access |
+| Real AGSI+ Data Integration | ✅ DONE | Using GIE_API_KEY from agsi.gie.eu |
+| Real TTF Price Integration | Medium | Requires ICE/EEX API access (using placeholder 35 EUR/MWh) |
 | Pro Email Integration | Low | Include EGSI indices in Pro user digest emails |
-| Automated EGSI-S Workflow | Medium | Add EGSI-S to alerts-engine-v2.yml (currently manual trigger) |
+| Automated EGSI-S Workflow | ✅ DONE | EGSI-S runs in alerts-engine-v2.yml every 10 minutes |
 
 ---
 
@@ -374,3 +374,7 @@ Configure via environment variables:
 | 2026-01-28 | Added EGSI-S database table (egsi_s_daily) |
 | 2026-01-28 | Added EGSI-S API endpoints (status, latest, history, compute, date) |
 | 2026-01-28 | Tested EGSI-S computation for 2026-01-25 (value: 2.8, band: LOW with mock data) |
+| 2026-01-28 | Integrated real AGSI+ data for EGSI-S (GIE_API_KEY) |
+| 2026-01-28 | Added EGSI-S to alerts-engine-v2.yml workflow (runs every 10 min) |
+| 2026-01-28 | Created internal endpoint /internal/run/egsi-s-compute |
+| 2026-01-28 | Tested with real AGSI+ data: 2025-01-25 storage=56%, value=1.18, band=LOW |

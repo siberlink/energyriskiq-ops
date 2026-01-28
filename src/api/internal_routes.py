@@ -529,3 +529,67 @@ def run_egsi_compute(
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+@router.post("/run/egsi-s-compute")
+def run_egsi_s_compute(
+    target_date: Optional[str] = None,
+    force: bool = False,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Trigger EGSI-S (Europe Gas Stress Index - System) computation.
+    
+    Uses real AGSI+ storage data when GIE_API_KEY is configured.
+    Computes for yesterday by default, or a specific date if provided.
+    
+    Args:
+        target_date: Date to compute (YYYY-MM-DD format). Defaults to yesterday.
+        force: Whether to recompute if already exists.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.egsi.types import ENABLE_EGSI
+    from src.egsi.service_egsi_s import compute_egsi_s_for_date
+    
+    if not ENABLE_EGSI:
+        return {
+            "status": "skipped",
+            "message": "EGSI module is disabled (ENABLE_EGSI=false)"
+        }
+    
+    if target_date:
+        try:
+            compute_date = date.fromisoformat(target_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    else:
+        compute_date = date.today() - timedelta(days=1)
+    
+    def egsi_s_job():
+        result = compute_egsi_s_for_date(compute_date, save=True, force=force)
+        if result:
+            return {
+                'date': result.index_date.isoformat(),
+                'value': round(result.value, 2),
+                'band': result.band.value,
+                'trend_1d': result.trend_1d,
+                'data_source': result.components.data_sources[0] if result.components.data_sources else 'unknown',
+                'computed': True,
+            }
+        else:
+            return {
+                'date': compute_date.isoformat(),
+                'computed': False,
+                'message': 'Computation skipped or failed (check logs for details)',
+            }
+    
+    response, status_code = run_job_with_lock('egsi_s_compute', egsi_s_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
