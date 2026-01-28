@@ -98,10 +98,8 @@ class MockMarketDataProvider(MarketDataProvider):
     def get_history(self, days: int = 7) -> List[MarketDataSnapshot]:
         """Generate mock historical data."""
         today = date.today()
-        return [
-            self.get_snapshot(today - timedelta(days=i))
-            for i in range(days)
-        ]
+        snapshots = [self.get_snapshot(today - timedelta(days=i)) for i in range(days)]
+        return [s for s in snapshots if s is not None]
 
 
 class AGSIPlusProvider(MarketDataProvider):
@@ -183,8 +181,8 @@ class AGSIPlusProvider(MarketDataProvider):
                 storage_capacity_twh=working_capacity,
                 injection_rate_twh=injection if injection > 0 else None,
                 withdrawal_rate_twh=withdrawal if withdrawal > 0 else None,
-                ttf_price=35.0,
-                ttf_price_ma7=35.0,
+                ttf_price=None,
+                ttf_price_ma7=None,
                 source="agsi_plus",
             )
             
@@ -232,18 +230,116 @@ class AGSIPlusProvider(MarketDataProvider):
         return results
 
 
+class OilPriceAPIProvider(MarketDataProvider):
+    """
+    OilPriceAPI provider for TTF (Title Transfer Facility) gas prices.
+    
+    OilPriceAPI provides real-time and historical TTF prices.
+    Website: https://www.oilpriceapi.com/
+    API Docs: https://docs.oilpriceapi.com/
+    
+    Requires OIL_PRICE_API_KEY environment variable.
+    """
+    
+    def __init__(self):
+        self.api_key = os.environ.get("OIL_PRICE_API_KEY")
+        self.base_url = "https://api.oilpriceapi.com/v1"
+    
+    @property
+    def source_name(self) -> str:
+        return "oilpriceapi"
+    
+    def get_snapshot(self, target_date: date) -> Optional[MarketDataSnapshot]:
+        """
+        Fetch TTF price from OilPriceAPI.
+        
+        Uses the DUTCH_TTF_EUR code for European TTF natural gas prices in EUR/MWh.
+        """
+        if not self.api_key:
+            logger.warning("OilPriceAPI key not configured (set OIL_PRICE_API_KEY)")
+            return None
+        
+        try:
+            import requests
+            
+            url = f"{self.base_url}/prices/latest"
+            params = {"by_code": "DUTCH_TTF_EUR"}
+            headers = {
+                "Authorization": f"Token {self.api_key}",
+                "Content-Type": "application/json",
+            }
+            
+            logger.info(f"Fetching TTF price from OilPriceAPI for {target_date}...")
+            response = requests.get(url, params=params, headers=headers, timeout=30)
+            
+            if response.status_code == 401:
+                logger.error("OilPriceAPI key is invalid or expired")
+                return None
+            
+            if response.status_code == 429:
+                logger.warning("OilPriceAPI rate limit exceeded")
+                return None
+            
+            if response.status_code != 200:
+                logger.error(f"OilPriceAPI error: {response.status_code} - {response.text[:200]}")
+                return None
+            
+            data = response.json()
+            
+            if not data.get("data"):
+                logger.warning(f"No TTF price data returned from OilPriceAPI")
+                return None
+            
+            price_data = data["data"]
+            ttf_price = float(price_data.get("price", 0))
+            price_date_str = price_data.get("created_at", "")
+            
+            if price_date_str:
+                try:
+                    price_date = datetime.fromisoformat(price_date_str.replace("Z", "+00:00"))
+                except:
+                    price_date = datetime.utcnow()
+            else:
+                price_date = datetime.utcnow()
+            
+            snapshot = MarketDataSnapshot(
+                data_date=target_date,
+                ttf_price=ttf_price,
+                ttf_price_ma7=ttf_price,
+                ttf_volatility=0.0,
+                storage_level_pct=None,
+                storage_capacity_twh=None,
+                storage_level_twh=None,
+                injection_rate_twh=None,
+                source="oilpriceapi",
+                fetched_at=datetime.utcnow(),
+            )
+            
+            logger.info(f"OilPriceAPI TTF price: €{ttf_price:.2f}/MWh (as of {price_date_str})")
+            
+            return snapshot
+            
+        except Exception as e:
+            logger.error(f"OilPriceAPI error: {e}")
+            return None
+    
+    def get_history(self, days: int = 7) -> List[MarketDataSnapshot]:
+        """Fetch historical TTF prices (limited in free tier)."""
+        snapshot = self.get_snapshot(date.today())
+        return [snapshot] if snapshot else []
+
+
 class TTFPriceProvider(MarketDataProvider):
     """
     TTF (Title Transfer Facility) gas price provider.
     
-    TTF is the main European gas benchmark.
-    Data sources: ICE, EEX, or third-party APIs.
-    
-    NOTE: This is a placeholder for future implementation.
+    Wrapper that uses OilPriceAPI for real TTF prices.
+    Falls back to placeholder values if API unavailable.
     """
     
     def __init__(self):
-        self.api_key = os.environ.get("TTF_PRICE_API_KEY")
+        self.api_key = os.environ.get("OIL_PRICE_API_KEY")
+        self.oilprice_provider = OilPriceAPIProvider() if self.api_key else None
     
     @property
     def source_name(self) -> str:
@@ -251,21 +347,18 @@ class TTFPriceProvider(MarketDataProvider):
     
     def get_snapshot(self, target_date: date) -> Optional[MarketDataSnapshot]:
         """
-        Fetch TTF price data.
-        
-        TODO: Implement actual API call when credentials are available.
+        Fetch TTF price data from OilPriceAPI.
         """
-        if not self.api_key:
-            logger.warning("TTF Price API key not configured, falling back to mock data")
-            return None
+        if self.oilprice_provider:
+            return self.oilprice_provider.get_snapshot(target_date)
         
-        logger.info(f"TTF Price API call would be made for {target_date}")
+        logger.warning("TTF Price API key not configured, returning None")
         return None
     
     def get_history(self, days: int = 7) -> List[MarketDataSnapshot]:
         """Fetch historical price data."""
-        if not self.api_key:
-            return []
+        if self.oilprice_provider:
+            return self.oilprice_provider.get_history(days)
         return []
 
 
@@ -283,8 +376,8 @@ class CompositeMarketDataProvider(MarketDataProvider):
         
         if os.environ.get("GIE_API_KEY") or os.environ.get("AGSI_API_KEY"):
             self.providers.append(AGSIPlusProvider())
-        if os.environ.get("TTF_PRICE_API_KEY"):
-            self.providers.append(TTFPriceProvider())
+        if os.environ.get("OIL_PRICE_API_KEY"):
+            self.providers.append(OilPriceAPIProvider())
         
         self.mock_provider = MockMarketDataProvider()
     
@@ -349,10 +442,8 @@ class CompositeMarketDataProvider(MarketDataProvider):
     
     def get_history(self, days: int = 7) -> List[MarketDataSnapshot]:
         """Fetch historical data."""
-        return [
-            self.get_snapshot(date.today() - timedelta(days=i))
-            for i in range(days)
-        ]
+        snapshots = [self.get_snapshot(date.today() - timedelta(days=i)) for i in range(days)]
+        return [s for s in snapshots if s is not None]
 
 
 def get_market_data_provider() -> MarketDataProvider:
@@ -362,7 +453,7 @@ def get_market_data_provider() -> MarketDataProvider:
     Set EGSI_S_DATA_SOURCE environment variable to control:
     - "mock": Use synthetic data (default)
     - "agsi": Try AGSI+ first, fall back to mock
-    - "ttf": Try TTF price API first, fall back to mock
+    - "ttf" or "oilpriceapi": Try OilPriceAPI for TTF prices
     - "composite": Try all available real sources, merge results
     """
     source = EGSI_S_DATA_SOURCE.lower()
@@ -374,11 +465,11 @@ def get_market_data_provider() -> MarketDataProvider:
         logger.warning("AGSI+ requested but no API key, using mock")
         return MockMarketDataProvider()
     
-    if source == "ttf":
-        provider = TTFPriceProvider()
+    if source in ("ttf", "oilpriceapi"):
+        provider = OilPriceAPIProvider()
         if provider.api_key:
             return provider
-        logger.warning("TTF requested but no API key, using mock")
+        logger.warning("OilPriceAPI requested but no API key, using mock")
         return MockMarketDataProvider()
     
     if source == "composite":

@@ -31,7 +31,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **EERI SEO Infrastructure:** Public EERI pages at `/eeri`, `/eeri/methodology`, `/eeri/history`, `/eeri/{date}`, `/eeri/{year}/{month}`. Shows 24h delayed data publicly with: level, band, trend, interpretation, top 3 drivers, affected assets, methodology hints. All EERI pages automatically included in sitemap.xml and sitemap.html. Service layer: `src/reri/eeri_history_service.py`, SEO routes: `src/reri/seo_routes.py`. See `docs/eeri-development.md` for complete implementation details.
 - **EGSI (Europe Gas Stress Index):** Encapsulated module (`src/egsi/`) for gas-specific stress indices. Controlled by `ENABLE_EGSI` feature flag. Two index families:
   - **EGSI-M (Market/Transmission):** Daily index measuring gas market stress signal. Formula: `100 * (0.35*RERI_EU/100 + 0.35*ThemePressure_norm + 0.20*AssetTransmission_norm + 0.10*ChokepointFactor_norm)`. Reads from `alert_events` + RERI_EU, writes to `egsi_m_daily`. Runs automatically alongside GERI/EERI in the alerts engine workflow.
-  - **EGSI-S (System):** Daily index for storage/refill/winter stress. Formula: `100 * (0.25*SupplyPressure + 0.20*TransitStress + 0.20*StorageStress + 0.20*PriceVolatility + 0.15*PolicyRisk)`. Uses pluggable data source architecture (mock, AGSI+, TTF). Writes to `egsi_s_daily`.
+  - **EGSI-S (System):** Daily index for storage/refill/winter stress. Formula: `100 * (0.25*SupplyPressure + 0.20*TransitStress + 0.20*StorageStress + 0.20*PriceVolatility + 0.15*PolicyRisk)`. Uses composite data source: real AGSI+ EU storage data (GIE_API_KEY) + live OilPriceAPI TTF prices (OIL_PRICE_API_KEY). Writes to `egsi_s_daily`. Runs automatically in alerts-engine-v2.yml every 10 minutes.
   - **Chokepoints v1:** Versioned config of high-signal Europe gas infrastructure entities (Ukraine transit, TurkStream, Norway pipelines, major LNG terminals) used for ChokepointFactor calculation.
   - **EGSI-M API Endpoints:** `/api/v1/indices/egsi-m/public` (24h delayed), `/api/v1/indices/egsi-m/latest` (realtime), `/api/v1/indices/egsi-m/status`, `/api/v1/indices/egsi-m/history`.
   - **EGSI-S API Endpoints:** `/api/v1/indices/egsi-s/status`, `/api/v1/indices/egsi-s/latest`, `/api/v1/indices/egsi-s/history`, `/api/v1/indices/egsi-s/compute`.
@@ -56,4 +56,6 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Email Service:** Brevo (max 1000 emails/batch, recommend 700-800 for safety)
 - **Messaging Service:** Telegram Bot API
 - **SMS Service:** Twilio (optional)
+- **Gas Storage Data:** AGSI+ (GIE API) for EU gas storage levels
+- **Gas Price Data:** OilPriceAPI for live TTF natural gas prices
 - **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv.

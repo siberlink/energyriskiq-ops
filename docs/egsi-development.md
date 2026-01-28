@@ -93,7 +93,7 @@ EGSI is a gas-specific stress index module that measures market transmission str
 | Enhancement | Priority | Notes |
 |-------------|----------|-------|
 | Real AGSI+ Data Integration | ✅ DONE | Using GIE_API_KEY from agsi.gie.eu |
-| Real TTF Price Integration | Medium | Requires ICE/EEX API access (using placeholder 35 EUR/MWh) |
+| Real TTF Price Integration | ✅ DONE | Using OIL_PRICE_API_KEY from oilpriceapi.com |
 | Pro Email Integration | Low | Include EGSI indices in Pro user digest emails |
 | Automated EGSI-S Workflow | ✅ DONE | EGSI-S runs in alerts-engine-v2.yml every 10 minutes |
 
@@ -378,3 +378,6 @@ Configure via environment variables:
 | 2026-01-28 | Added EGSI-S to alerts-engine-v2.yml workflow (runs every 10 min) |
 | 2026-01-28 | Created internal endpoint /internal/run/egsi-s-compute |
 | 2026-01-28 | Tested with real AGSI+ data: 2025-01-25 storage=56%, value=1.18, band=LOW |
+| 2026-01-28 | Integrated OilPriceAPI for live TTF prices (OIL_PRICE_API_KEY) |
+| 2026-01-28 | EGSI_S_DATA_SOURCE=composite now merges AGSI+ storage + OilPriceAPI TTF |
+| 2026-01-28 | Tested composite: TTF=€35.82/MWh, source=agsi_plus+oilpriceapi |

@@ -548,7 +548,13 @@ def run_migrations():
         
         logger.info("Creating alert v2 indexes...")
         for idx_sql in create_alert_v2_indexes:
-            cursor.execute(idx_sql)
+            try:
+                cursor.execute(idx_sql)
+            except Exception as e:
+                if "already exists" in str(e).lower() or "duplicate key" in str(e).lower():
+                    logger.info(f"Index already exists, skipping: {idx_sql[:60]}...")
+                else:
+                    raise
     
     seed_plan_settings()
     
