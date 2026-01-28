@@ -1835,7 +1835,9 @@ ENABLE_EERI = os.getenv("ENABLE_EERI", "false").lower() == "true"
 
 ---
 
-## 20. EU Gas Storage Data Integration
+## 20. EU Gas Storage Data Integration (EGSI)
+
+> **See also:** [EGSI.md](./EGSI.md) for the full EGSI (EU Gas Storage Index) documentation.
 
 This section documents the data sources for EU gas storage monitoring, which provides key inputs for EERI and energy risk assessment.
 
@@ -1990,6 +1992,7 @@ history = fetch_historical_storage(days=7)
 
 ## Related Documents
 
+- [EGSI Documentation](./EGSI.md) - EU Gas Storage Index (GIE AGSI+ integration)
 - [Indices Bible](./indices-bible.md) - Overall index strategy and access tiers
 
 ---
