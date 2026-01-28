@@ -43,6 +43,10 @@ EGSI requires three core storage metrics:
 
 `src/ingest/gie_agsi.py`
 
+### GitHub Actions
+
+The `GIE_API_KEY` secret must be added to your GitHub repository secrets for the scheduled alerts engine workflow to fetch storage data. The workflow file `.github/workflows/alerts-engine-v2.yml` is configured to pass this key to the runner.
+
 ---
 
 ## 3. RSS Feeds for News/Analysis
