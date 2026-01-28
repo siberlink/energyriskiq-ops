@@ -437,6 +437,166 @@ This is professional, readable, and monetizable.
 
 ---
 
+## 12. EGSI Core Formula
+
+### Normalized Components
+
+Let:
+
+* **S** = SupplyStressNormalized
+* **T** = TransitStressNormalized
+* **G** = StorageStressNormalized
+* **M** = MarketStressNormalized
+* **P** = PolicyStressNormalized
+
+All normalized to 0–1
+
+### Final EGSI Formula
+
+```
+EGSI = 100 * (0.25*S + 0.20*T + 0.20*G + 0.20*M + 0.15*P)
+```
+
+This gives 0–100 index.
+
+---
+
+## 13. Component Computation (Engine Level)
+
+### A) Supply Stress
+
+```
+S = min(1 , (HighImpactSupplyAlerts * 0.6 + AffectedSupplyPercent * 0.4))
+```
+
+Where:
+* **HighImpactSupplyAlerts** = count weighted by severity
+* **AffectedSupplyPercent** = % of EU daily supply at risk
+
+### B) Transit Stress
+
+```
+T = min(1 , (TransitAlertCount * 0.5 + GeopoliticalSeverityMean * 0.5))
+```
+
+### C) Storage Stress
+
+Let:
+* **D** = max(0 , (SeasonalNorm - CurrentStorageLevel) / SeasonalNorm )
+* **V** = max(0 , (ExpectedRefillRate - ActualRefillRate) / ExpectedRefillRate )
+
+```
+G = min(1 , (0.7*D + 0.3*V))
+```
+
+### D) Market Stress
+
+Let:
+* **V** = VolatilityNormalized
+* **P** = PriceShockNormalized
+
+```
+M = min(1 , (0.6*V + 0.4*P))
+```
+
+### E) Policy Stress
+
+```
+P = min(1 , (EmergencyPolicyCount * 0.6 + MarketInterventionSeverity * 0.4))
+```
+
+---
+
+## 14. Categorization Bands
+
+| Score | Band | Color |
+|-------|------|-------|
+| 0–20 | LOW STRESS | Green |
+| 21–40 | NORMAL | Light Green |
+| 41–60 | ELEVATED | Yellow |
+| 61–80 | HIGH STRESS | Orange |
+| 81–100 | CRITICAL | Red |
+
+This aligns with:
+* Traders intuition
+* Risk dashboards
+* Media readability
+
+---
+
+## 15. Monetization Strategy
+
+### Public (Delayed, Marketing)
+
+On homepage:
+* Yesterday's EGSI
+* Level + Trend only
+* No components
+* No history
+
+**Purpose:** SEO + branding + backlinks. "EnergyRiskIQ Gas Index" becomes a reference.
+
+### Pro Users (Paid Tier)
+
+They get:
+* Today's EGSI (real-time or T-1)
+* 90 / 365 day history
+* Component breakdown
+* Driver explanations
+* Correlation with TTF
+
+### Institutional / API (Premium Tier)
+
+They get:
+* Raw component feeds
+* Daily EGSI values
+* Shock alerts ("Gas System Stress Spike")
+* Country overlays (Germany, Italy, France)
+* Licensing rights
+
+This is **index licensing territory**.
+
+---
+
+## 16. Strategic Advantage
+
+### Asset-Specific Authority
+
+Most competitors only do:
+* News
+* Prices
+* Generic volatility
+
+Very few do:
+* System stress indices
+
+EnergyRiskIQ will own:
+* **Global** (GERI)
+* **Regional** (RERI)
+* **System** (EGSI)
+
+That's a **full institutional stack**.
+
+---
+
+## 17. Recommendations
+
+EGSI should be:
+* One of the first 3 branded indices
+* Public on homepage (delayed)
+
+With its own:
+* Methodology page
+* SEO landing page
+* API future endpoint
+
+**Future Expansion:**
+* **NGSI** — Nordics Gas Stress
+* **MGSI** — Mediterranean Gas Stress
+* **UGSI** — Ukraine Transit Stress
+
+---
+
 ## Related Documents
 
 - [RERI/EERI Documentation](./reri.md) - Regional/Europe Energy Risk Index

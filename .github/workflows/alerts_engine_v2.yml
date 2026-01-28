@@ -88,7 +88,7 @@ jobs:
       TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
       ALERTS_SEND_ALLOWLIST_USER_IDS: ${{ secrets.ALERTS_SEND_ALLOWLIST_USER_IDS }}
       ALERTS_MAX_SEND_PER_RUN: ${{ secrets.ALERTS_MAX_SEND_PER_RUN || '1000' }}
-      GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
+      GIE_API_KEY: ${{ secrets.GIE_API_KEY }}  # <-- NEW LINE ADDED
       PYTHONPATH: '.'
 
     steps:
