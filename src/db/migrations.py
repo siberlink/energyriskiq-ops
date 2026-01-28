@@ -1195,6 +1195,44 @@ def run_reri_migration():
     logger.info("RERI tables migration complete.")
 
 
+def run_gas_storage_migration():
+    """Create gas_storage_snapshots table for EU gas storage monitoring."""
+    logger.info("Running gas storage migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS gas_storage_snapshots (
+                id SERIAL PRIMARY KEY,
+                date DATE NOT NULL,
+                eu_storage_percent NUMERIC(5,2) NOT NULL,
+                seasonal_norm NUMERIC(5,2) NOT NULL,
+                deviation_from_norm NUMERIC(6,2) NOT NULL,
+                refill_speed_7d NUMERIC(8,4),
+                withdrawal_rate_7d NUMERIC(8,4),
+                winter_deviation_risk TEXT,
+                days_to_target INT,
+                risk_score INT NOT NULL,
+                risk_band TEXT NOT NULL,
+                interpretation TEXT,
+                raw_data JSONB,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(date)
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_gas_storage_date 
+            ON gas_storage_snapshots(date DESC);
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_gas_storage_risk 
+            ON gas_storage_snapshots(risk_score DESC);
+        """)
+    
+    logger.info("Gas storage migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
@@ -1203,3 +1241,4 @@ if __name__ == "__main__":
     run_geri_migration()
     run_pro_delivery_migration()
     run_reri_migration()
+    run_gas_storage_migration()

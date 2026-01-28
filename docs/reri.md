@@ -1932,27 +1932,39 @@ Alert types:
 - **WINTER_RISK**: Winter supply security concerns
 - **STORAGE_LEVEL**: General low storage alert
 
-### 20.7 Integration with EERI (Planned)
+### 20.7 Integration with Alerts Pipeline
 
-> **Status:** The storage module generates alerts but is not yet wired into the alerts pipeline. Integration is planned for a future release.
+> **Status:** Fully integrated into the alerts engine v2 (Phase A).
 
-Gas storage metrics will feed into EERI through the **AssetTransmission** component:
+Gas storage metrics are checked during every alerts engine run and feed into the pipeline as `ASSET_RISK_SPIKE` events for the `gas` asset.
+
+**Integration architecture:**
 
 ```
-EERI = 0.45×RERI_EU + 0.25×ThemePressure + 0.20×AssetTransmission + 0.10×Contagion
-                                                ↑
-                                    Will include gas storage risk
+Alerts Engine v2 (Phase A)
+    ├── generate_regional_risk_spike_events()
+    ├── generate_asset_risk_spike_events()
+    ├── generate_high_impact_event_alerts()
+    └── generate_storage_risk_events()  ◄── NEW
+            │
+            ├── Fetch from GIE AGSI+ API
+            ├── Compute risk metrics
+            ├── Persist to gas_storage_snapshots table
+            └── Create ASSET_RISK_SPIKE alert if warranted
 ```
 
-**Planned behavior when integrated:**
-- Storage alerts will create `ASSET_RISK_SPIKE` alerts for `gas` asset
-- These alerts will contribute to EERI via AssetTransmission weight
-- High withdrawal rates during winter will increase ThemePressure
+**Behavior:**
+- Daily storage snapshot persisted to `gas_storage_snapshots` table
+- If `risk_score >= 40` or `winter_deviation_risk` is ELEVATED/CRITICAL, an alert is generated
+- Alert type: `ASSET_RISK_SPIKE` with `scope_assets = ['gas']`, `scope_region = 'Europe'`
+- Storage alerts contribute to EERI via AssetTransmission weight
 
-**Current state:**
-- `run_storage_check()` returns alert dict but does not persist to database
-- RSS feeds are ingested but `tags` field is not yet processed by ingestion pipeline
-- To activate, wire `run_storage_check()` into the alerts engine scheduler
+**Database table:** `gas_storage_snapshots`
+- Stores daily EU storage metrics with risk scores
+- Unique constraint on date (one snapshot per day)
+- Indexed for efficient date-based queries
+
+**Note:** RSS feeds with `tags` field are ingested but tag filtering is not yet implemented in the ingestion pipeline.
 
 ### 20.8 Usage
 

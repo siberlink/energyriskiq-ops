@@ -469,12 +469,163 @@ def generate_high_impact_event_alerts() -> Dict:
     return {'created': created_event_ids, 'skipped': skipped_count}
 
 
+def generate_storage_risk_events() -> Dict:
+    """
+    Generate alert events from EU gas storage data.
+    
+    Fetches current storage metrics from GIE AGSI+ API, persists snapshot,
+    and creates ASSET_RISK_SPIKE alert if storage conditions warrant.
+    """
+    created_event_ids = []
+    skipped_count = 0
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    try:
+        from src.ingest.gie_agsi import (
+            fetch_eu_storage_data,
+            fetch_historical_storage,
+            compute_storage_metrics,
+            generate_storage_alert
+        )
+    except ImportError as e:
+        logger.warning(f"GIE AGSI+ module not available: {e}")
+        return {'created': [], 'skipped': 0, 'error': 'module_not_available'}
+    
+    gie_api_key = os.environ.get('GIE_API_KEY', '')
+    if not gie_api_key:
+        logger.info("GIE_API_KEY not configured - skipping storage check")
+        return {'created': [], 'skipped': 0, 'error': 'api_key_not_configured'}
+    
+    existing_check = execute_one(
+        "SELECT id FROM gas_storage_snapshots WHERE date = %s",
+        (today,)
+    )
+    if existing_check:
+        logger.debug(f"Storage snapshot already exists for {today} - skipping")
+        return {'created': [], 'skipped': 1, 'already_processed': True}
+    
+    logger.info("Fetching EU gas storage data from GIE AGSI+...")
+    current_data = fetch_eu_storage_data()
+    if not current_data:
+        logger.warning("Failed to fetch current EU storage data")
+        return {'created': [], 'skipped': 0, 'error': 'fetch_failed'}
+    
+    historical_data = fetch_historical_storage(days=7)
+    
+    metrics = compute_storage_metrics(current_data, historical_data)
+    logger.info(f"Storage metrics: {metrics.eu_storage_percent}% full, "
+                f"deviation {metrics.deviation_from_norm:+.1f}%, "
+                f"risk score {metrics.risk_score} ({metrics.risk_band})")
+    
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO gas_storage_snapshots 
+                (date, eu_storage_percent, seasonal_norm, deviation_from_norm,
+                 refill_speed_7d, withdrawal_rate_7d, winter_deviation_risk,
+                 days_to_target, risk_score, risk_band, interpretation, raw_data)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (date) DO UPDATE SET
+                    eu_storage_percent = EXCLUDED.eu_storage_percent,
+                    seasonal_norm = EXCLUDED.seasonal_norm,
+                    deviation_from_norm = EXCLUDED.deviation_from_norm,
+                    refill_speed_7d = EXCLUDED.refill_speed_7d,
+                    withdrawal_rate_7d = EXCLUDED.withdrawal_rate_7d,
+                    winter_deviation_risk = EXCLUDED.winter_deviation_risk,
+                    days_to_target = EXCLUDED.days_to_target,
+                    risk_score = EXCLUDED.risk_score,
+                    risk_band = EXCLUDED.risk_band,
+                    interpretation = EXCLUDED.interpretation,
+                    raw_data = EXCLUDED.raw_data
+            """, (
+                metrics.date,
+                metrics.eu_storage_percent,
+                metrics.seasonal_norm,
+                metrics.deviation_from_norm,
+                metrics.refill_speed_7d,
+                metrics.withdrawal_rate_7d,
+                metrics.winter_deviation_risk,
+                metrics.days_to_target,
+                metrics.risk_score,
+                metrics.risk_band,
+                metrics.interpretation,
+                json.dumps(current_data, default=safe_json_serializer)
+            ))
+        logger.info(f"Persisted storage snapshot for {metrics.date}")
+    except Exception as e:
+        logger.error(f"Failed to persist storage snapshot: {e}")
+    
+    alert_data = generate_storage_alert(metrics)
+    
+    if not alert_data:
+        logger.info("No storage alert warranted - conditions normal")
+        return {'created': [], 'skipped': 0, 'metrics': {
+            'date': metrics.date,
+            'storage_percent': metrics.eu_storage_percent,
+            'risk_score': metrics.risk_score,
+            'risk_band': metrics.risk_band
+        }}
+    
+    cooldown_key = f"STORAGE:ASSET_RISK:{today}"
+    fingerprint = f"STORAGE_RISK:{metrics.date}"
+    
+    raw_input_data = {
+        "type": "quantitative_data",
+        "source": "GIE AGSI+",
+        "data_date": metrics.date,
+        "metrics": alert_data.get('raw_metrics', {})
+    }
+    
+    classification_data = {
+        "alert_type": "ASSET_RISK_SPIKE",
+        "sub_type": alert_data.get('event_type', 'STORAGE_LEVEL'),
+        "risk_score": metrics.risk_score,
+        "risk_band": metrics.risk_band,
+        "drivers": alert_data.get('drivers', [])
+    }
+    
+    event_id, was_skipped = create_alert_event(
+        alert_type='ASSET_RISK_SPIKE',
+        scope_region='Europe',
+        scope_assets=['gas'],
+        severity=alert_data.get('severity', 3),
+        headline=alert_data.get('headline', f"EU Gas Storage Alert: {metrics.eu_storage_percent}%"),
+        body=alert_data.get('summary', metrics.interpretation),
+        driver_event_ids=[],
+        cooldown_key=cooldown_key,
+        event_fingerprint=fingerprint,
+        raw_input=raw_input_data,
+        classification=classification_data,
+        category='energy',
+        confidence=alert_data.get('confidence', 0.95)
+    )
+    
+    if event_id:
+        created_event_ids.append(event_id)
+        logger.info(f"Created storage alert event {event_id}: {alert_data.get('headline', '')[:50]}")
+    if was_skipped:
+        skipped_count += 1
+    
+    return {
+        'created': created_event_ids,
+        'skipped': skipped_count,
+        'metrics': {
+            'date': metrics.date,
+            'storage_percent': metrics.eu_storage_percent,
+            'deviation': metrics.deviation_from_norm,
+            'risk_score': metrics.risk_score,
+            'risk_band': metrics.risk_band
+        }
+    }
+
+
 def generate_global_alert_events() -> Dict:
     logger.info("Phase A: Generating global alert events...")
     
     regional_result = generate_regional_risk_spike_events()
     asset_result = generate_asset_risk_spike_events()
     high_impact_result = generate_high_impact_event_alerts()
+    storage_result = generate_storage_risk_events()
     
     summary = get_risk_summary('Europe')
     update_alert_state('Europe', summary['risk_7d'], summary['risk_30d'], summary['assets'])
@@ -482,18 +633,22 @@ def generate_global_alert_events() -> Dict:
     all_created = (
         regional_result['created'] + 
         asset_result['created'] + 
-        high_impact_result['created']
+        high_impact_result['created'] +
+        storage_result.get('created', [])
     )
     total_skipped = (
         regional_result['skipped'] + 
         asset_result['skipped'] + 
-        high_impact_result['skipped']
+        high_impact_result['skipped'] +
+        storage_result.get('skipped', 0)
     )
     
     result = {
         'regional_risk_spikes': len(regional_result['created']),
         'asset_risk_spikes': len(asset_result['created']),
         'high_impact_events': len(high_impact_result['created']),
+        'storage_alerts': len(storage_result.get('created', [])),
+        'storage_metrics': storage_result.get('metrics'),
         'total': len(all_created),
         'skipped': total_skipped,
         'event_ids': all_created
