@@ -112,22 +112,38 @@ def get_egsi_m_by_date(target_date: date) -> Optional[Dict[str, Any]]:
 def get_egsi_m_components_for_date(target_date: date) -> Dict[str, Any]:
     """Get EGSI-M component breakdown for a date."""
     query = """
-        SELECT component_data
+        SELECT component_key, raw_value, norm_value, weight, contribution, meta
         FROM egsi_components_daily
         WHERE index_date = %s AND index_family = 'EGSI_M'
     """
     try:
         with get_cursor() as cursor:
             cursor.execute(query, (target_date,))
-            row = cursor.fetchone()
+            rows = cursor.fetchall()
         
-        if not row:
+        if not rows:
             return {}
         
-        data = row['component_data']
-        if isinstance(data, str):
-            return json.loads(data)
-        return data if isinstance(data, dict) else {}
+        components = {}
+        for row in rows:
+            key = row['component_key']
+            meta = row['meta']
+            if isinstance(meta, str):
+                meta = json.loads(meta)
+            
+            components[key] = {
+                'raw_value': float(row['raw_value']) if row['raw_value'] else 0,
+                'norm_value': float(row['norm_value']) if row['norm_value'] else 0,
+                'weight': float(row['weight']) if row['weight'] else 0,
+                'contribution': float(row['contribution']) if row['contribution'] else 0,
+                'meta': meta if isinstance(meta, dict) else {},
+            }
+            
+            # Extract chokepoint hits from the chokepoint_factor component meta
+            if key == 'chokepoint_factor' and meta and 'hits' in meta:
+                components[key]['hits'] = meta['hits']
+        
+        return components
     except Exception as e:
         logger.error(f"Error fetching EGSI-M components for {target_date}: {e}")
         return {}
@@ -136,10 +152,10 @@ def get_egsi_m_components_for_date(target_date: date) -> Dict[str, Any]:
 def get_egsi_m_drivers_for_date(target_date: date) -> List[Dict[str, Any]]:
     """Get EGSI-M top drivers for a date."""
     query = """
-        SELECT driver_name, driver_type, contribution, details
+        SELECT headline, driver_type, score, severity, confidence, driver_rank, meta
         FROM egsi_drivers_daily
         WHERE index_date = %s AND index_family = 'EGSI_M'
-        ORDER BY contribution DESC
+        ORDER BY driver_rank ASC, score DESC
         LIMIT 5
     """
     try:
@@ -149,14 +165,17 @@ def get_egsi_m_drivers_for_date(target_date: date) -> List[Dict[str, Any]]:
         
         result = []
         for row in rows:
-            details = row['details']
-            if isinstance(details, str):
-                details = json.loads(details)
+            meta = row['meta']
+            if isinstance(meta, str):
+                meta = json.loads(meta)
+            
             result.append({
-                'name': row['driver_name'],
-                'type': row['driver_type'],
-                'contribution': float(row['contribution']) if row['contribution'] else 0,
-                'details': details if isinstance(details, dict) else {},
+                'name': row['headline'] or 'Unknown driver',
+                'type': row['driver_type'] or 'general',
+                'contribution': float(row['score']) if row['score'] else 0,
+                'severity': float(row['severity']) if row['severity'] else 0,
+                'confidence': float(row['confidence']) if row['confidence'] else 0,
+                'details': meta if isinstance(meta, dict) else {},
             })
         return result
     except Exception as e:

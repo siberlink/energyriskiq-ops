@@ -223,12 +223,16 @@ async def egsi_public_page(request: Request):
             <title>Europe Gas Stress Index (EGSI) | EnergyRiskIQ</title>
             <meta name="description" content="Track Europe's gas market stress levels with EGSI. Monitor supply disruptions, pipeline issues, and infrastructure chokepoints.">
             <link rel="canonical" href="{BASE_URL}/egsi">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
         </head>
         <body>
             <header>
                 <div class="container header-content">
-                    <a href="/" class="logo">EnergyRiskIQ</a>
+                    <a href="/" class="logo">
+                        <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                        EnergyRiskIQ
+                    </a>
                     <nav>
                         <a href="/eeri">EERI</a>
                         <a href="/egsi">EGSI</a>
@@ -297,6 +301,7 @@ async def egsi_public_page(request: Request):
         <title>Europe Gas Stress Index (EGSI) - {band} at {value:.0f} | EnergyRiskIQ</title>
         <meta name="description" content="EGSI at {value:.0f} ({band}). {explanation[:150]}">
         <link rel="canonical" href="{BASE_URL}/egsi">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         
         <meta property="og:title" content="Europe Gas Stress Index (EGSI) | EnergyRiskIQ">
         <meta property="og:description" content="EGSI at {value:.0f} ({band}). Track European gas market stress in real-time.">
@@ -333,7 +338,10 @@ async def egsi_public_page(request: Request):
     <body>
         <header>
             <div class="container header-content">
-                <a href="/" class="logo">EnergyRiskIQ</a>
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                    EnergyRiskIQ
+                </a>
                 <nav>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
@@ -434,6 +442,7 @@ async def egsi_methodology_page():
         <title>EGSI Methodology - Europe Gas Stress Index | EnergyRiskIQ</title>
         <meta name="description" content="Learn how the Europe Gas Stress Index (EGSI) is calculated. Understand the methodology behind measuring gas market transmission stress.">
         <link rel="canonical" href="{BASE_URL}/egsi/methodology">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         
         <meta property="og:title" content="EGSI Methodology | EnergyRiskIQ">
         <meta property="og:description" content="Methodology behind the Europe Gas Stress Index calculation.">
@@ -444,7 +453,10 @@ async def egsi_methodology_page():
     <body>
         <header>
             <div class="container header-content">
-                <a href="/" class="logo">EnergyRiskIQ</a>
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                    EnergyRiskIQ
+                </a>
                 <nav>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
@@ -609,13 +621,17 @@ async def egsi_history_page():
         <title>EGSI History - Europe Gas Stress Index Archive | EnergyRiskIQ</title>
         <meta name="description" content="Historical archive of Europe Gas Stress Index (EGSI) values. Browse daily snapshots and monthly trends.">
         <link rel="canonical" href="{BASE_URL}/egsi/history">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         
         {get_common_styles()}
     </head>
     <body>
         <header>
             <div class="container header-content">
-                <a href="/" class="logo">EnergyRiskIQ</a>
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                    EnergyRiskIQ
+                </a>
                 <nav>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
@@ -717,13 +733,17 @@ async def egsi_daily_snapshot(date_str: str):
         <title>EGSI {date_str} - {egsi['band']} at {egsi['value']:.0f} | EnergyRiskIQ</title>
         <meta name="description" content="Europe Gas Stress Index for {date_display}: {egsi['value']:.0f} ({egsi['band']}). {egsi.get('explanation', '')[:150]}">
         <link rel="canonical" href="{BASE_URL}/egsi/{date_str}">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         
         {get_common_styles()}
     </head>
     <body>
         <header>
             <div class="container header-content">
-                <a href="/" class="logo">EnergyRiskIQ</a>
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                    EnergyRiskIQ
+                </a>
                 <nav>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
@@ -800,13 +820,17 @@ async def egsi_monthly_archive(year: int, month: int):
         <title>EGSI {month_label} - Monthly Archive | EnergyRiskIQ</title>
         <meta name="description" content="Europe Gas Stress Index archive for {month_label}. {len(data)} days of data with average value {avg_value:.1f}.">
         <link rel="canonical" href="{BASE_URL}/egsi/{year}/{month:02d}">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         
         {get_common_styles()}
     </head>
     <body>
         <header>
             <div class="container header-content">
-                <a href="/" class="logo">EnergyRiskIQ</a>
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                    EnergyRiskIQ
+                </a>
                 <nav>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
