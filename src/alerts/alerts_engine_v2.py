@@ -475,10 +475,12 @@ def generate_storage_risk_events() -> Dict:
     
     Fetches current storage metrics from GIE AGSI+ API, persists snapshot,
     and creates ASSET_RISK_SPIKE alert if storage conditions warrant.
+    
+    Note: GIE AGSI+ data is typically for yesterday (T-1) due to reporting lag.
+    Idempotency is based on the actual data date from the API response.
     """
     created_event_ids = []
     skipped_count = 0
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
     try:
         from src.ingest.gie_agsi import (
@@ -496,19 +498,24 @@ def generate_storage_risk_events() -> Dict:
         logger.info("GIE_API_KEY not configured - skipping storage check")
         return {'created': [], 'skipped': 0, 'error': 'api_key_not_configured'}
     
-    existing_check = execute_one(
-        "SELECT id FROM gas_storage_snapshots WHERE date = %s",
-        (today,)
-    )
-    if existing_check:
-        logger.debug(f"Storage snapshot already exists for {today} - skipping")
-        return {'created': [], 'skipped': 1, 'already_processed': True}
-    
     logger.info("Fetching EU gas storage data from GIE AGSI+...")
     current_data = fetch_eu_storage_data()
     if not current_data:
         logger.warning("Failed to fetch current EU storage data")
         return {'created': [], 'skipped': 0, 'error': 'fetch_failed'}
+    
+    data_date = current_data.get('date')
+    if not data_date:
+        logger.warning("No date in storage data response")
+        return {'created': [], 'skipped': 0, 'error': 'no_date_in_response'}
+    
+    existing_check = execute_one(
+        "SELECT id FROM gas_storage_snapshots WHERE date = %s",
+        (data_date,)
+    )
+    if existing_check:
+        logger.debug(f"Storage snapshot already exists for {data_date} - skipping")
+        return {'created': [], 'skipped': 1, 'already_processed': True, 'data_date': data_date}
     
     historical_data = fetch_historical_storage(days=7)
     
@@ -566,7 +573,7 @@ def generate_storage_risk_events() -> Dict:
             'risk_band': metrics.risk_band
         }}
     
-    cooldown_key = f"STORAGE:ASSET_RISK:{today}"
+    cooldown_key = f"STORAGE:ASSET_RISK:{metrics.date}"
     fingerprint = f"STORAGE_RISK:{metrics.date}"
     
     raw_input_data = {
