@@ -437,7 +437,80 @@ This is professional, readable, and monetizable.
 
 ---
 
-## 12. EGSI Core Formula
+## 12. EGSI-S vs EGSI-M: Understanding the Two Layers
+
+### What EGSI-S (System) Is
+
+The full Europe Gas Stress Index described in this document is **EGSI-S (System)**:
+
+* Measures physical + structural gas system stress
+* Built on 5 pillars: Supply, Transit, Storage, Market, Policy
+* Answers: **"How close is Europe to a gas shock?"**
+
+It sits cleanly in the index stack:
+
+| Index | Scope |
+|-------|-------|
+| GERI | Global macro risk |
+| RERI | Regional regime risk |
+| EGSI-S | Asset / system risk (gas) |
+
+**EGSI-S is the flagship institutional index** — methodologically defensible, licensable, and can stand alone without GERI/RERI.
+
+### Why EGSI-M (Market) Exists
+
+EGSI-M was introduced as a **tactical, fast-launch variant**:
+
+* Anchored to RERI_EU
+* Uses the existing alert engine
+* No dependency (initially) on structured storage/refill/weather data
+* Optimized for speed, daily cadence, and market sensitivity
+
+**EGSI-M was added as a tactical layer, not a replacement.**
+
+### The Clean Mental Model
+
+| Index | What It Is | Role |
+|-------|------------|------|
+| **EGSI-S** | The real Europe Gas Stress Index | Structural / institutional / licensing |
+| **EGSI-M** | Gas market-stress transmission indicator | Fast, reactive, trader-oriented |
+
+Or in one sentence:
+
+> **EGSI-S tells you how fragile the gas system is.**
+> **EGSI-M tells you how violently risk is transmitting today.**
+
+### Why EGSI-S Matters Most
+
+Everything in this document describes what:
+* Utilities
+* Policymakers
+* Procurement teams
+* Regulators
+* Serious institutional clients
+
+will ultimately care about.
+
+EGSI-S:
+* Is methodologically defensible
+* Is licensable
+* Can stand alone without GERI/RERI
+* Is what goes on a Methodology PDF and sells via API
+
+**EGSI-M cannot replace that — it complements it.**
+
+### Branding Options for EGSI-M
+
+Future naming considerations:
+* "EGSI-Market"
+* "EGSI Signal"
+* "EGSI Transmission Index"
+
+This is layering like an institutional platform would.
+
+---
+
+## 13. EGSI-S Core Formula
 
 ### Normalized Components
 
@@ -461,7 +534,7 @@ This gives 0–100 index.
 
 ---
 
-## 13. Component Computation (Engine Level)
+## 14. Component Computation (Engine Level)
 
 ### A) Supply Stress
 
@@ -507,7 +580,7 @@ P = min(1 , (EmergencyPolicyCount * 0.6 + MarketInterventionSeverity * 0.4))
 
 ---
 
-## 14. Categorization Bands
+## 15. Categorization Bands
 
 | Score | Band | Color |
 |-------|------|-------|
@@ -524,7 +597,7 @@ This aligns with:
 
 ---
 
-## 15. Monetization Strategy
+## 16. Monetization Strategy
 
 ### Public (Delayed, Marketing)
 
@@ -558,7 +631,7 @@ This is **index licensing territory**.
 
 ---
 
-## 16. Strategic Advantage
+## 17. Strategic Advantage
 
 ### Asset-Specific Authority
 
@@ -579,7 +652,7 @@ That's a **full institutional stack**.
 
 ---
 
-## 17. Recommendations
+## 18. Recommendations
 
 EGSI should be:
 * One of the first 3 branded indices

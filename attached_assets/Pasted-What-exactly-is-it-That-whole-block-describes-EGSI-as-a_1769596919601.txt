@@ -1,0 +1,112 @@
+What exactly is it?
+
+That whole block describes EGSI as a single, asset-specific system stress index:
+
+Measures physical + structural gas system stress
+
+Built on 5 pillars: Supply, Transit, Storage, Market, Policy
+
+Answers:
+“How close is Europe to a gas shock?”
+
+Sits cleanly in your original stack:
+
+GERI → Global macro risk
+RERI → Regional regime risk
+EGSI → Asset / system risk (gas)
+
+
+That is EGSI-S (System) — even though at that time we didn’t yet name it “-S”.
+
+So:
+
+🔹 This is not obsolete
+🔹 This is not contradicted
+🔹 This is still your flagship institutional index
+
+Why did EGSI-M appear later?
+
+Because of implementation reality, not because the concept changed.
+
+Later, when you asked:
+
+“Which should I implement first?”
+
+“How do I launch faster with what I already have?”
+
+We introduced EGSI-M (Market / Transmission) as a derived, fast-launch variant:
+
+Anchored to RERI_EU
+
+Uses your existing alert engine
+
+No dependency (initially) on structured storage/refill/weather data
+
+Optimized for speed, daily cadence, and market sensitivity
+
+👉 EGSI-M was added as a tactical layer, not a replacement.
+
+The clean mental model (this is the key)
+
+Think of it like this:
+
+Index	What it is	Role
+EGSI-S	The real Europe Gas Stress Index	Structural / institutional / licensing
+EGSI-M	Gas market-stress transmission indicator	Fast, reactive, trader-oriented
+
+Or in one sentence:
+
+EGSI-S tells you how fragile the gas system is.
+EGSI-M tells you how violently risk is transmitting today.
+
+Why the original description still matters most
+
+Everything you quoted is what:
+
+Utilities
+
+Policymakers
+
+Procurement teams
+
+Regulators
+
+Serious institutional clients
+
+will ultimately care about.
+
+That original EGSI:
+
+Is methodologically defensible
+
+Is licensable
+
+Can stand alone without GERI/RERI
+
+Is what you put on a Methodology PDF and sell via API
+
+EGSI-M cannot replace that — it complements it.
+
+Final verdict (no ambiguity)
+
+✅ The long description you pasted = EGSI-S (System)
+
+✅ It is exactly what EGSI was meant to be
+
+✅ It remains your flagship, long-term index
+
+➕ EGSI-M is an additional, tactical index you introduced later for speed and leverage
+
+If you want, next I can help you:
+
+Rename things cleanly in the UI so users never get confused
+
+Decide whether EGSI-M should be branded as:
+
+“EGSI-Market”
+
+“EGSI Signal”
+
+“EGSI Transmission Index”
+
+You’re not backtracking — you’re layering like an institutional platform would.
