@@ -20,7 +20,8 @@ LOCK_IDS = {
     'alerts_fanout': 2002,
     'pro_delivery': 3001,
     'geri_delivery': 3002,
-    'trader_delivery': 3003
+    'trader_delivery': 3003,
+    'egsi_compute': 4001,
 }
 
 
@@ -463,5 +464,68 @@ def run_trader_delivery(
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    return response
+
+
+@router.post("/run/egsi-compute")
+def run_egsi_compute(
+    target_date: Optional[str] = None,
+    force: bool = False,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Trigger EGSI-M (Europe Gas Stress Index - Market) computation.
+    
+    Should run AFTER EERI is computed since EGSI-M depends on RERI_EU.
+    Computes for yesterday by default, or a specific date if provided.
+    
+    Args:
+        target_date: Date to compute (YYYY-MM-DD format). Defaults to yesterday.
+        force: Whether to recompute if already exists.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.egsi.types import ENABLE_EGSI
+    from src.egsi.service import compute_egsi_m_for_date
+    
+    if not ENABLE_EGSI:
+        return {
+            "status": "skipped",
+            "message": "EGSI module is disabled (ENABLE_EGSI=false)"
+        }
+    
+    if target_date:
+        try:
+            compute_date = date.fromisoformat(target_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    else:
+        compute_date = date.today() - timedelta(days=1)
+    
+    def egsi_job():
+        result = compute_egsi_m_for_date(compute_date, save=True, force=force)
+        if result:
+            return {
+                'date': result.index_date.isoformat(),
+                'value': round(result.value, 2),
+                'band': result.band.value,
+                'trend_1d': result.trend_1d,
+                'computed': True,
+            }
+        else:
+            return {
+                'date': compute_date.isoformat(),
+                'computed': False,
+                'message': 'Computation skipped or failed (check if EERI exists for this date)',
+            }
+    
+    response, status_code = run_job_with_lock('egsi_compute', egsi_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
     
     return response
