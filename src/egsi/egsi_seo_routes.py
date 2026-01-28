@@ -697,7 +697,80 @@ async def egsi_daily_snapshot(date_str: str):
     
     egsi = get_egsi_m_by_date(target_date)
     if not egsi:
-        raise HTTPException(status_code=404, detail=f"No EGSI data for {date_str}")
+        date_display = target_date.strftime('%B %d, %Y')
+        adjacent = get_egsi_m_adjacent_dates(target_date)
+        
+        nav_links = []
+        if adjacent.get('prev'):
+            nav_links.append(f'<a href="/egsi/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>')
+        if adjacent.get('next'):
+            nav_links.append(f'<a href="/egsi/{adjacent["next"]}">{adjacent["next"]} &rarr;</a>')
+        nav_html = ' | '.join(nav_links) if nav_links else '<a href="/egsi/history">Browse History</a>'
+        
+        no_data_html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>EGSI {date_str} - No Data Available | EnergyRiskIQ</title>
+            <meta name="description" content="No Europe Gas Stress Index data available for {date_display}.">
+            <link rel="canonical" href="{BASE_URL}/egsi/{date_str}">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
+            {get_common_styles()}
+        </head>
+        <body>
+            <header>
+                <div class="container header-content">
+                    <a href="/" class="logo">
+                        <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                        EnergyRiskIQ
+                    </a>
+                    <nav>
+                        <a href="/eeri">EERI</a>
+                        <a href="/egsi">EGSI</a>
+                        <a href="/alerts">Alerts</a>
+                    </nav>
+                </div>
+            </header>
+            
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/egsi">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {date_str}
+                </div>
+                
+                <div class="index-display" style="margin-top: 40px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">📊</div>
+                    <h1 style="font-size: 1.8rem; margin-bottom: 15px;">No Data for {date_display}</h1>
+                    <p class="interpretation">
+                        The Europe Gas Stress Index was not computed for this date. 
+                        This may be because:
+                    </p>
+                    <ul style="text-align: left; max-width: 400px; margin: 20px auto; line-height: 1.8;">
+                        <li>The date is in the future</li>
+                        <li>It falls before EGSI tracking began</li>
+                        <li>No alerts were available for computation</li>
+                    </ul>
+                    <div style="margin-top: 30px;">
+                        {nav_html}
+                    </div>
+                </div>
+            </div>
+            
+            <footer>
+                <div class="container">
+                    <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
+                    <p style="margin-top: 10px;">
+                        <a href="/egsi">Current EGSI</a> | 
+                        <a href="/egsi/history">History</a> | 
+                        <a href="/egsi/methodology">Methodology</a>
+                    </p>
+                </div>
+            </footer>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=no_data_html)
     
     adjacent = get_egsi_m_adjacent_dates(target_date)
     
@@ -792,7 +865,66 @@ async def egsi_monthly_archive(year: int, month: int):
     
     data = get_egsi_m_monthly_data(year, month)
     if not data:
-        raise HTTPException(status_code=404, detail=f"No EGSI data for {month_name[month]} {year}")
+        month_label = f"{month_name[month]} {year}"
+        no_data_html = f"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>EGSI {month_label} - No Data Available | EnergyRiskIQ</title>
+            <meta name="description" content="No Europe Gas Stress Index data available for {month_label}.">
+            <link rel="canonical" href="{BASE_URL}/egsi/{year}/{month:02d}">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
+            {get_common_styles()}
+        </head>
+        <body>
+            <header>
+                <div class="container header-content">
+                    <a href="/" class="logo">
+                        <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
+                        EnergyRiskIQ
+                    </a>
+                    <nav>
+                        <a href="/eeri">EERI</a>
+                        <a href="/egsi">EGSI</a>
+                        <a href="/alerts">Alerts</a>
+                    </nav>
+                </div>
+            </header>
+            
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/egsi">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {month_label}
+                </div>
+                
+                <div class="index-display" style="margin-top: 40px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">📅</div>
+                    <h1 style="font-size: 1.8rem; margin-bottom: 15px;">No Data for {month_label}</h1>
+                    <p class="interpretation">
+                        No Europe Gas Stress Index data was recorded for this month.
+                        This may be because the month is in the future or before EGSI tracking began.
+                    </p>
+                    <div style="margin-top: 30px;">
+                        <a href="/egsi/history">Browse Available History</a>
+                    </div>
+                </div>
+            </div>
+            
+            <footer>
+                <div class="container">
+                    <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
+                    <p style="margin-top: 10px;">
+                        <a href="/egsi">Current EGSI</a> | 
+                        <a href="/egsi/history">History</a> | 
+                        <a href="/egsi/methodology">Methodology</a>
+                    </p>
+                </div>
+            </footer>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=no_data_html)
     
     month_label = f"{month_name[month]} {year}"
     
