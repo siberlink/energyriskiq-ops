@@ -289,4 +289,159 @@ When storage conditions are concerning:
 
 ---
 
+## 11. Strategic Vision: Europe Gas Stress Index
+
+> **Note:** This section outlines the future evolution of EGSI from a storage-focused index to a comprehensive multi-dimensional gas stress system.
+
+### Concept
+
+EGSI (Europe Gas Stress Index) measures:
+
+**"How stressed, fragile, and risk-exposed the European natural gas system is right now — across supply, transit, storage, prices, and geopolitics."**
+
+It answers one killer question:
+
+**"How close is Europe to a gas shock?"**
+
+This is extremely valuable for:
+- Gas traders
+- Utilities
+- Energy companies
+- Industrial buyers
+- Policymakers
+- Hedge funds
+
+### Positioning in EnergyRiskIQ Architecture
+
+In the index ecosystem:
+
+| Index | Scope |
+|-------|-------|
+| **GERI** | Global macro energy risk |
+| **RERI** | Regional multi-asset energy + geopolitical risk |
+| **EGSI** | Asset-specific system stress index |
+
+```
+EnergyRiskIQ
+ ├── GERI (Global)
+ ├── RERI (Regional)
+ └── EGSI (System / Asset level)
+```
+
+This creates a multi-layer risk stack: **Macro → Regional → Asset System**
+
+### Core Stress Pillars (Future Dimensions)
+
+EGSI v2 will be built from 5 stress pillars:
+
+#### A) Supply Stress (Weight ~25%)
+
+Measures how fragile supply is.
+
+**Inputs:**
+- LNG terminal outages / maintenance
+- Pipeline disruptions (Norway, Algeria, Russia residual flows)
+- Force majeure events
+- Export restrictions
+
+**Signals:**
+- Number of supply alerts
+- Severity of disruptions
+- % of EU supply affected
+
+#### B) Transit & Geopolitical Stress (Weight ~20%)
+
+Measures geopolitical and transit fragility.
+
+**Inputs:**
+- Ukraine transit risk
+- Black Sea / Turkey corridor risk
+- Middle East LNG tensions
+- Sanctions, threats, conflicts
+
+**Signals:**
+- High-impact geopolitical alerts
+- Transit-route mentions
+- Conflict proximity to infrastructure
+
+#### C) Storage Stress (Weight ~20%)
+
+*Currently implemented via GIE AGSI+ integration.*
+
+**Inputs:**
+- EU gas storage level vs seasonal norm
+- Refill speed
+- Winter deviation risk
+
+**Signals:**
+- Storage below seasonal percentile
+- Refill velocity slowing
+- Policy interventions
+
+#### D) Market Stress (Price & Volatility) (Weight ~20%)
+
+Measures how stressed markets already are.
+
+**Inputs:**
+- TTF volatility
+- Extreme daily moves
+- Backwardation / contango signals
+- Correlation with power prices
+
+**Signals:**
+- Volatility spikes
+- Price shock events
+- Market dislocations
+
+#### E) Policy & Regulation Stress (Weight ~15%)
+
+Very underused — but extremely valuable in Europe.
+
+**Inputs:**
+- Price caps
+- Emergency measures
+- Demand curtailments
+- Subsidies / rationing discussions
+
+**Signals:**
+- Policy alerts
+- Emergency declarations
+- Market interventions
+
+### EGSI v2 Output Format (Public-Facing)
+
+```
+Europe Gas Stress Index (EGSI)
+
+Current Level: 72 / 100  (HIGH STRESS)
+Trend: +8 vs 7-day average
+
+STRESS DRIVERS:
+- Supply fragility elevated (LNG outages, Norway maintenance)
+- Transit risk rising (Ukraine corridor uncertainty)
+- Storage below seasonal norm (-6%)
+
+SYSTEM STATUS:
+Supply:        HIGH
+Transit:       ELEVATED
+Storage:       ELEVATED
+Market:        HIGH
+Policy:        NORMAL
+
+INTERPRETATION:
+European gas system is under increasing stress. 
+High sensitivity to geopolitical or weather shocks.
+```
+
+This is professional, readable, and monetizable.
+
+---
+
+## Related Documents
+
+- [RERI/EERI Documentation](./reri.md) - Regional/Europe Energy Risk Index
+- [Indices Bible](./indices-bible.md) - Overall index strategy and access tiers
+
+---
+
 *Last updated: January 2026*
