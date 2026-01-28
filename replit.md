@@ -35,7 +35,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
   - **Chokepoints v1:** Versioned config of high-signal Europe gas infrastructure entities (Ukraine transit, TurkStream, Norway pipelines, major LNG terminals) used for ChokepointFactor calculation.
   - **API Endpoints:** `/api/v1/indices/egsi-m/public` (24h delayed), `/api/v1/indices/egsi-m/latest` (realtime), `/api/v1/indices/egsi-m/status`.
   - **Risk Bands:** LOW (0-20), NORMAL (21-40), ELEVATED (41-60), HIGH (61-80), CRITICAL (81-100).
-  - See `docs/EGSI.md` for complete specification.
+  - See `docs/EGSI.md` for specification and `docs/egsi-development.md` for development history.
 
 **System Design Choices:**
 - **Database:** PostgreSQL is used for persistence, with a structured schema for all core data.
