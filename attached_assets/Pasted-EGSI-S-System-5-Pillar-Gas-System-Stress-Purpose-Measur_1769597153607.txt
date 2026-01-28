@@ -1,0 +1,346 @@
+EGSI-S (System) — “5-Pillar Gas System Stress”
+
+Purpose: Measure physical + policy + market fragility of Europe’s gas system.
+Audience: utilities, risk teams, procurement, policymakers, serious traders.
+Core output: “How close is Europe to a gas shock?”
+
+A) Conceptual Model
+
+EGSI-S is a weighted blend of 5 normalized pillars (0–1):
+
+S Supply + T Transit/Geo + G Storage + M Market + P Policy
+
+EGSI_S = 100 * clamp(0.25*S + 0.20*T + 0.20*G + 0.20*M + 0.15*P)
+
+B) Data Inputs
+
+EGSI-S mixes two data types:
+
+1) Structured “state” data (recommended)
+
+These feed Storage + Market, and improve Supply/Transit:
+
+Storage level (EU % full, country % full)
+
+Seasonal norm / percentile (e.g., 5y/10y average or percentile band)
+
+Injection/withdrawal (refill speed)
+
+Weather risk proxy (HDD forecast anomalies, or “winter deviation risk” proxy)
+
+Market data (TTF spot/nearby, implied/realized vol, spreads if available)
+
+2) Your existing unstructured alert stream (already in your engine)
+
+These feed Supply/Transit/Policy and can also support Market:
+
+LNG terminal outages, maintenance, force majeure
+
+Pipeline disruptions, compressor outages
+
+Sanctions, conflict escalation, threats to transit routes
+
+Policy measures: caps, emergency declarations, rationing talk, subsidy shifts
+
+Market shock events: “TTF jumps X%”, “extreme volatility”
+
+C) Computation Architecture (EnergyRiskIQ-native)
+Layer 1 — Event ingestion
+
+RSS/news ingestion → ingestions
+
+Structured storage/market ingestion (daily) → signals_daily
+
+Layer 2 — Alert generation (you already have)
+
+Each news item becomes an alert with:
+
+region=Europe
+
+theme=gas
+
+category={energy, geopolitical, policy, market}
+
+severity, confidence
+
+extracted entities (country, asset, terminal, pipeline, hub)
+
+Layer 3 — Pillar aggregators (daily)
+
+Compute 5 pillar scores per day (0–1), then EGSI-S.
+
+Recommended internal objects:
+
+egsi_s_components_daily
+
+egsi_s_daily
+
+Layer 4 — Explanation engine (UI/SEO)
+
+For each pillar, attach:
+
+top drivers (top 3 alerts + top structured signals)
+
+interpretation line (1–2 sentences)
+
+D) Pillar Definitions (Practical, Implementable)
+1) Supply pillar (S)
+
+What it measures: EU supply fragility from outages/disruptions.
+
+Inputs:
+
+HighImpactSupplyAlerts (count weighted by severity*confidence)
+
+AffectedSupplyPercent (if you can estimate; else proxy by “major asset impacted”)
+
+Example implementation (your earlier concept):
+
+S = clamp01(0.6*HighImpactSupplyAlerts_norm + 0.4*AffectedSupplyPercent_norm)
+
+
+How to build HighImpactSupplyAlerts_norm:
+
+Filter alerts: theme=gas AND (lng OR norway OR algeria OR pipeline OR production OR outage)
+
+Score each: alert_score = severity * confidence * source_weight
+
+Daily sum → normalize with rolling window (e.g., 90d min/max or robust percentile)
+
+2) Transit/Geopolitical pillar (T)
+
+Measures: transit corridor risk (Ukraine, Black Sea, Turkey, Middle East LNG lanes).
+
+T = clamp01(0.5*TransitAlertCount_norm + 0.5*GeoSeverityMean_norm)
+
+
+TransitAlertCount_norm: alerts tagged with route/corridor entities
+
+GeoSeverityMean_norm: average severity*confidence of those alerts
+
+3) Storage pillar (G)
+
+Measures: storage below seasonal norm + refill underperformance.
+
+Let:
+
+D = max(0, (SeasonalNorm - CurrentStorageLevel) / SeasonalNorm)
+
+V = max(0, (ExpectedRefillRate - ActualRefillRate) / ExpectedRefillRate)
+
+G = clamp01(0.7*D + 0.3*V)
+
+
+Winter deviation risk (your key input):
+
+Add as an overlay factor to storage, not a separate pillar (cleaner):
+
+WinterRisk_norm derived from weather outlook anomalies + policy warnings + “cold snap” alert pressure
+
+then:
+
+G = clamp01(0.65*D + 0.25*V + 0.10*WinterRisk_norm)
+If you don’t have weather yet, you can proxy WinterRisk from news alerts for now.
+
+4) Market pillar (M)
+
+Measures: market stress (vol + shock).
+
+M = clamp01(0.6*Volatility_norm + 0.4*PriceShock_norm)
+
+
+Volatility_norm: realized volatility of TTF (rolling 7d/14d)
+
+PriceShock_norm: magnitude of daily move vs historical distribution
+
+5) Policy pillar (P)
+
+Measures: intervention risk (caps, emergency measures, rationing talk).
+
+P = clamp01(0.6*EmergencyPolicyCount_norm + 0.4*MarketInterventionSeverity_norm)
+
+E) EGSI-S UI Output
+
+EGSI-S number + band + trend
+
+5 mini-bars for pillars (S/T/G/M/P)
+
+“Drivers” list (alerts + structured stats)
+
+One “Interpretation” line
+
+Optional: “Sensitivity” note (high when G or T is high)
+
+EGSI-M (Market/Transmission) — “RERI-Anchored Gas Market Stress”
+
+Purpose: Measure gas market stress transmission inside your risk ecosystem.
+Audience: traders, market watchers, anyone already using RERI/GERI.
+
+Your formula:
+
+EGSI_M = 100 * clamp(
+  0.35*(RERI_EU/100) +
+  0.35*ThemePressure_EU_Gas_norm +
+  0.20*AssetTransmission_EU_Gas_norm +
+  0.10*ChokepointFactor_EU_Gas_norm
+)
+
+A) Conceptual Model
+
+EGSI-M is “gas stress as a function of”:
+
+broader Europe risk regime (RERI_EU)
+
+gas-specific pressure (ThemePressure)
+
+how strongly that pressure transmits into gas asset (AssetTransmission)
+
+chokepoint / corridor amplification (ChokepointFactor)
+
+It’s fast, alert-driven, and doesn’t require structured storage data to launch.
+
+B) What Each Component Means (and how to compute it)
+1) Anchor: RERI_EU
+
+Use your existing daily reri_eu (0–100)
+
+This gives regime context: “Europe already risky → gas stress amplifies”
+
+2) ThemePressure_EU_Gas_norm
+
+Definition: How intense are “gas-related” alerts today in Europe?
+
+Implementation:
+
+Filter alerts: region=Europe AND theme=gas
+
+Compute weighted sum:
+
+pressure_raw = Σ(severity * confidence * freshness_weight * source_weight)
+
+Normalize with rolling window → ThemePressure_norm in 0–1
+
+3) AssetTransmission_EU_Gas_norm
+
+Definition: How strongly do today’s Europe alerts imply a gas impact?
+
+Implementation idea (clean + consistent with your engine):
+
+For each EU alert (not only gas alerts), compute:
+
+impact_prob_gas from your classifier (0–1)
+
+impact_score = severity*confidence*impact_prob_gas
+
+Sum daily, normalize:
+
+high means “non-gas events are still bleeding into gas risk”
+
+This is what makes EGSI-M “market transmission,” not just “gas headlines volume.”
+
+4) ChokepointFactor_EU_Gas_norm
+
+Definition: Are key corridors/infra nodes implicated today?
+
+Corridor entity list (start minimal):
+
+Ukraine transit, TurkStream/Black Sea, LNG terminals (names), Norway pipelines, Algeria/Med pipelines
+
+Compute:
+
+choke_raw = Σ(severity*confidence) for alerts mentioning chokepoint entities
+
+Normalize 0–1
+
+C) EGSI-M Output
+
+EGSI-M number + band + trend
+
+“Top Gas Transmission Drivers” (top 3 alerts by impact_score)
+
+small badges:
+
+“Regime: RERI_EU high”
+
+“Transmission: strong/weak”
+
+“Chokepoint: active/quiet”
+
+Differentiation: EGSI-S vs EGSI-M
+
+Here’s the real difference in one view:
+
+1) What they measure
+
+EGSI-S (System): physical + structural stress (storage/refill/winter readiness + supply + policy + market)
+
+EGSI-M (Market): risk-signal transmission into gas (news/alerts regime + transmission + chokepoints)
+
+2) Data dependency
+
+EGSI-S: needs structured storage & refill data to be truly credible
+
+EGSI-M: can run today using your existing alerts + RERI
+
+3) Stability vs responsiveness
+
+EGSI-S: smoother, “stateful” (storage changes daily but not wildly)
+
+EGSI-M: reactive, can spike hard on breaking events
+
+4) Credibility to institutions
+
+EGSI-S: stronger for utilities/procurement/institutional licensing
+
+EGSI-M: stronger for traders / “market regime” watchers
+
+5) SEO angle
+
+EGSI-S: great for “EU gas storage stress / winter readiness” keywords
+
+EGSI-M: great for “gas risk index today / breaking risk” keywords
+
+6) Product fit inside EnergyRiskIQ
+
+EGSI-M: “child index” of your alert engine + RERI stack
+
+EGSI-S: “flagship system index” that can stand alone publicly
+
+Which one should you implement first?
+
+Implement EGSI-M first. ✅
+
+Why (practical + strategic):
+
+You can ship it immediately with your current alert pipeline + RERI_EU.
+
+It creates a gas-branded index fast (marketing + homepage card + daily cadence).
+
+It gives you daily history accumulation now, which is priceless.
+
+EGSI-S becomes your “v2 premium” once you ingest structured storage/refill/winter inputs reliably.
+
+Recommended rollout plan
+Phase 1 (now): EGSI-M
+
+Compute daily
+
+Publish delayed on homepage
+
+Show drivers + chokepoint badge
+
+Start accumulating history
+
+Phase 2 (next): EGSI-S “System”
+
+Add structured storage/refill pipeline
+
+Add winter deviation risk proxy (weather or model)
+
+Launch as “EGSI System Edition” for Pro + API
+
+Result: you end up with two indices that don’t cannibalize each other:
+
+EGSI-M = “today’s stress signal”
+
+EGSI-S = “system condition / winter readiness”
