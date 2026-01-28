@@ -1,26 +1,115 @@
-name: Daily GERI Computation
+name: Daily Index Computation (GERI + EERI + EGSI)
 
 on:
   schedule:
     - cron: '10 1 * * *'
   workflow_dispatch:
 
+env:
+  APP_URL: https://energy-risk-iq--emilsiberlink.replit.app
+
 jobs:
-  compute-geri:
+  compute-indices:
     runs-on: ubuntu-latest
     steps:
       - name: Compute GERI for yesterday
+        id: geri
         run: |
           echo "Computing GERI index for yesterday..."
-          response=$(curl -s -X POST "https://energy-risk-iq--emilsiberlink.replit.app/api/v1/indices/geri/compute-yesterday" \
+          response=$(curl -s -X POST "${{ env.APP_URL }}/api/v1/indices/geri/compute-yesterday" \
             -H "Content-Type: application/json")
           echo "Response: $response"
           
           if echo "$response" | grep -q '"success":true'; then
             echo "GERI computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
           elif echo "$response" | grep -q '"skipped":true'; then
             echo "GERI computation skipped (already exists)"
+            echo "status=skipped" >> $GITHUB_OUTPUT
           else
             echo "GERI computation may have failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
             exit 1
           fi
+
+      - name: Compute EERI for yesterday
+        id: eeri
+        if: always()
+        run: |
+          echo "Computing EERI index for yesterday..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/eeri-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "EERI computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::EERI computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute EGSI-M for yesterday
+        id: egsi_m
+        if: always()
+        run: |
+          echo "Computing EGSI-M (Market) index for yesterday..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "EGSI-M computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::EGSI-M computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute EGSI-S for yesterday
+        id: egsi_s
+        if: always()
+        run: |
+          echo "Computing EGSI-S (System) index for yesterday..."
+          echo "Using real AGSI+ storage data + OilPriceAPI TTF prices..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-s-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "EGSI-S computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::EGSI-S computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Daily Index Computation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Index | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| GERI | ${{ steps.geri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EERI | ${{ steps.eeri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EGSI-M | ${{ steps.egsi_m.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EGSI-S | ${{ steps.egsi_s.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
