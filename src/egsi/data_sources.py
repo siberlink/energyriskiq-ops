@@ -110,13 +110,13 @@ class AGSIPlusProvider(MarketDataProvider):
     
     AGSI+ provides EU-wide gas storage data.
     Website: https://agsi.gie.eu/
+    API Docs: https://www.gie.eu/transparency-platform/GIE_API_documentation_v007.pdf
     
-    NOTE: This is a placeholder for future implementation.
-    Requires AGSI_API_KEY environment variable.
+    Requires GIE_API_KEY or AGSI_API_KEY environment variable.
     """
     
     def __init__(self):
-        self.api_key = os.environ.get("AGSI_API_KEY")
+        self.api_key = os.environ.get("GIE_API_KEY") or os.environ.get("AGSI_API_KEY")
         self.base_url = "https://agsi.gie.eu/api"
     
     @property
@@ -125,22 +125,111 @@ class AGSIPlusProvider(MarketDataProvider):
     
     def get_snapshot(self, target_date: date) -> Optional[MarketDataSnapshot]:
         """
-        Fetch storage data from AGSI+.
-        
-        TODO: Implement actual API call when credentials are available.
+        Fetch storage data from AGSI+ for EU aggregate.
         """
         if not self.api_key:
-            logger.warning("AGSI+ API key not configured, falling back to mock data")
+            logger.warning("AGSI+ API key not configured (set GIE_API_KEY)")
             return None
         
-        logger.info(f"AGSI+ API call would be made for {target_date}")
-        return None
+        try:
+            import requests
+            
+            date_str = target_date.strftime("%Y-%m-%d")
+            url = f"{self.base_url}?country=eu&from={date_str}&to={date_str}&size=1"
+            
+            headers = {
+                "x-key": self.api_key,
+                "Accept": "application/json",
+            }
+            
+            logger.info(f"Fetching AGSI+ data for {date_str}...")
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if response.status_code == 401:
+                logger.error("AGSI+ API key is invalid or expired")
+                return None
+            
+            if response.status_code != 200:
+                logger.error(f"AGSI+ API error: {response.status_code} - {response.text[:200]}")
+                return None
+            
+            data = response.json()
+            
+            if not data.get("data"):
+                logger.warning(f"No AGSI+ data for {date_str}")
+                return None
+            
+            record = data["data"][0] if isinstance(data["data"], list) else data["data"]
+            
+            storage_pct = float(record.get("full", 0)) / 100.0
+            gas_in_storage = float(record.get("gasInStorage", 0))
+            working_capacity = float(record.get("workingGasVolume", 0))
+            injection = float(record.get("injection", 0))
+            withdrawal = float(record.get("withdrawal", 0))
+            net_flow = injection - withdrawal
+            
+            injection_rate = net_flow / working_capacity if working_capacity > 0 else 0.0
+            
+            month = target_date.month
+            if month in [4, 5, 6, 7, 8, 9]:
+                is_injection = True
+            else:
+                is_injection = False
+            
+            snapshot = MarketDataSnapshot(
+                data_date=target_date,
+                storage_level_pct=storage_pct,
+                storage_level_twh=gas_in_storage,
+                storage_capacity_twh=working_capacity,
+                injection_rate_twh=injection if injection > 0 else None,
+                withdrawal_rate_twh=withdrawal if withdrawal > 0 else None,
+                ttf_price=35.0,
+                ttf_price_ma7=35.0,
+                source="agsi_plus",
+            )
+            
+            logger.info(
+                f"AGSI+ data for {date_str}: "
+                f"Storage={storage_pct*100:.1f}%, "
+                f"GasInStorage={gas_in_storage:.1f} GWh, "
+                f"InjectionRate={injection_rate:.3f}"
+            )
+            
+            return snapshot
+            
+        except Exception as e:
+            logger.error(f"AGSI+ API error: {e}")
+            return None
+    
+    def _get_seasonal_target(self, target_date: date) -> float:
+        """Get the seasonal storage target."""
+        month = target_date.month
+        day = target_date.day
+        
+        if month == 11 and day >= 1:
+            return 0.90
+        elif month in [12, 1, 2]:
+            return 0.90 - ((month - 11) % 12) * 0.15
+        elif month in [3, 4, 5]:
+            return 0.30
+        elif month in [6, 7, 8]:
+            return 0.50
+        elif month in [9, 10]:
+            return 0.80
+        return 0.50
     
     def get_history(self, days: int = 7) -> List[MarketDataSnapshot]:
         """Fetch historical storage data."""
         if not self.api_key:
             return []
-        return []
+        
+        results = []
+        today = date.today()
+        for i in range(days):
+            snapshot = self.get_snapshot(today - timedelta(days=i))
+            if snapshot:
+                results.append(snapshot)
+        return results
 
 
 class TTFPriceProvider(MarketDataProvider):
@@ -192,7 +281,7 @@ class CompositeMarketDataProvider(MarketDataProvider):
     def __init__(self):
         self.providers = []
         
-        if os.environ.get("AGSI_API_KEY"):
+        if os.environ.get("GIE_API_KEY") or os.environ.get("AGSI_API_KEY"):
             self.providers.append(AGSIPlusProvider())
         if os.environ.get("TTF_PRICE_API_KEY"):
             self.providers.append(TTFPriceProvider())
