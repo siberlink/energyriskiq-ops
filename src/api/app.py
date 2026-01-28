@@ -30,6 +30,7 @@ from src.reri.routes import router as eeri_router
 from src.reri.seo_routes import router as eeri_seo_router
 from src.egsi.types import ENABLE_EGSI
 from src.egsi.routes import router as egsi_router
+from src.egsi.egsi_seo_routes import router as egsi_seo_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -147,6 +148,7 @@ if ENABLE_EERI:
 
 if ENABLE_EGSI:
     app.include_router(egsi_router)
+    app.include_router(egsi_seo_router)
     logger.info("EGSI module enabled - routes registered")
 
 @app.on_event("startup")

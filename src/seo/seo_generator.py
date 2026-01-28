@@ -931,6 +931,53 @@ def generate_sitemap_entries() -> List[Dict]:
     except Exception:
         pass
     
+    try:
+        from src.egsi.egsi_history_service import get_all_egsi_m_dates, get_egsi_m_available_months
+        
+        entries.append({
+            'loc': '/egsi',
+            'priority': '0.9',
+            'changefreq': 'daily',
+            'lastmod': today
+        })
+        
+        entries.append({
+            'loc': '/egsi/methodology',
+            'priority': '0.8',
+            'changefreq': 'monthly',
+            'lastmod': today
+        })
+        
+        egsi_dates = get_all_egsi_m_dates()
+        egsi_months = get_egsi_m_available_months()
+        
+        latest_egsi_date = egsi_dates[0] if egsi_dates else today
+        entries.append({
+            'loc': '/egsi/history',
+            'priority': '0.8',
+            'changefreq': 'daily',
+            'lastmod': latest_egsi_date
+        })
+        
+        for m in egsi_months:
+            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
+            entries.append({
+                'loc': f"/egsi/{m['year']}/{m['month']:02d}",
+                'priority': '0.7',
+                'changefreq': 'weekly',
+                'lastmod': max_date if isinstance(max_date, str) else max_date
+            })
+        
+        for egsi_date in egsi_dates:
+            entries.append({
+                'loc': f"/egsi/{egsi_date}",
+                'priority': '0.8',
+                'changefreq': 'never',
+                'lastmod': egsi_date
+            })
+    except Exception:
+        pass
+    
     months = get_available_months()
     for m in months:
         max_date = m.get('max_date')

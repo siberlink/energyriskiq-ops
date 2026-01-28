@@ -184,25 +184,72 @@ Workflow step:
 
 ---
 
-## Future Development: EGSI-S (System Index)
+## EGSI-S (System Index) - IMPLEMENTED
 
-EGSI-S is planned to measure storage/refill/winter stress signals. Key considerations:
+EGSI-S measures storage/refill/winter stress signals using a pluggable data source architecture.
 
-1. **Data Sources Needed:**
-   - TTF (Title Transfer Facility) gas prices
-   - EU gas storage levels (AGSI+ data)
-   - Seasonal demand forecasts
+### Formula
 
-2. **Proposed Formula Components:**
-   - Storage level vs. seasonal target
-   - Price volatility (TTF day-ahead)
-   - Injection/withdrawal rates
-   - Winter preparedness metrics
+```
+EGSI-S = 100 × (
+    0.25 × SupplyPressure +
+    0.20 × TransitStress +
+    0.20 × StorageStress +
+    0.20 × PriceVolatility +
+    0.15 × PolicyRisk
+)
+```
 
-3. **Implementation Notes:**
-   - TTF market data integration is pluggable in compute.py
-   - Separate table `egsi_s_daily` should be created
-   - May require external API integration for real-time storage data
+### Components
+
+| Component | Weight | Description |
+|-----------|--------|-------------|
+| Supply (Winter Readiness) | 25% | Readiness for winter heating season |
+| Transit (Injection Stress) | 20% | Injection/withdrawal rate stress |
+| Storage | 20% | Storage level vs seasonal targets |
+| Market (Price Volatility) | 20% | TTF price volatility |
+| Policy (Alert Pressure) | 15% | Supply-related alert pressure |
+
+### Data Sources
+
+The EGSI-S module uses a **pluggable data source architecture**:
+
+- **Mock Provider (default):** Synthetic data based on seasonal patterns
+- **AGSI+ Provider (planned):** Real EU gas storage data from agsi.gie.eu
+- **TTF Price Provider (planned):** Real gas prices from ICE/EEX
+
+Configure via environment variables:
+- `EGSI_S_DATA_SOURCE`: "mock", "agsi", "ttf", or "composite"
+- `AGSI_API_KEY`: API key for AGSI+ (when using real data)
+- `TTF_PRICE_API_KEY`: API key for TTF prices (when using real data)
+
+### Database Schema
+
+**egsi_s_daily** table:
+- `index_date`, `region`, `index_value`, `band`
+- `trend_1d`, `trend_7d`
+- `components_json` (JSONB)
+- `data_sources` (TEXT[])
+- `model_version` (egsi_s_v1)
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/indices/egsi-s/status` | GET | Module status and data source info |
+| `/api/v1/indices/egsi-s/latest` | GET | Latest EGSI-S value |
+| `/api/v1/indices/egsi-s/history` | GET | Historical EGSI-S data |
+| `/api/v1/indices/egsi-s/compute` | POST | Trigger computation |
+| `/api/v1/indices/egsi-s/{date}` | GET | Get data for specific date |
+
+### Seasonal Storage Targets
+
+| Season | Target | Description |
+|--------|--------|-------------|
+| Winter Start (Nov 1) | 90% | EU mandate for heating season |
+| Spring (Mar-May) | 30% | Post-winter low point |
+| Summer (Jun-Aug) | 50% | Mid-injection season |
+| Autumn (Sep-Oct) | 80% | Pre-winter buildup |
 
 ---
 
@@ -236,7 +283,15 @@ EGSI-S is planned to measure storage/refill/winter stress signals. Key considera
 | Date | Change |
 |------|--------|
 | 2026-01-28 | Initial EGSI-M implementation complete |
-| 2026-01-28 | Created 5 database tables |
+| 2026-01-28 | Created 5 database tables for EGSI-M |
 | 2026-01-28 | Integrated into alerts-engine-v2.yml workflow |
-| 2026-01-28 | Tested computation for 2026-01-25 (value: 0, band: LOW) |
-| 2026-01-28 | Architect review passed |
+| 2026-01-28 | Tested EGSI-M computation for 2026-01-25 (value: 0, band: LOW) |
+| 2026-01-28 | Architect review passed for EGSI-M |
+| 2026-01-28 | Added regression tests for EGSI endpoints (9 tests passing) |
+| 2026-01-28 | Created EGSI SEO pages (main, methodology, history, daily, monthly) |
+| 2026-01-28 | Added EGSI pages to sitemap.xml and sitemap.html |
+| 2026-01-28 | Implemented EGSI-S with pluggable data source architecture |
+| 2026-01-28 | Created data_sources.py with Mock, AGSI+, and TTF providers |
+| 2026-01-28 | Added EGSI-S database table (egsi_s_daily) |
+| 2026-01-28 | Added EGSI-S API endpoints (status, latest, history, compute, date) |
+| 2026-01-28 | Tested EGSI-S computation for 2026-01-25 (value: 2.8, band: LOW with mock data) |

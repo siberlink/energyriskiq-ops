@@ -1284,6 +1284,9 @@ async def sitemap_html():
                     <li><a href="/eeri">European Energy Risk Index (EERI)</a></li>
                     <li><a href="/eeri/methodology">EERI Methodology</a></li>
                     <li><a href="/eeri/history">EERI History</a></li>
+                    <li><a href="/egsi">Europe Gas Stress Index (EGSI)</a></li>
+                    <li><a href="/egsi/methodology">EGSI Methodology</a></li>
+                    <li><a href="/egsi/history">EGSI History</a></li>
                     <li><a href="/alerts">Alerts Hub</a></li>
                     <li><a href="/users">Sign Up / Login</a></li>
                     <li><a href="/privacy">Privacy Policy</a></li>

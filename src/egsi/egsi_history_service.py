@@ -1,0 +1,348 @@
+"""
+EGSI History Service
+
+Provides functions for retrieving historical EGSI-M data for SEO pages.
+"""
+import logging
+from datetime import date, datetime, timedelta
+from typing import Optional, List, Dict, Any
+import json
+
+from src.db.db import get_cursor
+from src.egsi.types import EGSI_M_INDEX_ID
+
+logger = logging.getLogger(__name__)
+
+
+def get_all_egsi_m_dates() -> List[str]:
+    """
+    Get all dates that have EGSI-M snapshots.
+    Returns list of ISO date strings in descending order.
+    """
+    query = """
+        SELECT DISTINCT index_date
+        FROM egsi_m_daily
+        ORDER BY index_date DESC
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+        return [row['index_date'].isoformat() if hasattr(row['index_date'], 'isoformat') else str(row['index_date']) for row in rows]
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M dates: {e}")
+        return []
+
+
+def get_egsi_m_available_months() -> List[Dict[str, Any]]:
+    """
+    Get all available months that have EGSI-M data.
+    Returns list of {year, month, count, max_date} dicts.
+    """
+    query = """
+        SELECT 
+            EXTRACT(YEAR FROM index_date)::int as year,
+            EXTRACT(MONTH FROM index_date)::int as month,
+            COUNT(*) as count,
+            MAX(index_date) as max_date
+        FROM egsi_m_daily
+        GROUP BY EXTRACT(YEAR FROM index_date), EXTRACT(MONTH FROM index_date)
+        ORDER BY year DESC, month DESC
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+        result = []
+        for row in rows:
+            max_date = row['max_date']
+            if hasattr(max_date, 'isoformat'):
+                max_date = max_date.isoformat()
+            result.append({
+                'year': row['year'],
+                'month': row['month'],
+                'count': row['count'],
+                'max_date': max_date,
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M months: {e}")
+        return []
+
+
+def get_egsi_m_by_date(target_date: date) -> Optional[Dict[str, Any]]:
+    """
+    Get EGSI-M snapshot for a specific date.
+    Returns dict with value, band, trend, explanation, components.
+    """
+    query = """
+        SELECT 
+            index_date, index_value, band, trend_1d, trend_7d,
+            explanation, model_version, computed_at
+        FROM egsi_m_daily
+        WHERE index_date = %s
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query, (target_date,))
+            row = cursor.fetchone()
+        
+        if not row:
+            return None
+        
+        components = get_egsi_m_components_for_date(target_date)
+        drivers = get_egsi_m_drivers_for_date(target_date)
+        
+        return {
+            'date': row['index_date'].isoformat() if hasattr(row['index_date'], 'isoformat') else str(row['index_date']),
+            'value': float(row['index_value']) if row['index_value'] else 0,
+            'band': row['band'],
+            'trend_1d': float(row['trend_1d']) if row['trend_1d'] else None,
+            'trend_7d': float(row['trend_7d']) if row['trend_7d'] else None,
+            'explanation': row['explanation'],
+            'components': components,
+            'drivers': drivers,
+            'model_version': row['model_version'],
+        }
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M for {target_date}: {e}")
+        return None
+
+
+def get_egsi_m_components_for_date(target_date: date) -> Dict[str, Any]:
+    """Get EGSI-M component breakdown for a date."""
+    query = """
+        SELECT component_data
+        FROM egsi_components_daily
+        WHERE index_date = %s AND index_family = 'EGSI_M'
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query, (target_date,))
+            row = cursor.fetchone()
+        
+        if not row:
+            return {}
+        
+        data = row['component_data']
+        if isinstance(data, str):
+            return json.loads(data)
+        return data if isinstance(data, dict) else {}
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M components for {target_date}: {e}")
+        return {}
+
+
+def get_egsi_m_drivers_for_date(target_date: date) -> List[Dict[str, Any]]:
+    """Get EGSI-M top drivers for a date."""
+    query = """
+        SELECT driver_name, driver_type, contribution, details
+        FROM egsi_drivers_daily
+        WHERE index_date = %s AND index_family = 'EGSI_M'
+        ORDER BY contribution DESC
+        LIMIT 5
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query, (target_date,))
+            rows = cursor.fetchall()
+        
+        result = []
+        for row in rows:
+            details = row['details']
+            if isinstance(details, str):
+                details = json.loads(details)
+            result.append({
+                'name': row['driver_name'],
+                'type': row['driver_type'],
+                'contribution': float(row['contribution']) if row['contribution'] else 0,
+                'details': details if isinstance(details, dict) else {},
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M drivers for {target_date}: {e}")
+        return []
+
+
+def get_egsi_m_monthly_data(year: int, month: int) -> List[Dict[str, Any]]:
+    """
+    Get all EGSI-M data for a specific month.
+    Returns list of dicts with date, value, band, trend.
+    """
+    query = """
+        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation
+        FROM egsi_m_daily
+        WHERE EXTRACT(YEAR FROM index_date) = %s
+          AND EXTRACT(MONTH FROM index_date) = %s
+        ORDER BY index_date DESC
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query, (year, month))
+            rows = cursor.fetchall()
+        
+        result = []
+        for row in rows:
+            result.append({
+                'date': row['index_date'].isoformat() if hasattr(row['index_date'], 'isoformat') else str(row['index_date']),
+                'value': float(row['index_value']) if row['index_value'] else 0,
+                'band': row['band'],
+                'trend_1d': float(row['trend_1d']) if row['trend_1d'] else None,
+                'trend_7d': float(row['trend_7d']) if row['trend_7d'] else None,
+                'explanation': row['explanation'],
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M monthly data for {year}-{month}: {e}")
+        return []
+
+
+def get_egsi_m_adjacent_dates(target_date: date) -> Dict[str, Optional[str]]:
+    """
+    Get previous and next dates with EGSI-M data relative to target_date.
+    Returns dict with 'prev' and 'next' date strings.
+    """
+    prev_query = """
+        SELECT MAX(index_date) as prev_date
+        FROM egsi_m_daily
+        WHERE index_date < %s
+    """
+    next_query = """
+        SELECT MIN(index_date) as next_date
+        FROM egsi_m_daily
+        WHERE index_date > %s
+    """
+    result = {'prev': None, 'next': None}
+    
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(prev_query, (target_date,))
+            row = cursor.fetchone()
+            if row and row['prev_date']:
+                prev_date = row['prev_date']
+                result['prev'] = prev_date.isoformat() if hasattr(prev_date, 'isoformat') else str(prev_date)
+            
+            cursor.execute(next_query, (target_date,))
+            row = cursor.fetchone()
+            if row and row['next_date']:
+                next_date = row['next_date']
+                result['next'] = next_date.isoformat() if hasattr(next_date, 'isoformat') else str(next_date)
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M adjacent dates: {e}")
+    
+    return result
+
+
+def get_egsi_m_monthly_stats() -> List[Dict[str, Any]]:
+    """
+    Get monthly statistics for EGSI-M (avg, max, min values per month).
+    """
+    query = """
+        SELECT 
+            EXTRACT(YEAR FROM index_date)::int as year,
+            EXTRACT(MONTH FROM index_date)::int as month,
+            COUNT(*) as count,
+            AVG(index_value)::numeric(5,2) as avg_value,
+            MAX(index_value) as max_value,
+            MIN(index_value) as min_value
+        FROM egsi_m_daily
+        GROUP BY EXTRACT(YEAR FROM index_date), EXTRACT(MONTH FROM index_date)
+        ORDER BY year DESC, month DESC
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+        
+        result = []
+        for row in rows:
+            result.append({
+                'year': row['year'],
+                'month': row['month'],
+                'count': row['count'],
+                'avg_value': float(row['avg_value']) if row['avg_value'] else 0,
+                'max_value': float(row['max_value']) if row['max_value'] else 0,
+                'min_value': float(row['min_value']) if row['min_value'] else 0,
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching EGSI-M monthly stats: {e}")
+        return []
+
+
+def get_egsi_m_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
+    """
+    Get EGSI-M data with a delay for public display.
+    Returns the most recent EGSI-M that is at least delay_hours old.
+    """
+    delay_cutoff = datetime.utcnow() - timedelta(hours=delay_hours)
+    
+    query = """
+        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation
+        FROM egsi_m_daily
+        WHERE computed_at <= %s
+        ORDER BY index_date DESC
+        LIMIT 1
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query, (delay_cutoff,))
+            row = cursor.fetchone()
+        
+        if not row:
+            return None
+        
+        target_date = row['index_date']
+        components = get_egsi_m_components_for_date(target_date)
+        drivers = get_egsi_m_drivers_for_date(target_date)
+        
+        return {
+            'date': row['index_date'].isoformat() if hasattr(row['index_date'], 'isoformat') else str(row['index_date']),
+            'value': float(row['index_value']) if row['index_value'] else 0,
+            'band': row['band'],
+            'trend_1d': float(row['trend_1d']) if row['trend_1d'] else None,
+            'trend_7d': float(row['trend_7d']) if row['trend_7d'] else None,
+            'explanation': row['explanation'],
+            'components': components,
+            'drivers': drivers,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching delayed EGSI-M: {e}")
+        return None
+
+
+def get_latest_egsi_m_public() -> Optional[Dict[str, Any]]:
+    """
+    Get the latest EGSI-M data for public display (fallback when no delayed data).
+    """
+    query = """
+        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation
+        FROM egsi_m_daily
+        ORDER BY index_date DESC
+        LIMIT 1
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query)
+            row = cursor.fetchone()
+        
+        if not row:
+            return None
+        
+        target_date = row['index_date']
+        components = get_egsi_m_components_for_date(target_date)
+        drivers = get_egsi_m_drivers_for_date(target_date)
+        
+        return {
+            'date': row['index_date'].isoformat() if hasattr(row['index_date'], 'isoformat') else str(row['index_date']),
+            'value': float(row['index_value']) if row['index_value'] else 0,
+            'band': row['band'],
+            'trend_1d': float(row['trend_1d']) if row['trend_1d'] else None,
+            'trend_7d': float(row['trend_7d']) if row['trend_7d'] else None,
+            'explanation': row['explanation'],
+            'components': components,
+            'drivers': drivers,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching latest EGSI-M: {e}")
+        return None

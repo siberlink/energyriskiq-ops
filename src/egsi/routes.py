@@ -15,8 +15,12 @@ from src.egsi.repo import (
     get_egsi_m_latest,
     get_egsi_m_delayed,
     get_egsi_m_history,
+    get_egsi_s_for_date,
+    get_egsi_s_latest,
+    get_egsi_s_history,
 )
 from src.egsi.service import compute_egsi_m_for_date, get_egsi_m_status
+from src.egsi.service_egsi_s import compute_egsi_s_for_date, get_egsi_s_status
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +191,40 @@ async def get_egsi_m_status_endpoint():
     }
 
 
+@router.get("/egsi-m/history")
+async def get_egsi_m_history_list(
+    days: int = Query(30, description="Number of days of history (default 30)")
+):
+    """
+    Get EGSI-M index history as a list.
+    """
+    check_enabled()
+    
+    history = get_egsi_m_history(days=days)
+    
+    if not history:
+        return {
+            'success': True,
+            'count': 0,
+            'data': [],
+        }
+    
+    return {
+        'success': True,
+        'count': len(history),
+        'data': [
+            {
+                'date': h.get('date').isoformat() if h.get('date') else None,
+                'value': h.get('value'),
+                'band': h.get('band'),
+                'trend_1d': h.get('trend_1d'),
+                'trend_7d': h.get('trend_7d'),
+            }
+            for h in history
+        ],
+    }
+
+
 @router.get("/egsi-m/{target_date}")
 async def get_egsi_m_by_date(target_date: str):
     """
@@ -208,6 +246,130 @@ async def get_egsi_m_by_date(target_date: str):
         raise HTTPException(
             status_code=404,
             detail=f"No EGSI-M data for {target_date}"
+        )
+    
+    return {
+        'success': True,
+        'data': result,
+    }
+
+
+@router.get("/egsi-s/status")
+async def get_egsi_s_status_endpoint():
+    """
+    Get EGSI-S module status for health checks.
+    """
+    status = get_egsi_s_status()
+    
+    return {
+        'success': True,
+        **status,
+    }
+
+
+@router.get("/egsi-s/latest")
+async def get_egsi_s_latest_endpoint():
+    """
+    Get the latest EGSI-S index value.
+    """
+    check_enabled()
+    
+    result = get_egsi_s_latest()
+    
+    if not result:
+        return {
+            'success': False,
+            'message': 'No EGSI-S data available yet. Computation requires external market data.',
+            'data': None,
+        }
+    
+    return {
+        'success': True,
+        'data': result,
+    }
+
+
+@router.get("/egsi-s/history")
+async def get_egsi_s_history_endpoint(
+    days: int = Query(30, description="Number of days of history")
+):
+    """
+    Get EGSI-S index history.
+    """
+    check_enabled()
+    
+    history = get_egsi_s_history(days=days)
+    
+    return {
+        'success': True,
+        'count': len(history),
+        'data': [
+            {
+                'date': h.get('date').isoformat() if h.get('date') else None,
+                'value': h.get('value'),
+                'band': h.get('band'),
+                'trend_1d': h.get('trend_1d'),
+                'trend_7d': h.get('trend_7d'),
+            }
+            for h in history
+        ],
+    }
+
+
+@router.post("/egsi-s/compute")
+async def compute_egsi_s_endpoint(request: ComputeRequest):
+    """
+    Trigger EGSI-S computation for a specific date.
+    
+    Note: EGSI-S uses mock data by default. Set EGSI_S_DATA_SOURCE environment
+    variable to "agsi" or "ttf" with appropriate API keys for real data.
+    """
+    check_enabled()
+    
+    try:
+        target_date = date.fromisoformat(request.date)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid date format. Use YYYY-MM-DD."
+        )
+    
+    result = compute_egsi_s_for_date(target_date, force=request.force)
+    
+    if not result:
+        return {
+            'success': False,
+            'message': f'EGSI-S computation failed or skipped for {request.date}.',
+        }
+    
+    return {
+        'success': True,
+        'message': f'EGSI-S computed for {request.date}',
+        'data': result.to_dict(),
+    }
+
+
+@router.get("/egsi-s/{target_date}")
+async def get_egsi_s_by_date(target_date: str):
+    """
+    Get EGSI-S index for a specific date.
+    """
+    check_enabled()
+    
+    try:
+        dt = date.fromisoformat(target_date)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid date format. Use YYYY-MM-DD."
+        )
+    
+    result = get_egsi_s_for_date(dt)
+    
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No EGSI-S data for {target_date}"
         )
     
     return {
