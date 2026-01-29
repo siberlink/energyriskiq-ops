@@ -23,6 +23,8 @@ LOCK_IDS = {
     'trader_delivery': 3003,
     'egsi_compute': 4001,
     'backfill_snapshots': 5001,
+    'backfill_egsi': 5002,
+    'calculate_oil_changes': 5003,
 }
 
 
