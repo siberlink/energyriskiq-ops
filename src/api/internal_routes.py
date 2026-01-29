@@ -694,3 +694,48 @@ def run_calculate_oil_changes(
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+@router.post("/run/backfill-egsi")
+def run_backfill_egsi(
+    days: int = 15,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill EGSI-M and EGSI-S indices for the specified number of days.
+    
+    Computes both indices using existing gas_storage_snapshots, alert_events,
+    and RERI data. Uses force=True to overwrite existing records.
+    
+    Args:
+        days: Number of days to backfill (default 15)
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.scripts.backfill_snapshots import backfill_egsi_indices
+    
+    def backfill_job():
+        end_date = date.today() - timedelta(days=1)
+        start_date = end_date - timedelta(days=days - 1)
+        
+        logger.info(f"Starting EGSI backfill from {start_date} to {end_date}")
+        results = backfill_egsi_indices(start_date, end_date)
+        
+        return {
+            "status": "success",
+            "start_date": str(start_date),
+            "end_date": str(end_date),
+            "egsi_m": results["egsi_m"],
+            "egsi_s": results["egsi_s"],
+            "dates_processed": len(results["dates_processed"])
+        }
+    
+    response, status_code = run_job_with_lock('backfill_egsi', backfill_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response

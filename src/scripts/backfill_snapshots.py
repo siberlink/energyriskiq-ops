@@ -335,6 +335,59 @@ def backfill_date_range(start_date: date, end_date: date) -> Dict[str, Any]:
     return results
 
 
+def backfill_egsi_indices(start_date: date, end_date: date) -> Dict[str, Any]:
+    """
+    Backfill EGSI-M and EGSI-S indices for a date range.
+    
+    EGSI-M requires: EERI data + alert events
+    EGSI-S requires: gas storage data + TTF prices + alert events
+    
+    Returns:
+        Dict with status and counts for each index.
+    """
+    from src.egsi.service import compute_egsi_m_for_date
+    from src.egsi.service_egsi_s import compute_egsi_s_for_date
+    
+    results = {
+        "egsi_m": {"success": 0, "failed": 0, "skipped": 0},
+        "egsi_s": {"success": 0, "failed": 0, "skipped": 0},
+        "dates_processed": []
+    }
+    
+    current = start_date
+    while current <= end_date:
+        logger.info(f"Backfilling EGSI indices for {current}...")
+        results["dates_processed"].append(str(current))
+        
+        try:
+            m_result = compute_egsi_m_for_date(current, save=True, force=True)
+            if m_result:
+                results["egsi_m"]["success"] += 1
+                logger.info(f"  EGSI-M: {m_result.value:.1f} ({m_result.band.value})")
+            else:
+                results["egsi_m"]["skipped"] += 1
+                logger.info(f"  EGSI-M: skipped (no data or disabled)")
+        except Exception as e:
+            results["egsi_m"]["failed"] += 1
+            logger.error(f"  EGSI-M failed: {e}")
+        
+        try:
+            s_result = compute_egsi_s_for_date(current, save=True, force=True)
+            if s_result:
+                results["egsi_s"]["success"] += 1
+                logger.info(f"  EGSI-S: {s_result.value:.1f} ({s_result.band.value})")
+            else:
+                results["egsi_s"]["skipped"] += 1
+                logger.info(f"  EGSI-S: skipped (no data or disabled)")
+        except Exception as e:
+            results["egsi_s"]["failed"] += 1
+            logger.error(f"  EGSI-S failed: {e}")
+        
+        current += timedelta(days=1)
+    
+    return results
+
+
 def calculate_oil_price_changes() -> Dict[str, Any]:
     """
     Calculate 24h changes for oil price snapshots by comparing consecutive days.

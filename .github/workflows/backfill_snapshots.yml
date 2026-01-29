@@ -11,6 +11,7 @@ on:
         options:
           - backfill
           - calculate_changes
+          - backfill_egsi
       days:
         description: 'Number of days to backfill (only for backfill action)'
         required: false
@@ -106,5 +107,51 @@ jobs:
           echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Action | calculate_changes |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.calculate.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+
+  backfill_egsi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.event.inputs.action == 'backfill_egsi' }}
+    
+    steps:
+      - name: Backfill EGSI-M and EGSI-S Indices
+        id: backfill_egsi
+        run: |
+          echo "Backfilling EGSI indices for ${{ github.event.inputs.days }} days..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/backfill-egsi?days=${{ github.event.inputs.days }}" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::EGSI backfill failed with HTTP $http_code"
+            exit 1
+          fi
+          
+          echo "EGSI backfill completed successfully!"
+          echo "$body" | jq .
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Backfill EGSI Indices Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | backfill_egsi |" >> $GITHUB_STEP_SUMMARY
+          echo "| Days | ${{ github.event.inputs.days }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.backfill_egsi.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
