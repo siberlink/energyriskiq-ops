@@ -379,6 +379,8 @@ class DatabaseStorageProvider(MarketDataProvider):
         """
         Fetch storage data from gas_storage_snapshots for a specific date.
         """
+        import json
+        
         try:
             with get_cursor() as cursor:
                 cursor.execute("""
@@ -396,10 +398,13 @@ class DatabaseStorageProvider(MarketDataProvider):
                 storage_pct = float(row['eu_storage_percent']) / 100.0 if row['eu_storage_percent'] else 0.75
                 
                 raw_data = row.get('raw_data') or {}
-                gas_in_storage = raw_data.get('gasInStorage', 0)
-                working_capacity = raw_data.get('workingGasVolume', 0)
-                injection = raw_data.get('injection', 0)
-                withdrawal = raw_data.get('withdrawal', 0)
+                if isinstance(raw_data, str):
+                    raw_data = json.loads(raw_data)
+                
+                gas_in_storage = raw_data.get('gas_in_storage_twh') or raw_data.get('gasInStorage', 0)
+                working_capacity = raw_data.get('working_gas_volume_twh') or raw_data.get('workingGasVolume', 0)
+                injection = raw_data.get('injection_twh') or raw_data.get('injection', 0)
+                withdrawal = raw_data.get('withdrawal_twh') or raw_data.get('withdrawal', 0)
                 
                 snapshot = MarketDataSnapshot(
                     data_date=target_date,
