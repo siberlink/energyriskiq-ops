@@ -104,13 +104,9 @@ def fetch_eu_storage_data(date_str: Optional[str] = None) -> Optional[Dict[str, 
         Dict with EU storage data or None on error.
     """
     if not date_str:
-        date_str = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
-    
-    params = {
-        "from": date_str,
-        "to": date_str,
-        "size": 1
-    }
+        params = None
+    else:
+        params = {"date": date_str}
     
     data = _make_api_request("eu", params)
     
@@ -139,9 +135,10 @@ def fetch_eu_storage_data(date_str: Optional[str] = None) -> Optional[Dict[str, 
 def fetch_country_storage_data(country_code: str, date_str: Optional[str] = None) -> Optional[Dict]:
     """Fetch storage data for a specific country."""
     if not date_str:
-        date_str = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+        params = None
+    else:
+        params = {"date": date_str}
     
-    params = {"from": date_str, "to": date_str, "size": 1}
     data = _make_api_request(country_code.lower(), params)
     
     if not data or "data" not in data:
@@ -164,29 +161,25 @@ def fetch_country_storage_data(country_code: str, date_str: Optional[str] = None
 
 def fetch_historical_storage(days: int = 7) -> List[Dict]:
     """Fetch historical EU storage data for trend analysis."""
+    results = []
     end_date = datetime.utcnow() - timedelta(days=1)
-    start_date = end_date - timedelta(days=days)
     
-    params = {
-        "from": start_date.strftime("%Y-%m-%d"),
-        "to": end_date.strftime("%Y-%m-%d"),
-        "size": days + 1
-    }
+    for i in range(days + 1):
+        target_date = end_date - timedelta(days=i)
+        date_str = target_date.strftime("%Y-%m-%d")
+        
+        data = _make_api_request("eu", {"date": date_str})
+        
+        if data and "data" in data and data["data"]:
+            entry = data["data"][0]
+            results.append({
+                "date": entry.get("gasDayStart", date_str),
+                "full_percent": float(entry.get("full", 0) or 0),
+                "injection_twh": float(entry.get("injection", 0) or 0),
+                "withdrawal_twh": float(entry.get("withdrawal", 0) or 0),
+            })
     
-    data = _make_api_request("eu", params)
-    
-    if not data or "data" not in data:
-        return []
-    
-    return [
-        {
-            "date": entry.get("gasDayStart"),
-            "full_percent": float(entry.get("full", 0) or 0),
-            "injection_twh": float(entry.get("injection", 0) or 0),
-            "withdrawal_twh": float(entry.get("withdrawal", 0) or 0),
-        }
-        for entry in data.get("data", [])
-    ]
+    return results
 
 
 def compute_storage_metrics(current_data: Dict, historical_data: List[Dict]) -> StorageMetrics:
