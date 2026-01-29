@@ -345,14 +345,20 @@ def backfill_egsi_indices(start_date: date, end_date: date) -> Dict[str, Any]:
     Returns:
         Dict with status and counts for each index.
     """
-    from src.egsi.service import compute_egsi_m_for_date
-    from src.egsi.service_egsi_s import compute_egsi_s_for_date
+    import traceback
     
     results = {
-        "egsi_m": {"success": 0, "failed": 0, "skipped": 0},
-        "egsi_s": {"success": 0, "failed": 0, "skipped": 0},
+        "egsi_m": {"success": 0, "failed": 0, "skipped": 0, "errors": []},
+        "egsi_s": {"success": 0, "failed": 0, "skipped": 0, "errors": []},
         "dates_processed": []
     }
+    
+    try:
+        from src.egsi.service import compute_egsi_m_for_date
+        from src.egsi.service_egsi_s import compute_egsi_s_for_date
+    except Exception as e:
+        logger.error(f"Failed to import EGSI modules: {e}")
+        return {"status": "error", "message": f"Import error: {str(e)}", **results}
     
     current = start_date
     while current <= end_date:
@@ -369,7 +375,9 @@ def backfill_egsi_indices(start_date: date, end_date: date) -> Dict[str, Any]:
                 logger.info(f"  EGSI-M: skipped (no data or disabled)")
         except Exception as e:
             results["egsi_m"]["failed"] += 1
-            logger.error(f"  EGSI-M failed: {e}")
+            error_msg = f"{current}: {str(e)}"
+            results["egsi_m"]["errors"].append(error_msg)
+            logger.error(f"  EGSI-M failed: {e}\n{traceback.format_exc()}")
         
         try:
             s_result = compute_egsi_s_for_date(current, save=True, force=True)
@@ -381,7 +389,9 @@ def backfill_egsi_indices(start_date: date, end_date: date) -> Dict[str, Any]:
                 logger.info(f"  EGSI-S: skipped (no data or disabled)")
         except Exception as e:
             results["egsi_s"]["failed"] += 1
-            logger.error(f"  EGSI-S failed: {e}")
+            error_msg = f"{current}: {str(e)}"
+            results["egsi_s"]["errors"].append(error_msg)
+            logger.error(f"  EGSI-S failed: {e}\n{traceback.format_exc()}")
         
         current += timedelta(days=1)
     

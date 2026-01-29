@@ -712,8 +712,14 @@ def run_backfill_egsi(
     """
     validate_runner_token(x_runner_token)
     
+    import traceback
     from datetime import date, timedelta
-    from src.scripts.backfill_snapshots import backfill_egsi_indices
+    
+    try:
+        from src.scripts.backfill_snapshots import backfill_egsi_indices
+    except Exception as e:
+        logger.error(f"Failed to import backfill module: {e}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Import error: {str(e)}")
     
     def backfill_job():
         end_date = date.today() - timedelta(days=1)
@@ -726,9 +732,9 @@ def run_backfill_egsi(
             "status": "success",
             "start_date": str(start_date),
             "end_date": str(end_date),
-            "egsi_m": results["egsi_m"],
-            "egsi_s": results["egsi_s"],
-            "dates_processed": len(results["dates_processed"])
+            "egsi_m": results.get("egsi_m", {}),
+            "egsi_s": results.get("egsi_s", {}),
+            "dates_processed": len(results.get("dates_processed", []))
         }
     
     response, status_code = run_job_with_lock('backfill_egsi', backfill_job)
