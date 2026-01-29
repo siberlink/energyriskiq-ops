@@ -178,11 +178,13 @@ def compute_supply_pressure(alerts: List[Dict[str, Any]]) -> float:
     weight_sum = 0.0
     
     for alert in alerts:
-        text = f"{alert.get('title', '')} {alert.get('summary', '')}".lower()
+        title = getattr(alert, 'title', '') or ''
+        summary = getattr(alert, 'summary', '') or ''
+        text = f"{title} {summary}".lower()
         for kw in supply_keywords:
             if kw in text:
                 count += 1
-                impact = alert.get('impact_score', 3)
+                impact = getattr(alert, 'impact_score', 3) or 3
                 weight_sum += impact / 5.0
                 break
     

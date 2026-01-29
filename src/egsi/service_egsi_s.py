@@ -70,7 +70,7 @@ def compute_egsi_s_for_date(
     alerts = fetch_alerts_for_date(target_date, region_filter='Europe')
     supply_alerts = [
         a for a in alerts 
-        if any(kw in f"{a.get('title', '')} {a.get('summary', '')}".lower() 
+        if any(kw in f"{getattr(a, 'title', '') or ''} {getattr(a, 'summary', '') or ''}".lower() 
                for kw in ['gas', 'supply', 'pipeline', 'lng', 'storage'])
     ]
     logger.info(f"Found {len(supply_alerts)} supply-related alerts for {target_date}")

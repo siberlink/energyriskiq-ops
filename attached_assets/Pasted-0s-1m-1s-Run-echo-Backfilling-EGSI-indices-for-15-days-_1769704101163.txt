@@ -1,0 +1,60 @@
+0s
+1m 1s
+Run echo "Backfilling EGSI indices for 15 days..."
+Backfilling EGSI indices for 15 days...
+Response: {"status":"ok","job":"backfill_egsi","started_at":"2026-01-29T16:16:00.927165","finished_at":"2026-01-29T16:17:01.896788","duration_seconds":60.969623,"details":{"status":"success","start_date":"2026-01-14","end_date":"2026-01-28","egsi_m":{"success":15,"failed":0,"skipped":0,"errors":[]},"egsi_s":{"success":0,"failed":15,"skipped":0,"errors":["2026-01-14: 'AlertRecord' object has no attribute 'get'","2026-01-15: 'AlertRecord' object has no attribute 'get'","2026-01-16: 'AlertRecord' object has no attribute 'get'","2026-01-17: 'AlertRecord' object has no attribute 'get'","2026-01-18: 'AlertRecord' object has no attribute 'get'","2026-01-19: 'AlertRecord' object has no attribute 'get'","2026-01-20: 'AlertRecord' object has no attribute 'get'","2026-01-21: 'AlertRecord' object has no attribute 'get'","2026-01-22: 'AlertRecord' object has no attribute 'get'","2026-01-23: 'AlertRecord' object has no attribute 'get'","2026-01-24: 'AlertRecord' object has no attribute 'get'","2026-01-25: 'AlertRecord' object has no attribute 'get'","2026-01-26: 'AlertRecord' object has no attribute 'get'","2026-01-27: 'AlertRecord' object has no attribute 'get'","2026-01-28: 'AlertRecord' object has no attribute 'get'"]},"dates_processed":15}}
+HTTP Code: 200
+EGSI backfill completed successfully!
+{
+  "status": "ok",
+  "job": "backfill_egsi",
+  "started_at": "2026-01-29T16:16:00.927165",
+  "finished_at": "2026-01-29T16:17:01.896788",
+  "duration_seconds": 60.969623,
+  "details": {
+    "status": "success",
+    "start_date": "2026-01-14",
+    "end_date": "2026-01-28",
+    "egsi_m": {
+      "success": 15,
+      "failed": 0,
+      "skipped": 0,
+      "errors": []
+    },
+    "egsi_s": {
+      "success": 0,
+      "failed": 15,
+      "skipped": 0,
+      "errors": [
+        "2026-01-14: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-15: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-16: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-17: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-18: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-19: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-20: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-21: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-22: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-23: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-24: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-25: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-26: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-27: 'AlertRecord' object has no attribute 'get'",
+        "2026-01-28: 'AlertRecord' object has no attribute 'get'"
+      ]
+    },
+    "dates_processed": 15
+  }
+}
+0s
+Run echo "## Backfill EGSI Indices Results" >> $GITHUB_STEP_SUMMARY
+  echo "## Backfill EGSI Indices Results" >> $GITHUB_STEP_SUMMARY
+  echo "" >> $GITHUB_STEP_SUMMARY
+  echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+  echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+  echo "| Action | backfill_egsi |" >> $GITHUB_STEP_SUMMARY
+  echo "| Days | 15 |" >> $GITHUB_STEP_SUMMARY
+  echo "| Status | success |" >> $GITHUB_STEP_SUMMARY
+  echo "| Triggered by | siberlink |" >> $GITHUB_STEP_SUMMARY
+  echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+  shell: /usr/bin/bash -e {0}
