@@ -666,3 +666,31 @@ def run_backfill_snapshots(
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+@router.post("/run/calculate-oil-changes")
+def run_calculate_oil_changes(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Calculate 24h changes for oil price snapshots.
+    
+    Computes brent_change_24h, brent_change_pct, wti_change_24h, wti_change_pct
+    by comparing consecutive days in the oil_price_snapshots table.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.scripts.backfill_snapshots import calculate_oil_price_changes
+    
+    def calculate_job():
+        logger.info("Calculating 24h changes for oil price snapshots...")
+        return calculate_oil_price_changes()
+    
+    response, status_code = run_job_with_lock('backfill_snapshots', calculate_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response

@@ -335,13 +335,100 @@ def backfill_date_range(start_date: date, end_date: date) -> Dict[str, Any]:
     return results
 
 
+def calculate_oil_price_changes() -> Dict[str, Any]:
+    """
+    Calculate 24h changes for oil price snapshots by comparing consecutive days.
+    Updates existing records in the database.
+    
+    Returns:
+        Dict with status and count of updated records.
+    """
+    conn = get_db_connection()
+    updated_count = 0
+    
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT date, brent_price, wti_price 
+                FROM oil_price_snapshots 
+                WHERE brent_price IS NOT NULL AND brent_price > 0
+                ORDER BY date ASC
+            """)
+            rows = cursor.fetchall()
+        
+        if len(rows) < 2:
+            logger.warning("Not enough data to calculate changes (need at least 2 days)")
+            return {"status": "skipped", "message": "Not enough data", "updated": 0}
+        
+        previous = None
+        for row in rows:
+            current_date, brent_price, wti_price = row
+            
+            if previous is not None:
+                prev_date, prev_brent, prev_wti = previous
+                
+                brent_change = brent_price - prev_brent if prev_brent else 0
+                brent_pct = (brent_change / prev_brent * 100) if prev_brent else 0
+                
+                wti_change = wti_price - prev_wti if prev_wti else 0
+                wti_pct = (wti_change / prev_wti * 100) if prev_wti else 0
+                
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        UPDATE oil_price_snapshots 
+                        SET brent_change_24h = %s,
+                            brent_change_pct = %s,
+                            wti_change_24h = %s,
+                            wti_change_pct = %s
+                        WHERE date = %s
+                    """, (
+                        round(brent_change, 2),
+                        round(brent_pct, 2),
+                        round(wti_change, 2),
+                        round(wti_pct, 2),
+                        current_date
+                    ))
+                conn.commit()
+                updated_count += 1
+                
+                logger.info(f"{current_date}: Brent {brent_change:+.2f} ({brent_pct:+.2f}%), WTI {wti_change:+.2f} ({wti_pct:+.2f}%)")
+            
+            previous = (current_date, brent_price, wti_price)
+        
+        conn.close()
+        
+        return {
+            "status": "success",
+            "message": f"Updated {updated_count} records with 24h changes",
+            "updated": updated_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to calculate changes: {e}")
+        conn.close()
+        return {"status": "error", "message": str(e), "updated": 0}
+
+
 def main():
     parser = argparse.ArgumentParser(description="Backfill gas storage and oil price snapshots")
     parser.add_argument("--days", type=int, default=15, help="Number of days to backfill")
     parser.add_argument("--start", type=str, help="Start date (YYYY-MM-DD)")
     parser.add_argument("--end", type=str, help="End date (YYYY-MM-DD)")
+    parser.add_argument("--calculate-changes", action="store_true", help="Calculate 24h changes for existing data")
     
     args = parser.parse_args()
+    
+    if args.calculate_changes:
+        logger.info("Calculating 24h changes for oil price snapshots...")
+        result = calculate_oil_price_changes()
+        print("\n" + "="*50)
+        print("CALCULATE CHANGES RESULTS")
+        print("="*50)
+        print(f"Status: {result['status']}")
+        print(f"Message: {result['message']}")
+        print(f"Updated: {result['updated']} records")
+        print("="*50)
+        return result
     
     if args.start and args.end:
         start_date = datetime.strptime(args.start, "%Y-%m-%d").date()
