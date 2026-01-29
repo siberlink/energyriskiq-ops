@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 import os
 
 from src.egsi.types import MarketDataSnapshot
+from src.db.db import get_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -362,17 +363,89 @@ class TTFPriceProvider(MarketDataProvider):
         return []
 
 
+class DatabaseStorageProvider(MarketDataProvider):
+    """
+    Reads gas storage data from the gas_storage_snapshots table.
+    
+    Used for backfills to leverage already-captured AGSI+ data
+    instead of re-fetching from the API.
+    """
+    
+    @property
+    def source_name(self) -> str:
+        return "database_storage"
+    
+    def get_snapshot(self, target_date: date) -> Optional[MarketDataSnapshot]:
+        """
+        Fetch storage data from gas_storage_snapshots for a specific date.
+        """
+        try:
+            with get_cursor() as cursor:
+                cursor.execute("""
+                    SELECT 
+                        date, eu_storage_percent, raw_data
+                    FROM gas_storage_snapshots
+                    WHERE date = %s
+                """, (target_date,))
+                row = cursor.fetchone()
+                
+                if not row:
+                    logger.debug(f"No stored gas data for {target_date}")
+                    return None
+                
+                storage_pct = float(row['eu_storage_percent']) / 100.0 if row['eu_storage_percent'] else 0.75
+                
+                raw_data = row.get('raw_data') or {}
+                gas_in_storage = raw_data.get('gasInStorage', 0)
+                working_capacity = raw_data.get('workingGasVolume', 0)
+                injection = raw_data.get('injection', 0)
+                withdrawal = raw_data.get('withdrawal', 0)
+                
+                snapshot = MarketDataSnapshot(
+                    data_date=target_date,
+                    storage_level_pct=storage_pct,
+                    storage_level_twh=float(gas_in_storage) if gas_in_storage else None,
+                    storage_capacity_twh=float(working_capacity) if working_capacity else None,
+                    injection_rate_twh=float(injection) if injection else None,
+                    withdrawal_rate_twh=float(withdrawal) if withdrawal else None,
+                    ttf_price=None,
+                    ttf_price_ma7=None,
+                    source="database_storage",
+                )
+                
+                logger.info(f"Loaded gas storage from DB for {target_date}: {storage_pct*100:.1f}%")
+                return snapshot
+                
+        except Exception as e:
+            logger.error(f"Error fetching stored gas data: {e}")
+            return None
+    
+    def get_history(self, days: int = 7) -> List[MarketDataSnapshot]:
+        """Fetch historical snapshots from database."""
+        snapshots = []
+        today = date.today()
+        for i in range(days):
+            target_date = today - timedelta(days=i)
+            snapshot = self.get_snapshot(target_date)
+            if snapshot:
+                snapshots.append(snapshot)
+        return snapshots
+
+
 class CompositeMarketDataProvider(MarketDataProvider):
     """
     Combines multiple data providers with fallback logic.
     
     Priority order:
-    1. Try real data providers (AGSI+, TTF)
-    2. Fall back to mock data if real data unavailable
+    1. Try database-stored snapshots first (for backfills)
+    2. Try real data providers (AGSI+, TTF)
+    3. Fall back to mock data if real data unavailable
     """
     
     def __init__(self):
         self.providers = []
+        
+        self.db_storage_provider = DatabaseStorageProvider()
         
         if os.environ.get("GIE_API_KEY") or os.environ.get("AGSI_API_KEY"):
             self.providers.append(AGSIPlusProvider())
@@ -390,9 +463,22 @@ class CompositeMarketDataProvider(MarketDataProvider):
     def get_snapshot(self, target_date: date) -> Optional[MarketDataSnapshot]:
         """
         Fetch from real providers, merge results, fall back to mock.
+        
+        Priority for storage data:
+        1. Database (gas_storage_snapshots) - for backfills
+        2. AGSI+ API - for live data
+        3. Mock data - as fallback
         """
         storage_data = None
         price_data = None
+        
+        try:
+            db_snapshot = self.db_storage_provider.get_snapshot(target_date)
+            if db_snapshot and db_snapshot.has_storage_data:
+                storage_data = db_snapshot
+                logger.info(f"Using database storage data for {target_date}")
+        except Exception as e:
+            logger.debug(f"Database storage lookup failed: {e}")
         
         for provider in self.providers:
             try:
