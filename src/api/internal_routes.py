@@ -22,6 +22,7 @@ LOCK_IDS = {
     'geri_delivery': 3002,
     'trader_delivery': 3003,
     'egsi_compute': 4001,
+    'backfill_snapshots': 5001,
 }
 
 
@@ -613,6 +614,51 @@ def run_oil_price_capture(
         return capture_oil_price_snapshot()
     
     response, status_code = run_job_with_lock('oil_price_capture', oil_price_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
+@router.post("/run/backfill-snapshots")
+def run_backfill_snapshots(
+    days: int = 15,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill gas_storage_snapshots and oil_price_snapshots tables.
+    
+    Fetches historical data from GIE AGSI+ and OilPriceAPI.
+    This is a one-time operation for populating historical data.
+    
+    Args:
+        days: Number of days to backfill (default 15)
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.scripts.backfill_snapshots import backfill_date_range
+    
+    def backfill_job():
+        end_date = date.today() - timedelta(days=1)
+        start_date = end_date - timedelta(days=days - 1)
+        
+        logger.info(f"Starting backfill from {start_date} to {end_date}")
+        results = backfill_date_range(start_date, end_date)
+        
+        return {
+            "status": "success",
+            "start_date": str(start_date),
+            "end_date": str(end_date),
+            "gas_storage": results["gas_storage"],
+            "oil_price": results["oil_price"],
+            "dates_processed": len(results["dates_processed"])
+        }
+    
+    response, status_code = run_job_with_lock('backfill_snapshots', backfill_job)
     
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)

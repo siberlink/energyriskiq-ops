@@ -1,0 +1,55 @@
+name: Backfill Snapshots (One-Time)
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of days to backfill'
+        required: true
+        default: '15'
+        type: string
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Backfill Gas Storage & Oil Price Snapshots
+        id: backfill
+        run: |
+          echo "Triggering backfill for ${{ github.event.inputs.days }} days..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/backfill-snapshots?days=${{ github.event.inputs.days }}" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::Backfill failed with HTTP $http_code"
+            exit 1
+          fi
+          
+          echo "Backfill completed successfully!"
+          echo "$body" | jq .
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Backfill Snapshots Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Days | ${{ github.event.inputs.days }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.backfill.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
