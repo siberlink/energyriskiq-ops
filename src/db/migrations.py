@@ -1239,6 +1239,42 @@ def run_gas_storage_migration():
     logger.info("Gas storage migration complete.")
 
 
+def run_oil_price_migration():
+    """Create oil_price_snapshots table for crude oil price monitoring."""
+    logger.info("Running oil price migration...")
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS oil_price_snapshots (
+                id SERIAL PRIMARY KEY,
+                date DATE NOT NULL,
+                brent_price NUMERIC(8,2),
+                brent_change_24h NUMERIC(8,2),
+                brent_change_pct NUMERIC(6,2),
+                wti_price NUMERIC(8,2),
+                wti_change_24h NUMERIC(8,2),
+                wti_change_pct NUMERIC(6,2),
+                brent_wti_spread NUMERIC(8,2),
+                source TEXT,
+                raw_data JSONB,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(date)
+            );
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_oil_price_date 
+            ON oil_price_snapshots(date DESC);
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_oil_brent_price 
+            ON oil_price_snapshots(brent_price DESC);
+        """)
+    
+    logger.info("Oil price migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
@@ -1247,4 +1283,6 @@ if __name__ == "__main__":
     run_geri_migration()
     run_pro_delivery_migration()
     run_reri_migration()
+    run_gas_storage_migration()
+    run_oil_price_migration()
     run_gas_storage_migration()

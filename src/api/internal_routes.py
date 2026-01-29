@@ -593,3 +593,30 @@ def run_egsi_s_compute(
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+@router.post("/run/oil-price-capture")
+def run_oil_price_capture(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Capture daily oil prices (Brent Crude and WTI) from OilPriceAPI.
+    
+    Stores snapshot in oil_price_snapshots table for future index calculations.
+    Skips if snapshot already exists for today (idempotent).
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.ingest.oil_price import capture_oil_price_snapshot
+    
+    def oil_price_job():
+        return capture_oil_price_snapshot()
+    
+    response, status_code = run_job_with_lock('oil_price_capture', oil_price_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
