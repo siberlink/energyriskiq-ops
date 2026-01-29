@@ -282,6 +282,31 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
+      - name: Oil Price Capture
+        id: oil_price
+        if: always() && steps.run_alerts.outputs.exit_code == '0'
+        run: |
+          echo "Capturing daily oil prices (Brent/WTI)..."
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/oil-price-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > oil_price_output.txt
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::Oil price capture returned HTTP $http_code (non-blocking)"
+            echo "oil_price_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "Oil price capture completed successfully"
+            echo "oil_price_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
       - name: Health Check
         id: health
         if: always() && steps.preflight.outputs.preflight_passed != 'false'
@@ -302,6 +327,7 @@ jobs:
             trader_delivery_output.txt
             egsi_compute_output.txt
             egsi_s_compute_output.txt
+            oil_price_output.txt
           retention-days: 7
 
       - name: Summary
@@ -322,6 +348,7 @@ jobs:
           echo "| **Trader Delivery** | ${{ steps.trader_delivery.outputs.trader_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **EGSI-M Compute** | ${{ steps.egsi_compute.outputs.egsi_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **EGSI-S Compute** | ${{ steps.egsi_s_compute.outputs.egsi_s_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Oil Price Capture** | ${{ steps.oil_price.outputs.oil_price_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f preflight_output.txt ]; then
@@ -360,6 +387,14 @@ jobs:
             echo "### EGSI-S Computation Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             cat egsi_s_compute_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f oil_price_output.txt ]; then
+            echo "### Oil Price Capture Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat oil_price_output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
