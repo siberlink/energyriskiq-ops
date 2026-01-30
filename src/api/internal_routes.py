@@ -22,6 +22,8 @@ LOCK_IDS = {
     'geri_delivery': 3002,
     'trader_delivery': 3003,
     'egsi_compute': 4001,
+    'egsi_s_compute': 4002,
+    'oil_price_capture': 4003,
     'backfill_snapshots': 5001,
     'backfill_egsi': 5002,
     'calculate_oil_changes': 5003,
