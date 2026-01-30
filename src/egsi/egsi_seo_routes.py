@@ -28,7 +28,7 @@ BASE_URL = os.environ.get('ALERTS_APP_BASE_URL', 'https://energyriskiq.com')
 
 
 def get_common_styles():
-    """Return common CSS styles for EGSI pages."""
+    """Return common CSS styles for EGSI pages - GERI standard template."""
     return """
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,87 +42,75 @@ def get_common_styles():
             --bg-white: #FFFFFF;
             --bg-light: #F8FAFC;
             --border: #E2E8F0;
-            --band-low: #22C55E;
-            --band-normal: #3B82F6;
-            --band-elevated: #F97316;
-            --band-high: #EF4444;
-            --band-critical: #DC2626;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-primary);
+            line-height: 1.6;
             background: var(--bg-light);
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        header {
-            background: linear-gradient(135deg, var(--secondary) 0%, #2D2D4A 100%);
-            color: white;
-            padding: 20px 0;
+        .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+        
+        .nav {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-decoration: none;
-            color: white;
-        }
-        nav a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            margin-left: 30px;
-            transition: color 0.2s;
-        }
-        nav a:hover { color: white; }
-        .hero {
-            background: linear-gradient(135deg, var(--secondary) 0%, #2D2D4A 100%);
-            color: white;
-            padding: 60px 0;
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 700; font-size: 1.25rem; color: var(--secondary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-weight: 500; }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-links .cta-nav { background: var(--primary); color: white !important; padding: 0.5rem 1rem; border-radius: 0.5rem; }
+        
+        .index-hero { text-align: center; padding: 2rem 0; }
+        .index-hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .index-hero p { color: #9ca3af; max-width: 600px; margin: 0 auto; }
+        .index-hero .methodology-link { margin-top: 0.75rem; }
+        .index-hero .methodology-link a { color: #60a5fa; text-decoration: none; font-size: 0.95rem; }
+        .index-hero .methodology-link a:hover { color: #93c5fd; text-decoration: underline; }
+        
+        .index-metric-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 2rem;
             text-align: center;
+            max-width: 420px;
+            margin: 2rem auto;
         }
-        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
-        .index-display {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            margin: -40px auto 40px;
-            max-width: 800px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            text-align: center;
+        .index-header { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+        .index-icon { font-size: 1.5rem; }
+        .index-title { font-size: 1.25rem; font-weight: 600; color: #f8fafc; }
+        .index-value { font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0; }
+        .index-scale-ref { font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem; }
+        .index-trend { font-size: 0.95rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        .index-date { color: #6b7280; font-size: 0.875rem; margin-top: 1rem; }
+        
+        .index-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
-        .index-value {
-            font-size: 5rem;
-            font-weight: 700;
-            line-height: 1;
-            margin-bottom: 10px;
+        .index-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
         }
-        .index-band {
-            display: inline-block;
-            padding: 8px 24px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-        .band-LOW { background: var(--band-low); color: white; }
-        .band-NORMAL { background: var(--band-normal); color: white; }
-        .band-ELEVATED { background: var(--band-elevated); color: white; }
-        .band-HIGH { background: var(--band-high); color: white; }
-        .band-CRITICAL { background: var(--band-critical); color: white; }
-        .interpretation {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 20px auto;
-        }
-        .section { padding: 60px 0; }
-        .section h2 { font-size: 1.8rem; margin-bottom: 30px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .index-section h2 { font-size: 1.125rem; margin-bottom: 1rem; color: #f8fafc; }
+        .section-header-blue { color: #60a5fa !important; font-size: 1rem; margin-bottom: 0.75rem; }
+        
+        .index-list { list-style: disc; padding-left: 1.25rem; color: #d1d5db; }
+        .index-list li { margin-bottom: 0.75rem; line-height: 1.4; }
+        .driver-tag { color: #4ecdc4; font-size: 0.8rem; font-weight: 500; }
+        .driver-headline { font-weight: 500; color: #d1d5db; }
+        .region-label { color: #9ca3af; font-size: 0.85rem; }
+        
         .card {
             background: white;
             border-radius: 12px;
@@ -130,39 +118,56 @@ def get_common_styles():
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .card h3 { color: var(--primary); margin-bottom: 15px; }
-        .trend { font-size: 0.9rem; margin-top: 10px; }
-        .trend-up { color: var(--band-high); }
-        .trend-down { color: var(--band-low); }
-        .trend-stable { color: var(--text-secondary); }
-        footer {
-            background: var(--secondary);
-            color: white;
-            padding: 40px 0;
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        
+        .assets-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .asset-tag { background: rgba(96, 165, 250, 0.2); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+        
+        .index-interpretation { color: #1f2937; font-size: 1.05rem; font-style: italic; margin: 1.5rem 0; line-height: 1.6; }
+        
+        .index-delay-badge {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 2rem;
+            padding: 0.5rem 1.5rem;
             text-align: center;
-        }
-        footer a { color: var(--accent); text-decoration: none; }
-        .breadcrumb {
-            padding: 15px 0;
+            color: #60a5fa;
             font-size: 0.9rem;
-            color: var(--text-secondary);
+            margin-top: 1rem;
+            display: inline-block;
         }
+        
+        .index-cta {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .index-cta h3 { color: #60a5fa; margin-bottom: 0.5rem; }
+        .index-cta p { color: #9ca3af; margin-bottom: 1.5rem; }
+        .cta-button { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; margin: 0.25rem; }
+        .cta-button.primary { background: #3b82f6; color: white; }
+        .cta-button.secondary { background: transparent; border: 1px solid #6b7280; color: #d1d5db; }
+        
+        .index-links { text-align: center; margin: 2rem 0; }
+        .index-links a { color: #60a5fa; margin: 0 1rem; text-decoration: none; }
+        .index-links a:hover { text-decoration: underline; }
+        
+        .footer { text-align: center; padding: 2rem 0; color: var(--text-secondary); font-size: 0.85rem; }
+        .footer a { color: var(--primary); text-decoration: none; }
+        
+        .breadcrumb { padding: 15px 0; font-size: 0.9rem; color: var(--text-secondary); }
         .breadcrumb a { color: var(--primary); text-decoration: none; }
-        .nav-links { display: flex; justify-content: space-between; margin-top: 30px; }
-        .nav-links a {
-            color: var(--primary);
-            text-decoration: none;
-            padding: 10px 20px;
-            background: var(--bg-light);
-            border-radius: 8px;
-        }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin: 1rem 0; }
         th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
         th { background: var(--bg-light); font-weight: 600; }
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 1.8rem; }
-            .index-value { font-size: 3rem; }
-            .header-content { flex-direction: column; gap: 15px; }
-            nav a { margin: 0 15px; }
+        
+        @media (max-width: 640px) {
+            .index-hero h1 { font-size: 1.5rem; }
+            .index-value { font-size: 1.25rem; }
         }
     </style>
     """
@@ -227,32 +232,29 @@ async def egsi_public_page(request: Request):
             {get_common_styles()}
         </head>
         <body>
-            <header>
-                <div class="container header-content">
-                    <a href="/" class="logo">
-                        <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
-                        EnergyRiskIQ
-                    </a>
-                    <nav>
-                        <a href="/eeri">EERI</a>
-                        <a href="/egsi">EGSI</a>
-                        <a href="/alerts">Alerts</a>
-                    </nav>
+            <nav class="nav"><div class="container nav-inner">
+                <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+                <div class="nav-links">
+                    <a href="/geri">GERI</a>
+                    <a href="/eeri">EERI</a>
+                    <a href="/egsi">EGSI</a>
+                    <a href="/alerts">Alerts</a>
+                    <a href="/users" class="cta-nav">Sign In</a>
                 </div>
-            </header>
-            <div class="hero">
+            </div></nav>
+            <main>
                 <div class="container">
-                    <h1>Europe Gas Stress Index (EGSI)</h1>
-                    <p>Real-time intelligence on European gas market stress</p>
+                    <div class="index-hero">
+                        <h1>Europe Gas Stress Index (EGSI)</h1>
+                        <p>A daily composite measure of gas market transmission stress across European infrastructure.</p>
+                    </div>
+                    <div class="index-metric-card">
+                        <p style="color: #9ca3af;">EGSI data is being computed. Check back shortly.</p>
+                        <p style="margin-top: 1rem;"><a href="/users" class="cta-button primary">Sign up for alerts</a></p>
+                    </div>
                 </div>
-            </div>
-            <div class="container">
-                <div class="index-display">
-                    <p>No EGSI data available yet. The index is computed daily.</p>
-                    <p style="margin-top: 20px;">Check back soon or <a href="/signup">sign up for alerts</a>.</p>
-                </div>
-            </div>
-            <footer>
+            </main>
+            <footer class="footer">
                 <div class="container">
                     <p>&copy; {datetime.now().year} EnergyRiskIQ. <a href="/egsi/methodology">Methodology</a> | <a href="/egsi/history">History</a></p>
                 </div>
@@ -291,6 +293,28 @@ async def egsi_public_page(request: Request):
         chokepoints_html += f'<li>{cp}</li>'
     if not chokepoints_html:
         chokepoints_html = '<li>No active chokepoint alerts</li>'
+    
+    trend_display = ""
+    if trend_7d is not None:
+        trend_sign = "+" if trend_7d > 0 else ""
+        trend_display = f'<div class="index-trend" style="color: {trend_color};">7-Day Trend: {trend_label} ({trend_sign}{trend_7d:.0f})</div>'
+    
+    drivers_list_html = ""
+    for driver in drivers:
+        driver_name = driver.get('name', 'Unknown')
+        driver_type = driver.get('type', 'N/A')
+        contribution = driver.get('contribution', 0)
+        drivers_list_html += f'<li><span class="driver-tag">{driver_type}</span><br>{driver_name} ({contribution:.1f}% contribution)</li>'
+    if not drivers_list_html:
+        drivers_list_html = '<li>No significant drivers detected</li>'
+    
+    chokepoints_list_html = ""
+    for cp in chokepoints[:5]:
+        chokepoints_list_html += f'<li>{cp}</li>'
+    if not chokepoints_list_html:
+        chokepoints_list_html = '<li>No active chokepoint alerts</li>'
+    
+    delay_badge = '<div class="index-delay-badge">24h delayed • Real-time access with subscription</div>'
     
     html = f"""
     <!DOCTYPE html>
@@ -336,89 +360,76 @@ async def egsi_public_page(request: Request):
         {get_common_styles()}
     </head>
     <body>
-        <header>
-            <div class="container header-content">
-                <a href="/" class="logo">
-                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
-                    EnergyRiskIQ
-                </a>
-                <nav>
-                    <a href="/eeri">EERI</a>
-                    <a href="/egsi">EGSI</a>
-                    <a href="/alerts">Alerts</a>
-                </nav>
+        <nav class="nav"><div class="container nav-inner">
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <div class="nav-links">
+                <a href="/geri">GERI</a>
+                <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
-        </header>
+        </div></nav>
         
-        <div class="hero">
+        <main>
             <div class="container">
-                <h1>Europe Gas Stress Index</h1>
-                <p>Real-time intelligence on European gas market transmission stress</p>
+                <div class="index-hero">
+                    <h1>Europe Gas Stress Index (EGSI)</h1>
+                    <p>A daily composite measure of gas market transmission stress across European infrastructure.</p>
+                    <p class="methodology-link"><a href="/egsi/methodology">(EGSI Methodology & Construction)</a></p>
+                </div>
+                
+                <div class="index-metric-card">
+                    <div class="index-header">
+                        <span class="index-icon">🔥</span>
+                        <span class="index-title">Europe Gas Stress Index:</span>
+                    </div>
+                    <div class="index-value" style="color: {band_color};">{value:.0f} / 100 ({band})</div>
+                    <div class="index-scale-ref">0 = minimal stress · 100 = extreme market stress</div>
+                    {trend_display}
+                    <div class="index-date">Date Computed: {date_str}</div>
+                </div>
+                
+                <div class="index-sections">
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
+                        <ul class="index-list">{drivers_list_html}</ul>
+                    </div>
+                    
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Chokepoint Watch:</h2>
+                        <ul class="index-list">{chokepoints_list_html}</ul>
+                    </div>
+                </div>
+                
+                <div class="index-interpretation">
+                    <em>{explanation}</em>
+                </div>
+                
+                {delay_badge}
+                
+                <div class="index-cta">
+                    <h3>Get Real-time Access</h3>
+                    <p>Unlock instant EGSI updates with a Pro subscription.</p>
+                    <a href="/users" class="cta-button primary">Unlock Real-time EGSI</a>
+                    <a href="/alerts" class="cta-button secondary">See Alert Archive</a>
+                </div>
+                
+                <div class="index-links">
+                    <a href="/egsi/history">EGSI History</a>
+                    <a href="/egsi/methodology">Methodology</a>
+                </div>
             </div>
-        </div>
+        </main>
         
-        <div class="container">
-            <div class="index-display">
-                <div class="index-value" style="color: {band_color}">{value:.0f}</div>
-                <div class="index-band band-{band}">{band}</div>
-                <p class="trend" style="color: {trend_color}">7-Day Trend: {trend_label} {f'{trend_sign}{abs(trend_7d):.1f}' if trend_7d else ''}</p>
-                <p class="interpretation">{explanation}</p>
-                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 20px;">
-                    Data as of {date_str} (24-hour delay for public display)
-                </p>
-            </div>
-            
-            <section class="section">
-                <h2>Top Risk Drivers</h2>
-                <div class="grid">
-                    {drivers_html}
-                </div>
-            </section>
-            
-            <section class="section">
-                <h2>Chokepoint Watch</h2>
-                <div class="card">
-                    <p>Infrastructure entities under monitoring:</p>
-                    <ul style="margin-top: 15px; padding-left: 20px;">
-                        {chokepoints_html}
-                    </ul>
-                </div>
-            </section>
-            
-            <section class="section">
-                <h2>Understanding EGSI Bands</h2>
-                <div class="grid">
-                    <div class="card">
-                        <h3 style="color: var(--band-low)">LOW (0-20)</h3>
-                        <p>Minimal gas market stress. Stable supply conditions.</p>
-                    </div>
-                    <div class="card">
-                        <h3 style="color: var(--band-normal)">NORMAL (21-40)</h3>
-                        <p>Baseline market conditions. Standard operations.</p>
-                    </div>
-                    <div class="card">
-                        <h3 style="color: var(--band-elevated)">ELEVATED (41-60)</h3>
-                        <p>Heightened stress. Monitor supply flows closely.</p>
-                    </div>
-                    <div class="card">
-                        <h3 style="color: var(--band-high)">HIGH (61-80)</h3>
-                        <p>Significant stress. Potential supply concerns.</p>
-                    </div>
-                    <div class="card">
-                        <h3 style="color: var(--band-critical)">CRITICAL (81-100)</h3>
-                        <p>Severe stress. Immediate market impact likely.</p>
-                    </div>
-                </div>
-            </section>
-        </div>
-        
-        <footer>
+        <footer class="footer">
             <div class="container">
                 <p>&copy; {datetime.now().year} EnergyRiskIQ. All rights reserved.</p>
-                <p style="margin-top: 10px;">
-                    <a href="/egsi/methodology">Methodology</a> | 
-                    <a href="/egsi/history">History</a> | 
-                    <a href="/eeri">EERI Index</a>
+                <p style="margin-top: 0.5rem;">
+                    <a href="/egsi/history">EGSI History</a> · 
+                    <a href="/egsi/methodology">Methodology</a> · 
+                    <a href="/eeri">EERI</a> · 
+                    <a href="/geri">GERI</a>
                 </p>
             </div>
         </footer>
@@ -451,27 +462,25 @@ async def egsi_methodology_page():
         {get_common_styles()}
     </head>
     <body>
-        <header>
-            <div class="container header-content">
-                <a href="/" class="logo">
-                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
-                    EnergyRiskIQ
-                </a>
-                <nav>
-                    <a href="/eeri">EERI</a>
-                    <a href="/egsi">EGSI</a>
-                    <a href="/alerts">Alerts</a>
-                </nav>
+        <nav class="nav"><div class="container nav-inner">
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <div class="nav-links">
+                <a href="/geri">GERI</a>
+                <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
-        </header>
+        </div></nav>
         
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="/egsi">EGSI</a> &gt; Methodology
-            </div>
-            
-            <div class="card" style="margin: 40px 0;">
-                <h1 style="margin-bottom: 30px;">EGSI Methodology</h1>
+        <main>
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/egsi">EGSI</a> &gt; Methodology
+                </div>
+                
+                <div class="index-section" style="margin: 40px 0; background: white; border: 1px solid var(--border);">
+                    <h1 style="margin-bottom: 30px; color: var(--text-primary);">EGSI Methodology</h1>
                 
                 <h2 style="margin-top: 30px;">Overview</h2>
                 <p>The Europe Gas Stress Index (EGSI-M) measures market transmission stress signals across European gas infrastructure. It combines regional risk assessments, theme-specific alert pressure, asset-level transmission, and infrastructure chokepoint monitoring.</p>
@@ -559,14 +568,15 @@ async def egsi_methodology_page():
                 <h2 style="margin-top: 30px;">Update Schedule</h2>
                 <p>EGSI is computed daily alongside GERI and EERI indices. Public data is displayed with a 24-hour delay. Pro subscribers receive real-time access.</p>
                 
-                <div class="nav-links">
+                <div class="index-links" style="margin-top: 2rem;">
                     <a href="/egsi">&larr; Back to EGSI</a>
                     <a href="/egsi/history">View History &rarr;</a>
                 </div>
+                </div>
             </div>
-        </div>
+        </main>
         
-        <footer>
+        <footer class="footer">
             <div class="container">
                 <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
             </div>
@@ -626,52 +636,51 @@ async def egsi_history_page():
         {get_common_styles()}
     </head>
     <body>
-        <header>
-            <div class="container header-content">
-                <a href="/" class="logo">
-                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
-                    EnergyRiskIQ
-                </a>
-                <nav>
-                    <a href="/eeri">EERI</a>
-                    <a href="/egsi">EGSI</a>
-                    <a href="/alerts">Alerts</a>
-                </nav>
+        <nav class="nav"><div class="container nav-inner">
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <div class="nav-links">
+                <a href="/geri">GERI</a>
+                <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
-        </header>
+        </div></nav>
         
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="/egsi">EGSI</a> &gt; History
-            </div>
-            
-            <h1 style="margin: 40px 0 30px;">EGSI Historical Data</h1>
-            
-            <div class="grid">
-                <div class="card">
-                    <h2>Recent Daily Snapshots</h2>
-                    <ul style="margin-top: 15px; padding-left: 20px;">
-                        {recent_dates_html}
-                    </ul>
+        <main>
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="/egsi">EGSI</a> &gt; History
                 </div>
                 
-                <div class="card">
-                    <h2>Monthly Archives</h2>
-                    <ul style="margin-top: 15px; padding-left: 20px;">
-                        {months_html}
-                    </ul>
+                <h1 style="margin: 40px 0 30px;">EGSI Historical Data</h1>
+                
+                <div class="index-sections">
+                    <div class="index-section" style="background: white; border: 1px solid var(--border);">
+                        <h2 style="color: var(--text-primary);">Recent Daily Snapshots</h2>
+                        <ul style="margin-top: 15px; padding-left: 20px; color: var(--text-primary);">
+                            {recent_dates_html}
+                        </ul>
+                    </div>
+                    
+                    <div class="index-section" style="background: white; border: 1px solid var(--border);">
+                        <h2 style="color: var(--text-primary);">Monthly Archives</h2>
+                        <ul style="margin-top: 15px; padding-left: 20px; color: var(--text-primary);">
+                            {months_html}
+                        </ul>
+                    </div>
+                </div>
+                
+                {"<div class='index-section' style='margin-top: 40px; background: white; border: 1px solid var(--border);'><h2 style='color: var(--text-primary);'>Monthly Statistics</h2><table><tr><th>Month</th><th>Days</th><th>Avg</th><th>Max</th><th>Min</th></tr>" + stats_html + "</table></div>" if stats_html else ""}
+                
+                <div class="index-links" style="margin-top: 40px;">
+                    <a href="/egsi">&larr; Current EGSI</a>
+                    <a href="/egsi/methodology">Methodology &rarr;</a>
                 </div>
             </div>
-            
-            {"<div class='card' style='margin-top: 40px;'><h2>Monthly Statistics</h2><table><tr><th>Month</th><th>Days</th><th>Avg</th><th>Max</th><th>Min</th></tr>" + stats_html + "</table></div>" if stats_html else ""}
-            
-            <div class="nav-links" style="margin-top: 40px;">
-                <a href="/egsi">&larr; Current EGSI</a>
-                <a href="/egsi/methodology">Methodology &rarr;</a>
-            </div>
-        </div>
+        </main>
         
-        <footer>
+        <footer class="footer">
             <div class="container">
                 <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
             </div>

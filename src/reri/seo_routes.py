@@ -33,7 +33,7 @@ BASE_URL = os.environ.get('ALERTS_APP_BASE_URL', 'https://energyriskiq.com')
 
 
 def get_common_styles():
-    """Return common CSS styles for EERI pages."""
+    """Return common CSS styles for EERI pages - GERI standard template."""
     return """
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,10 +47,6 @@ def get_common_styles():
             --bg-white: #FFFFFF;
             --bg-light: #F8FAFC;
             --border: #E2E8F0;
-            --band-low: #22C55E;
-            --band-moderate: #EAB308;
-            --band-elevated: #F97316;
-            --band-critical: #EF4444;
         }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -59,6 +55,7 @@ def get_common_styles():
             background: var(--bg-light);
         }
         .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+        
         .nav {
             background: var(--bg-white);
             border-bottom: 1px solid var(--border);
@@ -68,85 +65,98 @@ def get_common_styles():
             z-index: 100;
         }
         .nav-inner { display: flex; justify-content: space-between; align-items: center; }
-        .logo {
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--secondary);
-            text-decoration: none;
-        }
-        .nav-links { display: flex; gap: 1.5rem; }
-        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.95rem; }
+        .logo { font-weight: 700; font-size: 1.25rem; color: var(--secondary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-weight: 500; }
         .nav-links a:hover { color: var(--primary); }
+        .nav-links .cta-nav { background: var(--primary); color: white !important; padding: 0.5rem 1rem; border-radius: 0.5rem; }
         
-        .hero { text-align: center; padding: 2rem 0 1rem; }
-        .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--secondary); }
-        .hero .subtitle { color: var(--text-secondary); max-width: 600px; margin: 0 auto; }
+        .index-hero { text-align: center; padding: 2rem 0; }
+        .index-hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .index-hero p { color: #9ca3af; max-width: 600px; margin: 0 auto; }
+        .index-hero .methodology-link { margin-top: 0.75rem; }
+        .index-hero .methodology-link a { color: #60a5fa; text-decoration: none; font-size: 0.95rem; }
+        .index-hero .methodology-link a:hover { color: #93c5fd; text-decoration: underline; }
         
-        .index-card {
+        .index-metric-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 12px;
+            border: 1px solid #334155;
+            border-radius: 1rem;
             padding: 2rem;
-            margin: 1.5rem 0;
-            color: white;
             text-align: center;
+            max-width: 420px;
+            margin: 2rem auto;
         }
-        .index-value { font-size: 4rem; font-weight: 800; line-height: 1; }
-        .index-band { font-size: 1.5rem; font-weight: 600; margin-top: 0.5rem; }
-        .index-trend { font-size: 1rem; color: #94a3b8; margin-top: 0.5rem; }
-        .index-scale { font-size: 0.85rem; color: #64748b; margin-top: 1rem; }
-        .index-date { font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; }
-        .delay-badge {
-            display: inline-block;
-            background: rgba(234, 179, 8, 0.2);
-            color: #fbbf24;
-            font-size: 0.75rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            margin-top: 1rem;
+        .index-header { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+        .index-icon { font-size: 1.5rem; }
+        .index-title { font-size: 1.25rem; font-weight: 600; color: #f8fafc; }
+        .index-value { font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0; }
+        .index-scale-ref { font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem; }
+        .index-trend { font-size: 0.95rem; margin-bottom: 0.5rem; color: #f8fafc; }
+        .index-date { color: #6b7280; font-size: 0.875rem; margin-top: 1rem; }
+        
+        .index-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
+        .index-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .index-section h2 { font-size: 1.125rem; margin-bottom: 1rem; color: #f8fafc; }
+        .section-header-blue { color: #60a5fa !important; font-size: 1rem; margin-bottom: 0.75rem; }
         
-        .section { background: white; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; border: 1px solid var(--border); }
-        .section h2 { font-size: 1.25rem; color: var(--secondary); margin-bottom: 1rem; border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; }
-        .section h3 { font-size: 1.1rem; color: var(--secondary); margin-bottom: 0.75rem; }
-        
-        .interpretation { font-style: italic; color: var(--text-secondary); line-height: 1.7; font-size: 1.05rem; }
-        
-        .risk-bands { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin: 1rem 0; }
-        .band-item { text-align: center; padding: 0.75rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
-        .band-item.low { background: rgba(34, 197, 94, 0.15); color: #16a34a; }
-        .band-item.elevated { background: rgba(234, 179, 8, 0.15); color: #ca8a04; }
-        .band-item.high { background: rgba(249, 115, 22, 0.15); color: #ea580c; }
-        .band-item.severe { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
-        .band-item.critical { background: rgba(220, 38, 38, 0.2); color: #b91c1c; }
-        .band-item.active { border: 2px solid currentColor; font-weight: 700; }
-        .band-range { font-size: 0.7rem; opacity: 0.8; margin-top: 0.25rem; }
-        
-        .drivers-list { list-style: none; }
-        .drivers-list li { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
-        .drivers-list li:last-child { border-bottom: none; }
-        .driver-headline { font-weight: 500; color: var(--text-primary); }
+        .index-list { list-style: disc; padding-left: 1.25rem; color: #d1d5db; }
+        .index-list li { margin-bottom: 0.75rem; line-height: 1.4; }
+        .driver-tag { color: #4ecdc4; font-size: 0.8rem; font-weight: 500; }
+        .driver-headline { font-weight: 500; color: #d1d5db; }
+        .region-label { color: #9ca3af; font-size: 0.85rem; }
         
         .assets-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .asset-tag { background: rgba(0, 102, 255, 0.1); color: var(--primary); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
+        .asset-tag { background: rgba(96, 165, 250, 0.2); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
         
-        .meta-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .meta-item { }
-        .meta-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-        .meta-value { font-weight: 600; color: var(--text-primary); margin-top: 0.25rem; }
+        .index-interpretation { color: #1f2937; font-size: 1.05rem; font-style: italic; margin: 1.5rem 0; line-height: 1.6; }
         
-        .cta-section { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border-radius: 12px; padding: 2rem; text-align: center; margin: 2rem 0; }
-        .cta-section h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
-        .cta-section p { opacity: 0.9; margin-bottom: 1rem; }
-        .cta-btn { display: inline-block; background: white; color: var(--primary); padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; }
-        .cta-btn:hover { background: #f1f5f9; }
+        .index-delay-badge {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 2rem;
+            padding: 0.5rem 1.5rem;
+            text-align: center;
+            color: #60a5fa;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+        
+        .index-cta {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .index-cta h3 { color: #60a5fa; margin-bottom: 0.5rem; }
+        .index-cta p { color: #9ca3af; margin-bottom: 1.5rem; }
+        .cta-button { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; margin: 0.25rem; }
+        .cta-button.primary { background: #3b82f6; color: white; }
+        .cta-button.secondary { background: transparent; border: 1px solid #6b7280; color: #d1d5db; }
+        
+        .index-links { text-align: center; margin: 2rem 0; }
+        .index-links a { color: #60a5fa; margin: 0 1rem; text-decoration: none; }
+        .index-links a:hover { text-decoration: underline; }
         
         .footer { text-align: center; padding: 2rem 0; color: var(--text-secondary); font-size: 0.85rem; }
         .footer a { color: var(--primary); text-decoration: none; }
         
         @media (max-width: 640px) {
-            .hero h1 { font-size: 1.5rem; }
-            .index-value { font-size: 3rem; }
-            .risk-bands { grid-template-columns: repeat(3, 1fr); }
+            .index-hero h1 { font-size: 1.5rem; }
+            .index-value { font-size: 1.25rem; }
         }
     </style>
     """
@@ -215,15 +225,23 @@ async def eeri_public_page(request: Request):
             <nav class="nav"><div class="container nav-inner">
                 <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
                 <div class="nav-links">
-                    <a href="/alerts">Alerts</a>
                     <a href="/geri">GERI</a>
                     <a href="/eeri">EERI</a>
+                    <a href="/egsi">EGSI</a>
+                    <a href="/alerts">Alerts</a>
+                    <a href="/users" class="cta-nav">Sign In</a>
                 </div>
             </div></nav>
-            <main class="container">
-                <div class="hero">
-                    <h1>European Energy Risk Index (EERI)</h1>
-                    <p class="subtitle">EERI data is being computed. Check back shortly.</p>
+            <main>
+                <div class="container">
+                    <div class="index-hero">
+                        <h1>European Energy Risk Index (EERI)</h1>
+                        <p>A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
+                    </div>
+                    <div class="index-metric-card">
+                        <p style="color: #9ca3af;">EERI data is being computed. Check back shortly.</p>
+                        <p style="margin-top: 1rem;"><a href="/users" class="cta-button primary">Sign up for alerts</a></p>
+                    </div>
                 </div>
             </main>
             <footer class="footer"><div class="container">&copy; 2026 EnergyRiskIQ</div></footer>
@@ -285,6 +303,14 @@ async def eeri_public_page(request: Request):
     else:
         computed_display = 'Daily at 01:00 UTC'
     
+    trend_display = ""
+    if eeri.get('trend_7d') is not None:
+        trend_val = eeri['trend_7d']
+        trend_sign = "+" if trend_val > 0 else ""
+        trend_display = f'<div class="index-trend" style="color: #4ade80;">7-Day Trend: {trend_label} ({trend_sign}{trend_val:.0f})</div>'
+    
+    delay_badge = '<div class="index-delay-badge">24h delayed • Real-time access with subscription</div>'
+    
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -307,115 +333,73 @@ async def eeri_public_page(request: Request):
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
         </div></nav>
         
-        <main class="container">
-            <div class="hero">
-                <h1>European Energy Risk Index (EERI)</h1>
-                <p class="subtitle">Daily measure of systemic disruption risk in European energy markets</p>
-            </div>
-            
-            <!-- Block 1: Today's Index -->
-            <div class="index-card">
-                <div class="index-value" style="color: {band_color};">{eeri['value']}</div>
-                <div class="index-band" style="color: {band_color};">{eeri['band']}</div>
-                {trend_html}
-                <div class="index-scale">0 = minimal risk · 100 = extreme systemic stress</div>
-                <div class="index-date">Index Date: {index_date}</div>
-                <span class="delay-badge">24h Delayed</span>
-            </div>
-            
-            <!-- Block: Interpretation -->
-            <div class="section">
-                <h2>Risk Assessment</h2>
-                <p class="interpretation">{interpretation}</p>
-            </div>
-            
-            <!-- Block 2: Risk Band Visualization -->
-            <div class="section">
-                <h2>Risk Level Bands</h2>
-                <div class="risk-bands">
-                    <div class="band-item low {band_active('LOW')}">
-                        <div>Normal</div>
-                        <div class="band-range">0-25</div>
+        <main>
+            <div class="container">
+                <div class="index-hero">
+                    <h1>European Energy Risk Index (EERI)</h1>
+                    <p>A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
+                    <p class="methodology-link"><a href="/eeri/methodology">(EERI Methodology & Construction)</a></p>
+                </div>
+                
+                <div class="index-metric-card">
+                    <div class="index-header">
+                        <span class="index-icon">⚡</span>
+                        <span class="index-title">European Energy Risk Index:</span>
                     </div>
-                    <div class="band-item elevated {band_active('MODERATE')}">
-                        <div>Elevated</div>
-                        <div class="band-range">26-50</div>
+                    <div class="index-value" style="color: {band_color};">{eeri['value']} / 100 ({eeri['band']})</div>
+                    <div class="index-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
+                    {trend_display}
+                    <div class="index-date">Date Computed: {index_date}</div>
+                </div>
+                
+                <div class="index-sections">
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
+                        <ul class="index-list">{drivers_html}</ul>
                     </div>
-                    <div class="band-item high {band_active('ELEVATED')}">
-                        <div>High</div>
-                        <div class="band-range">51-75</div>
-                    </div>
-                    <div class="band-item severe {band_active('SEVERE')}">
-                        <div>Severe</div>
-                        <div class="band-range">76-90</div>
-                    </div>
-                    <div class="band-item critical {band_active('CRITICAL')}">
-                        <div>Critical</div>
-                        <div class="band-range">91-100</div>
+                    
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Top Regions Under Pressure:</h2>
+                        <ul class="index-list regions-list">
+                            <li>Europe <span class="region-label">(Primary)</span></li>
+                            <li>Black Sea <span class="region-label">(Secondary)</span></li>
+                            <li>Middle East <span class="region-label">(Tertiary)</span></li>
+                        </ul>
                     </div>
                 </div>
-                <p style="text-align: center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">
-                    Current position: <strong style="color: {band_color};">{eeri['band']} ({eeri['value']})</strong>
-                </p>
-            </div>
-            
-            <!-- Block 3: Top Risk Drivers -->
-            <div class="section">
-                <h2>Top Risk Drivers Today</h2>
-                <ul class="drivers-list">
-                    {drivers_html}
-                </ul>
-            </div>
-            
-            <!-- Block 4: Assets Affected -->
-            <div class="section">
-                <h2>Assets Most Affected Today</h2>
-                <div class="assets-grid">
-                    {assets_html}
-                </div>
-            </div>
-            
-            <!-- Block 5: Update Metadata -->
-            <div class="section">
-                <h2>Index Information</h2>
-                <div class="meta-info">
-                    <div class="meta-item">
-                        <div class="meta-label">Index Date</div>
-                        <div class="meta-value">{index_date}</div>
-                    </div>
-                    <div class="meta-item">
-                        <div class="meta-label">Computed At</div>
-                        <div class="meta-value">{computed_display}</div>
-                    </div>
-                    <div class="meta-item">
-                        <div class="meta-label">Update Frequency</div>
-                        <div class="meta-value">Daily</div>
+                
+                <div class="index-section" style="margin: 1.5rem 0;">
+                    <h2 class="section-header-blue">Assets Most Affected:</h2>
+                    <div class="assets-grid">
+                        {assets_html}
                     </div>
                 </div>
-            </div>
-            
-            <!-- Block 6: What is EERI -->
-            <div class="section">
-                <h2>What is the European Energy Risk Index (EERI)?</h2>
-                <p style="color: var(--text-secondary); line-height: 1.8;">
-                    The European Energy Risk Index (EERI) measures systemic geopolitical, supply-chain, and market disruption risks affecting European energy markets. It aggregates high-impact events, asset transmission signals, and thematic pressures into a daily risk score designed for analysts, traders, and policy professionals.
-                </p>
-                <p style="margin-top: 1rem;">
-                    <a href="/eeri/methodology" style="color: var(--primary); text-decoration: none;">Learn more about EERI methodology &rarr;</a>
-                </p>
-            </div>
-            
-            <!-- Block 7: CTA -->
-            <div class="cta-section">
-                <h3>Access Full EERI Components</h3>
-                <p>Unlock real-time data, historical charts, and detailed component analysis with EnergyRiskIQ Pro.</p>
-                <a href="/users" class="cta-btn">Unlock Real-time Access</a>
+                
+                <div class="index-interpretation">
+                    <em>{interpretation}</em>
+                </div>
+                
+                {delay_badge}
+                
+                <div class="index-cta">
+                    <h3>Get Real-time Access</h3>
+                    <p>Unlock instant EERI updates with a Pro subscription.</p>
+                    <a href="/users" class="cta-button primary">Unlock Real-time EERI</a>
+                    <a href="/alerts" class="cta-button secondary">See Alert Archive</a>
+                </div>
+                
+                <div class="index-links">
+                    <a href="/eeri/history">EERI History</a>
+                    <a href="/eeri/methodology">Methodology</a>
+                </div>
             </div>
         </main>
         
