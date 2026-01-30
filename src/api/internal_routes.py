@@ -24,6 +24,7 @@ LOCK_IDS = {
     'egsi_compute': 4001,
     'egsi_s_compute': 4002,
     'oil_price_capture': 4003,
+    'gas_storage_capture': 4004,
     'backfill_snapshots': 5001,
     'backfill_egsi': 5002,
     'calculate_oil_changes': 5003,
@@ -618,6 +619,75 @@ def run_oil_price_capture(
         return capture_oil_price_snapshot()
     
     response, status_code = run_job_with_lock('oil_price_capture', oil_price_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
+@router.post("/run/gas-storage-capture")
+def run_gas_storage_capture(
+    target_date: Optional[str] = None,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Capture daily EU gas storage data from GIE AGSI+.
+    
+    Stores snapshot in gas_storage_snapshots table for EGSI-S calculations.
+    Defaults to yesterday's date (end-of-day data).
+    
+    Args:
+        target_date: Date to capture (YYYY-MM-DD format). Defaults to yesterday.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.scripts.backfill_snapshots import fetch_gas_storage_for_date, compute_gas_metrics, save_gas_storage_snapshot, get_db_connection
+    
+    if target_date:
+        try:
+            capture_date = date.fromisoformat(target_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    else:
+        capture_date = date.today() - timedelta(days=1)
+    
+    def gas_storage_job():
+        date_str = capture_date.strftime("%Y-%m-%d")
+        
+        gas_data = fetch_gas_storage_for_date(date_str)
+        if not gas_data:
+            return {
+                "status": "skipped",
+                "date": date_str,
+                "message": "No gas storage data available from AGSI+"
+            }
+        
+        metrics = compute_gas_metrics(gas_data, capture_date.month)
+        
+        conn = get_db_connection()
+        try:
+            if save_gas_storage_snapshot(conn, date_str, metrics):
+                return {
+                    "status": "success",
+                    "date": date_str,
+                    "eu_storage_percent": metrics["eu_storage_percent"],
+                    "risk_band": metrics["risk_band"],
+                    "interpretation": metrics["interpretation"]
+                }
+            else:
+                return {
+                    "status": "error",
+                    "date": date_str,
+                    "message": "Failed to save gas storage snapshot"
+                }
+        finally:
+            conn.close()
+    
+    response, status_code = run_job_with_lock('gas_storage_capture', gas_storage_job)
     
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)

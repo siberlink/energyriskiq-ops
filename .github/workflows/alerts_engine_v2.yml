@@ -223,6 +223,35 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
+      - name: Gas Storage Capture
+        id: gas_storage
+        if: always() && steps.run_alerts.outputs.exit_code == '0'
+        run: |
+          echo "Capturing EU gas storage data from AGSI+..."
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/gas-storage-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > gas_storage_output.txt
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::Gas storage capture returned HTTP $http_code (non-blocking)"
+            echo "gas_storage_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "Gas storage capture completed successfully"
+            echo "gas_storage_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
       - name: EGSI-M Index Computation
         id: egsi_compute
         if: always() && steps.run_alerts.outputs.exit_code == '0'
@@ -329,6 +358,7 @@ jobs:
             health_output.txt
             pro_delivery_output.txt
             trader_delivery_output.txt
+            gas_storage_output.txt
             egsi_compute_output.txt
             egsi_s_compute_output.txt
             oil_price_output.txt
@@ -350,6 +380,7 @@ jobs:
           echo "| **Exit Code** | ${{ steps.run_alerts.outputs.exit_code || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Pro Delivery** | ${{ steps.pro_delivery.outputs.pro_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Trader Delivery** | ${{ steps.trader_delivery.outputs.trader_delivery_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Gas Storage Capture** | ${{ steps.gas_storage.outputs.gas_storage_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **EGSI-M Compute** | ${{ steps.egsi_compute.outputs.egsi_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **EGSI-S Compute** | ${{ steps.egsi_s_compute.outputs.egsi_s_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Oil Price Capture** | ${{ steps.oil_price.outputs.oil_price_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
@@ -375,6 +406,14 @@ jobs:
             echo "### Trader Delivery Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             cat trader_delivery_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f gas_storage_output.txt ]; then
+            echo "### Gas Storage Capture Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat gas_storage_output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi

@@ -96,8 +96,10 @@ def fetch_oil_prices() -> Optional[OilPriceSnapshot]:
     brent_changes = brent_data.get("changes", {}).get("24h", {}) if brent_data else {}
     wti_changes = wti_data.get("changes", {}).get("24h", {}) if wti_data else {}
     
+    # Oil prices are captured for the day that just ended (yesterday)
+    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
     snapshot = OilPriceSnapshot(
-        date=datetime.utcnow().strftime("%Y-%m-%d"),
+        date=yesterday,
         brent_price=brent_price,
         brent_change_24h=float(brent_changes.get("amount", 0)),
         brent_change_pct=float(brent_changes.get("percent", 0)),
@@ -171,23 +173,27 @@ def get_oil_price_for_date(target_date: date) -> Optional[Dict[str, Any]]:
 
 def capture_oil_price_snapshot() -> Dict[str, Any]:
     """
-    Main entry point: Fetch and store today's oil prices.
+    Main entry point: Fetch and store yesterday's oil prices.
+    
+    Oil prices are captured for the day that just ended (yesterday),
+    since we're capturing end-of-day data.
     
     Returns:
         Dict with status and data about the operation.
     """
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    # Use yesterday's date since we capture end-of-day prices
+    target_date = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
     
     existing = execute_one(
         "SELECT id FROM oil_price_snapshots WHERE date = %s",
-        (today,)
+        (target_date,)
     )
     if existing:
-        logger.info(f"Oil price snapshot already exists for {today}")
+        logger.info(f"Oil price snapshot already exists for {target_date}")
         return {
             "status": "skipped",
-            "message": f"Snapshot already exists for {today}",
-            "date": today
+            "message": f"Snapshot already exists for {target_date}",
+            "date": target_date
         }
     
     snapshot = fetch_oil_prices()
@@ -195,7 +201,7 @@ def capture_oil_price_snapshot() -> Dict[str, Any]:
         return {
             "status": "error",
             "message": "Failed to fetch oil prices from API",
-            "date": today
+            "date": target_date
         }
     
     success = save_oil_price_snapshot(snapshot)
@@ -203,8 +209,8 @@ def capture_oil_price_snapshot() -> Dict[str, Any]:
     if success:
         return {
             "status": "success",
-            "message": f"Captured oil price snapshot for {today}",
-            "date": today,
+            "message": f"Captured oil price snapshot for {target_date}",
+            "date": target_date,
             "brent_price": snapshot.brent_price,
             "wti_price": snapshot.wti_price,
             "brent_wti_spread": snapshot.brent_wti_spread
@@ -213,5 +219,5 @@ def capture_oil_price_snapshot() -> Dict[str, Any]:
         return {
             "status": "error", 
             "message": "Failed to save snapshot to database",
-            "date": today
+            "date": target_date
         }
