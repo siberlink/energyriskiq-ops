@@ -283,14 +283,17 @@ async def egsi_public_page(request: Request):
     drivers = egsi.get('drivers', [])[:5]
     components = egsi.get('components', {})
     
-    interpretation = generate_egsi_interpretation(
-        value=value,
-        band=band,
-        drivers=drivers,
-        components=components,
-        index_date=date_str,
-        index_type="EGSI-M"
-    )
+    # Use stored interpretation (unique per day), fallback to generation only if missing
+    interpretation = egsi.get('explanation') or egsi.get('interpretation')
+    if not interpretation:
+        interpretation = generate_egsi_interpretation(
+            value=value,
+            band=band,
+            drivers=drivers,
+            components=components,
+            index_date=date_str,
+            index_type="EGSI-M"
+        )
     
     band_color = get_band_color(band)
     trend_label, trend_sign, trend_color = format_trend(trend_7d)

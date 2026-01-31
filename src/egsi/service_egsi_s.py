@@ -18,6 +18,7 @@ from src.egsi.compute_egsi_s import (
     compute_egsi_s_components,
     compute_egsi_s_value,
 )
+from src.egsi.interpretation import generate_egsi_interpretation
 from src.egsi.data_sources import get_market_data_provider
 from src.egsi.repo import (
     save_egsi_s_result,
@@ -79,10 +80,22 @@ def compute_egsi_s_for_date(
     value = compute_egsi_s_value(components)
     band = get_egsi_band(value)
     
-    components.interpretation = components.interpretation.replace(
-        "EGSI-S value",
-        f"EGSI-S value of {value:.0f}"
+    # Generate AI-powered interpretation (unique per day)
+    ai_interpretation = generate_egsi_interpretation(
+        value=int(value),
+        band=band.value,
+        drivers=components.top_drivers or [],
+        components={
+            'supply_pressure': round(components.supply_pressure * 100, 1),
+            'transit_stress': round(components.injection_rate_norm * 100, 1),
+            'storage_stress': round(components.storage_stress_norm * 100, 1),
+            'price_volatility': round(components.price_volatility_norm * 100, 1),
+            'policy_risk': round(components.winter_readiness_norm * 100, 1),
+        },
+        index_date=target_date.isoformat(),
+        index_type="EGSI-S"
     )
+    components.interpretation = ai_interpretation
     
     trend_1d, trend_7d = compute_egsi_s_trends(value)
     

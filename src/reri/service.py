@@ -136,8 +136,21 @@ def compute_eeri_for_date(
     drivers = extract_top_drivers(europe_alerts, limit=5)
     eeri_components.top_drivers = drivers
     
-    interpretation = generate_interpretation(eeri_value, eeri_components, drivers)
-    eeri_components.interpretation = interpretation
+    # Generate AI-powered interpretation (unique per day)
+    from src.reri.interpretation import generate_eeri_interpretation
+    ai_interpretation = generate_eeri_interpretation(
+        value=eeri_value,
+        band=band.value,
+        drivers=drivers,
+        components={
+            'reri_eu': eeri_components.reri_eu,
+            'theme_pressure': eeri_components.theme_pressure_norm,
+            'asset_transmission': eeri_components.asset_transmission_norm,
+            'contagion': eeri_components.contagion_factor,
+        },
+        index_date=target_date.isoformat()
+    )
+    eeri_components.interpretation = ai_interpretation
     
     previous_values = fetch_previous_values(EERI_INDEX_ID, target_date, days=7)
     trend_1d, trend_7d = compute_trends(eeri_value, previous_values)

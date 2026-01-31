@@ -1411,13 +1411,16 @@ async def geri_page(request: Request):
             regions_html = '<li>No regional hotspots</li>'
         
         top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers[:5]] if geri.top_drivers else []
-        interpretation = generate_geri_interpretation(
-            value=geri.value,
-            band=geri.band,
-            top_drivers=top_drivers_list,
-            top_regions=geri.top_regions[:3] if geri.top_regions else [],
-            index_date=geri.computed_at
-        )
+        # Use stored interpretation (unique per day), fallback to generation only if missing
+        interpretation = getattr(geri, 'interpretation', None) or getattr(geri, 'explanation', None)
+        if not interpretation:
+            interpretation = generate_geri_interpretation(
+                value=geri.value,
+                band=geri.band,
+                top_drivers=top_drivers_list,
+                top_regions=geri.top_regions[:3] if geri.top_regions else [],
+                index_date=geri.computed_at
+            )
         interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
         
         delay_badge = '<div class="geri-delay-badge">24h delayed • Real-time access with subscription</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time data</div>'
@@ -3677,13 +3680,16 @@ async def geri_daily_page(request: Request, date: str):
         regions_html = '<li style="color: #9ca3af;">No regional hotspots</li>'
     
     snapshot_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in snapshot.top_drivers[:5]] if snapshot.top_drivers else []
-    interpretation = generate_geri_interpretation(
-        value=snapshot.value,
-        band=snapshot.band,
-        top_drivers=snapshot_drivers_list,
-        top_regions=snapshot.top_regions[:3] if snapshot.top_regions else [],
-        index_date=snapshot.computed_at
-    )
+    # Use stored interpretation (unique per day), fallback to generation only if missing
+    interpretation = getattr(snapshot, 'interpretation', None) or getattr(snapshot, 'explanation', None)
+    if not interpretation:
+        interpretation = generate_geri_interpretation(
+            value=snapshot.value,
+            band=snapshot.band,
+            top_drivers=snapshot_drivers_list,
+            top_regions=snapshot.top_regions[:3] if snapshot.top_regions else [],
+            index_date=snapshot.computed_at
+        )
     interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
     
     prev_link = f'<a class="nav-arrow" href="/geri/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>' if adjacent['prev'] else '<span class="nav-arrow disabled">&larr; No earlier</span>'

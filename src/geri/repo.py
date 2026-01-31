@@ -266,12 +266,13 @@ def save_index(result: GERIResult, force: bool = False) -> bool:
     OUTPUT ONLY - writes only to intel_indices_daily.
     """
     components_json = json.dumps(result.components.to_dict())
+    interpretation = getattr(result.components, 'interpretation', None) or ''
     
     if force:
         sql = """
         INSERT INTO intel_indices_daily 
-            (index_id, date, value, band, trend_1d, trend_7d, components, model_version, computed_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            (index_id, date, value, band, trend_1d, trend_7d, components, interpretation, model_version, computed_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
         ON CONFLICT (index_id, date) 
         DO UPDATE SET 
             value = EXCLUDED.value,
@@ -279,6 +280,7 @@ def save_index(result: GERIResult, force: bool = False) -> bool:
             trend_1d = EXCLUDED.trend_1d,
             trend_7d = EXCLUDED.trend_7d,
             components = EXCLUDED.components,
+            interpretation = EXCLUDED.interpretation,
             model_version = EXCLUDED.model_version,
             computed_at = NOW()
         RETURNING id
@@ -286,8 +288,8 @@ def save_index(result: GERIResult, force: bool = False) -> bool:
     else:
         sql = """
         INSERT INTO intel_indices_daily 
-            (index_id, date, value, band, trend_1d, trend_7d, components, model_version, computed_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            (index_id, date, value, band, trend_1d, trend_7d, components, interpretation, model_version, computed_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
         ON CONFLICT (index_id, date) DO NOTHING
         RETURNING id
         """
@@ -301,6 +303,7 @@ def save_index(result: GERIResult, force: bool = False) -> bool:
             result.trend_1d,
             result.trend_7d,
             components_json,
+            interpretation,
             result.model_version,
         ))
         row = cursor.fetchone()

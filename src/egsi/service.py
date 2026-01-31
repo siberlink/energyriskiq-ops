@@ -26,6 +26,7 @@ from src.egsi.repo import (
     get_egsi_m_for_date,
     compute_trends,
 )
+from src.egsi.interpretation import generate_egsi_interpretation
 from src.reri.repo import fetch_alerts_for_date, get_reri_for_date
 from src.reri.types import EERI_INDEX_ID
 
@@ -81,6 +82,22 @@ def compute_egsi_m_for_date(
     band = get_egsi_band(value)
     
     trend_1d, trend_7d = compute_trends(value)
+    
+    # Generate AI-powered interpretation (unique per day)
+    ai_interpretation = generate_egsi_interpretation(
+        value=int(value),
+        band=band.value,
+        drivers=components.top_drivers or [],
+        components={
+            'reri_eu': components.reri_eu_value,
+            'theme_pressure': round(components.theme_pressure_norm * 100, 1),
+            'asset_transmission': round(components.asset_transmission_norm * 100, 1),
+            'chokepoint_factor': round(components.chokepoint_factor_norm * 100, 1),
+        },
+        index_date=target_date.isoformat(),
+        index_type="EGSI-M"
+    )
+    components.interpretation = ai_interpretation
     
     result = EGSIMResult(
         index_id=EGSI_M_INDEX_ID,

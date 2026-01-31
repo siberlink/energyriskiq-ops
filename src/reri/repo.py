@@ -213,14 +213,16 @@ def save_reri_result(result: RERIResult) -> int:
     Returns:
         Row ID of the saved record
     """
+    interpretation = getattr(result.components, 'interpretation', None) or ''
+    
     with get_cursor() as cursor:
         cursor.execute("""
             INSERT INTO reri_indices_daily (
                 index_id, region_id, date, value, band,
                 trend_1d, trend_7d, components, drivers,
-                model_version, computed_at
+                interpretation, model_version, computed_at
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             ON CONFLICT (index_id, date) DO UPDATE SET
                 value = EXCLUDED.value,
@@ -229,6 +231,7 @@ def save_reri_result(result: RERIResult) -> int:
                 trend_7d = EXCLUDED.trend_7d,
                 components = EXCLUDED.components,
                 drivers = EXCLUDED.drivers,
+                interpretation = EXCLUDED.interpretation,
                 model_version = EXCLUDED.model_version,
                 computed_at = EXCLUDED.computed_at
             RETURNING id
@@ -242,6 +245,7 @@ def save_reri_result(result: RERIResult) -> int:
             result.trend_7d,
             json.dumps(result.components.to_dict()),
             json.dumps(result.drivers),
+            interpretation,
             result.model_version,
             result.computed_at or datetime.utcnow(),
         ))

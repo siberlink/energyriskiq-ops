@@ -292,13 +292,16 @@ async def eeri_public_page(request: Request):
     components = eeri.get('components', {})
     index_date = eeri.get('date', date.today().isoformat())
     
-    interpretation = generate_eeri_interpretation(
-        value=eeri['value'],
-        band=eeri['band'],
-        drivers=top_drivers[:5] if top_drivers else [],
-        components=components,
-        index_date=index_date
-    )
+    # Use stored interpretation (unique per day), fallback to generation only if missing
+    interpretation = eeri.get('explanation') or eeri.get('interpretation')
+    if not interpretation:
+        interpretation = generate_eeri_interpretation(
+            value=eeri['value'],
+            band=eeri['band'],
+            drivers=top_drivers[:5] if top_drivers else [],
+            components=components,
+            index_date=index_date
+        )
     interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
     
     current_band = eeri['band']
@@ -781,13 +784,16 @@ async def eeri_daily_snapshot(date_str: str):
     snapshot_components = eeri.get('components', {})
     snapshot_index_date = eeri.get('date', date_str)
     
-    interpretation = generate_eeri_interpretation(
-        value=eeri['value'],
-        band=eeri['band'],
-        drivers=snapshot_drivers[:5] if snapshot_drivers else [],
-        components=snapshot_components,
-        index_date=snapshot_index_date
-    )
+    # Use stored interpretation (unique per day), fallback to generation only if missing
+    interpretation = eeri.get('explanation') or eeri.get('interpretation')
+    if not interpretation:
+        interpretation = generate_eeri_interpretation(
+            value=eeri['value'],
+            band=eeri['band'],
+            drivers=snapshot_drivers[:5] if snapshot_drivers else [],
+            components=snapshot_components,
+            index_date=snapshot_index_date
+        )
     interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
     
     trend_display = ""

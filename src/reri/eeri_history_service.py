@@ -94,7 +94,7 @@ def get_eeri_by_date(target_date: date) -> Optional[Dict[str, Any]]:
     query = """
         SELECT 
             date, value, band, trend_1d, trend_7d,
-            components, drivers, computed_at, model_version
+            components, drivers, interpretation, computed_at, model_version
         FROM reri_indices_daily
         WHERE index_id = %s AND date = %s
     """
@@ -109,13 +109,17 @@ def get_eeri_by_date(target_date: date) -> Optional[Dict[str, Any]]:
         components = row['components'] if isinstance(row['components'], dict) else json.loads(row['components']) if row['components'] else {}
         drivers = row['drivers'] if isinstance(row['drivers'], list) else json.loads(row['drivers']) if row['drivers'] else []
         
+        # Prefer stored interpretation column, fallback to components
+        interpretation = row.get('interpretation') or components.get('interpretation', '')
+        
         return {
             'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
             'value': row['value'],
             'band': row['band'],
             'trend_1d': row['trend_1d'],
             'trend_7d': row['trend_7d'],
-            'interpretation': components.get('interpretation', ''),
+            'interpretation': interpretation,
+            'components': components,
             'top_drivers': components.get('top_drivers', drivers[:3]),
             'affected_assets': _extract_affected_assets(components, drivers),
             'computed_at': row['computed_at'].isoformat() if row['computed_at'] else None,
@@ -133,7 +137,7 @@ def get_latest_eeri_public() -> Optional[Dict[str, Any]]:
     query = """
         SELECT 
             date, value, band, trend_1d, trend_7d,
-            components, drivers, computed_at
+            components, drivers, interpretation, computed_at
         FROM reri_indices_daily
         WHERE index_id = %s
         ORDER BY date DESC
@@ -150,13 +154,17 @@ def get_latest_eeri_public() -> Optional[Dict[str, Any]]:
         components = row['components'] if isinstance(row['components'], dict) else json.loads(row['components']) if row['components'] else {}
         drivers = row['drivers'] if isinstance(row['drivers'], list) else json.loads(row['drivers']) if row['drivers'] else []
         
+        # Prefer stored interpretation column, fallback to components
+        interpretation = row.get('interpretation') or components.get('interpretation', '')
+        
         return {
             'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
             'value': row['value'],
             'band': row['band'],
             'trend_1d': row['trend_1d'],
             'trend_7d': row['trend_7d'],
-            'interpretation': components.get('interpretation', ''),
+            'interpretation': interpretation,
+            'components': components,
             'top_drivers': components.get('top_drivers', drivers[:3]),
             'affected_assets': _extract_affected_assets(components, drivers),
             'computed_at': row['computed_at'].isoformat() if row['computed_at'] else None,
@@ -176,7 +184,7 @@ def get_eeri_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
     query = """
         SELECT 
             date, value, band, trend_1d, trend_7d,
-            components, drivers, computed_at
+            components, drivers, interpretation, computed_at
         FROM reri_indices_daily
         WHERE index_id = %s
           AND computed_at <= %s
@@ -194,13 +202,17 @@ def get_eeri_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
         components = row['components'] if isinstance(row['components'], dict) else json.loads(row['components']) if row['components'] else {}
         drivers = row['drivers'] if isinstance(row['drivers'], list) else json.loads(row['drivers']) if row['drivers'] else []
         
+        # Prefer stored interpretation column, fallback to components
+        interpretation = row.get('interpretation') or components.get('interpretation', '')
+        
         return {
             'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
             'value': row['value'],
             'band': row['band'],
             'trend_1d': row['trend_1d'],
             'trend_7d': row['trend_7d'],
-            'interpretation': components.get('interpretation', ''),
+            'interpretation': interpretation,
+            'components': components,
             'top_drivers': components.get('top_drivers', drivers[:3]),
             'affected_assets': _extract_affected_assets(components, drivers),
             'computed_at': row['computed_at'].isoformat() if row['computed_at'] else None,
