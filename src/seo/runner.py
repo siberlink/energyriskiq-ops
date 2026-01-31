@@ -25,7 +25,9 @@ from src.seo.seo_generator import (
     get_daily_page,
     generate_sitemap_entries,
     get_available_months,
-    get_recent_daily_pages
+    get_recent_daily_pages,
+    generate_and_save_regional_daily_page,
+    REGION_DISPLAY_NAMES,
 )
 
 logging.basicConfig(
@@ -103,6 +105,44 @@ def generate_daily_page(target_date: date, dry_run: bool = False) -> dict:
     }
 
 
+def generate_regional_pages(target_date: date, dry_run: bool = False) -> list:
+    """Generate regional daily pages for all regions for the given date."""
+    results = []
+    regions = list(REGION_DISPLAY_NAMES.keys())
+    
+    logger.info(f"Generating regional pages for {target_date.isoformat()} ({len(regions)} regions)")
+    
+    for region_slug in regions:
+        try:
+            if dry_run:
+                logger.info(f"[DRY RUN] Would generate {region_slug} page for {target_date}")
+                results.append({
+                    'status': 'dry_run',
+                    'region': region_slug,
+                    'date': target_date.isoformat()
+                })
+            else:
+                model = generate_and_save_regional_daily_page(target_date, region_slug)
+                alert_count = model['stats']['total_alerts']
+                logger.info(f"Generated {region_slug} page: {alert_count} alerts")
+                results.append({
+                    'status': 'success',
+                    'region': region_slug,
+                    'date': target_date.isoformat(),
+                    'alert_count': alert_count
+                })
+        except Exception as e:
+            logger.error(f"Error generating {region_slug} page: {e}")
+            results.append({
+                'status': 'error',
+                'region': region_slug,
+                'date': target_date.isoformat(),
+                'error': str(e)
+            })
+    
+    return results
+
+
 def rebuild_sitemaps(dry_run: bool = False) -> dict:
     """Rebuild sitemap.xml entries."""
     logger.info("Rebuilding sitemaps...")
@@ -136,6 +176,7 @@ def main():
     parser.add_argument('--rebuild-sitemaps', action='store_true', help='Rebuild sitemap entries')
     parser.add_argument('--dry-run', action='store_true', help='Preview without saving')
     parser.add_argument('--backfill', type=int, help='Backfill N days of pages')
+    parser.add_argument('--skip-regional', action='store_true', help='Skip regional page generation')
     
     args = parser.parse_args()
     
@@ -146,6 +187,7 @@ def main():
         'generated_at': datetime.utcnow().isoformat(),
         'dry_run': args.dry_run,
         'pages': [],
+        'regional_pages': [],
         'sitemap': None
     }
     
@@ -156,6 +198,9 @@ def main():
             target = yesterday - timedelta(days=i)
             result = generate_daily_page(target, dry_run=args.dry_run)
             results['pages'].append(result)
+            if not args.skip_regional:
+                regional_results = generate_regional_pages(target, dry_run=args.dry_run)
+                results['regional_pages'].extend(regional_results)
     elif args.date:
         try:
             target = datetime.strptime(args.date, '%Y-%m-%d').date()
@@ -164,10 +209,16 @@ def main():
             sys.exit(1)
         result = generate_daily_page(target, dry_run=args.dry_run)
         results['pages'].append(result)
+        if not args.skip_regional:
+            regional_results = generate_regional_pages(target, dry_run=args.dry_run)
+            results['regional_pages'].extend(regional_results)
     else:
         target = get_yesterday_date()
         result = generate_daily_page(target, dry_run=args.dry_run)
         results['pages'].append(result)
+        if not args.skip_regional:
+            regional_results = generate_regional_pages(target, dry_run=args.dry_run)
+            results['regional_pages'].extend(regional_results)
     
     if args.rebuild_sitemaps or not args.date:
         results['sitemap'] = rebuild_sitemaps(dry_run=args.dry_run)
