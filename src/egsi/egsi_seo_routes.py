@@ -21,6 +21,7 @@ from src.egsi.egsi_history_service import (
     get_egsi_m_adjacent_dates,
     get_egsi_m_monthly_stats,
 )
+from src.egsi.interpretation import generate_egsi_interpretation
 
 router = APIRouter(tags=["egsi-seo"])
 
@@ -123,7 +124,18 @@ def get_common_styles():
         .assets-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .asset-tag { background: rgba(96, 165, 250, 0.2); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
         
-        .index-interpretation { color: #1f2937; font-size: 1.05rem; font-style: italic; margin: 1.5rem 0; line-height: 1.6; }
+        .index-interpretation { 
+            color: #1f2937; 
+            font-size: 1.05rem; 
+            margin: 1.5rem 0 2rem 0; 
+            line-height: 1.7; 
+            background: rgba(96, 165, 250, 0.05);
+            border-left: 3px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .index-interpretation p { margin: 0 0 1rem 0; }
+        .index-interpretation p:last-child { margin-bottom: 0; }
         
         .index-delay-badge {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
@@ -268,9 +280,17 @@ async def egsi_public_page(request: Request):
     band = egsi.get('band', 'LOW')
     trend_7d = egsi.get('trend_7d')
     date_str = egsi.get('date', 'N/A')
-    explanation = egsi.get('explanation', 'Europe gas market stress assessment based on regional risk, supply disruptions, and infrastructure factors.')
-    drivers = egsi.get('drivers', [])[:3]
+    drivers = egsi.get('drivers', [])[:5]
     components = egsi.get('components', {})
+    
+    interpretation = generate_egsi_interpretation(
+        value=value,
+        band=band,
+        drivers=drivers,
+        components=components,
+        index_date=date_str,
+        index_type="EGSI-M"
+    )
     
     band_color = get_band_color(band)
     trend_label, trend_sign, trend_color = format_trend(trend_7d)
@@ -323,7 +343,7 @@ async def egsi_public_page(request: Request):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Europe Gas Stress Index (EGSI) - {band} at {value:.0f} | EnergyRiskIQ</title>
-        <meta name="description" content="EGSI at {value:.0f} ({band}). {explanation[:150]}">
+        <meta name="description" content="EGSI at {value:.0f} ({band}). {interpretation[:150]}">
         <link rel="canonical" href="{BASE_URL}/egsi">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         
@@ -334,7 +354,7 @@ async def egsi_public_page(request: Request):
         
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="EGSI at {value:.0f} ({band})">
-        <meta name="twitter:description" content="{explanation[:200]}">
+        <meta name="twitter:description" content="{interpretation[:200]}">
         
         <script type="application/ld+json">
         {{
@@ -403,7 +423,7 @@ async def egsi_public_page(request: Request):
                 </div>
                 
                 <div class="index-interpretation">
-                    <em>{explanation}</em>
+                    <p>{interpretation.replace(chr(10)+chr(10), '</p><p>')}</p>
                 </div>
                 
                 {delay_badge}
