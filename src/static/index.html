@@ -2023,6 +2023,42 @@
             .eeri-icon { font-size: 2rem; }
             .eeri-value { font-size: 2.5rem; }
         }
+
+        /* EGSI Public Display Styles */
+        .egsi-public-container {
+            margin: 1.5rem auto;
+            max-width: 500px;
+        }
+        .egsi-card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 16px;
+            padding: 1.75rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .egsi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.2);
+        }
+        .egsi-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .egsi-icon {
+            font-size: 2.5rem;
+        }
+        .egsi-band-LOW { color: #4ade80; }
+        .egsi-band-NORMAL { color: #4ade80; }
+        .egsi-band-MODERATE { color: #fbbf24; }
+        .egsi-band-ELEVATED { color: #f97316; }
+        .egsi-band-HIGH { color: #f97316; }
+        .egsi-band-CRITICAL { color: #ef4444; }
+        @media (max-width: 600px) {
+            .egsi-card { padding: 1.25rem; }
+            .egsi-icon { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
@@ -2259,6 +2295,93 @@
             <div style="text-align: center;">
                 <p style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
                     EERI is published daily by EnergyRiskIQ as a regional risk indicator for European energy markets.<br>
+                    Informational only. Not financial advice.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: EGSI Presentation -->
+    <section class="section section-egsi" id="egsi-section" style="background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); padding: 4rem 0;">
+        <div class="section-inner" style="max-width: 1000px; margin: 0 auto; padding: 0 1.5rem;">
+            <div class="section-header" style="text-align: center; margin-bottom: 2.5rem;">
+                <h2 style="font-size: 2.25rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.75rem;">Europe Gas Stress Index (EGSI)</h2>
+                <p style="font-size: 1.1rem; color: #94a3b8; margin-bottom: 1.5rem;">Daily measure of gas market stress and system vulnerability in Europe</p>
+                <p style="font-size: 1rem; color: #cbd5e1; line-height: 1.7; max-width: 800px; margin: 0 auto;">
+                    EGSI tracks gas-specific stress signals across European markets. It combines market transmission signals (EGSI-M) with system-level indicators (EGSI-S) including gas storage levels, TTF pricing, and chokepoint vulnerabilities.
+                </p>
+            </div>
+
+            <!-- Used to monitor -->
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Used to monitor:</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">gas market stress</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">storage vulnerabilities</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">pipeline chokepoints</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">TTF price volatility</span>
+                </div>
+            </div>
+
+            <!-- Key Value Points -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔥</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Gas-Specific Focus</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Dedicated to natural gas markets, pipelines, LNG terminals, and storage facilities.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Dual Index Family</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">EGSI-M tracks market signals while EGSI-S monitors system fundamentals.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏭</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Chokepoint Tracking</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Monitors Ukraine transit, TurkStream, Norway pipelines, and major LNG terminals.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">💹</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Live Data Integration</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Incorporates real AGSI+ storage data and TTF gas pricing for system stress.</p>
+                </div>
+            </div>
+
+            <!-- Teasing Line -->
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <p style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Today's Europe Gas Stress Snapshot</p>
+            </div>
+
+            <!-- EGSI Public Display (24h Delayed) -->
+            <div id="egsi-public-section" class="egsi-public-container" style="display: none; max-width: 500px; margin: 0 auto 1.5rem auto;">
+                <a href="/egsi" class="egsi-card-link" style="text-decoration: none; color: inherit; display: block;" title="Europe Gas Stress Index (EGSI)" aria-label="Europe Gas Stress Index (EGSI)">
+                <div class="egsi-card" style="text-align: center; padding: 1.5rem; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px;">
+                    <div class="egsi-header" style="justify-content: center; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="egsi-icon" style="font-size: 2.5rem;">🔥</span>
+                        <span style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Europe Gas Stress Index: <span id="egsi-value" style="color: #34d399;">--</span>/100 (<span id="egsi-band" style="color: #34d399;">--</span>)</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #888; margin: 0.5rem 0;">0 = minimal stress · 100 = critical gas system stress</p>
+                    <p id="egsi-trend" style="font-size: 0.9rem; color: #34d399; margin: 0.5rem 0;">7-Day Trend: <span id="egsi-trend-label">--</span> <span id="egsi-trend-value"></span></p>
+                </div>
+                </a>
+            </div>
+
+            <!-- CTA Row -->
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                <a href="/egsi" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #10b981; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">
+                    View Today's EGSI
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                <a href="/egsi/history" style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #34d399; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; border: 1px solid #10b981; transition: background 0.2s;">
+                    Explore EGSI History
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+
+            <!-- Trust Line -->
+            <div style="text-align: center;">
+                <p style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
+                    EGSI is published daily by EnergyRiskIQ as a gas-specific stress indicator for European energy markets.<br>
                     Informational only. Not financial advice.
                 </p>
             </div>
@@ -3188,6 +3311,48 @@
         
         // Load EERI on page load
         loadEeriPublic();
+
+        // Load EGSI Public Data (24h delayed)
+        async function loadEgsiPublic() {
+            try {
+                const response = await fetch('/api/v1/indices/egsi-m/public');
+                const data = await response.json();
+                
+                if (data && data.value !== undefined) {
+                    const section = document.getElementById('egsi-public-section');
+                    
+                    // Set values
+                    document.getElementById('egsi-value').textContent = data.value;
+                    document.getElementById('egsi-band').textContent = data.band;
+                    
+                    // Set band color
+                    const valueEl = document.getElementById('egsi-value');
+                    const bandEl = document.getElementById('egsi-band');
+                    valueEl.className = 'egsi-value egsi-band-' + data.band;
+                    bandEl.className = 'egsi-band egsi-band-' + data.band;
+                    
+                    // Set trend
+                    const trend7d = data.trend_7d || 0;
+                    let trendLabel = 'Stable';
+                    if (trend7d >= 5) trendLabel = 'Rising';
+                    else if (trend7d >= 2) trendLabel = 'Slightly Rising';
+                    else if (trend7d <= -5) trendLabel = 'Falling';
+                    else if (trend7d <= -2) trendLabel = 'Slightly Easing';
+                    
+                    document.getElementById('egsi-trend-label').textContent = trendLabel;
+                    const trendValueText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
+                    document.getElementById('egsi-trend-value').textContent = '(' + trendValueText + ')';
+                    
+                    // Show section
+                    section.style.display = 'block';
+                }
+            } catch (error) {
+                console.log('EGSI data not available:', error);
+            }
+        }
+        
+        // Load EGSI on page load
+        loadEgsiPublic();
     </script>
 </body>
 </html>
