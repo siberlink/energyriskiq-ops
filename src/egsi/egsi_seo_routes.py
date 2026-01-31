@@ -472,7 +472,7 @@ async def egsi_updates_page():
             "date": "2026-01-31",
             "version": "1.1",
             "title": "Public Interpretation",
-            "description": "Added AI-powered daily interpretation to EGSI public pages. Each day's index now includes a unique, contextual analysis explaining current gas market stress levels and key indicators.",
+            "description": "Added daily interpretation to EGSI public pages. Each day's index now includes a unique, contextual analysis explaining current gas market stress levels and key indicators.",
             "type": "enhancement"
         },
         {

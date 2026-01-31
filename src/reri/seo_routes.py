@@ -455,7 +455,7 @@ async def eeri_updates_page():
             "date": "2026-01-31",
             "version": "1.1",
             "title": "Public Interpretation",
-            "description": "Added AI-powered daily interpretation to EERI public pages. Each day's index now includes a unique, contextual analysis explaining current European energy risk levels and contributing factors.",
+            "description": "Added daily interpretation to EERI public pages. Each day's index now includes a unique, contextual analysis explaining current European energy risk levels and contributing factors.",
             "type": "enhancement"
         },
         {

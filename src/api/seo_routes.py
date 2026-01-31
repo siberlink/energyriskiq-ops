@@ -1880,7 +1880,7 @@ async def geri_updates_page():
             "date": "2026-01-31",
             "version": "1.2",
             "title": "Public Interpretation",
-            "description": "Added AI-powered daily interpretation to GERI public pages. Each day's index now includes a unique, contextual analysis explaining current risk levels and key drivers.",
+            "description": "Added daily interpretation to GERI public pages. Each day's index now includes a unique, contextual analysis explaining current risk levels and key drivers.",
             "type": "enhancement"
         },
         {
