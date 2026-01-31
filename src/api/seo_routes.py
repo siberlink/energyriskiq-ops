@@ -56,8 +56,8 @@ RATE_LIMIT_MAX_REQUESTS = 30  # max requests per window for GERI pages
 _request_counts = defaultdict(list)  # IP -> list of timestamps
 
 BLOCKED_USER_AGENTS = [
-    'scrapy', 'python-requests', 'curl', 'wget', 'httpclient', 'libwww',
-    'crawler', 'spider', 'bot', 'scraper', 'harvest', 'extractor',
+    'scrapy', 'python-requests', 'httpclient', 'libwww',
+    'crawler', 'spider', 'scraper', 'harvest', 'extractor',
     'dataminer', 'contentking', 'semrush', 'ahrefs', 'mj12bot',
     'dotbot', 'petalbot', 'bytespider', 'claudebot', 'gptbot'
 ]
@@ -100,10 +100,8 @@ def is_blocked_scraper(request: Request) -> bool:
         if blocked in ua:
             return True
     
-    # Block requests with no user agent
-    if not ua or len(ua) < 10:
-        return True
-    
+    # Allow empty user agents - some legitimate proxies/iframes don't set them
+    # Rate limiting handles abuse instead
     return False
 
 def get_anti_scrape_headers() -> dict:
