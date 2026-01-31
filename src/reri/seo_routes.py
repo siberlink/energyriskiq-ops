@@ -554,49 +554,32 @@ async def eeri_methodology_page():
 async def eeri_history_page():
     """
     EERI History Page - Overview of historical data with links to archives.
+    Public page showing the official published archive (24h delayed).
     """
-    dates = get_all_eeri_dates()
-    months = get_eeri_available_months()
-    stats = get_eeri_monthly_stats()
+    dates = get_all_eeri_dates(public_only=True)
+    months = get_eeri_available_months(public_only=True)
     
-    recent_dates_html = ""
-    for d in dates[:14]:
-        recent_dates_html += f'<li><a href="/eeri/{d}">{d}</a></li>'
-    if not recent_dates_html:
-        recent_dates_html = '<li>No historical data available yet</li>'
+    rows_html = ""
+    for d in dates[:90]:
+        rows_html += f"""
+        <tr>
+            <td><a href="/eeri/{d}">{d}</a></td>
+        </tr>
+        """
+    if not rows_html:
+        rows_html = '<tr><td style="text-align: center; color: #9ca3af;">No history available yet.</td></tr>'
     
     months_html = ""
-    for m in months[:12]:
-        month_label = f"{month_name[m['month']]} {m['year']}"
-        months_html += f'<li><a href="/eeri/{m["year"]}/{m["month"]:02d}">{month_label}</a> ({m["count"]} days)</li>'
-    if not months_html:
-        months_html = '<li>No monthly archives available yet</li>'
-    
-    stats_html = ""
-    if stats:
-        stats_html = f"""
-        <div class="section">
-            <h2>Historical Statistics</h2>
-            <div class="meta-info">
-                <div class="meta-item">
-                    <div class="meta-label">Total Days</div>
-                    <div class="meta-value">{stats.get('total_days', 0)}</div>
-                </div>
-                <div class="meta-item">
-                    <div class="meta-label">Average Value</div>
-                    <div class="meta-value">{stats.get('avg_value', 0)}</div>
-                </div>
-                <div class="meta-item">
-                    <div class="meta-label">Range</div>
-                    <div class="meta-value">{stats.get('min_value', 0)} - {stats.get('max_value', 0)}</div>
-                </div>
-                <div class="meta-item">
-                    <div class="meta-label">First Record</div>
-                    <div class="meta-value">{stats.get('first_date', 'N/A')}</div>
-                </div>
-            </div>
+    for m in months[:24]:
+        month_display = f"{month_name[m['month']]} {m['year']}"
+        months_html += f"""
+        <div class="month-card">
+            <a href="/eeri/{m['year']}/{m['month']:02d}">{month_display}</a>
+            <div style="color: #9ca3af; font-size: 0.875rem;">{m['count']} days</div>
         </div>
         """
+    if not months_html:
+        months_html = '<p style="color: #9ca3af;">No monthly archives available yet.</p>'
     
     html = f"""
     <!DOCTYPE html>
@@ -604,70 +587,110 @@ async def eeri_history_page():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EERI History - European Energy Risk Index Archive | EnergyRiskIQ</title>
-        <meta name="description" content="Historical archive of the European Energy Risk Index (EERI). Browse daily snapshots and monthly summaries of European energy market risk levels.">
+        <title>European Energy Risk Index History | EnergyRiskIQ</title>
+        <meta name="description" content="Complete history of the European Energy Risk Index (EERI). Browse daily snapshots and monthly archives of European energy market risk data.">
         <link rel="canonical" href="{BASE_URL}/eeri/history">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
-            .history-list {{ list-style: none; }}
-            .history-list li {{ padding: 0.5rem 0; border-bottom: 1px solid var(--border); }}
-            .history-list li:last-child {{ border-bottom: none; }}
-            .history-list a {{ color: var(--primary); text-decoration: none; }}
-            .history-list a:hover {{ text-decoration: underline; }}
-            .two-column {{ display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }}
-            @media (max-width: 640px) {{ .two-column {{ grid-template-columns: 1fr; }} }}
+            .container {{ max-width: 1000px; margin: 0 auto; padding: 0 1rem; }}
+            .breadcrumbs {{ margin: 1rem 0; color: #9ca3af; font-size: 0.875rem; }}
+            .breadcrumbs a {{ color: #60a5fa; text-decoration: none; }}
+            .breadcrumbs a:hover {{ text-decoration: underline; }}
+            h1 {{ font-size: 2rem; color: #1a1a2e; margin-bottom: 0.5rem; }}
+            h2 {{ font-size: 1.25rem; color: #1a1a2e; margin: 2rem 0 1rem; }}
+            .month-grid {{ 
+                display: grid; 
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+                gap: 1rem; 
+                margin-bottom: 2rem;
+            }}
+            .month-card {{
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 1rem;
+                text-align: center;
+            }}
+            .month-card a {{
+                color: #2563eb;
+                text-decoration: none;
+                font-weight: 500;
+            }}
+            .month-card a:hover {{ text-decoration: underline; }}
+            .eeri-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 1rem;
+            }}
+            .eeri-table th, .eeri-table td {{
+                padding: 0.75rem 1rem;
+                text-align: left;
+                border-bottom: 1px solid #e2e8f0;
+            }}
+            .eeri-table th {{
+                background: #f8fafc;
+                font-weight: 600;
+                color: #475569;
+            }}
+            .eeri-table a {{
+                color: #2563eb;
+                text-decoration: none;
+            }}
+            .eeri-table a:hover {{ text-decoration: underline; }}
         </style>
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
         </div></nav>
-        
-        <main class="container">
-            <div class="hero">
-                <h1>EERI History</h1>
-                <p class="subtitle">Historical archive of European Energy Risk Index data</p>
-            </div>
-            
-            {stats_html}
-            
-            <div class="two-column">
-                <div class="section">
-                    <h2>Recent Daily Snapshots</h2>
-                    <ul class="history-list">
-                        {recent_dates_html}
-                    </ul>
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/eeri">EERI</a> &raquo; History
                 </div>
                 
-                <div class="section">
-                    <h2>Monthly Archives</h2>
-                    <ul class="history-list">
-                        {months_html}
-                    </ul>
+                <h1>European Energy Risk Index (EERI) History</h1>
+                <p style="color: #9ca3af; margin-bottom: 2rem;">
+                    The official published archive of daily EERI snapshots. 
+                    Each snapshot represents the computed European energy market risk for that day.
+                </p>
+                
+                <h2>Monthly Archives</h2>
+                <div class="month-grid">
+                    {months_html}
+                </div>
+                
+                <h2>Recent Snapshots</h2>
+                <table class="eeri-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows_html}
+                    </tbody>
+                </table>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="/eeri" style="color: #60a5fa;">Back to Today's EERI</a>
                 </div>
             </div>
-            
-            <div style="text-align: center; margin: 2rem 0;">
-                <a href="/eeri" style="color: var(--primary); text-decoration: none;">&larr; Back to Current EERI</a>
-            </div>
         </main>
-        
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; 2026 EnergyRiskIQ</p>
-            </div>
-        </footer>
+        <footer class="footer"><div class="container">&copy; 2026 EnergyRiskIQ</div></footer>
     </body>
     </html>
     """
     
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
 
 
 @router.get("/eeri/{date_str}", response_class=HTMLResponse)

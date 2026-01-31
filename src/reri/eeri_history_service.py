@@ -14,15 +14,22 @@ import json
 logger = logging.getLogger(__name__)
 
 
-def get_all_eeri_dates() -> List[str]:
+def get_all_eeri_dates(public_only: bool = False) -> List[str]:
     """
     Get all dates that have EERI snapshots.
+    
+    Args:
+        public_only: If True, only include snapshots with 24h delay (date <= yesterday)
+    
     Returns list of ISO date strings in descending order.
     """
-    query = """
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    date_filter = f"AND date <= '{yesterday}'" if public_only else ""
+    
+    query = f"""
         SELECT DISTINCT date
         FROM reri_indices_daily
-        WHERE index_id = %s
+        WHERE index_id = %s {date_filter}
         ORDER BY date DESC
     """
     try:
@@ -35,19 +42,26 @@ def get_all_eeri_dates() -> List[str]:
         return []
 
 
-def get_eeri_available_months() -> List[Dict[str, Any]]:
+def get_eeri_available_months(public_only: bool = False) -> List[Dict[str, Any]]:
     """
     Get all available months that have EERI data.
+    
+    Args:
+        public_only: If True, only include snapshots with 24h delay (date <= yesterday)
+    
     Returns list of {year, month, count, max_date} dicts.
     """
-    query = """
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    date_filter = f"AND date <= '{yesterday}'" if public_only else ""
+    
+    query = f"""
         SELECT 
             EXTRACT(YEAR FROM date)::int as year,
             EXTRACT(MONTH FROM date)::int as month,
             COUNT(*) as count,
             MAX(date) as max_date
         FROM reri_indices_daily
-        WHERE index_id = %s
+        WHERE index_id = %s {date_filter}
         GROUP BY EXTRACT(YEAR FROM date), EXTRACT(MONTH FROM date)
         ORDER BY year DESC, month DESC
     """
