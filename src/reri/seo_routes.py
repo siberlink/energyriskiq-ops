@@ -696,7 +696,7 @@ async def eeri_history_page():
 @router.get("/eeri/{date_str}", response_class=HTMLResponse)
 async def eeri_daily_snapshot(date_str: str):
     """
-    EERI Daily Snapshot Page.
+    EERI Daily Snapshot Page - matches main EERI page design.
     """
     if '/' in date_str or len(date_str) < 8:
         raise HTTPException(status_code=404, detail="Invalid date format")
@@ -724,15 +724,32 @@ async def eeri_daily_snapshot(date_str: str):
         if headline:
             drivers_html += f'<li><span class="driver-headline">{headline}</span></li>'
     if not drivers_html:
-        drivers_html = '<li>No significant drivers</li>'
+        drivers_html = '<li><span class="driver-headline">No significant risk drivers detected</span></li>'
     
-    nav_html = '<div style="display: flex; justify-content: space-between; margin: 1.5rem 0;">'
+    assets_html = ""
+    for asset in eeri.get('affected_assets', [])[:4]:
+        assets_html += f'<span class="asset-tag">{asset}</span>'
+    if not assets_html:
+        assets_html = '<span class="asset-tag">Natural Gas</span><span class="asset-tag">Crude Oil</span>'
+    
+    interpretation = eeri.get('interpretation', '')
+    if not interpretation:
+        interpretation = f"EERI of {eeri['value']} indicated {eeri['band'].lower()} structural risk in European energy markets on {date_display}."
+    
+    trend_display = ""
+    if eeri.get('trend_7d') is not None:
+        trend_val = eeri['trend_7d']
+        trend_sign = "+" if trend_val > 0 else ""
+        trend_color = "#4ade80" if trend_val <= 0 else "#f87171"
+        trend_display = f'<div class="index-trend" style="color: {trend_color};">7-Day Trend: ({trend_sign}{trend_val:.0f})</div>'
+    
+    nav_html = '<div style="display: flex; justify-content: space-between; margin: 1.5rem 0; padding: 0 1rem;">'
     if adjacent.get('prev'):
-        nav_html += f'<a href="/eeri/{adjacent["prev"]}" style="color: var(--primary); text-decoration: none;">&larr; {adjacent["prev"]}</a>'
+        nav_html += f'<a href="/eeri/{adjacent["prev"]}" style="color: #60a5fa; text-decoration: none;">&larr; {adjacent["prev"]}</a>'
     else:
         nav_html += '<span></span>'
     if adjacent.get('next'):
-        nav_html += f'<a href="/eeri/{adjacent["next"]}" style="color: var(--primary); text-decoration: none;">{adjacent["next"]} &rarr;</a>'
+        nav_html += f'<a href="/eeri/{adjacent["next"]}" style="color: #60a5fa; text-decoration: none;">{adjacent["next"]} &rarr;</a>'
     else:
         nav_html += '<span></span>'
     nav_html += '</div>'
@@ -753,42 +770,76 @@ async def eeri_daily_snapshot(date_str: str):
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
         </div></nav>
         
-        <main class="container">
-            <div class="hero">
-                <h1>EERI: {date_display}</h1>
-                <p class="subtitle">European Energy Risk Index historical snapshot</p>
-            </div>
-            
-            <div class="index-card">
-                <div class="index-value" style="color: {band_color};">{eeri['value']}</div>
-                <div class="index-band" style="color: {band_color};">{eeri['band']}</div>
-                <div class="index-scale">0 = minimal risk · 100 = extreme systemic stress</div>
-            </div>
-            
-            <div class="section">
-                <h2>Risk Assessment</h2>
-                <p class="interpretation">{eeri.get('interpretation', f"EERI of {eeri['value']} indicated {eeri['band'].lower()} risk conditions.")}</p>
-            </div>
-            
-            <div class="section">
-                <h2>Top Risk Drivers</h2>
-                <ul class="drivers-list">{drivers_html}</ul>
-            </div>
-            
-            {nav_html}
-            
-            <div style="text-align: center; margin: 1rem 0;">
-                <a href="/eeri/history" style="color: var(--primary); text-decoration: none;">View Full History</a> · 
-                <a href="/eeri" style="color: var(--primary); text-decoration: none;">Current EERI</a>
+        <main>
+            <div class="container">
+                <div class="index-hero">
+                    <h1>European Energy Risk Index (EERI)</h1>
+                    <p>Historical snapshot for {date_display}</p>
+                    <p class="methodology-link"><a href="/eeri/methodology">(EERI Methodology & Construction)</a></p>
+                </div>
+                
+                <div class="index-metric-card">
+                    <div class="index-header">
+                        <span class="index-icon">⚡</span>
+                        <span class="index-title">European Energy Risk Index:</span>
+                    </div>
+                    <div class="index-value" style="color: {band_color};">{eeri['value']} / 100 ({eeri['band']})</div>
+                    <div class="index-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
+                    {trend_display}
+                    <div class="index-date">Date Computed: {date_str}</div>
+                </div>
+                
+                <div class="index-sections">
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
+                        <ul class="index-list">{drivers_html}</ul>
+                    </div>
+                    
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Top Regions Under Pressure:</h2>
+                        <ul class="index-list regions-list">
+                            <li>Europe <span class="region-label">(Primary)</span></li>
+                            <li>Black Sea <span class="region-label">(Secondary)</span></li>
+                            <li>Middle East <span class="region-label">(Tertiary)</span></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="index-section" style="margin: 1.5rem 0;">
+                    <h2 class="section-header-blue">Assets Most Affected:</h2>
+                    <div class="assets-grid">
+                        {assets_html}
+                    </div>
+                </div>
+                
+                <div class="index-interpretation">
+                    <em>{interpretation}</em>
+                </div>
+                
+                {nav_html}
+                
+                <div class="index-cta">
+                    <h3>Get Real-time Access</h3>
+                    <p>Unlock instant EERI updates with a Pro subscription.</p>
+                    <a href="/users" class="cta-button primary">Unlock Real-time EERI</a>
+                    <a href="/alerts" class="cta-button secondary">See Alert Archive</a>
+                </div>
+                
+                <div class="index-links">
+                    <a href="/eeri/history">History</a> · 
+                    <a href="/eeri/methodology">Methodology</a> · 
+                    <a href="/eeri">Current EERI</a>
+                </div>
             </div>
         </main>
-        
         <footer class="footer"><div class="container">&copy; 2026 EnergyRiskIQ</div></footer>
     </body>
     </html>
