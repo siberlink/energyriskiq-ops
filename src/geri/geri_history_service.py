@@ -266,14 +266,20 @@ def get_latest_published_snapshot() -> Optional[GERISnapshot]:
     return None
 
 
-def get_available_months() -> List[Dict[str, Any]]:
+def get_available_months(public_only: bool = False) -> List[Dict[str, Any]]:
     """
     Get list of months that have GERI snapshots.
+    
+    Args:
+        public_only: If True, only include snapshots with 24h delay (date <= yesterday)
     
     Returns:
         List of dicts with year, month, snapshot_count, min_date, max_date
     """
-    sql = """
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    date_filter = f"AND date <= '{yesterday}'" if public_only else ""
+    
+    sql = f"""
     SELECT 
         EXTRACT(YEAR FROM date)::int as year,
         EXTRACT(MONTH FROM date)::int as month,
@@ -281,7 +287,7 @@ def get_available_months() -> List[Dict[str, Any]]:
         MIN(date) as min_date,
         MAX(date) as max_date
     FROM intel_indices_daily
-    WHERE index_id = %s
+    WHERE index_id = %s {date_filter}
     GROUP BY EXTRACT(YEAR FROM date), EXTRACT(MONTH FROM date)
     ORDER BY year DESC, month DESC
     """

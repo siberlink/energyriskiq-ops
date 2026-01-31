@@ -1762,8 +1762,9 @@ async def geri_history_page(request: Request):
     
     track_page_view("geri_history", "/geri/history")
     
-    snapshots = list_snapshots(limit=90)
-    months = get_geri_available_months()
+    yesterday = get_yesterday_date().isoformat()
+    snapshots = list_snapshots(to_date=yesterday, limit=90)
+    months = get_geri_available_months(public_only=True)
     latest = get_latest_published_snapshot()
     
     latest_date = latest.date if latest else None
