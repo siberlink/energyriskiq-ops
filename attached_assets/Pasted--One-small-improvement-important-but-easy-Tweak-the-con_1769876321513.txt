@@ -1,0 +1,151 @@
+⚠️ One small improvement (important but easy)
+
+Tweak the condition for EERI slightly
+
+Your rule:
+
+Region contains "europe", "eu", "black-sea" → + EERI
+
+I’d adjust it to:
+
+Condition	Action
+Europe / EU	+ EERI
+Black Sea	+ either EERI or Black Sea index (when available)
+
+Why:
+
+Black Sea ≠ Europe semantically
+
+Right now it’s fine (EERI absorbs it)
+
+Later, when you add a Black Sea Energy Risk Index, this rule won’t need rewriting
+
+✅ Future-proofing move, not a correction.
+
+2️⃣ Index History Pages → Index Pages
+✔️ This is textbook correct
+
+Breadcrumb link to main index → required
+
+Optional footer link to alert history → excellent
+
+No deep linking to individual alerts → correct
+
+“Data Sources” framing → very Google-friendly
+
+Index history pages stay:
+
+analytical
+
+non-competitive with main index
+
+non-archival
+
+This avoids the “thin time-series SEO trap”.
+
+No changes needed here.
+
+3️⃣ Index Pages → Alert History Pages
+✔️ Strong and restrained (this is good)
+
+1–2 links MAX → perfect
+
+Aggregated link (“View recent alerts”) → correct
+
+No per-driver links → exactly right
+
+This keeps:
+
+index pages clean
+
+focus on the index value, not the news list
+
+Google sees:
+
+“This is an index, not a news archive.”
+
+That’s critical.
+
+Optional enhancement (not required)
+
+You may add one temporal qualifier to the link anchor, e.g.:
+
+“View January 2026 contributing alerts”
+
+“View recent contributing alerts”
+
+This slightly improves:
+
+clarity
+
+topical relevance
+
+But this is optional, not required.
+
+4️⃣ Summary Table — sanity check
+
+Your summary table is correct as-is.
+
+The only thing I’d add mentally (not necessarily in docs):
+
+Index pages are allowed to NOT link down at all on some days.
+
+If there are no meaningful alerts:
+
+don’t force the link
+
+absence is better than filler
+
+That restraint helps long-term quality signals.
+
+One critical rule to add (this is the missing 5%)
+🔒 Add a global cap rule
+
+Never allow the same Index link to appear more than once per page.
+
+Even across:
+
+breadcrumbs
+
+context blocks
+
+footers
+
+Why:
+
+prevents accidental duplication
+
+avoids exact-match anchor stacking
+
+protects you from template collisions later
+
+This is especially important once automation kicks in.
+
+Final judgment
+Does this design align with best practice?
+
+Yes — strongly.
+
+Would I approve this for implementation?
+
+Yes, without hesitation, with:
+
+minor Black Sea condition tweak
+
+one “no duplicate index links per page” rule
+
+Is this safe for long-term scaling?
+
+Yes.
+It’s:
+
+conservative
+
+logical
+
+defensible
+
+future-index-ready
+
+You’re not building “SEO pages”.
+You’re building a knowledge system, and this design reflects that.
