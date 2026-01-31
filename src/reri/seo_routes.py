@@ -445,6 +445,221 @@ async def eeri_public_page(request: Request):
     return HTMLResponse(content=html)
 
 
+@router.get("/eeri/updates", response_class=HTMLResponse)
+async def eeri_updates_page():
+    """
+    EERI Updates Page - Shows changelog and updates to the EERI index methodology.
+    """
+    updates = [
+        {
+            "date": "2026-01-20",
+            "version": "1.2",
+            "title": "Contagion Factor Enhancement",
+            "description": "Improved cross-border contagion modeling to better capture risk transmission between European regions. Added Black Sea and Middle East spillover effects.",
+            "type": "enhancement"
+        },
+        {
+            "date": "2025-12-10",
+            "version": "1.1",
+            "title": "Theme Pressure Refinement",
+            "description": "Enhanced theme pressure calculations with weighted category analysis. Supply disruption and infrastructure alerts now carry higher weight in the overall index.",
+            "type": "enhancement"
+        },
+        {
+            "date": "2025-11-01",
+            "version": "1.0",
+            "title": "EERI Launch",
+            "description": "Initial release of the Europe Energy Risk Index. The index provides a daily composite measure of European energy market stress using RERI, theme pressure, asset transmission, and contagion factors.",
+            "type": "release"
+        },
+    ]
+    
+    updates_html = ""
+    for update in updates:
+        type_badge = {
+            "release": '<span class="update-badge release">Release</span>',
+            "enhancement": '<span class="update-badge enhancement">Enhancement</span>',
+            "fix": '<span class="update-badge fix">Fix</span>',
+            "breaking": '<span class="update-badge breaking">Breaking Change</span>',
+        }.get(update["type"], '<span class="update-badge">Update</span>')
+        
+        updates_html += f"""
+        <div class="update-card">
+            <div class="update-header">
+                <div class="update-meta">
+                    <span class="update-date">{update["date"]}</span>
+                    <span class="update-version">v{update["version"]}</span>
+                    {type_badge}
+                </div>
+                <h3 class="update-title">{update["title"]}</h3>
+            </div>
+            <p class="update-description">{update["description"]}</p>
+        </div>
+        """
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EERI Updates & Changelog | EnergyRiskIQ</title>
+        <meta name="description" content="Track updates, enhancements, and changes to the Europe Energy Risk Index (EERI) methodology and calculation.">
+        <link rel="canonical" href="{BASE_URL}/eeri/updates">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        
+        <meta property="og:title" content="EERI Updates & Changelog | EnergyRiskIQ">
+        <meta property="og:description" content="Stay informed about updates to the Europe Energy Risk Index methodology.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{BASE_URL}/eeri/updates">
+        
+        {get_common_styles()}
+        <style>
+            .updates-hero {{
+                text-align: center;
+                padding: 3rem 0 2rem;
+            }}
+            .updates-hero h1 {{
+                font-size: 2rem;
+                margin-bottom: 0.75rem;
+                color: var(--text-primary);
+            }}
+            .updates-hero p {{
+                color: var(--text-secondary);
+                max-width: 600px;
+                margin: 0 auto;
+            }}
+            .updates-container {{
+                max-width: 800px;
+                margin: 0 auto 3rem;
+            }}
+            .update-card {{
+                background: white;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                transition: box-shadow 0.2s ease;
+            }}
+            .update-card:hover {{
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }}
+            .update-header {{
+                margin-bottom: 0.75rem;
+            }}
+            .update-meta {{
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 0.5rem;
+                flex-wrap: wrap;
+            }}
+            .update-date {{
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+            }}
+            .update-version {{
+                background: var(--bg-light);
+                color: var(--text-secondary);
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }}
+            .update-badge {{
+                padding: 0.25rem 0.75rem;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }}
+            .update-badge.release {{
+                background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                color: white;
+            }}
+            .update-badge.enhancement {{
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+            }}
+            .update-badge.fix {{
+                background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                color: white;
+            }}
+            .update-badge.breaking {{
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+            }}
+            .update-title {{
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0;
+            }}
+            .update-description {{
+                color: var(--text-secondary);
+                line-height: 1.6;
+                margin: 0;
+            }}
+            .updates-nav {{
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                margin-top: 2rem;
+                padding-top: 2rem;
+                border-top: 1px solid var(--border);
+            }}
+            .updates-nav a {{
+                color: var(--primary);
+                text-decoration: none;
+                font-weight: 500;
+            }}
+            .updates-nav a:hover {{
+                text-decoration: underline;
+            }}
+        </style>
+    </head>
+    <body>
+        <nav class="nav"><div class="container nav-inner">
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <div class="nav-links">
+                <a href="/geri">GERI</a>
+                <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
+            </div>
+        </div></nav>
+        
+        <main>
+            <div class="container">
+                <div class="updates-hero">
+                    <h1>EERI Updates & Changelog</h1>
+                    <p>Track the latest updates, enhancements, and changes to the Europe Energy Risk Index methodology and calculation.</p>
+                </div>
+                
+                <div class="updates-container">
+                    {updates_html}
+                </div>
+                
+                <div class="updates-nav">
+                    <a href="/eeri">Current EERI</a>
+                    <a href="/eeri/history">History</a>
+                    <a href="/eeri/methodology">Methodology</a>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; {datetime.now().year} EnergyRiskIQ. All rights reserved.</p>
+            </div>
+        </footer>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
+
+
 @router.get("/eeri/methodology", response_class=HTMLResponse)
 async def eeri_methodology_page():
     """
