@@ -417,6 +417,7 @@ async def egsi_public_page(request: Request):
                     <div class="index-section">
                         <h2 class="section-header-blue">Primary Risk Drivers:</h2>
                         <ul class="index-list">{drivers_list_html}</ul>
+                        <p class="source-attribution" style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem; font-style: italic;">(Based on recent EnergyRiskIQ alerts) <a href="/alerts" style="color: #2563eb;">View alerts &rarr;</a></p>
                     </div>
                     
                     <div class="index-section">
@@ -435,7 +436,6 @@ async def egsi_public_page(request: Request):
                     <h3>Get Real-time Access</h3>
                     <p>Unlock instant EGSI updates with a Pro subscription.</p>
                     <a href="/users" class="cta-button primary">Unlock Real-time EGSI</a>
-                    <a href="/alerts" class="cta-button secondary">See Alert Archive</a>
                 </div>
                 
                 <div class="index-links">
@@ -908,6 +908,11 @@ async def egsi_history_page():
                     <a href="/egsi">&larr; Current EGSI</a>
                     <a href="/egsi/methodology">Methodology &rarr;</a>
                 </div>
+                
+                <div class="data-sources-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.5rem;">Data Sources</h4>
+                    <p style="font-size: 0.875rem; color: #475569;">EGSI values are computed from gas-related energy risk alerts. <a href="/alerts" style="color: #2563eb;">View recent alerts</a></p>
+                </div>
             </div>
         </main>
         
@@ -1120,6 +1125,7 @@ async def egsi_daily_snapshot(date_str: str):
                     <div class="index-section">
                         <h2 class="section-header-blue">Primary Risk Drivers:</h2>
                         <ul class="index-list">{drivers_list_html}</ul>
+                        <p class="source-attribution" style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem; font-style: italic;">(Based on recent EnergyRiskIQ alerts) <a href="/alerts" style="color: #2563eb;">View alerts &rarr;</a></p>
                     </div>
                     
                     <div class="index-section">

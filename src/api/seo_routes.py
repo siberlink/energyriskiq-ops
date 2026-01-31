@@ -45,6 +45,12 @@ from src.geri.geri_history_service import (
     get_latest_published_snapshot
 )
 from calendar import month_name as calendar_month_name
+from src.utils.contextual_linking import (
+    ContextualLinkBuilder,
+    get_risk_context_styles,
+    extract_regions_from_alerts,
+    extract_categories_from_alerts,
+)
 
 router = APIRouter(tags=["seo"])
 
@@ -968,6 +974,18 @@ async def daily_alerts_page(date_str: str, request: Request):
     prev_link = f'<a href="/alerts/daily/{model["prev_date"]}">&larr; Previous Day</a>' if model.get('prev_date') else '<span></span>'
     next_link = f'<a href="/alerts/daily/{model["next_date"]}">Next Day &rarr;</a>' if model.get('next_date') else '<span></span>'
     
+    # Build Risk Context block with contextual links to indices
+    link_builder = ContextualLinkBuilder()
+    regions = extract_regions_from_alerts(all_cards)
+    categories = extract_categories_from_alerts(all_cards)
+    relevant_indices = link_builder.determine_relevant_indices(
+        regions=regions,
+        categories=categories,
+        max_links=3
+    )
+    period_text = model.get('date_display', 'this day')
+    risk_context_html = link_builder.render_risk_context_block(relevant_indices, period_text)
+    
     # BreadcrumbList JSON-LD schema
     breadcrumb_json_ld = json.dumps({
         "@context": "https://schema.org",
@@ -991,6 +1009,7 @@ async def daily_alerts_page(date_str: str, request: Request):
         <link rel="icon" type="image/png" href="/static/favicon.png">
         <script type="application/ld+json">{breadcrumb_json_ld}</script>
         {get_common_styles()}
+        {get_risk_context_styles()}
     </head>
     <body>
         {render_nav()}
@@ -1002,6 +1021,8 @@ async def daily_alerts_page(date_str: str, request: Request):
                 </div>
                 <h1>{model['h1_title']}</h1>
                 <p class="meta">Published {model['date_display']} (alerts from the previous 24 hours)</p>
+                
+                {risk_context_html}
                 
                 {stats_html}
                 
@@ -1081,6 +1102,11 @@ async def monthly_archive_page(year: int, month: int):
         </li>
         """
     
+    # Build Risk Context block for monthly archive
+    link_builder = ContextualLinkBuilder()
+    relevant_indices = ['geri', 'eeri', 'egsi']
+    risk_context_html = link_builder.render_risk_context_block(relevant_indices, month_display)
+    
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -1092,6 +1118,7 @@ async def monthly_archive_page(year: int, month: int):
         <link rel="canonical" href="{BASE_URL}/alerts/{year}/{month:02d}">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
+        {get_risk_context_styles()}
     </head>
     <body>
         {render_nav()}
@@ -1103,6 +1130,8 @@ async def monthly_archive_page(year: int, month: int):
                 </div>
                 <h1>Risk Alerts - {month_display}</h1>
                 <p class="meta">{len(pages)} days of alerts | {total_alerts} total alerts</p>
+                
+                {risk_context_html}
                 
                 <h2>Daily Pages</h2>
                 <ul class="page-list">
@@ -1439,6 +1468,7 @@ async def geri_page(request: Request):
             <div class="geri-section">
                 <h2 class="section-header-blue">Primary Risk Drivers:</h2>
                 <ul class="geri-list">{drivers_html}</ul>
+                <p class="source-attribution">(Based on recent EnergyRiskIQ alerts) <a href="/alerts">View alerts &rarr;</a></p>
             </div>
             
             <div class="geri-section">
@@ -1461,7 +1491,6 @@ async def geri_page(request: Request):
             <h3>Get Real-time Access</h3>
             <p>Unlock instant GERI updates with a Pro subscription.</p>
             <a href="/users" class="cta-button primary">Unlock Real-time GERI</a>
-            <a href="/alerts" class="cta-button secondary">See Alert Archive</a>
         </div>
         """
     
@@ -1651,6 +1680,52 @@ async def geri_page(request: Request):
             .regions-list {{
                 list-style: disc;
             }}
+            .source-attribution {{
+                font-size: 0.8rem;
+                color: #9ca3af;
+                margin-top: 0.75rem;
+                font-style: italic;
+            }}
+            .source-attribution a {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .source-attribution a:hover {{
+                text-decoration: underline;
+            }}
+            .data-sources-section {{
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+                border-top: 1px solid #334155;
+            }}
+            .data-sources-section h4 {{
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: #9ca3af;
+                margin-bottom: 0.5rem;
+            }}
+            .data-sources-section p {{
+                font-size: 0.875rem;
+                color: #d1d5db;
+            }}
+            .data-sources-section a {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .data-sources-section a:hover {{
+                text-decoration: underline;
+            }}
+            .index-history-nav {{
+                text-align: center;
+                margin-top: 2rem;
+            }}
+            .index-history-nav .back-link {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .index-history-nav .back-link:hover {{
+                text-decoration: underline;
+            }}
             .geri-cta {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
                 border: 1px solid #3b82f6;
@@ -1715,7 +1790,7 @@ async def geri_page(request: Request):
                 
                 <div class="geri-links">
                     <a href="/geri/history">View History</a>
-                    <a href="/alerts">Alert Archive</a>
+                    <a href="/geri/methodology">Methodology</a>
                 </div>
             </div>
         </main>
@@ -1855,8 +1930,13 @@ async def geri_history_page(request: Request):
                     </tbody>
                 </table>
                 
-                <div style="text-align: center; margin-top: 2rem;">
-                    <a href="/geri" style="color: #60a5fa;">Back to Today's GERI</a>
+                <div class="index-history-nav">
+                    <a href="/geri" class="back-link">&larr; Back to Today's GERI</a>
+                </div>
+                
+                <div class="data-sources-section">
+                    <h4>Data Sources</h4>
+                    <p>GERI values are computed from daily energy risk alerts. <a href="/alerts">View recent alerts</a></p>
                 </div>
             </div>
         </main>
