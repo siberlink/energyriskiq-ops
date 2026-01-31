@@ -29,7 +29,11 @@ from src.seo.seo_generator import (
     get_available_months,
     generate_sitemap_entries,
     get_yesterday_date,
-    generate_daily_page_model
+    generate_daily_page_model,
+    get_regional_daily_page,
+    get_regional_available_dates,
+    generate_regional_daily_page_model,
+    REGION_DISPLAY_NAMES,
 )
 from src.geri.geri_service import get_geri_for_user, get_geri_delayed
 from src.geri.interpretation import generate_interpretation as generate_geri_interpretation
@@ -688,41 +692,41 @@ async def alerts_hub():
 @router.get("/alerts/region/{region_slug}", response_class=HTMLResponse)
 async def alerts_by_region(region_slug: str):
     """
-    Region-specific alerts page. Currently redirects to main alerts hub.
-    In future, could filter alerts by region.
+    Region-specific alerts hub page. Shows daily regional alert pages.
     """
-    # Map slug back to display name for SEO
-    region_display_map = {
-        'middle-east': 'Middle East',
-        'europe': 'Europe',
-        'asia': 'Asia',
-        'africa': 'Africa',
-        'russia': 'Russia',
-        'ukraine': 'Ukraine',
-        'china': 'China',
-        'iran': 'Iran',
-        'global': 'Global',
-    }
-    
-    region_name = region_display_map.get(region_slug, region_slug.replace('-', ' ').title())
+    region_name = REGION_DISPLAY_NAMES.get(region_slug, region_slug.replace('-', ' ').title())
     track_page_view("region", f"/alerts/region/{region_slug}")
     
-    # Get recent daily pages for context
-    recent_pages = get_recent_daily_pages(limit=10)
-    pages_html = ""
-    for page in recent_pages:
-        page_date = page['page_date'].strftime('%Y-%m-%d')
-        display_date = page['page_date'].strftime('%B %d, %Y')
-        alert_count = page.get('alert_count', 0)
-        pages_html += f'<li><a href="/alerts/daily/{page_date}">{display_date}</a> ({alert_count} alerts)</li>'
+    regional_pages = get_regional_available_dates(region_slug, limit=30)
+    
+    if regional_pages:
+        pages_html = ""
+        for page in regional_pages:
+            page_date = page['page_date']
+            if isinstance(page_date, str):
+                page_date_str = page_date
+                display_date = datetime.fromisoformat(page_date).strftime('%B %d, %Y')
+            else:
+                page_date_str = page_date.strftime('%Y-%m-%d')
+                display_date = page_date.strftime('%B %d, %Y')
+            alert_count = page.get('alert_count', 0)
+            pages_html += f'<li><a href="/alerts/region/{region_slug}/{page_date_str}">{display_date}</a> ({alert_count} alerts)</li>'
+    else:
+        recent_pages = get_recent_daily_pages(limit=10)
+        pages_html = ""
+        for page in recent_pages:
+            page_date = page['page_date'].strftime('%Y-%m-%d')
+            display_date = page['page_date'].strftime('%B %d, %Y')
+            alert_count = page.get('alert_count', 0)
+            pages_html += f'<li><a href="/alerts/daily/{page_date}">{display_date}</a> ({alert_count} alerts)</li>'
     
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{region_name} Risk Alerts | EnergyRiskIQ</title>
-    <meta name="description" content="Geopolitical and energy risk alerts for {region_name}. Monitor supply disruption signals, market volatility, and risk intelligence for {region_name}.">
+    <title>{region_name} Risk Alerts Archive | EnergyRiskIQ</title>
+    <meta name="description" content="Daily archive of geopolitical and energy risk alerts for {region_name}. Monitor supply disruption signals, market volatility, and risk intelligence.">
     <link rel="canonical" href="{BASE_URL}/alerts/region/{region_slug}">
     {get_common_styles()}
 </head>
@@ -735,12 +739,12 @@ async def alerts_by_region(region_slug: str):
                 <a href="/">Home</a> / <a href="/alerts">Alerts</a> / {region_name}
             </div>
             <h1>{region_name} Risk Alerts</h1>
-            <p class="meta">Geopolitical and energy risk intelligence for {region_name}. Track supply disruption signals, market volatility, and critical risk events.</p>
+            <p class="meta">Daily archive of geopolitical and energy risk intelligence for {region_name}. Track supply disruption signals, market volatility, and critical risk events.</p>
             
-            <h2>Recent Alerts</h2>
-            <p>Browse daily risk alerts that may include events affecting {region_name}:</p>
+            <h2>Daily Alert Archives</h2>
+            <p>Browse daily risk alerts for {region_name}:</p>
             <ul class="page-list">
-                {pages_html if pages_html else '<li>No daily pages generated yet.</li>'}
+                {pages_html if pages_html else '<li>No regional pages generated yet. Check back soon.</li>'}
             </ul>
             
             {render_cta_section("mid")}
@@ -758,6 +762,186 @@ async def alerts_by_region(region_slug: str):
 """
     
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/alerts/region/{region_slug}/{date_str}", response_class=HTMLResponse)
+async def regional_daily_alerts_page(region_slug: str, date_str: str, request: Request):
+    """Regional daily alerts page for a specific date and region."""
+    await apply_anti_scraping(request)
+    
+    region_name = REGION_DISPLAY_NAMES.get(region_slug, region_slug.replace('-', ' ').title())
+    
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid date format")
+    
+    yesterday = get_yesterday_date()
+    if target_date > yesterday:
+        raise HTTPException(status_code=404, detail="Page not available yet (24h delay)")
+    
+    track_page_view("regional_daily", f"/alerts/region/{region_slug}/{date_str}")
+    
+    page_data = get_regional_daily_page(target_date, region_slug)
+    
+    if page_data and page_data.get('model'):
+        model = page_data['model']
+    else:
+        model = generate_regional_daily_page_model(target_date, region_slug)
+    
+    all_cards = model.get('alert_cards', [])
+    visible_cards = all_cards[:10]
+    collapsed_cards = all_cards[10:]
+    
+    def get_severity_label(severity):
+        if severity >= 5:
+            return 'Critical'
+        elif severity == 4:
+            return 'High'
+        elif severity == 3:
+            return 'Moderate'
+        else:
+            return 'Low'
+    
+    def render_alert_card(card, collapsed=False):
+        severity = card.get('severity', 3)
+        severity_label = card.get('severity_label') or get_severity_label(severity)
+        category = card.get('category', 'General')
+        region = card.get('region', 'Global')
+        
+        title = card.get('public_title', 'Risk Alert')
+        summary = card.get('public_summary', '')
+        
+        card_class = f"alert-card severity-{severity}" + (" collapsed" if collapsed else "")
+        
+        return f'''
+        <article class="{card_class}">
+            <h3>{title}</h3>
+            <div class="alert-meta">
+                <span class="severity-badge severity-{severity}">{severity_label} ({severity}/5)</span>
+                <span class="category">{category}</span>
+                <span class="region">{region}</span>
+            </div>
+            <p class="summary">{summary}</p>
+        </article>
+        '''
+    
+    cards_html = ""
+    for card in visible_cards:
+        cards_html += render_alert_card(card, collapsed=False)
+    
+    if collapsed_cards:
+        cards_html += f'''
+        <div class="collapsed-section">
+            <button class="expand-btn" onclick="this.parentElement.classList.toggle('expanded'); this.textContent = this.parentElement.classList.contains('expanded') ? 'Show Less' : 'Show {len(collapsed_cards)} More Alerts';">
+                Show {len(collapsed_cards)} More Alerts
+            </button>
+            <div class="collapsed-content">
+        '''
+        for card in collapsed_cards:
+            cards_html += render_alert_card(card, collapsed=True)
+        cards_html += '</div></div>'
+    
+    stats = model.get('stats', {})
+    stats_html = f"""
+    <div class="stats-row">
+        <div class="stat-badge"><strong>{stats.get('total_alerts', 0)}</strong> Total Alerts</div>
+        <div class="stat-badge"><strong>{stats.get('critical_count', 0)}</strong> Critical (5/5)</div>
+        <div class="stat-badge"><strong>{stats.get('high_count', 0)}</strong> High (4/5)</div>
+        <div class="stat-badge"><strong>{stats.get('moderate_count', 0)}</strong> Moderate (3/5)</div>
+    </div>
+    """
+    
+    risk_posture = model.get('risk_posture', {})
+    posture_level = risk_posture.get('level', 'stable').lower()
+    posture_description = risk_posture.get('description', 'Risk levels are within normal parameters.')
+    posture_html = f"""
+    <section class="risk-posture">
+        <h2>Daily Risk Posture <span class="risk-level {posture_level}">{posture_level.upper()}</span></h2>
+        <p>{posture_description}</p>
+    </section>
+    """
+    
+    prev_link = f'<a href="/alerts/region/{region_slug}/{model["prev_date"]}">&larr; Previous Day</a>' if model.get('prev_date') else '<span></span>'
+    next_link = f'<a href="/alerts/region/{region_slug}/{model["next_date"]}">Next Day &rarr;</a>' if model.get('next_date') else '<span></span>'
+    
+    link_builder = ContextualLinkBuilder()
+    categories = [c.get('category', '').lower() for c in all_cards]
+    keywords = extract_keywords_from_alerts(all_cards)
+    relevant_indices = link_builder.determine_relevant_indices(
+        regions=[region_slug],
+        categories=categories,
+        keywords=keywords,
+        max_links=3
+    )
+    period_text = model.get('date_display', 'this day')
+    risk_context_html = link_builder.render_risk_context_block(relevant_indices, period_text)
+    
+    breadcrumb_json_ld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": f"{BASE_URL}/"},
+            {"@type": "ListItem", "position": 2, "name": "Alerts", "item": f"{BASE_URL}/alerts"},
+            {"@type": "ListItem", "position": 3, "name": region_name, "item": f"{BASE_URL}/alerts/region/{region_slug}"},
+            {"@type": "ListItem", "position": 4, "name": model['date_display'], "item": f"{BASE_URL}/alerts/region/{region_slug}/{date_str}"}
+        ]
+    })
+    
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{model['seo_title']}</title>
+        <meta name="description" content="{model['seo_description']}">
+        <link rel="canonical" href="{BASE_URL}/alerts/region/{region_slug}/{date_str}">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        <script type="application/ld+json">{breadcrumb_json_ld}</script>
+        {get_common_styles()}
+        {get_risk_context_styles()}
+    </head>
+    <body>
+        {render_nav()}
+        {render_cta_section("top")}
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / <a href="/alerts">Alerts</a> / <a href="/alerts/region/{region_slug}">{region_name}</a> / {model['date_display']}
+                </div>
+                <h1>{model['h1_title']}</h1>
+                <p class="meta">Published {model['date_display']} (alerts from the previous 24 hours)</p>
+                
+                {risk_context_html}
+                
+                {stats_html}
+
+                {posture_html}
+                
+                <section class="alerts-list">
+                    <h2>{region_name} Alerts</h2>
+                    {cards_html if cards_html else '<p class="no-alerts">No significant risk alerts detected for this date in {region_name}.</p>'}
+                </section>
+                
+                {render_cta_section("mid")}
+                
+                <nav class="pagination">
+                    {prev_link}
+                    {next_link}
+                </nav>
+                
+                <div class="disclaimer">
+                    <strong>Disclaimer:</strong> This information is provided for general informational purposes only and does not constitute financial, investment, or trading advice. Past alerts do not guarantee future accuracy.
+                </div>
+            </div>
+        </main>
+        {render_footer()}
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=300"})
 
 
 @router.get("/alerts/category/{category_slug}", response_class=HTMLResponse)
