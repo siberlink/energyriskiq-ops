@@ -806,28 +806,58 @@ async def egsi_daily_snapshot(date_str: str):
     
     adjacent = get_egsi_m_adjacent_dates(target_date)
     
-    band_color = get_band_color(egsi['band'])
+    value = egsi.get('value', 0)
+    band = egsi.get('band', 'LOW')
+    trend_7d = egsi.get('trend_7d')
+    drivers = egsi.get('drivers', [])[:5]
+    components = egsi.get('components', {})
+    
+    band_color = get_band_color(band)
     date_display = target_date.strftime('%B %d, %Y')
     
-    drivers_html = ""
-    for driver in egsi.get('drivers', [])[:3]:
-        drivers_html += f"""
-        <div class="card">
-            <h3>{driver.get('name', 'Unknown')}</h3>
-            <p>Contribution: {driver.get('contribution', 0):.1f}%</p>
-        </div>
-        """
+    interpretation = egsi.get('explanation') or egsi.get('interpretation')
+    if not interpretation:
+        interpretation = generate_egsi_interpretation(
+            value=value,
+            band=band,
+            drivers=drivers,
+            components=components,
+            index_date=date_str,
+            index_type="EGSI-M"
+        )
     
-    nav_html = '<div class="nav-links">'
+    trend_label, trend_sign_val, trend_color = format_trend(trend_7d)
+    trend_display = ""
+    if trend_7d is not None:
+        trend_sign = "+" if trend_7d > 0 else ""
+        trend_display = f'<div class="index-trend" style="color: {trend_color};">7-Day Trend: {trend_label} ({trend_sign}{trend_7d:.0f})</div>'
+    
+    drivers_list_html = ""
+    for driver in drivers:
+        driver_name = driver.get('name', 'Unknown')
+        driver_type = driver.get('type', 'N/A')
+        contribution = driver.get('contribution', 0)
+        drivers_list_html += f'<li><span class="driver-tag">{driver_type}</span><br>{driver_name} ({contribution:.1f}% contribution)</li>'
+    if not drivers_list_html:
+        drivers_list_html = '<li>No significant drivers detected</li>'
+    
+    chokepoints = components.get('chokepoint_factor', {}).get('hits', []) if isinstance(components, dict) else []
+    chokepoints_list_html = ""
+    for cp in chokepoints[:5]:
+        chokepoints_list_html += f'<li>{cp}</li>'
+    if not chokepoints_list_html:
+        chokepoints_list_html = '<li>No active chokepoint alerts</li>'
+    
+    date_nav_html = '<div class="date-nav" style="display: flex; justify-content: space-between; margin: 2rem 0; font-size: 0.95rem;">'
     if adjacent.get('prev'):
-        nav_html += f'<a href="/egsi/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>'
+        date_nav_html += f'<a href="/egsi/{adjacent["prev"]}" style="color: #60a5fa; text-decoration: none;">&larr; {adjacent["prev"]}</a>'
     else:
-        nav_html += '<span></span>'
+        date_nav_html += '<span></span>'
     if adjacent.get('next'):
-        nav_html += f'<a href="/egsi/{adjacent["next"]}">{adjacent["next"]} &rarr;</a>'
+        date_nav_html += f'<a href="/egsi/{adjacent["next"]}" style="color: #60a5fa; text-decoration: none;">{adjacent["next"]} &rarr;</a>'
     else:
-        nav_html += '<span></span>'
-    nav_html += '</div>'
+        date_nav_html += '<span></span>'
+    date_nav_html += '</div>'
     
     html = f"""
     <!DOCTYPE html>
@@ -835,48 +865,78 @@ async def egsi_daily_snapshot(date_str: str):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EGSI {date_str} - {egsi['band']} at {egsi['value']:.0f} | EnergyRiskIQ</title>
-        <meta name="description" content="Europe Gas Stress Index for {date_display}: {egsi['value']:.0f} ({egsi['band']}). {egsi.get('explanation', '')[:150]}">
+        <title>EGSI {date_str} - {band} at {value:.0f} | EnergyRiskIQ</title>
+        <meta name="description" content="Europe Gas Stress Index for {date_display}: {value:.0f} ({band}). {interpretation[:150] if interpretation else ''}">
         <link rel="canonical" href="{BASE_URL}/egsi/{date_str}">
         <link rel="icon" type="image/png" href="/static/favicon.png">
+        
+        <meta property="og:title" content="EGSI {date_str} - {band} at {value:.0f} | EnergyRiskIQ">
+        <meta property="og:description" content="Europe Gas Stress Index for {date_display}: {value:.0f} ({band}).">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{BASE_URL}/egsi/{date_str}">
         
         {get_common_styles()}
     </head>
     <body>
-        <header>
-            <div class="container header-content">
-                <a href="/" class="logo">
-                    <img src="/static/logo.png" alt="EnergyRiskIQ" style="height: 36px; vertical-align: middle; margin-right: 8px;">
-                    EnergyRiskIQ
-                </a>
-                <nav>
-                    <a href="/eeri">EERI</a>
-                    <a href="/egsi">EGSI</a>
-                    <a href="/alerts">Alerts</a>
-                </nav>
+        <nav class="nav"><div class="container nav-inner">
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <div class="nav-links">
+                <a href="/geri">GERI</a>
+                <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users" class="cta-nav">Sign In</a>
             </div>
-        </header>
+        </div></nav>
         
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="/egsi">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {date_str}
-            </div>
-            
-            <div class="index-display" style="margin-top: 40px;">
-                <h1 style="font-size: 1.5rem; margin-bottom: 20px;">EGSI for {date_display}</h1>
-                <div class="index-value" style="color: {band_color}">{egsi['value']:.0f}</div>
-                <div class="index-band band-{egsi['band']}">{egsi['band']}</div>
-                <p class="interpretation">{egsi.get('explanation', '')}</p>
-            </div>
-            
-            {"<section class='section'><h2>Risk Drivers</h2><div class='grid'>" + drivers_html + "</div></section>" if drivers_html else ""}
-            
-            {nav_html}
-        </div>
-        
-        <footer>
+        <main>
             <div class="container">
-                <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
+                <div class="index-hero">
+                    <h1>Europe Gas Stress Index (EGSI)</h1>
+                    <p>Historical snapshot for {date_display}</p>
+                    <p class="methodology-link"><a href="/egsi/methodology">(EGSI Methodology & Construction)</a></p>
+                </div>
+                
+                <div class="index-metric-card">
+                    <div class="index-header">
+                        <span class="index-icon">🔥</span>
+                        <span class="index-title">Europe Gas Stress Index:</span>
+                    </div>
+                    <div class="index-value" style="color: {band_color};">{value:.0f} / 100 ({band})</div>
+                    <div class="index-scale-ref">0 = minimal stress · 100 = extreme market stress</div>
+                    {trend_display}
+                    <div class="index-date">Date: {date_str}</div>
+                </div>
+                
+                <div class="index-sections">
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
+                        <ul class="index-list">{drivers_list_html}</ul>
+                    </div>
+                    
+                    <div class="index-section">
+                        <h2 class="section-header-blue">Chokepoint Watch:</h2>
+                        <ul class="index-list">{chokepoints_list_html}</ul>
+                    </div>
+                </div>
+                
+                <div class="index-interpretation">
+                    <p>{interpretation.replace(chr(10)+chr(10), '</p><p>') if interpretation else 'No interpretation available for this date.'}</p>
+                </div>
+                
+                {date_nav_html}
+                
+                <div class="index-links">
+                    <a href="/egsi">Current EGSI</a>
+                    <a href="/egsi/history">Full History</a>
+                    <a href="/egsi/methodology">Methodology</a>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; {datetime.now().year} EnergyRiskIQ. <a href="/egsi/methodology">Methodology</a> | <a href="/egsi/history">History</a></p>
             </div>
         </footer>
     </body>

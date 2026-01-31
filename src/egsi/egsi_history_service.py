@@ -78,7 +78,7 @@ def get_egsi_m_by_date(target_date: date) -> Optional[Dict[str, Any]]:
     query = """
         SELECT 
             index_date, index_value, band, trend_1d, trend_7d,
-            explanation, model_version, computed_at
+            explanation, computed_at
         FROM egsi_m_daily
         WHERE index_date = %s
     """
@@ -102,7 +102,6 @@ def get_egsi_m_by_date(target_date: date) -> Optional[Dict[str, Any]]:
             'explanation': row['explanation'],
             'components': components,
             'drivers': drivers,
-            'model_version': row['model_version'],
         }
     except Exception as e:
         logger.error(f"Error fetching EGSI-M for {target_date}: {e}")
