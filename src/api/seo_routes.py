@@ -1408,7 +1408,7 @@ async def geri_page(request: Request):
         if not regions_html:
             regions_html = '<li>No regional hotspots</li>'
         
-        top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers[:5]] if geri.top_drivers else []
+        top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers_detailed[:5]] if geri.top_drivers_detailed else []
         # Use stored interpretation (unique per day), fallback to generation only if missing
         interpretation = getattr(geri, 'interpretation', None) or getattr(geri, 'explanation', None)
         if not interpretation:
@@ -3677,7 +3677,7 @@ async def geri_daily_page(request: Request, date: str):
     if not regions_html:
         regions_html = '<li style="color: #9ca3af;">No regional hotspots</li>'
     
-    snapshot_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in snapshot.top_drivers[:5]] if snapshot.top_drivers else []
+    snapshot_drivers_list = [{'headline': d.get('headline', ''), 'region': d.get('region', ''), 'category': d.get('category', '')} for d in snapshot.top_drivers_detailed[:5]] if snapshot.top_drivers_detailed else []
     # Use stored interpretation (unique per day), fallback to generation only if missing
     interpretation = getattr(snapshot, 'interpretation', None) or getattr(snapshot, 'explanation', None)
     if not interpretation:
