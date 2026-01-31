@@ -1066,6 +1066,26 @@ def run_seo_tables_migration():
         """)
         
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_page_views_path ON seo_page_views(page_path);")
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS seo_regional_daily_pages (
+                id SERIAL PRIMARY KEY,
+                region_slug TEXT NOT NULL,
+                page_date DATE NOT NULL,
+                seo_title TEXT NOT NULL,
+                seo_description TEXT NOT NULL,
+                page_json JSONB NOT NULL,
+                alert_count INT NOT NULL DEFAULT 0,
+                generated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(region_slug, page_date)
+            );
+        """)
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_regional_daily_pages_region ON seo_regional_daily_pages(region_slug);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_regional_daily_pages_date ON seo_regional_daily_pages(page_date DESC);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_seo_regional_daily_pages_region_date ON seo_regional_daily_pages(region_slug, page_date DESC);")
     
     logger.info("SEO tables migration complete.")
 

@@ -1012,3 +1012,240 @@ def generate_sitemap_entries() -> List[Dict]:
         })
     
     return entries
+
+
+# =============================================================================
+# REGIONAL DAILY PAGES
+# =============================================================================
+
+REGION_DISPLAY_NAMES = {
+    'middle-east': 'Middle East',
+    'europe': 'Europe',
+    'asia': 'Asia',
+    'americas': 'Americas',
+    'africa': 'Africa',
+    'global': 'Global',
+}
+
+REGION_SCOPE_MAPPINGS = {
+    'middle-east': ['Middle East', 'middle-east', 'middle east', 'MIDDLE EAST'],
+    'europe': ['Europe', 'europe', 'EUROPE', 'EU', 'European Union'],
+    'asia': ['Asia', 'asia', 'ASIA', 'Asia-Pacific', 'APAC'],
+    'americas': ['Americas', 'americas', 'AMERICAS', 'North America', 'South America', 'Latin America'],
+    'africa': ['Africa', 'africa', 'AFRICA', 'Sub-Saharan Africa'],
+}
+
+
+def get_alerts_for_date_and_region(target_date: date, region_slug: str) -> List[Dict]:
+    """
+    Fetch all alert_events for a specific date and region.
+    Returns only public-safe fields.
+    """
+    start_dt = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+    end_dt = start_dt + timedelta(days=1)
+    
+    region_variants = REGION_SCOPE_MAPPINGS.get(region_slug, [region_slug])
+    
+    placeholders = ', '.join(['%s'] * len(region_variants))
+    query = f"""
+    SELECT 
+        id,
+        alert_type,
+        scope_region,
+        scope_assets,
+        severity,
+        headline,
+        body,
+        event_fingerprint,
+        created_at
+    FROM alert_events
+    WHERE created_at >= %s AND created_at < %s
+      AND headline IS NOT NULL
+      AND scope_region IN ({placeholders})
+    ORDER BY severity DESC, created_at DESC
+    """
+    
+    params = [start_dt, end_dt] + region_variants
+    results = execute_query(query, tuple(params))
+    return results if results else []
+
+
+def generate_regional_seo_title(target_date: date, region_name: str, alerts: List[Dict]) -> str:
+    """Generate SEO-optimized title for a regional daily page."""
+    date_display = format_date_display(target_date)
+    count = len(alerts)
+    
+    if count == 0:
+        return f"{region_name} Risk Alerts for {date_display} | EnergyRiskIQ"
+    
+    severity_max = max((a.get('severity', 0) for a in alerts), default=0)
+    if severity_max >= 5:
+        return f"Critical {region_name} Risk Alerts for {date_display} | EnergyRiskIQ"
+    elif severity_max >= 4:
+        return f"High-Priority {region_name} Risk Alerts for {date_display} | EnergyRiskIQ"
+    else:
+        return f"{region_name} Risk Alerts for {date_display} | EnergyRiskIQ"
+
+
+def generate_regional_seo_description(target_date: date, region_name: str, alerts: List[Dict]) -> str:
+    """Generate SEO meta description for a regional daily page."""
+    date_display = format_date_display(target_date)
+    count = len(alerts)
+    
+    if count == 0:
+        return f"No significant {region_name} risk alerts detected on {date_display}. Monitor daily {region_name} risk intelligence with EnergyRiskIQ."
+    
+    critical = sum(1 for a in alerts if a.get('severity', 0) >= 5)
+    high = sum(1 for a in alerts if a.get('severity', 0) == 4)
+    
+    parts = []
+    if critical > 0:
+        parts.append(f"{critical} critical")
+    if high > 0:
+        parts.append(f"{high} high-priority")
+    
+    if parts:
+        severity_text = " and ".join(parts)
+        return f"{count} {region_name} risk alerts for {date_display}, including {severity_text} events. Track geopolitical and energy supply disruptions."
+    
+    return f"{count} {region_name} risk alerts for {date_display}. Track geopolitical and energy supply disruptions affecting {region_name}."
+
+
+def generate_regional_daily_page_model(target_date: date, region_slug: str) -> Dict:
+    """
+    Generate the complete page model for a regional daily SEO page.
+    """
+    region_name = REGION_DISPLAY_NAMES.get(region_slug, region_slug.replace('-', ' ').title())
+    
+    alerts = get_alerts_for_date_and_region(target_date, region_slug)
+    all_cards = [build_public_alert_card(a) for a in alerts]
+    
+    seen_summaries = set()
+    deduped_cards = []
+    for card in all_cards:
+        summary_key = card.get('public_summary', '')[:100].lower().strip()
+        if summary_key not in seen_summaries:
+            seen_summaries.add(summary_key)
+            deduped_cards.append(card)
+    
+    alert_cards = vary_duplicate_titles_with_ai(deduped_cards)
+    
+    critical_count = sum(1 for c in alert_cards if c['severity'] >= 5)
+    high_count = sum(1 for c in alert_cards if c['severity'] == 4)
+    moderate_count = sum(1 for c in alert_cards if c['severity'] == 3)
+    low_count = sum(1 for c in alert_cards if c['severity'] <= 2)
+    
+    categories = Counter(c['category'] for c in alert_cards)
+    alert_types = Counter(c['alert_type_raw'] for c in alert_cards if c.get('alert_type_raw'))
+    
+    risk_posture = compute_risk_posture(alerts)
+    
+    model = {
+        'date': target_date.isoformat(),
+        'date_display': format_date_display(target_date),
+        'region_slug': region_slug,
+        'region_name': region_name,
+        'h1_title': f"{region_name} Risk Alerts for {format_date_display(target_date)}",
+        'seo_title': generate_regional_seo_title(target_date, region_name, alerts),
+        'seo_description': generate_regional_seo_description(target_date, region_name, alerts),
+        'risk_posture': risk_posture,
+        'top_drivers': compute_top_drivers(alerts),
+        'stats': {
+            'total_alerts': len(alert_cards),
+            'critical_count': critical_count,
+            'high_count': high_count,
+            'moderate_count': moderate_count,
+            'low_count': low_count,
+            'categories': dict(categories),
+            'alert_types': dict(alert_types)
+        },
+        'alert_cards': alert_cards,
+        'generated_at': datetime.now(timezone.utc).isoformat(),
+        'prev_date': (target_date - timedelta(days=1)).isoformat(),
+        'next_date': (target_date + timedelta(days=1)).isoformat() if target_date < get_yesterday_date() else None
+    }
+    
+    return model
+
+
+def save_regional_daily_page(target_date: date, region_slug: str, model: Dict) -> int:
+    """
+    Save/update the regional daily page model to the database.
+    Returns the page ID.
+    """
+    with get_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO seo_regional_daily_pages (
+                region_slug, page_date, seo_title, seo_description, page_json, 
+                alert_count, generated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, NOW())
+            ON CONFLICT (region_slug, page_date) DO UPDATE SET
+                seo_title = EXCLUDED.seo_title,
+                seo_description = EXCLUDED.seo_description,
+                page_json = EXCLUDED.page_json,
+                alert_count = EXCLUDED.alert_count,
+                generated_at = NOW(),
+                updated_at = NOW()
+            RETURNING id
+        """, (
+            region_slug,
+            target_date,
+            model['seo_title'],
+            model['seo_description'],
+            json.dumps(model),
+            model['stats']['total_alerts']
+        ))
+        result = cursor.fetchone()
+        return result['id'] if result else None
+
+
+def get_regional_daily_page(target_date: date, region_slug: str) -> Optional[Dict]:
+    """Retrieve a saved regional daily page model."""
+    query = """
+    SELECT id, region_slug, page_date, seo_title, seo_description, page_json, 
+           alert_count, generated_at, updated_at
+    FROM seo_regional_daily_pages
+    WHERE page_date = %s AND region_slug = %s
+    """
+    result = execute_one(query, (target_date, region_slug))
+    if result:
+        page_json = result['page_json']
+        if page_json:
+            if isinstance(page_json, str):
+                model = json.loads(page_json)
+            else:
+                model = page_json
+        else:
+            model = None
+        return {
+            'id': result['id'],
+            'region_slug': result['region_slug'],
+            'page_date': result['page_date'],
+            'seo_title': result['seo_title'],
+            'seo_description': result['seo_description'],
+            'alert_count': result['alert_count'],
+            'generated_at': result['generated_at'],
+            'model': model
+        }
+    return None
+
+
+def get_regional_available_dates(region_slug: str, limit: int = 90) -> List[Dict]:
+    """Get list of available dates for a region with alert counts."""
+    query = """
+    SELECT page_date, alert_count, generated_at
+    FROM seo_regional_daily_pages
+    WHERE region_slug = %s
+    ORDER BY page_date DESC
+    LIMIT %s
+    """
+    results = execute_query(query, (region_slug, limit))
+    return results if results else []
+
+
+def generate_and_save_regional_daily_page(target_date: date, region_slug: str) -> Dict:
+    """Generate and save a regional daily page. Returns the model."""
+    model = generate_regional_daily_page_model(target_date, region_slug)
+    save_regional_daily_page(target_date, region_slug, model)
+    logger.info(f"Generated regional daily page for {region_slug} on {target_date}: {model['stats']['total_alerts']} alerts")
+    return model
