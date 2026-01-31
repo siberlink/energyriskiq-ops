@@ -77,9 +77,9 @@ class ContextualLinkBuilder:
     
     def determine_relevant_indices(
         self,
-        regions: List[str] = None,
-        categories: List[str] = None,
-        keywords: List[str] = None,
+        regions: Optional[List[str]] = None,
+        categories: Optional[List[str]] = None,
+        keywords: Optional[List[str]] = None,
         max_links: int = 3
     ) -> List[str]:
         """
@@ -189,7 +189,7 @@ class ContextualLinkBuilder:
     def render_recent_drivers_block(
         self,
         drivers: List[str],
-        alert_history_url: str = None,
+        alert_history_url: Optional[str] = None,
         alert_history_label: str = "View recent alerts"
     ) -> str:
         """
@@ -229,8 +229,8 @@ class ContextualLinkBuilder:
         self,
         main_index_url: str,
         main_index_name: str,
-        alert_history_url: str = None,
-        alert_history_label: str = None
+        alert_history_url: Optional[str] = None,
+        alert_history_label: Optional[str] = None
     ) -> str:
         """
         Render the footer links for Index History pages.
@@ -414,3 +414,27 @@ def extract_categories_from_alerts(alerts: List[Dict]) -> List[str]:
         if category:
             categories.add(category.lower())
     return list(categories)
+
+
+EGSI_KEYWORDS = ['gas', 'lng', 'pipeline', 'transit', 'gazprom', 'nord stream', 'turkstream', 'storage', 'ttf']
+EERI_KEYWORDS = ['europe', 'eu', 'european', 'germany', 'france', 'uk', 'poland', 'norway', 'ukraine', 'russia', 'georgia']
+
+
+def extract_keywords_from_alerts(alerts: List[Dict]) -> List[str]:
+    """Extract relevant keywords from alert titles and content for index matching."""
+    keywords = set()
+    for alert in alerts:
+        text_sources = [
+            alert.get('title', ''),
+            alert.get('headline', ''),
+            alert.get('description', ''),
+            alert.get('ai_analysis', ''),
+            alert.get('summary', ''),
+        ]
+        combined_text = ' '.join(str(t) for t in text_sources if t).lower()
+        
+        for kw in EGSI_KEYWORDS + EERI_KEYWORDS:
+            if kw in combined_text:
+                keywords.add(kw)
+    
+    return list(keywords)

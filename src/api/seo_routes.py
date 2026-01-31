@@ -50,6 +50,7 @@ from src.utils.contextual_linking import (
     get_risk_context_styles,
     extract_regions_from_alerts,
     extract_categories_from_alerts,
+    extract_keywords_from_alerts,
 )
 
 router = APIRouter(tags=["seo"])
@@ -978,9 +979,11 @@ async def daily_alerts_page(date_str: str, request: Request):
     link_builder = ContextualLinkBuilder()
     regions = extract_regions_from_alerts(all_cards)
     categories = extract_categories_from_alerts(all_cards)
+    keywords = extract_keywords_from_alerts(all_cards)
     relevant_indices = link_builder.determine_relevant_indices(
         regions=regions,
         categories=categories,
+        keywords=keywords,
         max_links=3
     )
     period_text = model.get('date_display', 'this day')
