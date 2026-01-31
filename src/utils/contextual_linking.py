@@ -425,11 +425,14 @@ def extract_keywords_from_alerts(alerts: List[Dict]) -> List[str]:
     keywords = set()
     for alert in alerts:
         text_sources = [
+            alert.get('public_title', ''),
+            alert.get('public_summary', ''),
             alert.get('title', ''),
             alert.get('headline', ''),
             alert.get('description', ''),
             alert.get('ai_analysis', ''),
             alert.get('summary', ''),
+            alert.get('body', ''),
         ]
         combined_text = ' '.join(str(t) for t in text_sources if t).lower()
         
