@@ -317,7 +317,9 @@ def run_seo_generator(
         get_yesterday_date,
         generate_daily_page_model,
         save_daily_page,
-        generate_sitemap_entries
+        generate_sitemap_entries,
+        generate_and_save_regional_daily_page,
+        REGION_DISPLAY_NAMES,
     )
     from src.db.migrations import run_seo_tables_migration
     
@@ -327,9 +329,27 @@ def run_seo_generator(
     
     results = {
         'pages': [],
+        'regional_pages': [],
         'sitemap_entries': 0,
         'dry_run': dry_run
     }
+    
+    def generate_regional_for_date(target_date, dry_run_flag):
+        regional_results = []
+        for region_slug in REGION_DISPLAY_NAMES.keys():
+            try:
+                if dry_run_flag:
+                    regional_results.append({'date': target_date.isoformat(), 'region': region_slug, 'dry_run': True})
+                else:
+                    model = generate_and_save_regional_daily_page(target_date, region_slug)
+                    regional_results.append({
+                        'date': target_date.isoformat(),
+                        'region': region_slug,
+                        'alerts': model['stats']['total_alerts']
+                    })
+            except Exception as e:
+                regional_results.append({'date': target_date.isoformat(), 'region': region_slug, 'error': str(e)})
+        return regional_results
     
     if backfill and backfill > 0:
         for i in range(min(backfill, 90)):
@@ -340,6 +360,7 @@ def run_seo_generator(
                 results['pages'].append({'date': target.isoformat(), 'page_id': page_id, 'alerts': model['stats']['total_alerts']})
             else:
                 results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
+            results['regional_pages'].extend(generate_regional_for_date(target, dry_run))
     elif date:
         try:
             target = dt.strptime(date, '%Y-%m-%d').date()
@@ -355,6 +376,7 @@ def run_seo_generator(
             results['pages'].append({'date': target.isoformat(), 'page_id': page_id, 'alerts': model['stats']['total_alerts']})
         else:
             results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
+        results['regional_pages'].extend(generate_regional_for_date(target, dry_run))
     else:
         target = yesterday
         model = generate_daily_page_model(target)
@@ -363,6 +385,7 @@ def run_seo_generator(
             results['pages'].append({'date': target.isoformat(), 'page_id': page_id, 'alerts': model['stats']['total_alerts']})
         else:
             results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
+        results['regional_pages'].extend(generate_regional_for_date(target, dry_run))
     
     entries = generate_sitemap_entries()
     results['sitemap_entries'] = len(entries)
