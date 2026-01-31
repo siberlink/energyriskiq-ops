@@ -16,6 +16,7 @@ from calendar import month_name
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
 
+from src.reri.interpretation import generate_eeri_interpretation
 from src.reri.eeri_history_service import (
     get_latest_eeri_public,
     get_eeri_delayed,
@@ -119,7 +120,18 @@ def get_common_styles():
         .assets-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .asset-tag { background: rgba(96, 165, 250, 0.2); color: #60a5fa; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; }
         
-        .index-interpretation { color: #1f2937; font-size: 1.05rem; font-style: italic; margin: 1.5rem 0; line-height: 1.6; }
+        .index-interpretation { 
+            color: #1f2937; 
+            font-size: 1.05rem; 
+            margin: 1.5rem 0 2rem 0; 
+            line-height: 1.7; 
+            background: rgba(96, 165, 250, 0.05);
+            border-left: 3px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .index-interpretation p { margin: 0 0 1rem 0; }
+        .index-interpretation p:last-child { margin-bottom: 0; }
         
         .index-delay-badge {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
@@ -276,9 +288,18 @@ async def eeri_public_page(request: Request):
     if not assets_html:
         assets_html = '<span class="asset-tag">Natural Gas</span><span class="asset-tag">Crude Oil</span>'
     
-    interpretation = eeri.get('interpretation', '')
-    if not interpretation:
-        interpretation = f"Current EERI of {eeri['value']} indicates {eeri['band'].lower()} structural risk in European energy markets."
+    top_drivers = eeri.get('top_drivers', [])
+    components = eeri.get('components', {})
+    index_date = eeri.get('date', date.today().isoformat())
+    
+    interpretation = generate_eeri_interpretation(
+        value=eeri['value'],
+        band=eeri['band'],
+        drivers=top_drivers[:5] if top_drivers else [],
+        components=components,
+        index_date=index_date
+    )
+    interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
     
     current_band = eeri['band']
     band_classes = {
@@ -384,7 +405,7 @@ async def eeri_public_page(request: Request):
                 </div>
                 
                 <div class="index-interpretation">
-                    <em>{interpretation}</em>
+                    {interpretation_html}
                 </div>
                 
                 {delay_badge}
@@ -756,9 +777,18 @@ async def eeri_daily_snapshot(date_str: str):
     if not assets_html:
         assets_html = '<span class="asset-tag">Natural Gas</span><span class="asset-tag">Crude Oil</span>'
     
-    interpretation = eeri.get('interpretation', '')
-    if not interpretation:
-        interpretation = f"EERI of {eeri['value']} indicated {eeri['band'].lower()} structural risk in European energy markets on {snapshot_display}."
+    snapshot_drivers = eeri.get('top_drivers', [])
+    snapshot_components = eeri.get('components', {})
+    snapshot_index_date = eeri.get('date', date_str)
+    
+    interpretation = generate_eeri_interpretation(
+        value=eeri['value'],
+        band=eeri['band'],
+        drivers=snapshot_drivers[:5] if snapshot_drivers else [],
+        components=snapshot_components,
+        index_date=snapshot_index_date
+    )
+    interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
     
     trend_display = ""
     if eeri.get('trend_7d') is not None:
@@ -845,7 +875,7 @@ async def eeri_daily_snapshot(date_str: str):
                 </div>
                 
                 <div class="index-interpretation">
-                    <em>{interpretation}</em>
+                    {interpretation_html}
                 </div>
                 
                 {nav_html}

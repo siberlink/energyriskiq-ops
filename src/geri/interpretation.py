@@ -1,8 +1,8 @@
 """
 GERI Interpretation Generator
 
-Generates AI-powered, quote-ready interpretation sentences for each GERI index.
-Uses structured prompting with governance rules for deterministic, safe outputs.
+Generates AI-powered, professional interpretation for the GERI (Global Energy Risk Index).
+Uses structured prompting with humanizing tone for 2-3 paragraph outputs.
 """
 
 import os
@@ -11,8 +11,6 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-# the newest OpenAI model is "gpt-4.1-mini" for cost-effective interpretation
-# do not change this unless explicitly requested by the user
 AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
 AI_INTEGRATIONS_OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
 
@@ -25,7 +23,7 @@ def generate_interpretation(
     index_date: str
 ) -> str:
     """
-    Generate a structured, quote-ready interpretation for a GERI index.
+    Generate a rich, 2-3 paragraph interpretation for a GERI index.
     
     Args:
         value: GERI value (0-100)
@@ -35,7 +33,7 @@ def generate_interpretation(
         index_date: Date string (YYYY-MM-DD)
     
     Returns:
-        A single-sentence interpretation suitable for quoting.
+        A 2-3 paragraph interpretation with professional, humanizing tone.
     """
     if not AI_INTEGRATIONS_OPENAI_API_KEY or not AI_INTEGRATIONS_OPENAI_BASE_URL:
         logger.warning("OpenAI credentials not configured, using fallback interpretation")
@@ -56,68 +54,73 @@ def generate_interpretation(
             category = d.get('category', 'unknown').replace('_', ' ')
             driver_summaries.append(f"{i+1}. [{region}/{category}] {headline}")
         
-        drivers_text = "\n".join(driver_summaries) if driver_summaries else "No significant drivers"
+        drivers_text = "\n".join(driver_summaries) if driver_summaries else "No significant drivers detected"
         regions_text = ", ".join(top_regions[:3]) if top_regions else "global markets"
         
         band_descriptions = {
-            'LOW': 'low structural stress with limited disruption risk',
-            'MODERATE': 'moderate structural stress requiring monitoring',
-            'ELEVATED': 'elevated structural stress with heightened disruption potential',
-            'CRITICAL': 'critical structural stress with significant market disruption underway'
+            'LOW': 'conditions are stable with minimal risk signals across global energy markets',
+            'MODERATE': 'moderate structural stress is present, requiring standard monitoring',
+            'ELEVATED': 'elevated structural stress with heightened disruption potential across key regions',
+            'CRITICAL': 'critical structural stress with significant market disruption underway or imminent'
         }
-        band_desc = band_descriptions.get(band, 'uncertain conditions')
+        band_desc = band_descriptions.get(band, 'conditions require monitoring')
         
-        prompt = f"""You are an energy market analyst writing a daily risk briefing. Generate ONE sentence (max 40 words) summarizing today's Global Energy Risk Index.
+        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a 2-3 paragraph interpretation of today's Global Energy Risk Index.
 
 INDEX DATA:
 - Date: {index_date}
 - GERI Value: {value}/100
-- Risk Band: {band}
-- Top Regions: {regions_text}
+- Risk Band: {band} ({band_desc})
+- Top Affected Regions: {regions_text}
 
 TOP DRIVERS:
 {drivers_text}
 
-REQUIREMENTS:
-1. Start with "Current risk conditions indicate..." or "Today's index reflects..."
-2. Reference the risk level ({band.lower()}) naturally
-3. Mention 1-2 specific regions if relevant
-4. If drivers show a theme (war, supply disruption, sanctions), reference it briefly
-5. Be factual, not sensational
-6. Suitable for journalists to quote
-7. Do NOT mention the numerical value
-8. Do NOT use jargon like "geopolitical risk vectors"
+WRITING REQUIREMENTS:
+1. Write 2-3 substantive paragraphs (not bullet points)
+2. First paragraph: Provide the headline assessment - what the index level means for global energy markets today
+3. Second paragraph: Explain the key drivers and what's causing the current risk level (or lack thereof)
+4. Third paragraph (optional): Offer forward-looking context or what market participants should watch
 
-EXAMPLE OUTPUT:
-"Current risk conditions indicate moderate structural stress in global energy markets, with supply-side pressure concentrated in Europe amid ongoing regional tensions."
+TONE REQUIREMENTS:
+1. Professional but accessible - avoid excessive jargon
+2. Humanizing - acknowledge the real-world implications for energy markets and economies
+3. Balanced - neither alarmist nor dismissive
+4. Authoritative - demonstrate expertise without being condescending
+5. Do NOT use phrases like "current risk conditions indicate" - be more natural
+6. Do NOT mention the exact numerical value repeatedly
+7. Use varied sentence structure and avoid bullet points
+
+EXAMPLE STYLE (for reference only, don't copy):
+"Global energy markets are experiencing a period of relative stability today, with risk indicators reflecting manageable stress levels across major supply corridors. The overall picture suggests that energy infrastructure and supply chains are functioning within normal parameters, providing some reassurance to market participants and policymakers alike.
+
+Several factors are contributing to this measured outlook. Supply flows from key producing regions remain consistent, while demand patterns across major consuming economies continue to track seasonal expectations. There are no acute disruption events currently affecting critical infrastructure, though localized concerns in certain regions warrant ongoing attention."
 
 Generate the interpretation:"""
 
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=[
-                {"role": "system", "content": "You are a professional energy market analyst. Write concise, factual, quote-ready briefings."},
+                {"role": "system", "content": "You are a senior energy market analyst at a respected global risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=100,
-            temperature=0.3
+            max_tokens=500,
+            temperature=0.4
         )
         
         interpretation = response.choices[0].message.content.strip()
-        
         interpretation = interpretation.strip('"\'')
         
-        if len(interpretation) > 300:
-            interpretation = interpretation[:300].rsplit(' ', 1)[0] + '.'
+        if len(interpretation) > 1500:
+            last_period = interpretation[:1500].rfind('.')
+            if last_period > 0:
+                interpretation = interpretation[:last_period + 1]
         
-        if not interpretation.endswith('.'):
-            interpretation += '.'
-        
-        logger.info(f"Generated interpretation for {index_date}: {interpretation[:50]}...")
+        logger.info(f"Generated GERI interpretation for {index_date}: {interpretation[:80]}...")
         return interpretation
         
     except Exception as e:
-        logger.error(f"Error generating AI interpretation: {e}")
+        logger.error(f"Error generating AI interpretation for GERI: {e}")
         return _fallback_interpretation(value, band, top_regions)
 
 
@@ -126,10 +129,34 @@ def _fallback_interpretation(value: int, band: str, top_regions: List[str]) -> s
     regions_text = " and ".join(top_regions[:2]) if top_regions else "global markets"
     
     templates = {
-        'LOW': f"Current risk conditions indicate low structural stress in global energy markets, with minimal disruption signals across major regions.",
-        'MODERATE': f"Current risk conditions indicate moderate structural stress in global energy markets, with pressure concentrated in {regions_text}.",
-        'ELEVATED': f"Current risk conditions indicate elevated structural stress in global energy markets, with significant pressure building across {regions_text}.",
-        'CRITICAL': f"Current risk conditions indicate critical structural stress in global energy markets, with active disruption events affecting {regions_text}."
+        'LOW': (
+            "Global energy markets are operating under stable conditions, with risk indicators remaining well within normal parameters. "
+            "Current infrastructure capacity and supply flows provide a comfortable operational buffer for market participants worldwide."
+            "\n\n"
+            "Supply from major producing regions continues without significant disruption, while demand patterns across key consuming economies track seasonal expectations. "
+            "The overall market environment suggests limited near-term concern, though standard geopolitical and seasonal monitoring remains prudent."
+        ),
+        'MODERATE': (
+            f"Global energy markets are experiencing moderate structural stress today, with risk indicators reflecting some pressure points across {regions_text}. "
+            "While conditions remain manageable, the current environment warrants continued attention from market participants."
+            "\n\n"
+            "Several factors are contributing to the elevated stress signals, including regional supply dynamics and evolving geopolitical considerations. "
+            "Market observers should monitor developments in affected regions, though no immediate disruption to global energy flows appears imminent."
+        ),
+        'ELEVATED': (
+            f"Risk indicators in global energy markets have risen to elevated levels, signaling meaningful pressure across {regions_text}. "
+            "Current conditions suggest emerging vulnerabilities that warrant heightened attention from market participants and policymakers."
+            "\n\n"
+            "The elevated stress level reflects a combination of factors affecting supply, transit, or demand dynamics in key regions. "
+            "While conditions do not yet indicate critical disruption, the trajectory suggests prudent contingency awareness is advisable for energy-dependent operations."
+        ),
+        'CRITICAL': (
+            f"Global energy markets are under significant stress, with risk indicators reflecting critical pressure affecting {regions_text}. "
+            "Current conditions demand heightened attention from all market stakeholders, with potential implications for energy security and pricing."
+            "\n\n"
+            "Multiple stress factors are converging to create challenging market conditions, affecting supply availability, transit corridors, or critical infrastructure. "
+            "The situation warrants active monitoring and consideration of contingency measures by relevant parties across the energy value chain."
+        )
     }
     
     return templates.get(band, templates['MODERATE'])

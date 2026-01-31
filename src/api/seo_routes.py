@@ -32,6 +32,7 @@ from src.seo.seo_generator import (
     generate_daily_page_model
 )
 from src.geri.geri_service import get_geri_for_user, get_geri_delayed
+from src.geri.interpretation import generate_interpretation as generate_geri_interpretation
 from src.geri.geri_history_service import (
     get_snapshot_by_date,
     list_snapshots,
@@ -1409,12 +1410,15 @@ async def geri_page(request: Request):
         if not regions_html:
             regions_html = '<li>No regional hotspots</li>'
         
-        if geri.interpretation:
-            interpretation_line = geri.interpretation
-        else:
-            top_region_names = geri.top_regions[:2] if len(geri.top_regions) >= 2 else geri.top_regions[:1] if geri.top_regions else ["global markets"]
-            interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
-            interpretation_line = f"Current risk conditions indicate {geri.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
+        top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers[:5]] if geri.top_drivers else []
+        interpretation = generate_geri_interpretation(
+            value=geri.value,
+            band=geri.band,
+            top_drivers=top_drivers_list,
+            top_regions=geri.top_regions[:3] if geri.top_regions else [],
+            index_date=geri.computed_at
+        )
+        interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
         
         delay_badge = '<div class="geri-delay-badge">24h delayed • Real-time access with subscription</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time data</div>'
         
@@ -1443,7 +1447,7 @@ async def geri_page(request: Request):
         </div>
         
         <div class="geri-interpretation">
-            <em>{interpretation_line}</em>
+            {interpretation_html}
         </div>
         
         {delay_badge}
@@ -1611,13 +1615,18 @@ async def geri_page(request: Request):
                 color: #9ca3af;
                 font-size: 0.85rem;
             }}
-            .geri-interpretation {{
-                color: #1f2937;
-                font-size: 1.05rem;
-                font-style: italic;
-                margin: 1.5rem 0;
-                line-height: 1.6;
+            .geri-interpretation {{ 
+                color: #1f2937; 
+                font-size: 1.05rem; 
+                margin: 1.5rem 0 2rem 0; 
+                line-height: 1.7; 
+                background: rgba(96, 165, 250, 0.05);
+                border-left: 3px solid #3b82f6;
+                padding: 1.5rem;
+                border-radius: 0 8px 8px 0;
             }}
+            .geri-interpretation p {{ margin: 0 0 1rem 0; }}
+            .geri-interpretation p:last-child {{ margin-bottom: 0; }}
             .geri-delay-badge {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
                 border: 1px solid #3b82f6;
@@ -3667,12 +3676,15 @@ async def geri_daily_page(request: Request, date: str):
     if not regions_html:
         regions_html = '<li style="color: #9ca3af;">No regional hotspots</li>'
     
-    if snapshot.interpretation:
-        interpretation_line = snapshot.interpretation
-    else:
-        top_region_names = snapshot.top_regions[:2] if len(snapshot.top_regions) >= 2 else snapshot.top_regions[:1] if snapshot.top_regions else ["global markets"]
-        interpretation_regions = " and ".join(top_region_names) if top_region_names else "global markets"
-        interpretation_line = f"Current risk conditions indicate {snapshot.band.lower()} structural stress in global energy markets, with pressure concentrated in {interpretation_regions}."
+    snapshot_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in snapshot.top_drivers[:5]] if snapshot.top_drivers else []
+    interpretation = generate_geri_interpretation(
+        value=snapshot.value,
+        band=snapshot.band,
+        top_drivers=snapshot_drivers_list,
+        top_regions=snapshot.top_regions[:3] if snapshot.top_regions else [],
+        index_date=snapshot.computed_at
+    )
+    interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
     
     prev_link = f'<a class="nav-arrow" href="/geri/{adjacent["prev"]}">&larr; {adjacent["prev"]}</a>' if adjacent['prev'] else '<span class="nav-arrow disabled">&larr; No earlier</span>'
     next_link = f'<a class="nav-arrow" href="/geri/{adjacent["next"]}">{adjacent["next"]} &rarr;</a>' if adjacent['next'] else '<span class="nav-arrow disabled">No later &rarr;</span>'
@@ -3764,14 +3776,18 @@ async def geri_daily_page(request: Request, date: str):
                 color: #9ca3af;
                 font-size: 0.85rem;
             }}
-            .geri-interpretation {{
-                color: #1f2937;
-                font-size: 1.05rem;
-                font-style: italic;
-                margin: 1.5rem 0;
-                line-height: 1.6;
-                text-align: center;
+            .geri-interpretation {{ 
+                color: #1f2937; 
+                font-size: 1.05rem; 
+                margin: 1.5rem 0 2rem 0; 
+                line-height: 1.7; 
+                background: rgba(96, 165, 250, 0.05);
+                border-left: 3px solid #3b82f6;
+                padding: 1.5rem;
+                border-radius: 0 8px 8px 0;
             }}
+            .geri-interpretation p {{ margin: 0 0 1rem 0; }}
+            .geri-interpretation p:last-child {{ margin-bottom: 0; }}
         </style>
     </head>
     <body>
@@ -3810,7 +3826,7 @@ async def geri_daily_page(request: Request, date: str):
                 </div>
                 
                 <div class="geri-interpretation">
-                    <em>{interpretation_line}</em>
+                    {interpretation_html}
                 </div>
                 
                 <div class="nav-arrows">
