@@ -1,0 +1,214 @@
+First: revised mental model (PUBLIC site only)
+
+For the public side of EnergyRiskIQ, your structure is effectively:
+
+Index Pages (GERI / EERI / EGSI)
+   ↑
+Index History Pages
+   ↑
+Alert History Pages (snapshots only, public)
+
+
+There is no deeper alert layer publicly — and that’s fine.
+
+So we concentrate authority upward, not downward.
+
+Key Principle (this is the anchor)
+
+Alert History pages explain WHY an index moved.
+Index pages explain WHAT the risk level is.
+
+Alerts support indices.
+Indices are the SEO targets.
+
+🔹 Alert HISTORY pages (12–25 snapshots, public)
+What these pages are (SEO-wise)
+
+supporting evidence
+
+temporal context
+
+risk narrative
+
+They should NOT act like article hubs.
+
+✅ Correct contextual linking from Alert History → Indexes
+1️⃣ ONE “Risk Context” block per page (mandatory)
+
+Place it above or below the alert list (not inside each alert).
+
+Example:
+
+Risk Context
+
+The alerts on this page contributed to elevated readings in:
+
+Global Energy Risk Index (GERI)
+
+Europe Energy Risk Index (EERI)
+
+reflecting heightened geopolitical and energy-market stress during this period.
+
+🔢 How many links?
+
+✔ 2–3 index links TOTAL per Alert History page
+
+Always: GERI
+
+Conditional: EERI / EGSI (only if clearly relevant)
+
+Never more.
+
+2️⃣ Optional inline reference (MAX 1)
+
+If you include a short intro paragraph, you may add one inline link:
+
+“Several of these events fed into regional risk calculations tracked by the Europe Energy Risk Index.”
+
+That’s it. No more.
+
+❌ What NOT to do on Alert History pages
+
+❌ no per-alert index links
+
+❌ no repeated index names in every snapshot
+
+❌ no “related indices” under each alert
+
+That would look mechanical.
+
+🔹 Individual alert SNAPSHOTS (inside history pages)
+
+Each snapshot should:
+
+link to nothing
+
+or optionally link to:
+
+the user login / upgrade (non-SEO)
+
+SEO-wise, snapshots are content blocks, not link sources.
+
+This is correct.
+
+🔹 Index pages (GERI / EERI / EGSI) — MOST IMPORTANT
+
+Because you don’t have public full alert pages, index pages must:
+
+summarize alert impact
+
+reference alert history pages sparingly
+
+stay authoritative, not archival
+
+1️⃣ “Recent Risk Drivers” block (safe version)
+
+Instead of linking to individual alerts, do this:
+
+Recent Risk Drivers
+
+Escalating Middle East tensions impacting oil markets
+
+Elevated European gas supply stress
+
+Strategic crude stockpiling affecting global prices
+
+(Based on recent EnergyRiskIQ alerts)
+
+OPTIONAL (recommended):
+
+Link once to the relevant Alert History page, not per item.
+
+✔ This keeps index pages clean and avoids thin-content risk.
+
+🔢 How many links (Index → Alert History)
+
+✔ 1–2 links MAX per index page
+
+Link to:
+
+“Europe Alerts – January 2026”
+
+or “Global Alerts – Recent”
+
+Never more.
+
+🔹 Index HISTORY pages
+
+These are time-series views, not content hubs.
+
+Safe pattern:
+
+1 link back to the main index
+
+1 optional link to the matching alert history page for that period
+
+✔ 2 links total
+
+Nothing else.
+
+🔢 Final Numbers (clear & implementable)
+Alert History Page
+
+→ Indexes: 2–3 links total
+
+→ Alerts: none (snapshots only)
+
+Index Page
+
+→ Alert History pages: 1–2 links
+
+→ Other indices: 0–2 max
+
+Index History Page
+
+→ Index: 1
+
+→ Alert History: 0–1
+
+Why this works (even without full alert pages)
+
+Google sees:
+
+Alert history pages = supporting datasets
+
+Index pages = authoritative outcomes
+
+Clear hierarchy
+
+No link spam
+
+No artificial loops
+
+Most importantly:
+
+Authority always flows UP to the indices
+
+Which is exactly what you want to rank.
+
+Strategic bonus (this is powerful)
+
+Because alerts are paywalled in full, you can safely add this line to public pages:
+
+Detailed alert analysis is available to registered EnergyRiskIQ users.
+
+This:
+
+explains content limitation
+
+improves trust
+
+avoids “thin content” penalties
+
+Final reassurance
+
+You are not missing anything by keeping full alerts private.
+In fact, this setup:
+
+protects your IP
+
+keeps SEO clean
+
+makes indices the star
+
+mirrors how professional risk platforms operate
