@@ -469,21 +469,14 @@ async def egsi_updates_page():
     """
     updates = [
         {
-            "date": "2026-01-25",
-            "version": "1.2",
-            "title": "Chokepoint Factor Enhancement",
-            "description": "Expanded chokepoint monitoring to include additional LNG terminals and pipeline interconnectors. Ukraine transit routes now have dynamic weighting based on flow volumes.",
-            "type": "enhancement"
-        },
-        {
-            "date": "2026-01-10",
+            "date": "2026-01-31",
             "version": "1.1",
-            "title": "Storage Stress Integration",
-            "description": "Added AGSI+ storage data integration for real-time EU gas storage level monitoring. EGSI-S now incorporates live storage stress indicators alongside TTF price volatility.",
+            "title": "Public Interpretation",
+            "description": "Added AI-powered daily interpretation to EGSI public pages. Each day's index now includes a unique, contextual analysis explaining current gas market stress levels and key indicators.",
             "type": "enhancement"
         },
         {
-            "date": "2025-12-15",
+            "date": "2026-01-25",
             "version": "1.0",
             "title": "EGSI Launch",
             "description": "Initial release of the Europe Gas Stress Index with two index families: EGSI-M (Market/Transmission signal) measuring gas market stress, and EGSI-S (System stress) tracking storage and pricing conditions.",

@@ -452,21 +452,14 @@ async def eeri_updates_page():
     """
     updates = [
         {
-            "date": "2026-01-20",
-            "version": "1.2",
-            "title": "Contagion Factor Enhancement",
-            "description": "Improved cross-border contagion modeling to better capture risk transmission between European regions. Added Black Sea and Middle East spillover effects.",
-            "type": "enhancement"
-        },
-        {
-            "date": "2025-12-10",
+            "date": "2026-01-31",
             "version": "1.1",
-            "title": "Theme Pressure Refinement",
-            "description": "Enhanced theme pressure calculations with weighted category analysis. Supply disruption and infrastructure alerts now carry higher weight in the overall index.",
+            "title": "Public Interpretation",
+            "description": "Added AI-powered daily interpretation to EERI public pages. Each day's index now includes a unique, contextual analysis explaining current European energy risk levels and contributing factors.",
             "type": "enhancement"
         },
         {
-            "date": "2025-11-01",
+            "date": "2026-01-24",
             "version": "1.0",
             "title": "EERI Launch",
             "description": "Initial release of the Europe Energy Risk Index. The index provides a daily composite measure of European energy market stress using RERI, theme pressure, asset transmission, and contagion factors.",

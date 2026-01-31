@@ -1877,21 +1877,14 @@ async def geri_updates_page():
     
     updates = [
         {
-            "date": "2026-01-15",
+            "date": "2026-01-31",
             "version": "1.2",
-            "title": "Enhanced Regional Weighting",
-            "description": "Improved the regional concentration factor to better capture cross-border risk transmission. The update introduces dynamic weighting based on trade flow intensity.",
+            "title": "Public Interpretation",
+            "description": "Added AI-powered daily interpretation to GERI public pages. Each day's index now includes a unique, contextual analysis explaining current risk levels and key drivers.",
             "type": "enhancement"
         },
         {
-            "date": "2025-12-01",
-            "version": "1.1",
-            "title": "Asset Risk Refinement",
-            "description": "Refined asset exposure calculations to include infrastructure criticality scores. Major transit pipelines and LNG terminals now carry higher weight in the index.",
-            "type": "enhancement"
-        },
-        {
-            "date": "2025-10-15",
+            "date": "2026-01-14",
             "version": "1.0",
             "title": "GERI Launch",
             "description": "Initial release of the Global Energy Risk Index. The index provides a daily composite measure of energy market risk computed from alert severity, regional concentration, and asset exposure.",
