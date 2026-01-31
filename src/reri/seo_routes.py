@@ -713,7 +713,31 @@ async def eeri_daily_snapshot(date_str: str):
     adjacent = get_eeri_adjacent_dates(target_date)
     
     band_color = get_band_color(eeri['band'])
-    date_display = target_date.strftime('%B %d, %Y')
+    
+    # Snapshot date from 'date' column
+    snapshot_date = eeri.get('date', date_str)
+    try:
+        if isinstance(snapshot_date, str):
+            snapshot_dt = datetime.strptime(snapshot_date, '%Y-%m-%d').date()
+        else:
+            snapshot_dt = snapshot_date
+        snapshot_display = snapshot_dt.strftime('%B %d, %Y')
+    except:
+        snapshot_display = snapshot_date
+    
+    # Computed date from 'computed_at' column
+    computed_at = eeri.get('computed_at')
+    if computed_at:
+        try:
+            if isinstance(computed_at, str):
+                computed_dt = datetime.fromisoformat(computed_at.replace('Z', '+00:00'))
+            else:
+                computed_dt = computed_at
+            computed_display = computed_dt.strftime('%B %d, %Y at %H:%M UTC')
+        except:
+            computed_display = str(computed_at)
+    else:
+        computed_display = 'N/A'
     
     drivers_html = ""
     for driver in eeri.get('top_drivers', [])[:3]:
@@ -734,7 +758,7 @@ async def eeri_daily_snapshot(date_str: str):
     
     interpretation = eeri.get('interpretation', '')
     if not interpretation:
-        interpretation = f"EERI of {eeri['value']} indicated {eeri['band'].lower()} structural risk in European energy markets on {date_display}."
+        interpretation = f"EERI of {eeri['value']} indicated {eeri['band'].lower()} structural risk in European energy markets on {snapshot_display}."
     
     trend_display = ""
     if eeri.get('trend_7d') is not None:
@@ -761,7 +785,7 @@ async def eeri_daily_snapshot(date_str: str):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>EERI {date_str} - European Energy Risk Index | EnergyRiskIQ</title>
-        <meta name="description" content="European Energy Risk Index for {date_display}. Value: {eeri['value']}, Band: {eeri['band']}. Historical EERI data.">
+        <meta name="description" content="European Energy Risk Index for {snapshot_display}. Value: {eeri['value']}, Band: {eeri['band']}. Historical EERI data.">
         <link rel="canonical" href="{BASE_URL}/eeri/{date_str}">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
@@ -782,7 +806,7 @@ async def eeri_daily_snapshot(date_str: str):
             <div class="container">
                 <div class="index-hero">
                     <h1>European Energy Risk Index (EERI)</h1>
-                    <p>Historical snapshot for {date_display}</p>
+                    <p>Historical snapshot for {snapshot_display}</p>
                     <p class="methodology-link"><a href="/eeri/methodology">(EERI Methodology & Construction)</a></p>
                 </div>
                 
@@ -794,7 +818,7 @@ async def eeri_daily_snapshot(date_str: str):
                     <div class="index-value" style="color: {band_color};">{eeri['value']} / 100 ({eeri['band']})</div>
                     <div class="index-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
                     {trend_display}
-                    <div class="index-date">Date Computed: {date_str}</div>
+                    <div class="index-date">Date Computed: {computed_display}</div>
                 </div>
                 
                 <div class="index-sections">
