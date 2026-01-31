@@ -13,12 +13,12 @@ from src.egsi.types import ENABLE_EGSI, EGSI_M_INDEX_ID
 from src.egsi.repo import (
     get_egsi_m_for_date,
     get_egsi_m_latest,
-    get_egsi_m_delayed,
     get_egsi_m_history,
     get_egsi_s_for_date,
     get_egsi_s_latest,
     get_egsi_s_history,
 )
+from src.egsi.egsi_history_service import get_egsi_m_delayed
 from src.egsi.service import compute_egsi_m_for_date, get_egsi_m_status
 from src.egsi.service_egsi_s import compute_egsi_s_for_date, get_egsi_s_status
 
@@ -51,7 +51,7 @@ async def get_egsi_m_public():
     """
     check_enabled()
     
-    result = get_egsi_m_delayed()
+    result = get_egsi_m_delayed(delay_hours=24)
     
     if not result:
         return {
@@ -65,13 +65,17 @@ async def get_egsi_m_public():
         import json
         components = json.loads(components)
     
+    result_date = result.get('date')
+    if hasattr(result_date, 'isoformat'):
+        result_date = result_date.isoformat()
+    
     return {
         'success': True,
-        'value': result.get('value', 0),
+        'value': round(result.get('value', 0)),
         'band': result.get('band', 'LOW'),
-        'trend_1d': result.get('trend_1d'),
-        'trend_7d': result.get('trend_7d'),
-        'date': result.get('date').isoformat() if result.get('date') else None,
+        'trend_1d': round(result.get('trend_1d')) if result.get('trend_1d') else None,
+        'trend_7d': round(result.get('trend_7d')) if result.get('trend_7d') else None,
+        'date': result_date,
         'explanation': result.get('explanation', ''),
         'top_drivers': components.get('top_drivers', [])[:3],
         'chokepoint_watch': components.get('chokepoint_factor', {}).get('hits', [])[:2],
