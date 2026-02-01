@@ -75,7 +75,7 @@ def generate_eeri_interpretation(
         }
         band_desc = band_context.get(band, 'conditions require monitoring')
         
-        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a 2-3 paragraph interpretation of today's European Energy Risk Index (EERI).
+        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a comprehensive 2-3 paragraph interpretation of today's European Energy Risk Index (EERI).
 
 INDEX DATA:
 - Date: {index_date}
@@ -87,13 +87,20 @@ TOP DRIVERS:
 {drivers_text}
 
 CONTEXT:
-The EERI measures structural risk across European energy markets, incorporating regional risk signals, thematic pressures (e.g., supply disruption, geopolitical tension), asset-level transmission stress, and contagion effects from neighboring regions.
+The EERI measures structural risk across European energy markets, incorporating regional risk signals (RERI-EU), thematic pressures (e.g., supply disruption, geopolitical tension), asset-level transmission stress, and contagion effects from neighboring regions like the Black Sea corridor.
 
 WRITING REQUIREMENTS:
-1. Write 2-3 substantive paragraphs (not bullet points)
-2. First paragraph: Provide the headline assessment - what the index level means for European energy markets today
-3. Second paragraph: Explain the key drivers and what's causing the current risk level (or lack thereof)
-4. Third paragraph (optional): Offer forward-looking context or what market participants should watch
+1. Write 2-3 substantive paragraphs (each 3-5 sentences) - this is a DETAILED analysis, not a brief summary
+2. First paragraph: Provide the headline assessment - what the index level means for European energy security today, including implications for gas/oil flows and market stability
+3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current risk level, referencing specific transit corridors (Ukraine, TurkStream, Norway), storage dynamics, or geopolitical factors
+4. Third paragraph: Offer forward-looking context - what market participants should watch, seasonal considerations, potential escalation or de-escalation scenarios
+
+CRITICAL REQUIREMENTS:
+- Each paragraph should be substantive and analytical, not just descriptive
+- Reference specific European energy infrastructure (Nord Stream aftermath, Ukraine transit, LNG terminals) when relevant
+- Connect regional events to broader European energy security implications
+- Provide actionable insights for European energy market professionals
+- Total output should be 250-400 words
 
 TONE REQUIREMENTS:
 1. Professional but accessible - avoid excessive jargon
@@ -104,32 +111,40 @@ TONE REQUIREMENTS:
 6. Do NOT mention the exact numerical value repeatedly
 7. Use varied sentence structure and avoid bullet points
 
-EXAMPLE STYLE (for reference only, don't copy):
-"European energy markets are navigating a period of measured stability today, with structural risk indicators reflecting manageable conditions across the continent's key supply corridors. The overall assessment suggests that Europe's energy infrastructure is functioning within expected parameters, though ongoing vigilance remains essential given the region's complex supply dynamics.
-
-The current risk profile is shaped by relatively stable flows through major transit routes and adequate storage levels heading into seasonal demand shifts. While localized pressure points persist in certain sub-regions, broader systemic stress remains contained for now."
-
 Generate the interpretation:"""
 
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {"role": "system", "content": "You are a senior energy market analyst at a respected European risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.4
-        )
+        messages = [
+            {"role": "system", "content": "You are a senior energy market analyst at a respected European risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers. You provide detailed, substantive analysis that helps professionals make informed decisions about European energy markets."},
+            {"role": "user", "content": prompt}
+        ]
         
-        interpretation = response.choices[0].message.content.strip()
-        interpretation = interpretation.strip('"\'')
+        for attempt in range(2):
+            response = client.chat.completions.create(
+                model="gpt-4.1",
+                messages=messages,
+                max_tokens=800,
+                temperature=0.5
+            )
+            
+            interpretation = response.choices[0].message.content.strip()
+            interpretation = interpretation.strip('"\'')
+            
+            word_count = len(interpretation.split())
+            paragraph_count = len([p for p in interpretation.split('\n\n') if p.strip()])
+            
+            if word_count >= 200 and paragraph_count >= 2:
+                break
+            elif attempt == 0:
+                logger.warning(f"EERI interpretation too short ({word_count} words, {paragraph_count} paragraphs), retrying with stronger prompt")
+                messages.append({"role": "assistant", "content": interpretation})
+                messages.append({"role": "user", "content": "This is too brief. Please expand to 2-3 full paragraphs with 250-400 words total. Provide more detailed analysis of the drivers and forward-looking context."})
         
-        if len(interpretation) > 1500:
-            last_period = interpretation[:1500].rfind('.')
+        if len(interpretation) > 2500:
+            last_period = interpretation[:2500].rfind('.')
             if last_period > 0:
                 interpretation = interpretation[:last_period + 1]
         
-        logger.info(f"Generated EERI interpretation for {index_date}: {interpretation[:80]}...")
+        logger.info(f"Generated EERI interpretation for {index_date} ({len(interpretation.split())} words): {interpretation[:80]}...")
         return interpretation
         
     except Exception as e:

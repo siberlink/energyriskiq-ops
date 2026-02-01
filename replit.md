@@ -17,7 +17,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 
 **Technical Implementations:**
 - **Event Ingestion:** RSS feeds are fetched and categorized using keyword classification.
-- **AI Processing:** Utilizes OpenAI (gpt-4.1-mini) for event enrichment, summarization, and impact analysis.
+- **AI Processing:** Utilizes OpenAI (gpt-4.1-mini) for event enrichment, summarization, and impact analysis. Index interpretations (GERI, EERI, EGSI) use gpt-4.1 for detailed 2-3 paragraph daily analysis (250-400 words) with professional, humanizing tone.
 - **Risk Scoring:** A dedicated engine computes quantitative risk scores for events, regions, and assets, including trend analysis.
 - **Alerting:** A global alerts factory generates user-agnostic `alert_events` which are fanned out to eligible users via `user_alert_deliveries` supporting email, Telegram, and SMS with quotas and cooldowns.
 - **Pro Plan Delivery System:** Tiered delivery for Pro Plan users with 15 emails/day limit (batch windows counted, not individual emails), unlimited Telegram alerts, risk-score prioritization, and 15-minute batching. Includes Telegram deep-link and manual Chat ID linking via @energyriskiq_bot. GERI emails count toward daily limit. GitHub Actions workflow: `alerts-engine-v2.yml` (10-min cron) automatically includes GERI delivery when a new index is available.

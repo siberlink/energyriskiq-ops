@@ -91,7 +91,7 @@ def generate_egsi_interpretation(
         
         index_desc = "Market/Transmission signal measuring gas market stress" if index_type == "EGSI-M" else "System stress index tracking storage, refill, and winter preparedness"
         
-        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a 2-3 paragraph interpretation of today's Europe Gas Stress Index.
+        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a comprehensive 2-3 paragraph interpretation of today's Europe Gas Stress Index ({index_type}).
 
 INDEX DATA:
 - Date: {index_date}
@@ -104,10 +104,17 @@ TOP DRIVERS:
 {drivers_text}
 
 WRITING REQUIREMENTS:
-1. Write 2-3 substantive paragraphs (not bullet points)
-2. First paragraph: Provide the headline assessment - what the index level means for European gas markets today
-3. Second paragraph: Explain the key drivers and what's causing the current stress level (or lack thereof)
-4. Third paragraph (optional): Offer forward-looking context or what market participants should watch
+1. Write 2-3 substantive paragraphs (each 3-5 sentences) - this is a DETAILED analysis, not a brief summary
+2. First paragraph: Provide the headline assessment - what the index level means for European gas supply security today, including implications for TTF pricing, storage adequacy, and industrial demand
+3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current stress level, referencing specific infrastructure (Ukraine transit, TurkStream, Norway pipelines, LNG terminals), storage levels, or market dynamics
+4. Third paragraph: Offer forward-looking context - what market participants should watch, seasonal storage considerations, potential supply disruptions or relief, and strategic hedging implications
+
+CRITICAL REQUIREMENTS:
+- Each paragraph should be substantive and analytical, not just descriptive
+- Reference specific gas infrastructure chokepoints when relevant to the drivers
+- Connect supply/demand dynamics to real-world implications for European industries and consumers
+- Provide actionable insights for gas traders, utilities, and industrial buyers
+- Total output should be 250-400 words
 
 TONE REQUIREMENTS:
 1. Professional but accessible - avoid excessive jargon
@@ -118,32 +125,40 @@ TONE REQUIREMENTS:
 6. Do NOT mention the exact numerical value repeatedly
 7. Use varied sentence structure and avoid bullet points
 
-EXAMPLE STYLE (for reference only, don't copy):
-"Europe's gas markets are operating under stable conditions today, with stress indicators remaining well within normal parameters. The continent's storage infrastructure continues to perform as expected, providing a comfortable buffer against seasonal demand fluctuations.
-
-Recent weeks have seen consistent supply flows through established transit routes, with no significant disruptions affecting major pipelines. Market participants can take measured confidence from the current operational stability, though the approaching winter season warrants continued vigilance around storage drawdown patterns."
-
 Generate the interpretation:"""
 
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {"role": "system", "content": "You are a senior energy market analyst at a respected risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.4
-        )
+        messages = [
+            {"role": "system", "content": "You are a senior energy market analyst specializing in European gas markets at a respected risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers. You provide detailed, substantive analysis that helps gas traders, utilities, and industrial buyers make informed decisions."},
+            {"role": "user", "content": prompt}
+        ]
         
-        interpretation = response.choices[0].message.content.strip()
-        interpretation = interpretation.strip('"\'')
+        for attempt in range(2):
+            response = client.chat.completions.create(
+                model="gpt-4.1",
+                messages=messages,
+                max_tokens=800,
+                temperature=0.5
+            )
+            
+            interpretation = response.choices[0].message.content.strip()
+            interpretation = interpretation.strip('"\'')
+            
+            word_count = len(interpretation.split())
+            paragraph_count = len([p for p in interpretation.split('\n\n') if p.strip()])
+            
+            if word_count >= 200 and paragraph_count >= 2:
+                break
+            elif attempt == 0:
+                logger.warning(f"EGSI interpretation too short ({word_count} words, {paragraph_count} paragraphs), retrying with stronger prompt")
+                messages.append({"role": "assistant", "content": interpretation})
+                messages.append({"role": "user", "content": "This is too brief. Please expand to 2-3 full paragraphs with 250-400 words total. Provide more detailed analysis of the drivers and forward-looking context."})
         
-        if len(interpretation) > 1500:
-            last_period = interpretation[:1500].rfind('.')
+        if len(interpretation) > 2500:
+            last_period = interpretation[:2500].rfind('.')
             if last_period > 0:
                 interpretation = interpretation[:last_period + 1]
         
-        logger.info(f"Generated EGSI interpretation for {index_date}: {interpretation[:80]}...")
+        logger.info(f"Generated EGSI interpretation for {index_date} ({len(interpretation.split())} words): {interpretation[:80]}...")
         return interpretation
         
     except Exception as e:

@@ -65,7 +65,7 @@ def generate_interpretation(
         }
         band_desc = band_descriptions.get(band, 'conditions require monitoring')
         
-        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a 2-3 paragraph interpretation of today's Global Energy Risk Index.
+        prompt = f"""You are a senior energy market analyst writing a detailed risk assessment for professional subscribers. Generate a comprehensive 2-3 paragraph interpretation of today's Global Energy Risk Index (GERI).
 
 INDEX DATA:
 - Date: {index_date}
@@ -77,10 +77,17 @@ TOP DRIVERS:
 {drivers_text}
 
 WRITING REQUIREMENTS:
-1. Write 2-3 substantive paragraphs (not bullet points)
-2. First paragraph: Provide the headline assessment - what the index level means for global energy markets today
-3. Second paragraph: Explain the key drivers and what's causing the current risk level (or lack thereof)
-4. Third paragraph (optional): Offer forward-looking context or what market participants should watch
+1. Write 2-3 substantive paragraphs (each 3-5 sentences) - this is a DETAILED analysis, not a brief summary
+2. First paragraph: Provide the headline assessment - what the index level means for global energy markets today, including implications for energy security and pricing
+3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current risk level, referencing specific events, regions, or infrastructure when relevant
+4. Third paragraph: Offer forward-looking context - what market participants should watch, potential scenarios that could shift risk levels, and strategic considerations
+
+CRITICAL REQUIREMENTS:
+- Each paragraph should be substantive and analytical, not just descriptive
+- Connect the dots between events and their market implications
+- Reference specific regions or infrastructure when discussing drivers
+- Provide actionable insights for energy market professionals
+- Total output should be 250-400 words
 
 TONE REQUIREMENTS:
 1. Professional but accessible - avoid excessive jargon
@@ -91,32 +98,40 @@ TONE REQUIREMENTS:
 6. Do NOT mention the exact numerical value repeatedly
 7. Use varied sentence structure and avoid bullet points
 
-EXAMPLE STYLE (for reference only, don't copy):
-"Global energy markets are experiencing a period of relative stability today, with risk indicators reflecting manageable stress levels across major supply corridors. The overall picture suggests that energy infrastructure and supply chains are functioning within normal parameters, providing some reassurance to market participants and policymakers alike.
-
-Several factors are contributing to this measured outlook. Supply flows from key producing regions remain consistent, while demand patterns across major consuming economies continue to track seasonal expectations. There are no acute disruption events currently affecting critical infrastructure, though localized concerns in certain regions warrant ongoing attention."
-
 Generate the interpretation:"""
 
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {"role": "system", "content": "You are a senior energy market analyst at a respected global risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.4
-        )
+        messages = [
+            {"role": "system", "content": "You are a senior energy market analyst at a respected global risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers. You provide detailed, substantive analysis that helps professionals make informed decisions."},
+            {"role": "user", "content": prompt}
+        ]
         
-        interpretation = response.choices[0].message.content.strip()
-        interpretation = interpretation.strip('"\'')
+        for attempt in range(2):
+            response = client.chat.completions.create(
+                model="gpt-4.1",
+                messages=messages,
+                max_tokens=800,
+                temperature=0.5
+            )
+            
+            interpretation = response.choices[0].message.content.strip()
+            interpretation = interpretation.strip('"\'')
+            
+            word_count = len(interpretation.split())
+            paragraph_count = len([p for p in interpretation.split('\n\n') if p.strip()])
+            
+            if word_count >= 200 and paragraph_count >= 2:
+                break
+            elif attempt == 0:
+                logger.warning(f"GERI interpretation too short ({word_count} words, {paragraph_count} paragraphs), retrying with stronger prompt")
+                messages.append({"role": "assistant", "content": interpretation})
+                messages.append({"role": "user", "content": "This is too brief. Please expand to 2-3 full paragraphs with 250-400 words total. Provide more detailed analysis of the drivers and forward-looking context."})
         
-        if len(interpretation) > 1500:
-            last_period = interpretation[:1500].rfind('.')
+        if len(interpretation) > 2500:
+            last_period = interpretation[:2500].rfind('.')
             if last_period > 0:
                 interpretation = interpretation[:last_period + 1]
         
-        logger.info(f"Generated GERI interpretation for {index_date}: {interpretation[:80]}...")
+        logger.info(f"Generated GERI interpretation for {index_date} ({len(interpretation.split())} words): {interpretation[:80]}...")
         return interpretation
         
     except Exception as e:
