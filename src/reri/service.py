@@ -143,10 +143,10 @@ def compute_eeri_for_date(
         band=band.value,
         drivers=drivers,
         components={
-            'reri_eu': eeri_components.reri_eu,
+            'reri_eu': eeri_components.reri_eu_value,
             'theme_pressure': eeri_components.theme_pressure_norm,
             'asset_transmission': eeri_components.asset_transmission_norm,
-            'contagion': eeri_components.contagion_factor,
+            'contagion': eeri_components.contagion_norm,
         },
         index_date=target_date.isoformat()
     )
