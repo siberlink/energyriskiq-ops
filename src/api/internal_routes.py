@@ -21,6 +21,7 @@ LOCK_IDS = {
     'pro_delivery': 3001,
     'geri_delivery': 3002,
     'trader_delivery': 3003,
+    'eeri_compute': 4000,
     'egsi_compute': 4001,
     'egsi_s_compute': 4002,
     'oil_price_capture': 4003,
@@ -493,6 +494,68 @@ def run_trader_delivery(
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    return response
+
+
+@router.post("/run/eeri-compute")
+def run_eeri_compute(
+    target_date: Optional[str] = None,
+    force: bool = False,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Trigger EERI (Europe Energy Risk Index) computation.
+    
+    Computes for yesterday by default, or a specific date if provided.
+    
+    Args:
+        target_date: Date to compute (YYYY-MM-DD format). Defaults to yesterday.
+        force: Whether to recompute if already exists.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.reri import ENABLE_EERI
+    from src.reri.service import compute_eeri_for_date
+    
+    if not ENABLE_EERI:
+        return {
+            "status": "skipped",
+            "message": "EERI module is disabled (ENABLE_EERI=false)"
+        }
+    
+    if target_date:
+        try:
+            compute_date = date.fromisoformat(target_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    else:
+        compute_date = date.today() - timedelta(days=1)
+    
+    def eeri_job():
+        result = compute_eeri_for_date(compute_date, save=True, force=force)
+        if result:
+            return {
+                'date': result.index_date.isoformat(),
+                'value': result.value,
+                'band': result.band.value,
+                'trend_1d': result.trend_1d,
+                'computed': True,
+            }
+        else:
+            return {
+                'date': compute_date.isoformat(),
+                'computed': False,
+                'message': 'Computation skipped or failed (already exists or no data)',
+            }
+    
+    response, status_code = run_job_with_lock('eeri_compute', eeri_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
     
     return response
 
