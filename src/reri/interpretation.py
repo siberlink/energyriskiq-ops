@@ -83,7 +83,7 @@ INDEX DATA:
 - Risk Band: {band} ({band_desc})
 - Components: {components_text}
 
-TOP DRIVERS:
+TOP DRIVERS (use these specific events to make this interpretation UNIQUE to today):
 {drivers_text}
 
 CONTEXT:
@@ -91,23 +91,24 @@ The EERI measures structural risk across European energy markets, incorporating 
 
 WRITING REQUIREMENTS:
 1. Write 2-3 substantive paragraphs (each 3-5 sentences) - this is a DETAILED analysis, not a brief summary
-2. First paragraph: Provide the headline assessment - what the index level means for European energy security today, including implications for gas/oil flows and market stability
-3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current risk level, referencing specific transit corridors (Ukraine, TurkStream, Norway), storage dynamics, or geopolitical factors
+2. First paragraph: Provide the headline assessment - what the index level means for European energy security TODAY, including implications for gas/oil flows and market stability
+3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current risk level, referencing the SPECIFIC events and headlines listed above
 4. Third paragraph: Offer forward-looking context - what market participants should watch, seasonal considerations, potential escalation or de-escalation scenarios
 
 CRITICAL REQUIREMENTS:
+- THIS INTERPRETATION MUST BE UNIQUE TO {index_date} - do not write generic text that could apply to any day
+- Reference the SPECIFIC drivers and events listed above to make this day's analysis distinct
 - Each paragraph should be substantive and analytical, not just descriptive
-- Reference specific European energy infrastructure (Nord Stream aftermath, Ukraine transit, LNG terminals) when relevant
-- Connect regional events to broader European energy security implications
+- Connect today's specific events to broader European energy security implications
 - Provide actionable insights for European energy market professionals
 - Total output should be 250-400 words
 
-TONE REQUIREMENTS:
-1. Professional but accessible - avoid excessive jargon
-2. Humanizing - acknowledge the real-world implications for European energy consumers and industries
+TONE REQUIREMENTS - USE A HUMANIZING TONE WITH PROFESSIONAL LANGUAGE:
+1. Write with a HUMANIZING TONE - acknowledge real-world implications for European consumers, industries, and economies
+2. Maintain PROFESSIONAL LANGUAGE throughout - authoritative but accessible
 3. Balanced - neither alarmist nor dismissive
-4. Authoritative - demonstrate expertise without being condescending
-5. Do NOT use phrases like "current risk conditions indicate" - be more natural
+4. Avoid robotic, template-like phrasing - write naturally as a human expert would
+5. Do NOT use phrases like "current risk conditions indicate" - be more conversational
 6. Do NOT mention the exact numerical value repeatedly
 7. Use varied sentence structure and avoid bullet points
 

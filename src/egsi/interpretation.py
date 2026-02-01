@@ -100,28 +100,29 @@ INDEX DATA:
 - Risk Band: {band} ({band_desc})
 - Components: {components_text}
 
-TOP DRIVERS:
+TOP DRIVERS (use these specific events to make this interpretation UNIQUE to today):
 {drivers_text}
 
 WRITING REQUIREMENTS:
 1. Write 2-3 substantive paragraphs (each 3-5 sentences) - this is a DETAILED analysis, not a brief summary
-2. First paragraph: Provide the headline assessment - what the index level means for European gas supply security today, including implications for TTF pricing, storage adequacy, and industrial demand
-3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current stress level, referencing specific infrastructure (Ukraine transit, TurkStream, Norway pipelines, LNG terminals), storage levels, or market dynamics
+2. First paragraph: Provide the headline assessment - what the index level means for European gas supply security TODAY, including implications for TTF pricing, storage adequacy, and industrial demand
+3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current stress level, referencing the SPECIFIC events and headlines listed above
 4. Third paragraph: Offer forward-looking context - what market participants should watch, seasonal storage considerations, potential supply disruptions or relief, and strategic hedging implications
 
 CRITICAL REQUIREMENTS:
+- THIS INTERPRETATION MUST BE UNIQUE TO {index_date} - do not write generic text that could apply to any day
+- Reference the SPECIFIC drivers and events listed above to make this day's analysis distinct
 - Each paragraph should be substantive and analytical, not just descriptive
-- Reference specific gas infrastructure chokepoints when relevant to the drivers
-- Connect supply/demand dynamics to real-world implications for European industries and consumers
+- Connect today's specific events to real-world implications for European industries and consumers
 - Provide actionable insights for gas traders, utilities, and industrial buyers
 - Total output should be 250-400 words
 
-TONE REQUIREMENTS:
-1. Professional but accessible - avoid excessive jargon
-2. Humanizing - acknowledge the real-world implications for energy markets and consumers
+TONE REQUIREMENTS - USE A HUMANIZING TONE WITH PROFESSIONAL LANGUAGE:
+1. Write with a HUMANIZING TONE - acknowledge real-world implications for people, industries, and economies
+2. Maintain PROFESSIONAL LANGUAGE throughout - authoritative but accessible
 3. Balanced - neither alarmist nor dismissive
-4. Authoritative - demonstrate expertise without being condescending
-5. Do NOT use phrases like "current risk conditions indicate" - be more natural
+4. Avoid robotic, template-like phrasing - write naturally as a human expert would
+5. Do NOT use phrases like "current risk conditions indicate" - be more conversational
 6. Do NOT mention the exact numerical value repeatedly
 7. Use varied sentence structure and avoid bullet points
 

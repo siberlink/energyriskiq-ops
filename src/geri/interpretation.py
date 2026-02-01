@@ -73,28 +73,29 @@ INDEX DATA:
 - Risk Band: {band} ({band_desc})
 - Top Affected Regions: {regions_text}
 
-TOP DRIVERS:
+TOP DRIVERS (use these specific events to make this interpretation UNIQUE to today):
 {drivers_text}
 
 WRITING REQUIREMENTS:
 1. Write 2-3 substantive paragraphs (each 3-5 sentences) - this is a DETAILED analysis, not a brief summary
-2. First paragraph: Provide the headline assessment - what the index level means for global energy markets today, including implications for energy security and pricing
-3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current risk level, referencing specific events, regions, or infrastructure when relevant
+2. First paragraph: Provide the headline assessment - what the index level means for global energy markets TODAY, including implications for energy security and pricing
+3. Second paragraph: Analyze the key drivers in depth - explain what's causing the current risk level, referencing the SPECIFIC events and headlines listed above
 4. Third paragraph: Offer forward-looking context - what market participants should watch, potential scenarios that could shift risk levels, and strategic considerations
 
 CRITICAL REQUIREMENTS:
+- THIS INTERPRETATION MUST BE UNIQUE TO {index_date} - do not write generic text that could apply to any day
+- Reference the SPECIFIC drivers and events listed above to make this day's analysis distinct
 - Each paragraph should be substantive and analytical, not just descriptive
-- Connect the dots between events and their market implications
-- Reference specific regions or infrastructure when discussing drivers
+- Connect the dots between today's specific events and their market implications
 - Provide actionable insights for energy market professionals
 - Total output should be 250-400 words
 
-TONE REQUIREMENTS:
-1. Professional but accessible - avoid excessive jargon
-2. Humanizing - acknowledge the real-world implications for energy markets and economies
+TONE REQUIREMENTS - USE A HUMANIZING TONE WITH PROFESSIONAL LANGUAGE:
+1. Write with a HUMANIZING TONE - acknowledge real-world implications for people, industries, and economies
+2. Maintain PROFESSIONAL LANGUAGE throughout - authoritative but accessible
 3. Balanced - neither alarmist nor dismissive
-4. Authoritative - demonstrate expertise without being condescending
-5. Do NOT use phrases like "current risk conditions indicate" - be more natural
+4. Avoid robotic, template-like phrasing - write naturally as a human expert would
+5. Do NOT use phrases like "current risk conditions indicate" - be more conversational
 6. Do NOT mention the exact numerical value repeatedly
 7. Use varied sentence structure and avoid bullet points
 
