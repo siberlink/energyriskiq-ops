@@ -27,6 +27,7 @@ class GERISnapshot:
     components: Dict[str, Any]
     model_version: str
     computed_at: str
+    interpretation: str = ''
     
     @property
     def top_drivers(self) -> List[str]:
@@ -65,11 +66,6 @@ class GERISnapshot:
         return [r.get('region', '') for r in regions[:5] if r.get('region')]
     
     @property
-    def interpretation(self) -> str:
-        """Get AI-generated interpretation from components."""
-        return self.components.get('interpretation', '')
-    
-    @property
     def computed_at_formatted(self) -> str:
         """Get computed_at date in YYYY-MM-DD format."""
         if self.computed_at:
@@ -101,7 +97,8 @@ def _row_to_snapshot(row: Dict[str, Any]) -> GERISnapshot:
         trend_7d=row.get('trend_7d'),
         components=components,
         model_version=row.get('model_version', ''),
-        computed_at=computed_at
+        computed_at=computed_at,
+        interpretation=row.get('interpretation', '') or ''
     )
 
 
@@ -117,7 +114,7 @@ def get_snapshot_by_date(snapshot_date: str) -> Optional[GERISnapshot]:
     """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
-           components, model_version, computed_at
+           components, model_version, computed_at, interpretation
     FROM intel_indices_daily
     WHERE index_id = %s AND date = %s
     LIMIT 1
@@ -165,7 +162,7 @@ def list_snapshots(
     
     sql = f"""
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
-           components, model_version, computed_at
+           components, model_version, computed_at, interpretation
     FROM intel_indices_daily
     WHERE {where_clause}
     ORDER BY date DESC
@@ -196,7 +193,7 @@ def list_monthly(year: int, month: int) -> List[GERISnapshot]:
     """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
-           components, model_version, computed_at
+           components, model_version, computed_at, interpretation
     FROM intel_indices_daily
     WHERE index_id = %s
       AND EXTRACT(YEAR FROM date) = %s
@@ -223,7 +220,7 @@ def get_latest_snapshot() -> Optional[GERISnapshot]:
     """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
-           components, model_version, computed_at
+           components, model_version, computed_at, interpretation
     FROM intel_indices_daily
     WHERE index_id = %s
     ORDER BY computed_at DESC
@@ -250,7 +247,7 @@ def get_latest_published_snapshot() -> Optional[GERISnapshot]:
     
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
-           components, model_version, computed_at
+           components, model_version, computed_at, interpretation
     FROM intel_indices_daily
     WHERE index_id = %s AND date <= %s
     ORDER BY date DESC
