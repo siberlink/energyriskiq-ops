@@ -15,8 +15,8 @@
     <link rel="canonical" href="https://energyriskiq.com/users/account">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -2455,8 +2455,8 @@
                             </div>
                             <div class="trend-indicator-card">
                                 <div class="trend-indicator-label">Current Band</div>
-                                <div class="trend-indicator-value" id="currentBand" style="color: ${bandColor};">${geri.band}</div>
-                                <div class="trend-indicator-subtext">${geri.value}/100</div>
+                                <div class="trend-indicator-value" id="currentBand">--</div>
+                                <div class="trend-indicator-subtext" id="currentBandValue">--/100</div>
                             </div>
                         </div>
                         
@@ -2491,11 +2491,7 @@
                 
             } catch (error) {
                 console.error('Error loading GERI:', error);
-                contentDiv.innerHTML = \`
-                    <div class="geri-display-card">
-                        <p style="color: #ef4444;">Error loading GERI data. Please try again later.</p>
-                    </div>
-                \`;
+                contentDiv.innerHTML = '<div class="geri-display-card"><p style="color: #ef4444;">Error loading GERI data. Please try again later.</p></div>';
             }
         }
         
@@ -2542,12 +2538,26 @@
             const trend1dEl = document.getElementById('trend1d');
             const trend7dEl = document.getElementById('trend7d');
             const momentumEl = document.getElementById('trendMomentum');
+            const currentBandEl = document.getElementById('currentBand');
+            const currentBandValueEl = document.getElementById('currentBandValue');
+            
+            // Current band
+            if (currentBandEl && currentGeri) {
+                const bandColor = currentGeri.band === 'CRITICAL' ? '#ef4444' :
+                                  currentGeri.band === 'ELEVATED' ? '#f97316' :
+                                  currentGeri.band === 'MODERATE' ? '#eab308' : '#22c55e';
+                currentBandEl.textContent = currentGeri.band || '--';
+                currentBandEl.style.color = bandColor;
+            }
+            if (currentBandValueEl && currentGeri) {
+                currentBandValueEl.textContent = (currentGeri.value || '--') + '/100';
+            }
             
             // 1-day change
             const trend1d = currentGeri.trend_1d || 0;
             if (trend1dEl) {
                 const sign = trend1d > 0 ? '+' : '';
-                trend1dEl.textContent = \`\${sign}\${trend1d.toFixed(0)}\`;
+                trend1dEl.textContent = sign + trend1d.toFixed(0);
                 trend1dEl.className = 'trend-indicator-value ' + 
                     (trend1d > 0 ? 'positive' : trend1d < 0 ? 'negative' : 'neutral');
             }
@@ -2556,7 +2566,7 @@
             const trend7d = currentGeri.trend_7d || 0;
             if (trend7dEl) {
                 const sign = trend7d > 0 ? '+' : '';
-                trend7dEl.textContent = \`\${sign}\${trend7d.toFixed(0)}\`;
+                trend7dEl.textContent = sign + trend7d.toFixed(0);
                 trend7dEl.className = 'trend-indicator-value ' + 
                     (trend7d > 0 ? 'positive' : trend7d < 0 ? 'negative' : 'neutral');
             }
@@ -2666,14 +2676,14 @@
                             padding: 12,
                             displayColors: true,
                             callbacks: {
-                                title: (items) => \`Date: \${items[0].label}\`,
+                                title: (items) => 'Date: ' + items[0].label,
                                 label: (context) => {
                                     const val = context.parsed.y;
                                     let band = 'LOW';
                                     if (val >= 76) band = 'CRITICAL';
                                     else if (val >= 51) band = 'ELEVATED';
                                     else if (val >= 26) band = 'MODERATE';
-                                    return \`\${context.dataset.label}: \${val.toFixed(0)} (\${band})\`;
+                                    return context.dataset.label + ': ' + val.toFixed(0) + ' (' + band + ')';
                                 }
                             }
                         },
