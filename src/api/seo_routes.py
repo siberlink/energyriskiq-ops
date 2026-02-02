@@ -2033,6 +2033,7 @@ async def geri_page(request: Request):
                 <div class="geri-links">
                     <a href="/geri/history">View History</a>
                     <a href="/geri/methodology">Methodology</a>
+                    <a href="/why-geri">What GERI Actually Measures</a>
                 </div>
             </div>
         </main>
