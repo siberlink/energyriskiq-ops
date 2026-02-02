@@ -13,7 +13,7 @@
     <meta name="description" content="Why GERI exists - A Global Energy Risk Index for a world where prices react faster than reality. Monitor risk regimes, not just prices.">
     <meta name="keywords" content="GERI, Global Energy Risk Index, energy risk, geopolitical risk, risk monitoring, oil prices, gas prices, VIX, freight rates">
     <title>Why GERI | Global Energy Risk Index | EnergyRiskIQ</title>
-    <link rel="canonical" href="https://energyriskiq.com/why-GERI">
+    <link rel="canonical" href="https://energyriskiq.com/why-geri">
     <link rel="icon" type="image/png" href="/static/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -384,6 +384,47 @@
 
         .comparison-card .emoji {
             font-size: 1.5rem;
+        }
+
+        .chart-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border);
+        }
+
+        .chart-image-container {
+            margin-top: 1.5rem;
+        }
+
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+
+        .featured-chart {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .featured-chart img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .featured-chart-caption {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 1rem;
         }
 
         .insight-box {
@@ -761,7 +802,6 @@
             <a href="/" class="nav-link">Home</a>
             <a href="/geri" class="nav-link">GERI Index</a>
             <a href="/alerts" class="nav-link">Alert History</a>
-            <a href="/#pricing" class="nav-link">Pricing</a>
             <a href="/users" class="nav-cta">Get Started</a>
         </div>
     </nav>
@@ -896,6 +936,10 @@
                         <p>If oil spikes but GERI stays stable: <strong>The market may be overreacting.</strong></p>
                         <p style="margin-top: 0.5rem;">If oil pulls back but GERI remains elevated: <strong>Risk hasn't actually gone away.</strong></p>
                     </div>
+                    <div class="chart-image-container">
+                        <img src="/static/geri-brent-oil.png" alt="GERI vs Brent Oil comparison chart" class="chart-image">
+                        <p class="chart-caption">GERI (blue) vs Brent Oil (orange) - Notice how GERI moves more deliberately</p>
+                    </div>
                 </div>
                 
                 <div class="comparison-card">
@@ -904,6 +948,10 @@
                     <div class="insight-box">
                         <p>GERI filters this: <strong>Local panic stays local.</strong></p>
                         <p style="margin-top: 0.5rem;">Only contagious, cross-regional risk moves the index.</p>
+                    </div>
+                    <div class="chart-image-container">
+                        <img src="/static/geri-ttf-gas.png" alt="GERI vs TTF Gas comparison chart" class="chart-image">
+                        <p class="chart-caption">GERI (blue) vs TTF Gas (green) - Gas volatility filtered for global relevance</p>
                     </div>
                 </div>
                 
@@ -914,6 +962,10 @@
                         <p><strong>This is intentional.</strong> GERI reflects structural pressure, not emotional market reactions.</p>
                         <p style="margin-top: 0.5rem;">It often remains elevated after volatility fades, when risks still exist but markets feel calm again. <strong>That's where most mistakes happen.</strong></p>
                     </div>
+                    <div class="chart-image-container">
+                        <img src="/static/geri-vix.png" alt="GERI vs VIX comparison chart" class="chart-image">
+                        <p class="chart-caption">GERI (blue) vs VIX (red) - GERI stays elevated longer than volatility</p>
+                    </div>
                 </div>
                 
                 <div class="comparison-card">
@@ -921,6 +973,10 @@
                     <p>Freight reacts instantly to disruption. GERI tells you whether that disruption is temporary or systemic.</p>
                     <div class="insight-box">
                         <p>Not every shipping shock becomes a global risk event.<br><strong>GERI highlights the ones that do.</strong></p>
+                    </div>
+                    <div class="chart-image-container">
+                        <img src="/static/geri-freight.png" alt="GERI vs Freight comparison chart" class="chart-image">
+                        <p class="chart-caption">GERI (blue) vs Freight (purple) - Distinguishing noise from systemic disruption</p>
                     </div>
                 </div>
             </div>
@@ -949,7 +1005,12 @@
     <section class="section section-dark">
         <div class="container">
             <h2 class="section-title" style="text-align: center;">What You Get With Live-GERI (Pro)</h2>
-            <p class="lead-text" style="text-align: center;">For <strong style="color: var(--accent);">$49/month</strong>, Pro subscribers unlock Live-GERI:</p>
+            <p class="lead-text" style="text-align: center;">Pro subscribers unlock Live-GERI:</p>
+            
+            <div class="featured-chart" style="background: #0f172a; border-color: #334155;">
+                <img src="/static/geri-all-overlays.png" alt="Live-GERI Dashboard with all market overlays">
+                <p class="featured-chart-caption" style="color: #94a3b8;">Live-GERI Dashboard: GERI with Oil, Gas, VIX, and Freight overlays</p>
+            </div>
             
             <div class="features-list">
                 <div class="feature-item">
@@ -1111,7 +1172,6 @@
             <h2 class="cta-title">Start Using GERI the Way Professionals Do</h2>
             <p class="cta-subtitle">Markets will always move. Headlines will always shout.<br>GERI tells you whether the world is actually becoming more dangerous—or just noisier.</p>
             
-            <div class="cta-price">$49<span>/month</span></div>
             <p style="color: #94a3b8; margin-bottom: 0.5rem;">Unlock Live-GERI today and start monitoring risk regimes, not just prices.</p>
             
             <a href="/users" class="cta-button">
