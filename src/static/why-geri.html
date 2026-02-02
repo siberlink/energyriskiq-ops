@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDXY4E2P1N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZDXY4E2P1N');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Why GERI exists - A Global Energy Risk Index for a world where prices react faster than reality. Monitor risk regimes, not just prices.">
+    <meta name="keywords" content="GERI, Global Energy Risk Index, energy risk, geopolitical risk, risk monitoring, oil prices, gas prices, VIX, freight rates">
+    <title>Why GERI | Global Energy Risk Index | EnergyRiskIQ</title>
+    <link rel="canonical" href="https://energyriskiq.com/why-GERI">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066FF;
+            --primary-dark: #0052CC;
+            --primary-light: #E6F0FF;
+            --secondary: #1A1A2E;
+            --accent: #00D4AA;
+            --text-primary: #1A1A2E;
+            --text-secondary: #64748B;
+            --text-light: #94A3B8;
+            --bg-white: #FFFFFF;
+            --bg-light: #F8FAFC;
+            --border: #E2E8F0;
+            --gradient-start: #0066FF;
+            --gradient-end: #00D4AA;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.7;
+            background: var(--bg-white);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        .logo img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            background: var(--primary);
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .nav-cta:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--secondary);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 102, 255, 0.2), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(0, 212, 170, 0.15), transparent);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(0, 102, 255, 0.2);
+            color: #60a5fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.35rem;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-bottom: 2rem;
+        }
+
+        .hero-tagline {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section {
+            padding: 5rem 0;
+        }
+
+        .section-alt {
+            background: var(--bg-light);
+        }
+
+        .section-dark {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .section-dark .section-title {
+            color: white;
+        }
+
+        .lead-text {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .section-dark .lead-text {
+            color: #94a3b8;
+        }
+
+        .poetic-intro {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .poetic-intro strong {
+            color: var(--primary);
+            font-style: normal;
+        }
+
+        .definition-box {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem 2rem;
+            border-radius: 0 12px 12px 0;
+            margin: 2rem 0;
+        }
+
+        .definition-box p {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .problem-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .problem-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .problem-item .icon {
+            font-size: 1.5rem;
+        }
+
+        .question-box {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid var(--warning);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .question-box p {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #92400e;
+            margin: 0;
+        }
+
+        .mistake-list {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .mistake-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mistake-list li:last-child {
+            border-bottom: none;
+        }
+
+        .mistake-list .icon {
+            color: var(--danger);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .highlight-box p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #065f46;
+            margin: 0;
+        }
+
+        .measures-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .measure-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .measure-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .measure-card h4 {
+            font-size: 1rem;
+            color: var(--secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .measure-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .comparison-section {
+            margin: 3rem 0;
+        }
+
+        .comparison-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .comparison-card h3 {
+            font-size: 1.35rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comparison-card .emoji {
+            font-size: 1.5rem;
+        }
+
+        .insight-box {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        .insight-box p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .insight-box strong {
+            color: var(--text-primary);
+        }
+
+        .pattern-box {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            border: 2px solid #8b5cf6;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .pattern-box h3 {
+            font-size: 1.25rem;
+            color: #5b21b6;
+            margin-bottom: 1rem;
+        }
+
+        .pattern-box p {
+            color: #6b21a8;
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-box strong {
+            color: #4c1d95;
+        }
+
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .use-case {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+        }
+
+        .features-list {
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .feature-item .check {
+            color: var(--accent);
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .feature-item h4 {
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-item p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .audience-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .audience-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .audience-card h4 {
+            font-size: 1rem;
+            color: var(--secondary);
+            margin: 0;
+        }
+
+        .not-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .not-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+        }
+
+        .not-item .icon {
+            color: var(--danger);
+            font-size: 1.25rem;
+        }
+
+        .is-box {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .is-box p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #065f46;
+            margin: 0;
+        }
+
+        .timing-benefits {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .timing-benefit {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .timing-benefit .icon {
+            color: var(--primary);
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% 100%, rgba(0, 102, 255, 0.2), transparent);
+            pointer-events: none;
+        }
+
+        .cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .cta-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .cta-price span {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #0052CC);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 102, 255, 0.5);
+        }
+
+        .footer {
+            background: var(--secondary);
+            color: #94a3b8;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer a {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 1rem 2rem 2rem;
+                gap: 1rem;
+                border-bottom: 1px solid var(--border);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section {
+                padding: 3rem 0;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .problem-list,
+            .measures-grid,
+            .use-cases,
+            .not-list,
+            .timing-benefits {
+                grid-template-columns: 1fr;
+            }
+
+            .audience-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .poetic-intro {
+                font-size: 1.2rem;
+            }
+
+            .cta-title {
+                font-size: 1.75rem;
+            }
+
+            .cta-price {
+                font-size: 2.25rem;
+            }
+
+            .question-box p {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .hero-section {
+                padding: 3rem 1rem;
+            }
+
+            .hero-title {
+                font-size: 1.75rem;
+            }
+
+            .definition-box,
+            .comparison-card,
+            .feature-item {
+                padding: 1rem;
+            }
+
+            .cta-section {
+                padding: 3rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="/" class="logo">
+            <img src="/static/logo.png" alt="EnergyRiskIQ">
+            <span>EnergyRiskIQ</span>
+        </a>
+        <button class="mobile-menu-btn" onclick="toggleMenu()">&#9776;</button>
+        <div class="nav-links" id="navLinks">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/geri" class="nav-link">GERI Index</a>
+            <a href="/alerts" class="nav-link">Alert History</a>
+            <a href="/#pricing" class="nav-link">Pricing</a>
+            <a href="/users" class="nav-cta">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <span class="hero-badge">Global Energy Risk Index</span>
+            <h1 class="hero-title">Why GERI Exists</h1>
+            <p class="hero-subtitle">A Global Risk Index for a World Where Prices React Faster Than Reality</p>
+            <p class="hero-tagline">Markets move fast. Headlines move faster.<br>But systemic risk moves differently.</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <p class="poetic-intro">
+                That's why we built <strong>GERI</strong>.
+            </p>
+            
+            <div class="definition-box">
+                <p><strong>GERI (Global Energy Risk Index)</strong> is not a price, not a forecast, and not a headline feed. It is a daily risk regime signal that tells you whether global geopolitical and energy stress is building, peaking, or dissipating—before or after markets react.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">The Problem With Watching Prices Alone</h2>
+            
+            <div class="problem-list">
+                <div class="problem-item">
+                    <span class="icon">📈</span>
+                    <span>Oil spikes</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">📉</span>
+                    <span>Gas crashes</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">💥</span>
+                    <span>Volatility explodes</span>
+                </div>
+                <div class="problem-item">
+                    <span class="icon">🚢</span>
+                    <span>Freight surges</span>
+                </div>
+            </div>
+            
+            <p class="lead-text">Every day, markets shout: <em>"Something is happening!"</em></p>
+            
+            <div class="question-box">
+                <p>But they don't answer the question that matters most:<br><strong>Is this real systemic risk—or just short-term noise?</strong></p>
+            </div>
+            
+            <p class="lead-text" style="text-align: center; margin-bottom: 1rem;">
+                <strong>Prices react instantly.</strong><br>
+                <strong>Risk accumulates gradually.</strong>
+            </p>
+            
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">Confusing the two leads to:</p>
+            
+            <ul class="mistake-list">
+                <li>
+                    <span class="icon">&#10060;</span>
+                    <span><strong>Over-trading</strong> — reacting to noise as if it were signal</span>
+                </li>
+                <li>
+                    <span class="icon">&#10060;</span>
+                    <span><strong>Premature de-risking</strong> — exiting too early on false alarms</span>
+                </li>
+                <li>
+                    <span class="icon">&#10060;</span>
+                    <span><strong>Missed regime shifts</strong> — failing to see structural changes</span>
+                </li>
+                <li>
+                    <span class="icon">&#10060;</span>
+                    <span><strong>False confidence</strong> — relaxing when volatility fades but risk remains</span>
+                </li>
+            </ul>
+            
+            <div class="highlight-box">
+                <p>GERI was built to solve this gap.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">What GERI Actually Measures</h2>
+            
+            <p class="lead-text">GERI aggregates global geopolitical and energy stress signals into a single, interpretable daily score (0–100), updated every day.</p>
+            
+            <div class="measures-grid">
+                <div class="measure-card">
+                    <div class="icon">🔥</div>
+                    <h4>Escalation Intensity</h4>
+                    <p>How severe are current events?</p>
+                </div>
+                <div class="measure-card">
+                    <div class="icon">🌍</div>
+                    <h4>Regional Concentration</h4>
+                    <p>Is risk spreading or localized?</p>
+                </div>
+                <div class="measure-card">
+                    <div class="icon">⛽</div>
+                    <h4>Asset Exposure</h4>
+                    <p>Oil, gas, freight pressure</p>
+                </div>
+                <div class="measure-card">
+                    <div class="icon">⏳</div>
+                    <h4>Persistence</h4>
+                    <p>Not panic—structural stress</p>
+                </div>
+            </div>
+            
+            <div class="definition-box" style="text-align: center;">
+                <p>GERI doesn't chase markets.<br><strong>It measures whether stress is becoming structural.</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title">Why GERI Looks Different From Oil, Gas, VIX, and Freight</h2>
+            <p class="lead-text">This is where GERI proves its value.</p>
+            
+            <div class="comparison-section">
+                <div class="comparison-card">
+                    <h3><span class="emoji">🛢️</span> Oil Moves First. GERI Confirms (or Rejects).</h3>
+                    <p>Oil prices react quickly to headlines and sentiment. GERI rises only when those moves are supported by sustained geopolitical or energy pressure.</p>
+                    <div class="insight-box">
+                        <p>If oil spikes but GERI stays stable: <strong>The market may be overreacting.</strong></p>
+                        <p style="margin-top: 0.5rem;">If oil pulls back but GERI remains elevated: <strong>Risk hasn't actually gone away.</strong></p>
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h3><span class="emoji">🔥</span> Gas Is Local. GERI Is Global.</h3>
+                    <p>European gas prices are volatile by nature. They reflect regional stress, infrastructure constraints, and short-term flows.</p>
+                    <div class="insight-box">
+                        <p>GERI filters this: <strong>Local panic stays local.</strong></p>
+                        <p style="margin-top: 0.5rem;">Only contagious, cross-regional risk moves the index.</p>
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h3><span class="emoji">📊</span> VIX Measures Fear. GERI Measures Pressure.</h3>
+                    <p>Volatility spikes fast—and collapses just as fast. GERI behaves differently: it rises more slowly, peaks later, and stays elevated longer.</p>
+                    <div class="insight-box">
+                        <p><strong>This is intentional.</strong> GERI reflects structural pressure, not emotional market reactions.</p>
+                        <p style="margin-top: 0.5rem;">It often remains elevated after volatility fades, when risks still exist but markets feel calm again. <strong>That's where most mistakes happen.</strong></p>
+                    </div>
+                </div>
+                
+                <div class="comparison-card">
+                    <h3><span class="emoji">🚢</span> Freight Breaks First. GERI Tells You If It Matters.</h3>
+                    <p>Freight reacts instantly to disruption. GERI tells you whether that disruption is temporary or systemic.</p>
+                    <div class="insight-box">
+                        <p>Not every shipping shock becomes a global risk event.<br><strong>GERI highlights the ones that do.</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pattern-box">
+                <h3>The Pattern Professionals Care About</h3>
+                <p>Across oil, gas, volatility, and freight, one pattern repeats:</p>
+                <p><strong>Markets react first. GERI moves later—but more reliably.</strong></p>
+            </div>
+            
+            <p class="lead-text" style="text-align: center;">That makes GERI ideal for:</p>
+            
+            <div class="use-cases" style="max-width: 600px; margin: 1.5rem auto;">
+                <div class="use-case" style="background: var(--primary-light); border-color: var(--primary); color: var(--text-primary);">Risk regime identification</div>
+                <div class="use-case" style="background: var(--primary-light); border-color: var(--primary); color: var(--text-primary);">Confirmation or rejection of market moves</div>
+                <div class="use-case" style="background: var(--primary-light); border-color: var(--primary); color: var(--text-primary);">Avoiding overreaction</div>
+                <div class="use-case" style="background: var(--primary-light); border-color: var(--primary); color: var(--text-primary);">Explaining decisions to stakeholders</div>
+            </div>
+            
+            <div class="highlight-box">
+                <p>GERI doesn't compete with prices.<br><strong>It puts them in context.</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-dark">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center;">What You Get With Live-GERI (Pro)</h2>
+            <p class="lead-text" style="text-align: center;">For <strong style="color: var(--accent);">$49/month</strong>, Pro subscribers unlock Live-GERI:</p>
+            
+            <div class="features-list">
+                <div class="feature-item">
+                    <span class="check">&#10003;</span>
+                    <div>
+                        <h4>Latest Official GERI (No Delay)</h4>
+                        <p>Updated daily as soon as the index is computed. Public users see it later. You don't.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="check">&#10003;</span>
+                    <div>
+                        <h4>Full Risk Regime History (Since Launch)</h4>
+                        <p>Track how global risk evolves over time: rising, peaking, decelerating, stabilizing. No guessing. No memory bias.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="check">&#10003;</span>
+                    <div>
+                        <h4>Momentum & Trend Signals</h4>
+                        <p>Instantly see day-to-day change, 7-day trend, and acceleration vs deceleration. This turns GERI into a decision aid, not just a number.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="check">&#10003;</span>
+                    <div>
+                        <h4>Market Overlays (Oil, Gas, Volatility, Freight)</h4>
+                        <p>See how GERI behaves relative to markets, not instead of them. This is where insight happens.</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="check">&#10003;</span>
+                    <div>
+                        <h4>Clear Risk Bands (LOW → CRITICAL)</h4>
+                        <p>GERI translates complexity into regimes you can act on. No interpretation gymnastics required.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center;">Who Live-GERI Is Built For</h2>
+            <p class="lead-text" style="text-align: center;">Live-GERI is used by people who need to answer questions like:</p>
+            
+            <div style="max-width: 600px; margin: 0 auto 2rem;">
+                <div class="insight-box" style="margin-bottom: 0.75rem;">
+                    <p>"Are we entering a higher-risk regime?"</p>
+                </div>
+                <div class="insight-box" style="margin-bottom: 0.75rem;">
+                    <p>"Is this move justified—or just loud?"</p>
+                </div>
+                <div class="insight-box" style="margin-bottom: 0.75rem;">
+                    <p>"Should we de-risk now, or wait?"</p>
+                </div>
+                <div class="insight-box">
+                    <p>"Why did we take (or avoid) this position?"</p>
+                </div>
+            </div>
+            
+            <div class="audience-grid">
+                <div class="audience-card">
+                    <div class="icon">📊</div>
+                    <h4>Traders</h4>
+                </div>
+                <div class="audience-card">
+                    <div class="icon">🔍</div>
+                    <h4>Analysts</h4>
+                </div>
+                <div class="audience-card">
+                    <div class="icon">⛽</div>
+                    <h4>Energy Professionals</h4>
+                </div>
+                <div class="audience-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Risk Managers</h4>
+                </div>
+                <div class="audience-card">
+                    <div class="icon">🌍</div>
+                    <h4>Macro Investors</h4>
+                </div>
+                <div class="audience-card">
+                    <div class="icon">📈</div>
+                    <h4>Portfolio Managers</h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section-alt">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center;">What Live-GERI Is Not</h2>
+            <p class="lead-text" style="text-align: center;">To be clear, GERI is not:</p>
+            
+            <div class="not-list">
+                <div class="not-item">
+                    <span class="icon">&#10060;</span>
+                    <span>A price prediction tool</span>
+                </div>
+                <div class="not-item">
+                    <span class="icon">&#10060;</span>
+                    <span>A trading signal generator</span>
+                </div>
+                <div class="not-item">
+                    <span class="icon">&#10060;</span>
+                    <span>A news feed</span>
+                </div>
+                <div class="not-item">
+                    <span class="icon">&#10060;</span>
+                    <span>An AI hype product</span>
+                </div>
+            </div>
+            
+            <div class="is-box">
+                <p>It is something more useful:<br>A daily lens on global risk pressure.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center;">Why Now</h2>
+            <p class="lead-text" style="text-align: center;">GERI is still early in its lifecycle.<br><strong>That's an advantage—not a weakness.</strong></p>
+            
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 1.5rem;">By subscribing now, you:</p>
+            
+            <div class="timing-benefits">
+                <div class="timing-benefit">
+                    <span class="icon">&#9733;</span>
+                    <span><strong>Follow the index</strong> from its beginning</span>
+                </div>
+                <div class="timing-benefit">
+                    <span class="icon">&#9733;</span>
+                    <span><strong>Build intuition</strong> as history grows</span>
+                </div>
+                <div class="timing-benefit">
+                    <span class="icon">&#9733;</span>
+                    <span><strong>Lock in</strong> early access pricing</span>
+                </div>
+                <div class="timing-benefit">
+                    <span class="icon">&#9733;</span>
+                    <span><strong>Stay ahead</strong> of public narratives</span>
+                </div>
+            </div>
+            
+            <div class="highlight-box">
+                <p>As history deepens, GERI becomes more powerful.<br>Early users benefit the most.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 class="cta-title">Start Using GERI the Way Professionals Do</h2>
+            <p class="cta-subtitle">Markets will always move. Headlines will always shout.<br>GERI tells you whether the world is actually becoming more dangerous—or just noisier.</p>
+            
+            <div class="cta-price">$49<span>/month</span></div>
+            <p style="color: #94a3b8; margin-bottom: 0.5rem;">Unlock Live-GERI today and start monitoring risk regimes, not just prices.</p>
+            
+            <a href="/users" class="cta-button">
+                <span>Get Live-GERI Access</span>
+                <span>&#8594;</span>
+            </a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2026 EnergyRiskIQ. All rights reserved.</p>
+        <p style="margin-top: 0.5rem;">
+            <a href="/privacy">Privacy Policy</a> &middot; 
+            <a href="/terms">Terms of Service</a> &middot; 
+            <a href="/disclaimer">Disclaimer</a>
+        </p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

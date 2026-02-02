@@ -98,6 +98,10 @@ async def disclaimer_page():
 async def samples_page():
     return FileResponse(os.path.join(STATIC_DIR, "samples.html"), media_type="text/html")
 
+@app.get("/why-GERI", include_in_schema=False)
+async def why_geri_page():
+    return FileResponse(os.path.join(STATIC_DIR, "why-geri.html"), media_type="text/html")
+
 @app.get("/admin", include_in_schema=False)
 async def admin_page():
     return FileResponse(os.path.join(STATIC_DIR, "admin.html"), media_type="text/html")
