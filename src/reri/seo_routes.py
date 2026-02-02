@@ -133,6 +133,22 @@ def get_common_styles():
         .index-interpretation p { margin: 0 0 1rem 0; }
         .index-interpretation p:last-child { margin-bottom: 0; }
         
+        .risk-bands-section { background: rgba(96, 165, 250, 0.03); border-radius: 12px; padding: 1.25rem 1.5rem; }
+        .risk-bands-container { display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem 0; }
+        .risk-band-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: 8px; transition: all 0.2s ease; }
+        .risk-band-row.active { background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); }
+        .band-range { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.85rem; color: #6b7280; min-width: 50px; }
+        .band-indicator { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+        .band-indicator.normal { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .band-indicator.elevated { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); }
+        .band-indicator.high { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .band-indicator.severe { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .band-indicator.critical { background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%); box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+        .band-name { font-weight: 500; color: #374151; font-size: 0.95rem; }
+        .risk-band-row.active .band-name { color: #1f2937; font-weight: 600; }
+        .current-position { text-align: center; margin-top: 1rem; padding: 0.75rem; background: rgba(96, 165, 250, 0.1); border-radius: 8px; font-size: 0.95rem; color: #4b5563; }
+        .current-position strong { font-weight: 700; }
+        
         .index-delay-badge {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
             border: 1px solid #3b82f6;
@@ -405,6 +421,40 @@ async def eeri_public_page(request: Request):
                     <h2 class="section-header-blue">Assets Most Affected:</h2>
                     <div class="assets-grid">
                         {assets_html}
+                    </div>
+                </div>
+                
+                <div class="index-section risk-bands-section" style="margin: 1.5rem 0;">
+                    <h2 class="section-header-blue">📈 Risk Level Bands:</h2>
+                    <div class="risk-bands-container">
+                        <div class="risk-band-row {'active' if eeri['band'] == 'LOW' else ''}">
+                            <span class="band-range">0–20</span>
+                            <span class="band-indicator normal"></span>
+                            <span class="band-name">Normal</span>
+                        </div>
+                        <div class="risk-band-row {'active' if eeri['band'] == 'MODERATE' else ''}">
+                            <span class="band-range">21–40</span>
+                            <span class="band-indicator elevated"></span>
+                            <span class="band-name">Elevated</span>
+                        </div>
+                        <div class="risk-band-row {'active' if eeri['band'] == 'ELEVATED' else ''}">
+                            <span class="band-range">41–60</span>
+                            <span class="band-indicator high"></span>
+                            <span class="band-name">High</span>
+                        </div>
+                        <div class="risk-band-row {'active' if eeri['band'] == 'SEVERE' else ''}">
+                            <span class="band-range">61–80</span>
+                            <span class="band-indicator severe"></span>
+                            <span class="band-name">Severe</span>
+                        </div>
+                        <div class="risk-band-row {'active' if eeri['band'] == 'CRITICAL' else ''}">
+                            <span class="band-range">81–100</span>
+                            <span class="band-indicator critical"></span>
+                            <span class="band-name">Critical</span>
+                        </div>
+                    </div>
+                    <div class="current-position">
+                        Current position: <strong style="color: {band_color};">{eeri['band']}</strong> ({eeri['value']})
                     </div>
                 </div>
                 
