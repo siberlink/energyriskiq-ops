@@ -291,20 +291,22 @@ def get_egsi_m_monthly_stats() -> List[Dict[str, Any]]:
 def get_egsi_m_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
     """
     Get EGSI-M data with a delay for public display.
-    Returns the most recent EGSI-M that is at least delay_hours old.
-    """
-    delay_cutoff = datetime.utcnow() - timedelta(hours=delay_hours)
     
+    Uses OFFSET 1 to get the second-most-recent record (true 24h delay).
+    - Latest record (LIMIT 1) is for authenticated users (real-time)
+    - Second-last record (OFFSET 1) is for public/unauthenticated (24h delayed)
+    
+    This matches GERI's delay logic for consistency.
+    """
     query = """
-        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation
+        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation, computed_at
         FROM egsi_m_daily
-        WHERE computed_at <= %s
-        ORDER BY index_date DESC
-        LIMIT 1
+        ORDER BY computed_at DESC
+        LIMIT 1 OFFSET 1
     """
     try:
         with get_cursor() as cursor:
-            cursor.execute(query, (delay_cutoff,))
+            cursor.execute(query)
             row = cursor.fetchone()
         
         if not row:
@@ -323,6 +325,7 @@ def get_egsi_m_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
             'explanation': row['explanation'],
             'components': components,
             'drivers': drivers,
+            'computed_at': row['computed_at'].isoformat() if row['computed_at'] else None,
         }
     except Exception as e:
         logger.error(f"Error fetching delayed EGSI-M: {e}")

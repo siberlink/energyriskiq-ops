@@ -410,7 +410,7 @@ async def egsi_public_page(request: Request):
                     <div class="index-value" style="color: {band_color};">{value:.0f} / 100 ({band})</div>
                     <div class="index-scale-ref">0 = minimal stress · 100 = extreme market stress</div>
                     {trend_display}
-                    <div class="index-date">Date Computed: {date_str}</div>
+                    <div class="index-date">Date Computed: {egsi.get('computed_at', date_str)}</div>
                 </div>
                 
                 <div class="index-sections">
