@@ -95,6 +95,10 @@ def get_common_styles():
         .index-scale-ref { font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem; }
         .index-trend { font-size: 0.95rem; margin-bottom: 0.5rem; color: #f8fafc; }
         .index-date { color: #6b7280; font-size: 0.875rem; margin-top: 1rem; }
+        .index-meta { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(107, 114, 128, 0.3); }
+        .index-meta-row { display: flex; justify-content: space-between; align-items: center; padding: 0.25rem 0; font-size: 0.85rem; }
+        .meta-label { color: #9ca3af; }
+        .meta-value { color: #d1d5db; font-weight: 500; }
         
         .index-sections {
             display: grid;
@@ -333,13 +337,20 @@ async def eeri_public_page(request: Request):
         return 'active' if current_band == band_name else ''
     
     index_date = eeri.get('date', date.today().isoformat())
+    # Format index date nicely (the date the index is FOR - 24h delayed)
+    try:
+        index_date_obj = datetime.fromisoformat(index_date) if isinstance(index_date, str) else index_date
+        index_date_display = index_date_obj.strftime('%B %d, %Y')
+    except:
+        index_date_display = index_date
+    
     computed_at = eeri.get('computed_at', '')
     if computed_at:
         try:
-            computed_dt = datetime.fromisoformat(computed_at.replace('Z', '+00:00'))
-            computed_display = computed_dt.strftime('%B %d, %Y, %H:%M UTC')
+            computed_dt = datetime.fromisoformat(str(computed_at).replace('Z', '+00:00'))
+            computed_display = computed_dt.strftime('%B %d, %Y') + ', 01:00 UTC'
         except:
-            computed_display = computed_at
+            computed_display = str(computed_at).split('T')[0] if 'T' in str(computed_at) else str(computed_at)
     else:
         computed_display = 'Daily at 01:00 UTC'
     
@@ -397,7 +408,11 @@ async def eeri_public_page(request: Request):
                     <div class="index-value" style="color: {band_color};">{eeri['value']} / 100 ({eeri['band']})</div>
                     <div class="index-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
                     {trend_display}
-                    <div class="index-date">Date Computed: {eeri.get('computed_at', index_date)}</div>
+                    <div class="index-meta">
+                        <div class="index-meta-row"><span class="meta-label">Index Date:</span> <span class="meta-value">{index_date_display}</span></div>
+                        <div class="index-meta-row"><span class="meta-label">Computed At:</span> <span class="meta-value">{computed_display}</span></div>
+                        <div class="index-meta-row"><span class="meta-label">Update Frequency:</span> <span class="meta-value">Daily</span></div>
+                    </div>
                 </div>
                 
                 <div class="index-sections">
