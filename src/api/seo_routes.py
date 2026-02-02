@@ -1668,6 +1668,15 @@ async def geri_page(request: Request):
             {interpretation_html}
         </div>
         
+        <div class="geri-public-note">
+            <div class="note-header">
+                <span class="note-icon">📢</span>
+                <span class="note-label">Please Note:</span>
+            </div>
+            <p class="note-content">This is the public <strong>24h delayed</strong> index. To see the <strong>Real-Time GERI</strong> including Charts, Momentum, History, Energy Assets and more... <a href="/users" class="note-cta">create your account today</a> and get started.</p>
+            <p class="note-tagline">GERI will tell you whether the world is actually becoming more dangerous — or just noisier!</p>
+        </div>
+        
         {delay_badge}
         """
     
@@ -1844,6 +1853,52 @@ async def geri_page(request: Request):
             }}
             .geri-interpretation p {{ margin: 0 0 1rem 0; }}
             .geri-interpretation p:last-child {{ margin-bottom: 0; }}
+            .geri-public-note {{
+                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                border: 1px solid #f59e0b;
+                border-radius: 12px;
+                padding: 1.25rem 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .geri-public-note .note-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.75rem;
+            }}
+            .geri-public-note .note-icon {{
+                font-size: 1.25rem;
+            }}
+            .geri-public-note .note-label {{
+                font-weight: 700;
+                color: #92400e;
+                font-size: 1rem;
+            }}
+            .geri-public-note .note-content {{
+                color: #78350f;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                margin: 0 0 0.75rem 0;
+            }}
+            .geri-public-note .note-content strong {{
+                color: #92400e;
+            }}
+            .geri-public-note .note-cta {{
+                color: #0066FF;
+                font-weight: 600;
+                text-decoration: underline;
+            }}
+            .geri-public-note .note-cta:hover {{
+                color: #0052CC;
+            }}
+            .geri-public-note .note-tagline {{
+                color: #92400e;
+                font-size: 0.9rem;
+                font-style: italic;
+                margin: 0;
+                padding-top: 0.5rem;
+                border-top: 1px solid rgba(146, 64, 14, 0.2);
+            }}
             .geri-delay-badge {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
                 border: 1px solid #3b82f6;
