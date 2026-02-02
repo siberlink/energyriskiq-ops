@@ -381,7 +381,7 @@ async def eeri_public_page(request: Request):
                     <div class="index-value" style="color: {band_color};">{eeri['value']} / 100 ({eeri['band']})</div>
                     <div class="index-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
                     {trend_display}
-                    <div class="index-date">Date Computed: {index_date}</div>
+                    <div class="index-date">Date Computed: {eeri.get('computed_at', index_date)}</div>
                 </div>
                 
                 <div class="index-sections">
