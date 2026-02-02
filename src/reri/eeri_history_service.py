@@ -177,23 +177,25 @@ def get_latest_eeri_public() -> Optional[Dict[str, Any]]:
 def get_eeri_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
     """
     Get EERI data with a delay (for public/free tier access).
-    Default 24-hour delay.
-    """
-    cutoff = datetime.utcnow() - timedelta(hours=delay_hours)
     
+    Uses OFFSET 1 to get the second-most-recent record (true 24h delay).
+    - Latest record (LIMIT 1) is for authenticated users (real-time)
+    - Second-last record (OFFSET 1) is for public/unauthenticated (24h delayed)
+    
+    This matches GERI's delay logic for consistency.
+    """
     query = """
         SELECT 
             date, value, band, trend_1d, trend_7d,
             components, drivers, interpretation, computed_at
         FROM reri_indices_daily
         WHERE index_id = %s
-          AND computed_at <= %s
-        ORDER BY date DESC
-        LIMIT 1
+        ORDER BY computed_at DESC
+        LIMIT 1 OFFSET 1
     """
     try:
         with get_cursor() as cursor:
-            cursor.execute(query, (EERI_INDEX_ID, cutoff))
+            cursor.execute(query, (EERI_INDEX_ID,))
             row = cursor.fetchone()
         
         if not row:
