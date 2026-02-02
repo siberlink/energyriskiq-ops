@@ -851,6 +851,13 @@ def generate_sitemap_entries() -> List[Dict]:
         'lastmod': today
     })
     
+    entries.append({
+        'loc': '/why-geri',
+        'priority': '0.8',
+        'changefreq': 'weekly',
+        'lastmod': today
+    })
+    
     try:
         from src.geri.geri_history_service import get_all_snapshot_dates, get_available_months as get_geri_months
         
