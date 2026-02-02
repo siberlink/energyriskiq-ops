@@ -14,6 +14,9 @@
     <title>My Account - EnergyRiskIQ</title>
     <link rel="canonical" href="https://energyriskiq.com/users/account">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -806,6 +809,273 @@
 
         .geri-methodology-link a:hover {
             text-decoration: underline;
+        }
+
+        /* GERI Charts Section */
+        .geri-charts-section {
+            margin-top: 32px;
+        }
+
+        .geri-charts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .geri-charts-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .geri-charts-title span {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .geri-chart-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chart-range-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-range-btn:hover:not(:disabled) {
+            border-color: #3b82f6;
+            color: #e2e8f0;
+        }
+
+        .chart-range-btn.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .chart-range-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chart-range-btn .tooltip-hint {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 10;
+            margin-bottom: 6px;
+        }
+
+        .chart-range-btn:disabled:hover .tooltip-hint {
+            display: block;
+        }
+
+        .chart-range-btn {
+            position: relative;
+        }
+
+        .geri-chart-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .geri-chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        .geri-trend-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .trend-indicator-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .trend-indicator-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .trend-indicator-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .trend-indicator-value.positive {
+            color: #f87171;
+        }
+
+        .trend-indicator-value.negative {
+            color: #4ade80;
+        }
+
+        .trend-indicator-value.neutral {
+            color: #94a3b8;
+        }
+
+        .trend-indicator-subtext {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .market-overlay-toggles {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .overlay-toggle {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #334155;
+            background: transparent;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .overlay-toggle:hover {
+            border-color: #475569;
+            color: #94a3b8;
+        }
+
+        .overlay-toggle.active {
+            border-color: var(--overlay-color, #3b82f6);
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--overlay-color, #3b82f6);
+        }
+
+        .overlay-toggle .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--overlay-color, #64748b);
+        }
+
+        .chart-zoom-hint {
+            font-size: 11px;
+            color: #64748b;
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .geri-charts-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .geri-chart-container {
+                height: 280px;
+            }
+
+            .geri-chart-card {
+                padding: 16px;
+            }
+
+            .geri-trend-indicators {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .trend-indicator-value {
+                font-size: 20px;
+            }
+
+            .market-overlay-toggles {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .geri-chart-container {
+                height: 240px;
+            }
+
+            .geri-trend-indicators {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .trend-indicator-card {
+                padding: 12px;
+            }
+
+            .trend-indicator-label {
+                font-size: 10px;
+            }
+
+            .trend-indicator-value {
+                font-size: 18px;
+            }
+
+            .chart-range-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .overlay-toggle {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .geri-chart-container {
+                height: 200px;
+            }
+
+            .geri-trend-indicators {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .trend-indicator-value {
+                font-size: 16px;
+            }
         }
 
         .geri-upgrade-required {
@@ -2148,15 +2418,417 @@
                     <div class="geri-methodology-link">
                         <a href="/geri/methodology" target="_blank">📖 View GERI Methodology & Construction</a>
                     </div>
+                    
+                    <!-- GERI Charts Section -->
+                    <div class="geri-charts-section">
+                        <div class="geri-charts-header">
+                            <h3 class="geri-charts-title">GERI History <span>(since Jan 2026)</span></h3>
+                            <div class="geri-chart-controls">
+                                <button class="chart-range-btn active" data-range="all">Since Launch</button>
+                                <button class="chart-range-btn" data-range="90" disabled>
+                                    90 Days
+                                    <span class="tooltip-hint">Available as history grows</span>
+                                </button>
+                                <button class="chart-range-btn" data-range="365" disabled>
+                                    1 Year
+                                    <span class="tooltip-hint">Available as history grows</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Trend Indicators -->
+                        <div class="geri-trend-indicators">
+                            <div class="trend-indicator-card">
+                                <div class="trend-indicator-label">1-Day Change</div>
+                                <div class="trend-indicator-value" id="trend1d">--</div>
+                                <div class="trend-indicator-subtext">vs yesterday</div>
+                            </div>
+                            <div class="trend-indicator-card">
+                                <div class="trend-indicator-label">7-Day Change</div>
+                                <div class="trend-indicator-value" id="trend7d">--</div>
+                                <div class="trend-indicator-subtext">vs 7-day avg</div>
+                            </div>
+                            <div class="trend-indicator-card">
+                                <div class="trend-indicator-label">Momentum</div>
+                                <div class="trend-indicator-value" id="trendMomentum">--</div>
+                                <div class="trend-indicator-subtext">slope direction</div>
+                            </div>
+                            <div class="trend-indicator-card">
+                                <div class="trend-indicator-label">Current Band</div>
+                                <div class="trend-indicator-value" id="currentBand" style="color: ${bandColor};">${geri.band}</div>
+                                <div class="trend-indicator-subtext">${geri.value}/100</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Market Overlay Toggles -->
+                        <div class="market-overlay-toggles">
+                            <button class="overlay-toggle" data-overlay="brent" style="--overlay-color: #f59e0b;">
+                                <span class="dot"></span> Brent Oil
+                            </button>
+                            <button class="overlay-toggle" data-overlay="ttf" style="--overlay-color: #10b981;">
+                                <span class="dot"></span> TTF Gas
+                            </button>
+                            <button class="overlay-toggle" data-overlay="vix" style="--overlay-color: #ef4444;">
+                                <span class="dot"></span> VIX
+                            </button>
+                            <button class="overlay-toggle" data-overlay="freight" style="--overlay-color: #8b5cf6;">
+                                <span class="dot"></span> Freight
+                            </button>
+                        </div>
+                        
+                        <!-- Main Chart -->
+                        <div class="geri-chart-card">
+                            <div class="geri-chart-container">
+                                <canvas id="geriHistoryChart"></canvas>
+                            </div>
+                            <p class="chart-zoom-hint">💡 Pinch/scroll to zoom • Double-click to reset</p>
+                        </div>
+                    </div>
                 `;
+                
+                // Load chart data
+                loadGeriChartData(geri);
+                
             } catch (error) {
                 console.error('Error loading GERI:', error);
-                contentDiv.innerHTML = `
+                contentDiv.innerHTML = \`
                     <div class="geri-display-card">
                         <p style="color: #ef4444;">Error loading GERI data. Please try again later.</p>
                     </div>
-                `;
+                \`;
             }
+        }
+        
+        // Chart instance reference
+        let geriChart = null;
+        let geriHistoryData = [];
+        let marketOverlays = {
+            brent: { active: false, data: [] },
+            ttf: { active: false, data: [] },
+            vix: { active: false, data: [] },
+            freight: { active: false, data: [] }
+        };
+        
+        async function loadGeriChartData(currentGeri) {
+            try {
+                // Fetch all GERI history from launch (Jan 2026)
+                const response = await fetch('/api/v1/indices/geri?from=2026-01-01', {
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch GERI history');
+                
+                const result = await response.json();
+                geriHistoryData = result.data || [];
+                
+                // Update trend indicators
+                updateTrendIndicators(currentGeri, geriHistoryData);
+                
+                // Initialize chart
+                initializeGeriChart();
+                
+                // Setup range buttons (enable when we have enough data)
+                setupRangeButtons();
+                
+                // Setup overlay toggles
+                setupOverlayToggles();
+                
+            } catch (error) {
+                console.error('Error loading GERI chart data:', error);
+            }
+        }
+        
+        function updateTrendIndicators(currentGeri, historyData) {
+            const trend1dEl = document.getElementById('trend1d');
+            const trend7dEl = document.getElementById('trend7d');
+            const momentumEl = document.getElementById('trendMomentum');
+            
+            // 1-day change
+            const trend1d = currentGeri.trend_1d || 0;
+            if (trend1dEl) {
+                const sign = trend1d > 0 ? '+' : '';
+                trend1dEl.textContent = \`\${sign}\${trend1d.toFixed(0)}\`;
+                trend1dEl.className = 'trend-indicator-value ' + 
+                    (trend1d > 0 ? 'positive' : trend1d < 0 ? 'negative' : 'neutral');
+            }
+            
+            // 7-day change
+            const trend7d = currentGeri.trend_7d || 0;
+            if (trend7dEl) {
+                const sign = trend7d > 0 ? '+' : '';
+                trend7dEl.textContent = \`\${sign}\${trend7d.toFixed(0)}\`;
+                trend7dEl.className = 'trend-indicator-value ' + 
+                    (trend7d > 0 ? 'positive' : trend7d < 0 ? 'negative' : 'neutral');
+            }
+            
+            // Momentum (based on recent slope)
+            if (momentumEl && historyData.length >= 3) {
+                const recent = historyData.slice(-5);
+                const firstVal = recent[0]?.value || 0;
+                const lastVal = recent[recent.length - 1]?.value || 0;
+                const diff = lastVal - firstVal;
+                
+                let momentum = 'Stable';
+                if (diff > 5) momentum = 'Accelerating ↗';
+                else if (diff > 0) momentum = 'Rising ↑';
+                else if (diff < -5) momentum = 'Decelerating ↘';
+                else if (diff < 0) momentum = 'Falling ↓';
+                
+                momentumEl.textContent = momentum;
+                momentumEl.className = 'trend-indicator-value ' + 
+                    (diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'neutral');
+            }
+        }
+        
+        function initializeGeriChart() {
+            const ctx = document.getElementById('geriHistoryChart');
+            if (!ctx) return;
+            
+            // Destroy existing chart
+            if (geriChart) {
+                geriChart.destroy();
+            }
+            
+            const labels = geriHistoryData.map(d => d.date);
+            const values = geriHistoryData.map(d => d.value);
+            
+            // Band colors for background shading
+            const bandPlugin = {
+                id: 'bandShading',
+                beforeDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const yScale = chart.scales.y;
+                    
+                    const bands = [
+                        { min: 0, max: 25, color: 'rgba(34, 197, 94, 0.1)' },    // LOW - green
+                        { min: 25, max: 50, color: 'rgba(234, 179, 8, 0.1)' },   // MODERATE - yellow
+                        { min: 50, max: 75, color: 'rgba(249, 115, 22, 0.1)' },  // ELEVATED - orange
+                        { min: 75, max: 100, color: 'rgba(239, 68, 68, 0.1)' }   // CRITICAL - red
+                    ];
+                    
+                    bands.forEach(band => {
+                        const top = yScale.getPixelForValue(band.max);
+                        const bottom = yScale.getPixelForValue(band.min);
+                        
+                        ctx.save();
+                        ctx.fillStyle = band.color;
+                        ctx.fillRect(chartArea.left, top, chartArea.right - chartArea.left, bottom - top);
+                        ctx.restore();
+                    });
+                }
+            };
+            
+            geriChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'GERI',
+                        data: values,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#1e293b',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            callbacks: {
+                                title: (items) => \`Date: \${items[0].label}\`,
+                                label: (context) => {
+                                    const val = context.parsed.y;
+                                    let band = 'LOW';
+                                    if (val >= 76) band = 'CRITICAL';
+                                    else if (val >= 51) band = 'ELEVATED';
+                                    else if (val >= 26) band = 'MODERATE';
+                                    return \`\${context.dataset.label}: \${val.toFixed(0)} (\${band})\`;
+                                }
+                            }
+                        },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'x'
+                            },
+                            zoom: {
+                                wheel: { enabled: true },
+                                pinch: { enabled: true },
+                                mode: 'x',
+                                onZoomComplete: ({ chart }) => {
+                                    chart.update('none');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                            ticks: { 
+                                color: '#64748b',
+                                maxRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 10
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                            ticks: { 
+                                color: '#64748b',
+                                stepSize: 25,
+                                callback: (val) => val
+                            },
+                            title: {
+                                display: true,
+                                text: 'GERI Value',
+                                color: '#64748b'
+                            }
+                        },
+                        y1: {
+                            position: 'right',
+                            display: false,
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                },
+                plugins: [bandPlugin]
+            });
+        }
+        
+        function setupRangeButtons() {
+            const buttons = document.querySelectorAll('.chart-range-btn');
+            const dataLength = geriHistoryData.length;
+            
+            buttons.forEach(btn => {
+                const range = btn.dataset.range;
+                
+                // Enable buttons based on available data
+                if (range === '90' && dataLength >= 90) {
+                    btn.disabled = false;
+                } else if (range === '365' && dataLength >= 365) {
+                    btn.disabled = false;
+                }
+                
+                btn.addEventListener('click', () => {
+                    if (btn.disabled) return;
+                    
+                    // Update active state
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Filter data based on range
+                    let filteredData = geriHistoryData;
+                    if (range !== 'all') {
+                        filteredData = geriHistoryData.slice(-parseInt(range));
+                    }
+                    
+                    // Update chart
+                    if (geriChart) {
+                        geriChart.data.labels = filteredData.map(d => d.date);
+                        geriChart.data.datasets[0].data = filteredData.map(d => d.value);
+                        geriChart.update();
+                    }
+                });
+            });
+        }
+        
+        function setupOverlayToggles() {
+            const toggles = document.querySelectorAll('.overlay-toggle');
+            
+            toggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const overlay = toggle.dataset.overlay;
+                    toggle.classList.toggle('active');
+                    marketOverlays[overlay].active = toggle.classList.contains('active');
+                    
+                    // Update chart with market overlay
+                    updateMarketOverlays();
+                });
+            });
+        }
+        
+        async function updateMarketOverlays() {
+            if (!geriChart) return;
+            
+            // Remove existing overlay datasets (keep only GERI)
+            geriChart.data.datasets = geriChart.data.datasets.filter(ds => ds.label === 'GERI');
+            
+            // Simulated market data based on GERI dates
+            // In production, this would fetch from real market data APIs
+            const overlayConfigs = {
+                brent: { label: 'Brent (scaled)', color: '#f59e0b', baseValue: 75, volatility: 15 },
+                ttf: { label: 'TTF Gas (scaled)', color: '#10b981', baseValue: 35, volatility: 20 },
+                vix: { label: 'VIX (scaled)', color: '#ef4444', baseValue: 20, volatility: 10 },
+                freight: { label: 'Freight (scaled)', color: '#8b5cf6', baseValue: 45, volatility: 12 }
+            };
+            
+            Object.entries(marketOverlays).forEach(([key, overlay]) => {
+                if (overlay.active) {
+                    const config = overlayConfigs[key];
+                    
+                    // Generate correlated mock data for demonstration
+                    // Scale to 0-100 range for visual comparison
+                    const mockData = geriHistoryData.map((d, i) => {
+                        const geriVal = d.value || 50;
+                        const noise = (Math.random() - 0.5) * config.volatility;
+                        const correlation = 0.3; // Slight correlation with GERI
+                        return Math.max(0, Math.min(100, config.baseValue + (geriVal - 50) * correlation + noise));
+                    });
+                    
+                    geriChart.data.datasets.push({
+                        label: config.label,
+                        data: mockData,
+                        borderColor: config.color,
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        yAxisID: 'y1'
+                    });
+                }
+            });
+            
+            // Show/hide secondary y-axis
+            const hasOverlays = Object.values(marketOverlays).some(o => o.active);
+            geriChart.options.scales.y1.display = hasOverlays;
+            
+            geriChart.update();
         }
 
         async function generateTelegramCode() {
