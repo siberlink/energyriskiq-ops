@@ -1761,16 +1761,31 @@
            Encapsulated module - do not affect other sections
            ============================================ */
         
+        .eeri-header-links {
+            display: flex;
+            gap: 24px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
         .eeri-methodology-header-link {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             color: #60a5fa;
             text-decoration: none;
             font-size: 14px;
-            margin-top: 8px;
+            padding: 6px 12px;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            background: rgba(59, 130, 246, 0.1);
+            transition: all 0.2s;
         }
 
         .eeri-methodology-header-link:hover {
-            text-decoration: underline;
+            text-decoration: none;
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #60a5fa;
         }
 
         .eeri-pro-loading {
@@ -2836,7 +2851,10 @@
             <div class="page-header">
                 <h1 class="page-title">EERI Pro Dashboard</h1>
                 <p class="page-subtitle">European Energy Risk Index - Real-time intelligence for Pro subscribers</p>
-                <a href="/eeri/methodology" target="_blank" class="eeri-methodology-header-link">📖 View EERI Methodology</a>
+                <div class="eeri-header-links">
+                    <a href="/eeri/methodology" target="_blank" class="eeri-methodology-header-link">📖 View EERI Methodology</a>
+                    <a href="javascript:void(0)" onclick="openEeriModal('behavioral')" class="eeri-methodology-header-link">🧠 Conceptual, Behavioral Interpretation</a>
+                </div>
             </div>
 
             <div id="eeriProContent">
@@ -4796,6 +4814,64 @@
                     
                     <div class="eeri-modal-highlight">
                         <strong>How to interpret:</strong> High percentage in ELEVATED or CRITICAL suggests persistent stress. Frequent transitions indicate volatility in market conditions.
+                    </div>
+                `
+            },
+            behavioral: {
+                title: 'Conceptual, Behavioral Interpretation',
+                body: `
+                    <p style="margin-bottom: 20px; color: #94a3b8;">Below is a conceptual, behavioral interpretation of each band — what is happening in the world, how markets tend to behave, and how users should mentally respond.</p>
+                    
+                    <div class="eeri-band-section" style="border-left: 4px solid #22c55e; padding-left: 16px; margin-bottom: 24px;">
+                        <h4 style="color: #22c55e;">🟩 0–20 — NORMAL</h4>
+                        <p><strong>Background risk</strong></p>
+                        <p><strong>What's happening:</strong> Geopolitical and energy-related events are isolated. Supply chains function normally. Markets absorb news without stress. No clustering, no persistence. Risk exists — but it's ambient, not directional.</p>
+                        <p><strong>How markets behave:</strong> Prices respond mostly to fundamentals. Volatility is low and mean-reverting. Headlines fade quickly.</p>
+                        <div class="eeri-modal-highlight"><strong>How to interpret:</strong> "The system is stable. Risk is not the dominant variable." This is when markets are efficient, noise dominates signal, and overreacting is the biggest danger.</div>
+                    </div>
+                    
+                    <div class="eeri-band-section" style="border-left: 4px solid #facc15; padding-left: 16px; margin-bottom: 24px;">
+                        <h4 style="color: #facc15;">🟨 21–40 — ELEVATED</h4>
+                        <p><strong>Early tension / alert phase</strong></p>
+                        <p><strong>What's happening:</strong> Early signs of geopolitical or supply stress. Narratives begin to repeat. Markets are attentive but not alarmed. Stress is forming, not spreading.</p>
+                        <p><strong>How markets behave:</strong> Selective sensitivity to news. Brief volatility spikes. Divergence between assets.</p>
+                        <div class="eeri-modal-highlight"><strong>How to interpret:</strong> "Something is forming — pay attention." This is a watch phase: Don't act yet. Start monitoring drivers. Check which assets are reacting. This band is often underestimated.</div>
+                    </div>
+                    
+                    <div class="eeri-band-section" style="border-left: 4px solid #f97316; padding-left: 16px; margin-bottom: 24px;">
+                        <h4 style="color: #f97316;">🟧 41–60 — HIGH</h4>
+                        <p><strong>Active stress regime</strong></p>
+                        <p><strong>What's happening:</strong> Multiple high-impact events. Clear thematic dominance (war, supply, logistics). Early clustering. Risk becomes persistent. This is no longer background noise.</p>
+                        <p><strong>How markets behave:</strong> Volatility increases. Correlations begin to rise. Safe-haven behavior emerges. Assets start reacting together.</p>
+                        <div class="eeri-modal-highlight"><strong>How to interpret:</strong> "Risk is now a key market driver." This is where risk management matters, narratives start driving price, and false calm becomes dangerous.</div>
+                    </div>
+                    
+                    <div class="eeri-band-section" style="border-left: 4px solid #ef4444; padding-left: 16px; margin-bottom: 24px;">
+                        <h4 style="color: #ef4444;">🟥 61–80 — SEVERE</h4>
+                        <p><strong>System under strain</strong></p>
+                        <p><strong>What's happening:</strong> Escalation is sustained. Supply or logistics constraints are binding. Second-order effects appear. Market psychology shifts. The system is tense.</p>
+                        <p><strong>How markets behave:</strong> Non-linear moves. Correlations spike. Liquidity thins. Reactions become asymmetric.</p>
+                        <div class="eeri-modal-highlight"><strong>How to interpret:</strong> "The system is fragile. Expect surprises." This is when historical analogs matter, timing becomes difficult, and overconfidence is punished.</div>
+                    </div>
+                    
+                    <div class="eeri-band-section" style="border-left: 4px solid #b91c1c; padding-left: 16px; margin-bottom: 24px;">
+                        <h4 style="color: #b91c1c;">🟥 81–100 — CRITICAL</h4>
+                        <p><strong>Crisis conditions</strong></p>
+                        <p><strong>What's happening:</strong> Systemic stress dominates. Multiple components fully aligned. Shock propagation is active. Control narratives break down. This is not about <em>if</em> something breaks — it's about <em>where</em>.</p>
+                        <p><strong>How markets behave:</strong> Dislocations. Gap moves. Policy intervention risk. Decoupling from fundamentals.</p>
+                        <div class="eeri-modal-highlight"><strong>How to interpret:</strong> "The environment itself is dangerous." In this regime: Preservation > optimization. Liquidity > return. Awareness > precision. This is when EERI is most valuable.</div>
+                    </div>
+                    
+                    <div style="background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 16px; margin-top: 20px;">
+                        <h4 style="color: #f1f5f9; margin-top: 0;">⚠️ One Critical Conceptual Point</h4>
+                        <p style="margin-bottom: 8px;"><strong>These bands are not linear.</strong></p>
+                        <p style="margin-bottom: 4px;">The jump from:</p>
+                        <ul style="margin: 0 0 8px 20px;">
+                            <li>20 → 30 is <strong>mild</strong></li>
+                            <li>50 → 60 is <strong>meaningful</strong></li>
+                            <li>75 → 85 is <strong>dramatic</strong></li>
+                        </ul>
+                        <p style="margin: 0;"><strong>Risk accelerates non-linearly as bands increase. That's why the bands exist.</strong></p>
                     </div>
                 `
             }

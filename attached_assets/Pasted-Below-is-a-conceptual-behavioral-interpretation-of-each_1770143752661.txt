@@ -1,0 +1,205 @@
+Below is a conceptual, behavioral interpretation of each band — what is happening in the world, how markets tend to behave, and how users should mentally respond.
+
+🟩 0–20 — NORMAL
+
+Background risk
+
+What’s happening
+
+Geopolitical and energy-related events are isolated
+
+Supply chains function normally
+
+Markets absorb news without stress
+
+No clustering, no persistence
+
+Risk exists — but it’s ambient, not directional.
+
+How markets behave
+
+Prices respond mostly to fundamentals
+
+Volatility is low and mean-reverting
+
+Headlines fade quickly
+
+How to interpret this
+
+“The system is stable. Risk is not the dominant variable.”
+
+This is when:
+
+Markets are efficient
+
+Noise dominates signal
+
+Overreacting is the biggest danger
+
+🟨 21–40 — ELEVATED
+
+Early tension / alert phase
+
+What’s happening
+
+Early signs of geopolitical or supply stress
+
+Narratives begin to repeat
+
+Markets are attentive but not alarmed
+
+Stress is forming, not spreading
+
+How markets behave
+
+Selective sensitivity to news
+
+Brief volatility spikes
+
+Divergence between assets
+
+How to interpret this
+
+“Something is forming — pay attention.”
+
+This is a watch phase:
+
+Don’t act yet
+
+Start monitoring drivers
+
+Check which assets are reacting
+
+This band is often underestimated.
+
+🟧 41–60 — HIGH
+
+Active stress regime
+
+What’s happening
+
+Multiple high-impact events
+
+Clear thematic dominance (war, supply, logistics)
+
+Early clustering
+
+Risk becomes persistent
+
+This is no longer background noise.
+
+How markets behave
+
+Volatility increases
+
+Correlations begin to rise
+
+Safe-haven behavior emerges
+
+Assets start reacting together
+
+How to interpret this
+
+“Risk is now a key market driver.”
+
+This is where:
+
+Risk management matters
+
+Narratives start driving price
+
+False calm becomes dangerous
+
+🟥 61–80 — SEVERE
+
+System under strain
+
+What’s happening
+
+Escalation is sustained
+
+Supply or logistics constraints are binding
+
+Second-order effects appear
+
+Market psychology shifts
+
+The system is tense.
+
+How markets behave
+
+Non-linear moves
+
+Correlations spike
+
+Liquidity thins
+
+Reactions become asymmetric
+
+How to interpret this
+
+“The system is fragile. Expect surprises.”
+
+This is when:
+
+Historical analogs matter
+
+Timing becomes difficult
+
+Overconfidence is punished
+
+🟥 81–100 — CRITICAL
+
+Crisis conditions
+
+What’s happening
+
+Systemic stress dominates
+
+Multiple components fully aligned
+
+Shock propagation is active
+
+Control narratives break down
+
+This is not about if something breaks — it’s about where.
+
+How markets behave
+
+Dislocations
+
+Gap moves
+
+Policy intervention risk
+
+Decoupling from fundamentals
+
+How to interpret this
+
+“The environment itself is dangerous.”
+
+In this regime:
+
+Preservation > optimization
+
+Liquidity > return
+
+Awareness > precision
+
+This is when EERI is most valuable.
+
+One critical conceptual point (very important)
+
+These bands are not linear.
+
+The jump from:
+
+20 → 30 is mild
+
+50 → 60 is meaningful
+
+75 → 85 is dramatic
+
+Risk accelerates non-linearly as bands increase.
+
+That’s why the bands exist.
