@@ -1,0 +1,290 @@
+This feature is the voice of EnergyRiskIQ.
+Conceptually, it turns EERI from a number into a daily narrative that professionals rely on.
+
+I’ll explain what it really is, why it works, and how users experience it — not how it’s generated.
+
+What the Daily EERI Intelligence Summary really is
+
+It is not:
+
+A news recap
+
+A market commentary
+
+An opinion piece
+
+A forecast
+
+It is:
+
+A concise, authoritative risk briefing — written once per day, whether the world is calm or chaotic.
+
+Think of it as:
+
+A morning intelligence note
+
+A daily situation report
+
+A risk desk handover
+
+The mental model for users
+
+When a Pro user reads the summary, they should feel:
+
+“I’m up to speed — I know the risk state today.”
+
+They don’t need:
+
+All the headlines
+
+All the charts
+
+All the data
+
+They need orientation.
+
+Why tying it to the index value is critical
+
+The summary always starts with the index state:
+
+“EERI closed at 83 (CRITICAL)…”
+
+This anchors everything.
+
+It immediately answers:
+
+How bad is it?
+
+Is this normal?
+
+Should I care today?
+
+Everything else is explanation.
+
+The four conceptual pillars of the summary
+
+Each summary should implicitly answer four questions — every day.
+
+1️⃣ Where are we? (Level & Regime)
+
+This is the opening sentence.
+
+It tells the reader:
+
+Risk level
+
+Risk band
+
+Whether this is unusual
+
+Example concept:
+
+“Risk remains in CRITICAL territory.”
+
+This sets the frame.
+
+2️⃣ Why are we here? (Drivers)
+
+This explains:
+
+What forces mattered most
+
+What themes dominated
+
+What kind of risk this is
+
+Not a list of headlines — a distillation.
+
+Conceptually:
+
+“These are the few things that moved the needle.”
+
+3️⃣ Where does it matter? (Assets)
+
+This translates risk into exposure.
+
+Users immediately learn:
+
+Which markets are absorbing stress
+
+Which are relatively insulated
+
+This bridges:
+
+Risk → Reality
+
+4️⃣ How does this compare? (Context)
+
+This is the stabilizer.
+
+By comparing to:
+
+7-day
+
+30-day
+
+Recent regimes
+
+You prevent:
+
+Overreaction
+
+Alarm fatigue
+
+You give perspective:
+
+“This is elevated — but not unprecedented.”
+
+Why this is so sticky
+
+Professionals love routines.
+
+This summary:
+
+Arrives once per day
+
+Is short
+
+Is reliable
+
+Is consistent in tone and structure
+
+It becomes:
+
+A daily check-in
+
+A habit
+
+A reference point
+
+Over time, users feel uncomfortable not reading it.
+
+That’s stickiness.
+
+Why it is shareable (and why that matters)
+
+The summary is:
+
+Neutral
+
+Non-promotional
+
+Non-technical
+
+Insightful
+
+That makes it safe to:
+
+Forward internally
+
+Paste into Slack
+
+Share with colleagues
+
+Reference in meetings
+
+This creates organic distribution without leaking IP.
+
+Why perceived value is high
+
+From the user’s perspective:
+
+“Someone intelligent looked at a lot of complex data and told me what matters.”
+
+That feels expensive.
+
+Even though:
+
+You already have the data
+
+You already computed the index
+
+You already know the drivers
+
+You are monetizing interpretation, not computation.
+
+Why it’s cheap (strategically)
+
+Once the system exists:
+
+No new data sources
+
+No manual work
+
+No editorial team
+
+No human bottleneck
+
+Yet users perceive:
+
+Judgment
+
+Insight
+
+Curation
+
+This is leverage.
+
+How it fits into the broader product loop
+
+The Daily Summary is the daily gateway:
+
+Alert fires → user reads summary
+
+Summary sparks interest → user opens dashboard
+
+Dashboard confirms → user trusts the system
+
+It closes the loop between:
+
+Notification → Explanation → Exploration
+
+Why this feature is Pro-only
+
+Because it is:
+
+Interpretive
+
+Contextual
+
+Synthesized
+
+Public users should see:
+
+Numbers
+
+Headlines
+
+Fragments
+
+Pro users get:
+
+The story those fragments tell.
+
+That distinction is everything.
+
+The emotional payoff
+
+After reading the Daily EERI Intelligence Summary, users should feel:
+
+“I’m not guessing today.”
+
+That confidence is addictive — and extremely valuable.
+
+Final strategic takeaway
+
+This feature quietly does something huge:
+
+It positions EnergyRiskIQ as:
+
+A daily intelligence service
+
+Not a dashboard
+
+Not a feed
+
+Not a tool
+
+But a trusted daily briefing.
+
+That’s how platforms become indispensable.
