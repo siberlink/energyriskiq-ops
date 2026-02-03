@@ -1787,3 +1787,247 @@ This feature quietly does something huge:
 **But a trusted daily briefing.**
 
 That's how platforms become indispensable.
+
+---
+
+# Core Pro Charts — Deep Dive
+
+This is the analytical spine of the Pro dashboard.
+Conceptually, these charts are not about "watching lines move" — they are about understanding **how risk propagates into markets**.
+
+---
+
+## What Core Pro Charts Really Represent
+
+Most financial charts answer:
+> "What did the price do?"
+
+**Our charts answer:**
+> "How did risk express itself through markets?"
+
+This is a fundamental inversion.
+
+We are not plotting markets to explain risk.
+**We are plotting markets to observe risk transmission.**
+
+That is extremely powerful.
+
+---
+
+## The Conceptual Purpose of Overlay Charts
+
+Overlaying EERI with an asset is not about correlation coefficients.
+
+**It is about sequence and alignment.**
+
+**Users look for:**
+- Who moves first
+- Who follows
+- Who resists
+- When divergence appears
+
+This is how professionals detect regime change.
+
+---
+
+## EERI vs Brent Crude
+
+### Risk → Oil Transmission
+
+**What this chart conceptually answers:**
+> "When energy risk rises, does oil react immediately, later, or not at all?"
+
+**This reveals:**
+- Whether oil is leading or lagging risk
+- Whether oil is pricing geopolitical stress
+- Whether markets are complacent or alert
+
+**Key insight users learn over time:**
+> "Risk often rises before oil reacts — and when oil finally moves, it's rarely subtle."
+
+This chart trains users to see oil as a **confirmation layer**, not the primary signal.
+
+---
+
+## EERI vs TTF Gas
+
+### Europe-Specific Stress Sensor
+
+This is one of our highest-value charts.
+
+**What it answers:**
+> "Is European energy risk already embedded in gas markets?"
+
+**Gas is:**
+- Local
+- Physical
+- Sensitive
+- Fast
+
+**This chart shows:**
+- Direct transmission
+- Non-linear reactions
+- Stress accumulation
+
+**Conceptually:**
+> If EERI rises and TTF follows, the risk is real.
+> If EERI rises and TTF doesn't, something is being ignored.
+
+This is gold for analysts.
+
+---
+
+## EERI vs European Gas (Front-Month)
+
+### Immediate Physical Exposure
+
+This variant emphasizes:
+- Near-term constraints
+- Storage anxiety
+- Supply fear
+
+**Conceptually:**
+> Front-month gas is where fear shows up first.
+
+**Users learn:**
+- Long-dated markets may stay calm
+- Front-month doesn't lie
+
+This chart is about **urgency**.
+
+---
+
+## EERI vs VIX
+
+### Energy Risk vs Macro Fear
+
+This chart answers a very subtle question:
+> "Is this an energy-specific crisis, or part of a broader market panic?"
+
+**Key insights:**
+
+| Pattern | Interpretation |
+|---------|----------------|
+| EERI ↑, VIX flat | Localized energy risk |
+| Both ↑ | Systemic stress |
+| VIX ↑, EERI flat | Macro noise |
+
+**Conceptually:**
+> This chart separates energy-driven risk from everything-else risk.
+
+This prevents misinterpretation.
+
+---
+
+## EERI vs Freight Index
+
+### From Geopolitics to Physical Disruption
+
+This chart is about **reality**.
+
+**Freight is:**
+- Slow
+- Physical
+- Hard to manipulate
+- Highly informative
+
+**Conceptually:**
+> Freight moves when the world actually breaks.
+
+**If EERI spikes and freight follows:**
+- Supply chains are strained
+- Bottlenecks are forming
+- Delays are real
+
+This chart often confirms risk after headlines — but **before full economic impact**.
+
+---
+
+## Why Overlay + Toggle + Zoom Matter
+
+These are not UI features — they are **cognitive tools**.
+
+| Control | Question It Answers |
+|---------|---------------------|
+| **Overlay** | "Do these move together or apart?" |
+| **Toggle** | "What happens if I isolate one signal?" |
+| **Zoom** | "Is this a short-term shock or a regime shift?" |
+
+**These interactions allow users to:**
+- Ask better questions
+- Avoid false conclusions
+- Build intuition over time
+
+---
+
+## The Key Inversion: Risk → Price
+
+This is our defining insight.
+
+**Most platforms assume:**
+> Price moves → risk increases
+
+**We show:**
+> Risk accumulates → price eventually reacts
+
+**This reframes how users think about:**
+- Early warning
+- Market complacency
+- Surprise moves
+
+It's subtle — and extremely valuable.
+
+---
+
+## How Professionals Actually Use These Charts
+
+They don't stare at them all day.
+
+**They:**
+- Check them when alerts fire
+- Use them to confirm or challenge narratives
+- Reference them in internal discussions
+- Learn patterns over time
+
+**These charts become contextual validators.**
+
+---
+
+## Emotional Effect on Pro Users
+
+When users see these charts, the feeling should be:
+> "This explains what I'm seeing in the market."
+
+**Not:**
+- "I need to calculate correlation"
+- "What does this mean?"
+- "Is this overfitted?"
+
+**Clarity beats complexity.**
+
+---
+
+## Strategic Importance
+
+**These charts:**
+- Anchor the Pro plan
+- Differentiate us from news platforms
+- Differentiate us from pure data vendors
+- Build long-term user intuition
+
+They are not replaceable by ChatGPT, Bloomberg, or TradingView.
+
+---
+
+## Final Conceptual Takeaway
+
+These charts are not about visuals.
+
+**They are about teaching users how risk behaves.**
+
+Once someone learns that:
+> "Risk leads, markets follow"
+
+They will never look at markets the same way again.
+
+**And they will keep coming back.**
