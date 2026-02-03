@@ -623,3 +623,232 @@ Because over time, users will:
 - Start here
 
 **That is product gravity.**
+
+---
+
+# Tooltips & Platform Integration
+
+## 1. Tooltips That Educate Without Leaking IP
+
+### The Golden Rule
+
+A tooltip should answer **"what does this mean?"**,
+never **"how is this calculated?"**.
+
+We explain **interpretation**, not mechanics.
+
+---
+
+### Asset Stress Panel — Main Tooltip (panel title)
+
+**Tooltip text:**
+> **Asset Stress Snapshot**
+> Shows where current energy-related risk is being absorbed across key asset classes.
+> Levels reflect relative stress, not price direction or forecasts.
+
+**What this does:**
+- Sets expectations
+- Prevents "is this a trade signal?" confusion
+- Frames it as risk context
+
+---
+
+### 🔥 Gas — Tooltip
+
+**Tooltip text:**
+> **Gas — High**
+> Indicates elevated sensitivity of European gas markets to current geopolitical and supply developments.
+> High stress suggests increased volatility risk and heightened responsiveness to new events.
+
+**What it teaches:**
+- Sensitivity, not price
+- Volatility, not direction
+- Event-driven behavior
+
+**What it doesn't reveal:**
+- Inputs
+- Thresholds
+- Scaling logic
+
+---
+
+### 🛢️ Oil — Tooltip
+
+**Tooltip text:**
+> **Oil — Elevated**
+> Signals meaningful spillover from energy and geopolitical risk into oil markets, without full systemic stress.
+> Oil is reacting to context rather than leading risk dynamics.
+
+**This subtly teaches:**
+- Oil as secondary transmitter
+- Difference between "elevated" and "severe"
+- Market hierarchy
+
+---
+
+### 🚢 Freight — Tooltip
+
+**Tooltip text:**
+> **Freight — Severe**
+> Reflects active disruption or constraint across logistics and trade routes linked to energy risk.
+> Severe freight stress often precedes broader market transmission.
+
+**This is powerful because:**
+- It educates
+- It positions freight as early signal
+- It feels insightful, not technical
+
+---
+
+### 💱 FX — Tooltip
+
+**Tooltip text:**
+> **FX — Elevated**
+> Indicates increased currency sensitivity to energy-related risk and geopolitical uncertainty.
+> Elevated FX stress reflects cautious capital positioning rather than disorderly moves.
+
+**Again:**
+- Confidence framing
+- No formulas
+- No weights
+
+---
+
+### 🔺 Directional Bias Tooltip (↑ ↓ ~)
+
+**Tooltip text:**
+> **Directional Bias**
+> Shows whether stress pressure is increasing, easing, or stable compared to recent conditions.
+> This reflects momentum of risk, not price movement.
+
+**This one is crucial:**
+- Prevents misuse
+- Trains users to think in risk momentum
+
+---
+
+### 🎨 Color Band Tooltip
+
+**Tooltip text:**
+> **Risk Bands**
+> Colors represent relative stress intensity across assets for the current day.
+> Bands are comparable across assets but do not imply equal price impact.
+
+**This avoids:**
+- "Red means sell" thinking
+- Overinterpretation
+
+---
+
+## 2. Platform Integration
+
+This is where the panel becomes a **hub**, not a widget.
+
+---
+
+### 🔔 Integration with Alerts
+
+**Conceptual Flow:**
+
+1. **Alert is generated**
+   - War escalation
+   - Supply disruption
+   - Logistics issue
+
+2. **Asset Stress Panel updates**
+   - Relevant assets move from Elevated → High → Severe
+
+3. **User sees alignment**
+   - Alert explains *why*
+   - Panel shows *where*
+
+**How users experience this:**
+> "An alert fired — and I can immediately see it's hitting Gas and Freight, not FX."
+
+This dramatically increases:
+- Alert credibility
+- Actionability
+- User confidence
+
+**Key insight:**
+> Alerts explain cause.
+> Asset Stress shows impact.
+
+---
+
+### 📰 Integration with Daily Summaries
+
+The Asset Stress Panel becomes the **summary anchor**.
+
+**Example Daily Summary:**
+> EERI closed at 83 (CRITICAL).
+> Stress remains concentrated in Freight (Severe) and Gas (High), confirming physical supply-chain pressure.
+> Oil and FX remain elevated, reflecting broader macro sensitivity.
+
+**The magic:**
+- The text mirrors the panel
+- The panel validates the text
+- No duplication, only reinforcement
+
+**Users feel:**
+> "This summary is grounded in something real."
+
+---
+
+### 📈 Integration with EERI vs Asset Charts
+
+This is where professionals really engage.
+
+**How the panel guides chart usage:**
+
+The panel answers:
+> "Which chart should I look at today?"
+
+**Examples:**
+- Freight = Severe → user clicks EERI vs Freight
+- Gas = High → user opens EERI vs TTF
+- FX = Elevated → user checks EERI vs FX index
+
+We're guiding attention without telling them what to trade.
+
+**Conceptual relationship:**
+- Asset Stress Panel = snapshot (now)
+- EERI vs Asset Chart = evolution (then → now)
+
+**Users connect:**
+> "Ah — freight stress turned severe before EERI accelerated."
+
+That's insight.
+
+---
+
+## The Deeper Product Effect
+
+Over time, users will learn patterns:
+- Which assets lead
+- Which lag
+- Which confirm
+- Which stay quiet
+
+**We are teaching them a risk language.**
+
+That's incredibly sticky.
+
+---
+
+## Final Strategic Takeaway
+
+With:
+- Carefully worded tooltips
+- Clear separation of meaning vs mechanics
+- Tight integration across alerts, summaries, and charts
+
+We achieve three things at once:
+
+| Goal | Outcome |
+|------|---------|
+| Educate users | They understand risk better |
+| Protect our IP | No formulas exposed |
+| Increase perceived sophistication | Platform feels professional |
+
+**This is exactly how professional intelligence platforms scale trust.**
