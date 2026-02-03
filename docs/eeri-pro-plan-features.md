@@ -1306,3 +1306,234 @@ Historical Intelligence is not a feature.
 - Differentiation
 
 This is what turns EnergyRiskIQ into a **reference system**, not a dashboard.
+
+---
+
+# Alerts & Thresholds — Deep Dive
+
+This feature is where EERI stops being something users "check" and becomes something that **watches the world for them**.
+
+Conceptually, Alerts & Thresholds transform the index from information into **delegation**.
+
+---
+
+## What Alerts & Thresholds Really Are
+
+Most alert systems notify users when prices move.
+
+**Our alerts notify users when risk changes state.**
+
+That's a completely different (and far more valuable) proposition.
+
+**The core promise is:**
+> "I don't need to monitor risk constantly — EERI will tell me when it matters."
+
+---
+
+## Why Thresholds Matter Psychologically
+
+Humans are bad at monitoring continuous signals.
+
+**Thresholds turn a continuous index into discrete moments of attention.**
+
+Instead of asking:
+- "Is 58 high?"
+- "Is 63 worse?"
+- "Is 79 dangerous?"
+
+Users think:
+- "We crossed into HIGH risk."
+- "We entered CRITICAL."
+- "Something just changed."
+
+This reduces ambiguity and decision fatigue.
+
+---
+
+## The Meaning of Each Threshold
+
+### 🔔 EERI ≥ 60 — High Risk Regime
+
+**This answers:**
+> "Should I start paying close attention?"
+
+- Risk is no longer background noise
+- Clustering is forming
+- Sensitivity to news increases
+
+**This is an early-warning alert.**
+
+---
+
+### 🔔 EERI ≥ 70 — Severe Risk Regime
+
+**This answers:**
+> "Should I review exposure and assumptions?"
+
+- Systemic stress is present
+- Multiple components are aligned
+- Secondary effects are likely
+
+**This is a prepare-to-act alert.**
+
+---
+
+### 🔔 EERI ≥ 80 — Critical Risk Regime
+
+**This answers:**
+> "Is the system under real strain right now?"
+
+- Crisis conditions
+- Market behavior may decouple from fundamentals
+- Non-linear moves become more likely
+
+**This is a pay-attention-now alert.**
+
+---
+
+## Why Day-Over-Day Change Alerts Are Essential
+
+Levels tell you where you are.
+**Changes tell you what's happening.**
+
+**Δ ≥ X alerts answer:**
+> "Did risk accelerate suddenly?"
+
+**This catches:**
+- Surprise escalations
+- Rapid clustering
+- Narrative shifts
+- Shock events
+
+Even if the level stays below 60, a sharp jump matters.
+
+**Conceptually:** Velocity alerts detect surprises.
+
+---
+
+## How Users Actually Use These Alerts
+
+Professionals don't act on alerts alone.
+
+**They use alerts to:**
+- Interrupt their day
+- Reprioritize attention
+- Open the dashboard with purpose
+
+**An alert is not the decision — it is the permission to stop ignoring risk.**
+
+---
+
+## Delivery Channels
+
+### 📱 In-App
+
+This is the **context-rich** channel.
+
+**Used when:**
+- User is already thinking about risk
+- They want to explore deeper
+- They want explanations
+
+**In-app alerts feel:**
+- Analytical
+- Calm
+- Professional
+
+---
+
+### 📧 Email
+
+This is the **reflective** channel.
+
+**Used when:**
+- Users review risk once or twice a day
+- They want summaries, not noise
+- They archive intelligence
+
+**Email alerts feel:**
+- Authoritative
+- Non-urgent
+- Considered
+
+---
+
+### 💬 Telegram (Later)
+
+This is the **interrupt** channel.
+
+**Used when:**
+- Risk shifts quickly
+- Users need instant awareness
+- Attention is scarce
+
+**Telegram alerts feel:**
+- Immediate
+- High-signal
+- Minimal
+
+**Important:** The same alert should feel different depending on the channel — not louder, just more concise.
+
+---
+
+## Why This Feature Alone Justifies Subscription
+
+Because it replaces:
+- Manual monitoring
+- Constant checking
+- Fear of missing escalation
+- Cognitive load
+
+With:
+> "I'll know when it matters."
+
+**That peace of mind is worth far more than $49/month.**
+
+---
+
+## How Alerts Connect to the Rest of the System
+
+Alerts are not standalone.
+
+**They should always connect to:**
+
+| After Alert | User Asks |
+|-------------|-----------|
+| EERI value | "What changed?" |
+| Top Drivers | "Why did it change?" |
+| Asset Stress Panel | "Where does it matter?" |
+| Historical context | "Is this unusual?" |
+
+**Alerts are the entry point into intelligence.**
+
+---
+
+## The Subtle But Powerful Design Choice
+
+We should never allow:
+- Too many thresholds
+- Over-customization
+- Constant noise
+
+**Why?**
+
+Because:
+> A quiet alert system is trusted.
+> A noisy one is ignored.
+
+**This restraint is a feature, not a limitation.**
+
+---
+
+## Final Conceptual Takeaway
+
+Alerts & Thresholds turn EERI into:
+- A guardian
+- A sentry
+- A filter
+- A focus tool
+
+**They don't tell users what to do.**
+**They tell users when to care.**
+
+And that is one of the most valuable services we can provide.
