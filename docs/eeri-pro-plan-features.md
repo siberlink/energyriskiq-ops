@@ -192,3 +192,224 @@ Most users cannot build this themselves.
 
 The Pro dashboard should feel like:
 > "I can't afford *not* to check this every day."
+
+---
+
+# Component Transparency — Deep Dive
+
+## Why Component Transparency Exists
+
+Most indices do this:
+> "The index is 83."
+
+That's it. No explanation. No context. No trust.
+
+**EERI Pro does something different:**
+> "The index is 83 — and here is why."
+
+This is the moment where EnergyRiskIQ stops being a number and becomes **decision intelligence**.
+
+---
+
+## The Mental Model for Users
+
+Users should intuitively understand EERI as:
+> "A weighted combination of regional risk, themes, and market transmission."
+
+Not formulas. Not math. **Forces.**
+
+Each component answers a different question.
+
+---
+
+## The Four Conceptual Components
+
+### 1. RERI_EU — Regional Risk Backbone
+
+**Question it answers:**
+> "How dangerous is the European geopolitical & energy environment right now?"
+
+This is the structural layer:
+- Captures war, sanctions, regional escalation
+- Aggregates severity, clustering, velocity
+- Slow-moving, but powerful
+- Hard to fake, hard to ignore
+
+**Conceptually:** This is the ground shaking under Europe.
+
+If RERI_EU is high, EERI cannot be calm — no matter what markets do.
+
+---
+
+### 2. Theme Pressure — Narrative & Structural Stress
+
+**Question it answers:**
+> "What types of stress are dominating the risk landscape?"
+
+**Themes include:**
+- Geopolitical conflict
+- Energy supply disruption
+- Trade / logistics stress
+- Policy & sanctions
+
+Theme Pressure captures **breadth**, not just intensity:
+- Many medium events → pressure builds
+- Repeated narratives → structural risk
+- Shows what *kind* of crisis this is
+
+**Conceptually:** This is the story the world keeps telling you — louder and louder.
+
+---
+
+### 3. Asset Transmission — Market Reality Check
+
+**Question it answers:**
+> "Is this risk actually propagating into markets?"
+
+This connects risk to:
+- Gas
+- Oil
+- Freight
+- FX
+
+When multiple asset classes react together, risk is no longer theoretical.
+
+**Conceptually:** This is the bridge between headlines and money.
+
+It tells users: *"Markets are starting to feel it."*
+
+---
+
+### 4. Contagion (v2) — Spillover Risk
+
+**Question it answers:**
+> "Is risk spreading beyond Europe?"
+
+- Middle East
+- Black Sea
+- Global trade corridors
+
+This is about second-order effects.
+
+**Conceptually:** This is fire jumping to the next building.
+
+It's powerful, but only meaningful once regional indices mature — which is why it's v2.
+
+---
+
+## Why Show Normalized Values Only
+
+This is extremely important.
+
+**You are NOT showing:**
+- Raw counts
+- Internal math
+- Proprietary scaling
+
+**You ARE showing:**
+> "Relative contribution to today's risk."
+
+Normalized values answer:
+- Which force mattered most today
+- What changed since yesterday
+- Where attention should go
+
+Users don't care about raw math — they care about **dominance**.
+
+---
+
+## Visualization Options
+
+### Stacked Bar — Composition View
+
+**Best for:** "What is today made of?"
+
+**Visually:**
+- Each component occupies part of the bar
+- Larger section = bigger influence
+
+**User takeaway:**
+> "Today's risk is mostly regional + market transmission."
+
+---
+
+### Donut — Balance View
+
+**Best for:** "Which force dominates?"
+
+**Visually:**
+- Clean, intuitive
+- Easy to compare proportions
+
+**User takeaway:**
+> "Theme pressure is unusually high today."
+
+---
+
+### Waterfall — Build-up View
+
+**Best for:** "How did we get to 83?"
+
+**Visually:**
+- Start from baseline
+- Each component pushes risk higher
+- Ends at today's level
+
+**User takeaway:**
+> "Even if markets calm, regional risk alone keeps EERI elevated."
+
+This is extremely powerful for analysts.
+
+---
+
+## The Key Psychological Shift for Pro Users
+
+**Without this feature, users think:**
+> "83 feels high."
+
+**With this feature, users think:**
+> "83 is high because regional escalation + gas + freight are all aligned."
+
+That difference is everything.
+
+---
+
+## Why This Justifies Pro Pricing
+
+This feature gives users:
+- Explainability
+- Confidence
+- Trust
+- Actionability
+
+It answers:
+- Can I trust this number?
+- What should I watch today?
+- Is this noise or systemic?
+
+Most platforms hide this. **We monetize insight instead.**
+
+---
+
+## Dashboard UX Goal
+
+The correct UX emotion is:
+> "Ah. That makes sense."
+
+**Not:**
+- "How is this calculated?"
+- "Is this arbitrary?"
+- "Why should I trust this?"
+
+---
+
+## Strategic Note
+
+We are not just explaining EERI. **We are educating users how to think about risk.**
+
+Over time:
+- They will stop checking prices first
+- They will check EERI first
+- Prices become confirmation, not signal
+
+**That's how indices become indispensable.**
