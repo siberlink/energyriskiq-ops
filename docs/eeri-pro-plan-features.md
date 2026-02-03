@@ -2301,3 +2301,204 @@ They acknowledge:
 - Insight requires perspective
 
 **And that's exactly what professionals expect.**
+
+---
+
+# Who is the EERI Index For?
+
+EERI is for people who must understand risk **before markets fully react**.
+
+---
+
+## 🧠 Professional Decision-Makers (Primary Users)
+
+People who don't just observe markets — **they manage exposure**.
+
+### Energy Traders & Analysts
+Who need early signals of geopolitical and supply stress before prices fully move.
+
+### Risk Managers & Portfolio Managers
+Who care about regime shifts, clustering, and systemic risk — not daily noise.
+
+### Macro & Geopolitical Analysts
+Who track escalation, spillovers, and second-order effects across regions and assets.
+
+### Policy, Infrastructure & Corporate Planners
+Who need to understand when energy risk becomes operational risk.
+
+**These users don't ask:**
+> "What happened?"
+
+**They ask:**
+> "How risky is the environment right now — and where does that risk matter?"
+
+---
+
+## 📊 Advanced Non-Professionals (Secondary Users)
+
+Sophisticated individuals who want institutional-grade context, not headlines.
+
+- Experienced investors
+- Strategy consultants
+- Energy sector insiders
+- Journalists covering energy & geopolitics
+
+**They use EERI to:**
+- Frame narratives
+- Validate intuition
+- Avoid overreaction
+
+---
+
+## 🚫 Who EERI is NOT For (By Design)
+
+EERI is not for:
+- Day traders looking for entry signals
+- Retail users chasing price predictions
+- People who want "buy / sell" advice
+
+**This is important.**
+
+EERI is about **risk awareness**, not trade execution.
+
+That distinction protects credibility and increases long-term value.
+
+---
+
+# What Makes the EERI Index Unique?
+
+EERI is unique because it measures systemic energy risk as a **living environment**, not as isolated events or prices.
+
+---
+
+## 1️⃣ It Measures Risk, Not Prices
+
+Most tools start with markets and infer risk.
+
+**EERI does the opposite:**
+> It measures risk directly — and observes how markets respond.
+
+This inversion is crucial.
+
+- Prices are reactive
+- Risk accumulates quietly
+- Markets often lag
+
+**EERI exists in that gap.**
+
+---
+
+## 2️⃣ It Integrates Geopolitics, Supply, and Markets Into One Signal
+
+Most platforms silo information:
+- News here
+- Prices there
+- Volatility somewhere else
+
+**EERI integrates:**
+- Geopolitical escalation
+- Energy supply stress
+- Logistics disruption
+- Cross-asset transmission
+
+Into one coherent daily risk state.
+
+**That coherence is rare.**
+
+---
+
+## 3️⃣ It is Regime-Aware, Not Event-Driven
+
+EERI doesn't just react to headlines.
+
+**It detects:**
+- Clustering of events
+- Persistence of stress
+- Acceleration vs stabilization
+
+This allows users to distinguish between:
+- Noise
+- Shocks
+- Regime shifts
+
+**That's a professional-grade capability.**
+
+---
+
+## 4️⃣ It Explains Why Risk is High — Not Just That It Is
+
+Most indices give you a number.
+
+**EERI gives you:**
+- The drivers
+- The themes
+- The affected assets
+- The historical context
+
+So users don't just see:
+> "Risk is 83"
+
+They understand:
+> "Risk is 83 because regional escalation and logistics disruption are aligned — and gas and freight are absorbing the stress."
+
+**That explainability is a major trust advantage.**
+
+---
+
+## 5️⃣ It Shows Where Risk Lives Today
+
+EERI doesn't stop at a headline number.
+
+**Through:**
+- Asset Stress Panel
+- EERI vs Asset charts
+- Top Drivers
+
+**It answers:**
+> "Which parts of the system are under strain right now?"
+
+This turns abstract risk into actionable awareness.
+
+---
+
+## 6️⃣ It Builds Memory and Perspective Over Time
+
+Because EERI is computed daily and never backfilled, it creates:
+- A clean historical record
+- Regime statistics
+- Comparable stress episodes
+
+**Users can ask:**
+> "How often does Europe look like this?"
+> "What usually follows?"
+
+**That institutional memory is extremely hard to replicate.**
+
+---
+
+## One-Sentence Positioning
+
+If you ever need to explain EERI simply:
+
+> **"EERI measures how risky the European energy environment is today — based on geopolitics, supply stress, and market transmission — and shows where that risk is actually hitting."**
+
+That sentence alone separates us from:
+- News sites
+- Price dashboards
+- Volatility indices
+
+---
+
+## Final Takeaway
+
+**EERI is for people who cannot afford to be surprised.**
+
+And it is unique because:
+- It measures risk directly
+- It integrates domains
+- It detects regimes
+- It explains causes
+- It maps impact
+- It builds memory
+
+**That combination is extremely rare — and very valuable.**
