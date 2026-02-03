@@ -2031,3 +2031,273 @@ Once someone learns that:
 They will never look at markets the same way again.
 
 **And they will keep coming back.**
+
+---
+
+# Advanced Time Controls — Deep Dive
+
+This feature is subtle on the surface — but conceptually it's one of the clearest signals that the platform is built for **professionals, not casual viewers**.
+
+Advanced Time Controls don't exist to "add options".
+They exist to let users **ask different analytical questions of the same data**.
+
+---
+
+## What Advanced Time Controls Really Represent
+
+Most dashboards decide how users should look at data.
+
+**Analyst-grade systems let users decide how they want to think.**
+
+**These controls give users:**
+- Perspective
+- Agency
+- Precision
+
+They turn charts from pictures into **instruments**.
+
+---
+
+## The Core Mental Shift: From Viewing to Interrogating
+
+**Without controls, users ask:**
+> "What does this chart show?"
+
+**With controls, users ask:**
+> "What happens if I look at this differently?"
+
+That's the difference between:
+- Retail dashboards
+- Professional analysis tools
+
+---
+
+## ⏱️ Time Ranges — Changing the Question, Not the Data
+
+Each time range corresponds to a different analytical intent.
+
+### 7D — Shock & Reaction View
+
+**Answers:**
+> "What just happened?"
+
+**Used for:**
+- Crisis monitoring
+- Alert follow-ups
+- Sudden escalations
+
+**This is where users spot:**
+- Abrupt divergence
+- Fast reactions
+- Market surprise
+
+---
+
+### 30D — Regime Formation View
+
+**Answers:**
+> "Is this persisting?"
+
+**Used for:**
+- Stress accumulation
+- Confirmation of narratives
+- Early regime shifts
+
+Professionals often trust 30D more than 7D — it filters noise.
+
+---
+
+### 90D — Structural Context View
+
+**Answers:**
+> "Is this exceptional or part of a longer trend?"
+
+**Used for:**
+- Strategic positioning
+- Risk budgeting
+- Policy or macro analysis
+
+**This timeframe reveals:**
+- Cycles
+- Plateaus
+- False alarms
+
+---
+
+### Since Launch — Historical Identity View
+
+**Answers:**
+> "How unusual is today?"
+
+**This creates:**
+- Perspective
+- Confidence
+- Memory
+
+**Users learn:**
+- What "normal" looks like
+- How often extremes occur
+
+This is where intuition is built.
+
+---
+
+## 🔀 Toggle Modes — Isolating Meaning
+
+Toggles don't change the chart.
+**They change what the user is paying attention to.**
+
+### Index Only — Pure Risk Signal
+
+**Answers:**
+> "What is risk doing on its own?"
+
+**Used when:**
+- Users want clarity
+- Markets are noisy
+- Confirmation bias needs to be avoided
+
+This builds trust in EERI as an independent signal.
+
+---
+
+### Asset Only — Market Behavior Lens
+
+**Answers:**
+> "What is the market doing, ignoring risk?"
+
+**Used when:**
+- Users suspect market denial or overreaction
+- They want to see if price action stands alone
+
+**This helps identify:**
+- Complacency
+- Panic
+- Overpricing
+
+---
+
+### Overlay Mode — Transmission Analysis
+
+**Answers:**
+> "How is risk flowing into this market?"
+
+This is the most powerful mode.
+
+**Users look for:**
+- Lag
+- Lead
+- Divergence
+- Alignment
+
+**This is where insight happens.**
+
+---
+
+## 📉 Smoothing — Separating Signal from Noise
+
+Smoothing is not cosmetic.
+**It is epistemic — it affects what users believe.**
+
+### Raw — Event Sensitivity
+
+**Answers:**
+> "How reactive is this?"
+
+**Used when:**
+- Monitoring live escalation
+- Evaluating alerts
+- Watching short-term shock
+
+**Raw views capture:**
+- Jumps
+- Gaps
+- Sharp reactions
+
+---
+
+### 3-Day MA — Tactical Clarity
+
+**Answers:**
+> "Is this move holding?"
+
+**Used for:**
+- Short-term validation
+- Noise reduction without delay
+
+This is often the default for active professionals.
+
+---
+
+### 7-Day MA — Structural Confirmation
+
+**Answers:**
+> "Is this a real shift?"
+
+**Used for:**
+- Regime analysis
+- Strategic decisions
+- Avoiding overreaction
+
+If the 7-day MA moves, something meaningful is happening.
+
+---
+
+## Why These Controls Signal "Analyst-Grade"
+
+**Retail platforms:**
+- Show one view
+- Assume one interpretation
+- Optimize for aesthetics
+
+**Analyst platforms:**
+- Offer multiple lenses
+- Respect uncertainty
+- Let users test assumptions
+
+**Our controls say:**
+> "We trust you to think."
+
+That's a powerful message.
+
+---
+
+## The Psychological Effect on Pro Users
+
+With these controls, users feel:
+- In control
+- Respected
+- Capable
+- Grounded
+
+They are not being sold a story —
+**they are being given tools to form one.**
+
+---
+
+## How This Integrates with the Dashboard
+
+| Component | Role |
+|-----------|------|
+| Alerts | Bring users in |
+| Time Controls | Help them investigate |
+| Charts | Show dynamics |
+| Top Drivers | Explain causes |
+| Historical Intelligence | Provide memory |
+
+**Advanced Time Controls are the navigation system through all of that.**
+
+---
+
+## Final Conceptual Takeaway
+
+These controls don't make the dashboard more complex.
+
+**They make it more honest.**
+
+They acknowledge:
+- Markets are noisy
+- Risk is multi-scale
+- Insight requires perspective
+
+**And that's exactly what professionals expect.**
