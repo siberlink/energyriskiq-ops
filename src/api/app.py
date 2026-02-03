@@ -28,6 +28,7 @@ from src.geri.routes import router as geri_router
 from src.reri import ENABLE_EERI
 from src.reri.routes import router as eeri_router
 from src.reri.seo_routes import router as eeri_seo_router
+from src.reri.pro_routes import router as eeri_pro_router
 from src.egsi.types import ENABLE_EGSI
 from src.egsi.routes import router as egsi_router
 from src.egsi.egsi_seo_routes import router as egsi_seo_router
@@ -148,7 +149,8 @@ if ENABLE_GERI:
 if ENABLE_EERI:
     app.include_router(eeri_router)
     app.include_router(eeri_seo_router)
-    logger.info("EERI module enabled - routes registered")
+    app.include_router(eeri_pro_router)
+    logger.info("EERI module enabled - routes registered (including Pro endpoints)")
 
 if ENABLE_EGSI:
     app.include_router(egsi_router)
