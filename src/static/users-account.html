@@ -1755,6 +1755,692 @@
                 font-size: 24px;
             }
         }
+
+        /* ============================================
+           EERI Pro Dashboard Styles
+           Encapsulated module - do not affect other sections
+           ============================================ */
+        
+        .eeri-methodology-header-link {
+            display: inline-block;
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .eeri-methodology-header-link:hover {
+            text-decoration: underline;
+        }
+
+        .eeri-pro-loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .eeri-pro-loading p {
+            color: #9ca3af;
+            margin-top: 16px;
+        }
+
+        /* EERI Locked State */
+        .eeri-pro-locked {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .eeri-locked-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 48px 40px;
+            text-align: center;
+            max-width: 520px;
+        }
+
+        .eeri-locked-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .eeri-locked-card h2 {
+            color: #f1f5f9;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .eeri-locked-card p {
+            color: #9ca3af;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .eeri-locked-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 24px 0;
+            text-align: left;
+        }
+
+        .eeri-locked-features li {
+            color: #e2e8f0;
+            font-size: 14px;
+            padding: 8px 0;
+            padding-left: 28px;
+            position: relative;
+        }
+
+        .eeri-locked-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #8b5cf6;
+            font-weight: 700;
+        }
+
+        .eeri-upgrade-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .eeri-upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .eeri-upgrade-hint {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 4px 12px 8px 44px;
+            margin-top: -4px;
+            font-style: italic;
+        }
+
+        /* EERI Pro Dashboard */
+        .eeri-pro-dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Daily Summary Card */
+        .eeri-summary-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .eeri-summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .eeri-summary-label {
+            color: #a78bfa;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .eeri-summary-date {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .eeri-summary-text {
+            color: #e2e8f0;
+            font-size: 15px;
+            line-height: 1.7;
+            font-style: italic;
+        }
+
+        .eeri-summary-meta {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .eeri-summary-drivers {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* Main Row */
+        .eeri-main-row {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .eeri-main-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* EERI Value Card */
+        .eeri-value-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .eeri-value-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .eeri-value-label {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .eeri-realtime-badge {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .eeri-value-display {
+            margin-bottom: 12px;
+        }
+
+        .eeri-value-number {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .eeri-value-band {
+            display: block;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 8px;
+        }
+
+        .eeri-value-trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .eeri-trend-icon {
+            font-size: 20px;
+        }
+
+        .eeri-trend-text {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .eeri-computed-at {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        /* Component Breakdown Card */
+        .eeri-components-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .eeri-components-header {
+            margin-bottom: 20px;
+        }
+
+        .eeri-components-title {
+            color: #f1f5f9;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .eeri-components-hint {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .eeri-components-chart {
+            display: flex;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .eeri-component-bar {
+            height: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .eeri-component-bar:hover {
+            filter: brightness(1.2);
+        }
+
+        .eeri-components-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .eeri-components-legend {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .eeri-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eeri-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .eeri-legend-label {
+            color: #94a3b8;
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .eeri-legend-value {
+            color: #e2e8f0;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Asset Stress Card */
+        .eeri-asset-stress-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .eeri-asset-stress-header {
+            margin-bottom: 20px;
+        }
+
+        .eeri-section-title {
+            color: #f1f5f9;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .eeri-section-subtitle {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .eeri-asset-stress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .eeri-asset-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .eeri-asset-item:hover {
+            border-color: #475569;
+        }
+
+        .eeri-asset-name {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .eeri-asset-score {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .eeri-asset-status {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .eeri-asset-trend {
+            font-size: 14px;
+        }
+
+        /* Drivers Card */
+        .eeri-drivers-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .eeri-drivers-header {
+            margin-bottom: 20px;
+        }
+
+        .eeri-drivers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .eeri-driver-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .eeri-driver-rank {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .eeri-driver-content {
+            flex: 1;
+        }
+
+        .eeri-driver-headline {
+            color: #e2e8f0;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .eeri-driver-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .eeri-driver-tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .eeri-driver-tag.theme {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .eeri-driver-tag.severity {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .eeri-driver-tag.confidence {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .eeri-driver-tag.assets {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        /* History Card */
+        .eeri-history-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .eeri-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .eeri-time-controls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .eeri-time-range-group,
+        .eeri-smoothing-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .eeri-time-btn,
+        .eeri-smooth-btn {
+            background: transparent;
+            border: 1px solid #334155;
+            color: #64748b;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .eeri-time-btn:hover,
+        .eeri-smooth-btn:hover {
+            border-color: #475569;
+            color: #94a3b8;
+        }
+
+        .eeri-time-btn.active,
+        .eeri-smooth-btn.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .eeri-chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 16px;
+        }
+
+        .eeri-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #334155;
+        }
+
+        @media (max-width: 600px) {
+            .eeri-stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .eeri-stat {
+            text-align: center;
+        }
+
+        .eeri-stat-label {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .eeri-stat-value {
+            color: #e2e8f0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Regime Card */
+        .eeri-regime-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .eeri-regime-header {
+            margin-bottom: 20px;
+        }
+
+        .eeri-regime-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .eeri-regime-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .eeri-band-distribution {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .eeri-band-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .eeri-band-label {
+            width: 80px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .eeri-band-bar-container {
+            flex: 1;
+            height: 20px;
+            background: #0f172a;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .eeri-band-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .eeri-band-percent {
+            width: 50px;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .eeri-transitions-title {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .eeri-transitions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .eeri-transition-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .eeri-transition-date {
+            color: #64748b;
+            width: 80px;
+        }
+
+        .eeri-transition-arrow {
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -1819,6 +2505,18 @@
             </a>
             <div class="geri-upgrade-hint" id="geriUpgradeHint" style="display: none;">
                 (Upgrade your plan to Pro to access GERI)
+            </div>
+            <a class="nav-item" id="eeriNavItem" onclick="showSection('eeri-pro'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </span>
+                EERI Pro Dashboard
+                <span class="pro-badge-nav" id="eeriBadge">PRO</span>
+            </a>
+            <div class="eeri-upgrade-hint" id="eeriUpgradeHint" style="display: none;">
+                (Upgrade to Pro for full EERI access)
             </div>
         </div>
 
@@ -2003,6 +2701,175 @@
                         <div class="spinner"></div>
                         <p>Loading GERI data...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EERI Pro Section -->
+        <div class="section-content" id="section-eeri-pro">
+            <div class="page-header">
+                <h1 class="page-title">EERI Pro Dashboard</h1>
+                <p class="page-subtitle">European Energy Risk Index - Real-time intelligence for Pro subscribers</p>
+                <a href="/eeri/methodology" target="_blank" class="eeri-methodology-header-link">📖 View EERI Methodology</a>
+            </div>
+
+            <div id="eeriProContent">
+                <!-- Loading State -->
+                <div class="eeri-pro-loading" id="eeriProLoading">
+                    <div class="spinner"></div>
+                    <p>Loading EERI Pro data...</p>
+                </div>
+
+                <!-- Locked State for non-Pro users -->
+                <div class="eeri-pro-locked" id="eeriProLocked" style="display: none;">
+                    <div class="eeri-locked-card">
+                        <div class="eeri-locked-icon">⚡</div>
+                        <h2>EERI Pro Dashboard</h2>
+                        <p>Unlock real-time European energy risk intelligence with component transparency, asset stress analysis, and historical intelligence.</p>
+                        <ul class="eeri-locked-features">
+                            <li>Real-time EERI with component breakdown</li>
+                            <li>Asset Stress Panel across all energy classes</li>
+                            <li>Full Top Drivers with severity & confidence</li>
+                            <li>Historical charts with advanced time controls</li>
+                            <li>Daily AI-generated intelligence summary</li>
+                        </ul>
+                        <button class="eeri-upgrade-btn" onclick="showSection('plans')">Upgrade to Pro</button>
+                    </div>
+                </div>
+
+                <!-- Pro Dashboard Content -->
+                <div class="eeri-pro-dashboard" id="eeriProDashboard" style="display: none;">
+                    
+                    <!-- Daily Intelligence Summary Card -->
+                    <div class="eeri-summary-card" id="eeriDailySummary">
+                        <div class="eeri-summary-header">
+                            <div class="eeri-summary-label">Daily Intelligence Summary</div>
+                            <div class="eeri-summary-date" id="eeriSummaryDate">--</div>
+                        </div>
+                        <div class="eeri-summary-text" id="eeriSummaryText">
+                            Loading intelligence summary...
+                        </div>
+                        <div class="eeri-summary-meta">
+                            <span class="eeri-summary-drivers" id="eeriSummaryDrivers"></span>
+                        </div>
+                    </div>
+
+                    <!-- Main Index Display Row -->
+                    <div class="eeri-main-row">
+                        <!-- EERI Value Card -->
+                        <div class="eeri-value-card">
+                            <div class="eeri-value-header">
+                                <span class="eeri-value-label">EERI</span>
+                                <span class="eeri-realtime-badge">REAL-TIME</span>
+                            </div>
+                            <div class="eeri-value-display">
+                                <span class="eeri-value-number" id="eeriValue">--</span>
+                                <span class="eeri-value-band" id="eeriBandLabel">--</span>
+                            </div>
+                            <div class="eeri-value-trend">
+                                <span class="eeri-trend-icon" id="eeriTrendIcon">→</span>
+                                <span class="eeri-trend-text" id="eeriTrendText">Stable</span>
+                            </div>
+                            <div class="eeri-computed-at" id="eeriComputedAt">--</div>
+                        </div>
+
+                        <!-- Component Breakdown Card -->
+                        <div class="eeri-components-card">
+                            <div class="eeri-components-header">
+                                <span class="eeri-components-title">Component Breakdown</span>
+                                <span class="eeri-components-hint">Contribution to today's EERI</span>
+                            </div>
+                            <div class="eeri-components-chart" id="eeriComponentsChart">
+                                <!-- Component bars rendered by JS -->
+                            </div>
+                            <div class="eeri-components-legend" id="eeriComponentsLegend">
+                                <!-- Legend items rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Asset Stress Panel -->
+                    <div class="eeri-asset-stress-card">
+                        <div class="eeri-asset-stress-header">
+                            <h3 class="eeri-section-title">Asset Stress Panel</h3>
+                            <span class="eeri-section-subtitle">Current stress levels across energy asset classes</span>
+                        </div>
+                        <div class="eeri-asset-stress-grid" id="eeriAssetStressGrid">
+                            <!-- Asset stress items rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Top Drivers Section -->
+                    <div class="eeri-drivers-card">
+                        <div class="eeri-drivers-header">
+                            <h3 class="eeri-section-title">Top Risk Drivers</h3>
+                            <span class="eeri-section-subtitle">Key factors driving today's EERI level</span>
+                        </div>
+                        <div class="eeri-drivers-list" id="eeriDriversList">
+                            <!-- Driver items rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Historical Intelligence Section -->
+                    <div class="eeri-history-card">
+                        <div class="eeri-history-header">
+                            <h3 class="eeri-section-title">Historical Intelligence</h3>
+                            <div class="eeri-time-controls">
+                                <div class="eeri-time-range-group">
+                                    <button class="eeri-time-btn active" data-days="7">7D</button>
+                                    <button class="eeri-time-btn" data-days="30">30D</button>
+                                    <button class="eeri-time-btn" data-days="90">90D</button>
+                                    <button class="eeri-time-btn" data-days="365">All</button>
+                                </div>
+                                <div class="eeri-smoothing-group">
+                                    <button class="eeri-smooth-btn active" data-smooth="raw">Raw</button>
+                                    <button class="eeri-smooth-btn" data-smooth="ma3">3D MA</button>
+                                    <button class="eeri-smooth-btn" data-smooth="ma7">7D MA</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eeri-chart-container">
+                            <canvas id="eeriHistoryChart" height="300"></canvas>
+                        </div>
+                        <div class="eeri-stats-row" id="eeriStatsRow">
+                            <div class="eeri-stat">
+                                <span class="eeri-stat-label">Period Avg</span>
+                                <span class="eeri-stat-value" id="eeriStatAvg">--</span>
+                            </div>
+                            <div class="eeri-stat">
+                                <span class="eeri-stat-label">Max</span>
+                                <span class="eeri-stat-value" id="eeriStatMax">--</span>
+                            </div>
+                            <div class="eeri-stat">
+                                <span class="eeri-stat-label">Min</span>
+                                <span class="eeri-stat-value" id="eeriStatMin">--</span>
+                            </div>
+                            <div class="eeri-stat">
+                                <span class="eeri-stat-label">Volatility</span>
+                                <span class="eeri-stat-value" id="eeriStatVol">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regime Statistics -->
+                    <div class="eeri-regime-card">
+                        <div class="eeri-regime-header">
+                            <h3 class="eeri-section-title">Regime Statistics</h3>
+                            <span class="eeri-section-subtitle">Risk band distribution (last 90 days)</span>
+                        </div>
+                        <div class="eeri-regime-content">
+                            <div class="eeri-band-distribution" id="eeriBandDistribution">
+                                <!-- Band distribution bars rendered by JS -->
+                            </div>
+                            <div class="eeri-transitions" id="eeriTransitions">
+                                <h4 class="eeri-transitions-title">Recent Regime Transitions</h4>
+                                <div class="eeri-transitions-list" id="eeriTransitionsList">
+                                    <!-- Transitions rendered by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
