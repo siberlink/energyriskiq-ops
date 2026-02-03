@@ -63,6 +63,25 @@ def verify_pro_access(authorization: Optional[str] = Header(None)):
     return True
 
 
+ASSET_KEYWORDS = {
+    'gas': ['gas', 'pipeline', 'gazprom', 'ttf', 'lng terminal', 'natural gas', 'nord stream', 'turkstream'],
+    'oil': ['oil', 'crude', 'brent', 'petroleum', 'refinery', 'opec', 'barrel'],
+    'freight': ['freight', 'shipping', 'tanker', 'vessel', 'maritime', 'suez', 'red sea', 'houthi'],
+    'fx': ['currency', 'euro', 'dollar', 'ruble', 'forex', 'exchange rate'],
+    'power': ['power', 'electricity', 'grid', 'blackout', 'nuclear', 'renewable', 'solar', 'wind'],
+    'lng': ['lng', 'liquefied', 'terminal', 'regasification', 'cargoes'],
+    'electricity': ['electricity', 'power grid', 'megawatt', 'interconnector'],
+}
+
+def _infer_assets_from_text(headline: str, body: str) -> List[str]:
+    """Infer asset classes from alert text content."""
+    text = (headline + ' ' + body).lower()
+    found_assets = []
+    for asset, keywords in ASSET_KEYWORDS.items():
+        if any(kw in text for kw in keywords):
+            found_assets.append(asset)
+    return found_assets if found_assets else ['gas', 'oil']
+
 def _compute_asset_stress_from_alerts() -> List[Dict[str, Any]]:
     """
     Compute asset stress levels from recent alert data.
@@ -74,42 +93,51 @@ def _compute_asset_stress_from_alerts() -> List[Dict[str, Any]]:
     asset_scores = {asset: {'count': 0, 'severity_sum': 0, 'prev_count': 0} for asset in ASSET_CLASSES}
     
     try:
-        conn = get_connection()
-        cur = conn.cursor()
-        
-        cur.execute("""
-            SELECT unnest(scope_assets) as asset, 
-                   COUNT(*) as count, 
-                   SUM(severity) as severity_sum
-            FROM alert_events 
-            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
-            GROUP BY asset
-        """)
-        current_rows = cur.fetchall()
-        
-        for row in current_rows:
-            asset = row[0].lower() if row[0] else None
-            if asset in asset_scores:
-                asset_scores[asset]['count'] = row[1] or 0
-                asset_scores[asset]['severity_sum'] = float(row[2] or 0)
-        
-        cur.execute("""
-            SELECT unnest(scope_assets) as asset, 
-                   COUNT(*) as count
-            FROM alert_events 
-            WHERE created_at >= CURRENT_DATE - INTERVAL '14 days'
-              AND created_at < CURRENT_DATE - INTERVAL '7 days'
-            GROUP BY asset
-        """)
-        prev_rows = cur.fetchall()
-        
-        for row in prev_rows:
-            asset = row[0].lower() if row[0] else None
-            if asset in asset_scores:
-                asset_scores[asset]['prev_count'] = row[1] or 0
-        
-        cur.close()
-        conn.close()
+        with get_connection() as conn:
+            cur = conn.cursor()
+            
+            cur.execute("""
+                SELECT headline, body, scope_assets, severity
+                FROM alert_events 
+                WHERE scope_region = 'Europe'
+                  AND created_at >= CURRENT_DATE - INTERVAL '7 days'
+            """)
+            current_rows = cur.fetchall()
+            
+            for row in current_rows:
+                headline = row[0] or ''
+                body = row[1] or ''
+                scope_assets = row[2] or []
+                severity = row[3] or 3
+                
+                assets = scope_assets if scope_assets else _infer_assets_from_text(headline, body)
+                for asset in assets:
+                    asset_lower = asset.lower()
+                    if asset_lower in asset_scores:
+                        asset_scores[asset_lower]['count'] += 1
+                        asset_scores[asset_lower]['severity_sum'] += severity
+            
+            cur.execute("""
+                SELECT headline, body, scope_assets
+                FROM alert_events 
+                WHERE scope_region = 'Europe'
+                  AND created_at >= CURRENT_DATE - INTERVAL '14 days'
+                  AND created_at < CURRENT_DATE - INTERVAL '7 days'
+            """)
+            prev_rows = cur.fetchall()
+            
+            for row in prev_rows:
+                headline = row[0] or ''
+                body = row[1] or ''
+                scope_assets = row[2] or []
+                
+                assets = scope_assets if scope_assets else _infer_assets_from_text(headline, body)
+                for asset in assets:
+                    asset_lower = asset.lower()
+                    if asset_lower in asset_scores:
+                        asset_scores[asset_lower]['prev_count'] += 1
+            
+            cur.close()
         
     except Exception as e:
         logger.warning(f"Error fetching alert data for asset stress: {e}")
