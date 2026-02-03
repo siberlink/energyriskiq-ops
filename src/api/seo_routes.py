@@ -2056,15 +2056,14 @@ async def geri_page(request: Request):
                 justify-content: flex-end;
             }}
             .weekly-bar-elevation {{
-                writing-mode: vertical-rl;
-                text-orientation: mixed;
-                transform: rotate(180deg);
-                font-size: 0.65rem;
+                transform: rotate(-30deg);
+                font-size: 0.6rem;
                 font-weight: 600;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 0.35rem;
+                letter-spacing: 0.3px;
+                margin-bottom: 0.75rem;
                 white-space: nowrap;
+                transform-origin: center bottom;
             }}
             .weekly-bar {{
                 width: 100%;
