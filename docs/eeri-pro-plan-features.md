@@ -852,3 +852,250 @@ We achieve three things at once:
 | Increase perceived sophistication | Platform feels professional |
 
 **This is exactly how professional intelligence platforms scale trust.**
+
+---
+
+# Top Drivers Module — Deep Dive
+
+## What Top Drivers Really Is
+
+Forget headlines.
+
+Conceptually, Top Drivers is a **ranked map of forces currently shaping EERI**.
+
+It answers one core question:
+> "What events actually matter for risk right now — and why?"
+
+This is **decision support**, not information delivery.
+
+---
+
+## Public vs Pro: Why They Must Be Different
+
+### Public View
+- 2–3 headlines
+- High-level narrative
+- SEO and awareness
+- Zero operational value (by design)
+
+### Pro View
+- Full ranked list
+- Structured attributes
+- Comparative context
+- Actionable prioritization
+
+**This separation is essential:**
+- We protect IP
+- We monetize insight
+- We avoid being a news site
+
+---
+
+## The Mental Model for Pro Users
+
+A Pro user should think:
+> "These are the levers currently pushing risk higher — I need to focus here."
+
+**Not:**
+- "What's happening?"
+- "What's trending?"
+
+**But:**
+- "What matters most?"
+
+---
+
+## What Each Driver Field Represents
+
+### 📰 Headline
+
+This is context, not the value.
+
+**It answers:**
+> "What is the event?"
+
+But the headline alone is meaningless without the fields below.
+
+---
+
+### 🔥 Driver Class (High Impact / Spike)
+
+**This answers:**
+> "Is this structurally important or situational?"
+
+| Class | Characteristics |
+|-------|-----------------|
+| **High Impact** | Structural, systemic, persistent. Can anchor risk for days or weeks. |
+| **Spike** | Sudden, localized, often short-lived. Important for clustering detection. |
+
+**Conceptually:** Driver class separates earthquakes from aftershocks.
+
+---
+
+### 🧠 Theme (Geopolitical / Energy / Supply Chain)
+
+**This answers:**
+> "What type of stress is this?"
+
+Themes allow users to see:
+- If risk is political
+- If risk is physical supply
+- If risk is logistical
+- If risk is policy-driven
+
+**Conceptually:** Themes explain the *nature* of the crisis, not just its size.
+
+Over time, users learn:
+- Which themes matter most for which assets
+- Which themes tend to escalate
+- Which fade quickly
+
+---
+
+### ⚠️ Severity
+
+**This answers:**
+> "How damaging is this event in isolation?"
+
+**Severity is:**
+- Intrinsic impact
+- Independent of other events
+- About potential, not confirmation
+
+**Conceptually:** Severity is "how hard this could hit if it propagates."
+
+---
+
+### ✅ Confidence
+
+**This answers:**
+> "How reliable is this signal?"
+
+**Confidence reflects:**
+- Source credibility
+- Cross-source confirmation
+- Clarity of facts
+
+**Conceptually:** Confidence tells users whether this is noise or signal.
+
+Professionals care deeply about this.
+
+---
+
+### 🎯 Assets Affected
+
+**This answers:**
+> "Where does this risk show up?"
+
+Gas, oil, freight, FX — this is the bridge between:
+- Narrative
+- Markets
+
+**Conceptually:** This is where risk meets exposure. This is what turns a headline into a decision.
+
+---
+
+## Why Sorting Matters More Than Charts
+
+Sorting is not UI sugar — it's **prioritization logic**.
+
+| Sort Mode | Question Answered |
+|-----------|-------------------|
+| **Sort by Severity** | "What could hurt the most?" |
+| **Sort by Confidence** | "What can I trust the most?" |
+| **Sort by Asset Overlap** | "What is most likely to propagate systemically?" |
+
+**Users switch sort modes depending on mindset:**
+- Morning scan → confidence
+- Crisis mode → severity
+- Portfolio review → asset overlap
+
+This is how professionals think.
+
+---
+
+## Are Charts Needed Here?
+
+**Short answer:** No charts are required — and adding them by default would be a mistake.
+
+### Why Tables + Ranking Beat Charts for Top Drivers
+
+Top Drivers is about:
+- Comparison
+- Prioritization
+- Judgment
+
+Charts are good for:
+- Trends
+- History
+- Evolution
+
+But Top Drivers is:
+> "What matters now?"
+
+**Tables win here because:**
+- Faster cognition
+- Better scanning
+- Clear hierarchy
+- Less distraction
+
+This is a **decision console**, not an analytics view.
+
+---
+
+### When Charts Do Make Sense (Optional, Later)
+
+If we ever add charts here, they should be **secondary and optional**, such as:
+- Mini bar showing relative severity (no axes, no scales)
+- Asset icons lighting up (visual cue, not chart)
+- Hover-only micro-visuals
+
+**Never:**
+- Time series
+- Line charts
+- Overlays
+
+Those belong elsewhere.
+
+---
+
+## How This Module Integrates
+
+| Component | What It Tells |
+|-----------|---------------|
+| EERI number | How risky |
+| Asset Stress Panel | Where |
+| Top Drivers | Why |
+
+Together, they form a complete loop:
+> **Level → Location → Cause**
+
+That's rare — and extremely powerful.
+
+---
+
+## The Psychological Effect on Pro Users
+
+When this module is done right, users feel:
+> "I don't need to read everything — I know where to focus."
+
+**That reduces:**
+- Cognitive overload
+- Decision fatigue
+- Noise exposure
+
+This is why professionals pay.
+
+---
+
+## Final Strategic Verdict
+
+**Top Drivers (Pro):**
+- Is not content
+- Is not news
+- Is not charts
+- Is not explanation
+
+**It is structured judgment.**
+
+And that is exactly what serious users want.
