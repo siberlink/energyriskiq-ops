@@ -1908,6 +1908,14 @@
             font-style: italic;
         }
 
+        .eeri-summary-text p {
+            margin: 0 0 12px 0;
+        }
+
+        .eeri-summary-text p:last-child {
+            margin-bottom: 0;
+        }
+
         .eeri-summary-meta {
             margin-top: 16px;
             padding-top: 12px;
@@ -2441,6 +2449,124 @@
         .eeri-transition-arrow {
             color: #64748b;
         }
+
+        /* EERI Tooltip Icon */
+        .eeri-tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            font-size: 14px;
+            color: #64748b;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .eeri-tooltip-icon:hover {
+            color: #3b82f6;
+        }
+
+        /* EERI Modal */
+        .eeri-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .eeri-modal-overlay.active {
+            display: flex;
+        }
+
+        .eeri-modal {
+            background: #1e293b;
+            border-radius: 16px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #334155;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .eeri-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .eeri-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f8fafc;
+            margin: 0;
+        }
+
+        .eeri-modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .eeri-modal-close:hover {
+            color: #f8fafc;
+        }
+
+        .eeri-modal-body {
+            padding: 24px;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        .eeri-modal-body h4 {
+            color: #f8fafc;
+            margin: 0 0 12px 0;
+            font-size: 15px;
+        }
+
+        .eeri-modal-body p {
+            margin: 0 0 16px 0;
+            font-size: 14px;
+        }
+
+        .eeri-modal-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .eeri-modal-body ul {
+            margin: 0 0 16px 0;
+            padding-left: 20px;
+        }
+
+        .eeri-modal-body li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .eeri-modal-body .eeri-modal-highlight {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-left: 3px solid #3b82f6;
+        }
     </style>
 </head>
 <body>
@@ -2739,20 +2865,6 @@
 
                 <!-- Pro Dashboard Content -->
                 <div class="eeri-pro-dashboard" id="eeriProDashboard" style="display: none;">
-                    
-                    <!-- Daily Intelligence Summary Card -->
-                    <div class="eeri-summary-card" id="eeriDailySummary">
-                        <div class="eeri-summary-header">
-                            <div class="eeri-summary-label">Daily Intelligence Summary</div>
-                            <div class="eeri-summary-date" id="eeriSummaryDate">--</div>
-                        </div>
-                        <div class="eeri-summary-text" id="eeriSummaryText">
-                            Loading intelligence summary...
-                        </div>
-                        <div class="eeri-summary-meta">
-                            <span class="eeri-summary-drivers" id="eeriSummaryDrivers"></span>
-                        </div>
-                    </div>
 
                     <!-- Main Index Display Row -->
                     <div class="eeri-main-row">
@@ -2776,7 +2888,7 @@
                         <!-- Component Breakdown Card -->
                         <div class="eeri-components-card">
                             <div class="eeri-components-header">
-                                <span class="eeri-components-title">Component Breakdown</span>
+                                <span class="eeri-components-title">Component Breakdown <span class="eeri-tooltip-icon" onclick="openEeriModal('components')">ⓘ</span></span>
                                 <span class="eeri-components-hint">Contribution to today's EERI</span>
                             </div>
                             <div class="eeri-components-chart" id="eeriComponentsChart">
@@ -2791,7 +2903,7 @@
                     <!-- Asset Stress Panel -->
                     <div class="eeri-asset-stress-card">
                         <div class="eeri-asset-stress-header">
-                            <h3 class="eeri-section-title">Asset Stress Panel</h3>
+                            <h3 class="eeri-section-title">Asset Stress Panel <span class="eeri-tooltip-icon" onclick="openEeriModal('assetStress')">ⓘ</span></h3>
                             <span class="eeri-section-subtitle">Current stress levels across energy asset classes</span>
                         </div>
                         <div class="eeri-asset-stress-grid" id="eeriAssetStressGrid">
@@ -2813,7 +2925,7 @@
                     <!-- Historical Intelligence Section -->
                     <div class="eeri-history-card">
                         <div class="eeri-history-header">
-                            <h3 class="eeri-section-title">Historical Intelligence</h3>
+                            <h3 class="eeri-section-title">Historical Intelligence <span class="eeri-tooltip-icon" onclick="openEeriModal('history')">ⓘ</span></h3>
                             <div class="eeri-time-controls">
                                 <div class="eeri-time-range-group">
                                     <button class="eeri-time-btn active" data-days="7">7D</button>
@@ -2854,7 +2966,7 @@
                     <!-- Regime Statistics -->
                     <div class="eeri-regime-card">
                         <div class="eeri-regime-header">
-                            <h3 class="eeri-section-title">Regime Statistics</h3>
+                            <h3 class="eeri-section-title">Regime Statistics <span class="eeri-tooltip-icon" onclick="openEeriModal('regime')">ⓘ</span></h3>
                             <span class="eeri-section-subtitle">Risk band distribution (last 90 days)</span>
                         </div>
                         <div class="eeri-regime-content">
@@ -2870,6 +2982,33 @@
                         </div>
                     </div>
 
+                    <!-- Daily Intelligence Summary Card (moved to bottom) -->
+                    <div class="eeri-summary-card" id="eeriDailySummary">
+                        <div class="eeri-summary-header">
+                            <div class="eeri-summary-label">Daily Intelligence Summary</div>
+                            <div class="eeri-summary-date" id="eeriSummaryDate">--</div>
+                        </div>
+                        <div class="eeri-summary-text" id="eeriSummaryText">
+                            Loading intelligence summary...
+                        </div>
+                        <div class="eeri-summary-meta">
+                            <span class="eeri-summary-drivers" id="eeriSummaryDrivers"></span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- EERI Tooltip Modal -->
+                <div class="eeri-modal-overlay" id="eeriModalOverlay" onclick="closeEeriModal()">
+                    <div class="eeri-modal" onclick="event.stopPropagation()">
+                        <div class="eeri-modal-header">
+                            <h3 class="eeri-modal-title" id="eeriModalTitle">Information</h3>
+                            <button class="eeri-modal-close" onclick="closeEeriModal()">&times;</button>
+                        </div>
+                        <div class="eeri-modal-body" id="eeriModalBody">
+                            <!-- Modal content rendered by JS -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4539,12 +4678,145 @@
             }
             
             if (textEl && data.interpretation) {
-                textEl.textContent = data.interpretation;
+                const paragraphs = data.interpretation.split(/\n\n+|\. (?=[A-Z])/g)
+                    .filter(p => p.trim())
+                    .map(p => p.trim().endsWith('.') ? p.trim() : p.trim() + '.');
+                
+                if (paragraphs.length > 1) {
+                    textEl.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+                } else {
+                    const text = data.interpretation;
+                    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                    if (sentences.length >= 4) {
+                        const mid = Math.ceil(sentences.length / 2);
+                        const para1 = sentences.slice(0, mid).join(' ').trim();
+                        const para2 = sentences.slice(mid).join(' ').trim();
+                        textEl.innerHTML = `<p>${para1}</p><p>${para2}</p>`;
+                    } else {
+                        textEl.innerHTML = `<p>${text}</p>`;
+                    }
+                }
             }
             
             if (driversEl && data.key_drivers) {
                 driversEl.textContent = `Key Drivers: ${data.key_drivers.slice(0, 3).join(' • ')}`;
             }
+        }
+
+        const eeriModalContent = {
+            components: {
+                title: 'Component Breakdown',
+                body: `
+                    <h4>What is the Component Breakdown?</h4>
+                    <p>The Component Breakdown displays how different risk factors contribute to today's overall EERI (Europe Energy Risk Index) value. Each component represents a distinct category of risk that affects European energy markets.</p>
+                    
+                    <h4>Understanding the Components</h4>
+                    <ul>
+                        <li><strong>RERI_EU (Regional Risk):</strong> Base regional escalation risk for Europe, measuring geopolitical tensions and regional instability.</li>
+                        <li><strong>Theme Pressure:</strong> Aggregate pressure from thematic risk categories like supply disruptions, infrastructure threats, and policy changes.</li>
+                        <li><strong>Asset Transmission:</strong> How risks propagate across energy asset classes (gas, oil, power, etc.).</li>
+                        <li><strong>Contagion:</strong> Spillover effects from neighboring regions that could impact European energy markets.</li>
+                    </ul>
+                    
+                    <div class="eeri-modal-highlight">
+                        <strong>How to interpret:</strong> Larger bars indicate components contributing more to overall risk. Use this to identify which risk categories are driving market conditions.
+                    </div>
+                `
+            },
+            assetStress: {
+                title: 'Asset Stress Panel',
+                body: `
+                    <h4>What is the Asset Stress Panel?</h4>
+                    <p>The Asset Stress Panel shows real-time stress levels across different energy asset classes in European markets. It helps you understand which commodities and markets are under pressure.</p>
+                    
+                    <h4>Asset Classes Monitored</h4>
+                    <ul>
+                        <li><strong>Natural Gas:</strong> European gas markets including TTF pricing and supply dynamics.</li>
+                        <li><strong>Crude Oil:</strong> Brent crude and European oil market stress.</li>
+                        <li><strong>Freight/Shipping:</strong> LNG tanker rates and energy transportation costs.</li>
+                        <li><strong>Currency/FX:</strong> EUR/USD and energy-linked currency movements.</li>
+                        <li><strong>Power:</strong> European electricity markets and grid stress.</li>
+                        <li><strong>LNG:</strong> Liquefied natural gas import dynamics and pricing.</li>
+                        <li><strong>Electricity:</strong> Spot and forward power market conditions.</li>
+                    </ul>
+                    
+                    <h4>Stress Levels</h4>
+                    <p>Each asset shows a score from 0-100 with status labels: Minimal (green), Low (blue), Moderate (yellow), Elevated (orange), or Critical (red). The trend arrow indicates direction of change.</p>
+                    
+                    <div class="eeri-modal-highlight">
+                        <strong>How to interpret:</strong> Focus on assets showing "Elevated" or "Critical" status for immediate attention. Upward trends suggest worsening conditions.
+                    </div>
+                `
+            },
+            history: {
+                title: 'Historical Intelligence',
+                body: `
+                    <h4>What is Historical Intelligence?</h4>
+                    <p>This chart displays the EERI index over time, allowing you to identify trends, patterns, and significant risk events in European energy markets.</p>
+                    
+                    <h4>Time Range Controls</h4>
+                    <ul>
+                        <li><strong>7D:</strong> Last 7 days - ideal for spotting recent developments.</li>
+                        <li><strong>30D:</strong> Last 30 days - shows monthly patterns and trends.</li>
+                        <li><strong>90D:</strong> Last 90 days - reveals seasonal patterns and longer-term trends.</li>
+                        <li><strong>All:</strong> Full historical data - comprehensive view for strategic analysis.</li>
+                    </ul>
+                    
+                    <h4>Smoothing Options</h4>
+                    <ul>
+                        <li><strong>Raw:</strong> Actual daily values with full volatility visible.</li>
+                        <li><strong>3D MA:</strong> 3-day moving average - smooths short-term noise.</li>
+                        <li><strong>7D MA:</strong> 7-day moving average - shows underlying trend direction.</li>
+                    </ul>
+                    
+                    <div class="eeri-modal-highlight">
+                        <strong>How to interpret:</strong> Use Raw for detail, moving averages for trend direction. The color bands indicate risk levels: green (LOW), yellow (MODERATE), orange (ELEVATED), red (CRITICAL).
+                    </div>
+                `
+            },
+            regime: {
+                title: 'Regime Statistics',
+                body: `
+                    <h4>What are Regime Statistics?</h4>
+                    <p>Regime Statistics show how much time the EERI index has spent in each risk band over the past 90 days, along with recent transitions between risk levels.</p>
+                    
+                    <h4>Risk Bands</h4>
+                    <ul>
+                        <li><strong>LOW (0-25):</strong> Calm conditions, minimal market stress.</li>
+                        <li><strong>MODERATE (26-50):</strong> Normal market volatility, standard risk.</li>
+                        <li><strong>ELEVATED (51-75):</strong> Heightened risk, increased attention needed.</li>
+                        <li><strong>CRITICAL (76-100):</strong> Severe stress, potential market disruption.</li>
+                    </ul>
+                    
+                    <h4>Band Distribution</h4>
+                    <p>The percentage bars show how many days (out of the last 90) the market spent in each risk band. A healthy market typically spends most time in LOW or MODERATE.</p>
+                    
+                    <h4>Regime Transitions</h4>
+                    <p>Shows recent shifts between risk bands, helping you track when markets moved from one state to another.</p>
+                    
+                    <div class="eeri-modal-highlight">
+                        <strong>How to interpret:</strong> High percentage in ELEVATED or CRITICAL suggests persistent stress. Frequent transitions indicate volatility in market conditions.
+                    </div>
+                `
+            }
+        };
+
+        function openEeriModal(type) {
+            const content = eeriModalContent[type];
+            if (!content) return;
+            
+            const overlay = document.getElementById('eeriModalOverlay');
+            const titleEl = document.getElementById('eeriModalTitle');
+            const bodyEl = document.getElementById('eeriModalBody');
+            
+            if (titleEl) titleEl.textContent = content.title;
+            if (bodyEl) bodyEl.innerHTML = content.body;
+            if (overlay) overlay.classList.add('active');
+        }
+
+        function closeEeriModal() {
+            const overlay = document.getElementById('eeriModalOverlay');
+            if (overlay) overlay.classList.remove('active');
         }
 
         function renderEeriRegimeStats(data) {
