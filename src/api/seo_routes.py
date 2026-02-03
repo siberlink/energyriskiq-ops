@@ -1717,11 +1717,12 @@ async def geri_page(request: Request):
         for day in weekly.get('chart_data', []):
             day_color = band_color_map.get(day['band'], '#60a5fa')
             height_pct = max(10, min(100, day['value']))
-            day_label = dt.fromisoformat(day['date']).strftime('%a')[:2]
+            band_short = day['band'][:3].upper() if day['band'] else 'MOD'
             chart_bars_html += f'''
             <div class="weekly-bar-container">
+                <span class="weekly-bar-elevation" style="color: {day_color};">{day['band']}</span>
                 <div class="weekly-bar" style="height: {height_pct}%; background: {day_color};" title="{day['date']}: {day['value']}"></div>
-                <span class="weekly-bar-label">{day_label}</span>
+                <span class="weekly-bar-label">{day['value']}</span>
             </div>'''
         
         weekly_section = f'''
@@ -2041,9 +2042,9 @@ async def geri_page(request: Request):
             .weekly-chart {{
                 display: flex;
                 align-items: flex-end;
-                justify-content: space-between;
-                height: 100px;
-                gap: 0.5rem;
+                justify-content: space-around;
+                height: 160px;
+                gap: 0.25rem;
                 padding: 0.5rem 0;
             }}
             .weekly-bar-container {{
@@ -2052,18 +2053,31 @@ async def geri_page(request: Request):
                 align-items: center;
                 flex: 1;
                 height: 100%;
+                justify-content: flex-end;
+            }}
+            .weekly-bar-elevation {{
+                writing-mode: vertical-rl;
+                text-orientation: mixed;
+                transform: rotate(180deg);
+                font-size: 0.65rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 0.35rem;
+                white-space: nowrap;
             }}
             .weekly-bar {{
                 width: 100%;
-                max-width: 30px;
+                max-width: 24px;
                 border-radius: 4px 4px 0 0;
                 transition: all 0.2s ease;
                 min-height: 10px;
             }}
             .weekly-bar-label {{
-                font-size: 0.7rem;
-                color: #6b7280;
-                margin-top: 0.25rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: #d1d5db;
+                margin-top: 0.35rem;
             }}
             .weekly-stats {{
                 display: flex;
