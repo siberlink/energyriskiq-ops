@@ -46,7 +46,8 @@ from src.geri.geri_history_service import (
     get_adjacent_dates,
     get_adjacent_months,
     get_all_snapshot_dates,
-    get_latest_published_snapshot
+    get_latest_published_snapshot,
+    get_weekly_snapshot
 )
 from calendar import month_name as calendar_month_name
 from src.utils.contextual_linking import (
@@ -1680,6 +1681,98 @@ async def geri_page(request: Request):
         {delay_badge}
         """
     
+    # Weekly Snapshot Section
+    weekly_section = ""
+    weekly = get_weekly_snapshot()
+    if weekly and weekly.get('snapshot_count', 0) >= 3:
+        from datetime import datetime as dt
+        start_display = dt.fromisoformat(weekly['start_date']).strftime('%b %d')
+        end_display = dt.fromisoformat(weekly['end_date']).strftime('%b %d, %Y')
+        
+        weekly_drivers_html = ""
+        for i, driver in enumerate(weekly.get('top_drivers', [])[:3], 1):
+            weekly_drivers_html += f'<li><span class="driver-num">{i}.</span> {driver}</li>'
+        if not weekly_drivers_html:
+            weekly_drivers_html = '<li>No significant pressure points this week</li>'
+        
+        weekly_regions_html = ""
+        for region in weekly.get('top_regions', [])[:2]:
+            weekly_regions_html += f'<span class="region-tag">{region}</span>'
+        if not weekly_regions_html:
+            weekly_regions_html = '<span class="region-tag">Global</span>'
+        
+        weekly_assets_html = ""
+        for asset in weekly.get('assets', [])[:4]:
+            weekly_assets_html += f'<span class="asset-tag">{asset}</span>'
+        if not weekly_assets_html:
+            weekly_assets_html = '<span class="asset-tag">Energy</span>'
+        
+        band_color_map = {
+            'LOW': '#22c55e', 'MODERATE': '#facc15', 'ELEVATED': '#f97316',
+            'SEVERE': '#ef4444', 'CRITICAL': '#991b1b'
+        }
+        dominant_color = band_color_map.get(weekly['dominant_band'], '#60a5fa')
+        
+        chart_bars_html = ""
+        for day in weekly.get('chart_data', []):
+            day_color = band_color_map.get(day['band'], '#60a5fa')
+            height_pct = max(10, min(100, day['value']))
+            day_label = dt.fromisoformat(day['date']).strftime('%a')[:2]
+            chart_bars_html += f'''
+            <div class="weekly-bar-container">
+                <div class="weekly-bar" style="height: {height_pct}%; background: {day_color};" title="{day['date']}: {day['value']}"></div>
+                <span class="weekly-bar-label">{day_label}</span>
+            </div>'''
+        
+        weekly_section = f'''
+        <div class="weekly-snapshot-section">
+            <div class="weekly-header">
+                <span class="weekly-icon">📊</span>
+                <h2>Weekly Snapshot</h2>
+                <span class="weekly-dates">{start_display} – {end_display}</span>
+            </div>
+            
+            <div class="weekly-card">
+                <div class="weekly-chart-container">
+                    <div class="weekly-chart-header">
+                        <span class="chart-label">Weekly Risk Levels</span>
+                        <span class="chart-elevation" style="color: {dominant_color};">{weekly['dominant_band']}</span>
+                    </div>
+                    <div class="weekly-chart">
+                        {chart_bars_html}
+                    </div>
+                    <div class="weekly-stats">
+                        <span>Avg: <strong>{weekly['avg_value']}</strong></span>
+                        <span>Min: <strong>{weekly['min_value']}</strong></span>
+                        <span>Max: <strong>{weekly['max_value']}</strong></span>
+                    </div>
+                </div>
+                
+                <div class="weekly-details">
+                    <div class="weekly-detail-section">
+                        <h3>Main Pressure Points</h3>
+                        <ul class="weekly-drivers">{weekly_drivers_html}</ul>
+                    </div>
+                    
+                    <div class="weekly-detail-row">
+                        <div class="weekly-detail-section half">
+                            <h3>Most Sensitive Regions</h3>
+                            <div class="weekly-tags">{weekly_regions_html}</div>
+                        </div>
+                        <div class="weekly-detail-section half">
+                            <h3>Assets Most Exposed</h3>
+                            <div class="weekly-tags">{weekly_assets_html}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="weekly-interpretation">
+                        <p>{weekly['interpretation']}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        '''
+    
     cta_block = ""
     if is_delayed:
         cta_block = """
@@ -1899,6 +1992,147 @@ async def geri_page(request: Request):
                 padding-top: 0.5rem;
                 border-top: 1px solid rgba(146, 64, 14, 0.2);
             }}
+            
+            /* Weekly Snapshot Styles */
+            .weekly-snapshot-section {{
+                margin: 2.5rem 0;
+                padding: 2rem;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border-radius: 16px;
+                border: 1px solid rgba(96, 165, 250, 0.2);
+            }}
+            .weekly-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+            }}
+            .weekly-icon {{ font-size: 1.5rem; }}
+            .weekly-header h2 {{
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: #f8fafc;
+                margin: 0;
+            }}
+            .weekly-dates {{
+                font-size: 0.9rem;
+                color: #9ca3af;
+                margin-left: auto;
+            }}
+            .weekly-card {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }}
+            .weekly-chart-container {{
+                background: rgba(15, 23, 42, 0.5);
+                border-radius: 12px;
+                padding: 1.25rem;
+            }}
+            .weekly-chart-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }}
+            .chart-label {{ color: #9ca3af; font-size: 0.85rem; }}
+            .chart-elevation {{ font-weight: 600; font-size: 0.9rem; }}
+            .weekly-chart {{
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                height: 100px;
+                gap: 0.5rem;
+                padding: 0.5rem 0;
+            }}
+            .weekly-bar-container {{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                flex: 1;
+                height: 100%;
+            }}
+            .weekly-bar {{
+                width: 100%;
+                max-width: 30px;
+                border-radius: 4px 4px 0 0;
+                transition: all 0.2s ease;
+                min-height: 10px;
+            }}
+            .weekly-bar-label {{
+                font-size: 0.7rem;
+                color: #6b7280;
+                margin-top: 0.25rem;
+            }}
+            .weekly-stats {{
+                display: flex;
+                justify-content: space-between;
+                margin-top: 1rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid rgba(107, 114, 128, 0.3);
+                font-size: 0.8rem;
+                color: #9ca3af;
+            }}
+            .weekly-stats strong {{ color: #d1d5db; }}
+            .weekly-details {{ display: flex; flex-direction: column; gap: 1rem; }}
+            .weekly-detail-section h3 {{
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #60a5fa;
+                margin: 0 0 0.5rem 0;
+            }}
+            .weekly-drivers {{
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }}
+            .weekly-drivers li {{
+                font-size: 0.9rem;
+                color: #e2e8f0;
+                padding: 0.25rem 0;
+                border-bottom: 1px solid rgba(107, 114, 128, 0.2);
+            }}
+            .weekly-drivers li:last-child {{ border-bottom: none; }}
+            .driver-num {{ color: #60a5fa; font-weight: 600; margin-right: 0.5rem; }}
+            .weekly-detail-row {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }}
+            .weekly-detail-section.half {{ }}
+            .weekly-tags {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }}
+            .region-tag, .asset-tag {{
+                background: rgba(96, 165, 250, 0.15);
+                color: #60a5fa;
+                padding: 0.35rem 0.75rem;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }}
+            .weekly-interpretation {{
+                margin-top: 0.5rem;
+                padding: 0.75rem;
+                background: rgba(96, 165, 250, 0.05);
+                border-left: 3px solid #3b82f6;
+                border-radius: 0 8px 8px 0;
+            }}
+            .weekly-interpretation p {{
+                margin: 0;
+                font-size: 0.9rem;
+                color: #cbd5e1;
+                line-height: 1.5;
+            }}
+            @media (max-width: 768px) {{
+                .weekly-card {{ grid-template-columns: 1fr; }}
+                .weekly-detail-row {{ grid-template-columns: 1fr; }}
+                .weekly-dates {{ margin-left: 0; width: 100%; margin-top: 0.5rem; }}
+            }}
+            
             .geri-delay-badge {{
                 background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
                 border: 1px solid #3b82f6;
@@ -2027,6 +2261,8 @@ async def geri_page(request: Request):
                 </div>
                 
                 {geri_content}
+                
+                {weekly_section}
                 
                 {cta_block}
                 

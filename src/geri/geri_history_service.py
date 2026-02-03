@@ -441,3 +441,105 @@ def get_all_snapshot_dates() -> List[str]:
             dates.append(d.isoformat() if hasattr(d, 'isoformat') else str(d))
     
     return dates
+
+
+def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
+    """
+    Get aggregated GERI data for the last complete week (Monday-Sunday).
+    
+    Returns:
+        Dict with weekly stats, top drivers, regions, assets, and mini-chart data
+    """
+    from datetime import datetime
+    from collections import Counter
+    
+    today = date.today()
+    days_since_monday = today.weekday()
+    
+    if days_since_monday == 0:
+        last_sunday = today - timedelta(days=1)
+    else:
+        last_sunday = today - timedelta(days=days_since_monday)
+    last_monday = last_sunday - timedelta(days=6)
+    
+    snapshots = list_snapshots(
+        from_date=last_monday.isoformat(),
+        to_date=last_sunday.isoformat(),
+        limit=7
+    )
+    
+    if not snapshots:
+        return None
+    
+    values = [s.value for s in snapshots]
+    bands = [s.band for s in snapshots]
+    
+    avg_value = sum(values) / len(values) if values else 0
+    min_value = min(values) if values else 0
+    max_value = max(values) if values else 0
+    
+    band_counter = Counter(bands)
+    dominant_band = band_counter.most_common(1)[0][0] if band_counter else 'LOW'
+    
+    all_drivers = []
+    all_regions = []
+    all_assets = set()
+    
+    for s in snapshots:
+        for d in s.top_drivers_detailed[:3]:
+            all_drivers.append(d.get('headline', ''))
+        all_regions.extend(s.top_regions[:2])
+        for asset in s.components.get('affected_assets', []):
+            all_assets.add(asset)
+    
+    driver_counter = Counter([d for d in all_drivers if d])
+    top_drivers = [d for d, _ in driver_counter.most_common(3)]
+    
+    region_counter = Counter([r for r in all_regions if r])
+    top_regions = [r for r, _ in region_counter.most_common(2)]
+    
+    if not all_assets:
+        all_assets = {'Natural Gas', 'Crude Oil', 'Power'}
+    assets_list = list(all_assets)[:4]
+    
+    chart_data = []
+    for s in sorted(snapshots, key=lambda x: x.date):
+        chart_data.append({
+            'date': s.date,
+            'value': s.value,
+            'band': s.band
+        })
+    
+    volatility = max_value - min_value
+    if volatility > 30:
+        volatility_desc = "High volatility"
+    elif volatility > 15:
+        volatility_desc = "Moderate fluctuations"
+    else:
+        volatility_desc = "Stable conditions"
+    
+    trend_desc = ""
+    if len(values) >= 2:
+        if values[-1] > values[0] + 5:
+            trend_desc = "with rising risk pressure"
+        elif values[-1] < values[0] - 5:
+            trend_desc = "with easing risk signals"
+        else:
+            trend_desc = "with steady risk levels"
+    
+    interpretation = f"{volatility_desc} {trend_desc}. Weekly average: {avg_value:.0f} ({dominant_band})."
+    
+    return {
+        'start_date': last_monday.isoformat(),
+        'end_date': last_sunday.isoformat(),
+        'avg_value': round(avg_value, 1),
+        'min_value': min_value,
+        'max_value': max_value,
+        'dominant_band': dominant_band,
+        'top_drivers': top_drivers,
+        'top_regions': top_regions,
+        'assets': assets_list,
+        'chart_data': chart_data,
+        'interpretation': interpretation,
+        'snapshot_count': len(snapshots)
+    }
