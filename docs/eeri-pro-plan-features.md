@@ -1099,3 +1099,210 @@ This is why professionals pay.
 **It is structured judgment.**
 
 And that is exactly what serious users want.
+
+---
+
+# Historical Intelligence — Deep Dive
+
+This feature is quietly one of the most powerful things in EnergyRiskIQ.
+It turns EERI from a daily reading into **institutional memory**.
+
+---
+
+## What Historical Intelligence Really Is
+
+Most platforms show history like this:
+> "Here's a line chart."
+
+That's passive.
+
+**Historical Intelligence does something else:**
+> "Here's how risk behaves over time — and what usually follows."
+
+It answers a deeper question:
+> "Is today exceptional, or just more of the same?"
+
+That distinction is everything.
+
+---
+
+## Why This Is a Moat (Strategically)
+
+History is:
+- Expensive to build
+- Impossible to fake later
+- Compounding in value
+- Trust-building
+
+Once you have it, competitors can't "catch up" quickly.
+
+**Every day EERI runs, our moat widens.**
+
+---
+
+## 📊 EERI Daily History — The Baseline Memory
+
+### What This View Conceptually Shows
+
+Not just:
+- Up
+- Down
+
+But:
+- Regime shifts
+- Persistence
+- Clustering
+- Calm vs crisis periods
+
+**Users begin to recognize patterns like:**
+- "Risk stays elevated longer than expected"
+- "Sharp spikes usually revert"
+- "Plateaus are more dangerous than peaks"
+
+This is **risk literacy**.
+
+---
+
+## 🟥 Risk Band History — The Regime Lens
+
+This is much more powerful than a raw chart.
+
+### What It Answers
+> "How often is Europe actually in trouble?"
+
+**Showing:**
+- % of days in NORMAL
+- % in ELEVATED
+- % in HIGH
+- % in CRITICAL
+
+**Conceptually:** This tells users whether risk is structural or episodic.
+
+### Examples of Insights Users Get
+- "CRITICAL is rare — today matters"
+- "HIGH has become the new normal"
+- "We've spent 40% of this quarter above 60"
+
+This is the kind of insight executives care about.
+
+---
+
+## 🔁 Period Comparisons
+
+### This Week vs Last Week
+
+**Answers:**
+> "Is risk accelerating, stabilizing, or fading?"
+
+Even if the level is similar, the **trajectory** matters.
+
+### This Month vs Last Month
+
+**Answers:**
+> "Are we in a different risk regime?"
+
+Professionals care less about today vs yesterday
+and more about **regime transitions**.
+
+---
+
+## 🧠 The Optional Advanced View
+
+### "Last time EERI ≥ 80, what happened next?"
+
+This is where the platform becomes **strategic, not reactive**.
+
+### What This Question Really Means
+> "When risk reached this level before, how did the world behave?"
+
+**This view builds:**
+- Pattern recognition
+- Scenario awareness
+- Expectation management
+
+**It does not predict. It prepares.**
+
+### How Users Think With This View
+
+They don't ask:
+> "Will prices go up or down?"
+
+They ask:
+> "What usually happens after stress reaches this level?"
+
+**Examples:**
+- Did volatility stay high?
+- Did risk fade quickly?
+- Did markets overreact?
+- Did second-order effects appear?
+
+**This is incredibly valuable to:**
+- Risk managers
+- Portfolio managers
+- Policy analysts
+
+---
+
+## Why This Must Be Pro-Only
+
+Because this is:
+- Accumulated intelligence
+- Hard-earned signal
+- Non-replicable
+- Time-based IP
+
+**Public users should never see:**
+- Pattern statistics
+- Regime persistence
+- Historical analogs
+
+This is institutional insight, not marketing.
+
+---
+
+## The Emotional Effect on Pro Users
+
+When users have this, they feel:
+> "I've seen this before."
+
+**That feeling is:**
+- Calming
+- Empowering
+- Confidence-building
+
+**It reduces:**
+- Overreaction
+- Noise trading
+- Panic decisions
+
+That's real value.
+
+---
+
+## How This Ties Everything Together
+
+| Component | What It Provides |
+|-----------|------------------|
+| Today's EERI | Current state |
+| Top Drivers | Causes |
+| Asset Stress Panel | Impact |
+| Historical Intelligence | Perspective |
+
+This completes the loop:
+> **Now → Why → Where → What usually follows**
+
+Very few platforms do this well.
+
+---
+
+## Final Strategic Verdict
+
+Historical Intelligence is not a feature.
+
+**It is:**
+- Memory
+- Context
+- Wisdom
+- Differentiation
+
+This is what turns EnergyRiskIQ into a **reference system**, not a dashboard.
