@@ -63,63 +63,99 @@ def verify_pro_access(authorization: Optional[str] = Header(None)):
     return True
 
 
-def _compute_asset_stress_from_components(components: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _compute_asset_stress_from_alerts() -> List[Dict[str, Any]]:
     """
-    Compute asset stress levels from EERI components.
+    Compute asset stress levels from recent alert data.
     Returns normalized stress values for each asset class.
     """
-    asset_stress = []
+    from src.db.db import get_connection
     
-    asset_transmission = components.get('asset_transmission', {})
-    if isinstance(asset_transmission, dict):
-        raw_scores = asset_transmission.get('raw_scores', {})
-        normalized = asset_transmission.get('normalized', 0)
+    asset_stress = []
+    asset_scores = {asset: {'count': 0, 'severity_sum': 0, 'prev_count': 0} for asset in ASSET_CLASSES}
+    
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
         
-        for asset in ASSET_CLASSES:
-            score = raw_scores.get(asset, 0) if isinstance(raw_scores, dict) else 0
-            
-            if score >= 80:
-                status = 'CRITICAL'
-                status_label = 'Severe'
-            elif score >= 60:
-                status = 'ELEVATED'
-                status_label = 'High'
-            elif score >= 40:
-                status = 'MODERATE'
-                status_label = 'Elevated'
-            elif score >= 20:
-                status = 'LOW'
-                status_label = 'Moderate'
-            else:
-                status = 'MINIMAL'
-                status_label = 'Low'
-            
+        cur.execute("""
+            SELECT unnest(scope_assets) as asset, 
+                   COUNT(*) as count, 
+                   SUM(severity) as severity_sum
+            FROM alert_events 
+            WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'
+            GROUP BY asset
+        """)
+        current_rows = cur.fetchall()
+        
+        for row in current_rows:
+            asset = row[0].lower() if row[0] else None
+            if asset in asset_scores:
+                asset_scores[asset]['count'] = row[1] or 0
+                asset_scores[asset]['severity_sum'] = float(row[2] or 0)
+        
+        cur.execute("""
+            SELECT unnest(scope_assets) as asset, 
+                   COUNT(*) as count
+            FROM alert_events 
+            WHERE created_at >= CURRENT_DATE - INTERVAL '14 days'
+              AND created_at < CURRENT_DATE - INTERVAL '7 days'
+            GROUP BY asset
+        """)
+        prev_rows = cur.fetchall()
+        
+        for row in prev_rows:
+            asset = row[0].lower() if row[0] else None
+            if asset in asset_scores:
+                asset_scores[asset]['prev_count'] = row[1] or 0
+        
+        cur.close()
+        conn.close()
+        
+    except Exception as e:
+        logger.warning(f"Error fetching alert data for asset stress: {e}")
+    
+    max_count = max((d['count'] for d in asset_scores.values()), default=1) or 1
+    max_severity = max((d['severity_sum'] for d in asset_scores.values()), default=1) or 1
+    
+    for asset in ASSET_CLASSES:
+        data = asset_scores[asset]
+        
+        count_norm = min(100, (data['count'] / max_count) * 100) if max_count > 0 else 0
+        severity_norm = min(100, (data['severity_sum'] / max_severity) * 100) if max_severity > 0 else 0
+        score = round(0.4 * count_norm + 0.6 * severity_norm, 1)
+        
+        if score >= 80:
+            status = 'CRITICAL'
+            status_label = 'Severe'
+        elif score >= 60:
+            status = 'ELEVATED'
+            status_label = 'High'
+        elif score >= 40:
+            status = 'MODERATE'
+            status_label = 'Elevated'
+        elif score >= 20:
+            status = 'LOW'
+            status_label = 'Moderate'
+        else:
+            status = 'MINIMAL'
+            status_label = 'Low'
+        
+        if data['count'] > data['prev_count'] * 1.2:
+            trend = '↑'
+        elif data['count'] < data['prev_count'] * 0.8:
+            trend = '↓'
+        else:
             trend = '→'
-            if score > 50:
-                trend = '↑'
-            elif score < 30:
-                trend = '↓'
-            
-            asset_stress.append({
-                'asset': asset,
-                'display_name': ASSET_DISPLAY_NAMES.get(asset, asset.title()),
-                'score': round(score, 1),
-                'status': status,
-                'status_label': status_label,
-                'trend': trend,
-                'color': RISK_BAND_COLORS.get(status, '#94a3b8'),
-            })
-    else:
-        for asset in ASSET_CLASSES:
-            asset_stress.append({
-                'asset': asset,
-                'display_name': ASSET_DISPLAY_NAMES.get(asset, asset.title()),
-                'score': 0,
-                'status': 'MINIMAL',
-                'status_label': 'Low',
-                'trend': '→',
-                'color': '#94a3b8',
-            })
+        
+        asset_stress.append({
+            'asset': asset,
+            'display_name': ASSET_DISPLAY_NAMES.get(asset, asset.title()),
+            'score': score,
+            'status': status,
+            'status_label': status_label,
+            'trend': trend,
+            'color': RISK_BAND_COLORS.get(status, '#94a3b8'),
+        })
     
     asset_stress.sort(key=lambda x: x['score'], reverse=True)
     return asset_stress
@@ -247,7 +283,7 @@ async def get_eeri_realtime():
             'computed_at': result.get('computed_at'),
             'interpretation': result.get('interpretation', ''),
             'component_breakdown': _extract_component_breakdown(components, eeri_value),
-            'asset_stress': _compute_asset_stress_from_components(components),
+            'asset_stress': _compute_asset_stress_from_alerts(),
             'top_drivers': _format_top_drivers(result.get('top_drivers', []), limit=5),
             'affected_assets': result.get('affected_assets', []),
             'is_realtime': True,
@@ -302,7 +338,7 @@ async def get_asset_stress():
     return {
         'success': True,
         'date': result.get('date'),
-        'data': _compute_asset_stress_from_components(components),
+        'data': _compute_asset_stress_from_alerts(),
     }
 
 
