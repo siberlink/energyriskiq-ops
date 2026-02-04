@@ -3914,6 +3914,9 @@
                                     chart.update('none');
                                 }
                             }
+                        },
+                        decimation: {
+                            enabled: false
                         }
                     },
                     scales: {
@@ -3944,7 +3947,13 @@
                         y1: {
                             position: 'right',
                             display: false,
-                            grid: { drawOnChartArea: false }
+                            min: 0,
+                            max: 100,
+                            grid: { drawOnChartArea: false },
+                            ticks: { 
+                                color: '#64748b',
+                                stepSize: 25
+                            }
                         }
                     }
                 },
@@ -4023,6 +4032,9 @@
                 freight: { label: 'Freight (scaled)', color: '#8b5cf6' }
             };
             
+            // Get current labels from chart (matches current range)
+            const currentLabels = geriChart.data.labels;
+            
             Object.entries(marketOverlays).forEach(([key, overlay]) => {
                 if (overlay.active && overlay.data.length > 0) {
                     const config = overlayConfigs[key];
@@ -4030,9 +4042,15 @@
                     // Use pre-generated stable data, sliced to match current range
                     const slicedData = getSlicedOverlayData(key);
                     
+                    // Create explicit x,y point objects to prevent Chart.js reprocessing
+                    const pointData = slicedData.map((y, i) => ({
+                        x: currentLabels[i],
+                        y: y
+                    }));
+                    
                     geriChart.data.datasets.push({
                         label: config.label,
-                        data: slicedData,
+                        data: pointData,
                         borderColor: config.color,
                         backgroundColor: 'transparent',
                         borderWidth: 1.5,
@@ -4041,7 +4059,9 @@
                         tension: 0.3,
                         pointRadius: 0,
                         pointHoverRadius: 4,
-                        yAxisID: 'y1'
+                        yAxisID: 'y1',
+                        normalized: true,
+                        parsing: false
                     });
                 }
             });
