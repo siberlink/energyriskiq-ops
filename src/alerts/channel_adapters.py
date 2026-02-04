@@ -23,6 +23,7 @@ ALERTS_RATE_LIMIT_EMAIL_PER_MINUTE = int(os.environ.get('ALERTS_RATE_LIMIT_EMAIL
 ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE = int(os.environ.get('ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE', '0'))
 ALERTS_RATE_LIMIT_SMS_PER_MINUTE = int(os.environ.get('ALERTS_RATE_LIMIT_SMS_PER_MINUTE', '0'))
 ALERTS_FAIL_OPEN_ON_CHANNEL_MISSING = os.environ.get('ALERTS_FAIL_OPEN_ON_CHANNEL_MISSING', 'false').lower() == 'true'
+ALERTS_EMAIL_ENABLED = os.environ.get('ALERTS_EMAIL_ENABLED', 'true').lower() == 'true'
 
 
 class FailureType(Enum):
@@ -212,6 +213,15 @@ def send_email_v2(
     """
     Send email with config validation and failure classification.
     """
+    if not ALERTS_EMAIL_ENABLED:
+        logger.info(f"Email sending disabled (ALERTS_EMAIL_ENABLED=false), skipping email to {to_email}")
+        return SendResult(
+            success=False,
+            should_skip=True,
+            skip_reason="email_disabled",
+            error="Email sending is disabled via ALERTS_EMAIL_ENABLED=false"
+        )
+    
     if not to_email:
         return SendResult(
             success=False,

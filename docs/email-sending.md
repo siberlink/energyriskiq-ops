@@ -2,6 +2,18 @@
 
 This document describes how email (and other channel) delivery works in EnergyRiskIQ's alerting system.
 
+## Current Status
+
+| Channel | Status | Notes |
+|---------|--------|-------|
+| **Email** | **DISABLED** | Set `ALERTS_EMAIL_ENABLED=false` on 2026-02-04 |
+| **Telegram** | Active | Working normally |
+| **SMS** | Not configured | Twilio credentials not set |
+
+**To re-enable email sending:** Set `ALERTS_EMAIL_ENABLED=true` in environment variables.
+
+---
+
 ## Overview
 
 EnergyRiskIQ sends alerts to users via three channels:
@@ -292,8 +304,9 @@ Observability for engine executions:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `ALERTS_EMAIL_ENABLED` | true | **Email channel kill switch** - Set to `false` to disable all email sending |
 | `ALERTS_MAX_SEND_PER_RUN` | 1000 | Max sends per execution |
-| `ALERTS_V2_ENABLED` | true | Master kill switch |
+| `ALERTS_V2_ENABLED` | true | Master kill switch for entire alerts system |
 | `ALERTS_SEND_ALLOWLIST_USER_IDS` | (none) | Comma-separated user IDs for controlled rollout |
 
 ### Preflight Checks
@@ -367,7 +380,8 @@ If hitting limit, check for permanent failures being misclassified.
 | `TWILIO_ACCOUNT_SID` | No | - | Twilio account SID |
 | `TWILIO_AUTH_TOKEN` | No | - | Twilio auth token |
 | `TWILIO_PHONE_NUMBER` | No | - | Twilio sender number |
-| `ALERTS_V2_ENABLED` | No | true | Enable/disable system |
+| `ALERTS_V2_ENABLED` | No | true | Enable/disable entire system |
+| `ALERTS_EMAIL_ENABLED` | No | true | **Enable/disable email channel** |
 | `ALERTS_MAX_SEND_PER_RUN` | No | 1000 | Circuit breaker limit |
 | `ALERTS_MAX_ATTEMPTS` | No | 5 | Max retry attempts |
 | `ALERTS_RETRY_BASE_SECONDS` | No | 60 | Base retry delay |
