@@ -24,6 +24,16 @@ on:
         required: false
         default: '90'
         type: string
+      eurusd_start_date:
+        description: 'Start date for EUR/USD backfill (YYYY-MM-DD format)'
+        required: false
+        default: '2026-01-01'
+        type: string
+      eurusd_end_date:
+        description: 'End date for EUR/USD backfill (YYYY-MM-DD format)'
+        required: false
+        default: '2026-02-03'
+        type: string
 
 jobs:
   backfill:
@@ -218,10 +228,10 @@ jobs:
       - name: Backfill EUR/USD Exchange Rate Data
         id: backfill_eurusd
         run: |
-          echo "Backfilling EUR/USD exchange rate data..."
+          echo "Backfilling EUR/USD from ${{ github.event.inputs.eurusd_start_date }} to ${{ github.event.inputs.eurusd_end_date }}..."
           
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.APP_URL }}/internal/run/backfill-eurusd" \
+            "${{ secrets.APP_URL }}/internal/run/backfill-eurusd?start_date=${{ github.event.inputs.eurusd_start_date }}&end_date=${{ github.event.inputs.eurusd_end_date }}" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -250,6 +260,8 @@ jobs:
           echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Action | backfill_eurusd |" >> $GITHUB_STEP_SUMMARY
+          echo "| Start Date | ${{ github.event.inputs.eurusd_start_date }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| End Date | ${{ github.event.inputs.eurusd_end_date }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.backfill_eurusd.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY

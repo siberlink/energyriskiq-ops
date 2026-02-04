@@ -1029,20 +1029,31 @@ def run_backfill_egsi(
 
 @router.post("/run/backfill-eurusd")
 def run_backfill_eurusd(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     x_runner_token: Optional[str] = Header(None)
 ):
     """
     Backfill EUR/USD exchange rate historical data only.
     
-    Uses OilPriceAPI past_year endpoint for maximum available history.
+    Args:
+        start_date: Start date in YYYY-MM-DD format (optional, defaults to 90 days ago)
+        end_date: End date in YYYY-MM-DD format (optional, defaults to yesterday)
     """
     validate_runner_token(x_runner_token)
     
-    from src.ingest.eurusd import backfill_eurusd_history
+    from datetime import date, timedelta
+    from src.ingest.eurusd import backfill_eurusd_history, backfill_eurusd_range
     
     def backfill_job():
-        logger.info("Backfilling EUR/USD data...")
-        result = backfill_eurusd_history(days=90)
+        if start_date and end_date:
+            from_date = date.fromisoformat(start_date)
+            to_date = date.fromisoformat(end_date)
+            logger.info(f"Backfilling EUR/USD from {from_date} to {to_date}...")
+            result = backfill_eurusd_range(from_date, to_date)
+        else:
+            logger.info("Backfilling EUR/USD data (last 90 days)...")
+            result = backfill_eurusd_history(days=90)
         return result
     
     response, status_code = run_job_with_lock('backfill_eurusd', backfill_job)
