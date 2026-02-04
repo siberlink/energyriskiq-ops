@@ -3612,16 +3612,10 @@
                         '</div>' +
                         '<div class="market-overlay-toggles">' +
                             '<button class="overlay-toggle" data-overlay="brent" style="--overlay-color: #f59e0b;">' +
-                                '<span class="dot"></span> Brent Oil' +
+                                '<span class="dot"></span> Brent Oil (USD/barrel)' +
                             '</button>' +
-                            '<button class="overlay-toggle" data-overlay="ttf" style="--overlay-color: #10b981;">' +
-                                '<span class="dot"></span> TTF Gas' +
-                            '</button>' +
-                            '<button class="overlay-toggle" data-overlay="vix" style="--overlay-color: #ef4444;">' +
-                                '<span class="dot"></span> VIX' +
-                            '</button>' +
-                            '<button class="overlay-toggle" data-overlay="freight" style="--overlay-color: #8b5cf6;">' +
-                                '<span class="dot"></span> Freight' +
+                            '<button class="overlay-toggle" data-overlay="gas_storage" style="--overlay-color: #10b981;">' +
+                                '<span class="dot"></span> EU Gas Storage (%)' +
                             '</button>' +
                         '</div>' +
                         '<div class="geri-chart-card">' +
@@ -3661,48 +3655,64 @@
         let geriHistoryData = [];
         let currentRangeFilter = 'all'; // Track current range
         let marketOverlays = {
-            brent: { active: false, data: [] },
-            ttf: { active: false, data: [] },
-            vix: { active: false, data: [] },
-            freight: { active: false, data: [] }
+            brent: { active: false, data: [], rawData: [], unit: 'USD/barrel' },
+            gas_storage: { active: false, data: [], rawData: [], unit: '%' }
         };
+        let overlayDataLoaded = false;
         
-        // Generate stable mock market data (called once when GERI data loads)
-        function generateMarketOverlayData() {
-            const overlayConfigs = {
-                brent: { baseValue: 75, volatility: 15 },
-                ttf: { baseValue: 35, volatility: 20 },
-                vix: { baseValue: 20, volatility: 10 },
-                freight: { baseValue: 45, volatility: 12 }
-            };
+        // Fetch real market data from API
+        async function loadMarketOverlayData() {
+            if (overlayDataLoaded) return;
             
-            // Use seeded random for reproducible results based on date
-            // Uses a simple hash function for deterministic randomness
-            function seededRandom(seed) {
-                let hash = seed;
-                hash = ((hash + 0x7ed55d16) + (hash << 12)) & 0xffffffff;
-                hash = ((hash ^ 0xc761c23c) ^ (hash >>> 19)) & 0xffffffff;
-                hash = ((hash + 0x165667b1) + (hash << 5)) & 0xffffffff;
-                hash = ((hash + 0xd3a2646c) ^ (hash << 9)) & 0xffffffff;
-                hash = ((hash + 0xfd7046c5) + (hash << 3)) & 0xffffffff;
-                hash = ((hash ^ 0xb55a4f09) ^ (hash >>> 16)) & 0xffffffff;
-                return (hash >>> 0) / 0xffffffff;
-            }
-            
-            Object.keys(marketOverlays).forEach(key => {
-                const config = overlayConfigs[key];
-                // Create unique seed offset for each asset
-                const keyOffset = key.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1) * 31, 0);
-                
-                marketOverlays[key].data = geriHistoryData.map((d, i) => {
-                    const geriVal = d.value || 50;
-                    // Create deterministic seed from date and asset
-                    const dateNum = new Date(d.date).getTime();
-                    const seed = dateNum + keyOffset + (i * 17);
-                    const noise = (seededRandom(seed) - 0.5) * config.volatility;
-                    const correlation = 0.3;
-                    return Math.max(0, Math.min(100, config.baseValue + (geriVal - 50) * correlation + noise));
+            try {
+                const response = await fetch('/api/v1/indices/geri/market-overlays?from=2026-01-01', {
+                    headers: { 'X-User-Token': sessionToken }
                 });
+                
+                if (!response.ok) {
+                    console.warn('Failed to fetch market overlay data');
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.overlays?.brent?.data) {
+                    marketOverlays.brent.rawData = result.overlays.brent.data;
+                    marketOverlays.brent.unit = result.overlays.brent.unit;
+                    alignOverlayWithGeri('brent');
+                }
+                
+                if (result.overlays?.gas_storage?.data) {
+                    marketOverlays.gas_storage.rawData = result.overlays.gas_storage.data;
+                    marketOverlays.gas_storage.unit = result.overlays.gas_storage.unit;
+                    alignOverlayWithGeri('gas_storage');
+                }
+                
+                overlayDataLoaded = true;
+                console.log('Market overlay data loaded:', {
+                    brent: marketOverlays.brent.data.length,
+                    gas_storage: marketOverlays.gas_storage.data.length
+                });
+            } catch (error) {
+                console.error('Error loading market overlay data:', error);
+            }
+        }
+        
+        // Align overlay data with GERI dates (for chart synchronization)
+        function alignOverlayWithGeri(key) {
+            const overlay = marketOverlays[key];
+            const rawData = overlay.rawData;
+            
+            // Create a map of date -> value for quick lookup
+            const dateMap = {};
+            rawData.forEach(d => {
+                dateMap[d.date] = d.value;
+            });
+            
+            // Map to GERI dates
+            overlay.data = geriHistoryData.map(geriPoint => {
+                const val = dateMap[geriPoint.date];
+                return val !== undefined ? val : null;
             });
         }
         
@@ -3728,8 +3738,8 @@
                 const result = await response.json();
                 geriHistoryData = result.data || [];
                 
-                // Generate stable market overlay data once
-                generateMarketOverlayData();
+                // Fetch real market overlay data from API
+                await loadMarketOverlayData();
                 
                 // Update trend indicators
                 updateTrendIndicators(currentGeri, geriHistoryData);
@@ -4026,10 +4036,8 @@
             
             // Display configuration for each overlay
             const overlayConfigs = {
-                brent: { label: 'Brent (scaled)', color: '#f59e0b' },
-                ttf: { label: 'TTF Gas (scaled)', color: '#10b981' },
-                vix: { label: 'VIX (scaled)', color: '#ef4444' },
-                freight: { label: 'Freight (scaled)', color: '#8b5cf6' }
+                brent: { label: 'Brent Oil (USD/barrel)', color: '#f59e0b' },
+                gas_storage: { label: 'EU Gas Storage (%)', color: '#10b981' }
             };
             
             // Get current labels from chart (matches current range)
