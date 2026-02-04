@@ -3659,6 +3659,7 @@
         // Chart instance reference
         let geriChart = null;
         let geriHistoryData = [];
+        let currentRangeFilter = 'all'; // Track current range
         let marketOverlays = {
             brent: { active: false, data: [] },
             ttf: { active: false, data: [] },
@@ -3676,23 +3677,43 @@
             };
             
             // Use seeded random for reproducible results based on date
+            // Uses a simple hash function for deterministic randomness
             function seededRandom(seed) {
-                const x = Math.sin(seed) * 10000;
-                return x - Math.floor(x);
+                let hash = seed;
+                hash = ((hash + 0x7ed55d16) + (hash << 12)) & 0xffffffff;
+                hash = ((hash ^ 0xc761c23c) ^ (hash >>> 19)) & 0xffffffff;
+                hash = ((hash + 0x165667b1) + (hash << 5)) & 0xffffffff;
+                hash = ((hash + 0xd3a2646c) ^ (hash << 9)) & 0xffffffff;
+                hash = ((hash + 0xfd7046c5) + (hash << 3)) & 0xffffffff;
+                hash = ((hash ^ 0xb55a4f09) ^ (hash >>> 16)) & 0xffffffff;
+                return (hash >>> 0) / 0xffffffff;
             }
             
             Object.keys(marketOverlays).forEach(key => {
                 const config = overlayConfigs[key];
+                // Create unique seed offset for each asset
+                const keyOffset = key.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1) * 31, 0);
+                
                 marketOverlays[key].data = geriHistoryData.map((d, i) => {
                     const geriVal = d.value || 50;
-                    // Use date-based seed for stable random values
-                    const dateSeed = new Date(d.date).getTime() / 1000000;
-                    const keySeed = key.charCodeAt(0) + key.charCodeAt(1);
-                    const noise = (seededRandom(dateSeed + keySeed + i) - 0.5) * config.volatility;
+                    // Create deterministic seed from date and asset
+                    const dateNum = new Date(d.date).getTime();
+                    const seed = dateNum + keyOffset + (i * 17);
+                    const noise = (seededRandom(seed) - 0.5) * config.volatility;
                     const correlation = 0.3;
                     return Math.max(0, Math.min(100, config.baseValue + (geriVal - 50) * correlation + noise));
                 });
             });
+        }
+        
+        // Get overlay data sliced to current range
+        function getSlicedOverlayData(key) {
+            const fullData = marketOverlays[key].data;
+            if (currentRangeFilter === 'all' || !fullData.length) {
+                return fullData;
+            }
+            const rangeNum = parseInt(currentRangeFilter);
+            return fullData.slice(-rangeNum);
         }
         
         async function loadGeriChartData(currentGeri) {
@@ -3952,17 +3973,22 @@
                     buttons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
+                    // Track current range for overlay slicing
+                    currentRangeFilter = range;
+                    
                     // Filter data based on range
                     let filteredData = geriHistoryData;
                     if (range !== 'all') {
                         filteredData = geriHistoryData.slice(-parseInt(range));
                     }
                     
-                    // Update chart
+                    // Update chart with GERI data
                     if (geriChart) {
                         geriChart.data.labels = filteredData.map(d => d.date);
                         geriChart.data.datasets[0].data = filteredData.map(d => d.value);
-                        geriChart.update();
+                        
+                        // Also update overlay data to match new range
+                        updateMarketOverlays();
                     }
                 });
             });
@@ -4001,10 +4027,12 @@
                 if (overlay.active && overlay.data.length > 0) {
                     const config = overlayConfigs[key];
                     
-                    // Use pre-generated stable data
+                    // Use pre-generated stable data, sliced to match current range
+                    const slicedData = getSlicedOverlayData(key);
+                    
                     geriChart.data.datasets.push({
                         label: config.label,
-                        data: overlay.data,
+                        data: slicedData,
                         borderColor: config.color,
                         backgroundColor: 'transparent',
                         borderWidth: 1.5,
