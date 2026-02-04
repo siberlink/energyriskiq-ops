@@ -85,7 +85,7 @@ GERI chart market overlays use real production data from the following sources:
 | EU Gas Storage | AGSI+ (GIE API) | `gas_storage_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
 | VIX | Yahoo Finance | `vix_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
 | TTF Gas | OilPriceAPI | `ttf_gas_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
-| EUR/USD | OilPriceAPI | `eurusd_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
+| EUR/USD | Oanda | `eurusd_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
 | Freight (BDI) | Baltic Exchange | `freight_snapshots` | N/A | Unavailable (paid) |
 
 Backfill scripts:

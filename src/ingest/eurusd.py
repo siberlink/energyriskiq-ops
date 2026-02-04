@@ -1,11 +1,13 @@
 """
 EUR/USD Currency Rate API Integration
 
-Fetches EUR/USD exchange rates from OilPriceAPI.
+Fetches EUR/USD daily closing prices from Oanda REST API v20.
 Stores daily snapshots in eurusd_snapshots table for GERI calculations.
 
-API Documentation: https://docs.oilpriceapi.com/
-Commodity Code: EUR_USD
+Oanda provides precise forex data with 5-6 decimal places.
+Uses daily candles (D granularity) for closing prices.
+
+API Documentation: https://developer.oanda.com/rest-live-v20/pricing-ep/
 """
 
 import os
@@ -20,9 +22,10 @@ from src.db.db import get_cursor, execute_one
 
 logger = logging.getLogger(__name__)
 
-OIL_PRICE_API_KEY = os.environ.get("OIL_PRICE_API_KEY", "")
-OIL_PRICE_API_BASE = "https://api.oilpriceapi.com/v1"
-EURUSD_COMMODITY_CODE = "EUR_USD"
+OANDA_API_KEY = os.environ.get("OANDA_API_KEY", "")
+OANDA_ACCOUNT_ID = os.environ.get("OANDA_ACCOUNT_ID", "")
+OANDA_API_BASE = "https://api-fxtrade.oanda.com/v3"
+EURUSD_INSTRUMENT = "EUR_USD"
 
 
 @dataclass
@@ -35,124 +38,176 @@ class EURUSDSnapshot:
     raw_data: Dict[str, Any]
 
 
-def _fetch_eurusd_latest() -> Optional[Dict[str, Any]]:
-    """Fetch latest EUR/USD exchange rate."""
-    if not OIL_PRICE_API_KEY:
-        logger.warning("OIL_PRICE_API_KEY not configured")
-        return None
-    
-    url = f"{OIL_PRICE_API_BASE}/prices/latest"
-    headers = {
-        "Authorization": f"Token {OIL_PRICE_API_KEY}",
-        "Content-Type": "application/json"
+def _get_oanda_headers() -> Dict[str, str]:
+    """Get headers for Oanda API requests."""
+    return {
+        "Authorization": f"Bearer {OANDA_API_KEY}",
+        "Content-Type": "application/json",
+        "Accept-Datetime-Format": "RFC3339"
     }
-    params = {"by_code": EURUSD_COMMODITY_CODE}
+
+
+def _fetch_eurusd_candles(count: int = 30, granularity: str = "D") -> List[Dict[str, Any]]:
+    """
+    Fetch EUR/USD daily candles from Oanda.
+    
+    Args:
+        count: Number of candles to fetch (max 5000)
+        granularity: Candle granularity (D=daily, H1=hourly, etc.)
+        
+    Returns:
+        List of candle data with OHLC prices.
+    """
+    if not OANDA_API_KEY:
+        logger.warning("OANDA_API_KEY not configured")
+        return []
+    
+    url = f"{OANDA_API_BASE}/instruments/{EURUSD_INSTRUMENT}/candles"
+    headers = _get_oanda_headers()
+    params = {
+        "granularity": granularity,
+        "count": count,
+        "price": "M"
+    }
+    
+    logger.info(f"Fetching {count} EUR/USD daily candles from Oanda...")
     
     try:
         response = requests.get(url, headers=headers, params=params, timeout=30)
         
         if response.status_code == 401:
-            logger.error("OilPriceAPI key is invalid or expired")
-            return None
+            logger.error("Oanda API key is invalid or expired")
+            return []
         
         if response.status_code != 200:
-            logger.error(f"OilPriceAPI returned {response.status_code}: {response.text}")
-            return None
+            logger.error(f"Oanda API returned {response.status_code}: {response.text[:500]}")
+            return []
         
         data = response.json()
-        if data.get("status") != "success" or not data.get("data"):
-            logger.warning(f"No data returned for {EURUSD_COMMODITY_CODE}")
-            return None
-        
-        return data["data"]
+        candles = data.get("candles", [])
+        logger.info(f"Fetched {len(candles)} EUR/USD candles from Oanda")
+        return candles
         
     except requests.exceptions.RequestException as e:
-        logger.error(f"OilPriceAPI request failed for EUR/USD: {e}")
-        return None
+        logger.error(f"Oanda API request failed: {e}")
+        return []
 
 
-def _fetch_eurusd_history(days: int = 90) -> List[Dict[str, Any]]:
+def _fetch_eurusd_candles_range(from_date: date, to_date: date) -> List[Dict[str, Any]]:
     """
-    Fetch EUR/USD exchange rate history.
+    Fetch EUR/USD daily candles for a specific date range from Oanda.
     
-    Supports multiple time ranges depending on API plan:
-    - past_week: ~7 days (free tier)
-    - past_month: ~30 days (Production Boost+)
-    - past_year: ~365 days (Production Boost+)
+    Args:
+        from_date: Start date (inclusive)
+        to_date: End date (inclusive)
+        
+    Returns:
+        List of candle data with OHLC prices.
     """
-    if not OIL_PRICE_API_KEY:
-        logger.warning("OIL_PRICE_API_KEY not configured")
+    if not OANDA_API_KEY:
+        logger.warning("OANDA_API_KEY not configured")
         return []
     
-    if days > 30:
-        endpoint = "past_year"
-    elif days > 7:
-        endpoint = "past_month"
-    else:
-        endpoint = "past_week"
+    from_str = from_date.strftime("%Y-%m-%dT00:00:00Z")
+    to_str = (to_date + timedelta(days=1)).strftime("%Y-%m-%dT00:00:00Z")
     
-    url = f"{OIL_PRICE_API_BASE}/prices/{endpoint}"
-    headers = {
-        "Authorization": f"Token {OIL_PRICE_API_KEY}",
-        "Content-Type": "application/json"
+    url = f"{OANDA_API_BASE}/instruments/{EURUSD_INSTRUMENT}/candles"
+    headers = _get_oanda_headers()
+    params = {
+        "granularity": "D",
+        "from": from_str,
+        "to": to_str,
+        "price": "M"
     }
-    params = {"by_code": EURUSD_COMMODITY_CODE}
     
-    logger.info(f"Fetching EUR/USD history from {endpoint} endpoint...")
+    logger.info(f"Fetching EUR/USD candles from {from_date} to {to_date}...")
     
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=60)
+        response = requests.get(url, headers=headers, params=params, timeout=30)
         
-        if response.status_code == 403:
-            logger.warning(f"API plan doesn't support {endpoint}, falling back to past_week")
-            url = f"{OIL_PRICE_API_BASE}/prices/past_week"
-            response = requests.get(url, headers=headers, params=params, timeout=30)
+        if response.status_code == 401:
+            logger.error("Oanda API key is invalid or expired")
+            return []
         
         if response.status_code != 200:
-            logger.error(f"OilPriceAPI history returned {response.status_code}: {response.text[:200]}")
+            logger.error(f"Oanda API returned {response.status_code}: {response.text[:500]}")
             return []
         
         data = response.json()
-        if data.get("status") != "success":
-            logger.error(f"OilPriceAPI returned status: {data.get('status')}")
-            return []
-        
-        prices = data.get("data", {}).get("prices", [])
-        logger.info(f"Fetched {len(prices)} EUR/USD rate records from {endpoint}")
-        return prices
+        candles = data.get("candles", [])
+        logger.info(f"Fetched {len(candles)} EUR/USD candles from Oanda")
+        return candles
         
     except requests.exceptions.RequestException as e:
-        logger.error(f"OilPriceAPI history request failed: {e}")
+        logger.error(f"Oanda API request failed: {e}")
         return []
+
+
+def _parse_candle_to_snapshot(candle: Dict[str, Any]) -> Optional[EURUSDSnapshot]:
+    """Parse an Oanda candle to a EURUSDSnapshot."""
+    try:
+        time_str = candle.get("time", "")
+        if not time_str:
+            return None
+        
+        candle_date = time_str[:10]
+        
+        mid = candle.get("mid", {})
+        close_price = float(mid.get("c", 0))
+        
+        if close_price == 0:
+            return None
+        
+        return EURUSDSnapshot(
+            date=candle_date,
+            rate=close_price,
+            currency_pair="EUR/USD",
+            source="oanda",
+            raw_data={
+                "open": mid.get("o"),
+                "high": mid.get("h"),
+                "low": mid.get("l"),
+                "close": mid.get("c"),
+                "volume": candle.get("volume"),
+                "complete": candle.get("complete")
+            }
+        )
+    except Exception as e:
+        logger.error(f"Failed to parse candle: {e}")
+        return None
 
 
 def fetch_eurusd_rate() -> Optional[EURUSDSnapshot]:
     """
-    Fetch current EUR/USD exchange rate.
+    Fetch the latest EUR/USD closing price.
     
     Returns:
         EURUSDSnapshot with rate data or None on error.
     """
-    logger.info("Fetching EUR/USD rate from OilPriceAPI...")
+    logger.info("Fetching EUR/USD rate from Oanda...")
     
-    eurusd_data = _fetch_eurusd_latest()
+    candles = _fetch_eurusd_candles(count=5, granularity="D")
     
-    if not eurusd_data:
-        logger.error("Failed to fetch EUR/USD rate")
+    if not candles:
+        logger.error("Failed to fetch EUR/USD candles from Oanda")
         return None
     
-    rate = float(eurusd_data.get("price", 0))
+    completed_candles = [c for c in candles if c.get("complete", False)]
     
-    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
-    snapshot = EURUSDSnapshot(
-        date=yesterday,
-        rate=rate,
-        currency_pair="EUR/USD",
-        source="oilpriceapi",
-        raw_data=eurusd_data
-    )
+    if not completed_candles:
+        logger.warning("No completed daily candles available")
+        if candles:
+            completed_candles = candles[:-1]
     
-    logger.info(f"EUR/USD rate: {rate:.6f}")
+    if not completed_candles:
+        logger.error("No usable candle data")
+        return None
+    
+    latest_candle = completed_candles[-1]
+    snapshot = _parse_candle_to_snapshot(latest_candle)
+    
+    if snapshot:
+        logger.info(f"EUR/USD rate for {snapshot.date}: {snapshot.rate:.6f}")
     
     return snapshot
 
@@ -181,7 +236,7 @@ def save_eurusd_snapshot(snapshot: EURUSDSnapshot) -> bool:
                 snapshot.source,
                 json.dumps(snapshot.raw_data)
             ))
-        logger.info(f"Saved EUR/USD snapshot for {snapshot.date}")
+        logger.info(f"Saved EUR/USD snapshot for {snapshot.date}: {snapshot.rate:.6f}")
         return True
     except Exception as e:
         logger.error(f"Failed to save EUR/USD snapshot: {e}")
@@ -213,7 +268,7 @@ def capture_eurusd_snapshot() -> Dict[str, Any]:
     if not snapshot:
         return {
             "status": "error",
-            "message": "Failed to fetch EUR/USD rate from API",
+            "message": "Failed to fetch EUR/USD rate from Oanda API",
             "date": target_date
         }
     
@@ -222,8 +277,8 @@ def capture_eurusd_snapshot() -> Dict[str, Any]:
     if success:
         return {
             "status": "success",
-            "message": f"Captured EUR/USD rate for {target_date}",
-            "date": target_date,
+            "message": f"Captured EUR/USD rate for {snapshot.date}",
+            "date": snapshot.date,
             "rate": snapshot.rate
         }
     else:
@@ -245,42 +300,32 @@ def get_eurusd_for_date(target_date: date) -> Optional[Dict[str, Any]]:
 
 def backfill_eurusd_history(days: int = 90) -> Dict[str, Any]:
     """
-    Backfill EUR/USD history from OilPriceAPI.
+    Backfill EUR/USD history from Oanda.
     
-    Uses past_year endpoint for paid API tiers (Production Boost+).
-    Groups multiple intraday rates by date and takes the latest for each day.
+    Uses daily candles with precise closing prices (6 decimal places).
     """
-    logger.info(f"Fetching EUR/USD history for backfill ({days} days)...")
+    logger.info(f"Backfilling EUR/USD history for {days} days from Oanda...")
     
-    history = _fetch_eurusd_history(days=days)
+    candles = _fetch_eurusd_candles(count=days + 5, granularity="D")
     
-    if not history:
+    if not candles:
         return {
             "status": "error",
-            "message": "No historical EUR/USD data available from API"
+            "message": "No historical EUR/USD data available from Oanda API"
         }
     
-    daily_rates = {}
-    for record in history:
-        created_at = record.get("created_at", "")
-        if not created_at:
-            continue
-        
-        record_date = created_at[:10]
-        rate = float(record.get("price", 0))
-        
-        if record_date not in daily_rates or created_at > daily_rates[record_date]["created_at"]:
-            daily_rates[record_date] = {
-                "date": record_date,
-                "rate": rate,
-                "created_at": created_at,
-                "raw_data": record
-            }
+    completed_candles = [c for c in candles if c.get("complete", False)]
     
     saved = 0
+    dates_saved = []
+    
     try:
         with get_cursor() as cursor:
-            for date_str, data in sorted(daily_rates.items()):
+            for candle in completed_candles:
+                snapshot = _parse_candle_to_snapshot(candle)
+                if not snapshot:
+                    continue
+                
                 cursor.execute("""
                     INSERT INTO eurusd_snapshots 
                     (date, rate, currency_pair, source, raw_data)
@@ -291,21 +336,90 @@ def backfill_eurusd_history(days: int = 90) -> Dict[str, Any]:
                         source = EXCLUDED.source,
                         raw_data = EXCLUDED.raw_data
                 """, (
-                    date_str,
-                    data["rate"],
-                    "EUR/USD",
-                    "oilpriceapi",
-                    json.dumps(data["raw_data"])
+                    snapshot.date,
+                    snapshot.rate,
+                    snapshot.currency_pair,
+                    snapshot.source,
+                    json.dumps(snapshot.raw_data)
                 ))
                 saved += 1
+                dates_saved.append(snapshot.date)
         
-        logger.info(f"Backfilled {saved} EUR/USD snapshots")
+        logger.info(f"Backfilled {saved} EUR/USD snapshots from Oanda")
         
         return {
             "status": "success",
-            "message": f"Backfilled {saved} EUR/USD snapshots",
+            "message": f"Backfilled {saved} EUR/USD snapshots from Oanda",
             "days": saved,
-            "date_range": f"{min(daily_rates.keys())} to {max(daily_rates.keys())}" if daily_rates else "N/A"
+            "date_range": f"{min(dates_saved)} to {max(dates_saved)}" if dates_saved else "N/A",
+            "source": "oanda"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to backfill EUR/USD history: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
+def backfill_eurusd_range(from_date: date, to_date: date) -> Dict[str, Any]:
+    """
+    Backfill EUR/USD history for a specific date range.
+    
+    Args:
+        from_date: Start date (inclusive)
+        to_date: End date (inclusive)
+    """
+    logger.info(f"Backfilling EUR/USD from {from_date} to {to_date}...")
+    
+    candles = _fetch_eurusd_candles_range(from_date, to_date)
+    
+    if not candles:
+        return {
+            "status": "error",
+            "message": f"No EUR/USD data available from Oanda for {from_date} to {to_date}"
+        }
+    
+    completed_candles = [c for c in candles if c.get("complete", False)]
+    
+    saved = 0
+    dates_saved = []
+    
+    try:
+        with get_cursor() as cursor:
+            for candle in completed_candles:
+                snapshot = _parse_candle_to_snapshot(candle)
+                if not snapshot:
+                    continue
+                
+                cursor.execute("""
+                    INSERT INTO eurusd_snapshots 
+                    (date, rate, currency_pair, source, raw_data)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (date) DO UPDATE SET
+                        rate = EXCLUDED.rate,
+                        currency_pair = EXCLUDED.currency_pair,
+                        source = EXCLUDED.source,
+                        raw_data = EXCLUDED.raw_data
+                """, (
+                    snapshot.date,
+                    snapshot.rate,
+                    snapshot.currency_pair,
+                    snapshot.source,
+                    json.dumps(snapshot.raw_data)
+                ))
+                saved += 1
+                dates_saved.append(snapshot.date)
+        
+        logger.info(f"Backfilled {saved} EUR/USD snapshots from Oanda")
+        
+        return {
+            "status": "success",
+            "message": f"Backfilled {saved} EUR/USD snapshots from Oanda",
+            "days": saved,
+            "date_range": f"{min(dates_saved)} to {max(dates_saved)}" if dates_saved else "N/A",
+            "source": "oanda"
         }
         
     except Exception as e:
