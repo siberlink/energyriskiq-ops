@@ -912,6 +912,54 @@ def run_calculate_oil_changes(
     return response
 
 
+@router.post("/run/backfill-market-data")
+def run_backfill_market_data(
+    vix_days: int = 90,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill VIX and TTF gas historical data.
+    
+    Args:
+        vix_days: Number of days to backfill VIX (default 90, max available from Yahoo Finance)
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.ingest.market_data import fetch_vix_data, save_vix_snapshots
+    from src.ingest.ttf_gas import backfill_ttf_history
+    
+    def backfill_job():
+        results = {}
+        
+        logger.info(f"Backfilling VIX data for {vix_days} days...")
+        vix_snapshots = fetch_vix_data(days=vix_days)
+        if vix_snapshots:
+            saved = save_vix_snapshots(vix_snapshots)
+            results['vix'] = {
+                "status": "success",
+                "message": f"Saved {saved} VIX snapshots",
+                "count": saved,
+                "date_range": f"{vix_snapshots[0].date} to {vix_snapshots[-1].date}" if vix_snapshots else "N/A"
+            }
+        else:
+            results['vix'] = {"status": "error", "message": "Failed to fetch VIX data"}
+        
+        logger.info(f"Backfilling TTF gas data...")
+        ttf_result = backfill_ttf_history()
+        results['ttf'] = ttf_result
+        
+        return results
+    
+    response, status_code = run_job_with_lock('market_data_capture', backfill_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
 @router.post("/run/backfill-egsi")
 def run_backfill_egsi(
     days: int = 15,

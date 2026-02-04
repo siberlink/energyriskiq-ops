@@ -75,31 +75,55 @@ def _fetch_ttf_latest() -> Optional[Dict[str, Any]]:
         return None
 
 
-def _fetch_ttf_history(days: int = 30) -> List[Dict[str, Any]]:
-    """Fetch TTF gas price history."""
+def _fetch_ttf_history(days: int = 90) -> List[Dict[str, Any]]:
+    """
+    Fetch TTF gas price history.
+    
+    Supports multiple time ranges depending on API plan:
+    - past_week: ~7 days (free tier)
+    - past_month: ~30 days (Production Boost+)
+    - past_year: ~365 days (Production Boost+)
+    """
     if not OIL_PRICE_API_KEY:
         logger.warning("OIL_PRICE_API_KEY not configured")
         return []
     
-    url = f"{OIL_PRICE_API_BASE}/prices/past_week"
+    if days > 30:
+        endpoint = "past_year"
+    elif days > 7:
+        endpoint = "past_month"
+    else:
+        endpoint = "past_week"
+    
+    url = f"{OIL_PRICE_API_BASE}/prices/{endpoint}"
     headers = {
         "Authorization": f"Token {OIL_PRICE_API_KEY}",
         "Content-Type": "application/json"
     }
     params = {"by_code": TTF_COMMODITY_CODE}
     
+    logger.info(f"Fetching TTF history from {endpoint} endpoint...")
+    
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=30)
+        response = requests.get(url, headers=headers, params=params, timeout=60)
+        
+        if response.status_code == 403:
+            logger.warning(f"API plan doesn't support {endpoint}, falling back to past_week")
+            url = f"{OIL_PRICE_API_BASE}/prices/past_week"
+            response = requests.get(url, headers=headers, params=params, timeout=30)
         
         if response.status_code != 200:
-            logger.error(f"OilPriceAPI history returned {response.status_code}")
+            logger.error(f"OilPriceAPI history returned {response.status_code}: {response.text[:200]}")
             return []
         
         data = response.json()
         if data.get("status") != "success":
+            logger.error(f"OilPriceAPI returned status: {data.get('status')}")
             return []
         
-        return data.get("data", {}).get("prices", [])
+        prices = data.get("data", {}).get("prices", [])
+        logger.info(f"Fetched {len(prices)} TTF price records from {endpoint}")
+        return prices
         
     except requests.exceptions.RequestException as e:
         logger.error(f"OilPriceAPI history request failed: {e}")
@@ -227,15 +251,16 @@ def get_ttf_gas_for_date(target_date: date) -> Optional[Dict[str, Any]]:
     return dict(result) if result else None
 
 
-def backfill_ttf_history() -> Dict[str, Any]:
+def backfill_ttf_history(days: int = 90) -> Dict[str, Any]:
     """
-    Backfill TTF gas history from OilPriceAPI past_week endpoint.
+    Backfill TTF gas history from OilPriceAPI.
     
+    Uses past_year endpoint for paid API tiers (Production Boost+).
     Groups multiple intraday prices by date and takes the latest for each day.
     """
-    logger.info("Fetching TTF gas history for backfill...")
+    logger.info(f"Fetching TTF gas history for backfill ({days} days)...")
     
-    history = _fetch_ttf_history(days=30)
+    history = _fetch_ttf_history(days=days)
     
     if not history:
         return {
