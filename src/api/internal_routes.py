@@ -30,6 +30,7 @@ LOCK_IDS = {
     'backfill_snapshots': 5001,
     'backfill_egsi': 5002,
     'calculate_oil_changes': 5003,
+    'backfill_eurusd': 5004,
 }
 
 
@@ -1017,6 +1018,34 @@ def run_backfill_egsi(
         }
     
     response, status_code = run_job_with_lock('backfill_egsi', backfill_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
+@router.post("/run/backfill-eurusd")
+def run_backfill_eurusd(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill EUR/USD exchange rate historical data only.
+    
+    Uses OilPriceAPI past_year endpoint for maximum available history.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.ingest.eurusd import backfill_eurusd_history
+    
+    def backfill_job():
+        logger.info("Backfilling EUR/USD data...")
+        result = backfill_eurusd_history(days=90)
+        return result
+    
+    response, status_code = run_job_with_lock('backfill_eurusd', backfill_job)
     
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)

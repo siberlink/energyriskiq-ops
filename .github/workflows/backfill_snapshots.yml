@@ -13,6 +13,7 @@ on:
           - calculate_changes
           - backfill_egsi
           - backfill_market_data
+          - backfill_eurusd
       days:
         description: 'Number of days to backfill (only for backfill action)'
         required: false
@@ -205,5 +206,50 @@ jobs:
           echo "| Action | backfill_market_data |" >> $GITHUB_STEP_SUMMARY
           echo "| VIX Days | ${{ github.event.inputs.vix_days }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.backfill_market.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+
+  backfill_eurusd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.event.inputs.action == 'backfill_eurusd' }}
+    
+    steps:
+      - name: Backfill EUR/USD Exchange Rate Data
+        id: backfill_eurusd
+        run: |
+          echo "Backfilling EUR/USD exchange rate data..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/backfill-eurusd" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::EUR/USD backfill failed with HTTP $http_code"
+            exit 1
+          fi
+          
+          echo "EUR/USD backfill completed successfully!"
+          echo "$body" | jq .
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Backfill EUR/USD Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | backfill_eurusd |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.backfill_eurusd.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
