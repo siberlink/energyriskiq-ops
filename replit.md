@@ -69,5 +69,24 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Messaging Service:** Telegram Bot API
 - **SMS Service:** Twilio (optional)
 - **Gas Storage Data:** AGSI+ (GIE API) for EU gas storage levels
-- **Gas Price Data:** OilPriceAPI for live TTF natural gas prices
-- **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv.
+- **Gas Price Data:** OilPriceAPI for live TTF natural gas prices (EUR/MWh)
+- **Oil Price Data:** OilPriceAPI for Brent/WTI crude oil prices (USD/barrel)
+- **VIX Data:** Yahoo Finance (yfinance) for CBOE Volatility Index
+- **Freight Data:** Baltic Dry Index NOT available (requires paid Baltic Exchange subscription ~$500+/month)
+- **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv, yfinance.
+
+## Market Data Collection
+
+GERI chart market overlays use real production data from the following sources:
+
+| Overlay | Source | Table | API | Status |
+|---------|--------|-------|-----|--------|
+| Brent Oil | OilPriceAPI | `oil_price_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
+| EU Gas Storage | AGSI+ (GIE API) | `gas_storage_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
+| VIX | Yahoo Finance | `vix_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
+| TTF Gas | OilPriceAPI | `ttf_gas_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
+| Freight (BDI) | Baltic Exchange | `freight_snapshots` | N/A | Unavailable (paid) |
+
+Backfill scripts:
+- VIX: `python -m src.scripts.backfill_market_data --vix --days 90`
+- TTF: `python -m src.scripts.backfill_market_data --ttf` (current price only, historical requires paid tier)

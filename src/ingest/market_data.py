@@ -1,10 +1,11 @@
 """
 Market Data Collection Module
 
-Fetches VIX (Volatility Index) and BDI (Baltic Dry Index/Freight) data
-from Yahoo Finance using yfinance library.
+Fetches VIX (Volatility Index) data from Yahoo Finance using yfinance library.
+Data is stored in vix_snapshots table.
 
-Data is stored in vix_snapshots and freight_snapshots tables.
+Note: Freight (BDI/Baltic Dry Index) requires paid subscription to Baltic Exchange.
+Freight functions are disabled and return "unavailable" status.
 """
 
 import logging
@@ -86,44 +87,13 @@ def fetch_vix_data(days: int = 30) -> List[VIXSnapshot]:
 
 def fetch_freight_data(days: int = 30) -> List[FreightSnapshot]:
     """
-    Fetch Baltic Dry Index (BDI) data from Yahoo Finance.
+    DISABLED: Baltic Dry Index (BDI) requires paid subscription to Baltic Exchange.
     
-    Args:
-        days: Number of days of history to fetch (default 30)
-        
-    Returns:
-        List of FreightSnapshot objects
+    This function is a no-op stub that returns an empty list.
+    To enable, obtain subscription from https://www.balticexchange.com/
     """
-    logger.info(f"Fetching BDI (freight) data for last {days} days...")
-    
-    try:
-        bdi = yf.Ticker("BDI")
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days + 5)
-        
-        hist = bdi.history(start=start_date, end=end_date)
-        
-        if hist.empty:
-            logger.warning("No BDI data returned from yfinance")
-            return []
-        
-        snapshots = []
-        for idx, row in hist.iterrows():
-            date_str = pd.Timestamp(idx).strftime("%Y-%m-%d")
-            snapshots.append(FreightSnapshot(
-                date=date_str,
-                bdi_close=float(row.get('Close') or 0),
-                bdi_open=float(row.get('Open') or 0),
-                bdi_high=float(row.get('High') or 0),
-                bdi_low=float(row.get('Low') or 0)
-            ))
-        
-        logger.info(f"Fetched {len(snapshots)} BDI data points")
-        return snapshots
-        
-    except Exception as e:
-        logger.error(f"Failed to fetch BDI data: {e}")
-        return []
+    logger.warning("Freight (BDI) data unavailable - requires paid Baltic Exchange subscription (~$500+/month)")
+    return []
 
 
 def save_vix_snapshots(snapshots: List[VIXSnapshot]) -> int:
@@ -170,44 +140,11 @@ def save_vix_snapshots(snapshots: List[VIXSnapshot]) -> int:
 
 def save_freight_snapshots(snapshots: List[FreightSnapshot]) -> int:
     """
-    Save freight (BDI) snapshots to database.
-    
-    Uses ON CONFLICT to update if entry for date already exists.
-    
-    Returns:
-        Number of snapshots saved/updated
+    DISABLED: Baltic Dry Index (BDI) requires paid subscription.
+    This function is a no-op stub that returns 0.
     """
-    if not snapshots:
-        return 0
-    
-    saved = 0
-    try:
-        with get_cursor() as cursor:
-            for snapshot in snapshots:
-                cursor.execute("""
-                    INSERT INTO freight_snapshots 
-                    (date, bdi_close, bdi_open, bdi_high, bdi_low, source)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (date) DO UPDATE SET
-                        bdi_close = EXCLUDED.bdi_close,
-                        bdi_open = EXCLUDED.bdi_open,
-                        bdi_high = EXCLUDED.bdi_high,
-                        bdi_low = EXCLUDED.bdi_low,
-                        source = EXCLUDED.source
-                """, (
-                    snapshot.date,
-                    snapshot.bdi_close,
-                    snapshot.bdi_open,
-                    snapshot.bdi_high,
-                    snapshot.bdi_low,
-                    snapshot.source
-                ))
-                saved += 1
-        logger.info(f"Saved {saved} freight snapshots")
-    except Exception as e:
-        logger.error(f"Failed to save freight snapshots: {e}")
-    
-    return saved
+    logger.warning("Freight saving disabled - requires paid subscription")
+    return 0
 
 
 def capture_vix_snapshot() -> Dict[str, Any]:
@@ -239,49 +176,38 @@ def capture_vix_snapshot() -> Dict[str, Any]:
 
 def capture_freight_snapshot() -> Dict[str, Any]:
     """
-    Main entry point: Fetch and store BDI (freight) data.
+    DISABLED: Baltic Dry Index (BDI) requires paid subscription.
     
-    Returns:
-        Dict with status and data about the operation.
+    Returns unavailable status - no data collection performed.
+    To enable, obtain subscription from https://www.balticexchange.com/
     """
-    snapshots = fetch_freight_data(days=7)
-    
-    if not snapshots:
-        return {
-            "status": "error",
-            "message": "Failed to fetch BDI data from Yahoo Finance"
-        }
-    
-    saved = save_freight_snapshots(snapshots)
-    latest = snapshots[-1] if snapshots else None
-    
     return {
-        "status": "success",
-        "message": f"Captured {saved} freight (BDI) snapshots",
-        "latest_date": latest.date if latest else None,
-        "latest_value": latest.bdi_close if latest else None,
-        "count": saved
+        "status": "unavailable",
+        "message": "Freight (BDI) requires paid Baltic Exchange subscription (~$500+/month)",
+        "note": "Contact https://www.balticexchange.com/ for access"
     }
 
 
 def capture_all_market_data() -> Dict[str, Any]:
     """
-    Capture all market data (VIX, BDI).
+    Capture all available market data (VIX only).
+    
+    Note: Freight (BDI) requires paid Baltic Exchange subscription - not collected.
     
     Returns:
         Dict with status for each data source.
     """
     results = {
-        "vix": capture_vix_snapshot(),
-        "freight": capture_freight_snapshot()
+        "vix": capture_vix_snapshot()
     }
     
     success_count = sum(1 for r in results.values() if r.get("status") == "success")
     
     return {
         "status": "success" if success_count > 0 else "error",
-        "message": f"Captured {success_count}/2 market data sources",
-        "results": results
+        "message": f"Captured {success_count}/1 market data sources",
+        "results": results,
+        "note": "Freight (BDI) requires paid subscription - not collected"
     }
 
 
