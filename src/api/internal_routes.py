@@ -789,11 +789,12 @@ def run_market_data_capture(
     x_runner_token: Optional[str] = Header(None)
 ):
     """
-    Capture daily VIX and TTF gas market data for GERI chart overlays.
+    Capture daily VIX, TTF gas, and EUR/USD market data for GERI chart overlays.
     
     Captures:
     - VIX (Volatility Index) from Yahoo Finance
     - TTF Gas prices from OilPriceAPI
+    - EUR/USD exchange rate from OilPriceAPI
     
     Should run once daily, ideally after market close.
     Skips if data already exists for target date (idempotent).
@@ -802,6 +803,7 @@ def run_market_data_capture(
     
     from src.ingest.market_data import capture_vix_snapshot
     from src.ingest.ttf_gas import capture_ttf_gas_snapshot
+    from src.ingest.eurusd import capture_eurusd_snapshot
     
     def market_data_job():
         results = {}
@@ -819,6 +821,14 @@ def run_market_data_capture(
             'message': ttf_result.get('message', ''),
             'date': ttf_result.get('date'),
             'price': ttf_result.get('ttf_price')
+        }
+        
+        eurusd_result = capture_eurusd_snapshot()
+        results['eurusd'] = {
+            'status': eurusd_result.get('status', 'error'),
+            'message': eurusd_result.get('message', ''),
+            'date': eurusd_result.get('date'),
+            'rate': eurusd_result.get('rate')
         }
         
         success_count = sum(1 for r in results.values() if r.get('status') in ['success', 'skipped'])
@@ -918,7 +928,7 @@ def run_backfill_market_data(
     x_runner_token: Optional[str] = Header(None)
 ):
     """
-    Backfill VIX and TTF gas historical data.
+    Backfill VIX, TTF gas, and EUR/USD historical data.
     
     Args:
         vix_days: Number of days to backfill VIX (default 90, max available from Yahoo Finance)
@@ -927,6 +937,7 @@ def run_backfill_market_data(
     
     from src.ingest.market_data import fetch_vix_data, save_vix_snapshots
     from src.ingest.ttf_gas import backfill_ttf_history
+    from src.ingest.eurusd import backfill_eurusd_history
     
     def backfill_job():
         results = {}
@@ -947,6 +958,10 @@ def run_backfill_market_data(
         logger.info(f"Backfilling TTF gas data...")
         ttf_result = backfill_ttf_history()
         results['ttf'] = ttf_result
+        
+        logger.info(f"Backfilling EUR/USD data...")
+        eurusd_result = backfill_eurusd_history()
+        results['eurusd'] = eurusd_result
         
         return results
     

@@ -85,14 +85,16 @@ GERI chart market overlays use real production data from the following sources:
 | EU Gas Storage | AGSI+ (GIE API) | `gas_storage_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
 | VIX | Yahoo Finance | `vix_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
 | TTF Gas | OilPriceAPI | `ttf_gas_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
+| EUR/USD | OilPriceAPI | `eurusd_snapshots` | `/api/v1/indices/geri/market-overlays` | Active |
 | Freight (BDI) | Baltic Exchange | `freight_snapshots` | N/A | Unavailable (paid) |
 
 Backfill scripts:
 - VIX: `python -m src.scripts.backfill_market_data --vix --days 90`
 - TTF: `python -m src.scripts.backfill_market_data --ttf` (current price only, historical requires paid tier)
+- EUR/USD: Backfilled via GitHub Actions workflow `backfill_snapshots.yml` with action `backfill_market_data`
 
 Automatic daily updates:
 - Endpoint: `POST /internal/run/market-data` (requires X-Runner-Token header)
-- Captures VIX and TTF gas prices daily
-- Should be called once per day, ideally after market close
+- Captures VIX, TTF gas prices, and EUR/USD exchange rate daily
+- Should be called once per day, ideally after market close (runs in geri-daily.yml at 01:10 UTC)
 - Idempotent: skips if data already exists for target date
