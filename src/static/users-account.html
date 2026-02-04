@@ -3612,10 +3612,16 @@
                         '</div>' +
                         '<div class="market-overlay-toggles">' +
                             '<button class="overlay-toggle" data-overlay="brent" style="--overlay-color: #f59e0b;">' +
-                                '<span class="dot"></span> Brent Oil (USD/barrel)' +
+                                '<span class="dot"></span> Brent Oil' +
                             '</button>' +
                             '<button class="overlay-toggle" data-overlay="gas_storage" style="--overlay-color: #10b981;">' +
-                                '<span class="dot"></span> EU Gas Storage (%)' +
+                                '<span class="dot"></span> EU Gas Storage' +
+                            '</button>' +
+                            '<button class="overlay-toggle" data-overlay="vix" style="--overlay-color: #ef4444;">' +
+                                '<span class="dot"></span> VIX' +
+                            '</button>' +
+                            '<button class="overlay-toggle" data-overlay="ttf" style="--overlay-color: #8b5cf6;">' +
+                                '<span class="dot"></span> TTF Gas' +
                             '</button>' +
                         '</div>' +
                         '<div class="geri-chart-card">' +
@@ -3656,7 +3662,9 @@
         let currentRangeFilter = 'all'; // Track current range
         let marketOverlays = {
             brent: { active: false, data: [], rawData: [], unit: 'USD/barrel' },
-            gas_storage: { active: false, data: [], rawData: [], unit: '%' }
+            gas_storage: { active: false, data: [], rawData: [], unit: '%' },
+            vix: { active: false, data: [], rawData: [], unit: 'index' },
+            ttf: { active: false, data: [], rawData: [], unit: 'EUR/MWh' }
         };
         let overlayDataLoaded = false;
         
@@ -3688,10 +3696,24 @@
                     alignOverlayWithGeri('gas_storage');
                 }
                 
+                if (result.overlays?.vix?.data) {
+                    marketOverlays.vix.rawData = result.overlays.vix.data;
+                    marketOverlays.vix.unit = result.overlays.vix.unit;
+                    alignOverlayWithGeri('vix');
+                }
+                
+                if (result.overlays?.ttf?.data) {
+                    marketOverlays.ttf.rawData = result.overlays.ttf.data;
+                    marketOverlays.ttf.unit = result.overlays.ttf.unit;
+                    alignOverlayWithGeri('ttf');
+                }
+                
                 overlayDataLoaded = true;
                 console.log('Market overlay data loaded:', {
                     brent: marketOverlays.brent.data.length,
-                    gas_storage: marketOverlays.gas_storage.data.length
+                    gas_storage: marketOverlays.gas_storage.data.length,
+                    vix: marketOverlays.vix.data.length,
+                    ttf: marketOverlays.ttf.data.length
                 });
             } catch (error) {
                 console.error('Error loading market overlay data:', error);
@@ -4037,7 +4059,9 @@
             // Display configuration for each overlay
             const overlayConfigs = {
                 brent: { label: 'Brent Oil (USD/barrel)', color: '#f59e0b' },
-                gas_storage: { label: 'EU Gas Storage (%)', color: '#10b981' }
+                gas_storage: { label: 'EU Gas Storage (%)', color: '#10b981' },
+                vix: { label: 'VIX (index)', color: '#ef4444' },
+                ttf: { label: 'TTF Gas (EUR/MWh)', color: '#8b5cf6' }
             };
             
             // Get current labels from chart (matches current range)

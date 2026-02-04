@@ -388,22 +388,69 @@ async def get_geri_market_overlays(
             ORDER BY date ASC
         """, (start, end))
         gas_rows = cur.fetchall()
+        
+        cur.execute("""
+            SELECT date, vix_close
+            FROM vix_snapshots
+            WHERE date >= %s AND date <= %s
+            ORDER BY date ASC
+        """, (start, end))
+        vix_rows = cur.fetchall()
+        
+        cur.execute("""
+            SELECT date, ttf_price
+            FROM ttf_gas_snapshots
+            WHERE date >= %s AND date <= %s
+            ORDER BY date ASC
+        """, (start, end))
+        ttf_rows = cur.fetchall()
     
     brent_data = []
     for row in oil_rows:
+        row_date = row['date']
         brent_data.append({
-            'date': row[0].isoformat() if isinstance(row[0], date) else row[0],
-            'value': float(row[1]) if row[1] else None,
-            'wti': float(row[2]) if row[2] else None
+            'date': row_date.isoformat() if isinstance(row_date, date) else row_date,
+            'value': float(row['brent_price']) if row['brent_price'] else None,
+            'wti': float(row['wti_price']) if row['wti_price'] else None
         })
     
     gas_storage_data = []
     for row in gas_rows:
+        row_date = row['date']
         gas_storage_data.append({
-            'date': row[0].isoformat() if isinstance(row[0], date) else row[0],
-            'value': float(row[1]) if row[1] else None,
-            'risk_score': int(row[2]) if row[2] else None
+            'date': row_date.isoformat() if isinstance(row_date, date) else row_date,
+            'value': float(row['eu_storage_percent']) if row['eu_storage_percent'] else None,
+            'risk_score': int(row['risk_score']) if row['risk_score'] else None
         })
+    
+    vix_data = []
+    for row in vix_rows:
+        row_date = row['date']
+        vix_data.append({
+            'date': row_date.isoformat() if isinstance(row_date, date) else row_date,
+            'value': float(row['vix_close']) if row['vix_close'] else None
+        })
+    
+    ttf_data = []
+    for row in ttf_rows:
+        row_date = row['date']
+        ttf_data.append({
+            'date': row_date.isoformat() if isinstance(row_date, date) else row_date,
+            'value': float(row['ttf_price']) if row['ttf_price'] else None
+        })
+    
+    available = ['brent', 'gas_storage']
+    if vix_data:
+        available.append('vix')
+    if ttf_data:
+        available.append('ttf')
+    
+    unavailable = []
+    if not vix_data:
+        unavailable.append('vix')
+    if not ttf_data:
+        unavailable.append('ttf')
+    unavailable.append('freight')
     
     return {
         'success': True,
@@ -421,8 +468,21 @@ async def get_geri_market_overlays(
                 'unit': '%',
                 'count': len(gas_storage_data),
                 'data': gas_storage_data
+            },
+            'vix': {
+                'label': 'VIX',
+                'unit': 'index',
+                'count': len(vix_data),
+                'data': vix_data
+            },
+            'ttf': {
+                'label': 'TTF Gas',
+                'unit': 'EUR/MWh',
+                'count': len(ttf_data),
+                'data': ttf_data
             }
         },
-        'available': ['brent', 'gas_storage'],
-        'unavailable': ['vix', 'freight']
+        'available': available,
+        'unavailable': unavailable,
+        'note': 'Freight (Baltic Dry Index) requires paid subscription - not available'
     }
