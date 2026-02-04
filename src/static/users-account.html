@@ -3731,6 +3731,29 @@
             }
         }
         
+        // Normalization ranges for each asset type (historical context)
+        // These ranges map real-world values to 0-100 scale
+        const assetNormalizationRanges = {
+            brent: { min: 50, max: 120, label: 'Brent Oil' },      // USD/barrel typical range
+            gas_storage: { min: 0, max: 100, label: 'EU Gas Storage' }, // Already 0-100%
+            vix: { min: 10, max: 50, label: 'VIX' },               // VIX typical range (low ~12, crisis ~40+)
+            ttf: { min: 20, max: 100, label: 'TTF Gas' },          // EUR/MWh typical range
+            eurusd: { min: 1.00, max: 1.30, label: 'EUR/USD' }     // EUR/USD typical range
+        };
+        
+        // Normalize a value to 0-100 scale based on asset type
+        function normalizeToScale(value, assetKey) {
+            if (value === null || value === undefined) return null;
+            
+            const range = assetNormalizationRanges[assetKey];
+            if (!range) return value;
+            
+            // Linear normalization: ((value - min) / (max - min)) * 100
+            // Clamp to 0-100 to handle outliers
+            const normalized = ((value - range.min) / (range.max - range.min)) * 100;
+            return Math.max(0, Math.min(100, normalized));
+        }
+        
         // Align overlay data with GERI dates (for chart synchronization)
         function alignOverlayWithGeri(key) {
             const overlay = marketOverlays[key];
@@ -3742,14 +3765,21 @@
                 dateMap[d.date] = d.value;
             });
             
-            // Map to GERI dates
+            // Map to GERI dates and normalize to 0-100 scale
             overlay.data = geriHistoryData.map(geriPoint => {
+                const rawVal = dateMap[geriPoint.date];
+                if (rawVal === undefined) return null;
+                return normalizeToScale(rawVal, key);
+            });
+            
+            // Also store raw values for tooltip display
+            overlay.rawAligned = geriHistoryData.map(geriPoint => {
                 const val = dateMap[geriPoint.date];
                 return val !== undefined ? val : null;
             });
         }
         
-        // Get overlay data sliced to current range
+        // Get overlay data sliced to current range (normalized 0-100)
         function getSlicedOverlayData(key) {
             const fullData = marketOverlays[key].data;
             if (currentRangeFilter === 'all' || !fullData.length) {
@@ -3757,6 +3787,16 @@
             }
             const rangeNum = parseInt(currentRangeFilter);
             return fullData.slice(-rangeNum);
+        }
+        
+        // Get raw overlay data sliced to current range (actual prices)
+        function getSlicedOverlayRawData(key) {
+            const fullRawData = marketOverlays[key].rawAligned || [];
+            if (currentRangeFilter === 'all' || !fullRawData.length) {
+                return fullRawData;
+            }
+            const rangeNum = parseInt(currentRangeFilter);
+            return fullRawData.slice(-rangeNum);
         }
         
         async function loadGeriChartData(currentGeri) {
@@ -3936,11 +3976,36 @@
                                 title: (items) => 'Date: ' + items[0].label,
                                 label: (context) => {
                                     const val = context.parsed.y;
-                                    let band = 'LOW';
-                                    if (val >= 76) band = 'CRITICAL';
-                                    else if (val >= 51) band = 'ELEVATED';
-                                    else if (val >= 26) band = 'MODERATE';
-                                    return context.dataset.label + ': ' + val.toFixed(0) + ' (' + band + ')';
+                                    const dsLabel = context.dataset.label;
+                                    
+                                    // GERI shows band
+                                    if (dsLabel === 'GERI') {
+                                        let band = 'LOW';
+                                        if (val >= 76) band = 'CRITICAL';
+                                        else if (val >= 51) band = 'ELEVATED';
+                                        else if (val >= 26) band = 'MODERATE';
+                                        return dsLabel + ': ' + val.toFixed(0) + ' (' + band + ')';
+                                    }
+                                    
+                                    // For overlays, show the actual raw value
+                                    const rawValue = context.dataset.rawData?.[context.dataIndex];
+                                    if (rawValue !== null && rawValue !== undefined) {
+                                        const unit = context.dataset.unit || '';
+                                        // Format based on asset type
+                                        if (dsLabel.includes('EUR/USD')) {
+                                            return dsLabel + ': ' + rawValue.toFixed(4);
+                                        } else if (dsLabel.includes('Storage')) {
+                                            return dsLabel + ': ' + rawValue.toFixed(1) + '%';
+                                        } else if (dsLabel.includes('VIX')) {
+                                            return dsLabel + ': ' + rawValue.toFixed(2);
+                                        } else if (dsLabel.includes('TTF')) {
+                                            return dsLabel + ': €' + rawValue.toFixed(2) + '/MWh';
+                                        } else if (dsLabel.includes('Brent')) {
+                                            return dsLabel + ': $' + rawValue.toFixed(2) + '/barrel';
+                                        }
+                                        return dsLabel + ': ' + rawValue.toFixed(2) + ' ' + unit;
+                                    }
+                                    return dsLabel + ': ' + val.toFixed(1);
                                 }
                             }
                         },
@@ -4083,18 +4148,15 @@
                 if (overlay.active && overlay.data.length > 0) {
                     const config = overlayConfigs[key];
                     
-                    // Use pre-generated stable data, sliced to match current range
+                    // Use pre-generated normalized data (0-100 scale), sliced to match current range
                     const slicedData = getSlicedOverlayData(key);
-                    
-                    // Create explicit x,y point objects to prevent Chart.js reprocessing
-                    const pointData = slicedData.map((y, i) => ({
-                        x: currentLabels[i],
-                        y: y
-                    }));
+                    const slicedRawData = getSlicedOverlayRawData(key);
                     
                     geriChart.data.datasets.push({
                         label: config.label,
-                        data: pointData,
+                        data: slicedData,
+                        rawData: slicedRawData,  // Store raw values for tooltip display
+                        unit: overlay.unit,
                         borderColor: config.color,
                         backgroundColor: 'transparent',
                         borderWidth: 1.5,
@@ -4103,16 +4165,10 @@
                         tension: 0.3,
                         pointRadius: 0,
                         pointHoverRadius: 4,
-                        yAxisID: 'y1',
-                        normalized: true,
-                        parsing: false
+                        yAxisID: 'y'  // Use primary Y-axis since values are normalized to 0-100
                     });
                 }
             });
-            
-            // Show/hide secondary y-axis
-            const hasOverlays = Object.values(marketOverlays).some(o => o.active);
-            geriChart.options.scales.y1.display = hasOverlays;
             
             geriChart.update();
         }
