@@ -404,6 +404,14 @@ async def get_geri_market_overlays(
             ORDER BY date ASC
         """, (start, end))
         ttf_rows = cur.fetchall()
+        
+        cur.execute("""
+            SELECT date, rate
+            FROM eurusd_snapshots
+            WHERE date >= %s AND date <= %s
+            ORDER BY date ASC
+        """, (start, end))
+        eurusd_rows = cur.fetchall()
     
     brent_data = []
     for row in oil_rows:
@@ -439,17 +447,29 @@ async def get_geri_market_overlays(
             'value': float(row['ttf_price']) if row['ttf_price'] else None
         })
     
+    eurusd_data = []
+    for row in eurusd_rows:
+        row_date = row['date']
+        eurusd_data.append({
+            'date': row_date.isoformat() if isinstance(row_date, date) else row_date,
+            'value': float(row['rate']) if row['rate'] else None
+        })
+    
     available = ['brent', 'gas_storage']
     if vix_data:
         available.append('vix')
     if ttf_data:
         available.append('ttf')
+    if eurusd_data:
+        available.append('eurusd')
     
     unavailable = []
     if not vix_data:
         unavailable.append('vix')
     if not ttf_data:
         unavailable.append('ttf')
+    if not eurusd_data:
+        unavailable.append('eurusd')
     unavailable.append('freight')
     
     return {
@@ -480,6 +500,12 @@ async def get_geri_market_overlays(
                 'unit': 'EUR/MWh',
                 'count': len(ttf_data),
                 'data': ttf_data
+            },
+            'eurusd': {
+                'label': 'EUR/USD',
+                'unit': 'rate',
+                'count': len(eurusd_data),
+                'data': eurusd_data
             }
         },
         'available': available,

@@ -3623,6 +3623,9 @@
                             '<button class="overlay-toggle" data-overlay="ttf" style="--overlay-color: #8b5cf6;">' +
                                 '<span class="dot"></span> TTF Gas' +
                             '</button>' +
+                            '<button class="overlay-toggle" data-overlay="eurusd" style="--overlay-color: #06b6d4;">' +
+                                '<span class="dot"></span> EUR/USD' +
+                            '</button>' +
                         '</div>' +
                         '<div class="geri-chart-card">' +
                             '<div class="geri-chart-container">' +
@@ -3664,7 +3667,8 @@
             brent: { active: false, data: [], rawData: [], unit: 'USD/barrel' },
             gas_storage: { active: false, data: [], rawData: [], unit: '%' },
             vix: { active: false, data: [], rawData: [], unit: 'index' },
-            ttf: { active: false, data: [], rawData: [], unit: 'EUR/MWh' }
+            ttf: { active: false, data: [], rawData: [], unit: 'EUR/MWh' },
+            eurusd: { active: false, data: [], rawData: [], unit: 'rate' }
         };
         let overlayDataLoaded = false;
         
@@ -3708,12 +3712,19 @@
                     alignOverlayWithGeri('ttf');
                 }
                 
+                if (result.overlays?.eurusd?.data) {
+                    marketOverlays.eurusd.rawData = result.overlays.eurusd.data;
+                    marketOverlays.eurusd.unit = result.overlays.eurusd.unit;
+                    alignOverlayWithGeri('eurusd');
+                }
+                
                 overlayDataLoaded = true;
                 console.log('Market overlay data loaded:', {
                     brent: marketOverlays.brent.data.length,
                     gas_storage: marketOverlays.gas_storage.data.length,
                     vix: marketOverlays.vix.data.length,
-                    ttf: marketOverlays.ttf.data.length
+                    ttf: marketOverlays.ttf.data.length,
+                    eurusd: marketOverlays.eurusd.data.length
                 });
             } catch (error) {
                 console.error('Error loading market overlay data:', error);
@@ -4061,7 +4072,8 @@
                 brent: { label: 'Brent Oil (USD/barrel)', color: '#f59e0b' },
                 gas_storage: { label: 'EU Gas Storage (%)', color: '#10b981' },
                 vix: { label: 'VIX (index)', color: '#ef4444' },
-                ttf: { label: 'TTF Gas (EUR/MWh)', color: '#8b5cf6' }
+                ttf: { label: 'TTF Gas (EUR/MWh)', color: '#8b5cf6' },
+                eurusd: { label: 'EUR/USD', color: '#06b6d4' }
             };
             
             // Get current labels from chart (matches current range)
