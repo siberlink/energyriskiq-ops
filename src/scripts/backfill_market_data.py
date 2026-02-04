@@ -35,23 +35,22 @@ def backfill_vix(days: int) -> dict:
 
 def backfill_ttf(days: int) -> dict:
     """
-    Capture current TTF Gas price from OilPriceAPI.
+    Backfill TTF Gas price history from OilPriceAPI.
     
-    Note: OilPriceAPI free tier only provides current price, not historical data.
-    Historical TTF data requires paid subscription. This function captures
-    the latest available price only.
+    Uses the past_week endpoint to fetch available historical data (~7 days).
+    Older historical data requires paid API subscription.
     """
-    from src.ingest.ttf_gas import capture_ttf_gas_snapshot
+    from src.ingest.ttf_gas import backfill_ttf_history
     
-    logger.info("Capturing current TTF gas price (historical data requires paid API tier)...")
-    result = capture_ttf_gas_snapshot()
+    logger.info("Backfilling TTF gas history (API provides ~7 days of data)...")
+    result = backfill_ttf_history()
     
     return {
         "status": result.get("status", "error"),
         "message": result.get("message", "Unknown error"),
-        "date": result.get("date"),
-        "price": result.get("ttf_price"),
-        "note": "TTF historical backfill requires paid API tier - only current price captured"
+        "days": result.get("days", 0),
+        "date_range": result.get("date_range", "N/A"),
+        "note": "TTF API provides ~7 days of history - older data requires paid tier"
     }
 
 

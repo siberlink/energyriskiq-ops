@@ -90,3 +90,9 @@ GERI chart market overlays use real production data from the following sources:
 Backfill scripts:
 - VIX: `python -m src.scripts.backfill_market_data --vix --days 90`
 - TTF: `python -m src.scripts.backfill_market_data --ttf` (current price only, historical requires paid tier)
+
+Automatic daily updates:
+- Endpoint: `POST /internal/run/market-data` (requires X-Runner-Token header)
+- Captures VIX and TTF gas prices daily
+- Should be called once per day, ideally after market close
+- Idempotent: skips if data already exists for target date

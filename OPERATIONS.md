@@ -77,7 +77,7 @@ Response includes:
 
 ## Internal Runner Endpoints
 
-All endpoints require `X-Internal-Token` header with `INTERNAL_RUNNER_TOKEN` value.
+All endpoints require `X-Runner-Token` header with `INTERNAL_RUNNER_TOKEN` value.
 
 | Endpoint | Description |
 |----------|-------------|
@@ -86,6 +86,7 @@ All endpoints require `X-Internal-Token` header with `INTERNAL_RUNNER_TOKEN` val
 | `POST /internal/run/risk` | Trigger risk scoring |
 | `POST /internal/run/alerts` | Trigger alerts engine |
 | `POST /internal/run/digest` | Trigger daily digest |
+| `POST /internal/run/market-data` | Capture VIX and TTF gas data |
 
 ---
 

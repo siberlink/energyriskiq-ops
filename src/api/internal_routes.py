@@ -26,6 +26,7 @@ LOCK_IDS = {
     'egsi_s_compute': 4002,
     'oil_price_capture': 4003,
     'gas_storage_capture': 4004,
+    'market_data_capture': 4005,
     'backfill_snapshots': 5001,
     'backfill_egsi': 5002,
     'calculate_oil_changes': 5003,
@@ -774,6 +775,61 @@ def run_gas_storage_capture(
             conn.close()
     
     response, status_code = run_job_with_lock('gas_storage_capture', gas_storage_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
+@router.post("/run/market-data")
+def run_market_data_capture(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Capture daily VIX and TTF gas market data for GERI chart overlays.
+    
+    Captures:
+    - VIX (Volatility Index) from Yahoo Finance
+    - TTF Gas prices from OilPriceAPI
+    
+    Should run once daily, ideally after market close.
+    Skips if data already exists for target date (idempotent).
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.ingest.market_data import capture_vix_snapshot
+    from src.ingest.ttf_gas import capture_ttf_gas_snapshot
+    
+    def market_data_job():
+        results = {}
+        
+        vix_result = capture_vix_snapshot()
+        results['vix'] = {
+            'status': vix_result.get('status', 'error'),
+            'message': vix_result.get('message', ''),
+            'count': vix_result.get('count', 0)
+        }
+        
+        ttf_result = capture_ttf_gas_snapshot()
+        results['ttf'] = {
+            'status': ttf_result.get('status', 'error'),
+            'message': ttf_result.get('message', ''),
+            'date': ttf_result.get('date'),
+            'price': ttf_result.get('ttf_price')
+        }
+        
+        success_count = sum(1 for r in results.values() if r.get('status') in ['success', 'skipped'])
+        
+        return {
+            'sources': results,
+            'success_count': success_count,
+            'total_sources': len(results)
+        }
+    
+    response, status_code = run_job_with_lock('market_data_capture', market_data_job)
     
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)

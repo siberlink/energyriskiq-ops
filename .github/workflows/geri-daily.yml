@@ -12,6 +12,28 @@ jobs:
   compute-indices:
     runs-on: ubuntu-latest
     steps:
+      - name: Capture Market Data (VIX + TTF)
+        id: market_data
+        run: |
+          echo "Capturing VIX and TTF gas market data..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/market-data" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "Market data capture successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Market data capture returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
       - name: Compute GERI for yesterday
         id: geri
         run: |
@@ -107,8 +129,9 @@ jobs:
         run: |
           echo "## Daily Index Computation Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Index | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Task | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Market Data | ${{ steps.market_data.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| GERI | ${{ steps.geri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EERI | ${{ steps.eeri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EGSI-M | ${{ steps.egsi_m.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY

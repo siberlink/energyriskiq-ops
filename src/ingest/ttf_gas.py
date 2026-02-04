@@ -225,3 +225,79 @@ def get_ttf_gas_for_date(target_date: date) -> Optional[Dict[str, Any]]:
         (target_date,)
     )
     return dict(result) if result else None
+
+
+def backfill_ttf_history() -> Dict[str, Any]:
+    """
+    Backfill TTF gas history from OilPriceAPI past_week endpoint.
+    
+    Groups multiple intraday prices by date and takes the latest for each day.
+    """
+    logger.info("Fetching TTF gas history for backfill...")
+    
+    history = _fetch_ttf_history(days=30)
+    
+    if not history:
+        return {
+            "status": "error",
+            "message": "No historical TTF data available from API"
+        }
+    
+    daily_prices = {}
+    for record in history:
+        created_at = record.get("created_at", "")
+        if not created_at:
+            continue
+        
+        record_date = created_at[:10]
+        price = float(record.get("price", 0))
+        
+        if record_date not in daily_prices or created_at > daily_prices[record_date]["created_at"]:
+            daily_prices[record_date] = {
+                "date": record_date,
+                "price": price,
+                "created_at": created_at,
+                "currency": record.get("currency", "EUR"),
+                "unit": record.get("unit", "mwh"),
+                "raw_data": record
+            }
+    
+    saved = 0
+    try:
+        with get_cursor() as cursor:
+            for date_str, data in sorted(daily_prices.items()):
+                cursor.execute("""
+                    INSERT INTO ttf_gas_snapshots 
+                    (date, ttf_price, currency, unit, source, raw_data)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (date) DO UPDATE SET
+                        ttf_price = EXCLUDED.ttf_price,
+                        currency = EXCLUDED.currency,
+                        unit = EXCLUDED.unit,
+                        source = EXCLUDED.source,
+                        raw_data = EXCLUDED.raw_data
+                """, (
+                    date_str,
+                    data["price"],
+                    data["currency"],
+                    data["unit"],
+                    "oilpriceapi",
+                    json.dumps(data["raw_data"])
+                ))
+                saved += 1
+        
+        logger.info(f"Backfilled {saved} TTF gas snapshots")
+        
+        return {
+            "status": "success",
+            "message": f"Backfilled {saved} TTF gas snapshots",
+            "days": saved,
+            "date_range": f"{min(daily_prices.keys())} to {max(daily_prices.keys())}" if daily_prices else "N/A"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to backfill TTF history: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
