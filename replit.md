@@ -57,6 +57,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Concurrency:** FastAPI with uvicorn for asynchronous API operations.
 - **Alerting Production Safety:** Employs advisory locks, unique constraints for idempotency, `FOR UPDATE SKIP LOCKED` for race condition prevention, and robust retry/backoff mechanisms. See `docs/email-sending.md` for comprehensive email/Telegram/SMS delivery documentation.
 - **Digest System:** Consolidates multiple alert deliveries into periodic summary messages (daily/hourly) for efficient user communication.
+- **Daily Intelligence Digest (Planned):** AI-powered daily briefing synthesizing alerts into actionable intelligence. Structure: Executive Risk Snapshot, Index Movement Summary, Top Risk Events, Cross-Market Impact Map, Risk Trend Context, Forward Watchlist, Strategic Interpretation. Tiered access (Free: snapshot only, Pro: full digest, Enterprise: custom/API). Publishing target: 07:30-09:00 CET. See `docs/daily-digest.md` for complete specification.
 - **Production Hardening:** Includes preflight checks, health checks, user allowlisting for controlled rollouts, and circuit breakers (`ALERTS_MAX_SEND_PER_RUN`) to prevent runaway processes.
 - **Observability:** Tracks engine runs and provides internal API endpoints for monitoring health metrics and re-queueing failed items.
 
