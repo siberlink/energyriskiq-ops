@@ -4,7 +4,7 @@ GERI v1 API Routes
 Mounted under /api/v1/indices
 """
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -335,4 +335,94 @@ async def get_geri_public():
             'top_drivers_detailed': driver_details,
             'top_regions': region_names,
         }
+    }
+
+
+@router.get("/geri/market-overlays")
+async def get_geri_market_overlays(
+    from_date: Optional[str] = Query(None, alias="from", description="Start date (YYYY-MM-DD)"),
+    to_date: Optional[str] = Query(None, alias="to", description="End date (YYYY-MM-DD)")
+):
+    """
+    Get market overlay data for GERI chart visualization.
+    
+    Returns real market data from:
+    - oil_price_snapshots (Brent oil prices)
+    - gas_storage_snapshots (EU gas storage levels)
+    
+    Data is aligned with GERI index dates for chart overlay display.
+    """
+    check_enabled()
+    
+    from src.db.db import get_cursor
+    
+    try:
+        if from_date:
+            start = datetime.strptime(from_date, "%Y-%m-%d").date()
+        else:
+            start = date.today() - timedelta(days=90)
+        
+        if to_date:
+            end = datetime.strptime(to_date, "%Y-%m-%d").date()
+        else:
+            end = date.today()
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid date format. Use YYYY-MM-DD."
+        )
+    
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT date, brent_price, wti_price
+            FROM oil_price_snapshots
+            WHERE date >= %s AND date <= %s
+            ORDER BY date ASC
+        """, (start, end))
+        oil_rows = cur.fetchall()
+        
+        cur.execute("""
+            SELECT date, eu_storage_percent, risk_score
+            FROM gas_storage_snapshots
+            WHERE date >= %s AND date <= %s
+            ORDER BY date ASC
+        """, (start, end))
+        gas_rows = cur.fetchall()
+    
+    brent_data = []
+    for row in oil_rows:
+        brent_data.append({
+            'date': row[0].isoformat() if isinstance(row[0], date) else row[0],
+            'value': float(row[1]) if row[1] else None,
+            'wti': float(row[2]) if row[2] else None
+        })
+    
+    gas_storage_data = []
+    for row in gas_rows:
+        gas_storage_data.append({
+            'date': row[0].isoformat() if isinstance(row[0], date) else row[0],
+            'value': float(row[1]) if row[1] else None,
+            'risk_score': int(row[2]) if row[2] else None
+        })
+    
+    return {
+        'success': True,
+        'from': start.isoformat(),
+        'to': end.isoformat(),
+        'overlays': {
+            'brent': {
+                'label': 'Brent Oil',
+                'unit': 'USD/barrel',
+                'count': len(brent_data),
+                'data': brent_data
+            },
+            'gas_storage': {
+                'label': 'EU Gas Storage',
+                'unit': '%',
+                'count': len(gas_storage_data),
+                'data': gas_storage_data
+            }
+        },
+        'available': ['brent', 'gas_storage'],
+        'unavailable': ['vix', 'freight']
     }
