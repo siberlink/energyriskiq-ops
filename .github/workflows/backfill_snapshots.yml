@@ -12,10 +12,16 @@ on:
           - backfill
           - calculate_changes
           - backfill_egsi
+          - backfill_market_data
       days:
         description: 'Number of days to backfill (only for backfill action)'
         required: false
         default: '15'
+        type: string
+      vix_days:
+        description: 'Number of days to backfill VIX (only for backfill_market_data)'
+        required: false
+        default: '90'
         type: string
 
 jobs:
@@ -153,5 +159,51 @@ jobs:
           echo "| Action | backfill_egsi |" >> $GITHUB_STEP_SUMMARY
           echo "| Days | ${{ github.event.inputs.days }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.backfill_egsi.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+
+  backfill_market_data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.event.inputs.action == 'backfill_market_data' }}
+    
+    steps:
+      - name: Backfill VIX and TTF Market Data
+        id: backfill_market
+        run: |
+          echo "Backfilling VIX (${{ github.event.inputs.vix_days }} days) and TTF market data..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/backfill-market-data?vix_days=${{ github.event.inputs.vix_days }}" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::Market data backfill failed with HTTP $http_code"
+            exit 1
+          fi
+          
+          echo "Market data backfill completed successfully!"
+          echo "$body" | jq .
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Backfill Market Data Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | backfill_market_data |" >> $GITHUB_STEP_SUMMARY
+          echo "| VIX Days | ${{ github.event.inputs.vix_days }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.backfill_market.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
