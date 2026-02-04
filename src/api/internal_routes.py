@@ -1064,3 +1064,97 @@ def run_backfill_eurusd(
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+@router.post("/run/backfill-geri-overlays")
+def run_backfill_geri_overlays(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill ALL missing market overlay data for GERI date range.
+    
+    Fetches VIX, TTF Gas, and EUR/USD data for each date that GERI exists
+    but market data is missing. Uses GERI first/last dates as the range.
+    """
+    validate_runner_token(x_runner_token)
+    
+    from datetime import date, timedelta
+    from src.db.db import get_cursor
+    from src.ingest.market_data import fetch_vix_data, save_vix_snapshots
+    from src.ingest.ttf_gas import fetch_ttf_gas_price, save_ttf_gas_snapshot
+    from src.ingest.eurusd import fetch_eurusd_rate, save_eurusd_snapshot, backfill_eurusd_range
+    
+    def backfill_job():
+        results = {
+            'vix': {'filled': 0, 'missing': []},
+            'ttf': {'filled': 0, 'missing': []},
+            'eurusd': {'filled': 0, 'missing': []}
+        }
+        
+        with get_cursor() as cur:
+            cur.execute("""
+                SELECT MIN(date) as first_date, MAX(date) as last_date
+                FROM intel_indices_daily
+            """)
+            geri_range = cur.fetchone()
+            
+            if not geri_range or not geri_range['first_date']:
+                return {'status': 'error', 'message': 'No GERI data found'}
+            
+            geri_first = geri_range['first_date']
+            geri_last = geri_range['last_date']
+            
+            cur.execute("SELECT date FROM intel_indices_daily ORDER BY date")
+            geri_dates = set(row['date'] for row in cur.fetchall())
+            
+            cur.execute("SELECT date FROM vix_snapshots WHERE date >= %s AND date <= %s", (geri_first, geri_last))
+            vix_dates = set(row['date'] for row in cur.fetchall())
+            
+            cur.execute("SELECT date FROM ttf_gas_snapshots WHERE date >= %s AND date <= %s", (geri_first, geri_last))
+            ttf_dates = set(row['date'] for row in cur.fetchall())
+            
+            cur.execute("SELECT date FROM eurusd_snapshots WHERE date >= %s AND date <= %s", (geri_first, geri_last))
+            eurusd_dates = set(row['date'] for row in cur.fetchall())
+        
+        missing_vix = geri_dates - vix_dates
+        missing_ttf = geri_dates - ttf_dates
+        missing_eurusd = geri_dates - eurusd_dates
+        
+        results['vix']['missing'] = sorted([d.isoformat() for d in missing_vix])
+        results['ttf']['missing'] = sorted([d.isoformat() for d in missing_ttf])
+        results['eurusd']['missing'] = sorted([d.isoformat() for d in missing_eurusd])
+        
+        if missing_vix:
+            days_back = (date.today() - geri_first).days + 5
+            vix_snapshots = fetch_vix_data(days=days_back)
+            if vix_snapshots:
+                saved = save_vix_snapshots(vix_snapshots)
+                results['vix']['filled'] = saved
+        
+        if missing_ttf:
+            ttf_snapshot = fetch_ttf_gas_price()
+            if ttf_snapshot:
+                saved = save_ttf_gas_snapshot(ttf_snapshot)
+                if saved:
+                    results['ttf']['filled'] = 1
+                    results['ttf']['note'] = 'TTF API returns current price only, historical backfill requires paid tier'
+        
+        if missing_eurusd:
+            eurusd_result = backfill_eurusd_range(geri_first, geri_last)
+            results['eurusd']['filled'] = eurusd_result.get('saved', 0) if isinstance(eurusd_result, dict) else 0
+        
+        return {
+            'status': 'success',
+            'geri_range': {'first': geri_first.isoformat(), 'last': geri_last.isoformat()},
+            'geri_dates_count': len(geri_dates),
+            'results': results
+        }
+    
+    response, status_code = run_job_with_lock('backfill_snapshots', backfill_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response

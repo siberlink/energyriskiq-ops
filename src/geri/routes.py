@@ -346,26 +346,49 @@ async def get_geri_market_overlays(
     """
     Get market overlay data for GERI chart visualization.
     
-    Returns real market data from:
+    Returns real market data aligned with GERI index dates only.
+    Data before the first GERI date is excluded.
+    
+    Sources:
     - oil_price_snapshots (Brent oil prices)
     - gas_storage_snapshots (EU gas storage levels)
-    
-    Data is aligned with GERI index dates for chart overlay display.
+    - vix_snapshots (VIX volatility index)
+    - ttf_gas_snapshots (TTF gas prices)
+    - eurusd_snapshots (EUR/USD exchange rate)
     """
     check_enabled()
     
     from src.db.db import get_cursor
     
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT MIN(date) as first_date, MAX(date) as last_date
+            FROM intel_indices_daily
+        """)
+        geri_range = cur.fetchone()
+        
+        if not geri_range or not geri_range['first_date']:
+            return {
+                'success': False,
+                'message': 'No GERI data available',
+                'overlays': {}
+            }
+        
+        geri_first = geri_range['first_date']
+        geri_last = geri_range['last_date']
+    
     try:
         if from_date:
             start = datetime.strptime(from_date, "%Y-%m-%d").date()
+            start = max(start, geri_first)
         else:
-            start = date.today() - timedelta(days=90)
+            start = geri_first
         
         if to_date:
             end = datetime.strptime(to_date, "%Y-%m-%d").date()
+            end = min(end, geri_last)
         else:
-            end = date.today()
+            end = geri_last
     except ValueError:
         raise HTTPException(
             status_code=400,
