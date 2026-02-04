@@ -3666,6 +3666,35 @@
             freight: { active: false, data: [] }
         };
         
+        // Generate stable mock market data (called once when GERI data loads)
+        function generateMarketOverlayData() {
+            const overlayConfigs = {
+                brent: { baseValue: 75, volatility: 15 },
+                ttf: { baseValue: 35, volatility: 20 },
+                vix: { baseValue: 20, volatility: 10 },
+                freight: { baseValue: 45, volatility: 12 }
+            };
+            
+            // Use seeded random for reproducible results based on date
+            function seededRandom(seed) {
+                const x = Math.sin(seed) * 10000;
+                return x - Math.floor(x);
+            }
+            
+            Object.keys(marketOverlays).forEach(key => {
+                const config = overlayConfigs[key];
+                marketOverlays[key].data = geriHistoryData.map((d, i) => {
+                    const geriVal = d.value || 50;
+                    // Use date-based seed for stable random values
+                    const dateSeed = new Date(d.date).getTime() / 1000000;
+                    const keySeed = key.charCodeAt(0) + key.charCodeAt(1);
+                    const noise = (seededRandom(dateSeed + keySeed + i) - 0.5) * config.volatility;
+                    const correlation = 0.3;
+                    return Math.max(0, Math.min(100, config.baseValue + (geriVal - 50) * correlation + noise));
+                });
+            });
+        }
+        
         async function loadGeriChartData(currentGeri) {
             try {
                 // Fetch all GERI history from launch (Jan 2026)
@@ -3677,6 +3706,9 @@
                 
                 const result = await response.json();
                 geriHistoryData = result.data || [];
+                
+                // Generate stable market overlay data once
+                generateMarketOverlayData();
                 
                 // Update trend indicators
                 updateTrendIndicators(currentGeri, geriHistoryData);
@@ -3957,31 +3989,22 @@
             // Remove existing overlay datasets (keep only GERI)
             geriChart.data.datasets = geriChart.data.datasets.filter(ds => ds.label === 'GERI');
             
-            // Simulated market data based on GERI dates
-            // In production, this would fetch from real market data APIs
+            // Display configuration for each overlay
             const overlayConfigs = {
-                brent: { label: 'Brent (scaled)', color: '#f59e0b', baseValue: 75, volatility: 15 },
-                ttf: { label: 'TTF Gas (scaled)', color: '#10b981', baseValue: 35, volatility: 20 },
-                vix: { label: 'VIX (scaled)', color: '#ef4444', baseValue: 20, volatility: 10 },
-                freight: { label: 'Freight (scaled)', color: '#8b5cf6', baseValue: 45, volatility: 12 }
+                brent: { label: 'Brent (scaled)', color: '#f59e0b' },
+                ttf: { label: 'TTF Gas (scaled)', color: '#10b981' },
+                vix: { label: 'VIX (scaled)', color: '#ef4444' },
+                freight: { label: 'Freight (scaled)', color: '#8b5cf6' }
             };
             
             Object.entries(marketOverlays).forEach(([key, overlay]) => {
-                if (overlay.active) {
+                if (overlay.active && overlay.data.length > 0) {
                     const config = overlayConfigs[key];
                     
-                    // Generate correlated mock data for demonstration
-                    // Scale to 0-100 range for visual comparison
-                    const mockData = geriHistoryData.map((d, i) => {
-                        const geriVal = d.value || 50;
-                        const noise = (Math.random() - 0.5) * config.volatility;
-                        const correlation = 0.3; // Slight correlation with GERI
-                        return Math.max(0, Math.min(100, config.baseValue + (geriVal - 50) * correlation + noise));
-                    });
-                    
+                    // Use pre-generated stable data
                     geriChart.data.datasets.push({
                         label: config.label,
-                        data: mockData,
+                        data: overlay.data,
                         borderColor: config.color,
                         backgroundColor: 'transparent',
                         borderWidth: 1.5,
