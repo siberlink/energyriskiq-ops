@@ -321,3 +321,269 @@ The following features can be safely gated as premium:
 - **Divergence analytics**
 
 These four are the strongest conversion drivers.
+
+---
+
+# Visualization & Interpretation Framework
+
+The way you VISUALIZE + INTERPRET asset data against GERI transforms the platform from "data dashboard" into "decision intelligence platform".
+
+**Key Advantage:**
+- Full lifecycle historical data
+- Multi-asset macro coverage
+- Risk index (GERI) that acts as anchor signal
+
+---
+
+## Core Philosophy
+
+**GERI is NOT another asset.**
+
+GERI is the risk thermometer. Assets are the market reaction.
+
+The chart system must visually answer:
+- Is risk rising?
+- Which asset reacts first?
+- Which asset overreacts?
+- Which asset ignores risk?
+- Are we entering systemic stress?
+
+---
+
+## Master Chart Concept: Risk → Market Response Framework
+
+Every chart must show 3 layers simultaneously:
+
+| Layer | Purpose |
+|-------|---------|
+| Layer 1 — Risk Signal (GERI) | The anchor |
+| Layer 2 — Asset Response | The observable market reaction |
+| Layer 3 — Interpretation Overlay | Automated explanation |
+
+---
+
+## Chart Architecture
+
+### 1. Unified Overlay Chart (Primary Chart)
+
+This is the flagship visualization.
+
+**Chart Layout:**
+
+| Axis | Content |
+|------|---------|
+| X-Axis | Time (full lifecycle of GERI) |
+| Y-Axis LEFT | GERI (0–100 scale) — Always left, normalized, bold |
+| Y-Axis RIGHT | Selected Asset Price (Brent / TTF / VIX / EURUSD / Storage) |
+
+**Visual Styling:**
+
+**GERI:**
+- Thick line
+- Color-coded by risk band:
+  - Green → Normal
+  - Yellow → Elevated
+  - Orange → High
+  - Red → Severe/Critical
+
+**Assets:**
+- Thin clean lines
+- Different color per asset
+
+### 2. Regime Highlight Bands (High Value Feature)
+
+Background shading behind the chart:
+
+| Risk Level | Background Color |
+|------------|------------------|
+| Normal | Very light green |
+| Elevated | Light yellow |
+| High | Light orange |
+| Severe | Red gradient |
+
+This gives instant macro interpretation without reading numbers.
+
+### 3. Risk–Response Timing Markers (Secret Weapon)
+
+Place markers when:
+
+**GERI leads asset movement:**
+> "Risk signal preceded Brent move by 5 days"
+
+**Asset moves without risk confirmation:**
+> "Market volatility spike without systemic risk confirmation"
+
+This turns the chart into predictive intelligence, not just historical overlay.
+
+### 4. Normalization Toggle (Critical Feature)
+
+Users must be able to toggle:
+
+**Raw Price Mode:**
+- Shows actual price values
+
+**Indexed Mode (Recommended Default):**
+- Start all lines at 100 on selected date
+- Allows pure response comparison
+- Removes price scale distortion
+
+Institutional users value this highly.
+
+### 5. Rolling Correlation Panel
+
+Optional secondary mini-chart below main chart.
+
+Shows:
+- Correlation between GERI and selected asset
+- Positive correlation spike
+- Correlation breakdown
+- Regime shift signal
+
+---
+
+## Asset-Specific Interpretation Framework
+
+This is where the platform becomes unique.
+
+### Brent Oil — Interpretation Logic
+
+**What Brent Represents:** Global energy supply expectations
+
+| Scenario | Pattern | Interpretation |
+|----------|---------|----------------|
+| A | GERI ↑ Brent ↑ | Supply disruption fear confirmed. Very strong systemic signal. |
+| B | GERI ↑ Brent flat/down | Markets expect disruption to be temporary or politically contained. Watch for delayed oil repricing. |
+| C | Brent ↑ GERI stable | Demand-driven rally or production constraints unrelated to geopolitical escalation. |
+
+### TTF Gas — Interpretation Logic
+
+**What TTF Represents:** European vulnerability indicator. Most sensitive asset to geopolitical gas risk.
+
+| Scenario | Pattern | Interpretation |
+|----------|---------|----------------|
+| A | GERI ↑ TTF ↑ sharply | Europe gas stress confirmed. Often early indicator of winter energy crisis. |
+| B | GERI ↑ TTF stable | Storage buffers absorbing risk. Europe currently protected. |
+| C | TTF ↑ GERI stable | Localized infrastructure or weather-driven stress. |
+
+### VIX — Interpretation Logic
+
+**What VIX Represents:** Global financial stress sentiment
+
+| Scenario | Pattern | Interpretation |
+|----------|---------|----------------|
+| A | GERI ↑ VIX ↑ | Energy risk spilling into global financial markets. Macro systemic stress signal. |
+| B | GERI ↑ VIX flat | Risk still sector-contained. Opportunity environment. |
+
+### EUR/USD — Interpretation Logic
+
+**What EUR/USD Represents:** Europe macro vulnerability
+
+| Scenario | Pattern | Interpretation |
+|----------|---------|----------------|
+| A | GERI ↑ EUR ↓ | Capital flight from Europe. Energy dependency risk priced in. |
+| B | GERI ↑ EUR stable | ECB / macro offsets buffering energy shock. |
+
+### EU Gas Storage — Interpretation Logic
+
+**What Storage Represents:** This is the most underrated dataset. Storage answers: "Is Europe prepared?"
+
+| Scenario | Pattern | Interpretation |
+|----------|---------|----------------|
+| A | High GERI + Low Storage | Maximum vulnerability state. Historically highest TTF volatility probability. |
+| B | High GERI + High Storage | Risk muted by buffer. Markets often overreact early. |
+
+---
+
+## Lifecycle Interpretation Layer (High-End Feature)
+
+Divide the entire GERI history into phases:
+
+| Phase | Description |
+|-------|-------------|
+| Risk Accumulation | GERI rising gradually, assets react slowly |
+| Shock | GERI spike, assets overshoot |
+| Stabilization | GERI falls, assets remain volatile |
+| Recovery | GERI low, assets normalize |
+
+Automatically label these phases on chart timeline.
+
+---
+
+## Automated Interpretation Panel (Game Changer)
+
+Display next to the chart:
+
+### 1. Current Market State
+
+Example:
+> "Energy risk is HIGH and accelerating. TTF Gas is reacting strongly. Brent is lagging risk signal. European storage remains above seasonal average, partially offsetting risk."
+
+### 2. Risk Outlook Classification
+
+- Risk Leading Markets
+- Markets Leading Risk
+- Systemic Convergence
+- Temporary Divergence
+
+---
+
+## Multi-Asset Intelligence Mode (Pro/Enterprise)
+
+Allow overlay of:
+- GERI + Brent + TTF + VIX + EUR + Storage
+
+Then auto-generate:
+- Systemic stress score
+- Cross-asset confirmation rating
+
+---
+
+## Time Control Concept
+
+Offer:
+- 7D
+- 30D
+- 90D
+- 1Y
+- Since Launch
+
+**AND Comparison Mode:**
+- Compare two periods visually
+
+---
+
+## Most Important Insight to Show Users
+
+**Not enough dashboards do this:**
+
+Show:
+> "Risk usually leads TTF by X days historically"
+
+> "Risk leads Brent by X days during high volatility regimes"
+
+This builds:
+- Trust
+- Predictive perception
+- Subscription stickiness
+
+---
+
+## UX Rule
+
+**Never show asset data alone.**
+
+**Always show asset data in risk context.**
+
+This is the entire brand identity.
+
+---
+
+## Competitive Differentiation
+
+Most dashboards show:
+> Price → Explanation
+
+EnergyRiskIQ shows:
+> **Risk → Market Reaction → Forward Risk**
+
+That is extremely rare.
