@@ -586,6 +586,263 @@ Digest becomes customizable intelligence infrastructure.
 
 ---
 
+## Data-Driven Quantitative Intelligence
+
+Having full lifecycle historical asset data synchronized with indices (GERI / EERI / EGSI) enables:
+
+- Statistical credibility
+- Predictive modeling
+- Backtesting
+- Real probability scoring (not narrative AI)
+- Institutional differentiation
+- Pricing justification for higher tiers
+
+**Key Advantage:** Most geopolitical analytics platforms do NOT have synchronized asset + risk datasets.
+
+### Transformation: Qualitative → Quantitative Intelligence
+
+With historical data for Brent, TTF gas, VIX, EUR/USD, EU Storage levels, and risk indices, the digest upgrades from qualitative intelligence to quantitative intelligence + predictive analytics.
+
+---
+
+## New Quantitative Capabilities
+
+### 1. Risk → Asset Sensitivity Models
+
+```
+When GERI rises 10 points:
+• Brent moves avg +2.4%
+• TTF volatility rises +5.8%
+• VIX rises +3.1%
+```
+
+Extremely monetizable intelligence.
+
+### 2. Regime Detection
+
+- Early stress signals
+- Lag relationships
+- Risk shock propagation
+- Structural vs temporary risk differentiation
+
+### 3. Forward Probability Forecasting
+
+```
+Based on historical patterns:
+Current GERI level implies:
+
+TTF volatility spike probability: 67%
+Brent directional breakout probability: 52%
+```
+
+This is trader gold.
+
+### 4. Divergence Detection
+
+**Massive differentiator:**
+- Risk rising but oil not reacting
+- Storage rising but gas volatility increasing
+
+These are institutional trading signals.
+
+### 5. Backtesting Intelligence
+
+```
+Historically when EU Storage < 45% AND EERI > 60:
+TTF experienced price spikes 72% of cases.
+```
+
+Hedge-fund-grade intelligence.
+
+---
+
+## Data-Driven Tier Enhancements
+
+### FREE PLAN (with Real Data)
+
+**Add:**
+- **Basic Asset Movement Summary**
+  ```
+  Yesterday's Market Reaction:
+  Brent: +0.8%
+  TTF: +1.5%
+  VIX: +2.1%
+  ```
+
+**Exclude:**
+- No interpretation correlation
+- No statistical context
+
+**Purpose:** Show credibility without giving trading edge.
+
+---
+
+### PERSONAL PLAN ($9.95) — Data Enhancements
+
+Introduces educational quantitative insight.
+
+**Add:**
+- **Risk vs Asset Relationship Commentary**
+  ```
+  Historically, rising EERI tends to increase TTF volatility.
+  Yesterday's move aligns with historical patterns.
+  ```
+- **7-Day Asset Reaction Context**
+  ```
+  Last 7 days correlation:
+  GERI vs Brent: 0.41
+  GERI vs VIX: 0.62
+  ```
+- **Storage Context Commentary**
+  ```
+  EU Storage levels currently sit in the lower historical
+  quartile for this time of year.
+  ```
+
+**Still Exclude:**
+- No forecasting
+- No probabilities
+
+---
+
+### TRADER PLAN ($29) — Data Enhancements
+
+Unlocks true quant intelligence.
+
+**Add:**
+- **Probability-Based Asset Impact Forecast**
+  ```
+  TTF price spike probability (7-day horizon): 64%
+  Brent volatility expansion probability: 58%
+  ```
+- **Lag & Lead Signal Analysis**
+  ```
+  GERI typically leads VIX by 2 trading days.
+  ```
+  Incredibly valuable for timing.
+- **Risk-Adjusted Volatility Outlook**
+  - Combines risk index + asset volatility
+- **Storage Stress Signal Indicator**
+  ```
+  Storage Stress Level: Elevated
+  Historical price spike probability: 61%
+  ```
+
+---
+
+### PRO PLAN ($49) — Data Enhancements
+
+Dataset becomes institutional intelligence.
+
+**Add:**
+- **Multi-Asset Sensitivity Dashboard**
+  ```
+  GERI Beta vs Assets:
+  Brent: 0.42
+  TTF: 0.71
+  VIX: 0.55
+  EUR/USD: -0.34
+  ```
+- **Regime Classification Engine**
+  ```
+  Current Regime:
+  Logistics + Supply Shock Hybrid
+  ```
+- **Divergence Alert System**
+  ```
+  Risk increasing but freight + oil not reacting
+  → historically precedes sharp repricing.
+  ```
+- **Historical Scenario Simulation**
+  ```
+  Current risk resembles:
+  Jan 2022 Pre-Ukraine Risk Phase
+  ```
+  Extremely powerful for institutional clients.
+
+---
+
+### ENTERPRISE PLAN ($129) — Data Enhancements
+
+Real data becomes B2B infrastructure.
+
+**Add:**
+- **Custom Asset Exposure Mapping**
+  - Users upload or select assets
+  - Digest shows impact score on THEIR portfolio
+- **API Access to Correlation Models**
+- **Custom Backtesting Engine**
+  ```
+  Users test: "What happens when EERI > 70?"
+  ```
+- **Early Stress Trigger Warnings**
+  - Predict risk + asset structural break probability
+
+---
+
+## Data-Driven Feature Escalation Matrix
+
+| Capability | Free | Personal | Trader | Pro | Enterprise |
+|------------|------|----------|--------|-----|------------|
+| Basic asset moves | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Risk correlation commentary | ❌ | ✔ | ✔ | ✔ | ✔ |
+| Probability forecasting | ❌ | ❌ | ✔ | ✔ | ✔ |
+| Lag/lead signal analytics | ❌ | ❌ | ✔ | ✔ | ✔ |
+| Sensitivity modelling | ❌ | ❌ | ❌ | ✔ | ✔ |
+| Regime classification | ❌ | ❌ | ❌ | ✔ | ✔ |
+| Divergence detection | ❌ | ❌ | ❌ | ✔ | ✔ |
+| Portfolio mapping | ❌ | ❌ | ❌ | ❌ | ✔ |
+| Backtesting tools | ❌ | ❌ | ❌ | ❌ | ✔ |
+| API data feeds | ❌ | ❌ | ❌ | ❌ | ✔ |
+
+---
+
+## NEW Digest Section: Market Reaction vs Risk Signal
+
+**Recommended elite-tier intelligence section:**
+
+```
+RISK vs MARKET REACTION
+
+Risk Level: Rising
+Market Reaction: Muted
+
+Interpretation:
+Historically this pattern precedes delayed volatility expansion.
+```
+
+---
+
+## Strategic Dataset Opportunity
+
+Full lifecycle synchronized data creates a proprietary research dataset:
+- Licensing gold
+- Investor pitch gold
+- Hedge fund partnership gold
+- Academic partnership gold
+
+---
+
+## TRUE Long-Term Differentiator
+
+Not alerts. Not dashboards.
+
+**The differentiator is: Risk → Asset Transmission Intelligence**
+
+This is extremely rare in the industry.
+
+---
+
+## Recommended Platform Positioning
+
+Brand EnergyRiskIQ as:
+
+> **Geo-Energy Risk Intelligence + Market Transmission Analytics Platform**
+
+This is unique positioning globally.
+
+---
+
 ## Smart Upgrade Hooks (UI Implementation)
 
 Add these upgrade prompts throughout the UI:
