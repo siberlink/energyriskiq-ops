@@ -349,6 +349,12 @@ def run_trader_delivery(since_minutes: int = 30) -> Dict:
                             record_delivery(user_id, alert['id'], 'email', 'sent', 
                                            result.message_id, batch_window=run_batch_window)
                             stats["alerts_delivered"] += 1
+                    elif result.should_skip:
+                        for alert in email_alerts:
+                            record_delivery(user_id, alert['id'], 'email', 'skipped',
+                                           error=result.skip_reason or result.error, batch_window=run_batch_window)
+                        if result.skip_reason != 'email_disabled':
+                            stats["errors"].append(f"Email skipped for {email}: {result.skip_reason}")
                     else:
                         for alert in email_alerts:
                             record_delivery(user_id, alert['id'], 'email', 'failed',

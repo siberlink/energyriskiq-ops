@@ -12,6 +12,25 @@ This document describes how email (and other channel) delivery works in EnergyRi
 
 **To re-enable email sending:** Set `ALERTS_EMAIL_ENABLED=true` in environment variables.
 
+### Behavior When Email Disabled
+
+When `ALERTS_EMAIL_ENABLED=false`:
+- All email delivery attempts are marked as `skipped` with reason `email_disabled`
+- Telegram alerts continue normally
+- Skipped alerts still appear in user's Alert History (status shows as "skipped")
+- No errors are logged for expected email skip behavior
+
+### Fixing Historical Data
+
+If email was disabled and deliveries were incorrectly marked as `failed` instead of `skipped`:
+
+```sql
+UPDATE user_alert_deliveries 
+SET status = 'skipped' 
+WHERE status = 'failed' 
+  AND last_error LIKE '%Email sending is disabled%';
+```
+
 ---
 
 ## Overview

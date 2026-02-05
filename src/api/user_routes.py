@@ -402,7 +402,7 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                     JOIN alert_events ae ON uad.alert_event_id = ae.id
                     WHERE uad.user_id = %s
                       AND ae.alert_type = ANY(%s)
-                      AND uad.status = 'sent'
+                      AND uad.status IN ('sent', 'skipped')
                     ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
                 """, (user_id, effective_allowed,))
                 delivered_alerts = cursor.fetchall()
@@ -935,7 +935,7 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
                     JOIN alert_events ae ON uad.alert_event_id = ae.id
                     WHERE uad.user_id = %s
                       AND ae.alert_type = ANY(%s)
-                      AND uad.status = 'sent'
+                      AND uad.status IN ('sent', 'skipped')
                     ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
                 """, (user_id, effective_allowed,))
                 delivered_alerts = cursor.fetchall()

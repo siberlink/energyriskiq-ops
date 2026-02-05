@@ -412,6 +412,12 @@ def run_pro_delivery(since_minutes: int = 15) -> Dict:
                         record_delivery(user_id, alert['id'], 'email', 'sent', 
                                        result.message_id, batch_window=run_batch_window)
                         stats["alerts_delivered"] += 1
+                elif result.should_skip:
+                    for alert in email_alerts:
+                        record_delivery(user_id, alert['id'], 'email', 'skipped',
+                                       error=result.skip_reason or result.error, batch_window=run_batch_window)
+                    if result.skip_reason != 'email_disabled':
+                        stats["errors"].append(f"Email skipped for {email}: {result.skip_reason}")
                 else:
                     for alert in email_alerts:
                         record_delivery(user_id, alert['id'], 'email', 'failed',
@@ -495,6 +501,10 @@ def send_geri_to_pro_users() -> Dict:
                 if result.success:
                     stats["emails_sent"] += 1
                     record_geri_delivery(user_id, 'email', 'sent', batch_window, geri_date_value)
+                elif result.should_skip:
+                    if result.skip_reason != 'email_disabled':
+                        stats["errors"].append(f"GERI email skipped for {email}: {result.skip_reason}")
+                    record_geri_delivery(user_id, 'email', 'skipped', batch_window, geri_date_value, result.skip_reason or result.error)
                 else:
                     stats["errors"].append(f"GERI email to {email}: {result.error}")
                     record_geri_delivery(user_id, 'email', 'failed', batch_window, geri_date_value, result.error)
