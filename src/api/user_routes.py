@@ -394,8 +394,7 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
         if effective_allowed:
             try:
                 cursor.execute("""
-                    SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
-                           uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                    SELECT uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
                            ae.severity, ae.headline as title, ae.body as message,
                            uad.channel, uad.status, ae.created_at, uad.sent_at
                     FROM user_alert_deliveries uad
@@ -403,7 +402,8 @@ def get_user_alerts(x_user_token: Optional[str] = Header(None), limit: int = 50)
                     WHERE uad.user_id = %s
                       AND ae.alert_type = ANY(%s)
                       AND uad.status IN ('sent', 'skipped')
-                    ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
+                    ORDER BY ae.created_at DESC
+                    LIMIT 100
                 """, (user_id, effective_allowed,))
                 delivered_alerts = cursor.fetchall()
             except Exception as e:
@@ -927,8 +927,7 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
         if effective_allowed:
             try:
                 cursor.execute("""
-                    SELECT DISTINCT ON (COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline))
-                           uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
+                    SELECT uad.id, ae.alert_type, ae.scope_region as region, ae.scope_assets as assets,
                            ae.severity, ae.headline as title, ae.body as message,
                            uad.channel, uad.status, ae.created_at, uad.sent_at
                     FROM user_alert_deliveries uad
@@ -936,7 +935,8 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
                     WHERE uad.user_id = %s
                       AND ae.alert_type = ANY(%s)
                       AND uad.status IN ('sent', 'skipped')
-                    ORDER BY COALESCE(ae.cooldown_key, ae.alert_type || '|' || COALESCE(ae.scope_region,'') || '|' || ae.headline), ae.created_at DESC
+                    ORDER BY ae.created_at DESC
+                    LIMIT 100
                 """, (user_id, effective_allowed,))
                 delivered_alerts = cursor.fetchall()
             except Exception as e:
