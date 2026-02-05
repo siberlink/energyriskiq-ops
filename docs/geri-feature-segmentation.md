@@ -1240,3 +1240,400 @@ can_customize_risk_bands
 can_view_response_strength
 max_history_range_days
 ```
+
+---
+
+# Feature Flag JSON Schema
+
+Backend enforcement ready. Designed to be stored in DB or config service, pulled into JWT session or user context, and easily expanded later.
+
+---
+
+## Master Plan Feature Flag Schema
+
+```json
+{
+  "plans": {
+    "free": {
+      "chart": {
+        "range": ["7D"],
+        "compare_period": false,
+        "chart_modes": ["overlay"],
+        "normalization": [],
+        "smoothing": [],
+        "max_overlay_assets": 1,
+        "selectable_assets": ["brent"],
+        "risk_band_toggle": false,
+        "event_markers": false,
+        "annotations": false,
+        "regime_markers": false
+      },
+      "tooltip": {
+        "basic": true,
+        "show_delta_metrics": false,
+        "show_lag_metrics": false,
+        "show_divergence_metrics": false,
+        "show_confirmation_score": false,
+        "show_predicted_response": false
+      },
+      "secondary_panels": {
+        "lag_summary": false,
+        "lag_divergence": false,
+        "rolling_correlation": false,
+        "response_strength": false,
+        "storage_seasonal": false
+      }
+    },
+
+    "personal": {
+      "chart": {
+        "range": ["7D", "30D", "90D"],
+        "compare_period": false,
+        "chart_modes": ["overlay"],
+        "normalization": [],
+        "smoothing": [],
+        "max_overlay_assets": 1,
+        "selectable_assets": ["brent", "ttf", "vix", "eurusd", "storage"],
+        "risk_band_toggle": false,
+        "event_markers": false,
+        "annotations": false,
+        "regime_markers": false
+      },
+      "tooltip": {
+        "basic": true,
+        "show_delta_metrics": true,
+        "show_lag_metrics": false,
+        "show_divergence_metrics": false,
+        "show_confirmation_score": false,
+        "show_predicted_response": false
+      },
+      "secondary_panels": {
+        "lag_summary": true,
+        "lag_divergence": false,
+        "rolling_correlation": false,
+        "response_strength": false,
+        "storage_seasonal": false
+      }
+    },
+
+    "trader": {
+      "chart": {
+        "range": ["7D", "30D", "90D", "1Y", "SINCE_LAUNCH"],
+        "compare_period": false,
+        "chart_modes": ["overlay", "divergence"],
+        "normalization": ["indexed"],
+        "smoothing": ["3D", "7D"],
+        "max_overlay_assets": 2,
+        "selectable_assets": ["brent", "ttf", "vix", "eurusd", "storage"],
+        "risk_band_toggle": false,
+        "event_markers": true,
+        "annotations": false,
+        "regime_markers": true
+      },
+      "tooltip": {
+        "basic": true,
+        "show_delta_metrics": true,
+        "show_lag_metrics": true,
+        "show_divergence_metrics": true,
+        "show_confirmation_score": true,
+        "show_predicted_response": false
+      },
+      "secondary_panels": {
+        "lag_summary": true,
+        "lag_divergence": true,
+        "rolling_correlation": true,
+        "response_strength": false,
+        "storage_seasonal": true
+      }
+    },
+
+    "pro": {
+      "chart": {
+        "range": ["ALL"],
+        "compare_period": true,
+        "chart_modes": ["overlay", "divergence", "correlation", "storage_context"],
+        "normalization": ["indexed", "zscore"],
+        "smoothing": ["raw", "3D", "7D"],
+        "max_overlay_assets": 4,
+        "selectable_assets": ["brent", "ttf", "vix", "eurusd", "storage"],
+        "risk_band_toggle": true,
+        "event_markers": true,
+        "annotations": false,
+        "regime_markers": true
+      },
+      "tooltip": {
+        "basic": true,
+        "show_delta_metrics": true,
+        "show_lag_metrics": true,
+        "show_divergence_metrics": true,
+        "show_confirmation_score": true,
+        "show_predicted_response": true
+      },
+      "secondary_panels": {
+        "lag_summary": true,
+        "lag_divergence": true,
+        "rolling_correlation": true,
+        "response_strength": true,
+        "storage_seasonal": true
+      }
+    },
+
+    "enterprise": {
+      "chart": {
+        "range": ["ALL", "CUSTOM"],
+        "compare_period": true,
+        "chart_modes": ["overlay", "divergence", "correlation", "storage_context", "custom"],
+        "normalization": ["indexed", "zscore", "custom"],
+        "smoothing": ["raw", "3D", "7D"],
+        "max_overlay_assets": -1,
+        "selectable_assets": ["ALL"],
+        "risk_band_toggle": true,
+        "event_markers": true,
+        "annotations": true,
+        "regime_markers": true,
+        "custom_risk_bands": true,
+        "custom_divergence_threshold": true
+      },
+      "tooltip": {
+        "basic": true,
+        "show_delta_metrics": true,
+        "show_lag_metrics": true,
+        "show_divergence_metrics": true,
+        "show_confirmation_score": true,
+        "show_predicted_response": true,
+        "custom_metrics": true
+      },
+      "secondary_panels": {
+        "lag_summary": true,
+        "lag_divergence": true,
+        "rolling_correlation": true,
+        "response_strength": true,
+        "storage_seasonal": true,
+        "advanced_storage_model": true
+      }
+    }
+  }
+}
+```
+
+---
+
+# UX Visibility Map
+
+Frontend rendering logic showing exactly which UI elements appear/disappear per plan.
+
+---
+
+## Control Bar Visibility
+
+### Range Selector
+
+| Plan | Visible Options |
+|------|-----------------|
+| Free | 7D only |
+| Personal | 7D / 30D / 90D |
+| Trader | + 1Y + Since Launch |
+| Pro | All |
+| Enterprise | All + Custom Date |
+
+### Compare Period Toggle
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ❌ |
+| Pro | ✅ |
+| Enterprise | ✅ Multi-compare |
+
+### Chart Mode Dropdown
+
+| Plan | Modes Visible |
+|------|---------------|
+| Free | Overlay (locked) |
+| Personal | Overlay |
+| Trader | Overlay + Divergence |
+| Pro | Overlay + Divergence + Correlation + Storage Context |
+| Enterprise | All + Custom Presets |
+
+### Normalization Selector
+
+| Plan | Visible Options |
+|------|-----------------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | Indexed(100) |
+| Pro | Indexed + Z-Score |
+| Enterprise | Indexed + Z-Score + Custom Baselines |
+
+### Smoothing Dropdown
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | 3D / 7D |
+| Pro | Raw + 3D + 7D |
+| Enterprise | Full + Custom Presets |
+
+### Asset Selection
+
+| Plan | Visible Behavior |
+|------|------------------|
+| Free | Brent locked |
+| Personal | Asset selector (1 asset) |
+| Trader | Multi-select (max 2) |
+| Pro | Multi-select (max 4) |
+| Enterprise | Unlimited multi-select |
+
+### Risk Band Toggle
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ (Always ON) |
+| Personal | ❌ |
+| Trader | ❌ |
+| Pro | ✅ |
+| Enterprise | ✅ + Custom Band Editor |
+
+### Event Markers Toggle
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ✅ |
+| Pro | ✅ |
+| Enterprise | ✅ + Editable |
+
+### Annotation Tools
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ❌ |
+| Pro | Read-only system annotations |
+| Enterprise | Full annotation editor |
+
+---
+
+## Main Chart Visibility
+
+### Overlay Engine
+
+| Plan | Capability |
+|------|------------|
+| Free | GERI + Brent |
+| Personal | GERI + 1 Asset |
+| Trader | GERI + 2 Assets |
+| Pro | GERI + 4 Assets |
+| Enterprise | Unlimited |
+
+### Divergence Zone Highlight
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ✅ |
+| Pro | ✅ |
+| Enterprise | ✅ + Custom Threshold |
+
+### Regime Change Markers
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ✅ |
+| Pro | ✅ |
+| Enterprise | ✅ + Custom Rules |
+
+---
+
+## Tooltip Visibility
+
+### Basic Tooltip
+
+| Plan | Visible |
+|------|---------|
+| All Plans | Date + GERI + Asset Value |
+
+### Advanced Tooltip Metrics
+
+| Feature | Personal | Trader | Pro | Enterprise |
+|---------|----------|--------|-----|------------|
+| Δ Metrics | ✅ | ✅ | ✅ | ✅ |
+| Lag Metrics | ❌ | ✅ | ✅ | ✅ |
+| Divergence Score | ❌ | ✅ | ✅ | ✅ |
+| Confirmation Score | ❌ | ✅ | ✅ | ✅ |
+| Predicted Response | ❌ | ❌ | ✅ | ✅ |
+| Custom Metrics | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+## Secondary Panel Visibility
+
+### Lag Summary Panel
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ✅ |
+| Trader | ✅ |
+| Pro | ✅ |
+| Enterprise | ✅ |
+
+### Lag + Divergence Panel
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ✅ |
+| Pro | ✅ |
+| Enterprise | ✅ Advanced |
+
+### Rolling Correlation Panel
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ✅ |
+| Pro | ✅ |
+| Enterprise | ✅ Multi-window |
+
+### Response Strength Panel
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | ❌ |
+| Pro | ✅ |
+| Enterprise | ✅ Advanced |
+
+### Storage Seasonal Panel
+
+| Plan | Visible |
+|------|---------|
+| Free | ❌ |
+| Personal | ❌ |
+| Trader | Basic seasonal line |
+| Pro | Full percentile model |
+| Enterprise | Multi-year modeling + forecasting |
+
+---
+
+## Frontend Implementation Concept
+
+```javascript
+// Pseudo example for feature gating
+if (!flags.chart.compare_period) hideCompareButton()
+if (flags.chart.max_overlay_assets === 1) disableMultiSelect()
+if (!flags.secondary_panels.rolling_correlation) hideCorrTab()
+if (!flags.tooltip.show_divergence_metrics) hideDivergenceInTooltip()
+if (flags.chart.max_overlay_assets === -1) enableUnlimitedAssets()
+```
