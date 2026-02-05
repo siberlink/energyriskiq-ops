@@ -943,3 +943,300 @@ If history is limited: use "vs recent baseline" (last 2–3 years if available) 
   - Rolling correlation panel
   - Divergence panel
 - Tooltip always shows both raw and normalized values (when normalization is enabled)
+
+---
+
+# Chart UI Feature Access by User Plan
+
+---
+
+## FREE PLAN — "Awareness Viewer"
+
+**Purpose:** Give users a taste of risk visualization but remove analytical edge.
+
+### Control Bar Access
+
+| Feature | Access |
+|---------|--------|
+| Range Selector | 7D only |
+| Compare Period | ❌ |
+| Chart Mode Selector | ❌ (Overlay locked) |
+| Normalization | ❌ |
+| Smoothing | ❌ |
+| Asset Selection | ❌ (Brent only) |
+| Risk Bands Toggle | ❌ (Always ON) |
+| Event Markers | ❌ |
+| Annotations | ❌ |
+
+### Main Chart Access
+
+| Feature | Access |
+|---------|--------|
+| GERI Line | ✅ |
+| Asset Overlay | ✅ Brent only |
+| Dual Axis | ✅ |
+| Risk Shading | ✅ |
+| Regime Markers | ❌ |
+| Hover Tooltip | ✅ Basic Only |
+
+### Tooltip Data
+
+**User sees:**
+- Date
+- GERI value
+- Brent price
+
+**User DOES NOT see:**
+- Normalized values
+- Δ metrics
+- Lag metrics
+- Divergence score
+- Confirmation score
+
+### Secondary Panels
+
+| Panel | Access |
+|-------|--------|
+| Lag & Divergence | ❌ |
+| Rolling Correlation | ❌ |
+| Response Strength | ❌ |
+| Storage Seasonal | ❌ |
+
+---
+
+## PERSONAL PLAN — "Monitoring Dashboard"
+
+**Purpose:** Daily monitoring + first analytical layer.
+
+### Control Bar
+
+| Feature | Access |
+|---------|--------|
+| Range Selector | 7D / 30D / 90D |
+| Compare Period | ❌ |
+| Chart Mode | Overlay only |
+| Normalization | ❌ |
+| Smoothing | ❌ |
+| Asset Selection | ✅ One asset selectable |
+| Risk Band Toggle | ❌ |
+| Event Markers | ❌ |
+| Annotations | ❌ |
+
+### Main Chart
+
+| Feature | Access |
+|---------|--------|
+| GERI Line | ✅ |
+| Overlay Asset | ✅ One selectable asset |
+| Risk Shading | ✅ |
+| Regime Markers | ❌ |
+| Hover Tooltip | ✅ Extended |
+
+### Tooltip Adds
+
+- ΔGERI 1D
+- ΔAsset 1D
+- Asset normalized value (display only)
+
+### Secondary Panels
+
+| Panel | Access |
+|-------|--------|
+| Lag Summary Table | ✅ Limited (shows lag only) |
+| Rolling Correlation | ❌ |
+| Response Strength | ❌ |
+| Storage Seasonal | ❌ |
+
+---
+
+## TRADER PLAN — "Decision Support"
+
+**Purpose:** Provide trading intelligence & divergence analytics.
+
+### Control Bar
+
+| Feature | Access |
+|---------|--------|
+| Range Selector | ✅ All including Since Launch |
+| Compare Period | ❌ |
+| Chart Mode | Overlay + Divergence |
+| Normalization | ✅ Indexed(100) |
+| Smoothing | ✅ 3D / 7D |
+| Asset Selection | ✅ Up to 2 assets |
+| Risk Band Toggle | ❌ |
+| Event Markers | ✅ |
+| Annotations | ❌ |
+
+### Main Chart
+
+| Feature | Access |
+|---------|--------|
+| GERI Line | ✅ |
+| Multi Overlay | ✅ (2 assets) |
+| Risk Shading | ✅ |
+| Regime Markers | ✅ |
+| Divergence Zones | ✅ |
+| Hover Tooltip | ✅ Advanced |
+
+### Tooltip Adds
+
+- Best Lag
+- Divergence Score
+- Confirmation Score
+
+### Secondary Panels
+
+| Panel | Access |
+|-------|--------|
+| Lag & Divergence | ✅ |
+| Rolling Correlation | ✅ |
+| Response Strength | ❌ |
+| Storage Seasonal | ✅ Limited (no percentile) |
+
+---
+
+## PRO PLAN — "Institutional Analytics" (Live-GERI Tier)
+
+**Purpose:** Full analytical intelligence + systemic modeling.
+
+### Control Bar
+
+| Feature | Access |
+|---------|--------|
+| Range Selector | ✅ All |
+| Compare Period | ✅ |
+| Chart Mode | All Modes |
+| Normalization | ✅ Indexed + Z-Score |
+| Smoothing | ✅ All |
+| Asset Selection | ✅ Up to 4 assets |
+| Risk Band Toggle | ✅ |
+| Event Markers | ✅ |
+| Annotations | ❌ (read only auto annotations) |
+
+### Main Chart
+
+| Feature | Access |
+|---------|--------|
+| GERI Line | ✅ |
+| Overlay Engine | ✅ 4 Assets |
+| Risk Shading | ✅ Toggle |
+| Regime Markers | ✅ |
+| Divergence Zones | ✅ |
+| Hover Tooltip | ✅ Full Metrics |
+
+### Tooltip Adds
+
+- Full Δ metrics
+- Lag metrics
+- Divergence metrics
+- Confirmation metrics
+- Predicted response metrics
+
+### Secondary Panels
+
+| Panel | Access |
+|-------|--------|
+| Lag & Divergence | ✅ Full |
+| Rolling Correlation | ✅ Full |
+| Response Strength | ✅ |
+| Storage Seasonal | ✅ Full percentile view |
+
+---
+
+## ENTERPRISE PLAN — "Institutional Workspace"
+
+**Purpose:** Custom analytics + professional decision environment.
+
+### Control Bar
+
+| Feature | Access |
+|---------|--------|
+| Range Selector | ✅ Unlimited custom ranges |
+| Compare Period | ✅ Multi comparison |
+| Chart Mode | ✅ All + Custom Presets |
+| Normalization | ✅ All + Custom Baselines |
+| Smoothing | ✅ All |
+| Asset Selection | ✅ Unlimited |
+| Risk Band Toggle | ✅ Custom bands allowed |
+| Event Markers | ✅ |
+| Annotations | ✅ Manual + Team |
+
+### Main Chart
+
+| Feature | Access |
+|---------|--------|
+| GERI Line | ✅ |
+| Overlay Engine | ✅ Unlimited |
+| Risk Shading | ✅ Custom |
+| Regime Markers | ✅ |
+| Divergence Zones | ✅ Custom threshold |
+| Hover Tooltip | ✅ Fully Customizable |
+
+### Secondary Panels
+
+| Panel | Access |
+|-------|--------|
+| Lag & Divergence | ✅ Advanced Statistical View |
+| Rolling Correlation | ✅ Multi Window |
+| Response Strength | ✅ Advanced Modeling |
+| Storage Seasonal | ✅ Multi-Year Seasonal Modeling |
+
+---
+
+## Upgrade Psychology Ladder
+
+| Plan | Emotional Value |
+|------|-----------------|
+| Free | "I understand the risk exists" |
+| Personal | "I can monitor risk" |
+| Trader | "I can anticipate market reactions" |
+| Pro | "I understand systemic behavior" |
+| Enterprise | "I control analytical workflows" |
+
+---
+
+## Conversion Triggers (Intentional Blocks)
+
+### Free → Personal
+
+- Block asset selection
+
+### Personal → Trader
+
+Block:
+- Multi overlays
+- Divergence visualization
+- Since launch history
+
+### Trader → Pro
+
+Block:
+- Z-score
+- Response strength
+- Storage percentile
+- Compare period
+
+### Pro → Enterprise
+
+Block:
+- Custom thresholds
+- Unlimited overlays
+- Annotation tools
+- Custom band logic
+
+---
+
+## Recommended Feature Flags (For Development)
+
+```
+can_select_assets
+max_overlay_assets
+can_use_divergence_mode
+can_use_compare_period
+can_use_zscore
+can_view_storage_percentile
+can_create_annotations
+can_customize_risk_bands
+can_view_response_strength
+max_history_range_days
+```
