@@ -1637,3 +1637,351 @@ if (!flags.secondary_panels.rolling_correlation) hideCorrTab()
 if (!flags.tooltip.show_divergence_metrics) hideDivergenceInTooltip()
 if (flags.chart.max_overlay_assets === -1) enableUnlimitedAssets()
 ```
+
+---
+
+# Upgrade Prompt Strategy System
+
+Production-ready UX, behavioral logic, and copy templates designed for GERI chart intelligence positioning with analyst-grade audience (traders, analysts, institutions).
+
+**Expected Conversion Impact (Realistic SaaS Benchmarks):**
+
+| Prompt Type | Typical Conversion |
+|-------------|-------------------|
+| Feature Attempt | 25-45% |
+| Insight Card | 15-30% |
+| Risk Event Banner | 20-40% |
+| Session Summary | 8-15% |
+
+---
+
+## Core Philosophy
+
+Upgrade prompts must NEVER feel like:
+- Paywall
+- Sales interruption
+- Feature blocking frustration
+
+They must feel like:
+- Analytical discovery
+- Professional tool expansion
+- Natural progression
+- "You are ready for this insight"
+
+---
+
+## Upgrade Psychology Model
+
+Users upgrade when they hit ONE of these moments:
+
+| Moment | Psychology |
+|--------|------------|
+| **Insight Curiosity** | "I see something… I want deeper explanation." |
+| **Analytical Limitation** | "I need this tool to finish my analysis." |
+| **Risk Urgency** | "I need alerts / divergence / confirmation RIGHT NOW." |
+| **Professional Identity** | "This platform matches how I work." |
+
+All prompts must target these 4 moments.
+
+---
+
+## Trigger Map (When Prompts Should Appear)
+
+### Trigger Type A — Feature Attempt Trigger
+
+**Most powerful — conversion 25–45%**
+
+Occurs when user tries locked functionality.
+
+| User Action | Plan | Upgrade Target |
+|-------------|------|----------------|
+| Select second asset overlay | Personal | Trader |
+| Click Divergence Mode | Personal | Trader |
+| Select Z-Score | Trader | Pro |
+| Click Compare Period | Trader | Pro |
+| Try Annotations | Pro | Enterprise |
+| Try Unlimited Overlay | Pro | Enterprise |
+
+### Trigger Type B — Insight Exposure Trigger
+
+**Subtle and extremely effective**
+
+Occurs when user views data that implies deeper insight exists:
+- Divergence detected but hidden
+- Strong confirmation score hidden
+- Lag intelligence hidden
+
+### Trigger Type C — Time-Based Engagement Trigger
+
+Occurs when user shows commitment.
+
+```
+IF session_time > 4 minutes
+AND user used chart controls
+THEN show soft upgrade insight card
+```
+
+### Trigger Type D — Risk Event Trigger
+
+**VERY HIGH CONVERSION**
+
+When GERI spikes OR regime shifts occur.
+
+Example:
+> "Energy risk just entered HIGH regime. Divergence analytics now available in Trader Plan."
+
+---
+
+## Upgrade Prompt UI Types
+
+### 1. Inline Locked Feature Tooltip (Most Natural)
+
+Appears directly inside disabled control.
+
+**UX Example — User clicks Divergence Mode:**
+
+```
+🔍 Divergence Analysis is available in Trader Plan
+
+See when markets disconnect from risk signals.
+
+Upgrade to unlock:
+✔ Divergence zone detection
+✔ Lead/Lag intelligence
+✔ Market confirmation scoring
+
+[View Trader Plan]
+```
+
+**Rules:**
+- Appears instantly
+- Small footprint
+- Educational tone
+- No pricing push initially
+
+### 2. Context Insight Card (Best Conversion Tool)
+
+Appears beside chart or below interpretation panel.
+
+**Example Trigger:** Hidden divergence detected.
+
+```
+⚠ Hidden Signal Detected
+
+GERI suggests TTF Gas may be lagging risk conditions.
+
+Trader Plan users can see:
+• Historical lag timing
+• Divergence detection zones
+• Confirmation scoring
+
+[Unlock Trader Intelligence]
+```
+
+This prompt converts extremely well because it feels like discovery, not sales.
+
+### 3. Risk Event Banner (High Urgency)
+
+Appears when market environment changes.
+
+```
+🔥 Risk Environment Escalating
+
+GERI moved from Elevated → High.
+
+Advanced users are monitoring:
+• Divergence risk
+• Cross-asset confirmation
+• Response strength modeling
+
+Upgrade to Trader or Pro to track this transition live.
+```
+
+### 4. End-Session Analytical Summary Prompt
+
+Appears after user leaves chart or logs out.
+
+```
+📊 Today You Explored Energy Risk Trends
+
+Upgrade to unlock:
+
+✔ Full lifecycle history
+✔ Multi-asset overlays
+✔ Predictive divergence signals
+
+Continue building your risk intelligence workflow.
+```
+
+---
+
+## Copywriting Templates (Ready to Implement)
+
+### FREE → PERSONAL Prompt
+
+**Emotional Angle:** Awareness → Monitoring
+
+```
+You're viewing today's risk snapshot.
+
+Personal Plan unlocks:
+• 90-day history
+• Asset selection
+• Daily risk interpretation
+
+Start monitoring how risk evolves.
+```
+
+### PERSONAL → TRADER Prompt
+
+**Emotional Angle:** Monitoring → Market Anticipation
+
+```
+You're seeing risk movement.
+
+Trader Plan shows how markets react to risk.
+
+Unlock:
+• Divergence detection
+• Lead/Lag analytics
+• Confirmation scoring
+• Full historical overlays
+```
+
+### TRADER → PRO Prompt
+
+**Emotional Angle:** Trading → Systemic Intelligence
+
+```
+You are analyzing asset reactions.
+
+Pro Plan reveals WHY markets behave this way.
+
+Unlock:
+• Z-score shock detection
+• Response strength modeling
+• Cross-asset systemic scoring
+• Period comparison analytics
+```
+
+### PRO → ENTERPRISE Prompt
+
+**Emotional Angle:** Professional → Institutional
+
+```
+You're using analyst-grade tools.
+
+Enterprise Plan adds:
+
+• Custom analytical workflows
+• Team annotations
+• Custom risk models
+• Unlimited overlays & thresholds
+```
+
+---
+
+## Smart Timing Rules (Critical)
+
+### Frequency Control
+
+- Max 2 upgrade prompts per session
+- Max 1 popup style prompt per session
+- Unlimited inline tooltips allowed
+
+### Cooldown Logic
+
+```
+If user dismisses prompt:
+→ Hide for 48 hours
+```
+
+### Escalation Logic
+
+```
+If user hits same locked feature 3 times
+→ Show enhanced prompt with example insights
+```
+
+---
+
+## Behavioral Personalization (Advanced SaaS Growth)
+
+### Trader-Behavior Detection
+
+**If user:**
+- Uses overlays repeatedly
+- Switches assets frequently
+- Uses long time ranges
+
+**Then emphasize:** "Market reaction intelligence"
+
+### Macro-Behavior Detection
+
+**If user:**
+- Uses storage + EUR/USD
+- Uses long historical windows
+
+**Then emphasize:** "Systemic risk modeling"
+
+---
+
+## Micro UX Details That Increase Conversion
+
+**Always show:**
+- What they gain
+- Why it matters
+- How it improves decision-making
+
+**Never show:**
+- ❌ "Upgrade to unlock feature"
+
+**Instead say:**
+- ✅ "See how markets react to risk"
+
+---
+
+## Backend Trigger Logic Example
+
+```javascript
+if (!flags.chart.can_use_divergence_mode) {
+   showUpgradePrompt("divergence_trader")
+}
+
+if (!flags.tooltip.show_confirmation_score && confirmationScoreHigh) {
+   showInsightCard("hidden_confirmation_score")
+}
+
+if (geriRegimeChanged && !flags.chart.regime_markers) {
+   showRiskEventBanner("regime_shift")
+}
+```
+
+---
+
+## Upgrade Prompt Data Model
+
+```json
+{
+  "trigger_type": "feature_attempt",
+  "feature": "divergence_mode",
+  "recommended_plan": "trader",
+  "cooldown_hours": 48,
+  "max_session_display": 2,
+  "prompt_style": "inline_tooltip",
+  "emotional_angle": "market_anticipation",
+  "show_example_insight": false
+}
+```
+
+---
+
+## Most Important Strategic Rule
+
+Your upgrade prompts must sell:
+
+**Better understanding of risk**
+
+NOT
+
+**Features**
