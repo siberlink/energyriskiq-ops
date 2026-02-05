@@ -878,3 +878,494 @@ For fastest monetization, consider launching with 3 active tiers initially:
 - **Pro**
 
 Then introduce Personal and Enterprise later. This often converts better in early stages.
+
+---
+
+# Quantitative Intelligence Blueprint
+
+End-to-end quant + intelligence implementation using existing lifecycle data (GERI/EERI/EGSI + Brent, TTF, VIX, EURUSD, EU Storage).
+
+---
+
+## 1. Risk → Asset Modelling Formulas
+
+### 1.1 Notation (Daily)
+
+```
+R_t = index level at day t (GERI, EERI, or EGSI)
+A_t = asset price/level at day t (Brent, TTF, VIX, EURUSD, Storage)
+rR_t = R_t - R_{t-1} (index daily change)
+rA_t = ln(A_t / A_{t-1}) (asset log return)
+```
+
+### 1.2 Standardize (for comparability)
+
+```
+zX_t = (X_t - mean(X_{t-W..t-1})) / std(X_{t-W..t-1})
+```
+
+Where W is rolling window (e.g., 60 or 90 trading days).
+
+### 1.3 Linear Sensitivity (Beta) — Rolling OLS
+
+Model how asset returns respond to risk changes:
+
+```
+rA_t = alpha + beta * rR_t + epsilon_t
+beta = cov(rA, rR) / var(rR)
+```
+
+**Interpretation:** Beta tells you the expected asset move for a 1-unit index change (in return terms if using log returns).
+
+### 1.4 Multi-Factor Risk Transmission Model (Recommended)
+
+Use multiple indices and storage (gas reacts to storage + EU risk):
+
+```
+rA_t = alpha + b1*rGERI_t + b2*rEERI_t + b3*rEGSI_t + b4*chgStorage_t + b5*rVIX_t + epsilon_t
+```
+
+Where:
+```
+chgStorage_t = Storage_t - Storage_{t-1} (or % change)
+```
+
+### 1.5 Nonlinear / Threshold Sensitivity (Piecewise Beta)
+
+Markets often react only after risk crosses bands:
+
+```
+rA_t = alpha + beta1*rR_t*I(R_{t-1} < T1) + beta2*rR_t*I(T1 <= R_{t-1} < T2) + beta3*rR_t*I(R_{t-1} >= T2) + epsilon_t
+```
+
+Example thresholds: T1=40, T2=60 (Elevated/High breakpoints).
+
+### 1.6 Event-Window Reaction (Shock Response)
+
+Define "risk shock" days by percentile:
+
+```
+Shock_t = 1 if rR_t >= percentile(rR, 95%) else 0
+CAR_A(k) = sum_{i=0..k} rA_{t+i} (cumulative abnormal return over k days after shock)
+```
+
+Compute average CAR_A(k) across all shock events.
+
+### 1.7 Lead/Lag Model (Risk Leads Asset)
+
+Test whether risk moves precede asset moves:
+
+```
+rA_t = alpha + sum_{k=0..K} beta_k * rR_{t-k} + epsilon_t
+```
+
+If beta_1/beta_2 significant → index leads.
+
+### 1.8 Correlation + "Elasticity" for Level Series
+
+For some relationships (risk vs VIX level), use changes in level:
+
+```
+dA_t = A_t - A_{t-1}
+dA_t = alpha + beta * rR_t + epsilon_t
+```
+
+---
+
+## 2. Probability Scoring Methodology
+
+Data-backed probabilities, not "AI vibes".
+
+### 2.1 Define Outcomes (Binary Targets)
+
+Pick horizons (1D, 3D, 5D, 10D). Examples:
+
+```
+Y_spike_TTF_t(h) = 1 if max_{i=1..h}(TTF_{t+i}) >= TTF_t*(1+S) else 0
+Y_vol_VIX_t(h) = 1 if VIX_{t+h} - VIX_t >= V else 0
+Y_break_Brent_t(h) = 1 if |Brent_{t+h}/Brent_t - 1| >= B else 0
+```
+
+Where S, V, B are thresholds (e.g., 3%, 5 pts, 2%).
+
+### 2.2 Feature Set (Model Inputs)
+
+Use only existing data:
+
+```
+X_t = [
+  R_t, rR_t, zR_t,
+  EERI_t, rEERI_t, EGSI_t, rEGSI_t,
+  zBrentRet_t, zTTFRet_t, zVIXchg_t, zEURUSDret_t,
+  Storage_t, zStorage_t, chgStorage_t,
+  Corr_rolling(R, Asset), Beta_rolling(R->Asset),
+  DivergenceScore_t,
+  RegimeID_t
+]
+```
+
+### 2.3 Baseline Probability via Historical Conditioning (Fastest MVP)
+
+Condition on current state buckets:
+
+```
+P(Y=1 | bucket) = count(Y=1 in history where state in same bucket) / count(history in bucket)
+```
+
+Bucket example:
+```
+bucket = (RiskBand(R_t), StorageQuartile(Storage_t), VolRegime(VIX_t))
+```
+
+### 2.4 Logistic Probability Model (Clean, Explainable)
+
+```
+p_t = 1 / (1 + exp(-(w0 + w1*R_t + w2*rR_t + w3*zStorage_t + w4*DivergenceScore_t + w5*RegimeShock_t)))
+```
+
+Train one model per target/horizon (TTF spike 5D, Brent breakout 3D, etc).
+
+### 2.5 Reliability Calibration (Important)
+
+After training, calibrate so "70%" actually means ~70%:
+
+- Platt scaling or isotonic regression
+- Or simple binning:
+```
+CalibratedP = mean(Y) within predicted-probability bins
+```
+
+### 2.6 Output Score Format (What Users See)
+
+Show:
+- **Probability (horizon):** 0–100%
+- **Confidence:** based on sample size + stability
+- **Drivers:** top contributing features (explainability)
+
+Confidence proxy:
+```
+Confidence = min(1, sqrt(N_bucket / N_ref)) * (1 - model_error)
+```
+
+---
+
+## 3. Divergence Detection Algorithms
+
+Divergence = "risk signal says stress, market not pricing it (or vice versa)".
+
+### 3.1 Simple Standardized Divergence
+
+```
+Div_t = zR_t - zA_t
+```
+
+Where zA_t could be z(rolling return) or z(level change) depending on asset.
+
+### 3.2 Beta-Expected vs Realized (Best Practical Version)
+
+Use rolling beta model:
+
+```
+Expected_rA_t = alpha_hat + beta_hat * rR_t
+DivergenceResidual_t = rA_t - Expected_rA_t
+```
+
+Then normalize:
+```
+DivScore_t = (DivergenceResidual_t - mean(resid_{t-W..t-1})) / std(resid_{t-W..t-1})
+```
+
+**Interpretation:**
+- `DivScore_t << 0`: market underreacting to risk (risk up, asset not moving)
+- `DivScore_t >> 0`: market overreacting / pricing ahead
+
+### 3.3 Multi-Asset Divergence (Systemic "Pricing Gap")
+
+Compute residual divergence for each asset, then aggregate with weights:
+
+```
+SystemDiv_t = wBrent*DivScoreBrent_t + wTTF*DivScoreTTF_t + wVIX*DivScoreVIX_t + wEURUSD*DivScoreEURUSD_t
+```
+
+Weights can be fixed (e.g., gas heavy for EERI/EGSI days) or data-driven.
+
+### 3.4 Trigger Rules (Alerts)
+
+```
+UnderpricingTrigger_t = 1 if zR_t >= 1.5 and SystemDiv_t <= -1.0 else 0
+OverpricingTrigger_t = 1 if zR_t <= -1.0 and SystemDiv_t >= 1.5 else 0
+```
+
+---
+
+## 4. Regime Classification Framework
+
+Regimes that are interpretable to traders and explainable in the digest.
+
+### 4.1 Regime Features
+
+```
+f1 = zR_t
+f2 = zVolAsset_t (e.g., rolling stdev of returns)
+f3 = zStorage_t (and/or storage slope)
+f4 = Corr_rolling(R, asset)
+f5 = SystemDiv_t
+f6 = TrendR_t = slope(R_{t-L..t}) (simple linear slope)
+```
+
+### 4.2 Rule-Based Regimes (MVP, Fast, Explainable)
+
+Example regimes:
+
+```
+Regime = "Calm" if zR_t < 0.5 and zVolAsset_t < 0.5
+Regime = "Risk Build" if zR_t >= 0.5 and TrendR_t > 0 and zVolAsset_t < 0.7
+Regime = "Shock" if zR_t >= 1.5 and zVolAsset_t >= 1.0
+Regime = "Gas-Storage Stress" if zEERI_t >= 1.0 and zStorage_t <= -1.0
+Regime = "Contagion" if zR_t >= 1.0 and Corr_rolling(R, VIX) >= 0.5 and Corr_rolling(R, TTF) >= 0.5
+Regime = "Divergence / Underpriced Risk" if zR_t >= 1.0 and SystemDiv_t <= -1.0
+```
+
+### 4.3 Unsupervised Clustering (v2)
+
+Use k-means / GMM on [f1..f6], then label clusters with human-friendly names using AI.
+
+### 4.4 Regime Transition Signal
+
+```
+RegimeShift_t = 1 if Regime_t != Regime_{t-1} else 0
+```
+
+In digest: "Regime shift detected: Risk Build → Shock".
+
+---
+
+## 5. Backtesting Engine Architecture
+
+Simple, reproducible, and fast.
+
+### 5.1 Data Layer
+
+Tables/views:
+- `indices_daily(date, geri, eeri, egsi, ...)`
+- `assets_daily(date, brent, ttf, vix, eurusd, storage, ...)`
+- `features_daily(date, ...computed features...)`
+- `signals_daily(date, divergence_triggers, regime_id, prob_scores...)`
+- `tests_results(run_id, config_json, metrics_json, created_at)`
+
+### 5.2 Pipeline (Daily)
+
+1. Ingest / update assets + indices
+2. Compute features (rolling stats, betas, correlations, regimes)
+3. Generate signals (divergence triggers, shock days)
+4. Train/update probability models (weekly is enough)
+5. Write digest outputs + store "digest snapshot" record
+
+### 5.3 Backtest Modes
+
+**A) Event Study Backtest (best for product claims)**
+
+When `UnderpricingTrigger_t=1`, measure forward moves:
+```
+Return_{t->t+h} = ln(A_{t+h}/A_t)
+```
+Aggregate: mean, median, hit rate.
+
+**B) Threshold Strategy Backtest (Trader Plan)**
+
+Example: long volatility proxy when risk shock triggers.
+Track performance stats: hit rate, average move, max adverse, time-to-peak.
+
+### 5.4 Metrics
+
+```
+HitRate = mean(Y=1 on signal days)
+Lift = HitRate_signal / HitRate_baseline
+AvgMove = mean(Return_{t->t+h} on signal days)
+Sharpe_like = mean(Return)/std(Return) (informational only)
+Drawdown = min cumulative
+```
+
+### 5.5 Validation Discipline
+
+Walk-forward split:
+- Train: older window
+- Test: next window
+- Roll forward
+
+This keeps credibility when publishing results.
+
+---
+
+## 6. AI Prompt Templates Using Real Data
+
+### 6.1 Digest Generator (System + User Template)
+
+**SYSTEM PROMPT:**
+```
+You are EnergyRiskIQ Intelligence Engine.
+You must NOT repeat raw news.
+You must interpret yesterday's alerts + indices + real market data.
+You must be concise, trader-oriented, and quantify relationships when data is provided.
+If you state a probability, it must come from provided model outputs, not guesses.
+Always separate: Facts / Interpretation / Watchlist.
+```
+
+**USER PROMPT (fill variables):**
+```
+DATE_TODAY: {YYYY-MM-DD}
+DATE_YESTERDAY: {YYYY-MM-DD}
+
+ALERTS_YESTERDAY (top 10 by severity, include region/category/severity/confidence):
+{...}
+
+INDEX_SNAPSHOT:
+GERI: {level} ({delta})
+EERI: {level} ({delta})
+EGSI: {level} ({delta})
+
+ASSET_MOVES_YESTERDAY:
+Brent: {close} ({%})
+TTF: {close} ({%})
+VIX: {close} ({delta})
+EURUSD: {close} ({%})
+EU Storage: {level} ({delta})
+
+QUANT_FEATURES:
+Rolling betas (60d):
+beta_GERI_to_Brent: {x}
+beta_EERI_to_TTF: {x}
+beta_GERI_to_VIX: {x}
+Rolling correlations (60d):
+corr_GERI_Brent: {x}
+corr_EERI_TTF: {x}
+corr_GERI_VIX: {x}
+
+DIVERGENCE:
+SystemDiv: {zscore}
+UnderpricingTrigger: {0/1}
+OverpricingTrigger: {0/1}
+
+REGIME:
+RegimeName: {string}
+RegimeShift: {0/1}
+
+MODEL_PROBABILITIES (must be used verbatim):
+P_TTF_spike_5d: {0-100}%
+P_Brent_breakout_3d: {0-100}%
+P_VIX_jump_5d: {0-100}%
+
+TASK:
+Write the "EnergyRiskIQ — Daily Geo-Energy Intelligence Digest" for traders.
+Include:
+1) Executive snapshot (5 lines max)
+2) What changed (3 bullets max)
+3) Market reaction vs risk signal (quantified)
+4) Top 3 systemic drivers (from alerts) with 1-line impact each
+5) Probabilities + why (drivers from features)
+6) 48–72h watchlist with triggers (levels to watch)
+Tone: analyst-grade, not promotional. Avoid disclaimers except one line at the end.
+```
+
+### 6.2 Plan-Based Output Prompt (for Gating)
+
+Add at top of USER prompt:
+```
+USER_PLAN: {FREE|PERSONAL|TRADER|PRO|ENTERPRISE}
+Only include sections allowed for that plan:
+FREE: (1,2 only) + asset moves line
+PERSONAL: add (3,4) but no probabilities
+TRADER: include all sections + probabilities
+PRO: add regime detail + divergence deep dive + beta table
+ENTERPRISE: add portfolio mapping section (if portfolio provided)
+```
+
+### 6.3 "Explain Divergence Without Leaking Sauce" Prompt
+
+```
+Explain the divergence in plain language without describing the exact formula, thresholds, or model parameters.
+Use phrasing like: "historically", "based on past episodes", "risk signal vs market pricing gap".
+Do not reveal z-score cutoffs, window lengths, or beta equations.
+```
+
+---
+
+## 7. Trader-Grade Daily Digest Output Examples
+
+### Example A — Risk Rising, Market Muted (Underpriced Risk)
+
+```
+ENERGYRISKIQ — DAILY GEO-ENERGY INTELLIGENCE DIGEST
+Date: 2026-02-05 | Based on Alerts: 2026-02-04
+
+EXECUTIVE SNAPSHOT
+Global risk: Elevated, drifting higher (GERI 58 +4).
+Europe stress firmed (EERI 63 +7) while market pricing stayed relatively muted.
+Regime: Risk Build → early Divergence (underpriced risk signal).
+
+WHAT CHANGED (24H)
+- Europe risk accelerated on supply/transit uncertainty signals.
+- Systemic risk broadened across regions (higher multi-region alert density).
+- Freight/volatility channels showed early sensitivity, spot prices lagged.
+
+MARKET REACTION vs RISK SIGNAL
+- GERI +4 vs Brent +0.2% (muted vs historical sensitivity).
+- EERI +7 vs TTF +0.3% (below typical reaction for similar risk jumps).
+- System divergence: -1.3σ (risk signal > market pricing).
+
+TOP SYSTEMIC DRIVERS (FROM ALERTS)
+1) Europe | Energy | High severity: Supply/transit stress rising → gas sensitivity elevated.
+2) Middle East | Geopolitical | Medium-high: escalation risk → volatility premium bias.
+3) Global | Supply chain | Medium: routing/flows noise → freight stress tail risk.
+
+PROBABILITIES (MODEL-BASED)
+- TTF spike risk (5D): 64% | Drivers: EERI level, low storage quartile, divergence gap.
+- Brent breakout (3D): 52% | Drivers: rising GERI + volatility regime stabilizing.
+- VIX jump risk (5D): 58% | Drivers: GERI→VIX correlation strengthening, regime shift.
+
+48–72H WATCHLIST (TRIGGERS)
+- If EERI holds > 60 with storage still weakening: gas volatility bias stays upward.
+- Watch any multi-region escalation cluster: increases probability of delayed repricing.
+- Divergence resolves either via risk easing or market catch-up; monitor VIX sensitivity.
+
+Informational only. Not financial advice.
+```
+
+### Example B — Risk Falling, Market Still Stressed (Overpriced Risk / Unwind Risk)
+
+```
+ENERGYRISKIQ — DAILY GEO-ENERGY INTELLIGENCE DIGEST
+Date: 2026-02-06 | Based on Alerts: 2026-02-05
+
+EXECUTIVE SNAPSHOT
+Global risk: Cooling (GERI 49 -6), Europe stress stabilizing (EERI 57 -3).
+Markets remain stressed relative to risk signal (volatility not easing yet).
+Regime: Shock → Stabilization (potential unwind window).
+
+WHAT CHANGED (24H)
+- Risk signals eased across regions (alert density down 40%).
+- Gas/storage concerns moderated with improved flow expectations.
+- VIX remains elevated despite risk cooling — overpricing signal.
+
+MARKET REACTION vs RISK SIGNAL
+- GERI -6 vs Brent -0.1% (asset not unwinding with risk).
+- EERI -3 vs TTF +0.5% (gas still bid despite lower EU risk).
+- System divergence: +1.6σ (market > risk signal).
+
+TOP SYSTEMIC DRIVERS (FROM ALERTS)
+1) Europe | Energy | Moderate: Transit flows improving → near-term pressure easing.
+2) Middle East | Geopolitical | Lower: Escalation signals fading.
+3) Global | Macro | Stable: No new systemic triggers.
+
+PROBABILITIES (MODEL-BASED)
+- TTF spike risk (5D): 38% | Drivers: EERI cooling, storage stable.
+- Brent breakout (3D): 29% | Drivers: GERI dropping, volatility regime shifting.
+- VIX mean-reversion (5D): 62% | Drivers: Overpricing gap, risk cooling.
+
+48–72H WATCHLIST (TRIGGERS)
+- If GERI stabilizes < 50 with no new escalation cluster: unwind bias confirmed.
+- Watch for VIX normalization — lagging indicator of market stress release.
+- Any surprise regional alert could reverse stabilization narrative.
+
+Informational only. Not financial advice.
+```
