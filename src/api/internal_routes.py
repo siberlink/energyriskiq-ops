@@ -1158,3 +1158,33 @@ def run_backfill_geri_overlays(
         raise HTTPException(status_code=500, detail=response)
     
     return response
+
+
+@router.post("/fix-skipped-alerts")
+def fix_skipped_alerts(x_runner_token: Optional[str] = Header(None)):
+    validate_runner_token(x_runner_token)
+    
+    from src.db.db import get_connection
+    
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                UPDATE user_alert_deliveries 
+                SET status = 'skipped', last_error = 'email_disabled'
+                WHERE status = 'failed' 
+                  AND last_error LIKE '%Email sending is disabled%'
+            """)
+            updated = cursor.rowcount
+            conn.commit()
+            
+            return {
+                "status": "ok",
+                "updated_count": updated,
+                "message": f"Fixed {updated} alert deliveries from 'failed' to 'skipped'"
+            }
+        except Exception as e:
+            conn.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            cursor.close()

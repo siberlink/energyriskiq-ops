@@ -22,7 +22,7 @@ from src.api.ops_routes import router as ops_router
 from src.api.telegram_routes import router as telegram_router
 from src.api.seo_routes import router as seo_router
 from src.billing.billing_routes import router as billing_router
-from src.db.migrations import run_migrations, run_seo_tables_migration, run_sources_migration, run_geri_migration, run_pro_delivery_migration
+from src.db.migrations import run_migrations, run_seo_tables_migration, run_sources_migration, run_geri_migration, run_pro_delivery_migration, run_fix_skipped_alerts
 from src.geri import ENABLE_GERI
 from src.geri.routes import router as geri_router
 from src.reri import ENABLE_EERI
@@ -166,6 +166,7 @@ async def startup_event():
         run_sources_migration()
         run_geri_migration()
         run_pro_delivery_migration()
+        run_fix_skipped_alerts()
         logger.info("Database migrations completed")
         if ENABLE_GERI:
             logger.info("GERI module is ENABLED")

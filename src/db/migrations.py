@@ -1295,6 +1295,20 @@ def run_oil_price_migration():
     logger.info("Oil price migration complete.")
 
 
+def run_fix_skipped_alerts():
+    """One-time fix for alert deliveries incorrectly marked as 'failed' when email was disabled."""
+    with get_cursor() as cursor:
+        cursor.execute("""
+            UPDATE user_alert_deliveries 
+            SET status = 'skipped', last_error = 'email_disabled'
+            WHERE status = 'failed' 
+              AND last_error LIKE '%Email sending is disabled%'
+        """)
+        updated = cursor.rowcount
+        if updated > 0:
+            logger.info(f"Fixed {updated} alert deliveries from 'failed' to 'skipped'")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
