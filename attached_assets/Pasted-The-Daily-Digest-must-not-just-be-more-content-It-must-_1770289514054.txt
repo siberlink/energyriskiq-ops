@@ -1,0 +1,433 @@
+The Daily Digest must not just be “more content.”
+It must become a progressively deeper decision-intelligence tool as users upgrade.
+
+You already positioned EnergyRiskIQ as institutional-grade analytics, so your pricing tiers should feel like:
+
+👉 Awareness → Insight → Trading Edge → Institutional Intelligence → Strategic Risk Infrastructure
+
+Below is a smart, psychologically optimized tier architecture specifically for your Daily Digest product.
+
+🧠 EnergyRiskIQ — Daily Digest Feature Ladder
+
+(Designed to maximize upgrades + perceived value)
+
+🟢 FREE USER PLAN
+🎯 Purpose:
+
+Lead generation + brand authority + SEO + funnel entry
+
+👉 This tier should create curiosity and trust
+👉 NOT give enough depth to replace paid plans
+
+Features
+✅ Executive Risk Snapshot
+
+Global risk tone
+
+2-3 key drivers
+
+1 short interpretation paragraph
+
+✅ Limited Alert Commentary
+
+Top 1–2 alerts only
+
+Very high-level explanation
+
+No asset breakdown
+
+✅ Public Index Direction
+
+GERI movement only
+
+Direction + daily change
+
+No advanced context
+
+✅ 24h Delay
+
+Very important psychologically.
+
+Free users should always feel slightly behind.
+
+✅ Public Watchlist (Short)
+
+1–2 forward signals
+
+No probability scoring
+
+❌ Not Included
+
+Historical comparisons
+
+Asset impact tables
+
+Regional deep analysis
+
+Data exports
+
+Custom alerts
+
+Index components
+
+Trend analytics
+
+💡 Goal of Free Plan
+
+Make users think:
+
+“This is impressive… but I need more detail.”
+
+🔵 PERSONAL PLAN — $9.95/month
+🎯 Purpose:
+
+Serious enthusiasts + early professionals
+
+This tier introduces:
+👉 Personal intelligence
+👉 More interpretation depth
+
+Features
+
+Everything from FREE plus:
+
+✅ Full Daily Digest Access
+
+All sections unlocked
+
+Full alert commentary (Top 3-5)
+
+✅ Multi-Index Summary
+
+GERI
+
+EERI
+
+RERI regional highlights
+
+EGSI summary (once launched)
+
+✅ 7-Day Risk Trend Context
+
+Short rolling trend analysis
+
+Early pattern recognition
+
+✅ Basic Asset Impact Overview
+
+Directional impacts only:
+
+Oil ↑ / ↓
+
+Gas ↑ / ↓
+
+Freight ↑ / ↓
+
+FX ↑ / ↓
+
+(No volatility modelling yet.)
+
+✅ Email Digest Delivery
+
+Retention engine.
+
+✅ Access to Digest Archive
+
+(Last 30 days)
+
+❌ Still Not Included
+
+Probability scoring
+
+Market timing signals
+
+Custom alerts
+
+Data exports
+
+Asset correlation tools
+
+💡 Psychological Role
+
+Feels like:
+
+👉 “I now understand global risk better.”
+
+🟡 TRADER PLAN — $29/month
+🎯 Purpose:
+
+Active traders & tactical market participants
+
+This is where digest becomes:
+👉 Decision-support intelligence
+
+Features
+
+Everything from Personal plus:
+
+✅ Market Impact Probability Scores
+
+Example:
+
+Oil Volatility Probability: 68%
+Gas Pricing Shock Probability: 74%
+Freight Disruption Risk: 61%
+
+✅ Cross-Asset Impact Matrix
+
+Shows:
+
+Alert cluster → Asset sensitivity
+
+✅ Volatility Outlook Section
+
+AI predicts:
+
+short-term volatility regimes
+
+asset risk windows
+
+✅ Early Release Digest
+
+Published 2–3 hours earlier than lower tiers.
+
+This is VERY powerful upgrade motivation.
+
+✅ 30-Day Historical Risk Pattern Analysis
+
+Helps traders identify:
+
+👉 regime transitions
+
+✅ Forward Watchlist With Risk Probability
+
+Example:
+
+OPEC Supply Decision
+Impact Probability: 62%
+Confidence: Medium
+
+✅ Digest Linked To Alert Detail Pages
+
+Deep research workflow.
+
+❌ Not Included
+
+Custom portfolio risk
+
+Raw data download
+
+API access
+
+Advanced index decomposition
+
+💡 Psychological Role
+
+User feels:
+
+👉 “This helps me trade smarter.”
+
+🔴 PRO PLAN — $49/month
+🎯 Purpose:
+
+Professional analysts + energy firms + institutional-style traders
+
+This is where you deliver your core premium identity.
+
+Features
+
+Everything from Trader plus:
+
+✅ Full Index Decomposition Commentary
+
+Example:
+
+GERI drivers:
+
+Supply stress contribution
+
+Transit stress contribution
+
+Freight stress contribution
+
+Storage stress contribution
+
+✅ Cross-Regional Contagion Analysis
+
+Shows:
+
+👉 How risk spreads between regions
+
+This is extremely rare and premium.
+
+✅ Asset Sensitivity Scoring Tables
+
+Numerical sensitivity modelling:
+
+GERI vs Brent Beta
+GERI vs TTF Elasticity
+
+✅ 90-Day + 1-Year Risk Context
+
+Institutional time horizon.
+
+✅ Historical Digest Library (Full)
+
+Your hidden data goldmine.
+
+✅ Scenario Forecast Narratives
+
+AI generates:
+
+Base case
+
+Escalation case
+
+De-escalation case
+
+✅ Advanced Visual Dashboards
+
+Digest integrates charts + overlays.
+
+✅ Digest Download (PDF / Analyst Format)
+
+Huge professional value.
+
+💡 Psychological Role
+
+User feels:
+
+👉 “This is institutional intelligence.”
+
+🟣 ENTERPRISE PLAN — $129/month
+🎯 Purpose:
+
+Companies, funds, trading desks, logistics firms, research teams
+
+Here digest becomes:
+
+👉 Customizable intelligence infrastructure
+
+Features
+
+Everything from PRO plus:
+
+✅ Custom Digest Filtering
+
+By:
+
+Region
+
+Asset class
+
+Sector
+
+Risk type
+
+✅ Portfolio Risk Mapping
+
+Digest shows:
+
+“How yesterday’s alerts impact YOUR portfolio”
+
+(Huge enterprise value.)
+
+✅ Custom Watchlists
+
+Company selects:
+
+pipelines
+
+regions
+
+shipping lanes
+
+suppliers
+
+✅ API Access To Digest Data
+
+Massive upsell opportunity.
+
+✅ Early Institutional Release
+
+Delivered before public platform update.
+
+✅ Multi-User Team Access
+✅ Custom Analyst Notes
+
+AI + optional human layer in future.
+
+✅ White-Label Report Option (Future)
+
+Extremely premium B2B feature.
+
+💡 Psychological Role
+
+Feels like:
+
+👉 “EnergyRiskIQ is our external intelligence partner.”
+
+📊 Recommended Feature Escalation Ladder
+Capability	Free	Personal	Trader	Pro	Enterprise
+Executive snapshot	✔	✔	✔	✔	✔
+Full alert analysis	❌	✔	✔	✔	✔
+Multi-index interpretation	❌	✔	✔	✔	✔
+Risk trend analytics	❌	✔	✔	✔	✔
+Probability scoring	❌	❌	✔	✔	✔
+Early digest release	❌	❌	✔	✔	✔
+Index decomposition	❌	❌	❌	✔	✔
+Contagion analysis	❌	❌	❌	✔	✔
+Scenario forecasting	❌	❌	❌	✔	✔
+Custom portfolio risk	❌	❌	❌	❌	✔
+API / data licensing	❌	❌	❌	❌	✔
+💰 Pricing Psychology (Very Important)
+
+Your pricing ladder is excellent already.
+
+But here’s the hidden logic you are using:
+
+👉 $9.95 = Knowledge
+👉 $29 = Trading edge
+👉 $49 = Professional intelligence
+👉 $129 = Business intelligence infrastructure
+
+That is perfect SaaS escalation.
+
+🔥 Smart Upgrade Hooks (Highly Recommended)
+
+Add these to UI:
+
+🔒 Trader Insight Available
+Upgrade to unlock probability scoring
+
+🔒 Contagion Analysis is Pro Only
+
+🔒 Portfolio Impact Available in Enterprise
+
+
+These massively increase conversions.
+
+🧠 Strategic Advice (Based on Your Platform Vision)
+
+Your strongest differentiators long term will be:
+
+👉 Contagion analysis
+👉 Probability modelling
+👉 Scenario forecasting
+👉 Portfolio risk mapping
+
+Those MUST stay in higher tiers.
+
+⭐ My Personal Recommendation For Your MVP
+
+If you want fastest monetization:
+
+Start with only 3 tiers active:
+
+• Free
+• Trader
+• Pro
+
+Then introduce Personal and Enterprise later.
+
+This often converts better early.
