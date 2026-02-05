@@ -587,3 +587,359 @@ EnergyRiskIQ shows:
 > **Risk → Market Reaction → Forward Risk**
 
 That is extremely rare.
+
+---
+
+# GERI Dashboard Technical Specification
+
+Chart UI Blueprint, Statistical Logic Model, Interpretation Engine, and Data Normalization Spec
+
+---
+
+## 1. Chart UI Blueprint (Exact Layout Wireframe)
+
+### A. Page Layout (Desktop)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Header: GERI Dashboard  |  Plan badge | Date (last update) | Export | Help  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CONTROL BAR                                                                  │
+│ [Range: 7D 30D 90D 1Y Since Launch Custom]  [Compare: Off | vs prev period]  │
+│ [Mode: Overlay | Divergence | Correlation | Storage Context]                 │
+│ [Normalize: Off | Indexed(100) | Z-score] [Smoothing: Raw 3D 7D]             │
+│ [Assets: Brent ☐  TTF ☐  VIX ☐  EURUSD ☐  EU Storage ☐ ] (max N by plan)     │
+│ [Risk Bands: On/Off] [Event Markers: On/Off] [Annotations: On/Off]           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────┬─────────────────────┐
+│ MAIN CHART (70%)                                       │ INTERPRETATION (30%)│
+│                                                       │                     │
+│  ░ background shading by GERI bands                    │  CURRENT STATE      │
+│  ─ GERI (left axis 0–100)                              │  - Risk band + trend│
+│  ─ Asset lines (right axis or normalized axis)         │  - Confirmation score│
+│  ⊙ regime shift markers (optional)                     │  - Lead/Lag summary │
+│  ⇵ hover tooltip (all series + derived metrics)        │                     │
+│                                                       │  WHAT CHANGED        │
+│                                                       │  - ΔGERI, ΔAssets     │
+│                                                       │  - Drivers (if any)   │
+│                                                       │                     │
+│                                                       │  ACTIONABLE READ      │
+│                                                       │  - "Watch next 48h"   │
+│                                                       │  - "If X then Y"      │
+└───────────────────────────────────────────────────────┴─────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SECONDARY PANELS (tabs)                                                      │
+│ [Lag & Divergence] [Rolling Corr] [Response Strength] [EU Storage Seasonal]  │
+│                                                                             │
+│ Lag & Divergence tab example:                                               │
+│  - Table: best lag, corr@lag, divergence score, status (confirm/decouple)   │
+│  - Mini chart: ΔGERI vs shifted ΔAsset (best lag)                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### B. Main Chart Modes
+
+| Mode | Description |
+|------|-------------|
+| **Overlay** (default) | GERI line + selected assets. Risk band shading ON by default. |
+| **Divergence** | Shows GERI vs expected asset move and flags "decoupling zones" |
+| **Correlation** | Main chart stays, but lower panel shows rolling correlation |
+| **Storage Context** (specialized) | EU Storage shown as percent + seasonal percentile, plus GERI |
+
+### C. Tooltip Spec (Must-Have)
+
+On hover display:
+- Date
+- GERI value + band
+- Each asset value (raw) + normalized value
+- Derived metrics:
+  - ΔGERI (1D / 7D)
+  - ΔAsset (1D / 7D)
+  - Best lag (per asset)
+  - Divergence score (per asset)
+  - Confirmation score (overall)
+
+---
+
+## 2. Statistical Logic Model (Lag + Divergence Automatically)
+
+**Design goal:** Robust, explainable daily metrics. Use changes/returns (not raw levels).
+
+### A. Preprocessing
+
+For each asset series P_t:
+
+**Price-like assets (Brent, TTF, VIX, EUR/USD):** Log returns
+```
+r_t = ln(P_t) - ln(P_{t-1})
+```
+
+**EU Gas Storage (level-like, bounded):** Simple delta
+```
+r_t = S_t - S_{t-1}
+```
+
+**GERI (0–100):** Simple delta
+```
+g_t = G_t - G_{t-1}
+```
+
+**Optional smoothing (user selectable):**
+- 3-day moving average (MA) on g_t and r_t
+- 7-day moving average (MA) on g_t and r_t
+
+### B. Lag Detection (Per Asset)
+
+**Goal:** Find lag L where GERI changes best align with asset response.
+
+```
+Choose lag window:
+  L in [-14, +14] days
+  (negative = asset leads risk; positive = risk leads asset)
+
+Compute correlation on changes:
+  rho(L) = corr(g_t, r_{t+L})
+
+Pick best lag:
+  L* = argmax_L |rho(L)|
+
+Store:
+  L* and rho* = rho(L*)
+```
+
+**Stability check (avoid noisy results):**
+- Require |rho*| >= rho_min (typical range: 0.15–0.25, tuned to data)
+- Require enough samples in-window (e.g., >= 120 daily observations)
+
+### C. Expected-Response Model (Simple, Explainable)
+
+Fit a linear mapping from risk change to asset change on a rolling window W (example: 180 days), using best lag L*.
+
+```
+Model:
+  r_{t+L*} ≈ alpha + beta * g_t
+
+Estimate alpha, beta via robust regression (Huber) or OLS.
+```
+
+### D. Divergence Score (Per Asset, Per Day)
+
+```
+Predicted return:
+  rhat_{t+L*} = alpha + beta * g_t
+
+Residual:
+  e_{t+L*} = r_{t+L*} - rhat_{t+L*}
+
+Normalize by rolling residual volatility:
+  sigma_e = std(e over last W)
+
+Divergence Z-score:
+  D_t = e_t / sigma_e
+```
+
+**Interpretation thresholds:**
+| Divergence Score | Interpretation |
+|------------------|----------------|
+| \|D_t\| < 1 | Normal alignment |
+| 1 <= \|D_t\| < 2 | Mild divergence |
+| \|D_t\| >= 2 | Strong divergence (flag zone) |
+
+### E. Confirmation Score (System-Level)
+
+```
+Per asset alignment:
+  alignment = 1 - min(|D_t| / 3, 1)   (clamps at 0 when |D_t| >= 3)
+  C_asset = 100 * alignment
+
+Suggested weights (tune later):
+  w_TTF = 0.30
+  w_Brent = 0.25
+  w_VIX = 0.20
+  w_EURUSD = 0.15
+  w_Storage = 0.10
+
+Overall confirmation:
+  C_total = sum_i (w_i * C_i)
+```
+
+### F. Regime Shift Detection (Simple)
+
+Mark a regime change if:
+- Risk band changed (based on G_t)
+- |g_t| exceeds a threshold (example: >= 8 points/day)
+
+Render these as vertical markers on the main chart.
+
+---
+
+## 3. User Interpretation Engine (Analyst Commentary Templates)
+
+Use deterministic templates driven by computed inputs: band, trend, momentum, confirmation score, and per-asset lag/divergence/direction.
+
+### A. "Current State" Template (Always Shown)
+
+```
+Template:
+  Risk Level: {band} ({G_t}/100)
+  Trend: {trend_label} ({Delta7D} over 7D)
+  Market Confirmation: {C_total}/100 ({confirm_label})
+
+Rules for confirm_label:
+  C_total >= 70  -> "Strong cross-asset confirmation"
+  45 <= C_total <= 69 -> "Mixed confirmation"
+  C_total < 45   -> "Weak confirmation / possible decoupling"
+```
+
+### B. "Lead/Lag" Template (Per Asset)
+
+```
+Template:
+  {Asset}: historically responds {lead_lag_text} by {L*} days in the current regime (corr {rho*}).
+
+lead_lag_text:
+  L* > 0 -> "after risk moves"
+  L* = 0 -> "same-day with risk"
+  L* < 0 -> "before risk moves"
+```
+
+### C. "Divergence" Template (Per Asset, Conditional)
+
+**Trigger:** |D_t| >= 2
+
+```
+Template:
+  {Asset} divergence: risk implies a move of ~{pred_move}, but market printed {actual_move}.
+  Interpretation: {divergence_read}
+
+Example divergence_read rules:
+  If GERI rising but asset not reacting (beta > 0, predicted up, actual flat/down):
+    "Market is discounting the risk signal or pricing a short-lived shock."
+  If asset spikes while GERI stable:
+    "Likely idiosyncratic driver (weather/infrastructure/liquidity) rather than systemic risk."
+```
+
+### D. "Systemic vs Contained" Template (Big Insight)
+
+**Use cues:**
+- High GERI + VIX aligned → systemic
+- High GERI + VIX misaligned → contained
+- High GERI + TTF aligned + low storage percentile → Europe stress
+- High GERI + high storage percentile + muted TTF → buffered risk
+
+```
+Template:
+  System classification: {system_label}.
+  Why: {reason_1}; {reason_2}.
+  Watch next: {watch_item}.
+
+system_label rules:
+  "Systemic stress": C_total >= 70 AND VIX aligned (|D| < 1.5)
+  "Sector-contained risk": GERI high but VIX misaligned
+  "Europe gas stress": TTF aligned + storage percentile low
+  "Buffered risk": storage percentile high + TTF muted
+```
+
+### E. "What Changed Since Yesterday" (Delta Narrative)
+
+**Inputs:** DeltaGERI_1D, DeltaAsset_1D, band change, divergence change
+
+```
+Template:
+  Since yesterday: GERI {up/down} {DeltaGERI}.
+  Main market reaction: {top_asset} moved {DeltaAsset}.
+  Signal quality: {improved/worsened} (confirmation {DeltaC_total}).
+```
+
+### F. "Actionable Read" (Careful Wording, Not Advice)
+
+```
+Template:
+  Monitoring focus (next 24-48h): {asset_or_context}.
+  If risk continues {up/down}: expect {asset} to {likely_move} based on historical response (lag {L*}d).
+  If divergence persists: watch for {reversion_trigger}.
+```
+
+---
+
+## 4. Data Normalization Algorithm Spec (Overlay Accuracy)
+
+**Goal:** Enable shape comparison without misleading users.
+
+### A. Standardize Date Alignment
+
+- Build a unified daily calendar from min(GERI_date, asset_date) to max.
+- Forward-fill rules:
+  - **Prices:** Do not forward-fill across missing market days unless explicitly marking non-trading days; better to keep gaps (or show missing).
+  - **Storage (weekly-ish):** Forward-fill is acceptable, but show a "stale" indicator (days since last update).
+
+### B. Normalization Modes (User Toggle)
+
+**1) Raw (no normalization)**
+- GERI on left axis (0–100)
+- Assets on right axis in native units
+- Use when the user wants actual levels
+
+**2) Indexed to 100 (Recommended Default for Multi-Asset Overlays)**
+
+```
+Choose base date t0 = first visible date in selected range.
+
+Price-like assets:
+  I_t = 100 * (P_t / P_{t0})
+
+Storage options:
+  Option A (indexed): I_t = 100 * (S_t / S_{t0})
+  Option B (percent-of-capacity): keep S_t (%) and use dual-axis + seasonal percentile line
+
+GERI:
+  Recommended: keep GERI on 0–100 for interpretability.
+  Optional: I^G_t = 100 * (G_t / G_{t0})
+```
+
+**3) Z-score (Best for "Is This Move Unusual?")**
+
+```
+Compute within visible window (or rolling window W):
+  Z_t = (x_t - mu) / sigma
+
+Use for:
+  - Divergence mode
+  - Cross-asset "shock" comparisons
+```
+
+### C. Smoothing (Visual + Analytical)
+
+**Offer:**
+- Raw
+- 3-day MA
+- 7-day MA
+
+**Spec:**
+- Apply MA after normalization in Indexed/Z modes (cleaner visuals)
+- For divergence computations, apply smoothing consistently to both g_t and r_t
+
+### D. EU Storage Seasonal Context (Special Spec)
+
+Storage is seasonal; the most truthful overlay is:
+- **Primary:** Storage level (%) line
+- **Secondary:** Seasonal percentile or "vs seasonal average" line (percentile by week-of-year)
+
+If history is limited: use "vs recent baseline" (last 2–3 years if available) or show only max/min since launch.
+
+### E. Handling Outliers (Avoid Chart Distortion)
+
+- **Winsorize returns for divergence computations:** Clamp r_t at rolling 1st/99th percentiles
+- **Do not clamp raw price charts:** Users may want to see spikes
+
+### F. Consistency Rules (Prevents User Confusion)
+
+- Same selected window applies to:
+  - Main chart
+  - Rolling correlation panel
+  - Divergence panel
+- Tooltip always shows both raw and normalized values (when normalization is enabled)
