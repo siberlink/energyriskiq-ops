@@ -16,6 +16,8 @@ from calendar import month_name
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
 
+import json as json_module
+
 from src.reri.interpretation import generate_eeri_interpretation
 from src.reri.eeri_history_service import (
     get_latest_eeri_public,
@@ -27,6 +29,7 @@ from src.reri.eeri_history_service import (
     get_eeri_adjacent_dates,
     get_eeri_monthly_stats,
 )
+from src.reri.eeri_weekly_snapshot import get_weekly_snapshot, BAND_COLORS as WEEKLY_BAND_COLORS
 
 router = APIRouter(tags=["eeri-seo"])
 
@@ -222,6 +225,324 @@ def format_trend(trend_7d) -> tuple:
         return ('Falling', '', '#4ade80')
 
 
+def _build_weekly_snapshot_html(snapshot: dict) -> str:
+    """Build the Weekly Snapshot HTML section for the /eeri page."""
+    if not snapshot:
+        return ''
+
+    from datetime import datetime as dt
+    ws = snapshot['week_start']
+    we = snapshot['week_end']
+    try:
+        ws_dt = dt.strptime(ws, '%Y-%m-%d')
+        we_dt = dt.strptime(we, '%Y-%m-%d')
+        week_label = f"{ws_dt.strftime('%b %d')} – {we_dt.strftime('%b %d, %Y')}"
+    except Exception:
+        week_label = f"{ws} – {we}"
+
+    ov = snapshot['overview']
+    avg_val = ov['average']
+    avg_band = ov['band']
+    band_color = WEEKLY_BAND_COLORS.get(avg_band, '#6b7280')
+    high_val = ov['high']['value']
+    high_day = ov['high']['day']
+    low_val = ov['low']['value']
+    low_day = ov['low']['day']
+    trend = ov['trend_vs_prior']
+    trend_arrow = '↑' if trend == 'rising' else ('↓' if trend == 'falling' else '→')
+    trend_label = trend.capitalize()
+    trend_color = '#ef4444' if trend == 'rising' else ('#22c55e' if trend == 'falling' else '#6b7280')
+
+    regime_html = ''
+    for band_name, days in snapshot['regime_distribution']:
+        bc = WEEKLY_BAND_COLORS.get(band_name, '#6b7280')
+        day_word = 'day' if days == 1 else 'days'
+        pct = round((days / snapshot['data_days']) * 100)
+        regime_html += f'''
+            <div class="ws-regime-row">
+                <span class="ws-regime-badge" style="background: {bc};">{band_name}</span>
+                <div class="ws-regime-bar-track">
+                    <div class="ws-regime-bar-fill" style="width: {pct}%; background: {bc};"></div>
+                </div>
+                <span class="ws-regime-count">{days} {day_word}</span>
+            </div>'''
+
+    assets_html = ''
+    for asset in snapshot['cross_asset']:
+        move = asset['weekly_move_pct']
+        if move is not None:
+            sign = '+' if move > 0 else ''
+            move_str = f"{sign}{move}%"
+            move_color = '#ef4444' if move > 0 else ('#22c55e' if move < 0 else '#6b7280')
+        else:
+            move_str = 'N/A'
+            move_color = '#6b7280'
+
+        alignment = asset['alignment']
+        if alignment == 'confirming':
+            align_icon = '✅'
+            align_label = 'Confirming'
+            align_cls = 'ws-align-confirming'
+        elif alignment == 'diverging':
+            align_icon = '⚠'
+            align_label = 'Diverging'
+            align_cls = 'ws-align-diverging'
+        else:
+            align_icon = '🟡'
+            align_label = 'Neutral'
+            align_cls = 'ws-align-neutral'
+
+        assets_html += f'''
+            <div class="ws-asset-row">
+                <div class="ws-asset-name">{asset['asset']}</div>
+                <div class="ws-asset-move" style="color: {move_color};">{move_str}</div>
+                <div class="ws-asset-align {align_cls}">{align_icon} {align_label}</div>
+                <div class="ws-asset-context">{asset['context']}</div>
+            </div>'''
+
+    chart_data = snapshot.get('chart_data', {})
+    chart_json = json_module.dumps(chart_data)
+
+    asset_chart_configs = [
+        ('ttf', 'TTF Gas', '#f97316'),
+        ('brent', 'Brent Oil', '#3b82f6'),
+        ('storage', 'EU Storage', '#22c55e'),
+        ('vix', 'VIX', '#a855f7'),
+        ('eurusd', 'EUR/USD', '#eab308'),
+    ]
+    charts_html = ''
+    for key, name, color in asset_chart_configs:
+        charts_html += f'''
+            <div class="ws-mini-chart">
+                <div class="ws-mini-chart-title">EERI vs {name}</div>
+                <canvas id="ws-chart-{key}" width="200" height="120"></canvas>
+            </div>'''
+
+    div_status = snapshot['divergence_status']
+    div_narrative = snapshot['divergence_narrative']
+    if div_status == 'confirming':
+        div_icon = '✅'
+        div_label = 'Markets Confirming Risk'
+        div_cls = 'ws-div-confirming'
+    elif div_status == 'diverging':
+        div_icon = '⚠'
+        div_label = 'Markets Diverging From Risk'
+        div_cls = 'ws-div-diverging'
+    else:
+        div_icon = '🟡'
+        div_label = 'Markets Mixed'
+        div_cls = 'ws-div-mixed'
+
+    hist_items = ''
+    for item in snapshot['historical_context']:
+        hist_items += f'<li>{item}</li>'
+
+    tend_html = ''
+    for t in snapshot['tendencies']:
+        conf_cls = 'ws-conf-medium' if t['confidence'] == 'Medium' else 'ws-conf-low'
+        tend_html += f'''
+            <div class="ws-tend-row">
+                <div class="ws-tend-asset">{t['asset']}</div>
+                <div class="ws-tend-tendency">{t['tendency']}</div>
+                <div class="ws-tend-conf {conf_cls}">{t['confidence']}</div>
+            </div>'''
+
+    chart_init_js = ''
+    for key, name, color in asset_chart_configs:
+        chart_init_js += f'''
+        (function() {{
+            var eeriPts = chartData.eeri || [];
+            var assetPts = chartData['{key}'] || [];
+            if (eeriPts.length < 2 || assetPts.length < 2) return;
+            var eeriBase = eeriPts[0].value;
+            var assetBase = assetPts[0].value;
+            if (eeriBase === 0 || assetBase === 0) return;
+            var labels = eeriPts.map(function(p) {{
+                var d = new Date(p.date);
+                return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d.getDay() === 0 ? 6 : d.getDay()-1];
+            }});
+            var eeriIndexed = eeriPts.map(function(p) {{ return ((p.value / eeriBase) * 100).toFixed(1); }});
+            var assetIndexed = assetPts.map(function(p) {{ return ((p.value / assetBase) * 100).toFixed(1); }});
+            var maxLen = Math.min(labels.length, assetIndexed.length);
+            labels = labels.slice(0, maxLen);
+            eeriIndexed = eeriIndexed.slice(0, maxLen);
+            assetIndexed = assetIndexed.slice(0, maxLen);
+            var ctx = document.getElementById('ws-chart-{key}');
+            if (!ctx) return;
+            new Chart(ctx, {{
+                type: 'line',
+                data: {{
+                    labels: labels,
+                    datasets: [
+                        {{ label: 'EERI', data: eeriIndexed, borderColor: '#0066FF', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 }},
+                        {{ label: '{name}', data: assetIndexed, borderColor: '{color}', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3 }}
+                    ]
+                }},
+                options: {{
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {{ legend: {{ display: true, position: 'bottom', labels: {{ font: {{ size: 10 }}, boxWidth: 12, padding: 6 }} }} }},
+                    scales: {{
+                        x: {{ grid: {{ display: false }}, ticks: {{ font: {{ size: 9 }} }} }},
+                        y: {{ grid: {{ color: '#f1f5f9' }}, ticks: {{ font: {{ size: 9 }}, callback: function(v) {{ return v + ''; }} }} }}
+                    }}
+                }}
+            }});
+        }})();'''
+
+    return f'''
+        <div class="ws-section" style="margin: 2rem 0;">
+            <style>
+                .ws-section {{ font-family: 'Inter', -apple-system, sans-serif; }}
+                .ws-header {{ text-align: center; margin-bottom: 1.5rem; }}
+                .ws-header h2 {{ font-size: 1.4rem; color: var(--text-primary); margin-bottom: 0.3rem; }}
+                .ws-header p {{ color: var(--text-secondary); font-size: 0.95rem; }}
+                .ws-overview-card {{
+                    background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+                    color: #fff; border-radius: 12px; padding: 1.5rem;
+                    margin-bottom: 1.25rem;
+                }}
+                .ws-overview-title {{ font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }}
+                .ws-overview-week {{ font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; }}
+                .ws-overview-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }}
+                .ws-overview-stat {{ }}
+                .ws-overview-label {{ font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }}
+                .ws-overview-value {{ font-size: 1.25rem; font-weight: 700; }}
+                .ws-overview-sub {{ font-size: 0.8rem; color: #94a3b8; }}
+                .ws-panel {{
+                    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+                    padding: 1.25rem; margin-bottom: 1.25rem;
+                }}
+                .ws-panel-title {{ font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem; }}
+                .ws-regime-row {{ display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }}
+                .ws-regime-badge {{
+                    font-size: 0.7rem; font-weight: 600; color: #fff; padding: 2px 8px;
+                    border-radius: 4px; min-width: 75px; text-align: center; text-transform: uppercase;
+                }}
+                .ws-regime-bar-track {{ flex: 1; background: #f1f5f9; border-radius: 4px; height: 8px; }}
+                .ws-regime-bar-fill {{ height: 100%; border-radius: 4px; transition: width 0.5s; }}
+                .ws-regime-count {{ font-size: 0.8rem; color: var(--text-secondary); min-width: 50px; text-align: right; }}
+                .ws-asset-row {{
+                    display: grid; grid-template-columns: 120px 70px 110px 1fr;
+                    gap: 0.5rem; align-items: center; padding: 0.6rem 0;
+                    border-bottom: 1px solid #f1f5f9;
+                }}
+                .ws-asset-row:last-child {{ border-bottom: none; }}
+                .ws-asset-name {{ font-weight: 600; font-size: 0.9rem; }}
+                .ws-asset-move {{ font-weight: 600; font-size: 0.9rem; text-align: center; }}
+                .ws-asset-align {{ font-size: 0.8rem; font-weight: 500; }}
+                .ws-align-confirming {{ color: #22c55e; }}
+                .ws-align-diverging {{ color: #ef4444; }}
+                .ws-align-neutral {{ color: #eab308; }}
+                .ws-asset-context {{ font-size: 0.8rem; color: var(--text-secondary); }}
+                .ws-charts-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }}
+                .ws-mini-chart {{ background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; }}
+                .ws-mini-chart-title {{ font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; text-align: center; }}
+                .ws-mini-chart canvas {{ width: 100% !important; height: 100px !important; }}
+                .ws-divergence-badge {{
+                    border-radius: 12px; padding: 1rem 1.25rem;
+                    margin-bottom: 1.25rem; font-size: 0.95rem;
+                }}
+                .ws-div-confirming {{ background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }}
+                .ws-div-mixed {{ background: #fefce8; border: 1px solid #fef08a; color: #854d0e; }}
+                .ws-div-diverging {{ background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }}
+                .ws-div-icon {{ font-size: 1.1rem; margin-right: 0.5rem; }}
+                .ws-div-title {{ font-weight: 700; }}
+                .ws-div-text {{ margin-top: 0.4rem; font-size: 0.9rem; line-height: 1.5; }}
+                .ws-hist-box {{
+                    background: #f8fafc; border: 1px solid var(--border); border-radius: 12px;
+                    padding: 1.25rem; margin-bottom: 1.25rem;
+                }}
+                .ws-hist-box ul {{ margin: 0.5rem 0 0 1.25rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; }}
+                .ws-tend-row {{
+                    display: grid; grid-template-columns: 120px 1fr 80px;
+                    gap: 0.5rem; align-items: center; padding: 0.6rem 0;
+                    border-bottom: 1px solid #f1f5f9;
+                }}
+                .ws-tend-row:last-child {{ border-bottom: none; }}
+                .ws-tend-asset {{ font-weight: 600; font-size: 0.9rem; }}
+                .ws-tend-tendency {{ font-size: 0.85rem; color: var(--text-secondary); }}
+                .ws-tend-conf {{ font-size: 0.75rem; font-weight: 600; text-align: center; padding: 2px 8px; border-radius: 4px; }}
+                .ws-conf-medium {{ background: #fef3c7; color: #92400e; }}
+                .ws-conf-low {{ background: #f1f5f9; color: #64748b; }}
+                @media (max-width: 640px) {{
+                    .ws-asset-row {{ grid-template-columns: 1fr; gap: 0.25rem; }}
+                    .ws-asset-context {{ padding-left: 0; }}
+                    .ws-overview-grid {{ grid-template-columns: 1fr; }}
+                    .ws-tend-row {{ grid-template-columns: 1fr; gap: 0.25rem; }}
+                    .ws-charts-row {{ grid-template-columns: 1fr 1fr; }}
+                }}
+            </style>
+
+            <div class="ws-header">
+                <h2>📊 Weekly Risk Snapshot</h2>
+                <p>How European energy risk evolved this week and how markets responded.</p>
+            </div>
+
+            <div class="ws-overview-card">
+                <div class="ws-overview-title">⚡ Weekly EERI Overview</div>
+                <div class="ws-overview-week">Week: {week_label}</div>
+                <div class="ws-overview-grid">
+                    <div class="ws-overview-stat">
+                        <div class="ws-overview-label">Average Risk</div>
+                        <div class="ws-overview-value" style="color: {band_color};">{avg_val} <span style="font-size: 0.8rem;">({avg_band})</span></div>
+                    </div>
+                    <div class="ws-overview-stat">
+                        <div class="ws-overview-label">Trend vs Prior Week</div>
+                        <div class="ws-overview-value" style="color: {trend_color};">{trend_arrow} {trend_label}</div>
+                    </div>
+                    <div class="ws-overview-stat">
+                        <div class="ws-overview-label">Weekly High</div>
+                        <div class="ws-overview-value">{high_val} <span class="ws-overview-sub">({high_day})</span></div>
+                    </div>
+                    <div class="ws-overview-stat">
+                        <div class="ws-overview-label">Weekly Low</div>
+                        <div class="ws-overview-value">{low_val} <span class="ws-overview-sub">({low_day})</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ws-panel">
+                <div class="ws-panel-title">Risk Regime Distribution</div>
+                {regime_html}
+            </div>
+
+            <div class="ws-panel">
+                <div class="ws-panel-title">Cross-Asset Risk Confirmation</div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Did markets validate the risk environment this week?</p>
+                {assets_html}
+            </div>
+
+            <div class="ws-charts-row">
+                {charts_html}
+            </div>
+
+            <div class="ws-divergence-badge {div_cls}">
+                <span class="ws-div-icon">{div_icon}</span>
+                <span class="ws-div-title">{div_label}</span>
+                <div class="ws-div-text">{div_narrative}</div>
+            </div>
+
+            <div class="ws-hist-box">
+                <div class="ws-panel-title">Historical Context</div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">Historically, weeks where EERI spends multiple days in <strong>{ov['band']}</strong> territory are associated with:</p>
+                <ul>{hist_items}</ul>
+            </div>
+
+            <div class="ws-panel">
+                <div class="ws-panel-title">Next-Week Historical Tendencies <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 400;">(Not Forecasts)</span></div>
+                {tend_html}
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+            <script>
+            (function() {{
+                var chartData = {chart_json};
+                {chart_init_js}
+            }})();
+            </script>
+        </div>'''
+
+
 @router.get("/eeri", response_class=HTMLResponse)
 async def eeri_public_page(request: Request):
     """
@@ -233,6 +554,7 @@ async def eeri_public_page(request: Request):
     - Top 3 risk drivers
     - Affected assets
     - Risk band visualization
+    - Weekly snapshot
     - Methodology summary
     """
     eeri = get_eeri_delayed(delay_hours=24)
@@ -362,6 +684,9 @@ async def eeri_public_page(request: Request):
     
     delay_badge = '<div class="index-delay-badge">24h delayed • Real-time access with subscription</div>'
     
+    weekly_snapshot = get_weekly_snapshot()
+    weekly_snapshot_html = _build_weekly_snapshot_html(weekly_snapshot)
+    
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -472,6 +797,8 @@ async def eeri_public_page(request: Request):
                         Current position: <strong style="color: {band_color};">{eeri['band']}</strong> ({eeri['value']})
                     </div>
                 </div>
+                
+                {weekly_snapshot_html}
                 
                 <div class="index-interpretation">
                     {interpretation_html}
