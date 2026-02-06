@@ -1,0 +1,329 @@
+📦 WEEKLY SNAPSHOT STRUCTURE
+🟦 Block 1 — Weekly Risk Summary (Hero Strip)
+Show
+
+Weekly Average EERI
+
+Weekly High / Low
+
+Weekly Trend vs Prior Week
+
+Risk Band Label
+
+Example Display
+
+Weekly EERI Overview (Jan 26 – Jan 31, 2026)
+Average: 62 — SEVERE
+High: 83 (Wed)
+Low: 51 (Mon)
+Trend: ↑ Rising vs last week
+
+Interpretation Concept
+
+This block answers:
+
+👉 “Was this a shock week or a persistent stress week?”
+
+Example narrative:
+
+Risk remained elevated throughout the week, with escalation mid-week pushing EERI into Severe territory. Risk persistence suggests structural pressure rather than isolated events.
+
+🟨 Block 2 — Risk Regime Distribution
+Show
+
+Simple visual or badges:
+
+Days in each band
+
+Example:
+
+Severe → 3 days
+
+High → 3 days
+
+Elevated → 0 days
+
+Interpretation Concept
+
+This answers:
+
+👉 “How stable or unstable was the risk environment?”
+
+Meaning:
+
+Many band switches → unstable environment
+
+Same band all week → entrenched regime
+
+🟧 Block 3 — Cross-Asset Confirmation Panel (Core Insight)
+
+This is the most valuable public block.
+
+Layout (Simple table or card grid)
+Asset	Weekly Move	Risk Alignment	Historical Context
+Assets to Include (Exactly Right Choice)
+
+✔ Brent Oil
+✔ TTF Gas
+✔ EU Gas Storage
+✔ VIX
+✔ EUR/USD
+
+Each Asset Should Show
+1. Weekly Direction
+
+Up / Down / Flat
+
+% move
+
+2. Risk Alignment Label
+
+Three options only:
+
+✔ Confirming
+🟡 Neutral
+⚠ Diverging
+
+Interpretation Concept
+
+This block answers:
+
+👉 “Did markets believe the risk?”
+
+This is extremely powerful.
+
+Examples
+
+TTF Confirming
+
+Gas markets strengthened alongside elevated risk, reflecting supply sensitivity.
+
+Brent Neutral
+
+Oil moved modestly, suggesting mixed global supply-demand interpretation.
+
+VIX Confirming
+
+Broader risk sentiment reacted to energy stress.
+
+EUR Diverging
+
+Currency markets remained stable despite elevated European risk.
+
+🟥 Block 4 — Mini Weekly Overlay Charts
+
+Yes — charts SHOULD exist here.
+
+But:
+
+✔ Small
+✔ Indexed
+✔ One-week focus
+✔ No deep analytics
+
+Chart Design Concept
+
+Each chart:
+
+X-axis → Mon–Sat
+
+Y-axis → Indexed performance (start = 100)
+
+Two lines:
+
+EERI
+
+Asset
+
+Charts to Include
+
+EERI vs Brent
+
+EERI vs TTF
+
+EERI vs Gas Storage
+
+EERI vs VIX
+
+EERI vs EUR/USD
+
+Interpretation Concept
+
+Charts answer:
+
+👉 “How quickly did markets react to risk?”
+
+Users visually learn:
+
+Lag
+
+Overreaction
+
+Divergence
+
+🟪 Block 5 — Divergence Watch (Signature Insight)
+
+This is your differentiation.
+
+Show One Badge
+
+Choose:
+
+Markets Confirming Risk
+
+Markets Mixed
+
+Markets Diverging From Risk
+
+Interpretation Concept
+
+This tells users:
+
+👉 “Is the market underestimating or validating risk?”
+
+This is extremely sticky and shareable.
+
+🟫 Block 6 — Historical Context Box
+
+This is where you safely use historical data.
+
+Show
+
+"Historically, when EERI spends a week in [Band]:"
+
+Then list tendencies:
+
+Example:
+
+Gas volatility tends to increase
+
+Freight disruption probability rises
+
+FX often weakens vs USD
+
+Oil reactions are mixed
+
+Interpretation Concept
+
+This provides:
+
+✔ Credibility
+✔ Pattern awareness
+✔ Non-predictive context
+
+🟩 Block 7 — Next Week Historical Tendencies (Probability Panel)
+
+You CAN include expectations safely if framed correctly.
+
+Title
+
+Next Week Historical Tendencies (Not Forecasts)
+
+Display Format
+
+Example:
+
+Asset	Historical Tendency	Confidence
+Example Public Output
+
+TTF Gas
+👉 60–70% chance of ↑ volatility
+Confidence: Medium
+
+Brent Oil
+👉 45–55% directional bias (mixed)
+Confidence: Low
+
+VIX
+👉 55–65% chance of ↑
+Confidence: Medium
+
+EUR/USD
+👉 55–65% chance of ↓ (EUR weaker)
+Confidence: Medium
+
+EU Gas Storage
+👉 55–65% chance of slower builds
+Confidence: Medium
+
+Interpretation Concept
+
+This answers:
+
+👉 “What typically follows weeks like this?”
+
+NOT:
+
+Prediction
+
+Signal
+
+Trading advice
+
+📢 SEO BENEFITS OF EMBEDDING THIS SECTION
+
+Every Sunday this section becomes:
+
+✔ Fresh crawlable content
+✔ Expands keyword footprint
+✔ Adds narrative text
+✔ Improves dwell time
+✔ Signals site authority
+
+Google LOVES recurring weekly intelligence blocks.
+
+🔒 WHAT MUST REMAIN PRO ONLY
+
+Do NOT include:
+
+Driver severity scores
+
+Component contributions
+
+Transmission math
+
+Correlation metrics
+
+Full historical comparisons
+
+Multi-week analog analysis
+
+Public = trust + education
+Pro = edge
+
+🎨 UX DESIGN RULE
+
+This section should feel:
+
+✔ Narrative
+✔ Interpreted
+✔ Calm
+✔ Institutional
+
+Not:
+
+❌ Analytical overload
+❌ Data dump
+❌ Trading dashboard
+
+🧠 Emotional Outcome
+
+After reading Weekly Snapshot, user should feel:
+
+👉 “I understand what kind of week this was.”
+
+⭐ Final Strategic Value
+
+This section will:
+
+Build habit (Sunday reading)
+
+Strengthen brand authority
+
+Feed social sharing
+
+Convert into Pro subscriptions
+
+Strengthen SEO
+
+Teach users how to think about energy risk

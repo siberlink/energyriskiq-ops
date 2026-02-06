@@ -1,0 +1,292 @@
+✅ Current Page Flow (What You Already Have)
+
+Based on your images, your page currently flows like this:
+
+1️⃣ Page Header
+
+Title
+
+Description
+
+Methodology link
+
+2️⃣ Today’s EERI Core Card
+
+(Current value, trend, metadata)
+
+👉 This is PERFECT as the anchor.
+
+3️⃣ Drivers + Regions
+
+Primary Risk Drivers
+
+Regions Under Pressure
+
+4️⃣ Assets Most Affected
+5️⃣ Risk Level Bands
+6️⃣ Daily Intelligence Narrative
+
+(Your long professional interpretation block)
+
+7️⃣ Subscription CTA
+🎯 Where Weekly Snapshot MUST Go
+
+The best placement is:
+
+👉 BETWEEN the Risk Level Bands section AND the Daily Intelligence Narrative
+
+Why This Placement Is Ideal
+Logical Story Flow
+
+Current flow explains:
+
+What the index is today
+
+Why it is high
+
+Where pressure exists
+
+What the bands mean
+
+The user naturally asks next:
+
+👉 “Is this unusual or part of a broader pattern?”
+
+That is EXACTLY what Weekly Snapshot answers.
+
+❌ Why NOT place it elsewhere
+Not Above Drivers
+
+Would distract from immediate daily interpretation.
+
+Not Below Narrative
+
+Would feel buried and redundant.
+
+Not After CTA
+
+Would weaken conversion flow.
+
+📍 EXACT INSERT LOCATION
+
+You should insert Weekly Snapshot:
+
+Risk Level Bands
+↓
+👉 INSERT WEEKLY SNAPSHOT HERE
+↓
+Daily Intelligence Narrative
+
+🧱 Weekly Snapshot Block Design (Adapted to Your Existing UI)
+
+Your UI uses:
+
+✔ Dark summary cards
+✔ Light interpretation panels
+✔ Structured professional tone
+
+We must match that.
+
+🟦 WEEKLY SNAPSHOT SECTION DESIGN
+SECTION HEADER
+Title
+
+📊 Weekly Risk Snapshot
+
+Subtitle
+
+How European energy risk evolved this week and how markets responded.
+
+BLOCK 1 — Weekly Risk Overview (Dark Card — same style as main index card)
+Show
+
+Weekly Average EERI
+
+Weekly High / Low
+
+Weekly Trend
+
+Weekly Risk Band
+
+Example Layout
+
+⚡ Weekly EERI Overview
+Week: Jan 27 – Feb 1, 2026
+
+Average Risk: 68 (SEVERE)
+High: 93 (Wed)
+Low: 57 (Mon)
+Trend vs Prior Week: ↑ Rising
+
+Interpretation Purpose
+
+Answers:
+👉 Was risk persistent or episodic?
+
+BLOCK 2 — Weekly Risk Regime Distribution (Light Panel)
+Show
+
+Simple badges or mini bar:
+
+Days Severe
+
+Days High
+
+Days Elevated
+
+Interpretation Example
+
+Risk remained elevated for most of the week, indicating sustained structural pressure rather than isolated escalation events.
+
+BLOCK 3 — Cross-Asset Confirmation Panel
+
+(This becomes your PUBLIC signature feature)
+
+Layout
+
+Match your "Assets Most Affected" style, but richer.
+
+Asset	Weekly Move	Risk Alignment
+Example
+
+TTF Gas → +8.4% → Confirming
+Brent → +1.2% → Neutral
+VIX → +6.0% → Confirming
+EUR/USD → −1.3% → Confirming
+EU Storage → −0.8% → Confirming
+
+Interpretation Purpose
+
+Answers:
+
+👉 Did markets validate the risk environment?
+
+BLOCK 4 — Mini Overlay Charts (Compact Row)
+
+Use 5 small charts:
+
+EERI vs Brent
+
+EERI vs TTF
+
+EERI vs Storage
+
+EERI vs VIX
+
+EERI vs EUR/USD
+
+Chart Style
+
+✔ Indexed from Monday = 100
+✔ Mon → Sat timeline
+✔ Simple dual line
+✔ No analytics overlays
+
+Interpretation Purpose
+
+Answers:
+
+👉 How quickly did markets react to risk?
+
+BLOCK 5 — Divergence Watch Badge
+
+(This is EXTREMELY powerful and differentiating)
+
+Example Output
+
+🟡 Markets Mixed — Gas and volatility indicators confirmed elevated risk, while oil markets showed partial divergence.
+
+Interpretation Purpose
+
+Answers:
+
+👉 Are markets underpricing or validating risk?
+
+BLOCK 6 — Historical Context Box
+
+Light interpretation box similar to your narrative style.
+
+Example
+
+Historically, weeks where EERI spends multiple days in Severe territory are associated with:
+
+• Increased gas price volatility
+• Elevated freight disruption probability
+• Broader risk sentiment spillovers
+
+Purpose
+
+Provides credibility without revealing methodology.
+
+BLOCK 7 — Next Week Historical Tendencies Panel
+
+(This sits at the bottom of Weekly Snapshot before Daily Narrative)
+
+Title
+
+Next-Week Historical Tendencies (Not Forecasts)
+
+Table Example
+
+TTF Gas
+👉 60–70% probability of continued volatility
+Confidence: Medium
+
+VIX
+👉 55–65% probability of elevated levels
+Confidence: Medium
+
+EUR/USD
+👉 55–65% probability of weaker EUR
+Confidence: Medium
+
+Brent
+👉 Mixed directional bias
+Confidence: Low
+
+🎨 Visual Styling Recommendations
+
+Match existing theme:
+
+Element	Style
+Overview Card	Dark gradient
+Asset Panel	Dark chips + labels
+Context / Narrative	Light card
+Probability Panel	Light but bordered
+🧠 UX Psychology Flow After Adding Weekly Snapshot
+
+User journey becomes:
+
+See today's crisis
+
+Understand drivers
+
+Understand assets
+
+Understand risk band
+
+👉 Understand weekly context
+
+Read narrative
+
+Convert to Pro
+
+This is PERFECT.
+
+🔥 SEO Benefit
+
+This weekly block gives:
+
+✔ Fresh text every Sunday
+✔ Expands asset keyword coverage
+✔ Adds long-form structured content
+✔ Signals authority to Google
+
+Very powerful.
+
+⭐ Final Placement Summary
+
+Insert Weekly Snapshot:
+
+👉 After Risk Level Bands
+👉 Before Daily Intelligence Narrative
