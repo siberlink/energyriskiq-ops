@@ -183,6 +183,30 @@
             font-size: 8px;
         }
 
+        .pro-badge-nav.badge-free { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .pro-badge-nav.badge-personal { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .pro-badge-nav.badge-trader { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .pro-badge-nav.badge-pro { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .pro-badge-nav.badge-enterprise { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+
+        .eeri-plan-badge-header {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+            vertical-align: middle;
+        }
+        .eeri-plan-badge-header.badge-free { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .eeri-plan-badge-header.badge-personal { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .eeri-plan-badge-header.badge-trader { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .eeri-plan-badge-header.badge-pro { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .eeri-plan-badge-header.badge-enterprise { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+
         .nav-item-disabled {
             opacity: 0.6;
             cursor: not-allowed !important;
@@ -2916,8 +2940,8 @@
                         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
                     </svg>
                 </span>
-                EERI Pro Dashboard
-                <span class="pro-badge-nav" id="eeriBadge">PRO</span>
+                EERI Dashboard
+                <span class="pro-badge-nav" id="eeriBadge">FREE</span>
             </a>
             <div class="eeri-upgrade-hint" id="eeriUpgradeHint" style="display: none;">
                 (Upgrade to Pro for full EERI access)
@@ -3112,8 +3136,8 @@
         <!-- EERI Pro Section -->
         <div class="section-content" id="section-eeri-pro">
             <div class="page-header">
-                <h1 class="page-title">EERI Dashboard</h1>
-                <p class="page-subtitle">European Energy Risk Index - Intelligence tailored to your plan</p>
+                <h1 class="page-title">EERI Dashboard <span class="eeri-plan-badge-header" id="eeriHeaderBadge"></span></h1>
+                <p class="page-subtitle" id="eeriHeaderSubtitle">European Energy Risk Index - Intelligence tailored to your plan</p>
                 <div class="eeri-header-links">
                     <a href="/eeri/methodology" target="_blank" class="eeri-methodology-header-link">📖 View EERI Methodology</a>
                     <a href="javascript:void(0)" onclick="openEeriModal('behavioral')" class="eeri-methodology-header-link">🧠 Conceptual, Behavioral Interpretation</a>
@@ -3711,31 +3735,19 @@
                 }
             }
             
-            // Show EERI nav item for all paid users with plan-appropriate content
             const eeriNavItem = document.getElementById('eeriNavItem');
             const eeriBadge = document.getElementById('eeriBadge');
             const eeriUpgradeHint = document.getElementById('eeriUpgradeHint');
-            const eeriPaidAccess = ['personal', 'trader', 'pro', 'enterprise'].includes(plan);
+            const eeriTierLabels = {'free': 'FREE', 'personal': 'PERSONAL', 'trader': 'TRADER', 'pro': 'PRO', 'enterprise': 'ENTERPRISE'};
             
             if (eeriNavItem) {
-                if (eeriPaidAccess) {
-                    eeriNavItem.classList.remove('nav-item-disabled');
-                    eeriNavItem.onclick = function() { showSection('eeri-pro'); closeMobileMenu(); };
-                    if (eeriBadge) {
-                        const eeriTierLabels = {'personal': 'PERSONAL', 'trader': 'TRADER', 'pro': 'PRO', 'enterprise': 'ENTERPRISE'};
-                        eeriBadge.textContent = eeriTierLabels[plan] || 'EERI';
-                        eeriBadge.classList.remove('pro-badge-locked');
-                    }
-                    if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'none';
-                } else {
-                    eeriNavItem.classList.add('nav-item-disabled');
-                    eeriNavItem.onclick = function(e) { e.preventDefault(); };
-                    if (eeriBadge) {
-                        eeriBadge.textContent = 'Paid Plans';
-                        eeriBadge.classList.add('pro-badge-locked');
-                    }
-                    if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'block';
+                eeriNavItem.classList.remove('nav-item-disabled');
+                eeriNavItem.onclick = function() { showSection('eeri-pro'); closeMobileMenu(); };
+                if (eeriBadge) {
+                    eeriBadge.textContent = eeriTierLabels[plan] || 'FREE';
+                    eeriBadge.className = 'pro-badge-nav badge-' + (plan || 'free');
                 }
+                if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'none';
             }
         }
 
@@ -4970,7 +4982,6 @@
 
         async function loadEeriProData() {
             const plan = currentUser?.plan || 'free';
-            const isPaid = ['personal', 'trader', 'pro', 'enterprise'].includes(plan);
             const isProTier = ['pro', 'enterprise'].includes(plan);
             
             const loadingEl = document.getElementById('eeriProLoading');
@@ -4978,11 +4989,22 @@
             const dashboardEl = document.getElementById('eeriProDashboard');
             const proOnlySections = document.querySelectorAll('.eeri-pro-only');
             
-            if (!isPaid) {
-                if (loadingEl) loadingEl.style.display = 'none';
-                if (lockedEl) lockedEl.style.display = 'flex';
-                if (dashboardEl) dashboardEl.style.display = 'none';
-                return;
+            const headerBadge = document.getElementById('eeriHeaderBadge');
+            const headerSubtitle = document.getElementById('eeriHeaderSubtitle');
+            const planLabels = {'free': 'FREE', 'personal': 'PERSONAL', 'trader': 'TRADER', 'pro': 'PRO', 'enterprise': 'ENTERPRISE'};
+            const planSubtitles = {
+                'free': 'Weekly energy risk trends and market direction',
+                'personal': 'Historical context and probability insights for energy market volatility',
+                'trader': 'Tactical intelligence with reaction speed analysis and conditional probability modeling',
+                'pro': 'Full structural risk intelligence with regime persistence and scenario outlooks',
+                'enterprise': 'Strategic multi-region energy risk forecasting and portfolio exposure intelligence'
+            };
+            if (headerBadge) {
+                headerBadge.textContent = planLabels[plan] || 'FREE';
+                headerBadge.className = 'eeri-plan-badge-header badge-' + (plan || 'free');
+            }
+            if (headerSubtitle) {
+                headerSubtitle.textContent = planSubtitles[plan] || planSubtitles['free'];
             }
             
             if (loadingEl) loadingEl.style.display = 'block';
@@ -5220,11 +5242,13 @@
             }
 
             if (planLevel < 1) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to Personal for overlay charts, alignment analysis, and historical tendencies.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Personal ($9.95/mo)</strong> for overlay charts, alignment analysis, and historical tendencies.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
             } else if (planLevel < 2) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to Trader for reaction speed analysis, conditional probabilities, and risk momentum tracking.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Trader ($29/mo)</strong> for reaction speed analysis, conditional probabilities, and risk momentum tracking.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
             } else if (planLevel < 3) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to Pro for component attribution, regime persistence modeling, scenario outlooks, and historical analogs.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Pro ($49/mo)</strong> for component attribution, regime persistence modeling, scenario outlooks, and historical analogs.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+            } else if (planLevel < 4) {
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Enterprise ($129/mo)</strong> for multi-region spillover analysis, sector impact forecasting, and portfolio exposure intelligence.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
             }
 
             container.innerHTML = html;
@@ -5926,24 +5950,19 @@
 
         function setupEeriProNavAccess() {
             const plan = currentUser?.plan || 'free';
-            const eeriEnabled = ['personal', 'trader', 'pro', 'enterprise'].includes(plan);
+            const eeriTierLabels = {'free': 'FREE', 'personal': 'PERSONAL', 'trader': 'TRADER', 'pro': 'PRO', 'enterprise': 'ENTERPRISE'};
             
             const eeriNavItem = document.getElementById('eeriNavItem');
             const eeriBadge = document.getElementById('eeriBadge');
             const eeriUpgradeHint = document.getElementById('eeriUpgradeHint');
             
             if (eeriNavItem) {
-                if (eeriEnabled) {
-                    eeriNavItem.classList.remove('nav-item-disabled');
-                    if (eeriBadge) eeriBadge.classList.remove('pro-badge-locked');
-                    if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'none';
-                } else {
-                    if (eeriBadge) {
-                        eeriBadge.classList.add('pro-badge-locked');
-                        eeriBadge.textContent = 'PRO';
-                    }
-                    if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'block';
+                eeriNavItem.classList.remove('nav-item-disabled');
+                if (eeriBadge) {
+                    eeriBadge.textContent = eeriTierLabels[plan] || 'FREE';
+                    eeriBadge.className = 'pro-badge-nav badge-' + (plan || 'free');
                 }
+                if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'none';
             }
         }
 
