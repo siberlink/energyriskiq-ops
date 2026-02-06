@@ -20,6 +20,7 @@ from src.reri.eeri_history_service import (
     get_all_eeri_dates,
     get_eeri_available_months,
 )
+from src.reri.eeri_weekly_snapshot import get_weekly_snapshot_tiered
 from src.db.db import get_cursor
 
 logger = logging.getLogger(__name__)
@@ -667,4 +668,33 @@ async def compare_eeri_dates(date1: str, date2: str):
                 'percentage': round((delta_value / result2.get('value', 1)) * 100, 1) if result2.get('value', 0) > 0 else 0,
             },
         },
+    }
+
+
+@router.get("/weekly-snapshot")
+async def get_weekly_snapshot_endpoint(
+    plan: str = Query("free", description="User plan: free, personal, trader, pro, enterprise"),
+):
+    """
+    Get plan-tiered EERI Weekly Snapshot for the user dashboard.
+    Returns progressively deeper intelligence based on subscription tier.
+    """
+    check_enabled()
+
+    valid_plans = ['free', 'personal', 'trader', 'pro', 'enterprise']
+    if plan not in valid_plans:
+        plan = 'free'
+
+    snapshot = get_weekly_snapshot_tiered(plan=plan)
+
+    if not snapshot:
+        return {
+            'success': False,
+            'message': 'Insufficient EERI data for weekly snapshot. Requires at least 3 days.',
+            'data': None,
+        }
+
+    return {
+        'success': True,
+        'data': snapshot,
     }

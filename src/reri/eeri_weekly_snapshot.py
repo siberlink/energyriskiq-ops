@@ -2,7 +2,8 @@
 EERI Weekly Snapshot Service
 
 Computes weekly risk overview, cross-asset confirmation, divergence status,
-and historical tendencies from production data for the public /eeri page.
+and historical tendencies from production data for the public /eeri page
+and plan-tiered dashboard snapshots.
 """
 import logging
 from datetime import date, datetime, timedelta
@@ -13,6 +14,99 @@ from src.db.db import get_cursor
 logger = logging.getLogger(__name__)
 
 EERI_INDEX_ID = 'europe:eeri'
+
+PLAN_TIERS = {
+    'free': 0,
+    'personal': 1,
+    'trader': 2,
+    'pro': 3,
+    'enterprise': 4,
+}
+
+CONDITIONAL_TENDENCIES = {
+    'CRITICAL': {
+        'rising': [
+            {'asset': 'TTF Gas', 'tendency': '65-75% elevated volatility', 'confidence': 'High', 'condition': 'Critical + Rising'},
+            {'asset': 'Brent Oil', 'tendency': '55-65% upward pressure', 'confidence': 'Medium', 'condition': 'Critical + Rising'},
+            {'asset': 'VIX', 'tendency': '60-70% elevated levels', 'confidence': 'High', 'condition': 'Critical + Rising'},
+            {'asset': 'EUR/USD', 'tendency': '60-70% weaker EUR', 'confidence': 'Medium', 'condition': 'Critical + Rising'},
+            {'asset': 'EU Gas Storage', 'tendency': '60-70% accelerated draws', 'confidence': 'High', 'condition': 'Critical + Rising'},
+        ],
+        'stable': [
+            {'asset': 'TTF Gas', 'tendency': '55-65% continued volatility', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
+            {'asset': 'Brent Oil', 'tendency': '50-60% mixed', 'confidence': 'Low', 'condition': 'Critical + Stable'},
+            {'asset': 'VIX', 'tendency': '55-65% elevated', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
+            {'asset': 'EUR/USD', 'tendency': '55-65% weaker EUR', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
+            {'asset': 'EU Gas Storage', 'tendency': '55-65% seasonal draws', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
+        ],
+        'falling': [
+            {'asset': 'TTF Gas', 'tendency': '50-60% normalizing', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
+            {'asset': 'Brent Oil', 'tendency': '45-55% mixed', 'confidence': 'Low', 'condition': 'Critical + Falling'},
+            {'asset': 'VIX', 'tendency': '50-60% normalizing', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
+            {'asset': 'EUR/USD', 'tendency': '50-60% stabilizing', 'confidence': 'Low', 'condition': 'Critical + Falling'},
+            {'asset': 'EU Gas Storage', 'tendency': '50-60% seasonal norms', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
+        ],
+    },
+    'SEVERE': {
+        'rising': [
+            {'asset': 'TTF Gas', 'tendency': '60-70% elevated volatility', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
+            {'asset': 'Brent Oil', 'tendency': '50-60% upward pressure', 'confidence': 'Low', 'condition': 'Severe + Rising'},
+            {'asset': 'VIX', 'tendency': '55-65% elevated levels', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
+            {'asset': 'EUR/USD', 'tendency': '55-65% weaker EUR', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
+            {'asset': 'EU Gas Storage', 'tendency': '55-65% accelerated draws', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
+        ],
+        'stable': [
+            {'asset': 'TTF Gas', 'tendency': '50-60% elevated volatility', 'confidence': 'Medium', 'condition': 'Severe + Stable'},
+            {'asset': 'Brent Oil', 'tendency': '45-55% mixed', 'confidence': 'Low', 'condition': 'Severe + Stable'},
+            {'asset': 'VIX', 'tendency': '50-60% elevated', 'confidence': 'Medium', 'condition': 'Severe + Stable'},
+            {'asset': 'EUR/USD', 'tendency': '50-60% weaker EUR', 'confidence': 'Low', 'condition': 'Severe + Stable'},
+            {'asset': 'EU Gas Storage', 'tendency': '50-60% seasonal draws', 'confidence': 'Medium', 'condition': 'Severe + Stable'},
+        ],
+        'falling': [
+            {'asset': 'TTF Gas', 'tendency': '45-55% normalizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
+            {'asset': 'Brent Oil', 'tendency': '45-55% mixed', 'confidence': 'Low', 'condition': 'Severe + Falling'},
+            {'asset': 'VIX', 'tendency': '45-55% normalizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
+            {'asset': 'EUR/USD', 'tendency': '45-55% stabilizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
+            {'asset': 'EU Gas Storage', 'tendency': '50-60% seasonal norms', 'confidence': 'Medium', 'condition': 'Severe + Falling'},
+        ],
+    },
+}
+
+REGIME_PERSISTENCE = {
+    'CRITICAL': {'prob_low': 0.55, 'prob_high': 0.65, 'confidence': 'Medium', 'narrative': 'Critical regimes historically persist into the following week ~60% of the time.'},
+    'SEVERE': {'prob_low': 0.50, 'prob_high': 0.60, 'confidence': 'Medium', 'narrative': 'Severe regimes historically persist into the following week ~55% of the time.'},
+    'ELEVATED': {'prob_low': 0.45, 'prob_high': 0.55, 'confidence': 'Low', 'narrative': 'Elevated regimes historically persist into the following week ~50% of the time.'},
+    'MODERATE': {'prob_low': 0.50, 'prob_high': 0.60, 'confidence': 'Low', 'narrative': 'Moderate regimes tend to be stable with ~55% persistence.'},
+    'LOW': {'prob_low': 0.55, 'prob_high': 0.65, 'confidence': 'Medium', 'narrative': 'Low-risk regimes tend to persist into the following week ~60% of the time.'},
+}
+
+SCENARIO_TEMPLATES = {
+    'CRITICAL': {
+        'escalation': 'Continued high-severity events or new chokepoint disruptions could push EERI higher, intensifying gas/oil volatility.',
+        'stabilization': 'If event flow subsides without new escalations, EERI may plateau within the Critical band before gradual normalization.',
+        'de_escalation': 'Resolution of active conflicts or diplomatic breakthroughs could trigger rapid risk decline toward Severe/Elevated.',
+    },
+    'SEVERE': {
+        'escalation': 'Escalation of regional tensions or supply disruptions could push EERI into Critical range.',
+        'stabilization': 'Absence of new shocks may allow EERI to consolidate within the Severe band.',
+        'de_escalation': 'Positive diplomatic developments or supply normalization could reduce risk toward Elevated.',
+    },
+    'ELEVATED': {
+        'escalation': 'New geopolitical triggers or supply disruptions could push EERI into Severe range.',
+        'stabilization': 'Current conditions suggest moderate risk persistence without major catalysts.',
+        'de_escalation': 'Seasonal normalization and stable supply could reduce EERI toward Moderate.',
+    },
+    'MODERATE': {
+        'escalation': 'Unexpected geopolitical events could rapidly elevate risk levels.',
+        'stabilization': 'Baseline conditions support continued moderate risk environment.',
+        'de_escalation': 'Continued stability may further reduce risk toward Low levels.',
+    },
+    'LOW': {
+        'escalation': 'While unlikely, sudden events could rapidly shift the risk environment.',
+        'stabilization': 'Low-risk environment expected to persist under current conditions.',
+        'de_escalation': 'Risk levels are already at baseline, limited further downside.',
+    },
+}
 
 DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -363,6 +457,8 @@ def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
     ws = week_start.isoformat() if hasattr(week_start, 'isoformat') else str(week_start)
     we = week_end.isoformat() if hasattr(week_end, 'isoformat') else str(week_end)
 
+    prior_avg_val = prior_avg if prior_data else None
+
     return {
         'week_start': ws,
         'week_end': we,
@@ -373,6 +469,7 @@ def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
             'low': {'value': low_val, 'day': low_day},
             'trend_vs_prior': trend_vs_prior,
         },
+        'prior_avg': prior_avg_val,
         'regime_distribution': sorted_regime,
         'cross_asset': cross_asset,
         'chart_data': chart_data,
@@ -382,3 +479,323 @@ def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
         'tendencies': tendencies,
         'data_days': len(eeri_data),
     }
+
+
+def _compute_reaction_speed(eeri_data: List[Dict], asset_data: List[Dict]) -> str:
+    """Determine how quickly an asset reacted to EERI changes."""
+    if len(eeri_data) < 3 or len(asset_data) < 3:
+        return 'medium'
+
+    eeri_vals = [int(r['value']) for r in eeri_data]
+    eeri_mid = len(eeri_vals) // 2
+    first_half_avg = sum(eeri_vals[:eeri_mid]) / max(eeri_mid, 1)
+    second_half_avg = sum(eeri_vals[eeri_mid:]) / max(len(eeri_vals) - eeri_mid, 1)
+    eeri_shifted = abs(second_half_avg - first_half_avg) > 3
+
+    if not eeri_shifted:
+        return 'medium'
+
+    asset_vals = [float(r['value']) for r in asset_data]
+    first_val = asset_vals[0]
+    if first_val == 0:
+        return 'medium'
+
+    for i, v in enumerate(asset_vals[1:], 1):
+        pct_change = abs((v - first_val) / first_val) * 100
+        if pct_change > 1.5:
+            if i <= len(asset_vals) // 3:
+                return 'fast'
+            elif i <= 2 * len(asset_vals) // 3:
+                return 'medium'
+            else:
+                return 'lagging'
+
+    return 'medium'
+
+
+def _compute_risk_momentum(eeri_avg: float, prior_avg: Optional[float], trend: str) -> Dict[str, Any]:
+    """Compute week-over-week risk acceleration/deceleration."""
+    if prior_avg is None:
+        return {'label': 'stable', 'narrative': 'Insufficient prior data for momentum analysis.'}
+
+    delta = eeri_avg - prior_avg
+    abs_delta = abs(delta)
+
+    if delta > 5:
+        label = 'accelerating'
+        narrative = f'Risk momentum accelerated this week, with EERI averaging {eeri_avg} vs {prior_avg} the prior week (+{abs_delta:.0f} points).'
+    elif delta < -5:
+        label = 'easing'
+        narrative = f'Risk momentum eased this week, with EERI declining from {prior_avg} to {eeri_avg} ({abs_delta:.0f} points).'
+    elif delta > 2:
+        label = 'building'
+        narrative = f'Risk is gradually building, with a modest {abs_delta:.0f}-point increase from last week.'
+    elif delta < -2:
+        label = 'softening'
+        narrative = f'Risk is softening slightly, with a {abs_delta:.0f}-point decline from last week.'
+    else:
+        label = 'plateauing'
+        narrative = f'Risk momentum has plateaued, with EERI stable around {eeri_avg} (+/- {abs_delta:.0f} vs prior week).'
+
+    return {'label': label, 'delta': round(delta, 1), 'narrative': narrative}
+
+
+def _get_component_attribution(week_start: date, week_end: date) -> List[Dict[str, Any]]:
+    """Get EERI component attribution for the week from daily data."""
+    query = """
+        SELECT components
+        FROM reri_indices_daily
+        WHERE index_id = %s AND date >= %s AND date <= %s
+        ORDER BY date DESC
+        LIMIT 1
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(query, (EERI_INDEX_ID, week_start.isoformat(), week_end.isoformat()))
+            row = cursor.fetchone()
+        if not row or not row.get('components'):
+            return []
+
+        import json
+        comp = row['components']
+        if isinstance(comp, str):
+            comp = json.loads(comp)
+
+        attribution = []
+        component_names = {
+            'reri_eu': {'name': 'Regional Escalation (RERI_EU)', 'weight': 0.45},
+            'theme_pressure': {'name': 'Theme Pressure', 'weight': 0.25},
+            'asset_transmission': {'name': 'Asset Transmission', 'weight': 0.20},
+            'contagion': {'name': 'Contagion', 'weight': 0.10},
+        }
+        for key, meta in component_names.items():
+            val = comp.get(key, 0)
+            if isinstance(val, (int, float)):
+                attribution.append({
+                    'component': meta['name'],
+                    'value': round(float(val), 1),
+                    'weight': meta['weight'],
+                    'contribution': round(float(val) * meta['weight'], 1),
+                })
+
+        attribution.sort(key=lambda x: x['contribution'], reverse=True)
+        return attribution
+    except Exception as e:
+        logger.error(f"Error fetching component attribution: {e}")
+        return []
+
+
+def get_weekly_snapshot_tiered(plan: str = 'free') -> Optional[Dict[str, Any]]:
+    """
+    Compute plan-tiered EERI Weekly Snapshot for the user dashboard.
+
+    Plan visibility:
+    - free: overview, asset directions, basic interpretation, basic outlook
+    - personal: + charts, alignment labels, historical context, simple probability ranges
+    - trader: + reaction speed, momentum, conditional probabilities, volatility commentary
+    - pro: + component attribution, regime persistence, scenarios, analog framing
+    - enterprise: + all pro features (sector/spillover data when available)
+    """
+    base_snapshot = get_weekly_snapshot()
+    if not base_snapshot:
+        return None
+
+    plan_level = PLAN_TIERS.get(plan, 0)
+    ov = base_snapshot['overview']
+    band = ov['band']
+    trend = ov['trend_vs_prior']
+
+    result = {
+        'plan': plan,
+        'week_start': base_snapshot['week_start'],
+        'week_end': base_snapshot['week_end'],
+        'data_days': base_snapshot['data_days'],
+    }
+
+    result['overview'] = {
+        'average': ov['average'],
+        'band': band,
+        'high': ov['high'],
+        'low': ov['low'],
+        'trend_vs_prior': trend,
+    }
+
+    asset_direction = []
+    for a in base_snapshot['cross_asset']:
+        direction = 'flat'
+        if a['weekly_move_pct'] is not None:
+            if a['weekly_move_pct'] > 0.5:
+                direction = 'up'
+            elif a['weekly_move_pct'] < -0.5:
+                direction = 'down'
+        entry = {
+            'asset': a['asset'],
+            'direction': direction,
+            'weekly_move_pct': a['weekly_move_pct'],
+        }
+        if plan_level >= 1:
+            entry['alignment'] = a['alignment']
+            entry['context'] = a['context']
+        asset_direction.append(entry)
+    result['asset_table'] = asset_direction
+
+    regime_dist = {}
+    for band_name, days in base_snapshot['regime_distribution']:
+        regime_dist[band_name] = days
+    result['regime_distribution'] = regime_dist
+
+    result['divergence_status'] = base_snapshot['divergence_status']
+
+    interpretation = _generate_basic_interpretation(ov, base_snapshot['cross_asset'], base_snapshot['divergence_status'])
+    result['interpretation'] = interpretation
+
+    outlook = _generate_basic_outlook(band)
+    result['next_week_outlook'] = outlook
+
+    if plan_level >= 1:
+        result['charts_enabled'] = True
+        result['chart_data'] = base_snapshot['chart_data']
+        result['historical_context'] = base_snapshot['historical_context']
+        result['tendencies'] = base_snapshot['tendencies']
+        result['divergence_narrative'] = base_snapshot['divergence_narrative']
+    else:
+        result['charts_enabled'] = False
+
+    if plan_level >= 2:
+        week_start = date.fromisoformat(base_snapshot['week_start'])
+        week_end = date.fromisoformat(base_snapshot['week_end'])
+
+        asset_configs = [
+            ('ttf', 'TTF Gas', 'ttf_gas_snapshots', 'date', 'ttf_price'),
+            ('brent', 'Brent Oil', 'oil_price_snapshots', 'date', 'brent_price'),
+            ('vix', 'VIX', 'vix_snapshots', 'date', 'vix_close'),
+            ('eurusd', 'EUR/USD', 'eurusd_snapshots', 'date', 'rate'),
+            ('storage', 'EU Gas Storage', 'gas_storage_snapshots', 'date', 'eu_storage_percent'),
+        ]
+
+        eeri_data = _fetch_eeri_week(week_start, week_end)
+        reaction_speeds = {}
+        for key, name, table, date_col, val_col in asset_configs:
+            asset_data = _fetch_asset_week(table, date_col, val_col, week_start, week_end)
+            speed = _compute_reaction_speed(eeri_data, asset_data)
+            reaction_speeds[key] = speed
+
+        for entry in result['asset_table']:
+            key = None
+            for k, n, _, _, _ in asset_configs:
+                if n == entry['asset']:
+                    key = k
+                    break
+            if key:
+                entry['reaction_speed'] = reaction_speeds.get(key, 'medium')
+
+        prior_avg = base_snapshot.get('prior_avg')
+        momentum = _compute_risk_momentum(ov['average'], prior_avg, trend)
+        result['momentum'] = momentum
+
+        cond_key = band if band in CONDITIONAL_TENDENCIES else None
+        if cond_key:
+            trend_key = trend if trend in CONDITIONAL_TENDENCIES[cond_key] else 'stable'
+            result['conditional_tendencies'] = CONDITIONAL_TENDENCIES[cond_key][trend_key]
+            result['conditional_state'] = f"{band.capitalize()} + {trend.capitalize()}"
+        else:
+            result['conditional_tendencies'] = base_snapshot['tendencies']
+            result['conditional_state'] = f"{band.capitalize()} + {trend.capitalize()}"
+
+        result['volatility_commentary'] = _generate_volatility_commentary(band, trend, momentum['label'])
+
+    if plan_level >= 3:
+        week_start = date.fromisoformat(base_snapshot['week_start'])
+        week_end = date.fromisoformat(base_snapshot['week_end'])
+
+        attribution = _get_component_attribution(week_start, week_end)
+        result['component_attribution'] = attribution
+
+        persistence = REGIME_PERSISTENCE.get(band, REGIME_PERSISTENCE['MODERATE'])
+        result['regime_persistence'] = persistence
+
+        scenarios = SCENARIO_TEMPLATES.get(band, SCENARIO_TEMPLATES['MODERATE'])
+        result['scenario_outlook'] = [
+            {'name': 'Escalation', 'description': scenarios['escalation']},
+            {'name': 'Stabilization', 'description': scenarios['stabilization']},
+            {'name': 'De-escalation', 'description': scenarios['de_escalation']},
+        ]
+
+        result['analog_framing'] = _generate_analog_framing(band, trend)
+
+    if plan_level >= 4:
+        result['enterprise'] = True
+
+    return result
+
+
+def _generate_basic_interpretation(overview: Dict, cross_asset: List[Dict], divergence: str) -> str:
+    """Generate a basic market interpretation paragraph."""
+    avg = overview['average']
+    band = overview['band']
+    trend = overview['trend_vs_prior']
+
+    rising_assets = [a['asset'] for a in cross_asset if a.get('weekly_move_pct') and a['weekly_move_pct'] > 0.5]
+    falling_assets = [a['asset'] for a in cross_asset if a.get('weekly_move_pct') and a['weekly_move_pct'] < -0.5]
+
+    trend_text = 'rising' if trend == 'rising' else ('falling' if trend == 'falling' else 'stable')
+
+    interpretation = f"Risk conditions during the week remained {trend_text} with EERI averaging {avg} ({band} band)."
+
+    if rising_assets and falling_assets:
+        interpretation += f" {', '.join(rising_assets[:2])} moved higher while {', '.join(falling_assets[:2])} declined."
+    elif rising_assets:
+        interpretation += f" {', '.join(rising_assets[:3])} showed upward movement."
+    elif falling_assets:
+        interpretation += f" {', '.join(falling_assets[:3])} showed downward movement."
+
+    if divergence == 'confirming':
+        interpretation += " Markets broadly confirmed the risk environment."
+    elif divergence == 'diverging':
+        interpretation += " Markets showed limited confirmation of the reported risk level."
+    else:
+        interpretation += " Market signals were mixed relative to risk conditions."
+
+    return interpretation
+
+
+def _generate_basic_outlook(band: str) -> str:
+    """Generate a basic one-sentence next-week outlook."""
+    outlooks = {
+        'CRITICAL': 'Weeks with EERI in the Critical range historically show continued elevated volatility across energy-sensitive markets.',
+        'SEVERE': 'Historically, Severe-risk weeks tend to be followed by elevated but gradually normalizing volatility.',
+        'ELEVATED': 'Elevated-risk conditions historically show moderate continuation with potential for normalization.',
+        'MODERATE': 'Moderate-risk weeks typically see stable market conditions with limited directional bias.',
+        'LOW': 'Low-risk conditions historically persist, with markets typically operating within normal ranges.',
+    }
+    return outlooks.get(band, outlooks['MODERATE'])
+
+
+def _generate_volatility_commentary(band: str, trend: str, momentum: str) -> str:
+    """Generate volatility expectation commentary for Trader+ tiers."""
+    if band in ('CRITICAL', 'SEVERE') and trend == 'rising':
+        return 'Historical analogs suggest elevated two-week volatility clustering. Traders should anticipate sustained directional pressure across gas and related markets.'
+    elif band in ('CRITICAL', 'SEVERE') and momentum == 'accelerating':
+        return 'Risk acceleration combined with elevated EERI levels suggests above-normal volatility persistence for the next 1-2 weeks.'
+    elif band in ('CRITICAL', 'SEVERE'):
+        return 'While risk levels remain elevated, momentum indicators suggest volatility may begin to moderate. Watch for regime transition signals.'
+    elif band == 'ELEVATED':
+        return 'Moderate volatility expected. Episodic moves possible but sustained directional trends unlikely without new catalysts.'
+    else:
+        return 'Baseline volatility conditions expected. Seasonal patterns likely to dominate over event-driven moves.'
+
+
+def _generate_analog_framing(band: str, trend: str) -> str:
+    """Generate historical analog framing for Pro+ tiers."""
+    if band == 'CRITICAL' and trend == 'rising':
+        return 'Current conditions resemble prior critical-escalation phases characterized by rapid risk accumulation and sustained supply-side stress.'
+    elif band == 'CRITICAL':
+        return 'This week resembles prior periods of peak risk where markets typically began pricing in de-escalation scenarios.'
+    elif band == 'SEVERE' and trend == 'rising':
+        return 'Current dynamics are consistent with historical pre-escalation periods where Severe-band persistence preceded Critical-range breakthroughs.'
+    elif band == 'SEVERE':
+        return 'This week resembles prior sustained-stress periods where risk elevated but stabilized before further escalation.'
+    elif band == 'ELEVATED':
+        return 'Conditions are consistent with historical transition periods between calm and stressed market environments.'
+    else:
+        return 'Current risk levels are consistent with baseline historical norms.'

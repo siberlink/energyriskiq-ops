@@ -2582,6 +2582,264 @@
             margin: 16px 0;
             border-left: 3px solid #3b82f6;
         }
+
+        .eeri-weekly-snapshot-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .ws-dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .ws-dash-loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .ws-dash-loading p {
+            color: #9ca3af;
+            margin-top: 12px;
+        }
+        .ws-overview-dash {
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 768px) {
+            .ws-overview-dash { grid-template-columns: 1fr 1fr; }
+        }
+        .ws-stat-item { text-align: center; }
+        .ws-stat-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .ws-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .ws-stat-sub {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .ws-asset-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        .ws-asset-table th {
+            text-align: left;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .ws-asset-table td {
+            padding: 10px 12px;
+            font-size: 14px;
+            color: #e2e8f0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .ws-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .ws-badge-confirming { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .ws-badge-neutral { background: rgba(148,163,184,0.15); color: #94a3b8; }
+        .ws-badge-diverging { background: rgba(239,68,68,0.15); color: #f87171; }
+        .ws-badge-fast { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .ws-badge-medium { background: rgba(234,179,8,0.15); color: #eab308; }
+        .ws-badge-lagging { background: rgba(239,68,68,0.15); color: #f87171; }
+        .ws-narrative-block {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .ws-narrative-block h4 {
+            color: #f1f5f9;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ws-momentum-card {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .ws-momentum-label {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .ws-scenarios-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 768px) {
+            .ws-scenarios-grid { grid-template-columns: 1fr; }
+        }
+        .ws-scenario-card {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+            border-left: 3px solid;
+        }
+        .ws-scenario-card h5 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .ws-scenario-card p {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .ws-persistence-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .ws-persistence-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .ws-persistence-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .ws-chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 768px) {
+            .ws-chart-row { grid-template-columns: 1fr; }
+        }
+        .ws-mini-chart {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .ws-mini-chart h5 {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .ws-upgrade-hint {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px dashed #334155;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .ws-upgrade-hint p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .ws-upgrade-hint button {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .ws-component-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .ws-comp-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .ws-comp-label {
+            font-size: 12px;
+            color: #94a3b8;
+            width: 160px;
+            flex-shrink: 0;
+        }
+        .ws-comp-bar-track {
+            flex: 1;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .ws-comp-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .ws-comp-value {
+            font-size: 12px;
+            color: #e2e8f0;
+            width: 40px;
+            text-align: right;
+        }
+        .ws-tendencies-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        .ws-tendencies-table th {
+            text-align: left;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .ws-tendencies-table td {
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #e2e8f0;
+            border-bottom: 1px solid #1e293b;
+        }
     </style>
 </head>
 <body>
@@ -2849,8 +3107,8 @@
         <!-- EERI Pro Section -->
         <div class="section-content" id="section-eeri-pro">
             <div class="page-header">
-                <h1 class="page-title">EERI Pro Dashboard</h1>
-                <p class="page-subtitle">European Energy Risk Index - Real-time intelligence for Pro subscribers</p>
+                <h1 class="page-title">EERI Dashboard</h1>
+                <p class="page-subtitle">European Energy Risk Index - Intelligence tailored to your plan</p>
                 <div class="eeri-header-links">
                     <a href="/eeri/methodology" target="_blank" class="eeri-methodology-header-link">📖 View EERI Methodology</a>
                     <a href="javascript:void(0)" onclick="openEeriModal('behavioral')" class="eeri-methodology-header-link">🧠 Conceptual, Behavioral Interpretation</a>
@@ -2868,24 +3126,24 @@
                 <div class="eeri-pro-locked" id="eeriProLocked" style="display: none;">
                     <div class="eeri-locked-card">
                         <div class="eeri-locked-icon">⚡</div>
-                        <h2>EERI Pro Dashboard</h2>
-                        <p>Unlock real-time European energy risk intelligence with component transparency, asset stress analysis, and historical intelligence.</p>
+                        <h2>EERI Dashboard</h2>
+                        <p>Unlock European energy risk intelligence with weekly snapshots, market analysis, and progressive intelligence depth.</p>
                         <ul class="eeri-locked-features">
-                            <li>Real-time EERI with component breakdown</li>
-                            <li>Asset Stress Panel across all energy classes</li>
-                            <li>Full Top Drivers with severity & confidence</li>
-                            <li>Historical charts with advanced time controls</li>
-                            <li>Daily AI-generated intelligence summary</li>
+                            <li>Weekly risk overview and market direction</li>
+                            <li>Cross-asset confirmation analysis</li>
+                            <li>Historical tendencies and probability outlooks</li>
+                            <li>Reaction speed and momentum tracking</li>
+                            <li>Component attribution and scenario modeling</li>
                         </ul>
-                        <button class="eeri-upgrade-btn" onclick="showSection('plans')">Upgrade to Pro</button>
+                        <button class="eeri-upgrade-btn" onclick="showSection('plans')">Upgrade Now</button>
                     </div>
                 </div>
 
                 <!-- Pro Dashboard Content -->
                 <div class="eeri-pro-dashboard" id="eeriProDashboard" style="display: none;">
 
-                    <!-- Main Index Display Row -->
-                    <div class="eeri-main-row">
+                    <!-- Main Index Display Row (Pro/Enterprise only) -->
+                    <div class="eeri-main-row eeri-pro-only">
                         <!-- EERI Value Card -->
                         <div class="eeri-value-card">
                             <div class="eeri-value-header">
@@ -2918,8 +3176,8 @@
                         </div>
                     </div>
 
-                    <!-- Asset Stress Panel -->
-                    <div class="eeri-asset-stress-card">
+                    <!-- Asset Stress Panel (Pro/Enterprise only) -->
+                    <div class="eeri-asset-stress-card eeri-pro-only">
                         <div class="eeri-asset-stress-header">
                             <h3 class="eeri-section-title">Asset Stress Panel <span class="eeri-tooltip-icon" onclick="openEeriModal('assetStress')">ⓘ</span></h3>
                             <span class="eeri-section-subtitle">Current stress levels across energy asset classes</span>
@@ -2929,8 +3187,8 @@
                         </div>
                     </div>
 
-                    <!-- Top Drivers Section -->
-                    <div class="eeri-drivers-card">
+                    <!-- Top Drivers Section (Pro/Enterprise only) -->
+                    <div class="eeri-drivers-card eeri-pro-only">
                         <div class="eeri-drivers-header">
                             <h3 class="eeri-section-title">Top Risk Drivers</h3>
                             <span class="eeri-section-subtitle">Key factors driving today's EERI level</span>
@@ -2940,8 +3198,22 @@
                         </div>
                     </div>
 
-                    <!-- Historical Intelligence Section -->
-                    <div class="eeri-history-card">
+                    <!-- Weekly Snapshot Section (All Paid Plans) -->
+                    <div class="eeri-weekly-snapshot-card" id="eeriWeeklySnapshotSection">
+                        <div class="ws-dash-header">
+                            <h3 class="eeri-section-title">Weekly Intelligence Snapshot</h3>
+                            <span class="eeri-section-subtitle" id="wsWeekRange">Loading...</span>
+                        </div>
+                        <div id="wsContent">
+                            <div class="ws-dash-loading">
+                                <div class="spinner"></div>
+                                <p>Loading weekly snapshot...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Historical Intelligence Section (Pro/Enterprise only) -->
+                    <div class="eeri-history-card eeri-pro-only">
                         <div class="eeri-history-header">
                             <h3 class="eeri-section-title">Historical Intelligence <span class="eeri-tooltip-icon" onclick="openEeriModal('history')">ⓘ</span></h3>
                             <div class="eeri-time-controls">
@@ -2982,7 +3254,7 @@
                     </div>
 
                     <!-- Regime Statistics -->
-                    <div class="eeri-regime-card">
+                    <div class="eeri-regime-card eeri-pro-only">
                         <div class="eeri-regime-header">
                             <h3 class="eeri-section-title">Regime Statistics <span class="eeri-tooltip-icon" onclick="openEeriModal('regime')">ⓘ</span></h3>
                             <span class="eeri-section-subtitle">Risk band distribution (last 90 days)</span>
@@ -3001,7 +3273,7 @@
                     </div>
 
                     <!-- Daily Intelligence Summary Card (moved to bottom) -->
-                    <div class="eeri-summary-card" id="eeriDailySummary">
+                    <div class="eeri-summary-card eeri-pro-only" id="eeriDailySummary">
                         <div class="eeri-summary-header">
                             <div class="eeri-summary-label">Daily Intelligence Summary</div>
                             <div class="eeri-summary-date" id="eeriSummaryDate">--</div>
@@ -3434,17 +3706,19 @@
                 }
             }
             
-            // Show EERI Pro nav item for all users, but handle based on plan
+            // Show EERI nav item for all paid users with plan-appropriate content
             const eeriNavItem = document.getElementById('eeriNavItem');
             const eeriBadge = document.getElementById('eeriBadge');
             const eeriUpgradeHint = document.getElementById('eeriUpgradeHint');
+            const eeriPaidAccess = ['personal', 'trader', 'pro', 'enterprise'].includes(plan);
             
             if (eeriNavItem) {
-                if (geriEnabled) {
+                if (eeriPaidAccess) {
                     eeriNavItem.classList.remove('nav-item-disabled');
                     eeriNavItem.onclick = function() { showSection('eeri-pro'); closeMobileMenu(); };
                     if (eeriBadge) {
-                        eeriBadge.textContent = 'PRO';
+                        const eeriTierLabels = {'personal': 'PERSONAL', 'trader': 'TRADER', 'pro': 'PRO', 'enterprise': 'ENTERPRISE'};
+                        eeriBadge.textContent = eeriTierLabels[plan] || 'EERI';
                         eeriBadge.classList.remove('pro-badge-locked');
                     }
                     if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'none';
@@ -3452,7 +3726,7 @@
                     eeriNavItem.classList.add('nav-item-disabled');
                     eeriNavItem.onclick = function(e) { e.preventDefault(); };
                     if (eeriBadge) {
-                        eeriBadge.textContent = 'Pro+ Users';
+                        eeriBadge.textContent = 'Paid Plans';
                         eeriBadge.classList.add('pro-badge-locked');
                     }
                     if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'block';
@@ -4691,13 +4965,15 @@
 
         async function loadEeriProData() {
             const plan = currentUser?.plan || 'free';
-            const eeriEnabled = ['pro', 'enterprise'].includes(plan);
+            const isPaid = ['personal', 'trader', 'pro', 'enterprise'].includes(plan);
+            const isProTier = ['pro', 'enterprise'].includes(plan);
             
             const loadingEl = document.getElementById('eeriProLoading');
             const lockedEl = document.getElementById('eeriProLocked');
             const dashboardEl = document.getElementById('eeriProDashboard');
+            const proOnlySections = document.querySelectorAll('.eeri-pro-only');
             
-            if (!eeriEnabled) {
+            if (!isPaid) {
                 if (loadingEl) loadingEl.style.display = 'none';
                 if (lockedEl) lockedEl.style.display = 'flex';
                 if (dashboardEl) dashboardEl.style.display = 'none';
@@ -4708,44 +4984,313 @@
             if (lockedEl) lockedEl.style.display = 'none';
             if (dashboardEl) dashboardEl.style.display = 'none';
             
+            proOnlySections.forEach(el => {
+                el.style.display = isProTier ? '' : 'none';
+            });
+            
             try {
-                const [realtimeRes, summaryRes, regimeRes] = await Promise.all([
-                    fetch('/api/v1/eeri-pro/realtime'),
-                    fetch('/api/v1/eeri-pro/daily-summary'),
-                    fetch('/api/v1/eeri-pro/regime-stats')
-                ]);
+                const fetchPromises = [
+                    fetch(`/api/v1/eeri-pro/weekly-snapshot?plan=${plan}`)
+                ];
                 
-                const realtimeData = await realtimeRes.json();
-                const summaryData = await summaryRes.json();
-                const regimeData = await regimeRes.json();
+                if (isProTier) {
+                    fetchPromises.push(
+                        fetch('/api/v1/eeri-pro/realtime'),
+                        fetch('/api/v1/eeri-pro/daily-summary'),
+                        fetch('/api/v1/eeri-pro/regime-stats')
+                    );
+                }
+                
+                const results = await Promise.all(fetchPromises);
+                const snapshotData = await results[0].json();
                 
                 if (loadingEl) loadingEl.style.display = 'none';
                 if (dashboardEl) dashboardEl.style.display = 'flex';
                 
-                if (realtimeData.success && realtimeData.data) {
-                    renderEeriMainDisplay(realtimeData.data);
-                    renderEeriComponents(realtimeData.data.component_breakdown);
-                    renderEeriAssetStress(realtimeData.data.asset_stress);
-                    renderEeriTopDrivers(realtimeData.data.top_drivers);
+                if (snapshotData.success && snapshotData.data) {
+                    renderWeeklySnapshot(snapshotData.data, plan);
+                } else {
+                    var wsContent = document.getElementById('wsContent');
+                    if (wsContent) {
+                        wsContent.innerHTML = '<div style="text-align: center; padding: 30px 20px; color: #94a3b8;"><p style="font-size: 14px;">Weekly snapshot data is not yet available. At least 3 days of EERI data in a completed week are needed.</p><p style="font-size: 12px; margin-top: 8px; color: #64748b;">Data is collected daily and will appear here once sufficient history is built.</p></div>';
+                    }
                 }
                 
-                if (summaryData.success && summaryData.data) {
-                    renderEeriSummary(summaryData.data);
+                if (isProTier && results.length > 1) {
+                    const realtimeData = await results[1].json();
+                    const summaryData = await results[2].json();
+                    const regimeData = await results[3].json();
+                    
+                    if (realtimeData.success && realtimeData.data) {
+                        renderEeriMainDisplay(realtimeData.data);
+                        renderEeriComponents(realtimeData.data.component_breakdown);
+                        renderEeriAssetStress(realtimeData.data.asset_stress);
+                        renderEeriTopDrivers(realtimeData.data.top_drivers);
+                    }
+                    
+                    if (summaryData.success && summaryData.data) {
+                        renderEeriSummary(summaryData.data);
+                    }
+                    
+                    if (regimeData.success) {
+                        renderEeriRegimeStats(regimeData);
+                    }
+                    
+                    loadEeriHistoryChart(eeriProState.days, eeriProState.smoothing);
+                    initEeriTimeControls();
                 }
-                
-                if (regimeData.success) {
-                    renderEeriRegimeStats(regimeData);
-                }
-                
-                loadEeriHistoryChart(eeriProState.days, eeriProState.smoothing);
-                initEeriTimeControls();
                 
                 eeriProState.loaded = true;
                 
             } catch (error) {
-                console.error('Error loading EERI Pro data:', error);
+                console.error('Error loading EERI data:', error);
                 if (loadingEl) loadingEl.innerHTML = '<p style="color: #f87171;">Error loading EERI data. Please try again.</p>';
             }
+        }
+
+        function renderWeeklySnapshot(data, plan) {
+            const container = document.getElementById('wsContent');
+            const rangeEl = document.getElementById('wsWeekRange');
+            if (!container) return;
+
+            if (rangeEl) {
+                rangeEl.textContent = data.week_start + ' to ' + data.week_end;
+            }
+
+            const ov = data.overview;
+            const bandColors = {'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316', 'SEVERE': '#dc2626', 'CRITICAL': '#ef4444'};
+            const bandColor = bandColors[ov.band] || '#94a3b8';
+            const trendArrow = ov.trend_vs_prior === 'rising' ? '\u2191' : (ov.trend_vs_prior === 'falling' ? '\u2193' : '\u2192');
+            const trendColor = ov.trend_vs_prior === 'rising' ? '#f87171' : (ov.trend_vs_prior === 'falling' ? '#4ade80' : '#94a3b8');
+            const planLevel = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}[plan] || 0;
+
+            let html = '';
+
+            html += '<div class="ws-overview-dash">' +
+                '<div class="ws-stat-item"><div class="ws-stat-label">Weekly Average</div><div class="ws-stat-value" style="color: ' + bandColor + ';">' + ov.average + '</div><div class="ws-stat-sub">' + ov.band + '</div></div>' +
+                '<div class="ws-stat-item"><div class="ws-stat-label">High</div><div class="ws-stat-value">' + ov.high.value + '</div><div class="ws-stat-sub">' + (ov.high.day || '') + '</div></div>' +
+                '<div class="ws-stat-item"><div class="ws-stat-label">Low</div><div class="ws-stat-value">' + ov.low.value + '</div><div class="ws-stat-sub">' + (ov.low.day || '') + '</div></div>' +
+                '<div class="ws-stat-item"><div class="ws-stat-label">Trend</div><div class="ws-stat-value" style="color: ' + trendColor + ';">' + trendArrow + '</div><div class="ws-stat-sub">' + ov.trend_vs_prior.charAt(0).toUpperCase() + ov.trend_vs_prior.slice(1) + '</div></div>' +
+                '</div>';
+
+            var assetTable = data.asset_table || [];
+            var dirIcons = {'up': '\u2191', 'down': '\u2193', 'flat': '~'};
+            var dirColors = {'up': '#4ade80', 'down': '#f87171', 'flat': '#94a3b8'};
+
+            html += '<table class="ws-asset-table"><thead><tr><th>Asset</th><th>Direction</th><th>Move</th>';
+            if (planLevel >= 1) html += '<th>Alignment</th>';
+            if (planLevel >= 2) html += '<th>Reaction</th>';
+            html += '</tr></thead><tbody>';
+
+            assetTable.forEach(function(a) {
+                var icon = dirIcons[a.direction] || '~';
+                var color = dirColors[a.direction] || '#94a3b8';
+                var movePct = (a.weekly_move_pct !== null && a.weekly_move_pct !== undefined) ? (a.weekly_move_pct > 0 ? '+' : '') + a.weekly_move_pct.toFixed(2) + '%' : 'N/A';
+
+                html += '<tr><td>' + a.asset + '</td><td style="color: ' + color + '; font-weight: 600;">' + icon + '</td><td>' + movePct + '</td>';
+                if (planLevel >= 1) {
+                    var align = a.alignment || 'neutral';
+                    html += '<td><span class="ws-badge ws-badge-' + align + '">' + align + '</span></td>';
+                }
+                if (planLevel >= 2) {
+                    var speed = a.reaction_speed || 'medium';
+                    html += '<td><span class="ws-badge ws-badge-' + speed + '">' + speed + '</span></td>';
+                }
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+
+            if (data.interpretation) {
+                html += '<div class="ws-narrative-block"><h4>Market Interpretation</h4><p>' + data.interpretation + '</p></div>';
+            }
+
+            if (data.regime_distribution) {
+                var regimeBands = ['CRITICAL', 'SEVERE', 'ELEVATED', 'MODERATE', 'LOW'];
+                var totalDays = data.data_days || 1;
+                html += '<div style="margin-bottom: 16px;">';
+                regimeBands.forEach(function(b) {
+                    var days = data.regime_distribution[b] || 0;
+                    if (days > 0) {
+                        var pct = Math.round((days / totalDays) * 100);
+                        var bc = bandColors[b] || '#6b7280';
+                        html += '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">' +
+                            '<span style="width: 80px; font-size: 11px; color: ' + bc + '; font-weight: 600;">' + b + '</span>' +
+                            '<div style="flex: 1; height: 6px; background: #0f172a; border-radius: 3px; overflow: hidden;">' +
+                            '<div style="width: ' + pct + '%; height: 100%; background: ' + bc + '; border-radius: 3px;"></div></div>' +
+                            '<span style="font-size: 12px; color: #94a3b8; width: 60px; text-align: right;">' + days + 'd (' + pct + '%)</span></div>';
+                    }
+                });
+                html += '</div>';
+            }
+
+            if (data.next_week_outlook) {
+                html += '<div class="ws-narrative-block"><h4>Next-Week Context</h4><p>' + data.next_week_outlook + '</p></div>';
+            }
+
+            if (planLevel >= 1) {
+                if (data.divergence_narrative) {
+                    var divStatus = data.divergence_status || 'mixed';
+                    var divColor = divStatus === 'confirming' ? '#4ade80' : (divStatus === 'diverging' ? '#f87171' : '#eab308');
+                    html += '<div class="ws-narrative-block" style="border-left: 3px solid ' + divColor + ';"><h4>Divergence Watch \u2014 <span style="color: ' + divColor + ';">' + divStatus.toUpperCase() + '</span></h4><p>' + data.divergence_narrative + '</p></div>';
+                }
+
+                if (data.historical_context && data.historical_context.length > 0) {
+                    html += '<div class="ws-narrative-block"><h4>Historical Context</h4><ul style="margin: 0; padding-left: 18px;">';
+                    data.historical_context.forEach(function(ctx) {
+                        html += '<li style="margin-bottom: 4px;">' + ctx + '</li>';
+                    });
+                    html += '</ul></div>';
+                }
+
+                if (data.tendencies && data.tendencies.length > 0) {
+                    html += '<table class="ws-tendencies-table"><thead><tr><th>Asset</th><th>Historical Tendency</th><th>Confidence</th>';
+                    if (planLevel >= 2 && data.conditional_tendencies) html += '<th>Condition</th>';
+                    html += '</tr></thead><tbody>';
+
+                    var tendencyData = (planLevel >= 2 && data.conditional_tendencies) ? data.conditional_tendencies : data.tendencies;
+                    tendencyData.forEach(function(t) {
+                        var confColor = t.confidence === 'High' ? '#4ade80' : (t.confidence === 'Medium' ? '#eab308' : '#94a3b8');
+                        html += '<tr><td>' + t.asset + '</td><td>' + t.tendency + '</td><td><span style="color: ' + confColor + ';">' + t.confidence + '</span></td>';
+                        if (planLevel >= 2 && t.condition) {
+                            html += '<td style="font-size: 12px; color: #64748b;">' + t.condition + '</td>';
+                        }
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                }
+
+                if (data.charts_enabled && data.chart_data) {
+                    html += '<div class="ws-chart-row" id="wsChartRow"></div>';
+                }
+            }
+
+            if (planLevel >= 2) {
+                if (data.momentum) {
+                    var momColors = {'accelerating': '#ef4444', 'building': '#f97316', 'plateauing': '#eab308', 'softening': '#22c55e', 'easing': '#4ade80', 'stable': '#94a3b8'};
+                    var momColor = momColors[data.momentum.label] || '#94a3b8';
+                    html += '<div class="ws-momentum-card"><h4 style="font-size: 13px; color: #f1f5f9; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Risk Momentum</h4>' +
+                        '<span class="ws-momentum-label" style="background: ' + momColor + '20; color: ' + momColor + ';">' + data.momentum.label.toUpperCase() + '</span>' +
+                        '<p style="color: #cbd5e1; font-size: 14px; margin-top: 8px; line-height: 1.6;">' + data.momentum.narrative + '</p></div>';
+                }
+
+                if (data.volatility_commentary) {
+                    html += '<div class="ws-narrative-block"><h4>Volatility Outlook</h4><p>' + data.volatility_commentary + '</p></div>';
+                }
+            }
+
+            if (planLevel >= 3) {
+                if (data.component_attribution && data.component_attribution.length > 0) {
+                    html += '<div class="ws-narrative-block"><h4>Component Attribution</h4><div class="ws-component-bars">';
+                    var maxContrib = Math.max.apply(null, data.component_attribution.map(function(c) { return c.contribution; }));
+                    var compColors = ['#3b82f6', '#f97316', '#22c55e', '#a855f7'];
+                    data.component_attribution.forEach(function(c, i) {
+                        var pct = maxContrib > 0 ? Math.round((c.contribution / maxContrib) * 100) : 0;
+                        html += '<div class="ws-comp-row"><span class="ws-comp-label">' + c.component + '</span>' +
+                            '<div class="ws-comp-bar-track"><div class="ws-comp-bar-fill" style="width: ' + pct + '%; background: ' + compColors[i % 4] + ';"></div></div>' +
+                            '<span class="ws-comp-value">' + c.contribution + '</span></div>';
+                    });
+                    html += '</div></div>';
+                }
+
+                if (data.regime_persistence) {
+                    var rp = data.regime_persistence;
+                    html += '<div class="ws-persistence-card"><div class="ws-persistence-value">' + Math.round(rp.prob_low * 100) + '\u2013' + Math.round(rp.prob_high * 100) + '%</div>' +
+                        '<div class="ws-persistence-label">Regime Persistence Probability (Confidence: ' + rp.confidence + ')</div>' +
+                        '<p style="color: #94a3b8; font-size: 13px; margin-top: 8px;">' + rp.narrative + '</p></div>';
+                }
+
+                if (data.analog_framing) {
+                    html += '<div class="ws-narrative-block"><h4>Historical Analog</h4><p>' + data.analog_framing + '</p></div>';
+                }
+
+                if (data.scenario_outlook && data.scenario_outlook.length > 0) {
+                    html += '<div style="margin-bottom: 16px;"><h4 style="font-size: 13px; color: #f1f5f9; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Scenario Outlook</h4><div class="ws-scenarios-grid">';
+                    var scenarioColors = {'Escalation': '#ef4444', 'Stabilization': '#eab308', 'De-escalation': '#22c55e'};
+                    data.scenario_outlook.forEach(function(s) {
+                        var sc = scenarioColors[s.name] || '#94a3b8';
+                        html += '<div class="ws-scenario-card" style="border-left-color: ' + sc + ';"><h5 style="color: ' + sc + ';">' + s.name + '</h5><p>' + s.description + '</p></div>';
+                    });
+                    html += '</div></div>';
+                }
+            }
+
+            if (planLevel < 1) {
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to Personal for overlay charts, alignment analysis, and historical tendencies.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+            } else if (planLevel < 2) {
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to Trader for reaction speed analysis, conditional probabilities, and risk momentum tracking.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+            } else if (planLevel < 3) {
+                html += '<div class="ws-upgrade-hint"><p>Upgrade to Pro for component attribution, regime persistence modeling, scenario outlooks, and historical analogs.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+            }
+
+            container.innerHTML = html;
+
+            if (planLevel >= 1 && data.charts_enabled && data.chart_data) {
+                renderWsCharts(data.chart_data);
+            }
+        }
+
+        function renderWsCharts(chartData) {
+            var chartRow = document.getElementById('wsChartRow');
+            if (!chartRow || !chartData || !chartData.eeri) return;
+
+            var eeriPts = chartData.eeri;
+            var assetKeys = [
+                {key: 'ttf', label: 'EERI vs TTF Gas', color: '#3b82f6'},
+                {key: 'brent', label: 'EERI vs Brent Oil', color: '#f97316'},
+                {key: 'vix', label: 'EERI vs VIX', color: '#a855f7'},
+                {key: 'eurusd', label: 'EERI vs EUR/USD', color: '#22c55e'},
+                {key: 'storage', label: 'EERI vs EU Storage', color: '#06b6d4'}
+            ];
+
+            var chartHtml = '';
+            var chartConfigs = [];
+
+            assetKeys.forEach(function(asset) {
+                if (!chartData[asset.key] || chartData[asset.key].length < 2) return;
+                var chartId = 'wsChart_' + asset.key;
+                chartConfigs.push({id: chartId, key: asset.key, label: asset.label, color: asset.color});
+                chartHtml += '<div class="ws-mini-chart"><h5>' + asset.label + '</h5><canvas id="' + chartId + '" height="120"></canvas></div>';
+            });
+
+            chartRow.innerHTML = chartHtml;
+
+            chartConfigs.forEach(function(c) {
+                var canvas = document.getElementById(c.id);
+                if (!canvas) return;
+
+                var assetPts = chartData[c.key];
+                var eeriBase = eeriPts[0] && eeriPts[0].value ? eeriPts[0].value : 1;
+                var assetBase = assetPts[0] && assetPts[0].value ? assetPts[0].value : 1;
+
+                var minLen = Math.min(eeriPts.length, assetPts.length);
+                var labels = eeriPts.slice(0, minLen).map(function(p) {
+                    var d = new Date(p.date);
+                    return d.toLocaleDateString('en-US', {weekday: 'short'});
+                });
+
+                var eeriIndexed = eeriPts.slice(0, minLen).map(function(p) { return ((p.value / eeriBase) * 100).toFixed(1); });
+                var assetIndexed = assetPts.slice(0, minLen).map(function(p) { return ((p.value / assetBase) * 100).toFixed(1); });
+
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {label: 'EERI', data: eeriIndexed, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 2, tension: 0.3},
+                            {label: c.label.split(' vs ')[1], data: assetIndexed, borderColor: c.color, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 2, tension: 0.3}
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {legend: {display: true, labels: {color: '#94a3b8', boxWidth: 12, font: {size: 10}}}},
+                        scales: {
+                            x: {ticks: {color: '#64748b', font: {size: 10}}, grid: {display: false}},
+                            y: {ticks: {color: '#64748b', font: {size: 10}}, grid: {color: '#1e293b'}}
+                        }
+                    }
+                });
+            });
         }
 
         function renderEeriMainDisplay(data) {
@@ -5327,7 +5872,7 @@
 
         function setupEeriProNavAccess() {
             const plan = currentUser?.plan || 'free';
-            const eeriEnabled = ['pro', 'enterprise'].includes(plan);
+            const eeriEnabled = ['personal', 'trader', 'pro', 'enterprise'].includes(plan);
             
             const eeriNavItem = document.getElementById('eeriNavItem');
             const eeriBadge = document.getElementById('eeriBadge');
