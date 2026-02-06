@@ -315,7 +315,9 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
         charts_html += f'''
             <div class="ws-mini-chart">
                 <div class="ws-mini-chart-title">EERI vs {name}</div>
-                <canvas id="ws-chart-{key}" width="200" height="120"></canvas>
+                <div class="ws-mini-chart-wrap">
+                    <canvas id="ws-chart-{key}" width="200" height="120"></canvas>
+                </div>
             </div>'''
 
     div_status = snapshot['divergence_status']
@@ -379,7 +381,7 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
                     ]
                 }},
                 options: {{
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false, animation: false,
                     plugins: {{ legend: {{ display: true, position: 'bottom', labels: {{ font: {{ size: 10 }}, boxWidth: 12, padding: 6 }} }} }},
                     scales: {{
                         x: {{ grid: {{ display: false }}, ticks: {{ font: {{ size: 9 }} }} }},
@@ -435,9 +437,10 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
                 .ws-align-neutral {{ color: #eab308; }}
                 .ws-asset-context {{ font-size: 0.8rem; color: var(--text-secondary); }}
                 .ws-charts-row {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem; }}
-                .ws-mini-chart {{ background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; }}
+                .ws-mini-chart {{ background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; height: 180px; position: relative; }}
                 .ws-mini-chart-title {{ font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; text-align: center; }}
-                .ws-mini-chart canvas {{ width: 100% !important; height: 100px !important; }}
+                .ws-mini-chart-wrap {{ position: relative; height: 130px; }}
+                .ws-mini-chart canvas {{ width: 100% !important; }}
                 .ws-divergence-badge {{
                     border-radius: 12px; padding: 1rem 1.25rem;
                     margin-bottom: 1.25rem; font-size: 0.95rem;
