@@ -2797,7 +2797,7 @@
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border: 1px dashed #334155;
             border-radius: 10px;
-            padding: 20px;
+            padding: 24px;
             text-align: center;
             margin-bottom: 16px;
         }
@@ -2815,6 +2815,96 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
+        }
+        .ws-upgrade-title {
+            color: #e2e8f0;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .ws-upgrade-subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .ws-upgrade-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .ws-plan-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 18px 16px;
+            text-align: left;
+            transition: border-color 0.2s, transform 0.2s;
+            position: relative;
+        }
+        .ws-plan-card:hover {
+            transform: translateY(-2px);
+        }
+        .ws-plan-card.card-personal { border-top: 3px solid #3b82f6; }
+        .ws-plan-card.card-trader { border-top: 3px solid #f59e0b; }
+        .ws-plan-card.card-pro { border-top: 3px solid #ef4444; }
+        .ws-plan-card.card-enterprise { border-top: 3px solid #a855f7; }
+        .ws-plan-card:hover.card-personal { border-color: #3b82f6; }
+        .ws-plan-card:hover.card-trader { border-color: #f59e0b; }
+        .ws-plan-card:hover.card-pro { border-color: #ef4444; }
+        .ws-plan-card:hover.card-enterprise { border-color: #a855f7; }
+        .ws-plan-card-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .ws-plan-card-name.plan-personal { color: #3b82f6; }
+        .ws-plan-card-name.plan-trader { color: #f59e0b; }
+        .ws-plan-card-name.plan-pro { color: #ef4444; }
+        .ws-plan-card-name.plan-enterprise { color: #a855f7; }
+        .ws-plan-card-price {
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .ws-plan-card-tagline {
+            color: #94a3b8;
+            font-size: 12px;
+            font-style: italic;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .ws-plan-card-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .ws-plan-card-features li {
+            color: #cbd5e1;
+            font-size: 12px;
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+            line-height: 1.4;
+        }
+        .ws-plan-card-features li::before {
+            content: '+';
+            position: absolute;
+            left: 0;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .ws-plan-card.card-personal .ws-plan-card-features li::before { color: #3b82f6; }
+        .ws-plan-card.card-trader .ws-plan-card-features li::before { color: #f59e0b; }
+        .ws-plan-card.card-pro .ws-plan-card-features li::before { color: #ef4444; }
+        .ws-plan-card.card-enterprise .ws-plan-card-features li::before { color: #a855f7; }
+        .ws-plan-card-includes {
+            color: #64748b;
+            font-size: 11px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #1e293b;
         }
         .ws-component-bars {
             display: flex;
@@ -5241,14 +5331,76 @@
                 }
             }
 
-            if (planLevel < 1) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Personal ($9.95/mo)</strong> for overlay charts, alignment analysis, and historical tendencies.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
-            } else if (planLevel < 2) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Trader ($29/mo)</strong> for reaction speed analysis, conditional probabilities, and risk momentum tracking.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
-            } else if (planLevel < 3) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Pro ($49/mo)</strong> for component attribution, regime persistence modeling, scenario outlooks, and historical analogs.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
-            } else if (planLevel < 4) {
-                html += '<div class="ws-upgrade-hint"><p>Upgrade to <strong>Enterprise ($129/mo)</strong> for multi-region spillover analysis, sector impact forecasting, and portfolio exposure intelligence.</p><button onclick="showSection(\'plans\')">View Plans</button></div>';
+            if (planLevel < 4) {
+                html += '<div class="ws-upgrade-hint">';
+                html += '<div class="ws-upgrade-title">Unlock Deeper Intelligence</div>';
+                html += '<div class="ws-upgrade-subtitle">See what each plan adds to your EERI Weekly Snapshot</div>';
+                html += '<div class="ws-upgrade-cards">';
+
+                if (planLevel < 1) {
+                    html += '<div class="ws-plan-card card-personal">';
+                    html += '<div class="ws-plan-card-name plan-personal">Personal</div>';
+                    html += '<div class="ws-plan-card-price">$9.95 / month</div>';
+                    html += '<div class="ws-plan-card-tagline">Historical context and probability insights to better interpret energy market volatility.</div>';
+                    html += '<ul class="ws-plan-card-features">';
+                    html += '<li>Mini weekly overlay charts (EERI vs each asset)</li>';
+                    html += '<li>Alignment labels: Confirming / Mixed / Diverging</li>';
+                    html += '<li>Basic historical context with percentile analysis</li>';
+                    html += '<li>Simple probability outlook with confidence ranges</li>';
+                    html += '</ul>';
+                    html += '</div>';
+                }
+
+                if (planLevel < 2) {
+                    html += '<div class="ws-plan-card card-trader">';
+                    html += '<div class="ws-plan-card-name plan-trader">Trader</div>';
+                    html += '<div class="ws-plan-card-price">$29 / month</div>';
+                    html += '<div class="ws-plan-card-tagline">Tactical intelligence with reaction speed analysis and conditional probability modeling for active risk monitoring.</div>';
+                    html += '<ul class="ws-plan-card-features">';
+                    html += '<li>Asset reaction speed analysis (which led, which lagged)</li>';
+                    html += '<li>Week-vs-week risk acceleration tracking</li>';
+                    html += '<li>Conditional historical tendencies (e.g. "When EERI is Severe AND rising: TTF \u2191 68%")</li>';
+                    html += '<li>Volatility expectation commentary</li>';
+                    html += '</ul>';
+                    if (planLevel >= 1) { html += '<div class="ws-plan-card-includes">Includes all Personal features</div>'; }
+                    html += '</div>';
+                }
+
+                if (planLevel < 3) {
+                    html += '<div class="ws-plan-card card-pro">';
+                    html += '<div class="ws-plan-card-name plan-pro">Pro</div>';
+                    html += '<div class="ws-plan-card-price">$49 / month</div>';
+                    html += '<div class="ws-plan-card-tagline">Full structural risk intelligence with regime persistence, historical analogs, and scenario outlooks.</div>';
+                    html += '<ul class="ws-plan-card-features">';
+                    html += '<li>Component attribution summary (what drove the week)</li>';
+                    html += '<li>Historical analog weeks identification</li>';
+                    html += '<li>Regime persistence probability</li>';
+                    html += '<li>Cross-asset transmission narrative</li>';
+                    html += '<li>Scenario outlook (Escalation / Stabilization / De-escalation)</li>';
+                    html += '</ul>';
+                    if (planLevel >= 2) { html += '<div class="ws-plan-card-includes">Includes all Trader features</div>'; }
+                    else { html += '<div class="ws-plan-card-includes">Includes all Personal + Trader features</div>'; }
+                    html += '</div>';
+                }
+
+                html += '<div class="ws-plan-card card-enterprise">';
+                html += '<div class="ws-plan-card-name plan-enterprise">Enterprise</div>';
+                html += '<div class="ws-plan-card-price">$129 / month</div>';
+                html += '<div class="ws-plan-card-tagline">Strategic multi-region energy risk forecasting, sector-level impact modeling, and portfolio exposure intelligence.</div>';
+                html += '<ul class="ws-plan-card-features">';
+                html += '<li>Multi-region spillover risk (Europe \u2194 Middle East \u2194 Black Sea)</li>';
+                html += '<li>Sector impact forecast (Power, Industrial, LNG, Storage)</li>';
+                html += '<li>Portfolio exposure commentary</li>';
+                html += '<li>Multi-week risk path forecast bands</li>';
+                html += '</ul>';
+                if (planLevel >= 3) { html += '<div class="ws-plan-card-includes">Includes all Pro features</div>'; }
+                else if (planLevel >= 2) { html += '<div class="ws-plan-card-includes">Includes all Trader + Pro features</div>'; }
+                else { html += '<div class="ws-plan-card-includes">Includes all Personal + Trader + Pro features</div>'; }
+                html += '</div>';
+
+                html += '</div>';
+                html += '<button onclick="showSection(\'plans\')">Upgrade Your Plan</button>';
+                html += '</div>';
             }
 
             container.innerHTML = html;
