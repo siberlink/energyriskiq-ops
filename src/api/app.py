@@ -15,6 +15,7 @@ from src.api.alert_routes import router as alert_router
 from src.api.marketing_routes import router as marketing_router
 from src.api.internal_routes import router as internal_router
 from src.api.digest_routes import router as digest_router
+from src.api.daily_digest_routes import router as daily_digest_router
 from src.api.contact_routes import router as contact_router
 from src.api.admin_routes import router as admin_router
 from src.api.user_routes import router as user_router
@@ -134,6 +135,7 @@ app.include_router(alert_router)
 app.include_router(marketing_router)
 app.include_router(internal_router)
 app.include_router(digest_router)
+app.include_router(daily_digest_router)
 app.include_router(contact_router)
 app.include_router(admin_router)
 app.include_router(user_router)

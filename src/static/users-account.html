@@ -1781,6 +1781,303 @@
         }
 
         /* ============================================
+           Daily Digest Styles
+           ============================================ */
+        .digest-header-bar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .digest-header-bar .digest-date {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .digest-header-bar .digest-date strong {
+            color: #e2e8f0;
+        }
+        .digest-delayed-badge {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .digest-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .digest-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .digest-card-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0;
+        }
+        .digest-card-header .digest-section-icon {
+            font-size: 16px;
+        }
+        .digest-card-body {
+            padding: 20px;
+        }
+        .digest-risk-tone {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .digest-risk-tone.tone-red { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .digest-risk-tone.tone-orange { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .digest-risk-tone.tone-yellow { background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); }
+        .digest-risk-tone.tone-green { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); }
+        .digest-risk-tone.tone-gray { background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); }
+        .digest-risk-tone .tone-label {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .digest-risk-tone.tone-red .tone-label { color: #ef4444; }
+        .digest-risk-tone.tone-orange .tone-label { color: #f97316; }
+        .digest-risk-tone.tone-yellow .tone-label { color: #eab308; }
+        .digest-risk-tone.tone-green .tone-label { color: #22c55e; }
+        .digest-risk-tone.tone-gray .tone-label { color: #94a3b8; }
+        .digest-index-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .digest-index-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .digest-index-card .index-name {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .digest-index-card .index-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .digest-index-card .index-band {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .digest-index-card .index-trend {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .digest-index-card .index-trend.up { color: #ef4444; }
+        .digest-index-card .index-trend.down { color: #22c55e; }
+        .digest-index-card .index-trend.flat { color: #94a3b8; }
+        .digest-asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        .digest-asset-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+        .digest-asset-item .asset-label {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .digest-asset-item .asset-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .digest-asset-item .asset-change {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .digest-asset-item .asset-change.positive { color: #22c55e; }
+        .digest-asset-item .asset-change.negative { color: #ef4444; }
+        .digest-asset-item .asset-change.neutral { color: #94a3b8; }
+        .digest-alert-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        .digest-alert-item .alert-headline {
+            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        .digest-alert-item .alert-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .digest-alert-item .alert-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .digest-severity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .digest-severity-dot.sev-5 { background: #ef4444; }
+        .digest-severity-dot.sev-4 { background: #f97316; }
+        .digest-severity-dot.sev-3 { background: #eab308; }
+        .digest-severity-dot.sev-2 { background: #3b82f6; }
+        .digest-severity-dot.sev-1 { background: #22c55e; }
+        .digest-narrative {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            line-height: 1.7;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        .digest-narrative h2 {
+            color: #f1f5f9;
+            font-size: 16px;
+            margin: 20px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #334155;
+        }
+        .digest-narrative h2:first-child {
+            margin-top: 0;
+        }
+        .digest-narrative strong {
+            color: #e2e8f0;
+        }
+        .digest-narrative ul, .digest-narrative ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+        .digest-narrative li {
+            margin-bottom: 4px;
+        }
+        .digest-locked-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .digest-locked-section .lock-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .digest-locked-section .lock-title {
+            color: #60a5fa;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .digest-locked-section .lock-desc {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+        .digest-locked-section .lock-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .digest-locked-section .lock-btn:hover {
+            opacity: 0.9;
+        }
+        .digest-correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        .digest-correlation-table th,
+        .digest-correlation-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+            font-size: 13px;
+        }
+        .digest-correlation-table th {
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+        .digest-correlation-table td {
+            color: #e2e8f0;
+        }
+        .digest-regime-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 768px) {
+            .digest-header-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .digest-index-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .digest-asset-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ============================================
            EERI Pro Dashboard Styles
            Encapsulated module - do not affect other sections
            ============================================ */
@@ -3036,6 +3333,19 @@
             <div class="eeri-upgrade-hint" id="eeriUpgradeHint" style="display: none;">
                 (Upgrade to Pro for full EERI access)
             </div>
+            <a class="nav-item" id="digestNavItem" onclick="showSection('digest'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                </span>
+                Daily Digest
+                <span class="pro-badge-nav" id="digestBadge" style="background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 9px; padding: 2px 6px;">NEW</span>
+            </a>
         </div>
 
         <div class="sidebar-section">
@@ -3418,6 +3728,23 @@
                             <!-- Modal content rendered by JS -->
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Digest Section -->
+        <div class="section-content" id="section-digest">
+            <div class="page-header">
+                <h1 class="page-title" style="display: flex; align-items: center; gap: 12px;">
+                    Daily Geo-Energy Intelligence Digest
+                    <span id="digestPlanBadge" class="eeri-plan-badge-header badge-free" style="font-size: 11px;">FREE</span>
+                </h1>
+                <p class="page-subtitle">AI-powered daily briefing synthesizing global energy risk into actionable intelligence</p>
+            </div>
+            <div id="digestContent">
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="width: 40px; height: 40px; border: 3px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+                    <p style="color: #94a3b8;">Loading your daily intelligence digest...</p>
                 </div>
             </div>
         </div>
@@ -6120,6 +6447,681 @@
 
         /* End EERI Pro Module */
 
+        /* ============================================
+           Daily Geo-Energy Intelligence Digest Module
+           ============================================ */
+        let digestData = null;
+        let digestLoaded = false;
+
+        async function loadDailyDigest() {
+            if (digestLoaded && digestData) {
+                return;
+            }
+            const container = document.getElementById('digestContent');
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="width: 40px; height: 40px; border: 3px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+                    <p style="color: #94a3b8;">Generating your daily intelligence digest...</p>
+                    <p style="color: #64748b; font-size: 12px; margin-top: 8px;">This may take a few moments as we analyze today's data with AI</p>
+                </div>
+            `;
+            try {
+                const response = await fetch('/api/v1/digest/daily', {
+                    headers: { 'X-User-Token': sessionToken }
+                });
+                if (!response.ok) throw new Error('Failed to load digest');
+                digestData = await response.json();
+                digestLoaded = true;
+                renderDailyDigest(digestData);
+            } catch (error) {
+                console.error('Digest load error:', error);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <p style="color: #f87171; font-size: 16px; margin-bottom: 8px;">Unable to load digest</p>
+                        <p style="color: #94a3b8; font-size: 13px;">Please try again in a moment.</p>
+                        <button onclick="digestLoaded=false; loadDailyDigest();" style="margin-top: 16px; background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderDailyDigest(d) {
+            const container = document.getElementById('digestContent');
+            const plan = d.plan || 'free';
+            const planLevel = d.plan_level || 0;
+
+            const badgeEl = document.getElementById('digestPlanBadge');
+            if (badgeEl) {
+                const planLabels = {free: 'FREE', personal: 'PERSONAL', trader: 'TRADER', pro: 'PRO', enterprise: 'ENTERPRISE'};
+                badgeEl.textContent = planLabels[plan] || 'FREE';
+                badgeEl.className = 'eeri-plan-badge-header badge-' + plan;
+            }
+
+            let html = '';
+
+            html += renderDigestHeaderBar(d);
+            html += renderRiskToneSection(d);
+            html += renderIndexSummary(d, planLevel);
+            html += renderAssetMovesSection(d);
+            html += renderTopAlertsSection(d, planLevel);
+
+            if (planLevel >= 1) {
+                html += renderCorrelationsSection(d, planLevel);
+            } else {
+                html += renderLockedSection('Risk Correlation Analysis', 'See how risk indices relate to asset prices with 7-day correlation data.', 'Personal', '$9.95/mo');
+            }
+
+            if (planLevel >= 2) {
+                html += renderRegimeSection(d);
+            } else {
+                html += renderLockedSection('Regime Classification', 'Understand the current risk regime: Calm, Risk Build, Shock, or Gas-Storage Stress.', 'Trader', '$29/mo');
+            }
+
+            if (planLevel >= 2) {
+                html += renderForwardWatchlistSection(d);
+            } else if (planLevel >= 1) {
+                html += renderLockedSection('Forward Watchlist', 'Monitor high-severity events and critical risk thresholds that may impact markets.', 'Trader', '$29/mo');
+            }
+
+            if (planLevel >= 2) {
+                html += renderProbabilityScoringSection(d);
+            } else if (planLevel >= 1) {
+                html += renderLockedSection('Probability Scoring', 'Access escalation, de-escalation, and stability probability assessments.', 'Trader', '$29/mo');
+            }
+
+            if (planLevel >= 2) {
+                html += renderVolatilityOutlookSection(d);
+            } else {
+                html += renderLockedSection('Volatility Outlook', 'See current volatility regime and VIX-informed market stress outlook.', 'Trader', '$29/mo');
+            }
+
+            if (planLevel >= 3) {
+                html += renderBetasSection(d);
+            } else if (planLevel >= 2) {
+                html += renderLockedSection('Asset Sensitivity Dashboard', 'Access GERI beta coefficients vs Brent, TTF, VIX for institutional-grade analysis.', 'Pro', '$49/mo');
+            }
+
+            if (planLevel >= 3) {
+                html += renderScenarioForecastsSection(d);
+            } else if (planLevel >= 2) {
+                html += renderLockedSection('Scenario Forecasts', 'View base case, escalation, and de-escalation scenario projections with GERI forecasts.', 'Pro', '$49/mo');
+            }
+
+            if (d.ai_narrative) {
+                html += renderNarrativeSection(d, planLevel);
+            }
+
+            html += renderUpgradeHintsSection(d, planLevel);
+
+            html += `<div style="text-align: center; padding: 12px; color: #64748b; font-size: 11px; margin-top: 8px;">
+                Informational only. Not financial advice. | EnergyRiskIQ Intelligence Engine
+            </div>`;
+
+            container.innerHTML = html;
+        }
+
+        function renderDigestHeaderBar(d) {
+            let delayBadge = '';
+            if (d.is_delayed) {
+                delayBadge = '<span class="digest-delayed-badge">24h Delayed (Free Plan)</span>';
+            }
+            return `
+                <div class="digest-header-bar">
+                    <div class="digest-date">
+                        <strong>Digest Date:</strong> ${d.digest_date} &nbsp;|&nbsp;
+                        <strong>Based on Alerts From:</strong> ${d.alerts_date} &nbsp;|&nbsp;
+                        <strong>Total Alerts:</strong> ${d.total_alerts_yesterday}
+                    </div>
+                    ${delayBadge}
+                </div>
+            `;
+        }
+
+        function renderRiskToneSection(d) {
+            const tone = d.risk_tone || {};
+            const toneIcons = {red: '\u{1F534}', orange: '\u{1F7E0}', yellow: '\u{1F7E1}', green: '\u{1F7E2}', gray: '\u26AA'};
+            return `
+                <div class="digest-risk-tone tone-${tone.color || 'gray'}">
+                    <span style="font-size: 28px;">${toneIcons[tone.color] || '\u26AA'}</span>
+                    <div>
+                        <div class="tone-label">Global Risk Tone: ${tone.tone || 'Unknown'}</div>
+                        <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">Based on ${d.total_alerts_yesterday || 0} alerts analyzed from ${d.alerts_date}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIndexSummary(d, planLevel) {
+            let cards = '';
+
+            if (d.geri) {
+                cards += renderIndexCard('GERI', d.geri);
+            }
+            if (d.eeri && planLevel >= 1) {
+                cards += renderIndexCard('EERI', d.eeri);
+            } else if (planLevel < 1) {
+                cards += `<div class="digest-index-card" style="opacity: 0.5; position: relative;">
+                    <div class="index-name">EERI</div>
+                    <div class="index-value" style="filter: blur(4px);">--</div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #60a5fa;">Personal+</div>
+                </div>`;
+            }
+            if (d.egsi && planLevel >= 1) {
+                cards += renderIndexCard('EGSI-M', d.egsi);
+            } else if (planLevel < 1) {
+                cards += `<div class="digest-index-card" style="opacity: 0.5; position: relative;">
+                    <div class="index-name">EGSI-M</div>
+                    <div class="index-value" style="filter: blur(4px);">--</div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #60a5fa;">Personal+</div>
+                </div>`;
+            }
+            if (d.storage_context && planLevel >= 1) {
+                const sc = d.storage_context;
+                const bandColors = {'ELEVATED': '#f59e0b', 'CRITICAL': '#ef4444', 'MODERATE': '#eab308', 'LOW': '#22c55e'};
+                const color = bandColors[sc.risk_band] || '#94a3b8';
+                cards += `<div class="digest-index-card">
+                    <div class="index-name">EU GAS STORAGE</div>
+                    <div class="index-value">${sc.current}%</div>
+                    <div class="index-band" style="background: ${color}20; color: ${color};">${sc.risk_band || 'N/A'}</div>
+                </div>`;
+            }
+
+            if (!cards) return '';
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F4CA}</span>
+                        <h3>Index Movement Summary</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        <div class="digest-index-grid">${cards}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderIndexCard(name, data) {
+            if (!data) return '';
+            const bandColors = {'CRITICAL': '#ef4444', 'ELEVATED': '#f59e0b', 'MODERATE': '#eab308', 'LOW': '#22c55e'};
+            const color = bandColors[data.band] || '#94a3b8';
+            const trend = data.trend_1d || 0;
+            const trendClass = trend > 0 ? 'up' : trend < 0 ? 'down' : 'flat';
+            const trendArrow = trend > 0 ? '\u2191' : trend < 0 ? '\u2193' : '\u2192';
+            return `<div class="digest-index-card">
+                <div class="index-name">${name}</div>
+                <div class="index-value">${data.value}</div>
+                <div class="index-band" style="background: ${color}20; color: ${color};">${data.band || 'N/A'}</div>
+                <div class="index-trend ${trendClass}">${trendArrow} ${trend > 0 ? '+' : ''}${trend} (1d) | ${data.trend_7d > 0 ? '+' : ''}${data.trend_7d || 0} (7d)</div>
+            </div>`;
+        }
+
+        function renderAssetMovesSection(d) {
+            const changes = d.asset_changes || {};
+            if (Object.keys(changes).length === 0) return '';
+
+            let items = '';
+            for (const [key, data] of Object.entries(changes)) {
+                const label = data.label || key;
+                const value = data.current;
+                let changeText = '';
+                let changeClass = 'neutral';
+                if ('change_pct' in data) {
+                    changeText = `${data.change_pct > 0 ? '+' : ''}${data.change_pct.toFixed(2)}%`;
+                    changeClass = data.change_pct > 0 ? 'positive' : data.change_pct < 0 ? 'negative' : 'neutral';
+                    if (key === 'vix' || key === 'storage') {
+                        changeClass = data.change_pct > 0 ? 'negative' : data.change_pct < 0 ? 'positive' : 'neutral';
+                    }
+                } else if ('change_delta' in data) {
+                    changeText = `${data.change_delta > 0 ? '+' : ''}${data.change_delta}`;
+                    changeClass = data.change_delta > 0 ? (key === 'vix' ? 'negative' : 'positive') : data.change_delta < 0 ? (key === 'storage' ? 'negative' : 'positive') : 'neutral';
+                }
+
+                let displayVal = value;
+                if (key === 'eurusd') displayVal = value.toFixed(4);
+                else if (key === 'storage') displayVal = value + '%';
+                else if (key === 'brent' || key === 'ttf') displayVal = '$' + value.toFixed(2);
+                else displayVal = value.toFixed(2);
+
+                items += `<div class="digest-asset-item">
+                    <div class="asset-label">${label}</div>
+                    <div class="asset-value">${displayVal}</div>
+                    <div class="asset-change ${changeClass}">${changeText}</div>
+                </div>`;
+            }
+
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F4B9}</span>
+                        <h3>Market Reaction (24h)</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        <div class="digest-asset-grid">${items}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTopAlertsSection(d, planLevel) {
+            const alerts = d.alerts || [];
+            if (alerts.length === 0) return '';
+
+            let items = '';
+            for (const a of alerts) {
+                items += `<div class="digest-alert-item">
+                    <div class="alert-headline">
+                        <span class="digest-severity-dot sev-${a.severity}"></span>
+                        ${a.headline}
+                    </div>
+                    <div class="alert-meta">
+                        <span>Region: ${a.region}</span>
+                        <span>Severity: ${a.severity}/5</span>
+                        <span>Category: ${a.category || 'N/A'}</span>
+                        ${a.confidence ? '<span>Confidence: ' + (a.confidence * 100).toFixed(0) + '%</span>' : ''}
+                    </div>
+                </div>`;
+            }
+
+            const totalHidden = (d.total_alerts_yesterday || 0) - alerts.length;
+            let moreNote = '';
+            if (totalHidden > 0 && planLevel < 1) {
+                moreNote = `<div style="text-align: center; padding: 12px; color: #64748b; font-size: 12px; border-top: 1px solid #334155; margin-top: 12px;">
+                    +${totalHidden} more alerts available with <button onclick="showSection('plans')" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-weight: 600; font-size: 12px;">Personal plan ($9.95/mo)</button>
+                </div>`;
+            } else if (totalHidden > 0 && planLevel < 3) {
+                moreNote = `<div style="text-align: center; padding: 12px; color: #64748b; font-size: 12px; border-top: 1px solid #334155; margin-top: 12px;">
+                    +${totalHidden} more alerts analyzed | Showing top ${alerts.length} by severity
+                </div>`;
+            }
+
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u26A0\uFE0F</span>
+                        <h3>Top Risk Events (${alerts.length})</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        ${items}
+                        ${moreNote}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCorrelationsSection(d, planLevel) {
+            const corr = d.correlations;
+            if (!corr || Object.keys(corr).length === 0) {
+                return `<div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F517}</span>
+                        <h3>Risk vs Asset Correlation (7d)</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        <p style="color: #94a3b8; font-size: 13px;">Insufficient data for correlation analysis. More historical data is being collected.</p>
+                    </div>
+                </div>`;
+            }
+
+            const corrLabels = {brent: 'GERI vs Brent', ttf: 'GERI vs TTF Gas', vix: 'GERI vs VIX'};
+            let rows = '';
+            for (const [key, val] of Object.entries(corr)) {
+                const label = corrLabels[key] || key;
+                const strength = Math.abs(val) >= 0.7 ? 'Strong' : Math.abs(val) >= 0.4 ? 'Moderate' : 'Weak';
+                const strengthColor = Math.abs(val) >= 0.7 ? '#ef4444' : Math.abs(val) >= 0.4 ? '#f59e0b' : '#22c55e';
+                rows += `<tr>
+                    <td>${label}</td>
+                    <td style="font-weight: 600;">${val.toFixed(2)}</td>
+                    <td style="color: ${strengthColor}; font-weight: 600;">${strength}</td>
+                </tr>`;
+            }
+
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F517}</span>
+                        <h3>Risk vs Asset Correlation (7d)</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        <table class="digest-correlation-table">
+                            <thead><tr><th>Pair</th><th>Correlation</th><th>Strength</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                        ${planLevel < 2 ? '<p style="color: #64748b; font-size: 11px; margin-top: 10px;">Upgrade to Trader for probability scoring and volatility outlook.</p>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderRegimeSection(d) {
+            if (!d.regime) return '';
+            const regimeColors = {
+                'Shock': {bg: 'rgba(239,68,68,0.15)', border: '#ef4444', text: '#ef4444'},
+                'Gas-Storage Stress': {bg: 'rgba(249,115,22,0.15)', border: '#f97316', text: '#f97316'},
+                'Risk Build': {bg: 'rgba(234,179,8,0.15)', border: '#eab308', text: '#eab308'},
+                'Elevated Uncertainty': {bg: 'rgba(234,179,8,0.15)', border: '#eab308', text: '#eab308'},
+                'Calm': {bg: 'rgba(34,197,94,0.15)', border: '#22c55e', text: '#22c55e'},
+                'Moderate': {bg: 'rgba(148,163,184,0.15)', border: '#94a3b8', text: '#94a3b8'}
+            };
+            const rc = regimeColors[d.regime] || regimeColors['Moderate'];
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F3AF}</span>
+                        <h3>Regime Classification</h3>
+                    </div>
+                    <div class="digest-card-body" style="text-align: center;">
+                        <div class="digest-regime-badge" style="background: ${rc.bg}; border: 1px solid ${rc.border}; color: ${rc.text};">
+                            ${d.regime}
+                        </div>
+                        <p style="color: #94a3b8; font-size: 12px; margin-top: 10px;">
+                            Rule-based regime classification using GERI, EERI, VIX, and EU Storage levels
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBetasSection(d) {
+            const betas = d.betas;
+            if (!betas || Object.keys(betas).length === 0) {
+                return `<div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F4C8}</span>
+                        <h3>Asset Sensitivity Dashboard (Rolling Beta)</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        <p style="color: #94a3b8; font-size: 13px;">Insufficient historical data for beta calculation. Building dataset...</p>
+                    </div>
+                </div>`;
+            }
+
+            const betaLabels = {brent: 'GERI \u2192 Brent', ttf: 'GERI \u2192 TTF Gas', vix: 'GERI \u2192 VIX'};
+            let rows = '';
+            for (const [key, val] of Object.entries(betas)) {
+                const label = betaLabels[key] || key;
+                rows += `<tr>
+                    <td>${label}</td>
+                    <td style="font-weight: 700; color: #f1f5f9;">${val.toFixed(3)}</td>
+                    <td style="color: #94a3b8;">When GERI rises 10pts, ${key === 'brent' ? 'Brent' : key === 'ttf' ? 'TTF' : 'VIX'} moves ~${(val * 10).toFixed(1)}pts</td>
+                </tr>`;
+            }
+
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F4C8}</span>
+                        <h3>Asset Sensitivity Dashboard (Rolling Beta)</h3>
+                        <span style="background: rgba(239,68,68,0.2); color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">PRO</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <table class="digest-correlation-table">
+                            <thead><tr><th>Sensitivity</th><th>Beta</th><th>Interpretation</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderForwardWatchlistSection(d) {
+            const items = d.forward_watchlist;
+            if (!items || items.length === 0) {
+                return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F50D}</span>
+                        <h3>Forward Watchlist</h3>
+                        <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <p style="color: #94a3b8; font-size: 13px;">No high-priority items on the watchlist today.</p>
+                    </div>
+                </div>`;
+            }
+            let rows = '';
+            for (const item of items) {
+                const sevColor = item.severity >= 8 ? '#ef4444' : item.severity >= 6 ? '#f97316' : '#eab308';
+                rows += `<tr>
+                    <td style="color: ${sevColor}; font-weight: 700;">${item.severity}/10</td>
+                    <td>${item.headline}</td>
+                    <td style="color: #94a3b8;">${item.region}</td>
+                    <td style="color: #cbd5e1; font-size: 12px;">${item.watch_reason}</td>
+                </tr>`;
+            }
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F50D}</span>
+                        <h3>Forward Watchlist</h3>
+                        <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <table class="digest-correlation-table">
+                            <thead><tr><th>Severity</th><th>Event</th><th>Region</th><th>Watch Reason</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        function renderProbabilityScoringSection(d) {
+            const ps = d.probability_scoring;
+            if (!ps) {
+                return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F3AF}</span>
+                        <h3>Probability Scoring</h3>
+                        <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <p style="color: #94a3b8; font-size: 13px;">Insufficient data to generate probability assessments.</p>
+                    </div>
+                </div>`;
+            }
+            function probBar(label, pct, color) {
+                return `<div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="color: #cbd5e1; font-size: 13px;">${label}</span>
+                        <span style="color: ${color}; font-weight: 700; font-size: 13px;">${pct}%</span>
+                    </div>
+                    <div style="background: rgba(100,116,139,0.2); border-radius: 4px; height: 8px; overflow: hidden;">
+                        <div style="background: ${color}; width: ${pct}%; height: 100%; border-radius: 4px; transition: width 0.6s;"></div>
+                    </div>
+                </div>`;
+            }
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F3AF}</span>
+                        <h3>Probability Scoring</h3>
+                        <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
+                    </div>
+                    <div class="digest-card-body">
+                        ${probBar('Escalation', ps.escalation_probability, '#ef4444')}
+                        ${probBar('Stability', ps.stability_probability, '#22c55e')}
+                        ${probBar('De-escalation', ps.de_escalation_probability, '#3b82f6')}
+                        <p style="color: #64748b; font-size: 11px; margin-top: 8px;">${ps.methodology}</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderVolatilityOutlookSection(d) {
+            const vo = d.volatility_outlook;
+            if (!vo) {
+                return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F30A}</span>
+                        <h3>Volatility Outlook</h3>
+                        <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <p style="color: #94a3b8; font-size: 13px;">Insufficient data for volatility assessment.</p>
+                    </div>
+                </div>`;
+            }
+            const regimeColors = {low: '#22c55e', moderate: '#eab308', high: '#f97316', extreme: '#ef4444'};
+            const regimeColor = regimeColors[vo.regime] || '#94a3b8';
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F30A}</span>
+                        <h3>Volatility Outlook</h3>
+                        <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 12px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700; color: ${regimeColor};">${vo.current_vol}</div>
+                                <div style="color: #94a3b8; font-size: 11px;">GERI 7d Vol</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 16px; font-weight: 600; color: ${regimeColor}; text-transform: uppercase;">${vo.regime}</div>
+                                <div style="color: #94a3b8; font-size: 11px;">Vol Regime</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 28px; font-weight: 700; color: #f1f5f9;">${vo.vix_level.toFixed(1)}</div>
+                                <div style="color: #94a3b8; font-size: 11px;">VIX Level</div>
+                            </div>
+                        </div>
+                        <p style="color: #cbd5e1; font-size: 13px;">${vo.outlook}</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderScenarioForecastsSection(d) {
+            const scenarios = d.scenario_forecasts;
+            if (!scenarios || scenarios.length === 0) {
+                return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F52E}</span>
+                        <h3>Scenario Forecasts</h3>
+                        <span style="background: rgba(239,68,68,0.2); color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">PRO</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <p style="color: #94a3b8; font-size: 13px;">Insufficient data for scenario generation.</p>
+                    </div>
+                </div>`;
+            }
+            const scenarioColors = {'Base Case': '#3b82f6', 'Escalation': '#ef4444', 'De-escalation': '#22c55e'};
+            let cards = '';
+            for (const s of scenarios) {
+                const color = scenarioColors[s.scenario] || '#94a3b8';
+                cards += `<div style="flex: 1; background: rgba(30,41,59,0.5); border-radius: 8px; padding: 14px; border-left: 3px solid ${color};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: ${color}; font-weight: 700; font-size: 14px;">${s.scenario}</span>
+                        <span style="color: #f1f5f9; font-weight: 600;">${s.probability}%</span>
+                    </div>
+                    <div style="color: #94a3b8; font-size: 12px; margin-bottom: 6px;">GERI Forecast: <span style="color: #f1f5f9; font-weight: 600;">${s.geri_forecast}</span></div>
+                    <div style="color: #cbd5e1; font-size: 12px;">${s.description}</div>
+                </div>`;
+            }
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F52E}</span>
+                        <h3>Scenario Forecasts</h3>
+                        <span style="background: rgba(239,68,68,0.2); color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">PRO</span>
+                    </div>
+                    <div class="digest-card-body" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        ${cards}
+                    </div>
+                </div>`;
+        }
+
+        function renderNarrativeSection(d, planLevel) {
+            let narrative = d.ai_narrative || '';
+            narrative = narrative
+                .replace(/## (.*)/g, '<h2>$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/^\- (.*)/gm, '<li>$1</li>')
+                .replace(/^\* (.*)/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gs, function(match) {
+                    return '<ul>' + match + '</ul>';
+                })
+                .replace(/<\/ul>\s*<ul>/g, '')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+
+            const sectionLabels = {
+                0: 'Executive Intelligence Brief',
+                1: 'Full Daily Intelligence Digest',
+                2: 'Trader Intelligence Digest',
+                3: 'Professional Intelligence Report',
+                4: 'Enterprise Intelligence Report'
+            };
+
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F9E0}</span>
+                        <h3>${sectionLabels[planLevel] || 'AI Intelligence Digest'}</h3>
+                        <span style="background: rgba(59,130,246,0.2); color: #60a5fa; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">AI-Generated</span>
+                    </div>
+                    <div class="digest-card-body">
+                        <div class="digest-narrative">${narrative}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLockedSection(title, desc, plan, price) {
+            return `
+                <div class="digest-locked-section">
+                    <div class="lock-icon">\u{1F512}</div>
+                    <div class="lock-title">${title}</div>
+                    <div class="lock-desc">${desc}</div>
+                    <button class="lock-btn" onclick="showSection('plans')">Upgrade to ${plan} (${price})</button>
+                </div>
+            `;
+        }
+
+        function renderUpgradeHintsSection(d, planLevel) {
+            if (planLevel >= 4) return '';
+            const hints = d.upgrade_hints || [];
+            if (hints.length === 0) return '';
+
+            const nextPlanHints = {};
+            for (const h of hints) {
+                if (!nextPlanHints[h.plan]) nextPlanHints[h.plan] = [];
+                nextPlanHints[h.plan].push(h.feature);
+            }
+
+            let cards = '';
+            const planColors = {Personal: '#3b82f6', Trader: '#f59e0b', Pro: '#ef4444', Enterprise: '#a855f7'};
+            for (const [planName, features] of Object.entries(nextPlanHints)) {
+                const color = planColors[planName] || '#3b82f6';
+                const price = hints.find(h => h.plan === planName)?.price || '';
+                cards += `
+                    <div style="background: ${color}10; border: 1px solid ${color}30; border-radius: 10px; padding: 16px; flex: 1; min-width: 200px;">
+                        <div style="color: ${color}; font-weight: 700; font-size: 14px; margin-bottom: 8px;">${planName} ${price}</div>
+                        <ul style="color: #94a3b8; font-size: 12px; padding-left: 16px; margin: 0;">
+                            ${features.map(f => '<li>' + f + '</li>').join('')}
+                        </ul>
+                        <button onclick="showSection('plans')" style="margin-top: 12px; background: ${color}; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Upgrade</button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="digest-card">
+                    <div class="digest-card-header">
+                        <span class="digest-section-icon">\u{1F513}</span>
+                        <h3>Unlock More Intelligence</h3>
+                    </div>
+                    <div class="digest-card-body">
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            ${cards}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* End Daily Digest Module */
+
         function showSection(sectionId) {
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -6137,6 +7139,8 @@
                 loadGeriData();
             } else if (sectionId === 'eeri-pro') {
                 loadEeriProData();
+            } else if (sectionId === 'digest') {
+                loadDailyDigest();
             }
         }
 

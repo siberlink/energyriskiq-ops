@@ -26,6 +26,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **SEO Growth System:** Generates SEO-optimized daily alert pages with a 24-hour delay, dynamic sitemaps, and rich meta-data, including regional daily alerts and contextual linking.
 - **Billing & Subscription:** Integrates with Stripe for subscription management and webhook handling.
 - **EERI Pro Dashboard Module:** Provides Pro-tier users with real-time EERI display, component breakdown, asset stress panel, top risk drivers, historical intelligence, regime statistics, and daily AI-generated summaries.
+- **Daily Geo-Energy Intelligence Digest:** AI-powered daily briefing on user dashboard (`/users/account`) with plan-tiered features. Free: executive snapshot + 2 alerts + GERI direction + 24h delay. Personal: multi-index + 7d trends + correlations. Trader: regime classification + probability scoring. Pro: beta sensitivities + scenario forecasts. Enterprise: full institutional intelligence. API endpoint at `/api/v1/digest/daily`. Uses OpenAI gpt-4.1-mini for narrative generation.
 - **EGSI Indices:** EGSI-M (Market/Transmission) measures gas market stress, while EGSI-S (System) measures storage/refill/winter stress, incorporating real AGSI+ EU storage data and live TTF prices.
 
 **System Design Choices:**
