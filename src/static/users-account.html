@@ -5230,7 +5230,9 @@
             container.innerHTML = html;
 
             if (planLevel >= 1 && data.charts_enabled && data.chart_data) {
-                renderWsCharts(data.chart_data);
+                requestAnimationFrame(function() {
+                    setTimeout(function() { renderWsCharts(data.chart_data); }, 100);
+                });
             }
         }
 
@@ -5239,6 +5241,8 @@
             if (!chartRow || !chartData || !chartData.eeri) return;
 
             var eeriPts = chartData.eeri;
+            if (!eeriPts || eeriPts.length < 2) return;
+
             var assetKeys = [
                 {key: 'ttf', label: 'EERI vs TTF Gas', color: '#3b82f6'},
                 {key: 'brent', label: 'EERI vs Brent Oil', color: '#f97316'},
@@ -5254,49 +5258,51 @@
                 if (!chartData[asset.key] || chartData[asset.key].length < 2) return;
                 var chartId = 'wsChart_' + asset.key;
                 chartConfigs.push({id: chartId, key: asset.key, label: asset.label, color: asset.color});
-                chartHtml += '<div class="ws-mini-chart"><h5>' + asset.label + '</h5><div style="position:relative;height:120px;"><canvas id="' + chartId + '"></canvas></div></div>';
+                chartHtml += '<div class="ws-mini-chart"><h5>' + asset.label + '</h5><div style="position:relative;height:120px;width:100%;"><canvas id="' + chartId + '"></canvas></div></div>';
             });
 
             chartRow.innerHTML = chartHtml;
 
-            chartConfigs.forEach(function(c) {
-                var canvas = document.getElementById(c.id);
-                if (!canvas) return;
+            setTimeout(function() {
+                chartConfigs.forEach(function(c) {
+                    var canvas = document.getElementById(c.id);
+                    if (!canvas) return;
 
-                var assetPts = chartData[c.key];
-                var eeriBase = eeriPts[0] && eeriPts[0].value ? eeriPts[0].value : 1;
-                var assetBase = assetPts[0] && assetPts[0].value ? assetPts[0].value : 1;
+                    var assetPts = chartData[c.key];
+                    var eeriBase = Number(eeriPts[0].value) || 1;
+                    var assetBase = Number(assetPts[0].value) || 1;
 
-                var minLen = Math.min(eeriPts.length, assetPts.length);
-                var labels = eeriPts.slice(0, minLen).map(function(p) {
-                    var d = new Date(p.date);
-                    return d.toLocaleDateString('en-US', {weekday: 'short'});
-                });
+                    var minLen = Math.min(eeriPts.length, assetPts.length);
+                    var labels = eeriPts.slice(0, minLen).map(function(p) {
+                        var d = new Date(p.date + 'T12:00:00');
+                        return d.toLocaleDateString('en-US', {weekday: 'short'});
+                    });
 
-                var eeriIndexed = eeriPts.slice(0, minLen).map(function(p) { return ((p.value / eeriBase) * 100).toFixed(1); });
-                var assetIndexed = assetPts.slice(0, minLen).map(function(p) { return ((p.value / assetBase) * 100).toFixed(1); });
+                    var eeriIndexed = eeriPts.slice(0, minLen).map(function(p) { return parseFloat(((Number(p.value) / eeriBase) * 100).toFixed(1)); });
+                    var assetIndexed = assetPts.slice(0, minLen).map(function(p) { return parseFloat(((Number(p.value) / assetBase) * 100).toFixed(1)); });
 
-                new Chart(canvas.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {label: 'EERI', data: eeriIndexed, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3},
-                            {label: c.label.split(' vs ')[1], data: assetIndexed, borderColor: c.color, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3}
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: false,
-                        plugins: {legend: {display: true, position: 'bottom', labels: {color: '#94a3b8', boxWidth: 12, padding: 6, font: {size: 10}}}},
-                        scales: {
-                            x: {ticks: {color: '#64748b', font: {size: 9}}, grid: {display: false}},
-                            y: {ticks: {color: '#64748b', font: {size: 9}}, grid: {color: '#1e293b'}}
+                    new Chart(canvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {label: 'EERI', data: eeriIndexed, borderColor: '#ef4444', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3},
+                                {label: c.label.split(' vs ')[1], data: assetIndexed, borderColor: c.color, backgroundColor: 'transparent', borderWidth: 2, pointRadius: 0, tension: 0.3}
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            animation: false,
+                            plugins: {legend: {display: true, position: 'bottom', labels: {color: '#94a3b8', boxWidth: 12, padding: 6, font: {size: 10}}}},
+                            scales: {
+                                x: {ticks: {color: '#64748b', font: {size: 9}}, grid: {display: false}},
+                                y: {ticks: {color: '#64748b', font: {size: 9}}, grid: {color: '#1e293b'}}
+                            }
                         }
-                    }
+                    });
                 });
-            });
+            }, 50);
         }
 
         function renderEeriMainDisplay(data) {

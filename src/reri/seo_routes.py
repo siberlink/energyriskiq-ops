@@ -356,15 +356,15 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
             var eeriPts = chartData.eeri || [];
             var assetPts = chartData['{key}'] || [];
             if (eeriPts.length < 2 || assetPts.length < 2) return;
-            var eeriBase = eeriPts[0].value;
-            var assetBase = assetPts[0].value;
+            var eeriBase = Number(eeriPts[0].value) || 1;
+            var assetBase = Number(assetPts[0].value) || 1;
             if (eeriBase === 0 || assetBase === 0) return;
             var labels = eeriPts.map(function(p) {{
-                var d = new Date(p.date);
+                var d = new Date(p.date + 'T12:00:00');
                 return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d.getDay() === 0 ? 6 : d.getDay()-1];
             }});
-            var eeriIndexed = eeriPts.map(function(p) {{ return ((p.value / eeriBase) * 100).toFixed(1); }});
-            var assetIndexed = assetPts.map(function(p) {{ return ((p.value / assetBase) * 100).toFixed(1); }});
+            var eeriIndexed = eeriPts.map(function(p) {{ return parseFloat(((Number(p.value) / eeriBase) * 100).toFixed(1)); }});
+            var assetIndexed = assetPts.map(function(p) {{ return parseFloat(((Number(p.value) / assetBase) * 100).toFixed(1)); }});
             var maxLen = Math.min(labels.length, assetIndexed.length);
             labels = labels.slice(0, maxLen);
             eeriIndexed = eeriIndexed.slice(0, maxLen);
@@ -539,8 +539,11 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
             <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
             <script>
             (function() {{
-                var chartData = {chart_json};
-                {chart_init_js}
+                if (typeof Chart === 'undefined') return;
+                try {{
+                    var chartData = {chart_json};
+                    {chart_init_js}
+                }} catch(e) {{ console.error('Chart init error:', e); }}
             }})();
             </script>
         </div>'''
