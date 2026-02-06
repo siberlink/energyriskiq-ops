@@ -297,3 +297,298 @@ Adding Weekly Snapshot will:
 - Increase retention
 - Create weekly habit
 - Enable multi-tier differentiation
+
+---
+
+## PART 8 — Full Weekly Snapshot Template (All Plans)
+
+*Used every Sunday. Data window: Monday–Saturday.*
+
+### 🟢 FREE PLAN — Awareness Snapshot
+
+**Section Title:** Weekly Energy Risk Snapshot
+
+**Block A — Weekly Risk Overview**
+
+Show:
+- Weekly Average EERI
+- Weekly High / Low
+- Weekly Trend vs Previous Week
+- Risk Band
+
+Template:
+
+```
+Week: [Date Range]
+Average Risk: [Value] — [Band]
+High / Low: [High] / [Low]
+Trend: [Rising / Stable / Falling]
+```
+
+Interpretation (auto-generated):
+
+> *Risk conditions during the week remained [persistent / volatile / stabilizing], indicating [structural stress / episodic escalation].*
+
+**Block B — Cross-Asset Weekly Direction**
+
+| Asset | Weekly Direction |
+|-------|-----------------|
+| Brent Oil | ↑ / ↓ / ~ |
+| TTF Gas | ↑ / ↓ / ~ |
+| EU Gas Storage | ↑ / ↓ / ~ |
+| VIX | ↑ / ↓ / ~ |
+| EUR/USD | ↑ / ↓ / ~ |
+
+**Block C — Simple Market Interpretation**
+
+> *Elevated EERI levels this week coincided with [asset behavior summary]. Historically, similar conditions are associated with increased volatility across energy-sensitive markets.*
+
+**Block D — Basic Next-Week Context**
+
+> *Weeks with EERI in the [Band] range historically show continued elevated volatility.*
+
+---
+
+### 🔵 PERSONAL PLAN — Context Snapshot
+
+*Includes ALL Free features + additions.*
+
+**Block E — Mini Overlay Charts**
+
+- EERI vs Brent
+- EERI vs TTF
+- EERI vs Storage
+- EERI vs VIX
+- EERI vs EUR/USD
+
+*(Indexed from Monday)*
+
+**Block F — Alignment Classification**
+
+| Label | Meaning |
+|-------|---------|
+| Confirming | Risk and asset moved together |
+| Mixed | Partial confirmation |
+| Diverging | Asset calm or opposite |
+
+**Block G — Basic Historical Tendencies**
+
+> *During Severe EERI weeks, TTF volatility historically increases in ~55–65% of cases.*
+
+**Block H — Probability Outlook**
+
+| Asset | Probability | Confidence |
+|-------|------------|------------|
+| TTF | 55–65% ↑ volatility | Medium |
+| VIX | 55–65% ↑ | Medium |
+| EUR/USD | 50–60% ↓ | Medium |
+
+---
+
+### 🟠 TRADER PLAN — Tactical Snapshot
+
+*Includes ALL Personal features + additions.*
+
+**Block I — Reaction Speed Analysis**
+
+> *Gas reacted within [X days] of risk escalation, while Brent showed delayed response.*
+
+**Block J — Risk Acceleration vs Stabilization**
+
+> *Compared to last week, risk momentum [accelerated / plateaued / reversed].*
+
+**Block K — Conditional Probabilities**
+
+When EERI is Severe AND rising:
+- TTF ↑ probability: 65–70%
+- VIX ↑ probability: 60–65%
+- EUR ↓ probability: 58–63%
+
+**Block L — Volatility Clustering Commentary**
+
+> *Historical analogs suggest elevated two-week volatility clustering.*
+
+---
+
+### 🔴 PRO PLAN — Structural Intelligence Snapshot
+
+*Includes ALL Trader features + additions.*
+
+**Block M — Component Attribution Summary**
+
+Which forces drove the weekly risk:
+- Regional escalation
+- Asset transmission
+- Theme clustering
+
+**Block N — Historical Analog Weeks**
+
+> *Current week most closely resembles [Historical Period], characterized by [similar driver composition].*
+
+**Block O — Regime Persistence Probability**
+
+> *Severe regimes historically persist into the following week ~58% of the time.*
+
+**Block P — Cross-Asset Transmission Narrative**
+
+Explain propagation pathways:
+- Gas → Freight → FX spillover
+
+**Block Q — Scenario Outlook**
+
+- Escalation Scenario
+- Stabilization Scenario
+- De-escalation Scenario
+
+---
+
+### 🟣 ENTERPRISE PLAN — Strategic Outlook Snapshot
+
+*Includes ALL Pro features + additions.*
+
+**Block R — Multi-Region Spillover Analysis**
+
+Europe → Middle East → Black Sea interaction effects.
+
+**Block S — Sector Impact Forecast**
+
+- Power markets
+- Industrial demand
+- LNG routing
+- Storage stress outlook
+
+**Block T — Portfolio Exposure Commentary**
+
+Asset classes and sectors facing structural stress.
+
+**Block U — Multi-Week Risk Path Bands**
+
+Projected persistence windows (not directional forecasts).
+
+---
+
+## PART 9 — Probability Modeling Framework (Safe + Marketable)
+
+### Core Inputs
+
+- Weekly EERI band
+- Weekly EERI trend
+- Divergence status
+- Asset reaction direction
+
+### Step 1 — Historical Conditioning
+
+Find all historical weeks matching:
+- Same EERI band
+- Similar trend state
+
+### Step 2 — Outcome Definitions
+
+Define discrete next-week outcomes:
+- Up
+- Down
+- Flat
+- Volatility spike
+
+### Step 3 — Probability Output
+
+Return:
+- Probability range
+- Confidence rating
+- Sample size indicator
+
+### Step 4 — Confidence Scaling
+
+Based on:
+- Sample size
+- Outcome dispersion
+- Recency weighting
+
+### Step 5 — Public-Safe Presentation
+
+Never show formulas. Only show:
+- Ranges
+- Confidence levels
+- Historical framing
+
+---
+
+## PART 10 — UX Wireframe Matching Dashboard
+
+### Placement
+
+```
+Top Risk Drivers
+      ↓
+⭐ Weekly Snapshot
+      ↓
+Historical Intelligence
+```
+
+### Layout Hierarchy
+
+| Row | Content |
+|-----|---------|
+| Row 1 | Weekly Overview Card (Full Width) |
+| Row 2 | Cross-Asset Alignment Panel |
+| Row 3 | Mini Chart Row |
+| Row 4 | Historical Tendencies Panel |
+| Row 5 | Next Week Outlook Panel |
+
+**Progressive Disclosure:** Higher plans unlock deeper blocks.
+
+---
+
+## PART 11 — Content Generation Logic Per Tier
+
+### Free Tier Logic
+- Summarize weekly EERI stats
+- Simple asset direction summary
+- Single narrative paragraph
+
+### Personal Tier Logic
+Add:
+- Alignment classification
+- Historical comparison text
+- Probability table (simple ranges)
+
+### Trader Tier Logic
+Add:
+- Reaction speed detection
+- Conditional probability logic
+- Momentum analysis
+
+### Pro Tier Logic
+Add:
+- Component dominance analysis
+- Regime persistence modeling
+- Scenario generation
+
+### Enterprise Tier Logic
+Add:
+- Cross-region contagion analysis
+- Sector stress projection
+- Multi-week persistence modeling
+
+---
+
+## PART 12 — Monetization Copy: Mapping Features to Value
+
+| Plan | Value Proposition |
+|------|------------------|
+| **Free** | Understand weekly energy risk trends and how markets are responding. |
+| **Personal** | Gain historical context and probability insights to better interpret energy market volatility. |
+| **Trader** | Tactical intelligence including reaction speed analysis and conditional probability modeling for active risk monitoring. |
+| **Pro** | Full structural risk intelligence including regime persistence modeling, historical analog analysis, and scenario outlooks. |
+| **Enterprise** | Strategic multi-region energy risk forecasting, sector-level impact modeling, and portfolio exposure intelligence. |
+
+---
+
+## Final Strategic Role of Weekly Snapshot
+
+Weekly Snapshot becomes:
+
+- Your **Sunday flagship content**
+- Your **primary user retention anchor**
+- Your **most powerful conversion funnel**
+- Your **brand authority builder**
