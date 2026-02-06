@@ -5230,18 +5230,22 @@
             container.innerHTML = html;
 
             if (planLevel >= 1 && data.charts_enabled && data.chart_data) {
-                requestAnimationFrame(function() {
-                    setTimeout(function() { renderWsCharts(data.chart_data); }, 100);
-                });
+                renderWsCharts(data.chart_data);
             }
         }
 
+        var wsChartInstances = [];
+
         function renderWsCharts(chartData) {
+            if (typeof Chart === 'undefined') { console.error('Chart.js not loaded'); return; }
             var chartRow = document.getElementById('wsChartRow');
             if (!chartRow || !chartData || !chartData.eeri) return;
 
             var eeriPts = chartData.eeri;
             if (!eeriPts || eeriPts.length < 2) return;
+
+            wsChartInstances.forEach(function(ch) { try { ch.destroy(); } catch(e) {} });
+            wsChartInstances = [];
 
             var assetKeys = [
                 {key: 'ttf', label: 'EERI vs TTF Gas', color: '#3b82f6'},
@@ -5258,15 +5262,24 @@
                 if (!chartData[asset.key] || chartData[asset.key].length < 2) return;
                 var chartId = 'wsChart_' + asset.key;
                 chartConfigs.push({id: chartId, key: asset.key, label: asset.label, color: asset.color});
-                chartHtml += '<div class="ws-mini-chart"><h5>' + asset.label + '</h5><div style="position:relative;height:120px;width:100%;"><canvas id="' + chartId + '"></canvas></div></div>';
+                chartHtml += '<div class="ws-mini-chart"><h5>' + asset.label + '</h5><div style="position:relative;height:120px;width:100%;"><canvas id="' + chartId + '" style="display:block;width:100%;height:120px;"></canvas></div></div>';
             });
 
             chartRow.innerHTML = chartHtml;
 
-            setTimeout(function() {
-                chartConfigs.forEach(function(c) {
+            function initSingleChart(c) {
+                try {
                     var canvas = document.getElementById(c.id);
                     if (!canvas) return;
+
+                    var wrapper = canvas.parentElement;
+                    var w = wrapper.clientWidth || wrapper.offsetWidth || 300;
+                    var h = wrapper.clientHeight || wrapper.offsetHeight || 120;
+
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.style.width = w + 'px';
+                    canvas.style.height = h + 'px';
 
                     var assetPts = chartData[c.key];
                     var eeriBase = Number(eeriPts[0].value) || 1;
@@ -5281,7 +5294,7 @@
                     var eeriIndexed = eeriPts.slice(0, minLen).map(function(p) { return parseFloat(((Number(p.value) / eeriBase) * 100).toFixed(1)); });
                     var assetIndexed = assetPts.slice(0, minLen).map(function(p) { return parseFloat(((Number(p.value) / assetBase) * 100).toFixed(1)); });
 
-                    new Chart(canvas.getContext('2d'), {
+                    var chartInstance = new Chart(canvas.getContext('2d'), {
                         type: 'line',
                         data: {
                             labels: labels,
@@ -5291,18 +5304,47 @@
                             ]
                         },
                         options: {
-                            responsive: true,
+                            responsive: false,
                             maintainAspectRatio: false,
                             animation: false,
-                            plugins: {legend: {display: true, position: 'bottom', labels: {color: '#94a3b8', boxWidth: 12, padding: 6, font: {size: 10}}}},
+                            devicePixelRatio: window.devicePixelRatio || 1,
+                            plugins: {
+                                legend: {display: true, position: 'bottom', labels: {color: '#94a3b8', boxWidth: 12, padding: 6, font: {size: 10}}},
+                                zoom: {zoom: {wheel: {enabled: false}, pinch: {enabled: false}}, pan: {enabled: false}}
+                            },
                             scales: {
                                 x: {ticks: {color: '#64748b', font: {size: 9}}, grid: {display: false}},
                                 y: {ticks: {color: '#64748b', font: {size: 9}}, grid: {color: '#1e293b'}}
                             }
                         }
                     });
+                    wsChartInstances.push(chartInstance);
+                } catch(e) {
+                    console.error('Chart init error for ' + c.id + ':', e);
+                }
+            }
+
+            void chartRow.offsetHeight;
+
+            chartConfigs.forEach(function(c) {
+                initSingleChart(c);
+            });
+
+            setTimeout(function() {
+                var anyBad = false;
+                chartConfigs.forEach(function(c) {
+                    var canvas = document.getElementById(c.id);
+                    if (!canvas) return;
+                    var wrapper = canvas.parentElement;
+                    if (wrapper && (wrapper.clientWidth === 0 || wrapper.clientHeight === 0)) anyBad = true;
+                    if (canvas.width === 0 || canvas.height === 0) anyBad = true;
                 });
-            }, 50);
+                if (anyBad) {
+                    wsChartInstances.forEach(function(ch) { try { ch.destroy(); } catch(e) {} });
+                    wsChartInstances = [];
+                    chartConfigs.forEach(function(c) { initSingleChart(c); });
+                }
+            }, 500);
         }
 
         function renderEeriMainDisplay(data) {
