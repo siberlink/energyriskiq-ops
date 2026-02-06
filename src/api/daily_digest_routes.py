@@ -17,10 +17,10 @@ PLAN_LEVELS = {"free": 0, "personal": 1, "trader": 2, "pro": 3, "enterprise": 4}
 
 def get_user_plan(user_id: int) -> str:
     row = execute_one(
-        "SELECT plan_code FROM user_plans WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
+        "SELECT plan FROM user_plans WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
         (user_id,)
     )
-    return row["plan_code"] if row else "free"
+    return row["plan"] if row else "free"
 
 
 def get_alerts(limit: int = 20, is_delayed: bool = False):
