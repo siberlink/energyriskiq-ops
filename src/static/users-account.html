@@ -6177,14 +6177,14 @@
                         btnText = `Downgrade to ${plan.display_name}`;
                     }
                     
-                    const features = plan.features ? [
-                        ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Real-Time GERI'] : []),
-                        ...(plan.plan_code === 'enterprise' ? ['Current RERI'] : []),
-                        `${plan.features.max_email_alerts_per_day} email alerts/day`,
-                        ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Live Telegram Alerts'] : []),
-                        `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
-                        `${plan.features.alert_types?.length || 0} alert types`
-                    ] : [];
+                    const planCardFeatures = {
+                        'free': ['Weekly EERI overview', 'Cross-asset direction table', 'Basic interpretation', 'Basic next-week context'],
+                        'personal': ['Everything in Free', 'Mini overlay charts', 'Alignment labels', 'Historical context', 'Probability outlook'],
+                        'trader': ['Everything in Personal', 'Reaction speed analysis', 'Risk acceleration tracking', 'Conditional tendencies', 'Volatility commentary'],
+                        'pro': ['Everything in Trader', 'Component attribution', 'Analog weeks', 'Regime persistence', 'Scenario outlook', 'Real-time EERI', 'Daily AI summary'],
+                        'enterprise': ['Everything in Pro', 'Multi-region spillover', 'Sector impact forecast', 'Portfolio exposure', 'Multi-week risk paths']
+                    };
+                    const features = planCardFeatures[plan.plan_code] || [];
                     
                     return `
                         <div class="plan-card ${isCurrent ? 'current' : ''}">
@@ -6213,28 +6213,69 @@
             const modalBody = document.getElementById('planModalBody');
             const modalBtn = document.getElementById('planModalBtn');
             
-            const planLimits = {
-                'free': { regions: 1, types: ['HIGH_IMPACT_EVENT'] },
-                'personal': { regions: 2, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE'] },
-                'trader': { regions: 3, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE'] },
-                'pro': { regions: 4, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST'] },
-                'enterprise': { regions: -1, types: ['HIGH_IMPACT_EVENT', 'REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE', 'DAILY_DIGEST'] }
+            const planFeatures = {
+                'free': {
+                    color: '#22c55e',
+                    features: [
+                        'Weekly EERI overview (average, high/low, band, trend)',
+                        'Cross-asset weekly direction table',
+                        'Basic market interpretation',
+                        'Basic next-week context'
+                    ]
+                },
+                'personal': {
+                    color: '#3b82f6',
+                    features: [
+                        'Everything in Free',
+                        'Mini weekly overlay charts (EERI vs each asset)',
+                        'Alignment labels: Confirming / Mixed / Diverging',
+                        'Basic historical context with percentile analysis',
+                        'Simple probability outlook with confidence ranges'
+                    ]
+                },
+                'trader': {
+                    color: '#f59e0b',
+                    features: [
+                        'Everything in Personal',
+                        'Asset reaction speed analysis',
+                        'Week-vs-week risk acceleration tracking',
+                        'Conditional historical tendencies',
+                        'Volatility expectation commentary'
+                    ]
+                },
+                'pro': {
+                    color: '#ef4444',
+                    features: [
+                        'Everything in Trader',
+                        'Component attribution summary',
+                        'Historical analog weeks identification',
+                        'Regime persistence probability',
+                        'Cross-asset transmission narrative',
+                        'Scenario outlook (Escalation / Stabilization / De-escalation)',
+                        'Real-time EERI display with asset stress panel',
+                        'Daily AI-generated risk summary'
+                    ]
+                },
+                'enterprise': {
+                    color: '#a855f7',
+                    features: [
+                        'Everything in Pro',
+                        'Multi-region spillover risk analysis',
+                        'Sector impact forecast (Power, Industrial, LNG, Storage)',
+                        'Portfolio exposure commentary',
+                        'Multi-week risk path forecast bands'
+                    ]
+                }
             };
             
-            const limits = planLimits[planCode] || planLimits['free'];
-            const regionsText = limits.regions === -1 ? 'Unlimited regions' : `${limits.regions} region${limits.regions > 1 ? 's' : ''}`;
-            const typesText = limits.types.map(t => t.replace(/_/g, ' ')).join(', ');
+            const pf = planFeatures[planCode] || planFeatures['free'];
             
             const settingsNote = `
-                <div style="background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 8px; padding: 12px; margin-top: 16px;">
-                    <p style="color: #60a5fa; font-weight: 600; margin-bottom: 8px;">Plan Includes:</p>
-                    <ul style="color: #94a3b8; margin: 0; padding-left: 20px; font-size: 13px;">
-                        <li>${regionsText}</li>
-                        <li>Alert types: ${typesText}</li>
+                <div style="background: #1e3a5f; border: 1px solid ${pf.color}; border-radius: 8px; padding: 14px; margin-top: 16px;">
+                    <p style="color: ${pf.color}; font-weight: 600; margin-bottom: 8px;">EERI Dashboard Features:</p>
+                    <ul style="color: #cbd5e1; margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7;">
+                        ${pf.features.map(f => '<li>' + f + '</li>').join('')}
                     </ul>
-                    <p style="color: #fbbf24; font-size: 12px; margin-top: 12px; margin-bottom: 0;">
-                        After changing your plan, visit the Settings tab to adjust your alert preferences.
-                    </p>
                 </div>
             `;
             
@@ -6436,14 +6477,14 @@
                     btnText = `Downgrade to ${plan.display_name}`;
                 }
                 
-                const features = plan.features ? [
-                    ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Real-Time GERI'] : []),
-                    ...(plan.plan_code === 'enterprise' ? ['Current RERI'] : []),
-                    `${plan.features.max_email_alerts_per_day} email alerts/day`,
-                    ...(['pro', 'enterprise'].includes(plan.plan_code) ? ['Live Telegram Alerts'] : []),
-                    `${plan.features.max_regions === -1 ? 'Unlimited' : plan.features.max_regions} regions`,
-                    `${plan.features.alert_types?.length || 0} alert types`
-                ] : [];
+                const planCardFeatures2 = {
+                    'free': ['Weekly EERI overview', 'Cross-asset direction table', 'Basic interpretation', 'Basic next-week context'],
+                    'personal': ['Everything in Free', 'Mini overlay charts', 'Alignment labels', 'Historical context', 'Probability outlook'],
+                    'trader': ['Everything in Personal', 'Reaction speed analysis', 'Risk acceleration tracking', 'Conditional tendencies', 'Volatility commentary'],
+                    'pro': ['Everything in Trader', 'Component attribution', 'Analog weeks', 'Regime persistence', 'Scenario outlook', 'Real-time EERI', 'Daily AI summary'],
+                    'enterprise': ['Everything in Pro', 'Multi-region spillover', 'Sector impact forecast', 'Portfolio exposure', 'Multi-week risk paths']
+                };
+                const features = planCardFeatures2[plan.plan_code] || [];
                 
                 return `
                     <div class="plan-card ${isCurrent ? 'current' : ''}">
