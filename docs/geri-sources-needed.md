@@ -271,3 +271,39 @@ If these steps are taken:
 GERI signal quality would likely improve dramatically.
 
 The platform is much closer to institutional quality than most startups at this stage.
+
+---
+
+## Sources Added (Implementation Log)
+
+The following 10 sources have been added to `src/config/feeds.json`, bringing the total from 14 to 24 feeds:
+
+| # | Source | Feed URL | Weight | Blind Spot Addressed |
+|---|---|---|---|---|
+| 1 | **OPEC News** | `opec.org/opec_web/en/news.rss` | 1.0 | OPEC & Producer Intelligence |
+| 2 | **OPEC Press Releases** | `opec.org/opec_web/en/pressreleases.rss` | 0.95 | OPEC & Producer Intelligence |
+| 3 | **Maritime Executive** | `maritime-executive.com/articles.rss` | 0.9 | Maritime Security / Chokepoints |
+| 4 | **Hellenic Shipping — Oil & Energy** | `hellenicshippingnews.com/category/oil-energy/feed/` | 0.85 | Maritime / Tanker / LNG Shipping |
+| 5 | **Norwegian Offshore Directorate** | `sodir.no/en/whats-new/news/rss/` | 0.9 | European Gas Supply (Norway) |
+| 6 | **Rigzone** | `rigzone.com/news/rss/rigzone_latest.aspx` | 0.8 | Upstream / Drilling / Infrastructure |
+| 7 | **Xinhua — Business/Energy** | `xinhuanet.com/english/rss/chinaview/business.xml` | 0.85 | China Demand Intelligence |
+| 8 | **China Daily — Business** | `chinadaily.com.cn/rss/business_rss.xml` | 0.8 | China Demand Intelligence |
+| 9 | **Hellenic Shipping — Shipping** | `hellenicshippingnews.com/category/shipping-news/feed/` | 0.8 | Transit / Chokepoint / Red Sea |
+| 10 | **OPEC Press Releases** (dual coverage) | — | — | Production policy decisions |
+
+### Blind Spots Now Covered
+
+- **OPEC & Producer Intelligence** — Fully addressed (2 official OPEC feeds)
+- **Maritime Security / Chokepoints** — Addressed (Maritime Executive + 2 Hellenic feeds)
+- **China Demand Intelligence** — Addressed (Xinhua + China Daily)
+- **European Gas Supply** — Strengthened (Norwegian Offshore Directorate)
+- **Upstream Infrastructure** — Added (Rigzone)
+
+### Remaining Gaps for Future Phases
+
+- **ACLED conflict data** — Requires API integration, not RSS
+- **OFAC sanctions** — RSS feed retired Jan 2025; requires web scraping or email parsing
+- **QatarEnergy press releases** — No public RSS feed available
+- **IEA news** — No official RSS feed; would need third-party generator
+- **Suez/Panama Canal authorities** — No RSS feeds; require custom monitoring
+- **India LNG demand** — No dedicated English RSS source identified

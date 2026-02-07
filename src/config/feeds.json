@@ -101,5 +101,80 @@
     "signal_type": "market",
     "weight": 0.8,
     "tags": ["gas_storage", "lng", "infrastructure"]
+  },
+  {
+    "source_name": "OPEC News",
+    "feed_url": "https://www.opec.org/opec_web/en/news.rss",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 1.0,
+    "tags": ["opec", "production_policy", "supply"]
+  },
+  {
+    "source_name": "OPEC Press Releases",
+    "feed_url": "https://www.opec.org/opec_web/en/pressreleases.rss",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 0.95,
+    "tags": ["opec", "production_cuts", "supply"]
+  },
+  {
+    "source_name": "Maritime Executive",
+    "feed_url": "https://maritime-executive.com/articles.rss",
+    "category_hint": "supply_chain",
+    "signal_type": "shipping",
+    "weight": 0.9,
+    "tags": ["maritime_security", "shipping", "chokepoint", "red_sea"]
+  },
+  {
+    "source_name": "Hellenic Shipping News — Oil & Energy",
+    "feed_url": "https://www.hellenicshippingnews.com/category/oil-energy/feed/",
+    "category_hint": "energy",
+    "signal_type": "shipping",
+    "weight": 0.85,
+    "tags": ["tanker", "lng_shipping", "freight", "maritime"]
+  },
+  {
+    "source_name": "Norwegian Offshore Directorate",
+    "feed_url": "https://www.sodir.no/en/whats-new/news/rss/",
+    "category_hint": "energy",
+    "region_hint": "Europe",
+    "signal_type": "market",
+    "weight": 0.9,
+    "tags": ["norway", "gas_supply", "north_sea", "production"]
+  },
+  {
+    "source_name": "Rigzone",
+    "feed_url": "https://www.rigzone.com/news/rss/rigzone_latest.aspx",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 0.8,
+    "tags": ["upstream", "drilling", "production", "infrastructure"]
+  },
+  {
+    "source_name": "Xinhua — Business/Energy",
+    "feed_url": "http://www.xinhuanet.com/english/rss/chinaview/business.xml",
+    "category_hint": "energy",
+    "region_hint": "Asia",
+    "signal_type": "market",
+    "weight": 0.85,
+    "tags": ["china", "demand", "lng", "industrial"]
+  },
+  {
+    "source_name": "China Daily — Business",
+    "feed_url": "http://www.chinadaily.com.cn/rss/business_rss.xml",
+    "category_hint": "energy",
+    "region_hint": "Asia",
+    "signal_type": "market",
+    "weight": 0.8,
+    "tags": ["china", "demand", "industrial", "trade"]
+  },
+  {
+    "source_name": "Hellenic Shipping News — Shipping",
+    "feed_url": "https://www.hellenicshippingnews.com/category/shipping-news/feed/",
+    "category_hint": "supply_chain",
+    "signal_type": "shipping",
+    "weight": 0.8,
+    "tags": ["shipping", "freight", "chokepoint", "red_sea", "suez"]
   }
 ]
