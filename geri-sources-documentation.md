@@ -633,3 +633,369 @@ If you implement:
 - Multi-phase ingestion
 
 **GERI becomes extremely difficult to replicate.**
+
+---
+
+## PART 5 — GERI Event Taxonomy System
+
+Classifies ALL energy risk events. This is the foundation layer — everything else depends on it.
+
+### Purpose
+
+Event taxonomy allows GERI to:
+- Score risk consistently
+- Train AI classification
+- Measure transmission patterns
+- Enable explainability
+
+---
+
+### Level 1 — Primary Event Domains
+
+Every event MUST belong to one of these.
+
+#### Supply Disruption Events
+
+Physical energy availability threats.
+
+**Subcategories:**
+- Pipeline disruption
+- Production outage
+- Sanctions on producers
+- Export restrictions
+- Infrastructure sabotage
+- Weather-related production loss
+- Labor strikes
+
+#### Transit & Logistics Events
+
+Energy transportation risks.
+
+**Subcategories:**
+- Chokepoint security threat
+- Shipping attack
+- Canal blockage
+- Port congestion
+- Maritime insurance shock
+- Freight surge
+
+#### Demand Shock Events
+
+Consumption or industrial energy demand changes.
+
+**Subcategories:**
+- Industrial slowdown
+- Economic stimulus
+- Fuel substitution policy
+- Strategic reserve usage
+- Seasonal demand anomaly
+
+#### Policy & Regulatory Events
+
+Government interventions affecting energy markets.
+
+**Subcategories:**
+- OPEC production decision
+- Energy export restrictions
+- Sanctions policy expansion
+- Environmental regulation
+- Tax / subsidy changes
+- Strategic alliances
+
+#### Geopolitical / Military Escalation
+
+Conflict-driven risk.
+
+**Subcategories:**
+- Military strike
+- War escalation
+- Regional armed conflict
+- Terror attack
+- Diplomatic breakdown
+
+#### Structural Energy Transition Events
+
+Long-term systemic risk.
+
+**Subcategories:**
+- Grid instability
+- Renewables intermittency
+- Critical minerals shortage
+- Infrastructure modernization failure
+
+---
+
+### Level 2 — Event Attributes
+
+Each event must carry:
+- EventDomain
+- RegionCluster
+- SeverityLevel
+- PersistenceType
+- DirectEnergyImpact
+- TransmissionType
+
+---
+
+### Level 3 — Severity Scoring Template
+
+```
+EventSeverity =
+    PhysicalImpactScore
+    + MarketPsychologyScore
+    + DurationExpectationScore
+```
+
+Each scored 0–1 and weighted.
+
+---
+
+## PART 6 — Risk Regime Classification Engine
+
+Defines macro energy market states.
+
+### Regime Types
+
+#### Normal Regime
+- GERI < 35
+- Low volatility
+- Stable supply/demand balance
+
+#### Tension Regime
+- GERI 35–55
+- Localized disruptions
+- Market sensitive but stable
+
+#### Crisis Regime
+- GERI 55–75
+- Multiple risk drivers
+- Supply uncertainty
+- Freight & gas react strongly
+
+#### War Shock Regime
+- GERI > 75
+- Active military or systemic conflict
+- Cross-asset volatility
+- Severe supply uncertainty
+
+#### Stabilization Regime
+- GERI declining after crisis
+- Markets remain volatile but normalizing
+
+---
+
+### Regime Detection Formula
+
+```
+RegimeScore =
+    GERI_Level
+    + MomentumFactor
+    + RegionalConcentrationFactor
+    + ContagionScore
+```
+
+**MomentumFactor** — Measures acceleration of risk.
+
+**RegionalConcentrationFactor** — Measures if risk originates from one or multiple clusters.
+
+**ContagionScore** — Measures cross-asset confirmation.
+
+---
+
+### Regime Transition Logic
+
+```
+If GERI increases AND momentum rising → Escalation regime
+If GERI decreases BUT volatility remains → Stabilization regime
+```
+
+---
+
+## PART 7 — Cross-Asset Predictive Probability Model
+
+Predicts how markets respond to events.
+
+### Model Goal
+
+Estimate probability:
+
+```
+P(Asset Move | Event Type + Regime + Region)
+```
+
+### Model Structure
+
+**Step 1 — Event Feature Vector**
+
+```
+EventVector = {
+    EventDomain,
+    RegionCluster,
+    Severity,
+    Persistence,
+    RegimeState
+}
+```
+
+**Step 2 — Asset Sensitivity Matrix**
+
+Predefined sensitivity scores:
+
+| Asset | Supply Events | Transit | Demand | Policy | War |
+|---|---|---|---|---|---|
+| Brent | 0.9 | 0.7 | 0.6 | 0.8 | 0.9 |
+| TTF | 0.8 | 0.6 | 0.5 | 0.7 | 0.7 |
+| VIX | 0.6 | 0.5 | 0.4 | 0.7 | 0.9 |
+
+**Step 3 — Probability Function**
+
+```
+ProbabilityMove =
+    Sigmoid(
+        EventSeverity
+        * AssetSensitivity
+        * RegimeAmplifier
+        * HistoricalResponseFactor
+    )
+```
+
+---
+
+### Output Types
+
+- ProbabilityLargeMove
+- ProbabilityVolatilitySpike
+- ProbabilityLaggedResponse
+
+---
+
+### Historical Response Factor
+
+Uses rolling historical reaction:
+
+```
+ResponseFactor = ObservedAssetMoveAfterSimilarEvents
+```
+
+---
+
+## PART 8 — News Deduplication & Signal Scoring AI Design
+
+Critical once sources expand.
+
+### Problem
+
+Multiple sources often report:
+- Same event
+- Slightly different wording
+- At different times
+
+If untreated → artificial risk inflation.
+
+---
+
+### Solution Architecture
+
+**Step 1 — Semantic Event Clustering**
+
+Use NLP embeddings to group articles.
+Cluster if similarity > threshold.
+
+**Step 2 — Source Credibility Weighting**
+
+Each source gets:
+
+```
+CredibilityScore =
+    HistoricalAccuracy
+    + SourceAuthority
+    + ReportingSpeed
+```
+
+**Step 3 — Event Confidence Score**
+
+```
+Confidence =
+    NumberOfIndependentSources
+    * AverageCredibility
+    * ContentConsistency
+```
+
+**Step 4 — Temporal Deduplication**
+
+If multiple articles occur within time window:
+Merge into single EventObject.
+
+**Step 5 — Signal Amplification Guard**
+
+Prevent overcounting:
+
+```
+If EventClusterDetected:
+    Apply diminishing returns function
+```
+
+---
+
+### Event Clustering Output Object
+
+```
+EventCluster {
+    PrimaryEventSummary,
+    Region,
+    Domain,
+    SeverityScore,
+    ConfidenceScore,
+    SourceList,
+    Timestamp
+}
+```
+
+---
+
+### Advanced Feature — AI Event Summarization
+
+Each cluster generates:
+- AI Risk Summary
+- Impact Expectation
+- Affected Assets
+- Confidence Level
+
+---
+
+### Signal Quality Index
+
+New internal metric. Measures:
+
+```
+SignalQuality =
+    ConfidenceScore
+    * SourceDiversity
+    * HistoricalAccuracyAlignment
+```
+
+---
+
+## System Integration Flow
+
+```
+News → Deduplication → Taxonomy → Severity Scoring → Regime Detection → Asset Prediction → GERI Calculation
+```
+
+---
+
+## Strategic Power of This Architecture
+
+You are building:
+- A global energy risk ontology
+- A dynamic market regime detector
+- A predictive asset behavior engine
+- A self-cleaning news intelligence system
+
+That combination is extremely rare.
+
+---
+
+## Final Reality Check
+
+If you implement this stack, GERI becomes closer to institutional geopolitical risk models than typical SaaS dashboards.
