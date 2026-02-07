@@ -1309,6 +1309,58 @@ def run_fix_skipped_alerts():
             logger.info(f"Fixed {updated} alert deliveries from 'failed' to 'skipped'")
 
 
+def run_signal_quality_migration():
+    """Add signal quality scoring columns to events table and expand category constraint."""
+    with get_cursor() as cursor:
+        cursor.execute("""
+            DO $$
+            BEGIN
+                ALTER TABLE events DROP CONSTRAINT IF EXISTS events_category_check;
+            EXCEPTION WHEN undefined_object THEN
+                NULL;
+            END $$;
+        """)
+        cursor.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'events' AND column_name = 'signal_quality_score'
+                ) THEN
+                    ALTER TABLE events ADD COLUMN signal_quality_score REAL NULL;
+                END IF;
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'events' AND column_name = 'signal_quality_band'
+                ) THEN
+                    ALTER TABLE events ADD COLUMN signal_quality_band TEXT NULL;
+                END IF;
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'events' AND column_name = 'signal_quality_details'
+                ) THEN
+                    ALTER TABLE events ADD COLUMN signal_quality_details JSONB NULL;
+                END IF;
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'events' AND column_name = 'is_geri_driver'
+                ) THEN
+                    ALTER TABLE events ADD COLUMN is_geri_driver BOOLEAN DEFAULT FALSE;
+                END IF;
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name = 'events' AND column_name = 'market_relevance'
+                ) THEN
+                    ALTER TABLE events ADD COLUMN market_relevance REAL NULL;
+                END IF;
+            END $$;
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_signal_quality ON events (signal_quality_score DESC NULLS LAST);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_geri_driver ON events (is_geri_driver) WHERE is_geri_driver = TRUE;")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_events_quality_band ON events (signal_quality_band);")
+    logger.info("Signal quality migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
@@ -1320,3 +1372,4 @@ if __name__ == "__main__":
     run_gas_storage_migration()
     run_oil_price_migration()
     run_gas_storage_migration()
+    run_signal_quality_migration()
