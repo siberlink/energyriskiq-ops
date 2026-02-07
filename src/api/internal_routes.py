@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -1188,3 +1189,193 @@ def fix_skipped_alerts(x_runner_token: Optional[str] = Header(None)):
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             cursor.close()
+
+
+@router.get("/feeds/health")
+def get_feeds_health(
+    x_internal_token: Optional[str] = Header(None),
+    x_admin_token: Optional[str] = Header(None)
+):
+    from src.db.db import get_connection
+    from src.ingest.signal_quality import SOURCE_CREDIBILITY, DEFAULT_CREDIBILITY
+
+    admin_ok = False
+    try:
+        from src.api.admin_routes import verify_admin_token
+        verify_admin_token(x_admin_token)
+        admin_ok = True
+    except Exception:
+        pass
+
+    if not admin_ok:
+        validate_internal_token(x_internal_token)
+
+    feeds_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'feeds.json')
+    try:
+        with open(feeds_config_path, 'r') as f:
+            feeds_config = json.load(f)
+    except Exception:
+        feeds_config = []
+
+    config_map = {}
+    for fc in feeds_config:
+        config_map[fc.get('source_name', '')] = {
+            'feed_url': fc.get('feed_url', ''),
+            'category_hint': fc.get('category_hint', ''),
+            'region_hint': fc.get('region_hint', ''),
+            'signal_type': fc.get('signal_type', ''),
+            'weight': fc.get('weight', 1.0),
+            'tags': fc.get('tags', []),
+        }
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT
+                source_name,
+                COUNT(*) as total_events,
+                COUNT(CASE WHEN inserted_at >= NOW() - INTERVAL '24 hours' THEN 1 END) as last_24h,
+                COUNT(CASE WHEN inserted_at >= NOW() - INTERVAL '7 days' THEN 1 END) as last_7d,
+                COUNT(CASE WHEN inserted_at >= NOW() - INTERVAL '30 days' THEN 1 END) as last_30d,
+                ROUND(AVG(severity_score)::numeric, 2) as avg_severity,
+                ROUND(AVG(CASE WHEN inserted_at >= NOW() - INTERVAL '7 days' THEN severity_score END)::numeric, 2) as avg_severity_7d,
+                COUNT(CASE WHEN severity_score >= 4 THEN 1 END) as high_severity_count,
+                ROUND(AVG(signal_quality_score)::numeric, 3) as avg_quality_score,
+                COUNT(CASE WHEN signal_quality_band IN ('strong', 'high') THEN 1 END) as strong_quality_count,
+                MAX(inserted_at) as last_seen_at,
+                MIN(inserted_at) as first_seen_at,
+                COUNT(CASE WHEN is_geri_driver = true THEN 1 END) as geri_driver_count
+            FROM events
+            GROUP BY source_name
+            ORDER BY last_7d DESC
+        """)
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT
+                e.source_name,
+                COUNT(DISTINCT ae.id) as alert_count
+            FROM alert_events ae
+            JOIN events e ON e.id = ANY(ae.driver_event_ids)
+            WHERE ae.created_at >= NOW() - INTERVAL '30 days'
+            GROUP BY e.source_name
+        """)
+        alert_map = {}
+        for row in cursor.fetchall():
+            alert_map[row[0]] = row[1]
+
+        cursor.execute("""
+            SELECT
+                source_name,
+                COUNT(*) as cnt,
+                inserted_at::date as day
+            FROM events
+            WHERE inserted_at >= NOW() - INTERVAL '7 days'
+            GROUP BY source_name, inserted_at::date
+            ORDER BY source_name, day
+        """)
+        daily_map = {}
+        for row in cursor.fetchall():
+            sn = row[0]
+            if sn not in daily_map:
+                daily_map[sn] = []
+            daily_map[sn].append({'date': str(row[2]), 'count': row[1]})
+
+        feeds = []
+        for row in rows:
+            data = dict(zip(columns, row))
+            sn = data['source_name']
+            cfg = config_map.get(sn, {})
+            credibility = SOURCE_CREDIBILITY.get(sn, DEFAULT_CREDIBILITY)
+
+            last_seen = data.get('last_seen_at')
+            if last_seen:
+                hours_since = (datetime.utcnow() - last_seen).total_seconds() / 3600
+            else:
+                hours_since = None
+
+            if hours_since is None:
+                status = 'unknown'
+            elif hours_since <= 24:
+                status = 'active'
+            elif hours_since <= 72:
+                status = 'stale'
+            else:
+                status = 'dead'
+
+            total_30d = data.get('last_30d', 0) or 0
+            alerts_30d = alert_map.get(sn, 0)
+            conversion_rate = round(alerts_30d / total_30d * 100, 1) if total_30d > 0 else 0
+
+            high_sev = data.get('high_severity_count', 0) or 0
+            total_all = data.get('total_events', 0) or 0
+            high_sev_pct = round(high_sev / total_all * 100, 1) if total_all > 0 else 0
+
+            for k in data:
+                if isinstance(data[k], datetime):
+                    data[k] = data[k].isoformat()
+                elif hasattr(data[k], '__float__'):
+                    data[k] = float(data[k])
+
+            feeds.append({
+                **data,
+                'credibility': credibility,
+                'status': status,
+                'hours_since_last': round(hours_since, 1) if hours_since else None,
+                'alerts_30d': alerts_30d,
+                'alert_conversion_pct': conversion_rate,
+                'high_severity_pct': high_sev_pct,
+                'daily_counts': daily_map.get(sn, []),
+                'config': cfg,
+            })
+
+        unconfigured = set(config_map.keys()) - set(d['source_name'] for d in feeds)
+        for sn in unconfigured:
+            cfg = config_map[sn]
+            credibility = SOURCE_CREDIBILITY.get(sn, DEFAULT_CREDIBILITY)
+            feeds.append({
+                'source_name': sn,
+                'total_events': 0,
+                'last_24h': 0,
+                'last_7d': 0,
+                'last_30d': 0,
+                'avg_severity': None,
+                'avg_severity_7d': None,
+                'high_severity_count': 0,
+                'avg_quality_score': None,
+                'strong_quality_count': 0,
+                'last_seen_at': None,
+                'first_seen_at': None,
+                'geri_driver_count': 0,
+                'credibility': credibility,
+                'status': 'dead',
+                'hours_since_last': None,
+                'alerts_30d': 0,
+                'alert_conversion_pct': 0,
+                'high_severity_pct': 0,
+                'daily_counts': [],
+                'config': cfg,
+            })
+
+        summary = {
+            'total_feeds': len(feeds),
+            'active': sum(1 for f in feeds if f['status'] == 'active'),
+            'stale': sum(1 for f in feeds if f['status'] == 'stale'),
+            'dead': sum(1 for f in feeds if f['status'] == 'dead'),
+            'total_events_24h': sum(f.get('last_24h', 0) or 0 for f in feeds),
+            'total_events_7d': sum(f.get('last_7d', 0) or 0 for f in feeds),
+        }
+
+        return {
+            'success': True,
+            'summary': summary,
+            'feeds': feeds,
+        }
+    except Exception as e:
+        logger.error(f"Error computing feed health: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
