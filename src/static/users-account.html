@@ -4607,7 +4607,10 @@
                 
                 const trendSign = trendVal > 0 ? '+' : '';
                 
-                const components = geri.components || {};
+                let components = geri.components || {};
+                if (typeof components === 'string') {
+                    try { components = JSON.parse(components); } catch(e) { components = {}; }
+                }
                 const topDrivers = components.top_drivers || [];
                 const topRegions = components.top_regions || [];
                 const interpretation = components.interpretation || '';

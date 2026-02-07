@@ -60,6 +60,15 @@ async def get_geri_latest():
     if result.get('computed_at'):
         result['computed_at'] = result['computed_at'].isoformat() if isinstance(result['computed_at'], datetime) else result['computed_at']
     
+    components = result.get('components', {})
+    if isinstance(components, str):
+        import json as _json
+        try:
+            components = _json.loads(components)
+        except Exception:
+            components = {}
+    result['components'] = components
+    
     return {
         'success': True,
         'data': result,
