@@ -1362,3 +1362,105 @@ Backtesting          → proves reliability + sets thresholds
 Alert Engine         → decides what matters now and prevents fatigue
 Explainability Layer → turns it into trust and retention
 ```
+
+---
+
+## PART 13 — GERI Evolution Model (4-Layer Architecture)
+
+### Proposed Evolution Model
+
+GERI evolves from a single index into a multi-layer intelligence stack — without breaking the public-facing number that users trust.
+
+---
+
+### Layer 1 — Base GERI (Keep Intact)
+
+Your existing calculation remains:
+- Official index baseline
+- Historical continuity
+- Public trust anchor
+
+This becomes:
+
+```
+GERI_BASE
+```
+
+The original GERI formula is preserved exactly as-is. All historical values remain valid. This is the number users see and reference.
+
+---
+
+### Layer 2 — Enhanced Event Intelligence
+
+Add:
+- Event taxonomy (Part 5)
+- Deduplication AI (Part 8)
+- Regional weighting (Part 1)
+- Contagion modeling (Part 3)
+
+Output:
+
+```
+GERI_ENHANCED_EVENT_SCORE
+```
+
+This layer improves the quality and accuracy of event scoring without changing the public index. Better source deduplication, taxonomy-based severity, and regional transmission weights feed into a richer event signal.
+
+---
+
+### Layer 3 — Predictive Intelligence
+
+Add:
+- Cross-asset probability models (Part 7)
+- Lag intelligence (Part 2)
+- Divergence models (Part 2)
+
+Output:
+
+```
+GERI_FORWARD_SIGNALS
+```
+
+This layer adds forward-looking capability. Instead of only reflecting current risk, the system begins to predict how markets will respond — and when.
+
+---
+
+### Layer 4 — Regime & Explanation Layer
+
+Add:
+- Risk regimes (Part 6)
+- Narrative engine (Part 12)
+- User explainability (Part 12)
+
+Output:
+
+```
+GERI_INTERPRETATION_ENGINE
+```
+
+This layer turns raw numbers into structured intelligence. Regime classification, confidence badges, and the 4-box explainability UI make every data point interpretable and actionable.
+
+---
+
+### The Result
+
+Users still see:
+
+```
+"GERI"
+```
+
+But internally you have four distinct engines:
+
+```
+GERI_CORE       ← Layer 1: Base index (public-facing number)
+GERI_ANALYTICS  ← Layer 2: Enhanced event intelligence (better inputs)
+GERI_FORECAST   ← Layer 3: Predictive signals (forward-looking)
+GERI_EXPLAIN    ← Layer 4: Regime + narrative (user-facing interpretation)
+```
+
+This architecture means:
+- The public index never breaks
+- Each layer can be developed, tested, and deployed independently
+- Subscription tiers can unlock deeper layers progressively
+- The system evolves from a risk index into a full intelligence platform
