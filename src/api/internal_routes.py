@@ -1228,9 +1228,9 @@ def get_feeds_health(
             'tags': fc.get('tags', []),
         }
 
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
+    with get_connection() as conn:
+      cursor = conn.cursor()
+      try:
         cursor.execute("""
             SELECT
                 source_name,
@@ -1373,9 +1373,8 @@ def get_feeds_health(
             'summary': summary,
             'feeds': feeds,
         }
-    except Exception as e:
+      except Exception as e:
         logger.error(f"Error computing feed health: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
+      finally:
         cursor.close()
-        conn.close()
