@@ -58,27 +58,38 @@ async def get_geri_latest():
         }
     
     if not result:
+        logger.info("No GERI data found in database")
         return {
             'success': False,
             'message': 'No GERI data available yet',
             'data': None,
         }
     
-    if result.get('date'):
-        result['date'] = result['date'].isoformat() if isinstance(result['date'], date) else result['date']
-    if result.get('computed_at'):
-        result['computed_at'] = result['computed_at'].isoformat() if isinstance(result['computed_at'], datetime) else result['computed_at']
+    logger.info(f"GERI latest: date={result.get('date')}, value={result.get('value')}, band={result.get('band')}")
     
-    components = result.get('components')
-    if components is None:
-        components = {}
-    elif isinstance(components, str):
-        import json as _json
-        try:
-            components = _json.loads(components)
-        except Exception:
+    try:
+        if result.get('date'):
+            result['date'] = result['date'].isoformat() if isinstance(result['date'], date) else str(result['date'])
+        if result.get('computed_at'):
+            result['computed_at'] = result['computed_at'].isoformat() if isinstance(result['computed_at'], datetime) else str(result['computed_at'])
+        
+        components = result.get('components')
+        if components is None:
             components = {}
-    result['components'] = components
+        elif isinstance(components, str):
+            import json as _json
+            try:
+                components = _json.loads(components)
+            except Exception:
+                components = {}
+        result['components'] = components
+    except Exception as e:
+        logger.error(f"Error processing GERI result: {e}", exc_info=True)
+        return {
+            'success': False,
+            'message': f'Error processing GERI data: {str(e)}',
+            'data': None,
+        }
     
     return {
         'success': True,

@@ -4510,7 +4510,8 @@
             
             (topDrivers || []).forEach(d => {
                 const cat = (d.category || '').toLowerCase();
-                const sev = (d.severity || '').toLowerCase();
+                const sevRaw = d.severity;
+                const sev = typeof sevRaw === 'number' ? (sevRaw >= 4 ? 'high' : sevRaw >= 3 ? 'medium' : 'low') : String(sevRaw || '').toLowerCase();
                 if (geoCats.some(g => cat.includes(g))) cats.geopolitical++;
                 if (energyCats.some(e => cat.includes(e))) cats.energy++;
                 if (marketCats.some(m => cat.includes(m)) || sev === 'high') cats.market++;
@@ -4575,28 +4576,54 @@
                 let result;
                 const endpoint = cfg.useDelayedData ? '/api/v1/indices/geri/public' : '/api/v1/indices/geri/latest';
                 const headers = cfg.useDelayedData ? {} : { 'X-User-Token': sessionToken };
-                const response = await fetch(endpoint, { headers });
+                console.log('GERI: fetching', endpoint, 'plan=', plan);
                 
-                if (response.ok) {
-                    result = await response.json();
+                try {
+                    const response = await fetch(endpoint, { headers });
+                    console.log('GERI: response status', response.status);
+                    if (response.ok) {
+                        const text = await response.text();
+                        try {
+                            result = JSON.parse(text);
+                        } catch (parseErr) {
+                            console.error('GERI: JSON parse error on primary', parseErr, 'body:', text.substring(0, 200));
+                        }
+                    }
+                } catch (fetchErr) {
+                    console.error('GERI: fetch error on primary', fetchErr);
                 }
                 
                 if (!result || !result.success || !result.data) {
                     if (!cfg.useDelayedData) {
-                        const fallbackResp = await fetch('/api/v1/indices/geri/public');
-                        if (fallbackResp.ok) {
-                            const fallbackResult = await fallbackResp.json();
-                            if (fallbackResult.success && fallbackResult.data) {
-                                result = fallbackResult;
+                        console.log('GERI: primary failed, trying fallback /geri/public');
+                        try {
+                            const fallbackResp = await fetch('/api/v1/indices/geri/public');
+                            console.log('GERI: fallback status', fallbackResp.status);
+                            if (fallbackResp.ok) {
+                                const fallbackText = await fallbackResp.text();
+                                try {
+                                    const fallbackResult = JSON.parse(fallbackText);
+                                    if (fallbackResult.success && fallbackResult.data) {
+                                        result = fallbackResult;
+                                        console.log('GERI: fallback succeeded');
+                                    }
+                                } catch (parseErr) {
+                                    console.error('GERI: JSON parse error on fallback', parseErr);
+                                }
                             }
+                        } catch (fetchErr) {
+                            console.error('GERI: fetch error on fallback', fetchErr);
                         }
                     }
                 }
                 
                 if (!result || !result.success || !result.data) {
+                    console.log('GERI: no data available after all attempts');
                     contentDiv.innerHTML = '<div class="geri-display-card"><p style="color: #9ca3af;">No GERI data available yet.</p></div>';
                     return;
                 }
+                
+                console.log('GERI: data received, value=', result.data?.value, 'band=', result.data?.band);
                 
                 const geri = result.data;
                 const bandColors = {
@@ -4761,7 +4788,13 @@
                         const tagText = tagParts.length > 0 ? ' <span style="color: #9ca3af; font-size: 0.85rem;">(' + tagParts.join(' · ') + ')</span>' : '';
                         let severityHtml = '';
                         if (cfg.showDriverSeverity) {
-                            const sev = (d.severity || 'medium').toLowerCase();
+                            let sevRaw = d.severity;
+                            let sev;
+                            if (typeof sevRaw === 'number') {
+                                sev = sevRaw >= 4 ? 'high' : sevRaw >= 3 ? 'medium' : 'low';
+                            } else {
+                                sev = (String(sevRaw || 'medium')).toLowerCase();
+                            }
                             const sevCls = sev === 'high' ? 'severity-high' : sev === 'low' ? 'severity-low' : 'severity-medium';
                             severityHtml = ' <span class="geri-driver-severity ' + sevCls + '">' + sev.charAt(0).toUpperCase() + sev.slice(1) + '</span>';
                         }
@@ -4820,8 +4853,8 @@
                 loadGeriChartData(geri);
                 
             } catch (error) {
-                console.error('Error loading GERI:', error);
-                contentDiv.innerHTML = '<div class="geri-display-card"><p style="color: #ef4444;">Error loading GERI data. Please try again later.</p></div>';
+                console.error('Error loading GERI:', error.message, error.stack);
+                contentDiv.innerHTML = '<div class="geri-display-card"><p style="color: #ef4444;">Error loading GERI data: ' + (error.message || 'Unknown error') + '</p><p style="color: #9ca3af; font-size: 0.8rem; margin-top: 8px;">Check browser console for details. Try refreshing the page.</p></div>';
             }
         }
         
