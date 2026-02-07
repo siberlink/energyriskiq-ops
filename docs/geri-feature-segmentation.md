@@ -1985,3 +1985,217 @@ Your upgrade prompts must sell:
 NOT
 
 **Features**
+
+---
+
+# Implementation Status (Updated Feb 2026)
+
+Documents what has been built in `src/static/users-account.html` vs what remains planned.
+
+---
+
+## Implemented (Live in Dashboard)
+
+### GERI_PLAN_CONFIG Feature Flag Object
+
+Client-side configuration object controlling all plan-tiered feature gating. Located in `users-account.html` JavaScript.
+
+```javascript
+const GERI_PLAN_CONFIG = {
+    free:       { maxHistoryDays: 14,  maxOverlays: 1, useDelayedData: true,  ... },
+    personal:   { maxHistoryDays: 90,  maxOverlays: 1, useDelayedData: false, ... },
+    trader:     { maxHistoryDays: -1,  maxOverlays: 2, useDelayedData: false, ... },
+    pro:        { maxHistoryDays: -1,  maxOverlays: 4, useDelayedData: false, ... },
+    enterprise: { maxHistoryDays: -1,  maxOverlays: 5, useDelayedData: false, ... }
+};
+```
+
+**Boolean flags per plan:** showDriverRegions, showDriverSeverity, showTrendIndicators, showOverlayToggles, showSmoothing, showNormalization, showRegimeMarkers, showEventMarkers, showMomentumPanel, showInterpretation, showRealtimeBadge.
+
+### Nav & Access
+
+| Feature | Status |
+|---------|--------|
+| GERI nav item enabled for ALL plans | Done |
+| Dynamic tier badge (FREE/PERSONAL/TRADER/PRO/ENTERPRISE) | Done |
+| Upgrade hint div removed | Done |
+| Section title changed to "GERI Dashboard" | Done |
+| Plan-aware subtitle (Awareness/Monitoring/Decision Support/Institutional Analytics/Workspace) | Done |
+
+### Data Endpoints
+
+| Plan | Snapshot Endpoint | Chart History Endpoint |
+|------|-------------------|------------------------|
+| Free | `/api/v1/indices/geri/public` (24h delayed) | `/api/v1/indices/geri?from=...&to=yesterday` (24h delayed) |
+| Personal+ | `/api/v1/indices/geri/latest` (real-time) | `/api/v1/indices/geri?from=...` (real-time) |
+
+### Snapshot Card (All Plans)
+
+| Feature | Free | Personal | Trader | Pro | Enterprise |
+|---------|------|----------|--------|-----|------------|
+| GERI value + band + color | Done | Done | Done | Done | Done |
+| Date computed | Done | Done | Done | Done | Done |
+| "24h Delayed" badge | Done | -- | -- | -- | -- |
+| "Real-Time" badge | -- | -- | Done | Done | Done |
+| 7-day trend display | -- | Done | Done | Done | Done |
+
+### Charts Module
+
+| Feature | Free | Personal | Trader | Pro | Enterprise |
+|---------|------|----------|--------|-----|------------|
+| GERI history chart | 14-day | 90-day | Full | Full | Full |
+| Brent overlay (fixed) | Done | -- | -- | -- | -- |
+| Asset selector dropdown (1 asset) | -- | Done | -- | -- | -- |
+| Overlay toggle buttons | -- | -- | Done | Done | Done |
+| Max simultaneous overlays | 1 (fixed) | 1 (selectable) | 2 | 4 | 5 |
+| Range options | 14D only | 7D/30D/90D | 7D/30D/90D/365D/All | Same | Same |
+| Smoothing (Raw/3D MA/7D MA) | -- | -- | Done | Done | Done |
+| Risk band shading | Done | Done | Done | Done | Done |
+| Zoom & pan | Done | Done | Done | Done | Done |
+
+### Overlay Enforcement
+
+| Feature | Status |
+|---------|--------|
+| Max overlay limit enforced per plan | Done |
+| Toast notification on limit exceeded | Done |
+| Asset key mapping (storage → gas_storage) | Done |
+| Normalized 0-100 scale for overlays | Done |
+
+### Smoothing System (Trader+)
+
+| Feature | Status |
+|---------|--------|
+| `computeMovingAverage(values, window)` function | Done |
+| Smoothing dropdown (Raw/3D MA/7D MA) | Done |
+| `applySmoothing()` updates chart data | Done |
+| Smoothing integrates with range selection | Done |
+| `currentGeriSmoothing` state variable | Done |
+
+### Trend Indicators
+
+| Feature | Free | Personal+ |
+|---------|------|-----------|
+| 1-Day Change | Hidden | Done |
+| 7-Day Change | Hidden | Done |
+| Momentum (slope direction) | Hidden | Done |
+| Current Band display | Hidden | Done |
+
+### Drivers Panel
+
+| Feature | Free | Personal | Trader+ |
+|---------|------|----------|---------|
+| 3 simplified macro categories | Done | -- | -- |
+| Geopolitical Risk (level bar) | Done | -- | -- |
+| Energy Supply (level bar) | Done | -- | -- |
+| Market Stress (level bar) | Done | -- | -- |
+| Full driver list with headlines | -- | Done | Done |
+| Region tags | -- | Done | Done |
+| Severity level (Low/Med/High) | -- | Done | Done |
+| Impact ranking | -- | -- | Done |
+
+### Interpretation Panel
+
+| Feature | Status |
+|---------|--------|
+| 15-word preview + "See more" modal | Done (all plans) |
+| Full interpretation in modal | Done |
+
+### Upgrade Prompts
+
+| Transition | Prompt Copy | Status |
+|------------|------------|--------|
+| Free → Personal | "Unlock 90-day history, asset selection, and more" | Done |
+| Personal → Trader | "Unlock multi-asset overlays, divergence analytics" | Done |
+| Trader → Pro | "Unlock 4-asset overlays, AI narratives" | Done |
+| Pro → Enterprise | No prompt (top tier) | -- |
+
+### CSS Components Added
+
+| Class | Purpose |
+|-------|---------|
+| `.geri-plan-badge` | Plan tier label badge with per-plan gradient colors |
+| `.geri-delayed-badge` | Yellow "24h Delayed" badge for Free plan |
+| `.geri-upgrade-prompt` | Subtle contextual upgrade prompt card |
+| `.geri-simplified-drivers` | 3-column grid for Free plan macro categories |
+| `.geri-simplified-driver-card` | Individual driver card with icon/label/severity bar |
+| `.geri-asset-selector` | Styled dropdown for Personal plan asset selection |
+| `.geri-smoothing-selector` | Styled dropdown for Trader+ smoothing |
+| `.overlay-limit-toast` | Animated toast notification for overlay limit |
+| `.geri-chart-controls-row` | Flexbox layout for chart controls |
+| `.driver-level.level-high/medium/low` | Color-coded severity indicators |
+
+---
+
+## Not Yet Implemented (Planned Features)
+
+These features appear in the spec above but are not yet built. They represent future enhancement opportunities.
+
+### Chart Modes (Beyond Overlay)
+
+| Feature | Target Plan | Status |
+|---------|------------|--------|
+| Divergence mode | Trader+ | Not built |
+| Correlation mode | Pro+ | Not built |
+| Storage Context mode | Pro+ | Not built |
+| Compare Period | Pro+ | Not built |
+
+### Normalization
+
+| Feature | Target Plan | Status |
+|---------|------------|--------|
+| Indexed(100) normalization | Trader+ | Not built |
+| Z-Score normalization | Pro+ | Not built |
+
+### Advanced Analytics
+
+| Feature | Target Plan | Status |
+|---------|------------|--------|
+| Rolling correlation panel | Trader+ | Not built |
+| Response strength scoring | Pro+ | Not built |
+| Lag detection algorithm | Trader+ | Not built |
+| Divergence Z-score computation | Trader+ | Not built |
+| Confirmation score (cross-asset) | Trader+ | Not built |
+| Regime shift detection (auto-label) | Trader+ | Not built |
+| EU Storage seasonal comparison | Trader+ | Not built |
+
+### Enterprise Features
+
+| Feature | Status |
+|---------|--------|
+| Multi-workspace dashboard | Not built |
+| Custom risk band settings | Not built |
+| Team activity panels | Not built |
+| Shared annotations | Not built |
+| Custom indicator builder | Not built |
+
+### Advanced Upgrade Prompts
+
+| Feature | Status |
+|---------|--------|
+| Feature attempt triggers (inline locked tooltips) | Not built |
+| Insight exposure triggers (hidden divergence detected) | Not built |
+| Time-based engagement triggers (4-min session) | Not built |
+| Risk event banners (GERI spike prompts) | Not built |
+| End-session summary prompts | Not built |
+| Frequency/cooldown control | Not built |
+| Behavioral personalization | Not built |
+
+### Interpretation Engine
+
+| Feature | Status |
+|---------|--------|
+| Deterministic template-based commentary | Not built (uses AI-generated interpretation from GERI compute) |
+| Lead/lag template per asset | Not built |
+| Divergence template per asset | Not built |
+| Lifecycle phase labeling | Not built |
+
+---
+
+## Architecture Notes
+
+- All plan gating is client-side via `GERI_PLAN_CONFIG` — the API endpoints themselves don't enforce plan restrictions (except the free tier uses the `/geri/public` delayed endpoint)
+- Backend enforcement could be added later by checking user plan in the `/geri/latest` and `/geri` endpoints
+- The simplified drivers panel for Free users derives categories from the same `top_drivers` data — it groups events by keyword matching into Geopolitical/Energy Supply/Market Stress buckets
+- Smoothing is computed client-side using a simple moving average function — no backend computation needed
+- Overlay data normalization uses fixed ranges per asset (e.g., Brent 50-120 USD, VIX 10-50) to map to 0-100 scale
