@@ -1262,6 +1262,160 @@
             }
         }
 
+        .geri-plan-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+            vertical-align: middle;
+        }
+        .geri-plan-badge.badge-free { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .geri-plan-badge.badge-personal { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .geri-plan-badge.badge-trader { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .geri-plan-badge.badge-pro { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .geri-plan-badge.badge-enterprise { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+
+        .geri-delayed-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+            color: #1e293b;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .geri-upgrade-prompt {
+            margin-top: 16px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 10px;
+            font-size: 13px;
+            color: #a78bfa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .geri-upgrade-prompt a {
+            color: #818cf8;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .geri-simplified-drivers {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .geri-simplified-driver-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .geri-simplified-driver-card .driver-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .geri-simplified-driver-card .driver-label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .geri-simplified-driver-card .driver-level {
+            font-size: 16px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .driver-level.level-high { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .driver-level.level-medium { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+        .driver-level.level-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+
+        @media (max-width: 576px) {
+            .geri-simplified-drivers {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .geri-asset-selector {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: auto;
+        }
+
+        .geri-smoothing-selector {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: auto;
+            margin-left: 8px;
+        }
+
+        .overlay-limit-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            border: 1px solid #f59e0b;
+            color: #fbbf24;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            transition: opacity 0.3s;
+        }
+
+        .geri-driver-severity {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+        .severity-high { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .severity-medium { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+        .severity-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+
+        .geri-driver-rank {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-right: 6px;
+        }
+
         .upgrade-banner-small {
             margin-top: 12px;
             padding: 12px 16px;
@@ -3361,12 +3515,9 @@
                         <path d="M12 6l4 6-4 6-4-6 4-6z"/>
                     </svg>
                 </span>
-                Real-Time GERI
-                <span class="pro-badge-nav" id="geriBadge">PRO</span>
+                GERI Dashboard
+                <span class="pro-badge-nav" id="geriBadge">FREE</span>
             </a>
-            <div class="geri-upgrade-hint" id="geriUpgradeHint" style="display: none;">
-                (Upgrade your plan to Pro to access GERI)
-            </div>
             <a class="nav-item" id="eeriNavItem" onclick="showSection('eeri-pro'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3561,11 +3712,11 @@
             </div>
         </div>
 
-        <!-- GERI Section (Pro Only) -->
+        <!-- GERI Section (All Plans) -->
         <div class="section-content" id="section-geri">
             <div class="page-header">
-                <h1 class="page-title">Real-Time GERI</h1>
-                <p class="page-subtitle">Global Energy Risk Index - Real-time data for Pro subscribers</p>
+                <h1 class="page-title">GERI Dashboard <span class="geri-plan-badge" id="geriHeaderBadge"></span></h1>
+                <p class="page-subtitle" id="geriHeaderSubtitle">Global Energy Risk Index</p>
                 <a href="/geri/methodology" target="_blank" class="geri-methodology-header-link">📖 View GERI Methodology & Construction</a>
             </div>
 
@@ -4190,30 +4341,34 @@
             document.getElementById('telegramLinked').style.display = (telegramEnabled && isLinked) ? 'block' : 'none';
             document.getElementById('telegramNotLinked').style.display = (telegramEnabled && !isLinked) ? 'block' : 'none';
             
-            // Show GERI nav item for all users, but disable for non-Pro/Enterprise
-            const geriEnabled = ['pro', 'enterprise'].includes(plan);
             const geriNavItem = document.getElementById('geriNavItem');
             const geriBadge = document.getElementById('geriBadge');
-            const geriUpgradeHint = document.getElementById('geriUpgradeHint');
+            const geriTierLabels = {'free': 'FREE', 'personal': 'PERSONAL', 'trader': 'TRADER', 'pro': 'PRO', 'enterprise': 'ENTERPRISE'};
+            const geriSubtitles = {
+                'free': 'Global Energy Risk Index - Awareness Dashboard',
+                'personal': 'Global Energy Risk Index - Daily Monitoring Dashboard',
+                'trader': 'Global Energy Risk Index - Decision Support Dashboard',
+                'pro': 'Global Energy Risk Index - Institutional Analytics Dashboard',
+                'enterprise': 'Global Energy Risk Index - Institutional Workspace'
+            };
             
             if (geriNavItem) {
-                if (geriEnabled) {
-                    geriNavItem.classList.remove('nav-item-disabled');
-                    geriNavItem.onclick = function() { showSection('geri'); closeMobileMenu(); };
-                    if (geriBadge) {
-                        geriBadge.textContent = 'PRO';
-                        geriBadge.classList.remove('pro-badge-locked');
-                    }
-                    if (geriUpgradeHint) geriUpgradeHint.style.display = 'none';
-                } else {
-                    geriNavItem.classList.add('nav-item-disabled');
-                    geriNavItem.onclick = function(e) { e.preventDefault(); };
-                    if (geriBadge) {
-                        geriBadge.textContent = 'Pro+ Users';
-                        geriBadge.classList.add('pro-badge-locked');
-                    }
-                    if (geriUpgradeHint) geriUpgradeHint.style.display = 'block';
+                geriNavItem.classList.remove('nav-item-disabled');
+                geriNavItem.onclick = function() { showSection('geri'); closeMobileMenu(); };
+                if (geriBadge) {
+                    geriBadge.textContent = geriTierLabels[plan] || 'FREE';
+                    geriBadge.className = 'pro-badge-nav badge-' + (plan || 'free');
                 }
+            }
+            
+            const geriHeaderBadge = document.getElementById('geriHeaderBadge');
+            if (geriHeaderBadge) {
+                geriHeaderBadge.textContent = geriTierLabels[plan] || 'FREE';
+                geriHeaderBadge.className = 'geri-plan-badge badge-' + (plan || 'free');
+            }
+            const geriHeaderSubtitle = document.getElementById('geriHeaderSubtitle');
+            if (geriHeaderSubtitle) {
+                geriHeaderSubtitle.textContent = geriSubtitles[plan] || geriSubtitles['free'];
             }
             
             const eeriNavItem = document.getElementById('eeriNavItem');
@@ -4232,28 +4387,194 @@
             }
         }
 
+        const GERI_PLAN_CONFIG = {
+            free: {
+                label: 'Awareness',
+                maxHistoryDays: 14,
+                maxOverlays: 1,
+                selectableAssets: ['brent'],
+                rangeOptions: ['14'],
+                showDriverRegions: false,
+                showDriverSeverity: false,
+                showTrendIndicators: false,
+                showOverlayToggles: false,
+                showSmoothing: false,
+                showNormalization: false,
+                showRegimeMarkers: false,
+                showEventMarkers: false,
+                showMomentumPanel: false,
+                showInterpretation: true,
+                useDelayedData: true,
+                showRealtimeBadge: false
+            },
+            personal: {
+                label: 'Monitoring',
+                maxHistoryDays: 90,
+                maxOverlays: 1,
+                selectableAssets: ['brent', 'ttf', 'vix', 'eurusd', 'storage'],
+                rangeOptions: ['7', '30', '90'],
+                showDriverRegions: true,
+                showDriverSeverity: true,
+                showTrendIndicators: true,
+                showOverlayToggles: true,
+                showSmoothing: false,
+                showNormalization: false,
+                showRegimeMarkers: false,
+                showEventMarkers: false,
+                showMomentumPanel: false,
+                showInterpretation: true,
+                useDelayedData: false,
+                showRealtimeBadge: false
+            },
+            trader: {
+                label: 'Decision Support',
+                maxHistoryDays: -1,
+                maxOverlays: 2,
+                selectableAssets: ['brent', 'ttf', 'vix', 'eurusd', 'storage'],
+                rangeOptions: ['7', '30', '90', '365', 'all'],
+                showDriverRegions: true,
+                showDriverSeverity: true,
+                showTrendIndicators: true,
+                showOverlayToggles: true,
+                showSmoothing: true,
+                showNormalization: true,
+                showRegimeMarkers: true,
+                showEventMarkers: true,
+                showMomentumPanel: true,
+                showInterpretation: true,
+                useDelayedData: false,
+                showRealtimeBadge: true
+            },
+            pro: {
+                label: 'Institutional Analytics',
+                maxHistoryDays: -1,
+                maxOverlays: 4,
+                selectableAssets: ['brent', 'ttf', 'vix', 'eurusd', 'storage'],
+                rangeOptions: ['7', '30', '90', '365', 'all'],
+                showDriverRegions: true,
+                showDriverSeverity: true,
+                showTrendIndicators: true,
+                showOverlayToggles: true,
+                showSmoothing: true,
+                showNormalization: true,
+                showRegimeMarkers: true,
+                showEventMarkers: true,
+                showMomentumPanel: true,
+                showInterpretation: true,
+                useDelayedData: false,
+                showRealtimeBadge: true
+            },
+            enterprise: {
+                label: 'Institutional Workspace',
+                maxHistoryDays: -1,
+                maxOverlays: 5,
+                selectableAssets: ['brent', 'ttf', 'vix', 'eurusd', 'storage'],
+                rangeOptions: ['7', '30', '90', '365', 'all'],
+                showDriverRegions: true,
+                showDriverSeverity: true,
+                showTrendIndicators: true,
+                showOverlayToggles: true,
+                showSmoothing: true,
+                showNormalization: true,
+                showRegimeMarkers: true,
+                showEventMarkers: true,
+                showMomentumPanel: true,
+                showInterpretation: true,
+                useDelayedData: false,
+                showRealtimeBadge: true
+            }
+        };
+
+        let currentGeriSmoothing = 'raw';
+
+        function computeMovingAverage(values, window) {
+            return values.map((val, i) => {
+                if (i < window - 1) return val;
+                let sum = 0;
+                let count = 0;
+                for (let j = i - window + 1; j <= i; j++) {
+                    if (values[j] !== null && values[j] !== undefined) {
+                        sum += values[j];
+                        count++;
+                    }
+                }
+                return count > 0 ? sum / count : val;
+            });
+        }
+
+        function buildSimplifiedDrivers(topDrivers) {
+            const cats = { geopolitical: 0, energy: 0, market: 0 };
+            const geoCats = ['geopolitical', 'war', 'military', 'conflict', 'sanctions'];
+            const energyCats = ['energy', 'supply_chain', 'supply_disruption', 'strike'];
+            const marketCats = ['political', 'diplomacy'];
+            
+            (topDrivers || []).forEach(d => {
+                const cat = (d.category || '').toLowerCase();
+                const sev = (d.severity || '').toLowerCase();
+                if (geoCats.some(g => cat.includes(g))) cats.geopolitical++;
+                if (energyCats.some(e => cat.includes(e))) cats.energy++;
+                if (marketCats.some(m => cat.includes(m)) || sev === 'high') cats.market++;
+            });
+
+            function levelFor(count) {
+                if (count >= 3) return { text: 'High', cls: 'level-high' };
+                if (count >= 1) return { text: 'Medium', cls: 'level-medium' };
+                return { text: 'Low', cls: 'level-low' };
+            }
+
+            const geo = levelFor(cats.geopolitical);
+            const ene = levelFor(cats.energy);
+            const mkt = levelFor(cats.market);
+
+            return '<div class="geri-simplified-drivers">' +
+                '<div class="geri-simplified-driver-card">' +
+                    '<div class="driver-icon">⚔️</div>' +
+                    '<div class="driver-label">Geopolitical Risk</div>' +
+                    '<div class="driver-level ' + geo.cls + '">' + geo.text + '</div>' +
+                '</div>' +
+                '<div class="geri-simplified-driver-card">' +
+                    '<div class="driver-icon">⛽</div>' +
+                    '<div class="driver-label">Energy Supply</div>' +
+                    '<div class="driver-level ' + ene.cls + '">' + ene.text + '</div>' +
+                '</div>' +
+                '<div class="geri-simplified-driver-card">' +
+                    '<div class="driver-icon">📊</div>' +
+                    '<div class="driver-label">Market Stress</div>' +
+                    '<div class="driver-level ' + mkt.cls + '">' + mkt.text + '</div>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function getGeriUpgradePrompt(plan) {
+            const prompts = {
+                'free': '💡 <a onclick="showSection(\'plans\')">Unlock 90-day history, asset selection, and more with Personal Plan</a>',
+                'personal': '💡 <a onclick="showSection(\'plans\')">Unlock multi-asset overlays, divergence analytics with Trader Plan</a>',
+                'trader': '💡 <a onclick="showSection(\'plans\')">Unlock 4-asset overlays, AI narratives with Pro Plan</a>'
+            };
+            return prompts[plan] || '';
+        }
+
+        function showOverlayLimitToast(maxOverlays) {
+            let existing = document.querySelector('.overlay-limit-toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'overlay-limit-toast';
+            toast.textContent = 'Your plan allows up to ' + maxOverlays + ' overlay(s). Upgrade to unlock more.';
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
         async function loadGeriData() {
             const plan = currentUser?.plan || 'free';
-            const geriEnabled = ['pro', 'enterprise'].includes(plan);
+            const cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
             
             const contentDiv = document.getElementById('geriContent');
             if (!contentDiv) return;
             
-            if (!geriEnabled) {
-                contentDiv.innerHTML = `
-                    <div class="geri-upgrade-required">
-                        <h3>🔒 Pro Feature</h3>
-                        <p>Real-time GERI access is available exclusively for Pro and Enterprise subscribers.</p>
-                        <button class="geri-upgrade-btn" onclick="showSection('plans')">Upgrade to Pro</button>
-                    </div>
-                `;
-                return;
-            }
-            
             try {
-                const response = await fetch('/api/v1/indices/geri/latest', {
-                    headers: { 'X-User-Token': sessionToken }
-                });
+                const endpoint = cfg.useDelayedData ? '/api/v1/indices/geri/public' : '/api/v1/indices/geri/latest';
+                const headers = cfg.useDelayedData ? {} : { 'X-User-Token': sessionToken };
+                const response = await fetch(endpoint, { headers });
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch GERI data');
@@ -4262,11 +4583,7 @@
                 const result = await response.json();
                 
                 if (!result.success || !result.data) {
-                    contentDiv.innerHTML = `
-                        <div class="geri-display-card">
-                            <p style="color: #9ca3af;">No GERI data available yet.</p>
-                        </div>
-                    `;
+                    contentDiv.innerHTML = '<div class="geri-display-card"><p style="color: #9ca3af;">No GERI data available yet.</p></div>';
                     return;
                 }
                 
@@ -4279,7 +4596,6 @@
                 };
                 const bandColor = bandColors[geri.band] || '#6b7280';
                 
-                // Expressive trend labels matching homepage
                 let trendLabel = 'Stable';
                 const trendVal = geri.trend_7d || 0;
                 if (trendVal >= 10) trendLabel = 'Rising Sharply';
@@ -4290,139 +4606,203 @@
                 else if (trendVal < 0) trendLabel = 'Slightly Falling';
                 
                 const trendSign = trendVal > 0 ? '+' : '';
-                const trendDisplay = `<div class="geri-trend-display" style="color: #4ade80;">7-Day Trend: ${trendLabel} (${trendSign}${trendVal.toFixed(0)})</div>`;
                 
                 const components = geri.components || {};
                 const topDrivers = components.top_drivers || [];
                 const topRegions = components.top_regions || [];
                 const interpretation = components.interpretation || '';
+
+                if (cfg.useDelayedData && !components.top_drivers && geri.top_drivers_detailed) {
+                    topDrivers.push(...(geri.top_drivers_detailed || []));
+                }
                 
-                // Drivers with region · category tags
-                const driversHtml = topDrivers.slice(0, 5).map(d => {
-                    const tagParts = [];
-                    if (d.region) tagParts.push(d.region);
-                    if (d.category) tagParts.push(d.category);
-                    const tagText = tagParts.length > 0 ? ` <span style="color: #9ca3af; font-size: 0.85rem;">(${tagParts.join(' · ')})</span>` : '';
-                    return `<li>${d.headline || d.type || 'Unknown'}${tagText}</li>`;
-                }).join('') || '<li>No data</li>';
-                
-                // Regions with Primary/Secondary/Tertiary labels
-                const regionLabels = ['Primary', 'Secondary', 'Tertiary', 'Quaternary', 'Quinary'];
-                const regionsHtml = topRegions.slice(0, 5).map((r, i) => {
-                    const label = regionLabels[i] || '';
-                    return `<li>${r.region || 'Unknown'} <span style="color: #9ca3af; font-size: 0.85rem;">(${label})</span></li>`;
-                }).join('') || '<li>No data</li>';
-                
-                // Interpretation section - 15 word preview + "See more..." link
-                const interpretationWords = interpretation ? interpretation.split(/\s+/) : [];
-                const interpretationPreview = interpretationWords.slice(0, 15).join(' ');
-                const hasMoreInterpretation = interpretationWords.length > 15;
-                const interpretationHtml = interpretation ? 
-                    '<div class="geri-interpretation-preview">' +
-                        '<div class="geri-interpretation-title">GERI Interpretation</div>' +
-                        '<p class="geri-interpretation-text">"' + interpretationPreview + (hasMoreInterpretation ? '..."' : '"') + '</p>' +
-                        (hasMoreInterpretation ? '<a class="geri-see-more-link" onclick="openInterpretationModal()">See more...</a>' : '') +
-                    '</div>' : '';
-                
-                // Store full interpretation for modal
-                window.fullGeriInterpretation = interpretation || '';
-                
-                // Format computed_at date as YYYY-MM-DD
                 const computedAt = geri.computed_at ? geri.computed_at.substring(0, 10) : geri.date || 'N/A';
                 
-                contentDiv.innerHTML = 
-                    // 1) GERI Card
-                    '<div class="geri-display-card">' +
-                        '<div class="geri-realtime-badge">⚡ Real-Time</div>' +
-                        '<div class="geri-header-row" style="display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 8px;">' +
-                            '<span style="font-size: 2rem;">🔥</span>' +
-                            '<span style="font-size: 1.25rem; font-weight: 600; color: #e2e8f0;">Global Energy Risk Index:</span>' +
-                        '</div>' +
-                        '<div class="geri-value-line" style="font-size: 1.5rem; font-weight: bold; color: ' + bandColor + '; margin-bottom: 8px;">' + (geri.value || '--') + ' / 100 (' + (geri.band || 'N/A') + ')</div>' +
-                        '<div class="geri-scale-ref" style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 12px;">0 = minimal risk · 100 = extreme systemic stress</div>' +
-                        trendDisplay +
-                        '<div class="geri-date-display" style="margin-top: 8px;">Date Computed: ' + computedAt + '</div>' +
-                    '</div>' +
-                    
-                    // 2) GERI Charts Section
-                    '<div class="geri-charts-section">' +
-                        '<div class="geri-charts-header">' +
-                            '<h3 class="geri-charts-title">GERI History <span>(since Jan 2026)</span></h3>' +
-                            '<div class="geri-chart-controls">' +
-                                '<button class="chart-range-btn active" data-range="all">Since Launch</button>' +
-                                '<button class="chart-range-btn" data-range="90" disabled>' +
-                                    '90 Days' +
-                                    '<span class="tooltip-hint">Available as history grows</span>' +
-                                '</button>' +
-                                '<button class="chart-range-btn" data-range="365" disabled>' +
-                                    '1 Year' +
-                                    '<span class="tooltip-hint">Available as history grows</span>' +
-                                '</button>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="geri-trend-indicators">' +
-                            '<div class="trend-indicator-card">' +
-                                '<div class="trend-indicator-label">1-Day Change</div>' +
-                                '<div class="trend-indicator-value" id="trend1d">--</div>' +
-                                '<div class="trend-indicator-subtext">vs yesterday</div>' +
-                            '</div>' +
-                            '<div class="trend-indicator-card">' +
-                                '<div class="trend-indicator-label">7-Day Change</div>' +
-                                '<div class="trend-indicator-value" id="trend7d">--</div>' +
-                                '<div class="trend-indicator-subtext">vs 7-day avg</div>' +
-                            '</div>' +
-                            '<div class="trend-indicator-card">' +
-                                '<div class="trend-indicator-label">Momentum</div>' +
-                                '<div class="trend-indicator-value" id="trendMomentum">--</div>' +
-                                '<div class="trend-indicator-subtext">slope direction</div>' +
-                            '</div>' +
-                            '<div class="trend-indicator-card">' +
-                                '<div class="trend-indicator-label">Current Band</div>' +
-                                '<div class="trend-indicator-value" id="currentBand">--</div>' +
-                                '<div class="trend-indicator-subtext" id="currentBandValue">--/100</div>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="market-overlay-toggles">' +
-                            '<button class="overlay-toggle" data-overlay="brent" style="--overlay-color: #f59e0b;">' +
-                                '<span class="dot"></span> Brent Oil' +
-                            '</button>' +
-                            '<button class="overlay-toggle" data-overlay="gas_storage" style="--overlay-color: #10b981;">' +
-                                '<span class="dot"></span> EU Gas Storage' +
-                            '</button>' +
-                            '<button class="overlay-toggle" data-overlay="vix" style="--overlay-color: #ef4444;">' +
-                                '<span class="dot"></span> VIX' +
-                            '</button>' +
-                            '<button class="overlay-toggle" data-overlay="ttf" style="--overlay-color: #8b5cf6;">' +
-                                '<span class="dot"></span> TTF Gas' +
-                            '</button>' +
-                            '<button class="overlay-toggle" data-overlay="eurusd" style="--overlay-color: #06b6d4;">' +
-                                '<span class="dot"></span> EUR/USD' +
-                            '</button>' +
-                        '</div>' +
-                        '<div class="geri-chart-card">' +
-                            '<div class="geri-chart-container">' +
-                                '<canvas id="geriHistoryChart"></canvas>' +
-                            '</div>' +
-                            '<p class="chart-zoom-hint">💡 Pinch/scroll to zoom • Double-click to reset</p>' +
-                        '</div>' +
-                    '</div>' +
-                    
-                    // 3) Primary Risk Drivers
-                    '<div class="geri-detail-card" style="margin-top: 24px;">' +
-                        '<div class="geri-detail-title" style="color: #60a5fa;">Primary Risk Drivers:</div>' +
-                        '<ul class="geri-detail-list">' + driversHtml + '</ul>' +
-                    '</div>' +
-                    
-                    // 4) Top Regions Under Pressure
-                    '<div class="geri-detail-card" style="margin-top: 16px;">' +
-                        '<div class="geri-detail-title" style="color: #60a5fa;">Top Regions Under Pressure:</div>' +
-                        '<ul class="geri-detail-list">' + regionsHtml + '</ul>' +
-                    '</div>' +
-                    
-                    // 5) Interpretation (last)
-                    interpretationHtml;
+                let badgeHtml = '';
+                if (cfg.useDelayedData) {
+                    badgeHtml = '<div class="geri-delayed-badge">⏱ 24h Delayed</div>';
+                } else if (cfg.showRealtimeBadge) {
+                    badgeHtml = '<div class="geri-realtime-badge">⚡ Real-Time</div>';
+                }
                 
-                // Load chart data
+                let trendDisplay = '';
+                if (!cfg.useDelayedData) {
+                    trendDisplay = '<div class="geri-trend-display" style="color: #4ade80;">7-Day Trend: ' + trendLabel + ' (' + trendSign + trendVal.toFixed(0) + ')</div>';
+                }
+
+                let snapshotHtml = '<div class="geri-display-card">' +
+                    badgeHtml +
+                    '<div class="geri-header-row" style="display: flex; align-items: center; gap: 12px; justify-content: center; margin-bottom: 8px;">' +
+                        '<span style="font-size: 2rem;">🔥</span>' +
+                        '<span style="font-size: 1.25rem; font-weight: 600; color: #e2e8f0;">Global Energy Risk Index:</span>' +
+                    '</div>' +
+                    '<div class="geri-value-line" style="font-size: 1.5rem; font-weight: bold; color: ' + bandColor + '; margin-bottom: 8px;">' + (geri.value || '--') + ' / 100 (' + (geri.band || 'N/A') + ')</div>' +
+                    '<div class="geri-scale-ref" style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 12px;">0 = minimal risk · 100 = extreme systemic stress</div>' +
+                    trendDisplay +
+                    '<div class="geri-date-display" style="margin-top: 8px;">Date Computed: ' + computedAt + '</div>' +
+                '</div>';
+
+                let rangeLabels = { '7': '7D', '14': '14D', '30': '30D', '90': '90D', '365': '1Y', 'all': 'Since Launch' };
+                let rangeButtonsHtml = '';
+                if (cfg.rangeOptions.length > 1) {
+                    rangeButtonsHtml = '<div class="geri-chart-controls">';
+                    cfg.rangeOptions.forEach((r, i) => {
+                        const activeClass = (i === cfg.rangeOptions.length - 1 && r === 'all') || (cfg.rangeOptions.length === 1) ? ' active' : (i === 0 && !cfg.rangeOptions.includes('all') ? ' active' : '');
+                        rangeButtonsHtml += '<button class="chart-range-btn' + (i === 0 ? ' active' : '') + '" data-range="' + r + '">' + (rangeLabels[r] || r) + '</button>';
+                    });
+                    rangeButtonsHtml += '</div>';
+                }
+
+                let smoothingHtml = '';
+                if (cfg.showSmoothing) {
+                    smoothingHtml = '<select class="geri-smoothing-selector" id="geriSmoothingSelect">' +
+                        '<option value="raw">Raw</option>' +
+                        '<option value="3">3D MA</option>' +
+                        '<option value="7">7D MA</option>' +
+                    '</select>';
+                }
+
+                let overlayAssetNames = {
+                    'brent': { label: 'Brent Oil', color: '#f59e0b', key: 'brent' },
+                    'ttf': { label: 'TTF Gas', color: '#8b5cf6', key: 'ttf' },
+                    'vix': { label: 'VIX', color: '#ef4444', key: 'vix' },
+                    'eurusd': { label: 'EUR/USD', color: '#06b6d4', key: 'eurusd' },
+                    'storage': { label: 'EU Gas Storage', color: '#10b981', key: 'gas_storage' }
+                };
+
+                let overlaySection = '';
+                if (cfg.showOverlayToggles && cfg.maxOverlays === 1 && plan === 'personal') {
+                    let optionsHtml = '<option value="">Select asset overlay...</option>';
+                    cfg.selectableAssets.forEach(a => {
+                        const info = overlayAssetNames[a];
+                        if (info) optionsHtml += '<option value="' + info.key + '">' + info.label + '</option>';
+                    });
+                    overlaySection = '<select class="geri-asset-selector" id="geriAssetSelect">' + optionsHtml + '</select>';
+                } else if (cfg.showOverlayToggles) {
+                    overlaySection = '<div class="market-overlay-toggles">';
+                    cfg.selectableAssets.forEach(a => {
+                        const info = overlayAssetNames[a];
+                        if (info) {
+                            overlaySection += '<button class="overlay-toggle" data-overlay="' + info.key + '" style="--overlay-color: ' + info.color + ';">' +
+                                '<span class="dot"></span> ' + info.label +
+                            '</button>';
+                        }
+                    });
+                    overlaySection += '</div>';
+                }
+
+                let trendIndicatorsHtml = '';
+                if (cfg.showTrendIndicators) {
+                    trendIndicatorsHtml = '<div class="geri-trend-indicators">' +
+                        '<div class="trend-indicator-card">' +
+                            '<div class="trend-indicator-label">1-Day Change</div>' +
+                            '<div class="trend-indicator-value" id="trend1d">--</div>' +
+                            '<div class="trend-indicator-subtext">vs yesterday</div>' +
+                        '</div>' +
+                        '<div class="trend-indicator-card">' +
+                            '<div class="trend-indicator-label">7-Day Change</div>' +
+                            '<div class="trend-indicator-value" id="trend7d">--</div>' +
+                            '<div class="trend-indicator-subtext">vs 7-day avg</div>' +
+                        '</div>' +
+                        '<div class="trend-indicator-card">' +
+                            '<div class="trend-indicator-label">Momentum</div>' +
+                            '<div class="trend-indicator-value" id="trendMomentum">--</div>' +
+                            '<div class="trend-indicator-subtext">slope direction</div>' +
+                        '</div>' +
+                        '<div class="trend-indicator-card">' +
+                            '<div class="trend-indicator-label">Current Band</div>' +
+                            '<div class="trend-indicator-value" id="currentBand">--</div>' +
+                            '<div class="trend-indicator-subtext" id="currentBandValue">--/100</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+
+                let chartsHtml = '<div class="geri-charts-section">' +
+                    '<div class="geri-charts-header">' +
+                        '<h3 class="geri-charts-title">GERI History <span>(since Jan 2026)</span></h3>' +
+                        '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                            rangeButtonsHtml +
+                            smoothingHtml +
+                        '</div>' +
+                    '</div>' +
+                    trendIndicatorsHtml +
+                    overlaySection +
+                    '<div class="geri-chart-card">' +
+                        '<div class="geri-chart-container">' +
+                            '<canvas id="geriHistoryChart"></canvas>' +
+                        '</div>' +
+                        '<p class="chart-zoom-hint">💡 Pinch/scroll to zoom • Double-click to reset</p>' +
+                    '</div>' +
+                '</div>';
+
+                let driversHtml = '';
+                if (plan === 'free') {
+                    driversHtml = buildSimplifiedDrivers(topDrivers);
+                } else {
+                    const driverItems = topDrivers.slice(0, 5).map((d, idx) => {
+                        let parts = d.headline || d.type || 'Unknown';
+                        let tagParts = [];
+                        if (cfg.showDriverRegions && d.region) tagParts.push(d.region);
+                        if (d.category) tagParts.push(d.category);
+                        const tagText = tagParts.length > 0 ? ' <span style="color: #9ca3af; font-size: 0.85rem;">(' + tagParts.join(' · ') + ')</span>' : '';
+                        let severityHtml = '';
+                        if (cfg.showDriverSeverity) {
+                            const sev = (d.severity || 'medium').toLowerCase();
+                            const sevCls = sev === 'high' ? 'severity-high' : sev === 'low' ? 'severity-low' : 'severity-medium';
+                            severityHtml = ' <span class="geri-driver-severity ' + sevCls + '">' + sev.charAt(0).toUpperCase() + sev.slice(1) + '</span>';
+                        }
+                        let rankHtml = '';
+                        if (cfg.showMomentumPanel) {
+                            rankHtml = '<span class="geri-driver-rank">#' + (idx + 1) + '</span>';
+                        }
+                        return '<li>' + rankHtml + parts + tagText + severityHtml + '</li>';
+                    }).join('') || '<li>No data</li>';
+
+                    driversHtml = '<div class="geri-detail-card" style="margin-top: 24px;">' +
+                        '<div class="geri-detail-title" style="color: #60a5fa;">Primary Risk Drivers:</div>' +
+                        '<ul class="geri-detail-list">' + driverItems + '</ul>' +
+                    '</div>';
+
+                    if (cfg.showDriverRegions) {
+                        const regionLabels = ['Primary', 'Secondary', 'Tertiary', 'Quaternary', 'Quinary'];
+                        const regionsItems = topRegions.slice(0, 5).map((r, i) => {
+                            const label = regionLabels[i] || '';
+                            return '<li>' + (r.region || 'Unknown') + ' <span style="color: #9ca3af; font-size: 0.85rem;">(' + label + ')</span></li>';
+                        }).join('') || '<li>No data</li>';
+
+                        driversHtml += '<div class="geri-detail-card" style="margin-top: 16px;">' +
+                            '<div class="geri-detail-title" style="color: #60a5fa;">Top Regions Under Pressure:</div>' +
+                            '<ul class="geri-detail-list">' + regionsItems + '</ul>' +
+                        '</div>';
+                    }
+                }
+
+                let interpretationHtml = '';
+                if (cfg.showInterpretation && interpretation) {
+                    const interpretationWords = interpretation.split(/\s+/);
+                    const previewLen = plan === 'free' ? 30 : 15;
+                    const interpretationPreview = interpretationWords.slice(0, previewLen).join(' ');
+                    const hasMore = interpretationWords.length > previewLen;
+                    interpretationHtml = '<div class="geri-interpretation-preview">' +
+                        '<div class="geri-interpretation-title">GERI Interpretation</div>' +
+                        '<p class="geri-interpretation-text">"' + interpretationPreview + (hasMore ? '..."' : '"') + '</p>' +
+                        (hasMore ? '<a class="geri-see-more-link" onclick="openInterpretationModal()">See more...</a>' : '') +
+                    '</div>';
+                    window.fullGeriInterpretation = interpretation;
+                }
+
+                let upgradePromptHtml = '';
+                const prompt = getGeriUpgradePrompt(plan);
+                if (prompt) {
+                    upgradePromptHtml = '<div class="geri-upgrade-prompt">' + prompt + '</div>';
+                }
+
+                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + upgradePromptHtml;
+                
+                if (plan === 'free') {
+                    marketOverlays.brent.active = true;
+                }
+
                 loadGeriChartData(geri);
                 
             } catch (error) {
@@ -4572,35 +4952,77 @@
         }
         
         async function loadGeriChartData(currentGeri) {
+            const plan = currentUser?.plan || 'free';
+            const cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
+
             try {
-                // Fetch all GERI history from launch (Jan 2026)
-                const response = await fetch('/api/v1/indices/geri?from=2026-01-01', {
-                    headers: { 'X-User-Token': sessionToken }
-                });
+                const headers = cfg.useDelayedData ? {} : { 'X-User-Token': sessionToken };
+                let toParam = '';
+                if (cfg.useDelayedData) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    toParam = '&to=' + yesterday.toISOString().split('T')[0];
+                }
+                const response = await fetch('/api/v1/indices/geri?from=2026-01-01' + toParam, { headers });
                 
                 if (!response.ok) throw new Error('Failed to fetch GERI history');
                 
                 const result = await response.json();
-                geriHistoryData = result.data || [];
+                let allData = result.data || [];
+
+                if (cfg.maxHistoryDays > 0 && allData.length > cfg.maxHistoryDays) {
+                    allData = allData.slice(-cfg.maxHistoryDays);
+                }
+                geriHistoryData = allData;
                 
-                // Fetch real market overlay data from API
                 await loadMarketOverlayData();
+
+                if (cfg.showTrendIndicators) {
+                    updateTrendIndicators(currentGeri, geriHistoryData);
+                }
                 
-                // Update trend indicators
-                updateTrendIndicators(currentGeri, geriHistoryData);
-                
-                // Initialize chart
                 initializeGeriChart();
-                
-                // Setup range buttons (enable when we have enough data)
                 setupRangeButtons();
-                
-                // Setup overlay toggles
                 setupOverlayToggles();
+                setupSmoothingSelector();
+
+                if (plan === 'free') {
+                    marketOverlays.brent.active = true;
+                    updateMarketOverlays();
+                }
                 
             } catch (error) {
                 console.error('Error loading GERI chart data:', error);
             }
+        }
+
+        function setupSmoothingSelector() {
+            const select = document.getElementById('geriSmoothingSelect');
+            if (!select) return;
+            select.addEventListener('change', () => {
+                currentGeriSmoothing = select.value;
+                applySmoothing();
+            });
+        }
+
+        function applySmoothing() {
+            if (!geriChart || !geriHistoryData.length) return;
+            const rawValues = geriHistoryData.map(d => d.value);
+            let displayValues = rawValues;
+            if (currentGeriSmoothing === '3') {
+                displayValues = computeMovingAverage(rawValues, 3);
+            } else if (currentGeriSmoothing === '7') {
+                displayValues = computeMovingAverage(rawValues, 7);
+            }
+
+            let filteredData = displayValues;
+            if (currentRangeFilter !== 'all') {
+                const rangeNum = parseInt(currentRangeFilter);
+                filteredData = displayValues.slice(-rangeNum);
+            }
+
+            geriChart.data.datasets[0].data = filteredData;
+            geriChart.update();
         }
         
         function updateTrendIndicators(currentGeri, historyData) {
@@ -4847,36 +5269,34 @@
             
             buttons.forEach(btn => {
                 const range = btn.dataset.range;
-                
-                // Enable buttons based on available data
-                if (range === '90' && dataLength >= 90) {
-                    btn.disabled = false;
-                } else if (range === '365' && dataLength >= 365) {
-                    btn.disabled = false;
+                const rangeNum = parseInt(range);
+                if (!isNaN(rangeNum) && dataLength < rangeNum) {
+                    btn.disabled = true;
                 }
                 
                 btn.addEventListener('click', () => {
                     if (btn.disabled) return;
                     
-                    // Update active state
                     buttons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    
-                    // Track current range for overlay slicing
                     currentRangeFilter = range;
                     
-                    // Filter data based on range
                     let filteredData = geriHistoryData;
                     if (range !== 'all') {
                         filteredData = geriHistoryData.slice(-parseInt(range));
                     }
                     
-                    // Update chart with GERI data
                     if (geriChart) {
                         geriChart.data.labels = filteredData.map(d => d.date);
-                        geriChart.data.datasets[0].data = filteredData.map(d => d.value);
+
+                        let values = filteredData.map(d => d.value);
+                        if (currentGeriSmoothing === '3') {
+                            values = computeMovingAverage(values, 3);
+                        } else if (currentGeriSmoothing === '7') {
+                            values = computeMovingAverage(values, 7);
+                        }
+                        geriChart.data.datasets[0].data = values;
                         
-                        // Also update overlay data to match new range
                         updateMarketOverlays();
                     }
                 });
@@ -4884,15 +5304,38 @@
         }
         
         function setupOverlayToggles() {
+            const plan = currentUser?.plan || 'free';
+            const cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
+
+            const assetSelect = document.getElementById('geriAssetSelect');
+            if (assetSelect) {
+                assetSelect.addEventListener('change', () => {
+                    Object.keys(marketOverlays).forEach(k => { marketOverlays[k].active = false; });
+                    const selected = assetSelect.value;
+                    if (selected && marketOverlays[selected]) {
+                        marketOverlays[selected].active = true;
+                    }
+                    updateMarketOverlays();
+                });
+            }
+
             const toggles = document.querySelectorAll('.overlay-toggle');
             
             toggles.forEach(toggle => {
                 toggle.addEventListener('click', () => {
                     const overlay = toggle.dataset.overlay;
+                    const isActive = toggle.classList.contains('active');
+
+                    if (!isActive) {
+                        const activeCount = Object.values(marketOverlays).filter(o => o.active).length;
+                        if (activeCount >= cfg.maxOverlays) {
+                            showOverlayLimitToast(cfg.maxOverlays);
+                            return;
+                        }
+                    }
+
                     toggle.classList.toggle('active');
                     marketOverlays[overlay].active = toggle.classList.contains('active');
-                    
-                    // Update chart with market overlay
                     updateMarketOverlays();
                 });
             });
