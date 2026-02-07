@@ -1,0 +1,157 @@
+Option 1 (Recommended): Indexed Overlay (Mon=100) — simplest, fastest, most robust
+
+Use this when you want: movement comparison (risk → price), not “absolute level”.
+
+Formula (for any series X)
+
+Let 
+𝑋
+0
+X
+0
+	​
+
+ be the first value in the selected window (7D/30D/90D/All):
+
+Indexed_X(t) = 100 * X(t) / X(0)
+
+Do this for:
+
+Brent price
+
+TTF price
+
+VIX close
+
+EUR/USD rate
+
+Gas storage (%)
+
+And for EERI you have two choices:
+
+Raw EERI on left axis (0–100), and assets indexed on right axis (clean semantics)
+
+OR index EERI too if you want all lines to be relative (but label it clearly)
+
+Best practice: keep EERI raw (0–100) and assets indexed (base=100) on a secondary axis.
+It prevents confusion like “EERI > 100”.
+
+Why this is “max efficiency”
+
+O(1) per point (one divide + multiply)
+
+Stable across units
+
+Easy to cache per window
+
+No heavy statistics required
+
+Option 2 (Pro-grade): Z-score Standardization — best for “how abnormal is this?”
+
+Use this when you want: stress intensity comparability (not just movement).
+
+Formula (rolling window W)
+
+For each asset X:
+
+Z_X(t) = (X(t) − mean(X over W)) / std(X over W)
+
+Then plot:
+
+EERI raw (left axis)
+
+Z-scores for assets (right axis, typically −3 to +3)
+
+This makes “TTF is extremely high vs its own history” visually obvious.
+But it is a heavier mental model for most users.
+
+Efficiency note
+
+Still efficient if you precompute rolling mean/std once per day (or cache per window), but more compute than indexing.
+
+Gas Storage needs special handling (because it’s seasonal + bounded)
+
+Storage is a % and seasonal. Two good representations:
+
+A) Indexed (simple)
+
+Storage_idx(t) = 100 * Storage(t) / Storage(0)
+Good for weekly overlays.
+
+B) “Seasonal deviation” (best, but more work)
+
+Compare storage to typical seasonal level:
+
+Storage_dev(t) = Storage(t) − median(Storage on same week-of-year, historical years)
+
+This gives a real “storage tightness” signal (very valuable), but requires multi-year seasonal history.
+
+My recommendation for your “EERI main graph/chart”
+
+Your screenshot shows a Historical Intelligence chart for EERI with smoothing options. If you want to add assets onto that same graph:
+
+Best “maximum efficiency + precision” design
+
+Keep EERI raw on the left axis (0–100).
+
+Add assets as Indexed to 100 at window start on the right axis.
+
+Allow toggles for which asset lines are displayed (default OFF except one).
+
+Label explicitly:
+
+Left: EERI (0–100)
+
+Right: Asset Indexed (start=100)
+
+Subtitle: Assets rebased to 100 at start of range for comparability
+
+This avoids the “EERI above 100” confusion entirely and is computationally trivial.
+
+Smoothing (apply only to what makes sense)
+
+EERI smoothing: OK (3D / 7D MA)
+
+Assets smoothing: optional; if enabled, apply the same MA to the indexed series for fairness.
+
+Moving average formula:
+
+MA_k(t) = average of X(t−k+1 ... t)
+
+Defaults:
+
+7D view → Raw
+
+30D view → 3D MA
+
+90D / All → 7D MA
+
+One more “precision” improvement (still simple)
+
+For interpretation, show in tooltip both:
+
+Raw asset value (e.g., Brent $/bbl)
+
+Indexed value (e.g., 104.2)
+
+% change vs start (e.g., +4.2%)
+
+That keeps it honest and avoids “chart is abstract” complaints.
+
+What I would NOT do on the main EERI historical chart
+
+Don’t force everything onto one axis without indexing/standardizing (units clash)
+
+Don’t convert EERI into an indexed series on the main historical chart unless clearly labeled (causes your exact confusion)
+
+Don’t compute “correlation” on-chart for public; keep that Pro-only
+
+Bottom line
+
+For maximum efficiency and precision in a single UI:
+
+EERI stays raw (0–100)
+
+Assets are indexed: 100 * X(t)/X(0) on a secondary axis
+
+Optional Pro mode: z-scores for “abnormality view”

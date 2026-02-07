@@ -2653,6 +2653,52 @@
             color: #60a5fa;
         }
 
+        .eeri-asset-toggles {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .eeri-asset-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid #334155;
+            color: #64748b;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .eeri-asset-btn:hover {
+            border-color: #475569;
+            color: #94a3b8;
+        }
+
+        .eeri-asset-btn .eeri-asset-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .eeri-asset-btn.active {
+            background: rgba(255,255,255,0.06);
+            color: #e2e8f0;
+        }
+
+        .eeri-asset-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
         .eeri-chart-container {
             position: relative;
             height: 300px;
@@ -3658,7 +3704,25 @@
                                     <button class="eeri-smooth-btn" data-smooth="ma7">7D MA</button>
                                 </div>
                             </div>
+                            <div class="eeri-asset-toggles">
+                                <button class="eeri-asset-btn" data-asset="brent" style="--asset-color: #f59e0b;">
+                                    <span class="eeri-asset-dot" style="background: #f59e0b;"></span>Brent Oil
+                                </button>
+                                <button class="eeri-asset-btn" data-asset="ttf" style="--asset-color: #10b981;">
+                                    <span class="eeri-asset-dot" style="background: #10b981;"></span>TTF Gas
+                                </button>
+                                <button class="eeri-asset-btn" data-asset="vix" style="--asset-color: #ef4444;">
+                                    <span class="eeri-asset-dot" style="background: #ef4444;"></span>VIX
+                                </button>
+                                <button class="eeri-asset-btn" data-asset="eurusd" style="--asset-color: #3b82f6;">
+                                    <span class="eeri-asset-dot" style="background: #3b82f6;"></span>EUR/USD
+                                </button>
+                                <button class="eeri-asset-btn" data-asset="storage" style="--asset-color: #06b6d4;">
+                                    <span class="eeri-asset-dot" style="background: #06b6d4;"></span>EU Storage
+                                </button>
+                            </div>
                         </div>
+                        <p class="eeri-asset-subtitle" id="eeriAssetSubtitle" style="display:none;">Assets rebased to 100 at start of range for comparability</p>
                         <div class="eeri-chart-container">
                             <canvas id="eeriHistoryChart" height="300"></canvas>
                         </div>
@@ -5387,7 +5451,9 @@
             loaded: false,
             days: 30,
             smoothing: 'raw',
-            data: null
+            data: null,
+            activeAssets: [],
+            assetData: null
         };
 
         const EERI_BAND_COLORS = {
@@ -6278,6 +6344,7 @@
                 if (!result.success || !result.data) return;
                 
                 eeriProState.data = result.data;
+                eeriProState.assetData = result.assets || null;
                 
                 if (statsAvg) statsAvg.textContent = result.statistics.average;
                 if (statsMax) statsMax.textContent = result.statistics.max;
@@ -6317,6 +6384,33 @@
             }
         };
 
+        const ASSET_META = {
+            brent: { label: 'Brent Oil', color: '#f59e0b', unit: '$', suffix: '/bbl' },
+            ttf: { label: 'TTF Gas', color: '#10b981', unit: '€', suffix: '/MWh' },
+            vix: { label: 'VIX', color: '#ef4444', unit: '', suffix: '' },
+            eurusd: { label: 'EUR/USD', color: '#3b82f6', unit: '', suffix: '' },
+            storage: { label: 'EU Storage', color: '#06b6d4', unit: '', suffix: '%' },
+        };
+
+        function computeMovingAverage(arr, window) {
+            const result = new Array(arr.length).fill(null);
+            for (let i = window - 1; i < arr.length; i++) {
+                let sum = 0, count = 0;
+                for (let j = i - window + 1; j <= i; j++) {
+                    if (arr[j] !== null && arr[j] !== undefined) { sum += arr[j]; count++; }
+                }
+                if (count === window) result[i] = Math.round((sum / count) * 100) / 100;
+            }
+            return result;
+        }
+
+        function getBandName(value) {
+            if (value <= 25) return 'Low Risk';
+            if (value <= 50) return 'Moderate Risk';
+            if (value <= 75) return 'Elevated Risk';
+            return 'Critical Risk';
+        }
+
         function renderEeriHistoryChart(data, smoothing) {
             const canvas = document.getElementById('eeriHistoryChart');
             if (!canvas) return;
@@ -6327,9 +6421,14 @@
                 eeriProChart.destroy();
             }
             
+            const eeriDates = data.map(d => d.date);
             const labels = data.map(d => {
-                const date = new Date(d.date);
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const dt = new Date(d.date);
+                return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            const fullDateLabels = data.map(d => {
+                const dt = new Date(d.date);
+                return dt.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
             });
             
             const values = data.map(d => d.value);
@@ -6345,6 +6444,10 @@
                 tension: 0.3,
                 pointRadius: values.length > 60 ? 0 : 3,
                 pointHoverRadius: 5,
+                yAxisID: 'y',
+                _isEeri: true,
+                _rawValues: values,
+                _bands: data.map(d => d.band),
             }];
             
             if (smoothing !== 'raw' && smoothedValues.some(v => v !== null)) {
@@ -6357,7 +6460,90 @@
                     fill: false,
                     tension: 0.3,
                     pointRadius: 0,
+                    yAxisID: 'y',
+                    _isEeri: true,
+                    _rawValues: smoothedValues,
+                    _bands: data.map(d => d.band),
                 });
+            }
+
+            const hasAssets = eeriProState.activeAssets.length > 0;
+            const subtitle = document.getElementById('eeriAssetSubtitle');
+            if (subtitle) subtitle.style.display = hasAssets ? '' : 'none';
+
+            if (hasAssets && eeriProState.assetData) {
+                const dateIndex = {};
+                eeriDates.forEach((d, i) => { dateIndex[d] = i; });
+
+                eeriProState.activeAssets.forEach(assetId => {
+                    const assetSeries = eeriProState.assetData[assetId];
+                    if (!assetSeries || assetSeries.length === 0) return;
+                    const meta = ASSET_META[assetId] || { label: assetId, color: '#94a3b8', unit: '', suffix: '' };
+
+                    const rawAligned = new Array(eeriDates.length).fill(null);
+                    assetSeries.forEach(pt => {
+                        const idx = dateIndex[pt.date];
+                        if (idx !== undefined) rawAligned[idx] = pt.value;
+                    });
+
+                    let firstVal = null;
+                    for (let i = 0; i < rawAligned.length; i++) {
+                        if (rawAligned[i] !== null) { firstVal = rawAligned[i]; break; }
+                    }
+                    if (firstVal === null || firstVal === 0) return;
+
+                    const indexed = rawAligned.map(v => v !== null ? Math.round((v / firstVal) * 10000) / 100 : null);
+
+                    let displayData = indexed;
+                    if (smoothing === 'ma3') {
+                        displayData = computeMovingAverage(indexed, 3);
+                    } else if (smoothing === 'ma7') {
+                        displayData = computeMovingAverage(indexed, 7);
+                    }
+
+                    datasets.push({
+                        label: meta.label,
+                        data: displayData,
+                        borderColor: meta.color,
+                        backgroundColor: 'transparent',
+                        borderWidth: 1.5,
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        yAxisID: 'y1',
+                        _isAsset: true,
+                        _assetId: assetId,
+                        _rawValues: rawAligned,
+                        _indexedValues: indexed,
+                        _firstVal: firstVal,
+                        _meta: meta,
+                    });
+                });
+            }
+
+            const scalesConfig = {
+                x: {
+                    grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                    ticks: { color: '#64748b', maxRotation: 45, font: { size: 10 } }
+                },
+                y: {
+                    position: 'left',
+                    min: 0,
+                    max: 100,
+                    grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                    ticks: { color: '#64748b', font: { size: 11 } },
+                    title: { display: hasAssets, text: 'EERI (0–100)', color: '#94a3b8', font: { size: 11 } }
+                }
+            };
+
+            if (hasAssets) {
+                scalesConfig.y1 = {
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: { color: '#64748b', font: { size: 11 } },
+                    title: { display: true, text: 'Indexed (100 = start)', color: '#94a3b8', font: { size: 11 } }
+                };
             }
             
             eeriProChart = new Chart(ctx, {
@@ -6385,24 +6571,47 @@
                             borderWidth: 1,
                             padding: 12,
                             callbacks: {
+                                title: function(items) {
+                                    if (!items.length) return '';
+                                    return fullDateLabels[items[0].dataIndex] || labels[items[0].dataIndex];
+                                },
                                 label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
+                                    const ds = context.dataset;
+                                    const idx = context.dataIndex;
+                                    const val = context.parsed.y;
+                                    if (val === null || val === undefined) return null;
+
+                                    if (ds._isEeri) {
+                                        const band = ds._bands ? ds._bands[idx] : null;
+                                        const bandLabel = band ? (' — ' + band.charAt(0) + band.slice(1).toLowerCase() + ' Risk') : '';
+                                        return `${ds.label}: ${val.toFixed(1)}${bandLabel}`;
+                                    }
+
+                                    if (ds._isAsset) {
+                                        const meta = ds._meta;
+                                        const aid = ds._assetId;
+                                        const raw = ds._rawValues ? ds._rawValues[idx] : null;
+                                        const indexed = ds._indexedValues ? ds._indexedValues[idx] : val;
+                                        const lines = [];
+                                        if (raw !== null) {
+                                            const decimals = aid === 'eurusd' ? 4 : (meta.suffix === '%' ? 1 : 2);
+                                            lines.push(`${meta.label}: ${meta.unit}${raw.toFixed(decimals)}${meta.suffix}`);
+                                        }
+                                        if (indexed !== null) {
+                                            lines.push(`  Indexed: ${indexed.toFixed(1)}`);
+                                            const change = indexed - 100;
+                                            const sign = change >= 0 ? '+' : '';
+                                            lines.push(`  ${sign}${change.toFixed(1)}% from start`);
+                                        }
+                                        return lines;
+                                    }
+
+                                    return `${ds.label}: ${val.toFixed(1)}`;
                                 }
                             }
                         },
                     },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(51, 65, 85, 0.5)' },
-                            ticks: { color: '#64748b', maxRotation: 45, font: { size: 10 } }
-                        },
-                        y: {
-                            min: 0,
-                            max: 100,
-                            grid: { color: 'rgba(51, 65, 85, 0.5)' },
-                            ticks: { color: '#64748b', font: { size: 11 } }
-                        }
-                    }
+                    scales: scalesConfig
                 }
             });
         }
@@ -6423,6 +6632,26 @@
                     this.classList.add('active');
                     eeriProState.smoothing = this.dataset.smooth;
                     loadEeriHistoryChart(eeriProState.days, eeriProState.smoothing);
+                });
+            });
+
+            document.querySelectorAll('.eeri-asset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const assetId = this.dataset.asset;
+                    const idx = eeriProState.activeAssets.indexOf(assetId);
+                    if (idx >= 0) {
+                        eeriProState.activeAssets.splice(idx, 1);
+                        this.classList.remove('active');
+                        this.style.borderColor = '#334155';
+                    } else {
+                        eeriProState.activeAssets.push(assetId);
+                        this.classList.add('active');
+                        const color = this.style.getPropertyValue('--asset-color');
+                        if (color) this.style.borderColor = color;
+                    }
+                    if (eeriProState.data) {
+                        renderEeriHistoryChart(eeriProState.data, eeriProState.smoothing);
+                    }
                 });
             });
         }

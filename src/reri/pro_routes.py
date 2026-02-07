@@ -457,6 +457,29 @@ async def get_eeri_pro_history(
         max_value = max(values) if values else 0
         min_value = min(values) if values else 0
         
+        assets = {}
+        asset_queries = {
+            'brent': ("SELECT date, brent_price AS value FROM oil_price_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'brent_price'),
+            'ttf': ("SELECT date, ttf_price AS value FROM ttf_gas_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'ttf_price'),
+            'vix': ("SELECT date, vix_close AS value FROM vix_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'vix_close'),
+            'eurusd': ("SELECT date, rate AS value FROM eurusd_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'rate'),
+            'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'eu_storage_percent'),
+        }
+        try:
+            with get_cursor() as cur2:
+                for asset_id, (q, _col) in asset_queries.items():
+                    cur2.execute(q, (start_date, end_date))
+                    arows = cur2.fetchall()
+                    assets[asset_id] = [
+                        {
+                            'date': r['date'].isoformat() if hasattr(r['date'], 'isoformat') else str(r['date']),
+                            'value': float(r['value']) if r['value'] is not None else None,
+                        }
+                        for r in arows if r['value'] is not None
+                    ]
+        except Exception as ae:
+            logger.warning(f"Error fetching asset overlay data: {ae}")
+
         return {
             'success': True,
             'period': {
@@ -473,6 +496,7 @@ async def get_eeri_pro_history(
             },
             'data': data,
             'count': len(data),
+            'assets': assets,
         }
     except Exception as e:
         logger.error(f"Error fetching EERI Pro history: {e}")
