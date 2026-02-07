@@ -803,20 +803,41 @@
         .fh-pill.active { background:#334155; color:#f1f5f9; border-color:#60a5fa; }
         .fh-pill:hover { border-color:#60a5fa; }
         .fh-table { width:100%; border-collapse:collapse; font-size:12px; }
-        .fh-table th { text-align:left; padding:10px 12px; background:#1e293b; border-bottom:2px solid #334155; color:#94a3b8; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
-        .fh-table td { padding:8px 12px; border-bottom:1px solid rgba(51,65,85,0.5); vertical-align:middle; }
-        .fh-table tr { background:#0f172a; }
-        .fh-table tr:hover { background:#1e293b; }
-        .fh-status { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; }
+        .fh-table th { text-align:left; padding:10px 12px; background:#1e293b; border-bottom:2px solid #334155; color:#94a3b8; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; cursor:pointer; user-select:none; }
+        .fh-table th:hover { color:#e2e8f0; }
+        .fh-table td { padding:10px 12px; border-bottom:1px solid rgba(51,65,85,0.5); vertical-align:middle; }
+        .fh-table tr { background:#0f172a; transition:background 0.15s; }
+        .fh-table tr:hover { background:rgba(30,41,59,0.8); }
+        .fh-status { display:inline-block; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600; letter-spacing:0.3px; }
         .fh-status-active { background:rgba(34,197,94,0.15); color:#4ade80; }
         .fh-status-stale { background:rgba(245,158,11,0.15); color:#fbbf24; }
         .fh-status-dead { background:rgba(239,68,68,0.15); color:#f87171; }
         .fh-status-unknown { background:rgba(100,116,139,0.15); color:#94a3b8; }
-        .fh-bar { width:50px; height:5px; background:#334155; border-radius:3px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:4px; }
+        .fh-bar { width:60px; height:6px; background:#334155; border-radius:3px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:6px; }
         .fh-fill { height:100%; border-radius:3px; }
-        .fh-spark { display:flex; align-items:flex-end; gap:1px; height:20px; }
-        .fh-spark-bar { width:5px; background:#3b82f6; border-radius:1px; min-height:1px; }
+        .fh-spark { display:flex; align-items:flex-end; gap:2px; height:24px; }
+        .fh-spark-bar { width:6px; background:#3b82f6; border-radius:1px; min-height:1px; transition:height 0.2s; }
         .fh-num { text-align:right; font-variant-numeric:tabular-nums; }
+        .fh-src { font-weight:600; color:#f1f5f9; font-size:13px; margin-bottom:2px; }
+        .fh-meta { font-size:10px; color:#64748b; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+        .fh-tag { display:inline-block; padding:1px 6px; border-radius:4px; font-size:9px; font-weight:500; background:rgba(59,130,246,0.1); color:#60a5fa; }
+        .fh-region-tag { background:rgba(139,92,246,0.12); color:#a78bfa; }
+        .fh-geri-tag { background:rgba(34,197,94,0.12); color:#4ade80; }
+        .fh-quality-bar { width:40px; height:4px; background:#334155; border-radius:2px; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:4px; }
+        .fh-refresh-btn { padding:6px 14px; border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid #334155; background:rgba(59,130,246,0.1); color:#60a5fa; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
+        .fh-refresh-btn:hover { background:rgba(59,130,246,0.2); border-color:#60a5fa; }
+        .fh-refresh-btn.loading { opacity:0.6; pointer-events:none; }
+        .fh-detail-row { background:#1e293b !important; }
+        .fh-detail-cell { padding:16px 24px !important; }
+        .fh-detail-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+        .fh-detail-item { background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; }
+        .fh-detail-label { font-size:10px; color:#64748b; text-transform:uppercase; margin-bottom:4px; }
+        .fh-detail-value { font-size:14px; font-weight:600; color:#f1f5f9; }
+        .fh-summary-highlight { display:flex; align-items:center; gap:8px; }
+        .fh-summary-dot { width:8px; height:8px; border-radius:50%; }
+        .fh-summary-dot.active { background:#4ade80; }
+        .fh-summary-dot.stale { background:#fbbf24; }
+        .fh-summary-dot.dead { background:#f87171; }
         .fh-src { font-weight:600; color:#e2e8f0; font-size:12px; }
         .fh-meta { font-size:10px; color:#64748b; }
         .fh-highlight { color:#fbbf24; font-weight:600; }
@@ -1123,19 +1144,53 @@
 
             <!-- Feed Health Section -->
             <div class="section-content" id="section-feeds">
-                <div class="page-header">
-                    <h1 class="page-title">Feed Health Monitor</h1>
-                    <p class="page-subtitle">RSS feed efficiency, quality metrics, and alert conversion rates</p>
+                <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <h1 class="page-title">Feed Health Monitor</h1>
+                        <p class="page-subtitle">RSS feed efficiency, quality metrics, and alert conversion rates</p>
+                    </div>
+                    <button class="fh-refresh-btn" id="fhRefreshBtn" onclick="refreshFeedHealth()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                        Refresh
+                    </button>
                 </div>
 
                 <div class="stats-grid" id="feedSummaryGrid">
-                    <div class="stat-card"><div class="stat-label">Total Feeds</div><div class="stat-value" id="fh-total">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Active (24h)</div><div class="stat-value" style="color:#4ade80;" id="fh-active">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Stale (24-72h)</div><div class="stat-value" style="color:#fbbf24;" id="fh-stale">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Dead (72h+)</div><div class="stat-value" style="color:#f87171;" id="fh-dead">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Events (24h)</div><div class="stat-value" id="fh-events24h">--</div></div>
-                    <div class="stat-card"><div class="stat-label">Events (7d)</div><div class="stat-value" id="fh-events7d">--</div></div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Feeds</div>
+                        <div class="stat-value" id="fh-total">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label"><span class="fh-summary-highlight"><span class="fh-summary-dot active"></span> Active (24h)</span></div>
+                        <div class="stat-value" style="color:#4ade80;" id="fh-active">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label"><span class="fh-summary-highlight"><span class="fh-summary-dot stale"></span> Stale (24-72h)</span></div>
+                        <div class="stat-value" style="color:#fbbf24;" id="fh-stale">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label"><span class="fh-summary-highlight"><span class="fh-summary-dot dead"></span> Dead (72h+)</span></div>
+                        <div class="stat-value" style="color:#f87171;" id="fh-dead">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Events (24h)</div>
+                        <div class="stat-value" id="fh-events24h">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Events (7d)</div>
+                        <div class="stat-value" id="fh-events7d">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Alert Conv %</div>
+                        <div class="stat-value" id="fh-avgconv" style="color:#60a5fa;">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">GERI Drivers</div>
+                        <div class="stat-value" id="fh-geridrivers" style="color:#a78bfa;">--</div>
+                    </div>
                 </div>
+
+                <div id="fh-last-updated" style="text-align:right;font-size:11px;color:#64748b;margin-bottom:12px;"></div>
 
                 <div class="content-card">
                     <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
@@ -1145,13 +1200,15 @@
                             <button class="fh-pill" data-fh-filter="active" onclick="setFhFilter('active')">Active</button>
                             <button class="fh-pill" data-fh-filter="stale" onclick="setFhFilter('stale')">Stale</button>
                             <button class="fh-pill" data-fh-filter="dead" onclick="setFhFilter('dead')">Dead</button>
-                            <input type="text" id="fhSearch" placeholder="Search..." oninput="renderFeedsTable()" style="padding:6px 12px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:12px;width:140px;">
+                            <span style="width:1px;height:20px;background:#334155;"></span>
+                            <input type="text" id="fhSearch" placeholder="Search feeds..." oninput="renderFeedsTable()" style="padding:6px 12px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:12px;width:160px;">
                             <select id="fhSort" onchange="renderFeedsTable()" style="padding:6px 10px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:12px;">
                                 <option value="last_7d-desc">Events 7d (High)</option>
                                 <option value="last_24h-desc">Events 24h (High)</option>
                                 <option value="avg_severity_7d-desc">Avg Severity (High)</option>
                                 <option value="alert_conversion_pct-desc">Alert Conv% (High)</option>
                                 <option value="credibility-desc">Credibility (High)</option>
+                                <option value="geri_driver_count-desc">GERI Drivers (High)</option>
                                 <option value="hours_since_last-asc">Last Seen (Recent)</option>
                                 <option value="source_name-asc">Name (A-Z)</option>
                             </select>
@@ -1555,9 +1612,11 @@
 
         let feedHealthData = [];
         let fhFilter = 'all';
+        let fhExpandedRow = null;
 
         function setFhFilter(f) {
             fhFilter = f;
+            fhExpandedRow = null;
             document.querySelectorAll('.fh-pill').forEach(p => p.classList.toggle('active', p.dataset.fhFilter === f));
             renderFeedsTable();
         }
@@ -1573,13 +1632,46 @@
                 document.getElementById('fh-active').textContent = s.active || 0;
                 document.getElementById('fh-stale').textContent = s.stale || 0;
                 document.getElementById('fh-dead').textContent = s.dead || 0;
-                document.getElementById('fh-events24h').textContent = s.total_events_24h || 0;
-                document.getElementById('fh-events7d').textContent = s.total_events_7d || 0;
+                document.getElementById('fh-events24h').textContent = (s.total_events_24h || 0).toLocaleString();
+                document.getElementById('fh-events7d').textContent = (s.total_events_7d || 0).toLocaleString();
+
+                const totalConv = feedHealthData.reduce((sum, f) => sum + (f.alert_conversion_pct || 0), 0);
+                const avgConv = feedHealthData.length > 0 ? (totalConv / feedHealthData.length).toFixed(1) : '0';
+                document.getElementById('fh-avgconv').textContent = avgConv + '%';
+
+                const totalGeri = feedHealthData.reduce((sum, f) => sum + (f.geri_driver_count || 0), 0);
+                document.getElementById('fh-geridrivers').textContent = totalGeri.toLocaleString();
+
+                document.getElementById('fh-last-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+
                 renderFeedsTable();
             } catch (e) {
                 console.error('Feed health load error:', e);
                 document.getElementById('feedsTableContainer').innerHTML = '<div style="padding:40px;text-align:center;color:#f87171;">Failed to load feed health data</div>';
             }
+        }
+
+        async function refreshFeedHealth() {
+            const btn = document.getElementById('fhRefreshBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite;"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Refreshing...';
+            await loadFeedHealth();
+            btn.classList.remove('loading');
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg> Refresh';
+            showToast('Feed health data refreshed', 'success');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function toggleFeedDetail(idx) {
+            const sn = feedHealthData[idx] ? feedHealthData[idx].source_name : null;
+            fhExpandedRow = fhExpandedRow === sn ? null : sn;
+            renderFeedsTable();
         }
 
         function renderFeedsTable() {
@@ -1589,7 +1681,15 @@
 
             let feeds = feedHealthData.filter(f => {
                 if (fhFilter !== 'all' && f.status !== fhFilter) return false;
-                if (search && !f.source_name.toLowerCase().includes(search) && !(f.category_hint || '').toLowerCase().includes(search)) return false;
+                if (search) {
+                    const haystack = [
+                        f.source_name,
+                        (f.config && f.config.category_hint) || '',
+                        (f.config && f.config.region_hint) || '',
+                        ((f.config && f.config.tags) || []).join(' ')
+                    ].join(' ').toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
                 return true;
             });
 
@@ -1611,35 +1711,112 @@
 
             let html = `<table class="fh-table"><thead><tr>
                 <th>Source</th><th>Status</th><th>24h</th><th>7d</th><th>7d Trend</th>
-                <th>Avg Sev</th><th>Alert Conv%</th><th>Credibility</th><th>Last Seen</th>
+                <th>Avg Sev</th><th>Alert Conv%</th><th>Quality</th><th>Credibility</th><th>Last Seen</th>
             </tr></thead><tbody>`;
 
-            for (const f of feeds) {
+            for (let fi = 0; fi < feeds.length; fi++) {
+                const f = feeds[fi];
+                const origIdx = feedHealthData.indexOf(f);
                 const statusCls = 'fh-status-' + (f.status || 'unknown');
-                const sevColor = (f.avg_severity_7d || 0) >= 4 ? '#f87171' : (f.avg_severity_7d || 0) >= 3 ? '#fbbf24' : '#4ade80';
-                const convPct = (f.alert_conversion_pct || 0).toFixed(1);
+                const sevVal = Number(f.avg_severity_7d) || 0;
+                const sevColor = sevVal >= 4 ? '#f87171' : sevVal >= 3 ? '#fbbf24' : sevVal >= 2 ? '#60a5fa' : '#4ade80';
+                const sevLabel = sevVal >= 4 ? 'Critical' : sevVal >= 3 ? 'High' : sevVal >= 2 ? 'Medium' : 'Low';
+                const convPct = (Number(f.alert_conversion_pct) || 0).toFixed(1);
                 const convColor = parseFloat(convPct) >= 10 ? '#4ade80' : parseFloat(convPct) >= 5 ? '#fbbf24' : '#94a3b8';
-                const credPct = ((f.credibility || 0) * 100).toFixed(0);
-                const lastHrs = f.hours_since_last != null ? (f.hours_since_last < 1 ? '<1h' : Math.round(f.hours_since_last) + 'h') : 'Never';
-                const lastColor = (f.hours_since_last || 999) < 24 ? '#4ade80' : (f.hours_since_last || 999) < 72 ? '#fbbf24' : '#f87171';
+                const cred = Number(f.credibility) || 0;
+                const credPct = (cred * 100).toFixed(0);
+                const credColor = cred >= 0.85 ? '#4ade80' : cred >= 0.7 ? '#60a5fa' : cred >= 0.5 ? '#fbbf24' : '#94a3b8';
+                const hsl = f.hours_since_last;
+                const lastHrs = hsl != null ? (hsl < 1 ? '&lt;1h ago' : hsl < 24 ? Math.round(hsl) + 'h ago' : Math.round(hsl / 24) + 'd ago') : 'Never';
+                const lastColor = (hsl == null ? 999 : hsl) < 24 ? '#4ade80' : (hsl == null ? 999 : hsl) < 72 ? '#fbbf24' : '#f87171';
 
-                const spark = (f.daily_counts || []).map(d => typeof d === 'object' ? (d.count || 0) : d);
+                const qualScore = Number(f.avg_quality_score) || 0;
+                const qualPct = (qualScore * 100).toFixed(0);
+                const qualColor = qualScore >= 0.7 ? '#4ade80' : qualScore >= 0.5 ? '#fbbf24' : '#94a3b8';
+                const qualBarHtml = `<div class="fh-quality-bar"><div class="fh-fill" style="width:${qualPct}%;background:${qualColor};"></div></div><span style="color:${qualColor}">${qualPct}%</span>`;
+
+                const spark = (f.daily_counts || []).map(d => typeof d === 'object' ? (Number(d.count) || 0) : (Number(d) || 0));
                 const sparkMax = Math.max(...spark, 1);
-                const sparkHtml = spark.length > 0 ? `<div class="fh-spark">${spark.map(v => `<div class="fh-spark-bar" style="height:${Math.max(1, (v/sparkMax)*20)}px;"></div>`).join('')}</div>` : '<span style="color:#64748b;">--</span>';
+                const sparkHtml = spark.length > 0 ? `<div class="fh-spark" title="${spark.join(', ')}">${spark.map((v, i) => {
+                    const barColor = i === spark.length - 1 ? '#60a5fa' : '#3b82f6';
+                    return `<div class="fh-spark-bar" style="height:${Math.max(2, (v/sparkMax)*24)}px;background:${barColor};"></div>`;
+                }).join('')}</div>` : '<span style="color:#64748b;">--</span>';
 
-                const volBar = `<div class="fh-bar"><div class="fh-fill" style="width:${((f.last_7d||0)/maxVol)*100}%;background:#3b82f6;"></div></div>${f.last_7d || 0}`;
+                const vol7d = Number(f.last_7d) || 0;
+                const volBar = `<div class="fh-bar"><div class="fh-fill" style="width:${(vol7d/maxVol)*100}%;background:#3b82f6;"></div></div>${vol7d}`;
 
-                html += `<tr>
-                    <td><div class="fh-src">${f.source_name}</div><div class="fh-meta">${(f.config && f.config.category_hint) || f.category_hint || ''} &middot; w:${((f.config && f.config.weight) || f.weight || 0).toFixed(2)}</div></td>
+                const cfg = f.config || {};
+                const regionHint = escapeHtml(cfg.region_hint || '');
+                const categoryHint = escapeHtml(cfg.category_hint || cfg.signal_type || '');
+                const weight = (Number(cfg.weight) || 0).toFixed(2);
+                const geriCount = Number(f.geri_driver_count) || 0;
+                const safeName = escapeHtml(f.source_name);
+
+                let metaTags = '';
+                if (categoryHint) metaTags += `<span class="fh-tag">${categoryHint}</span>`;
+                if (regionHint) metaTags += `<span class="fh-tag fh-region-tag">${regionHint}</span>`;
+                if (geriCount > 0) metaTags += `<span class="fh-tag fh-geri-tag">GERI:${geriCount}</span>`;
+                metaTags += `<span style="color:#475569;">w:${weight}</span>`;
+
+                html += `<tr style="cursor:pointer;" onclick="toggleFeedDetail(${origIdx})">
+                    <td><div class="fh-src">${safeName}</div><div class="fh-meta">${metaTags}</div></td>
                     <td><span class="fh-status ${statusCls}">${(f.status||'unknown').toUpperCase()}</span></td>
-                    <td class="fh-num">${f.last_24h || 0}</td>
+                    <td class="fh-num">${Number(f.last_24h) || 0}</td>
                     <td class="fh-num">${volBar}</td>
                     <td>${sparkHtml}</td>
-                    <td class="fh-num" style="color:${sevColor}">${(f.avg_severity_7d || 0).toFixed(1)}</td>
+                    <td class="fh-num" style="color:${sevColor}" title="${sevLabel}">${sevVal.toFixed(1)}</td>
                     <td class="fh-num" style="color:${convColor}">${convPct}%</td>
-                    <td class="fh-num">${credPct}%</td>
+                    <td class="fh-num">${qualBarHtml}</td>
+                    <td class="fh-num"><div class="fh-bar" style="width:40px;"><div class="fh-fill" style="width:${credPct}%;background:${credColor};"></div></div><span style="color:${credColor}">${credPct}%</span></td>
                     <td style="color:${lastColor}">${lastHrs}</td>
                 </tr>`;
+
+                if (fhExpandedRow === f.source_name) {
+                    const totalEvt = Number(f.total_events) || 0;
+                    const evt30d = Number(f.last_30d) || 0;
+                    const hiSevPct = Number(f.high_severity_pct) || 0;
+                    const strongQual = Number(f.strong_quality_count) || 0;
+                    const alerts30d = Number(f.alerts_30d) || 0;
+                    const firstSeen = f.first_seen_at ? new Date(f.first_seen_at).toLocaleDateString() : 'Never';
+                    const feedUrl = escapeHtml(cfg.feed_url || 'N/A');
+
+                    html += `<tr class="fh-detail-row"><td colspan="10" class="fh-detail-cell">
+                        <div class="fh-detail-grid">
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">Total Events</div>
+                                <div class="fh-detail-value">${totalEvt.toLocaleString()}</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">Events (30d)</div>
+                                <div class="fh-detail-value">${evt30d.toLocaleString()}</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">High Severity %</div>
+                                <div class="fh-detail-value" style="color:${hiSevPct >= 20 ? '#f87171' : '#94a3b8'}">${hiSevPct.toFixed(1)}%</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">Strong Quality</div>
+                                <div class="fh-detail-value">${strongQual}</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">Alerts (30d)</div>
+                                <div class="fh-detail-value" style="color:#60a5fa;">${alerts30d}</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">GERI Drivers</div>
+                                <div class="fh-detail-value" style="color:#a78bfa;">${geriCount}</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">First Seen</div>
+                                <div class="fh-detail-value" style="font-size:12px;">${firstSeen}</div>
+                            </div>
+                            <div class="fh-detail-item">
+                                <div class="fh-detail-label">Feed URL</div>
+                                <div class="fh-detail-value" style="font-size:10px;word-break:break-all;color:#94a3b8;">${feedUrl}</div>
+                            </div>
+                        </div>
+                    </td></tr>`;
+                }
             }
 
             html += '</tbody></table>';
