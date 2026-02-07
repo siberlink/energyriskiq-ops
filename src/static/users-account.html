@@ -6486,6 +6486,15 @@
                         if (idx !== undefined) rawAligned[idx] = pt.value;
                     });
 
+                    let lastKnown = null;
+                    for (let i = 0; i < rawAligned.length; i++) {
+                        if (rawAligned[i] !== null) {
+                            lastKnown = rawAligned[i];
+                        } else if (lastKnown !== null) {
+                            rawAligned[i] = lastKnown;
+                        }
+                    }
+
                     let firstVal = null;
                     for (let i = 0; i < rawAligned.length; i++) {
                         if (rawAligned[i] !== null) { firstVal = rawAligned[i]; break; }
