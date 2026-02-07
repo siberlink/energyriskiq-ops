@@ -2449,6 +2449,48 @@ async def geri_updates_page():
     
     updates = [
         {
+            "date": "2026-02-07",
+            "version": "1.6",
+            "title": "News Signal Quality Scoring",
+            "description": "Introduced a comprehensive signal quality scoring algorithm for all ingested events. Each news item is now scored (0-100) based on source credibility, content freshness, entity specificity, energy relevance, and noise detection. Events are classified into quality bands (high/medium/low/noise) and automatically flagged as GERI drivers when signal strength and market relevance thresholds are met.",
+            "type": "enhancement"
+        },
+        {
+            "date": "2026-02-07",
+            "version": "1.5",
+            "title": "Expanded Ingestion Sources (24 Feeds)",
+            "description": "Expanded the ingestion pipeline from 14 to 24 high-quality feeds. New sources address critical gaps in OPEC coverage, maritime security intelligence, China energy demand, Norwegian gas supply, and broader energy trade flows. Each source is assigned a credibility tier and quality weight for signal scoring.",
+            "type": "enhancement"
+        },
+        {
+            "date": "2026-02-07",
+            "version": "1.5",
+            "title": "Expanded Event Taxonomy",
+            "description": "Broadened event classification beyond the original three categories (geopolitical, energy, supply_chain) to include thematic categories such as war, military, conflict, sanctions, strike, political, and diplomacy for more granular risk signal identification.",
+            "type": "enhancement"
+        },
+        {
+            "date": "2026-02-05",
+            "version": "1.4",
+            "title": "Dual Y-Axis Asset Overlays",
+            "description": "GERI chart now supports dual Y-axis market data overlays with indexed asset prices (Brent crude, TTF gas, VIX, EUR/USD). Overlay data is aligned to GERI index dates and forward-filled across weekends and holidays for visual continuity.",
+            "type": "enhancement"
+        },
+        {
+            "date": "2026-02-03",
+            "version": "1.3",
+            "title": "Plan-Tiered Pro Dashboard",
+            "description": "Launched the GERI Pro Dashboard module with progressive intelligence depth across subscription tiers. Includes real-time GERI display, component breakdown, asset stress panel, top risk drivers, historical intelligence, regime statistics, and daily AI-generated summaries.",
+            "type": "release"
+        },
+        {
+            "date": "2026-02-02",
+            "version": "1.3",
+            "title": "Daily Geo-Energy Intelligence Digest",
+            "description": "Added an AI-powered daily briefing that synthesizes alerts, index movements, and market context into actionable intelligence. Tiered features range from executive snapshots (Free) through regime classification and probability scoring (Trader) to full institutional intelligence with scenario forecasts (Enterprise).",
+            "type": "enhancement"
+        },
+        {
             "date": "2026-01-31",
             "version": "1.2",
             "title": "Public Interpretation",
@@ -2456,10 +2498,17 @@ async def geri_updates_page():
             "type": "enhancement"
         },
         {
+            "date": "2026-01-28",
+            "version": "1.1",
+            "title": "Historical Data & Backfill",
+            "description": "Introduced GERI history service with daily snapshots, monthly navigation, and automatic backfill capabilities. Pro users can access full historical data and trend analysis.",
+            "type": "enhancement"
+        },
+        {
             "date": "2026-01-14",
             "version": "1.0",
             "title": "GERI Launch",
-            "description": "Initial release of the Global Energy Risk Index. The index provides a daily composite measure of energy market risk computed from alert severity, regional concentration, and asset exposure.",
+            "description": "Initial release of the Global Energy Risk Index. The index provides a daily composite measure of energy market risk computed from alert severity, regional concentration, and asset exposure across seven weighted regions.",
             "type": "release"
         },
     ]
