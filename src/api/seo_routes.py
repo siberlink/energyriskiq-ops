@@ -2498,13 +2498,6 @@ async def geri_updates_page():
             "type": "enhancement"
         },
         {
-            "date": "2026-01-28",
-            "version": "1.1",
-            "title": "Historical Data & Backfill",
-            "description": "Introduced GERI history service with daily snapshots, monthly navigation, and automatic backfill capabilities. Pro users can access full historical data and trend analysis.",
-            "type": "enhancement"
-        },
-        {
             "date": "2026-01-14",
             "version": "1.0",
             "title": "GERI Launch",
