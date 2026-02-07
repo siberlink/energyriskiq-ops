@@ -999,3 +999,366 @@ That combination is extremely rare.
 ## Final Reality Check
 
 If you implement this stack, GERI becomes closer to institutional geopolitical risk models than typical SaaS dashboards.
+
+---
+
+## PART 9 — GERI Machine Learning Training Pipeline
+
+### Goal
+
+Learn (a) event → risk score mapping and (b) event/regime → asset reaction probabilities, using historical GERI + asset data + labeled event clusters.
+
+---
+
+### Data Objects You Train On
+
+#### A. EventCluster (from dedup layer)
+
+- event_id, timestamp, region_cluster, event_domain, subcategory
+- severity_raw, confidence, persistence_estimate
+- text_features (embedding + keywords + entities)
+- supply_transit_demand_policy_war indicators
+- chokepoint_flag, producer_flag, LNG_flag
+
+#### B. Market Context (daily features)
+
+- GERI_t, ΔGERI_1D, ΔGERI_7D, momentum, band
+- Asset returns/volatility features: r_brent, r_ttf, r_vix, r_eurusd
+- Rolling vol (e.g., 7D/30D), rolling corr, lag metrics
+- EU Storage context: level %, weekly delta, seasonal percentile
+
+---
+
+### Labels (What You Predict)
+
+Two model families:
+
+#### Model Family 1 — Risk Impact on GERI (event → ΔGERI)
+
+- Label: `y_risk = ΔGERI_{t+1}` (or 1–3 day horizon)
+- Optional: classification label `risk_jump = 1 if ΔGERI_{t+1} >= threshold`
+
+#### Model Family 2 — Cross-Asset Reaction (event/regime → asset move probability)
+
+For each asset:
+- `y_up = 1 if r_asset_{t+h} > +k`
+- `y_down = 1 if r_asset_{t+h} < -k`
+- `y_bigmove = 1 if |r_asset_{t+h}| > k_big`
+- `y_vol_spike = 1 if vol_{t+h} > vol_threshold`
+
+Horizons: h ∈ {1D, 3D, 7D}
+
+---
+
+### Training Flow
+
+**1. Ingest & Version Data**
+Freeze daily snapshots (features + labels) with a dataset version id.
+
+**2. Event Labeling / Alignment**
+Align EventClusters to trading days:
+`event_day = nearest_market_day(timestamp)`
+For multi-day events, create "event active" features.
+
+**3. Feature Engineering**
+Use stable, explainable features:
+- Event domain/region, severity, confidence
+- Regime state at event time
+- Recent market state (rolling vol, corr, lag)
+- Storage buffer context
+
+**4. Split Strategy (time series)**
+Walk-forward split (no random shuffling):
+- Train: oldest 70%
+- Validate: next 15%
+- Test: most recent 15%
+
+**5. Model Choice (pragmatic)**
+Start with:
+- Regularized logistic regression / gradient boosting for probabilities
+- Linear/robust regression for ΔGERI
+- Add calibration (see below)
+
+**6. Calibration**
+Probability outputs must be calibrated:
+Platt scaling or isotonic calibration per asset/horizon.
+
+**7. Model Registry**
+Store:
+- Model version, feature schema version, training window
+- Performance metrics, calibration params
+
+**8. Daily Inference**
+As new clusters arrive + daily asset close prints:
+- Compute features
+- Run inference
+- Cache outputs in `signals_daily`
+
+---
+
+## PART 10 — Backtesting & Validation Framework
+
+### Goal
+
+Prove (and continuously verify) that:
+- GERI + signals lead or explain asset moves better than naive baselines
+- Alert triggers reduce false positives while catching real stress
+
+---
+
+### What You Backtest
+
+#### A. Predictive Skill (event → asset move)
+
+Metrics per asset and horizon:
+- AUC (classification skill)
+- Brier score (probability accuracy)
+- Calibration curves (reliability)
+- Precision/Recall at top-k alerts
+
+Baselines to beat:
+- "No info" baseline (historical average probability)
+- Simple heuristic baseline (e.g., only use severity threshold)
+
+#### B. Lead/Lag Validity (GERI vs assets)
+
+Test whether:
+- `corr(g_t, r_{t+L})` has stable peaks by regime
+- Divergence Z-scores predict mean reversion or future moves
+
+#### C. Regime Engine Validation
+
+Measure:
+- How often regimes correspond to elevated asset vol
+- Regime transition precision (did "War Shock" coincide with vol spikes?)
+
+#### D. Alerting Performance
+
+You want:
+- High true positive rate for big moves / volatility spikes
+- Low alert fatigue
+
+Metrics:
+- Alert hit-rate: % alerts followed by event outcome within h days
+- False positive rate
+- Mean time to signal (how early before move)
+- Alerts per week per user (fatigue proxy)
+
+---
+
+### Backtest Mechanics (time-consistent)
+
+Use walk-forward simulation:
+
+```
+For each day t in backtest window:
+    Use only data available up to t
+    Compute features, infer probabilities, compute divergence metrics
+    Generate alerts (using your thresholds)
+    Observe outcomes at t+h
+    Log results
+```
+
+---
+
+### Reporting Outputs (marketing-ready)
+
+Generate weekly/monthly:
+- "In high-risk regimes, model caught X% of top-quartile TTF moves with Y alerts/week"
+- "Calibration: predicted 60% buckets realized at ~58–62%"
+- "Lead times: median signal lead = Z days for TTF"
+
+---
+
+## PART 11 — Real-Time Alert Prioritization Engine
+
+### Goal
+
+When multiple signals trigger, decide:
+- What is most important
+- Who should get it
+- How urgently
+- How often
+
+---
+
+### Inputs (streaming + daily)
+
+- EventClusters (severity/confidence/persistence)
+- Current GERI level + momentum
+- Cross-asset probabilities (per asset/horizon)
+- Divergence score per asset
+- Regime state + transition markers
+- User plan + user preferences (assets/regions)
+
+---
+
+### Alert Priority Score (core formula)
+
+For a candidate alert `a`:
+
+```
+Priority(a) = 100 * Severity(a) * Confidence(a) * Urgency(a) * Relevance(user,a) * Novelty(a)
+```
+
+Where:
+
+**Severity(a)** (0–1)
+From EventCluster severity and/or predicted big move probability.
+
+**Confidence(a)** (0–1)
+Dedup confidence + model confidence + source credibility.
+
+**Urgency(a)** (0–1)
+Higher if:
+- Regime just escalated
+- Momentum spike
+- Predicted horizon is near-term (1D > 7D)
+
+**Relevance(user,a)** (0–1)
+- Matches user's selected assets/regions
+- Plan-based (Pro gets multi-asset systemic alerts)
+
+**Novelty(a)** (0–1)
+Avoid repeats:
+- Downweight if similar alert sent in last N hours
+- Downweight if same cluster id already alerted
+
+---
+
+### Alert Classes (what you send)
+
+**Regime Shift Alerts**
+"GERI entered High/Severe"
+Always high priority.
+
+**Divergence Alerts**
+"TTF decoupling from risk"
+Higher priority if |D| >= 2 and confidence high.
+
+**Cross-Asset Confirmation Alerts**
+"Risk now systemic: VIX + Brent confirming"
+Higher priority when C_total rises quickly.
+
+**Event Impact Alerts**
+"Chokepoint threat with high confidence"
+Higher priority if persistence high.
+
+---
+
+### Rate Limits & Fatigue Controls
+
+Per user:
+- max_alerts_per_day by plan (Free: none; Personal: low; Pro: higher)
+- Cool-down per alert class (e.g., divergence: 12h)
+- Digest fallback: if too many alerts, send one "stacked digest"
+
+---
+
+### Delivery Policy by Plan
+
+| Plan | Policy |
+|---|---|
+| Free | No alerts |
+| Personal | Daily digest only (top 1–3) |
+| Trader | Real-time for regime shifts + top priority divergence |
+| Pro | Real-time for all classes + confirmations + response strength |
+| Enterprise | Real-time + custom rules + team routing |
+
+---
+
+## PART 12 — User-Facing Risk Explainability Layer
+
+### Goal
+
+Make every number feel:
+- Credible
+- Interpretable
+- Action-oriented (without financial advice)
+- Not giving away your secret sauce
+
+---
+
+### Explainability "4-Box" UI (recommended)
+
+Every alert or chart state should render these:
+
+**What**
+"GERI is High (72/100), accelerating"
+
+**Why**
+"Main drivers: Transit risk + Sanctions escalation (High confidence)"
+Use taxonomy + clusters, not raw sources.
+
+**So What**
+"Historically in this regime, TTF reacts within 1–5 days"
+"Market confirmation: Mixed/Strong"
+
+**What to Watch**
+"Watch TTF + Freight for confirmation; storage buffer moderates downside risk"
+
+---
+
+### Explainability Objects (storeable)
+
+For each day:
+- `explain_summary`: 2–4 bullets
+- `top_drivers`: (domain, region_cluster, severity_band)
+- `market_state`: (regime, confirmation score label)
+- `asset_notes`: per asset (lead/lag, divergence status)
+- `confidence_badge`: Low/Med/High
+
+---
+
+### Confidence Badge Logic
+
+```
+ConfidenceBadge = f(
+    source_diversity,
+    dedup_confidence,
+    model_calibration_quality,
+    agreement_across_assets
+)
+```
+
+Simple rules:
+- **High** if: cluster confidence high AND calibration stable AND confirmation score strong
+- **Medium** if mixed
+- **Low** if single-source / contradictory markets
+
+---
+
+### "Don't Reveal Too Much" Rule
+
+Explain in layers:
+- **Free/Personal:** "Why" is category-level
+- **Trader:** Adds lag + divergence labels
+- **Pro:** Adds predicted response + confirmation score mechanics (still not full formulas)
+- **Enterprise:** Can show more, optionally
+
+---
+
+### Template Library (deterministic)
+
+Use templates bound to:
+- Regime transitions
+- Divergence triggers
+- Confirmation changes
+- Event clusters
+
+Output should always be:
+- Short
+- Structured
+- Consistent tone
+- No hype
+
+---
+
+## How All Four Systems Fit Together
+
+```
+Training Pipeline    → produces calibrated probabilities + confidence
+Backtesting          → proves reliability + sets thresholds
+Alert Engine         → decides what matters now and prevents fatigue
+Explainability Layer → turns it into trust and retention
+```
