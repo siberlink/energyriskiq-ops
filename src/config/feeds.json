@@ -9,7 +9,7 @@
   },
   {
     "source_name": "Reuters Energy",
-    "feed_url": "https://www.reutersagency.com/feed/?taxonomy=best-sectors&post_type=best&best-sectors=commodities-energy",
+    "feed_url": "https://news.google.com/rss/search?q=when:24h+allinurl:reuters.com/business/energy&ceid=US:en&hl=en-US&gl=US",
     "category_hint": "energy",
     "signal_type": "market",
     "weight": 1.0
@@ -68,57 +68,6 @@
     "weight": 0.7
   },
   {
-    "source_name": "ICIS Energy News",
-    "feed_url": "https://icisenergynews.podomatic.com/rss2.xml",
-    "category_hint": "energy",
-    "region_hint": "Europe",
-    "signal_type": "gas_storage",
-    "weight": 0.9,
-    "tags": ["gas_storage", "lng", "ttf", "winter_risk"]
-  },
-  {
-    "source_name": "EU Energy Commission",
-    "feed_url": "https://energy.ec.europa.eu/news_en/rss.xml",
-    "category_hint": "energy",
-    "region_hint": "Europe",
-    "signal_type": "regulation",
-    "weight": 0.9,
-    "tags": ["gas_storage", "eu_policy", "energy_security"]
-  },
-  {
-    "source_name": "Energy Intelligence",
-    "feed_url": "https://www.energyintel.com/rss-feed",
-    "category_hint": "energy",
-    "region_hint": "Europe",
-    "signal_type": "market",
-    "weight": 0.85,
-    "tags": ["gas_storage", "lng", "european_gas"]
-  },
-  {
-    "source_name": "Oil & Gas Journal",
-    "feed_url": "https://www.ogj.com/rss",
-    "category_hint": "energy",
-    "signal_type": "market",
-    "weight": 0.8,
-    "tags": ["gas_storage", "lng", "infrastructure"]
-  },
-  {
-    "source_name": "OPEC News",
-    "feed_url": "https://www.opec.org/opec_web/en/news.rss",
-    "category_hint": "energy",
-    "signal_type": "market",
-    "weight": 1.0,
-    "tags": ["opec", "production_policy", "supply"]
-  },
-  {
-    "source_name": "OPEC Press Releases",
-    "feed_url": "https://www.opec.org/opec_web/en/pressreleases.rss",
-    "category_hint": "energy",
-    "signal_type": "market",
-    "weight": 0.95,
-    "tags": ["opec", "production_cuts", "supply"]
-  },
-  {
     "source_name": "Maritime Executive",
     "feed_url": "https://maritime-executive.com/articles.rss",
     "category_hint": "supply_chain",
@@ -135,13 +84,12 @@
     "tags": ["tanker", "lng_shipping", "freight", "maritime"]
   },
   {
-    "source_name": "Norwegian Offshore Directorate",
-    "feed_url": "https://www.sodir.no/en/whats-new/news/rss/",
-    "category_hint": "energy",
-    "region_hint": "Europe",
-    "signal_type": "market",
-    "weight": 0.9,
-    "tags": ["norway", "gas_supply", "north_sea", "production"]
+    "source_name": "Hellenic Shipping News — Shipping",
+    "feed_url": "https://www.hellenicshippingnews.com/category/shipping-news/feed/",
+    "category_hint": "supply_chain",
+    "signal_type": "shipping",
+    "weight": 0.8,
+    "tags": ["shipping", "freight", "chokepoint", "red_sea", "suez"]
   },
   {
     "source_name": "Rigzone",
@@ -152,29 +100,64 @@
     "tags": ["upstream", "drilling", "production", "infrastructure"]
   },
   {
-    "source_name": "Xinhua — Business/Energy",
-    "feed_url": "http://www.xinhuanet.com/english/rss/chinaview/business.xml",
+    "source_name": "OPEC & Oil Markets",
+    "feed_url": "https://news.google.com/rss/search?q=OPEC+oil+production+OR+oil+supply+cut&ceid=US:en&hl=en-US&gl=US",
+    "category_hint": "energy",
+    "signal_type": "market",
+    "weight": 0.95,
+    "tags": ["opec", "production_policy", "supply"]
+  },
+  {
+    "source_name": "Offshore Energy",
+    "feed_url": "https://www.offshore-energy.biz/feed/",
+    "category_hint": "energy",
+    "region_hint": "Europe",
+    "signal_type": "infrastructure",
+    "weight": 0.85,
+    "tags": ["offshore", "lng", "north_sea", "production"]
+  },
+  {
+    "source_name": "gCaptain Maritime",
+    "feed_url": "https://gcaptain.com/feed/",
+    "category_hint": "supply_chain",
+    "signal_type": "shipping",
+    "weight": 0.85,
+    "tags": ["maritime_security", "shipping", "chokepoint", "tanker"]
+  },
+  {
+    "source_name": "Natural Gas Intelligence",
+    "feed_url": "https://www.naturalgasintel.com/feed/",
+    "category_hint": "energy",
+    "region_hint": "North America",
+    "signal_type": "gas_storage",
+    "weight": 0.9,
+    "tags": ["gas_storage", "lng", "natural_gas", "ttf"]
+  },
+  {
+    "source_name": "TASS World News",
+    "feed_url": "https://tass.com/rss/v2.xml",
+    "category_hint": "geopolitical",
+    "region_hint": "Russia",
+    "signal_type": "conflict",
+    "weight": 0.75,
+    "tags": ["russia", "sanctions", "geopolitical", "energy_security"]
+  },
+  {
+    "source_name": "China Dialogue Energy",
+    "feed_url": "https://chinadialogue.net/en/energy/feed/",
     "category_hint": "energy",
     "region_hint": "Asia",
     "signal_type": "market",
-    "weight": 0.85,
+    "weight": 0.8,
     "tags": ["china", "demand", "lng", "industrial"]
   },
   {
-    "source_name": "China Daily — Business",
-    "feed_url": "http://www.chinadaily.com.cn/rss/business_rss.xml",
+    "source_name": "ICIS Energy News",
+    "feed_url": "https://icisenergynews.podomatic.com/rss2.xml",
     "category_hint": "energy",
-    "region_hint": "Asia",
-    "signal_type": "market",
-    "weight": 0.8,
-    "tags": ["china", "demand", "industrial", "trade"]
-  },
-  {
-    "source_name": "Hellenic Shipping News — Shipping",
-    "feed_url": "https://www.hellenicshippingnews.com/category/shipping-news/feed/",
-    "category_hint": "supply_chain",
-    "signal_type": "shipping",
-    "weight": 0.8,
-    "tags": ["shipping", "freight", "chokepoint", "red_sea", "suez"]
+    "region_hint": "Europe",
+    "signal_type": "gas_storage",
+    "weight": 0.9,
+    "tags": ["gas_storage", "lng", "ttf", "winter_risk"]
   }
 ]
