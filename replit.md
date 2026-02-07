@@ -39,6 +39,38 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Production Hardening:** Includes preflight checks, health checks, user allowlisting, and circuit breakers.
 - **Observability:** Tracks engine runs and provides internal API endpoints for monitoring.
 
+## Planned Features (High Importance)
+
+### Source Weighting Calibration Model
+**Priority:** High | **Status:** Waiting for data (need 60+ days of scored events and daily GERI values) | **Target:** When production DB has sufficient history
+
+Adaptive source weighting system that calibrates feed weights based on measured contribution to predictive power, uniqueness, timeliness, and false-positive control.
+
+**Step A — Per-Source Quality Score (0-1):**
+`Q_s = 0.35*Cred_s + 0.25*Uniq_s + 0.20*Timely_s + 0.20*Impact_s`
+- Cred_s: Source credibility (institutional > trade > general) — already in `signal_quality.py`
+- Uniq_s: % of items not semantically duplicated within 24h — needs dedup tracker
+- Timely_s: Median time-to-first-report vs other sources on same event cluster
+- Impact_s: Correlation between source-driven events and subsequent GERI delta / asset moves
+
+**Step B — Softmax Normalization:**
+`w_s = (Q_s ^ γ) / Σ(Q_j ^ γ)` with γ = 1.5 (gentle sharpening)
+
+**Step C — Guardrails:**
+- Weight floor: w_s >= 0.03 for Tier 0/1 sources
+- Weight cap: w_s <= 0.12 for any single source
+- Region cap: no region cluster exceeds 0.35 of total weight
+
+**Step D — Noise Tax:**
+`w_s = w_s * (Precision_s ^ η)` with η = 0.7 (penalizes high-volume low-precision sources)
+
+**Phased Implementation Plan:**
+1. Phase 1 (after 30 days): Implement Steps B+C+D using existing SOURCE_CREDIBILITY as Q_s. Add title-based Jaccard similarity for Uniq_s. Track per-source precision.
+2. Phase 2 (after 60 days): Add Timely_s (event clustering + time-to-report). Add Impact_s (GERI/asset correlation analysis).
+
+**Key Dependencies:** Sufficient scored event history, daily GERI time-series, asset price alignment.
+**Files to modify:** `src/ingest/signal_quality.py`, `src/config/feeds.json`, new `src/ingest/source_calibration.py`
+
 ## External Dependencies
 
 - **Database:** PostgreSQL
