@@ -1601,32 +1601,32 @@ async def geri_page(request: Request):
             trend_sign = "+" if trend_val > 0 else ""
             trend_display = f'<div class="geri-trend" style="color: #4ade80;">7-Day Trend: {trend_label} ({trend_sign}{trend_val:.0f})</div>'
         
-        drivers_html = ""
-        for driver in geri.top_drivers_detailed[:5]:
-            tag_parts = []
-            if driver.region:
-                tag_parts.append(driver.region)
-            if driver.category:
-                cat_formatted = driver.category.replace('_', ' ').title()
-                tag_parts.append(cat_formatted)
-            tag_line = ' · '.join(tag_parts)
-            if tag_line:
-                drivers_html += f'<li><span class="driver-tag">{tag_line}</span><br>{driver.headline}</li>'
-            else:
-                drivers_html += f'<li>{driver.headline}</li>'
-        if not drivers_html:
-            drivers_html = '<li>No significant drivers detected</li>'
-        
-        regions_html = ""
-        region_labels = ["Primary", "Secondary", "Tertiary"]
-        for i, region in enumerate(geri.top_regions[:3]):
-            label = region_labels[i] if i < len(region_labels) else ""
-            regions_html += f'<li>{region} <span class="region-label">({label})</span></li>'
-        if not regions_html:
-            regions_html = '<li>No regional hotspots</li>'
-        
+        geo_cats = ['geopolitical', 'war', 'military', 'conflict', 'sanctions']
+        energy_cats = ['energy', 'supply_chain', 'supply_disruption', 'strike']
+        market_cats = ['political', 'diplomacy']
+        geo_count = 0
+        energy_count = 0
+        market_count = 0
+        for driver in (geri.top_drivers_detailed or []):
+            cat = (driver.category or '').lower()
+            sev = (getattr(driver, 'severity', '') or '').lower()
+            if any(g in cat for g in geo_cats):
+                geo_count += 1
+            if any(e in cat for e in energy_cats):
+                energy_count += 1
+            if any(m in cat for m in market_cats) or sev == 'high':
+                market_count += 1
+
+        def _level_for(count):
+            if count >= 3: return ('High', 'level-high')
+            if count >= 1: return ('Medium', 'level-medium')
+            return ('Low', 'level-low')
+
+        geo_text, geo_cls = _level_for(geo_count)
+        ene_text, ene_cls = _level_for(energy_count)
+        mkt_text, mkt_cls = _level_for(market_count)
+
         top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers_detailed[:5]] if geri.top_drivers_detailed else []
-        # Use stored interpretation (unique per day), fallback to generation only if missing
         interpretation = getattr(geri, 'interpretation', None) or getattr(geri, 'explanation', None)
         if not interpretation:
             interpretation = generate_geri_interpretation(
@@ -1636,7 +1636,9 @@ async def geri_page(request: Request):
                 top_regions=geri.top_regions[:3] if geri.top_regions else [],
                 index_date=geri.computed_at
             )
-        interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
+        interp_words = interpretation.split()
+        interp_preview = ' '.join(interp_words[:30])
+        interp_has_more = len(interp_words) > 30
         
         delay_badge = '<div class="geri-delay-badge">24h delayed • Real-time access with subscription</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time data</div>'
         
@@ -1648,25 +1650,39 @@ async def geri_page(request: Request):
             </div>
             <div class="geri-value" style="font-size: 1.5rem; font-weight: bold; color: {band_color}; margin: 0.5rem 0;">{geri.value} / 100 ({geri.band})</div>
             <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
-            {trend_display}
             <div class="geri-date">Date Computed: {geri.computed_at}</div>
+            {delay_badge}
         </div>
-        
-        <div class="geri-sections">
-            <div class="geri-section">
-                <h2 class="section-header-blue">Primary Risk Drivers:</h2>
-                <ul class="geri-list">{drivers_html}</ul>
-                <p class="source-attribution">(Based on recent EnergyRiskIQ alerts) <a href="/alerts">View alerts &rarr;</a></p>
+
+        <div class="geri-chart-section">
+            <h3 style="color: #e2e8f0; margin-bottom: 12px;">GERI History <span style="color:#9ca3af;">(14 days)</span></h3>
+            <div style="position:relative; height:220px; background:#0f172a; border:1px solid #334155; border-radius:0.75rem; padding:16px;">
+                <canvas id="geriPublicChart"></canvas>
             </div>
-            
-            <div class="geri-section">
-                <h2 class="section-header-blue">Top Regions Under Pressure:</h2>
-                <ul class="geri-list regions-list">{regions_html}</ul>
+            <p style="font-size:0.75rem; color:#6b7280; margin-top:8px; text-align:center;">Brent Oil overlay shown by default</p>
+        </div>
+
+        <div class="geri-simplified-drivers">
+            <div class="geri-simplified-driver-card">
+                <div class="driver-icon-pub">⚔️</div>
+                <div class="driver-label-pub">Geopolitical Risk</div>
+                <div class="driver-level-pub {geo_cls}">{geo_text}</div>
+            </div>
+            <div class="geri-simplified-driver-card">
+                <div class="driver-icon-pub">⛽</div>
+                <div class="driver-label-pub">Energy Supply</div>
+                <div class="driver-level-pub {ene_cls}">{ene_text}</div>
+            </div>
+            <div class="geri-simplified-driver-card">
+                <div class="driver-icon-pub">📊</div>
+                <div class="driver-label-pub">Market Stress</div>
+                <div class="driver-level-pub {mkt_cls}">{mkt_text}</div>
             </div>
         </div>
-        
-        <div class="geri-interpretation">
-            {interpretation_html}
+
+        <div class="geri-interpretation-preview-pub">
+            <div style="color:#60a5fa; font-weight:600; margin-bottom:8px;">GERI Interpretation</div>
+            <p style="color:#d1d5db; font-style:italic;">"{interp_preview}{'...' if interp_has_more else ''}"</p>
         </div>
         
         <div class="geri-public-note">
@@ -1677,8 +1693,6 @@ async def geri_page(request: Request):
             <p class="note-content">This is the public <strong>24h delayed</strong> index. To see the <strong>Real-Time GERI</strong> including Charts, Momentum, History, Energy Assets and more... <a href="/users" class="note-cta">create your account today</a> and get started.</p>
             <p class="note-tagline">GERI will tell you whether the world is actually becoming more dangerous — or just noisier!</p>
         </div>
-        
-        {delay_badge}
         """
     
     # Weekly Snapshot Section
@@ -2261,6 +2275,41 @@ async def geri_page(request: Request):
                 padding: 3rem;
                 color: #9ca3af;
             }}
+            .geri-simplified-drivers {{
+                display: flex;
+                gap: 1rem;
+                margin: 1.5rem 0;
+                justify-content: center;
+            }}
+            .geri-simplified-driver-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem 1rem;
+                text-align: center;
+                flex: 1;
+                max-width: 180px;
+            }}
+            .driver-icon-pub {{ font-size: 1.5rem; margin-bottom: 0.5rem; }}
+            .driver-label-pub {{ color: #e2e8f0; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }}
+            .driver-level-pub {{ font-size: 0.9rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 6px; display: inline-block; }}
+            .driver-level-pub.level-high {{ color: #fca5a5; background: rgba(239,68,68,0.15); }}
+            .driver-level-pub.level-medium {{ color: #fcd34d; background: rgba(234,179,8,0.15); }}
+            .driver-level-pub.level-low {{ color: #86efac; background: rgba(34,197,94,0.15); }}
+            .geri-interpretation-preview-pub {{
+                background: rgba(96, 165, 250, 0.05);
+                border-left: 3px solid #3b82f6;
+                border-radius: 0 8px 8px 0;
+                padding: 1.25rem;
+                margin: 1.5rem 0;
+            }}
+            .geri-chart-section {{
+                margin: 1.5rem 0;
+            }}
+            @media (max-width: 600px) {{
+                .geri-simplified-drivers {{ flex-direction: column; align-items: center; }}
+                .geri-simplified-driver-card {{ max-width: 100%; width: 100%; }}
+            }}
         </style>
     </head>
     <body>
@@ -2287,6 +2336,62 @@ async def geri_page(request: Request):
             </div>
         </main>
         {render_footer()}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script>
+        (async function() {{
+            const canvas = document.getElementById('geriPublicChart');
+            if (!canvas) return;
+            try {{
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const toParam = yesterday.toISOString().split('T')[0];
+                const resp = await fetch('/api/v1/indices/geri?from=2026-01-01&to=' + toParam);
+                if (!resp.ok) return;
+                const result = await resp.json();
+                let allData = result.data || [];
+                if (allData.length > 14) allData = allData.slice(-14);
+                if (allData.length === 0) return;
+                const labels = allData.map(d => d.date ? d.date.substring(5) : '');
+                const values = allData.map(d => d.value);
+                const bandColors = {{ 'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316', 'CRITICAL': '#ef4444' }};
+                const pointColors = allData.map(d => bandColors[d.band] || '#6b7280');
+                new Chart(canvas, {{
+                    type: 'line',
+                    data: {{
+                        labels: labels,
+                        datasets: [{{
+                            label: 'GERI',
+                            data: values,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59,130,246,0.1)',
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: pointColors,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            fill: true,
+                            yAxisID: 'y'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{ legend: {{ display: false }} }},
+                        scales: {{
+                            y: {{
+                                min: 0, max: 100,
+                                grid: {{ color: 'rgba(75,85,99,0.3)' }},
+                                ticks: {{ color: '#9ca3af' }}
+                            }},
+                            x: {{
+                                grid: {{ display: false }},
+                                ticks: {{ color: '#9ca3af', maxRotation: 45 }}
+                            }}
+                        }}
+                    }}
+                }});
+            }} catch(e) {{ console.error('Chart error:', e); }}
+        }})();
+        </script>
     </body>
     </html>
     """

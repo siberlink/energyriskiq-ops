@@ -4572,17 +4572,28 @@
             if (!contentDiv) return;
             
             try {
+                let result;
                 const endpoint = cfg.useDelayedData ? '/api/v1/indices/geri/public' : '/api/v1/indices/geri/latest';
                 const headers = cfg.useDelayedData ? {} : { 'X-User-Token': sessionToken };
                 const response = await fetch(endpoint, { headers });
                 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch GERI data');
+                if (response.ok) {
+                    result = await response.json();
                 }
                 
-                const result = await response.json();
+                if (!result || !result.success || !result.data) {
+                    if (!cfg.useDelayedData) {
+                        const fallbackResp = await fetch('/api/v1/indices/geri/public');
+                        if (fallbackResp.ok) {
+                            const fallbackResult = await fallbackResp.json();
+                            if (fallbackResult.success && fallbackResult.data) {
+                                result = fallbackResult;
+                            }
+                        }
+                    }
+                }
                 
-                if (!result.success || !result.data) {
+                if (!result || !result.success || !result.data) {
                     contentDiv.innerHTML = '<div class="geri-display-card"><p style="color: #9ca3af;">No GERI data available yet.</p></div>';
                     return;
                 }

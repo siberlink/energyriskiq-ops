@@ -47,21 +47,32 @@ async def get_geri_latest():
     """
     check_enabled()
     
-    result = get_latest_index()
+    try:
+        result = get_latest_index()
+    except Exception as e:
+        logger.error(f"Error fetching latest GERI index: {e}")
+        return {
+            'success': False,
+            'message': 'Database error fetching GERI data',
+            'data': None,
+        }
     
     if not result:
-        raise HTTPException(
-            status_code=404,
-            detail="No GERI index data available. Run compute or backfill first."
-        )
+        return {
+            'success': False,
+            'message': 'No GERI data available yet',
+            'data': None,
+        }
     
     if result.get('date'):
         result['date'] = result['date'].isoformat() if isinstance(result['date'], date) else result['date']
     if result.get('computed_at'):
         result['computed_at'] = result['computed_at'].isoformat() if isinstance(result['computed_at'], datetime) else result['computed_at']
     
-    components = result.get('components', {})
-    if isinstance(components, str):
+    components = result.get('components')
+    if components is None:
+        components = {}
+    elif isinstance(components, str):
         import json as _json
         try:
             components = _json.loads(components)
