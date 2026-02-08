@@ -1076,13 +1076,10 @@ async def daily_alerts_page(date_str: str, request: Request):
         """
     
     def render_alert_card_compact(card):
-        """Compact card for collapsed alerts - reduces duplicate content blocks."""
+        """Compact card for collapsed alerts."""
         severity = card.get('severity', 3)
         severity_label = get_severity_label(severity)
-        # Truncate summary to ~100 chars for compact view
         summary = card.get('public_summary', '')
-        if len(summary) > 120:
-            summary = summary[:117] + '...'
         return f"""
         <article class="alert-card alert-card-compact severity-{severity}">
             <div class="alert-header-compact">

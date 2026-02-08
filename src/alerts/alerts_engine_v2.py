@@ -205,6 +205,10 @@ def create_alert_event(
     Returns:
         Tuple of (event_id or None, was_skipped_duplicate)
     """
+    if severity < 5:
+        logger.debug(f"Filtered alert_event: severity {severity} < 5 for {headline[:50]}")
+        return None, False
+
     if event_fingerprint is None:
         event_fingerprint = cooldown_key
     

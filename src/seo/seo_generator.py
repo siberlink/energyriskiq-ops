@@ -406,12 +406,9 @@ def build_public_alert_card(alert: Dict) -> Dict:
     raw_title = sanitize_text_for_seo(alert.get('headline', 'Risk Alert'))
     public_title = transform_headline_to_risk_signal(raw_title)
     
-    # Clean the body to extract meaningful content (removes structured prefixes)
     raw_body = alert.get('body', '')
     public_summary = clean_alert_body_for_public(raw_body)
     public_summary = sanitize_text_for_seo(public_summary)
-    if public_summary and len(public_summary) > 200:
-        public_summary = public_summary[:197] + '...'
     
     alert_type = alert.get('alert_type', 'HIGH_IMPACT_EVENT')
     category = derive_category_from_alert_type(alert_type)
