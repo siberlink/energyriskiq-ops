@@ -178,22 +178,8 @@ def classify_category_with_reason(title: str, raw_text: str = "", category_hint:
     
     return chosen, reason, confidence
 
-def classify_region(title: str, raw_text: str = "") -> str:
+def classify_region(title: str, raw_text: str = "", region_hint: Optional[str] = None) -> str:
     combined_text = f"{title} {raw_text or ''}".lower()
-    
-    region_scores = {}
-    for region, keywords in REGION_MAPPINGS.items():
-        score = 0
-        for keyword in keywords:
-            if keyword in combined_text:
-                score += 1
-        if score > 0:
-            region_scores[region] = score
-    
-    if not region_scores:
-        return 'Global'
-    
-    best_region = max(region_scores, key=region_scores.get)
     
     region_display_names = {
         'europe': 'Europe',
@@ -205,7 +191,27 @@ def classify_region(title: str, raw_text: str = "") -> str:
         'south_america': 'South America'
     }
     
-    return region_display_names.get(best_region, 'Global')
+    valid_regions = set(region_display_names.values()) | {'Russia', 'Global'}
+    
+    region_scores = {}
+    for region, keywords in REGION_MAPPINGS.items():
+        score = 0
+        for keyword in keywords:
+            if keyword in combined_text:
+                score += 1
+        if score > 0:
+            region_scores[region] = score
+    
+    if region_scores:
+        best_region = max(region_scores, key=region_scores.get)
+        result = region_display_names.get(best_region, 'Global')
+        if result != 'Global':
+            return result
+    
+    if region_hint and region_hint in valid_regions:
+        return region_hint
+    
+    return 'Global'
 
 def calculate_severity(title: str, raw_text: str = "") -> int:
     combined_text = f"{title} {raw_text or ''}".lower()
@@ -229,9 +235,9 @@ def calculate_severity(title: str, raw_text: str = "") -> int:
     
     return max(1, min(5, score))
 
-def classify_event(title: str, raw_text: str = "", category_hint: Optional[str] = None, signal_type: Optional[str] = None) -> Tuple[str, str, int, str, float]:
+def classify_event(title: str, raw_text: str = "", category_hint: Optional[str] = None, signal_type: Optional[str] = None, region_hint: Optional[str] = None) -> Tuple[str, str, int, str, float]:
     category, classification_reason, confidence = classify_category_with_reason(title, raw_text, category_hint, signal_type)
-    region = classify_region(title, raw_text)
+    region = classify_region(title, raw_text, region_hint)
     severity = calculate_severity(title, raw_text)
     
     thematic_category = classify_thematic_category(title, raw_text)

@@ -135,7 +135,8 @@ def run_ingestion():
                     event['title'], 
                     event.get('raw_text', ''),
                     event.get('category_hint'),
-                    event.get('signal_type')
+                    event.get('signal_type'),
+                    event.get('region_hint')
                 )
                 
                 signal_quality = compute_signal_quality(
