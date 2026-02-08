@@ -114,6 +114,32 @@ SOURCES_SEED = [
     {"name": "Montel News", "feed_url": "https://www.montelnews.com/en/rss", "category": "energy", "region": "Europe", "signal_type": "market", "weight": 0.8, "is_active": True},
     {"name": "ICIS Energy", "feed_url": "https://www.icis.com/explore/rss/", "category": "energy", "region": "Europe", "signal_type": "market", "weight": 0.8, "is_active": True},
     {"name": "Ember Climate", "feed_url": "https://ember-climate.org/feed/", "category": "energy", "region": "Global", "signal_type": "market", "weight": 0.7, "is_active": True},
+
+    # Tier 2 - Maritime (added v1.1)
+    {"name": "MarineLink / Maritime Reporter", "feed_url": "https://www.marinelink.com/news/rss", "category": "supply_chain", "region": "Global", "signal_type": "shipping", "weight": 0.85, "is_active": True},
+    {"name": "IMO Maritime Security", "feed_url": "https://news.google.com/rss/search?q=when:7d+%22International+Maritime+Organization%22+OR+IMO+shipping+security&ceid=US:en&hl=en-US&gl=US", "category": "supply_chain", "region": "Global", "signal_type": "regulation", "weight": 0.8, "is_active": True},
+
+    # Tier 4 - Middle East / GCC (added v1.1)
+    {"name": "QatarEnergy & Qatar LNG", "feed_url": "https://news.google.com/rss/search?q=when:24h+QatarEnergy+OR+%22Qatar+LNG%22+OR+%22Qatar+gas%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Middle East", "signal_type": "market", "weight": 0.9, "is_active": True},
+    {"name": "Saudi Aramco & Saudi Oil", "feed_url": "https://news.google.com/rss/search?q=when:24h+%22Saudi+Aramco%22+OR+%22Saudi+oil%22+OR+%22Saudi+Arabia+energy%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Middle East", "signal_type": "market", "weight": 0.95, "is_active": True},
+    {"name": "ADNOC & UAE Energy", "feed_url": "https://news.google.com/rss/search?q=when:24h+ADNOC+OR+%22UAE+energy%22+OR+%22UAE+oil%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Middle East", "signal_type": "market", "weight": 0.85, "is_active": True},
+    {"name": "Iraq Oil & OPEC", "feed_url": "https://news.google.com/rss/search?q=when:24h+%22Iraq+oil%22+OR+%22Iraq+OPEC%22+OR+%22Basra+crude%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Middle East", "signal_type": "market", "weight": 0.8, "is_active": True},
+
+    # Tier 4 - Russia / Black Sea / Caspian (added v1.1)
+    {"name": "Ukraine Energy & Infrastructure", "feed_url": "https://news.google.com/rss/search?q=when:24h+%22Ukraine+energy%22+OR+%22Ukraine+gas%22+OR+%22Ukraine+pipeline%22+OR+%22Ukraine+power+grid%22&ceid=US:en&hl=en-US&gl=US", "category": "geopolitical", "region": "Europe", "signal_type": "conflict", "weight": 0.85, "is_active": True},
+    {"name": "Kazakhstan & Caspian Energy", "feed_url": "https://news.google.com/rss/search?q=when:7d+%22Kazakhstan+oil%22+OR+%22Caspian+pipeline%22+OR+CPC+Tengiz&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Black Sea", "signal_type": "infrastructure", "weight": 0.8, "is_active": True},
+
+    # Tier 4 - Asia-Pacific (added v1.1)
+    {"name": "India Oil & Energy", "feed_url": "https://news.google.com/rss/search?q=when:24h+%22India+oil%22+OR+%22India+LNG%22+OR+%22India+refinery%22+OR+%22India+energy%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Asia", "signal_type": "market", "weight": 0.8, "is_active": True},
+    {"name": "Japan & Korea LNG", "feed_url": "https://news.google.com/rss/search?q=when:24h+%22Japan+LNG%22+OR+%22Japan+energy%22+OR+%22Korea+LNG%22+OR+KOGAS&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "Asia", "signal_type": "market", "weight": 0.8, "is_active": True},
+
+    # Tier 4 - Africa (added v1.1)
+    {"name": "Nigeria NNPC & LNG", "feed_url": "https://news.google.com/rss/search?q=when:24h+NNPC+OR+%22Nigeria+LNG%22+OR+%22Nigeria+oil%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "North Africa", "signal_type": "market", "weight": 0.8, "is_active": True},
+    {"name": "Libya & Algeria Oil/Gas", "feed_url": "https://news.google.com/rss/search?q=when:24h+%22Libya+oil%22+OR+Sonatrach+OR+%22Algeria+gas%22+OR+%22Libya+NOC%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "North Africa", "signal_type": "market", "weight": 0.8, "is_active": True},
+
+    # Tier 4 - Latin America (added v1.1)
+    {"name": "Brazil Petrobras & Energy", "feed_url": "https://news.google.com/rss/search?q=when:24h+Petrobras+OR+%22Brazil+oil%22+OR+%22Brazil+energy%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "South America", "signal_type": "market", "weight": 0.75, "is_active": True},
+    {"name": "Venezuela PDVSA & Sanctions", "feed_url": "https://news.google.com/rss/search?q=when:7d+PDVSA+OR+%22Venezuela+oil%22+OR+%22Venezuela+sanctions%22&ceid=US:en&hl=en-US&gl=US", "category": "energy", "region": "South America", "signal_type": "market", "weight": 0.75, "is_active": True},
 ]
 
 

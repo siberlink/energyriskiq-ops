@@ -39,6 +39,7 @@ REGION_TO_CLUSTER = {
     'Europe':        'Europe Internal',
     'Asia':          'China',
     'North Africa':  'Emerging Supply Regions',
+    'South America': 'Emerging Supply Regions',
     'Global':        None,
 }
 

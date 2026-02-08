@@ -46,7 +46,9 @@ REGION_MAPPINGS = {
              'indonesia', 'malaysia', 'thailand', 'philippines', 'australia',
              'beijing', 'shanghai'],
     'north_america': ['usa', 'united states', 'canada', 'mexico', 'gulf of mexico',
-                      'washington', 'permian', 'shale']
+                      'washington', 'permian', 'shale'],
+    'south_america': ['brazil', 'petrobras', 'venezuela', 'pdvsa', 'guyana', 'colombia',
+                      'argentina', 'vaca muerta', 'pre-salt', 'pre salt']
 }
 
 HIGH_SEVERITY_KEYWORDS = [
@@ -199,7 +201,8 @@ def classify_region(title: str, raw_text: str = "") -> str:
         'black_sea': 'Black Sea',
         'north_africa': 'North Africa',
         'asia': 'Asia',
-        'north_america': 'North America'
+        'north_america': 'North America',
+        'south_america': 'South America'
     }
     
     return region_display_names.get(best_region, 'Global')
