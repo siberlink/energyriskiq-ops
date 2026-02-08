@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 from src.db.db import get_cursor
 
 logger = logging.getLogger(__name__)
@@ -177,6 +178,9 @@ def seed_plan_settings():
     logger.info(f"Seeded {len(PLAN_SETTINGS_SEED)} plan settings.")
 
 def run_migrations():
+    if os.environ.get('SKIP_MIGRATIONS', '').lower() == 'true':
+        logger.info("SKIP_MIGRATIONS=true — skipping database migrations (handled by production deployment)")
+        return
     logger.info("Running database migrations...")
     
     create_events_table = """
@@ -1337,6 +1341,9 @@ def run_fix_skipped_alerts():
 
 def run_signal_quality_migration():
     """Add signal quality scoring columns to events table and expand category constraint."""
+    if os.environ.get('SKIP_MIGRATIONS', '').lower() == 'true':
+        logger.info("SKIP_MIGRATIONS=true — skipping signal quality migration")
+        return
     with get_cursor() as cursor:
         cursor.execute("""
             DO $$

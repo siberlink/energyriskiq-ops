@@ -2,11 +2,14 @@ import feedparser
 import logging
 import json
 import os
+import requests
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from time import mktime
 
 logger = logging.getLogger(__name__)
+
+FEED_TIMEOUT = int(os.environ.get('FEED_TIMEOUT_SECONDS', '20'))
 
 def load_feeds_config() -> List[Dict[str, str]]:
     config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'feeds.json')
@@ -70,13 +73,23 @@ def fetch_feed(feed_config: Dict[str, Any]) -> List[Dict[str, Any]]:
         user_agent = os.environ.get('INGESTION_USER_AGENT', 
                                      'EnergyRiskIQ/1.0 (+https://energyriskiq.com)')
         
-        import socket
-        old_timeout = socket.getdefaulttimeout()
-        socket.setdefaulttimeout(15)
         try:
-            feed = feedparser.parse(feed_url, agent=user_agent)
-        finally:
-            socket.setdefaulttimeout(old_timeout)
+            response = requests.get(
+                feed_url,
+                headers={'User-Agent': user_agent},
+                timeout=(10, FEED_TIMEOUT)
+            )
+            response.raise_for_status()
+            feed = feedparser.parse(response.content)
+        except requests.exceptions.Timeout:
+            logger.warning(f"Timeout fetching feed {source_name} after {FEED_TIMEOUT}s — skipping")
+            return []
+        except requests.exceptions.ConnectionError:
+            logger.warning(f"Connection error for feed {source_name} — skipping")
+            return []
+        except requests.exceptions.HTTPError as e:
+            logger.warning(f"HTTP error for feed {source_name}: {e} — skipping")
+            return []
         
         if feed.bozo and feed.bozo_exception:
             logger.warning(f"Feed parsing warning for {source_name}: {feed.bozo_exception}")
