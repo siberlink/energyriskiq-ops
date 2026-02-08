@@ -493,8 +493,14 @@ def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict],
 def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[Dict],
                                   assets: Dict) -> Optional[str]:
     try:
+        import os
         from openai import OpenAI
-        client = OpenAI()
+        ai_api_key = os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
+        ai_base_url = os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL')
+        if ai_api_key and ai_base_url:
+            client = OpenAI(api_key=ai_api_key, base_url=ai_base_url)
+        else:
+            client = OpenAI()
 
         level = PLAN_LEVELS.get(plan, 0)
 

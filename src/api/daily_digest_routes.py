@@ -254,8 +254,14 @@ def determine_regime(geri_val, eeri_val, storage_pct, vix_val):
 
 def generate_ai_digest(plan: str, alerts, geri, eeri, egsi, asset_changes, correlations, betas, risk_tone, regime):
     try:
+        import os
         from openai import OpenAI
-        client = OpenAI()
+        ai_api_key = os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
+        ai_base_url = os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL')
+        if ai_api_key and ai_base_url:
+            client = OpenAI(api_key=ai_api_key, base_url=ai_base_url)
+        else:
+            client = OpenAI()
 
         plan_level = PLAN_LEVELS.get(plan, 0)
 
