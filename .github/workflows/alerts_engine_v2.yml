@@ -90,6 +90,7 @@ jobs:
       ALERTS_MAX_SEND_PER_RUN: ${{ secrets.ALERTS_MAX_SEND_PER_RUN || '1000' }}
       GIE_API_KEY: ${{ secrets.GIE_API_KEY }}  # <-- NEW LINE ADDED
       PYTHONPATH: '.'
+      SKIP_MIGRATIONS: 'true'
 
     steps:
       - name: Checkout repository
