@@ -1,20 +1,20 @@
-name: Pro Plan Alert Delivery
+name: Daily Index & Digest Delivery
 
 on:
   schedule:
-    - cron: '*/20 * * * *'  # Every 20 minutes
+    - cron: '0 7 * * *'  # Once daily at 07:00 UTC
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  pro-delivery:
+  index-delivery:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     
     steps:
-      - name: Trigger Pro Plan Delivery (includes GERI if new)
+      - name: Trigger Index & Digest Delivery (All Plans)
         run: |
           response=$(curl -s -w "\n%{http_code}" -X POST \
-            "${{ secrets.APP_URL }}/internal/run/pro-delivery?since_minutes=15&include_geri=true" \
+            "${{ secrets.APP_URL }}/internal/run/pro-delivery" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -25,11 +25,11 @@ jobs:
           echo "HTTP Code: $http_code"
           
           if [ "$http_code" -ne 200 ]; then
-            echo "Pro delivery failed with HTTP $http_code"
+            echo "Index delivery failed with HTTP $http_code"
             exit 1
           fi
           
-          echo "Pro delivery completed successfully"
+          echo "Index & Digest delivery completed successfully"
         env:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}

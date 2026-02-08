@@ -424,34 +424,27 @@ async def backfill_alert_metadata_endpoint(
 
 @router.post("/run/pro-delivery")
 def run_pro_delivery(
-    since_minutes: int = 15,
-    include_geri: bool = True,
     x_runner_token: Optional[str] = Header(None)
 ):
     """
-    Trigger Pro plan alert delivery.
-    Called every 15 minutes by GitHub Actions.
+    Trigger Index & Digest delivery to ALL user plans.
     
-    - Sends batched email alerts (up to daily limit) prioritized by risk score
-    - Sends all alerts via Telegram to linked users
-    - If include_geri=True, also sends any unsent GERI to Pro users
+    Delivers GERI, EERI, and Daily AI Digest via Email and Telegram.
+    Each plan tier receives content matching their dashboard features:
+    - Free: 24h delayed GERI, basic EERI, executive snapshot
+    - Personal: Real-time GERI + trends, EERI with drivers, multi-index digest
+    - Trader: Full GERI + regime, probability scoring, forward watchlist
+    - Pro: GERI decomposition + AI narrative, scenario forecasts
+    - Enterprise: Full institutional package, strategic interpretation
     """
     validate_runner_token(x_runner_token)
     
-    from src.delivery.pro_delivery_worker import run_pro_delivery as do_pro_delivery, send_geri_to_pro_users_if_new
+    from src.delivery.pro_delivery_worker import run_index_delivery
     
-    response, status_code = run_job_with_lock('pro_delivery', do_pro_delivery, since_minutes)
+    response, status_code = run_job_with_lock('index_delivery', run_index_delivery)
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
-    
-    if include_geri:
-        geri_response, geri_status = run_job_with_lock('geri_delivery', send_geri_to_pro_users_if_new)
-        response['geri_delivery'] = {
-            'status': geri_response.get('status', 'unknown'),
-            'details': geri_response.get('details', {}),
-            'http_status': geri_status
-        }
     
     return response
 
@@ -459,17 +452,14 @@ def run_pro_delivery(
 @router.post("/run/geri-delivery")
 def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
     """
-    Trigger GERI delivery to Pro users.
-    Called immediately after GERI computation.
-    
-    - Sends GERI email (counts toward daily limit)
-    - Sends GERI via Telegram to linked users
+    Trigger Index & Digest delivery (alias for /run/pro-delivery).
+    Kept for backward compatibility.
     """
     validate_runner_token(x_runner_token)
     
-    from src.delivery.pro_delivery_worker import send_geri_to_pro_users
+    from src.delivery.pro_delivery_worker import run_index_delivery
     
-    response, status_code = run_job_with_lock('geri_delivery', send_geri_to_pro_users)
+    response, status_code = run_job_with_lock('index_delivery', run_index_delivery)
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
