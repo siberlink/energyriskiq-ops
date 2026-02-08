@@ -1,14 +1,14 @@
 """
 Index & Digest Delivery Worker
 
-Delivers GERI, EERI, and Daily AI Digest to ALL user plans via Email and Telegram.
+Delivers GERI, EERI, Market Snapshot, and Daily AI Digest to ALL user plans via Email and Telegram.
 Each plan tier receives content matching their dashboard features:
 
-- Free: 24h delayed GERI (value + band + direction), basic EERI, executive snapshot (2 alerts)
-- Personal: Real-time GERI + 7d trends, EERI with drivers, multi-index digest (5 alerts)
-- Trader: Full GERI + regime + momentum, EERI + components, probability scoring (5 alerts)
-- Pro: GERI decomposition + AI narrative, EERI + contagion, scenario forecasts (10 alerts)
-- Enterprise: Full institutional package, multi-region spillover, strategic interpretation (10 alerts)
+- Free: 24h delayed GERI (value + band + direction), basic EERI, executive snapshot
+- Personal: Real-time GERI + 7d trends, EERI with drivers, multi-index digest
+- Trader: Full GERI + regime + momentum, EERI + components, probability scoring
+- Pro: GERI decomposition + AI narrative, EERI + contagion, scenario forecasts
+- Enterprise: Full institutional package, multi-region spillover, strategic interpretation
 """
 
 import os
@@ -100,23 +100,6 @@ def get_latest_eeri() -> Optional[Dict]:
             result['drivers'] = json.loads(result['drivers'])
         return result
     return None
-
-
-def get_recent_alerts(limit: int = 10, delayed: bool = False) -> List[Dict]:
-    if delayed:
-        start = date.today() - timedelta(days=2)
-        end = date.today() - timedelta(days=1)
-    else:
-        start = date.today() - timedelta(days=1)
-        end = date.today() + timedelta(days=1)
-    rows = execute_query("""
-        SELECT id, alert_type, scope_region, severity, headline, category, confidence, created_at
-        FROM alert_events
-        WHERE created_at >= %s AND created_at < %s
-        ORDER BY severity DESC, created_at DESC
-        LIMIT %s
-    """, (start, end, limit))
-    return [dict(r) for r in rows] if rows else []
 
 
 def get_asset_snapshots() -> Dict:
@@ -299,42 +282,6 @@ def build_eeri_section_email(eeri: Dict, plan: str) -> str:
     return html
 
 
-def build_alerts_section_email(alerts: List[Dict], plan: str) -> str:
-    level = PLAN_LEVELS.get(plan, 0)
-    alert_limit = 2 if level == 0 else 5 if level <= 2 else 10
-    visible = alerts[:alert_limit]
-
-    if not visible:
-        return '<div style="background:#1e293b;border-radius:12px;padding:24px;margin-bottom:20px;"><h2 style="color:#e2e8f0;margin:0 0 8px 0;font-size:20px;">Recent Risk Events</h2><p style="color:#94a3b8;font-size:14px;">No significant risk events in the last 24 hours.</p></div>'
-
-    html = '<div style="background:#1e293b;border-radius:12px;padding:24px;margin-bottom:20px;">'
-    html += f'<h2 style="color:#e2e8f0;margin:0 0 16px 0;font-size:20px;">Top Risk Events ({len(visible)})</h2>'
-
-    for a in visible:
-        severity = a.get('severity', 0)
-        sev_color = '#ef4444' if severity >= 4 else '#f59e0b' if severity >= 3 else '#94a3b8'
-        region = a.get('scope_region', 'Global')
-        category = a.get('category', '')
-        headline = a.get('headline', 'Alert')
-
-        html += f"""
-        <div style="padding:12px;background:#0f172a;border-radius:8px;margin-bottom:8px;border-left:3px solid {sev_color};">
-            <div style="color:#e2e8f0;font-size:14px;font-weight:600;margin-bottom:4px;">{headline}</div>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                <span style="color:#94a3b8;font-size:12px;">Region: {region}</span>
-                <span style="color:{sev_color};font-size:12px;font-weight:600;">Severity: {severity}/5</span>
-        """
-        if category and level >= 1:
-            html += f'<span style="color:#94a3b8;font-size:12px;">Category: {category}</span>'
-        html += '</div></div>'
-
-    if level == 0 and len(alerts) > alert_limit:
-        html += f'<div style="color:#64748b;font-size:12px;margin-top:8px;">{len(alerts) - alert_limit} more events available on higher plans</div>'
-
-    html += '</div>'
-    return html
-
-
 def build_assets_section_email(assets: Dict, plan: str) -> str:
     level = PLAN_LEVELS.get(plan, 0)
     if not assets:
@@ -366,7 +313,7 @@ def build_assets_section_email(assets: Dict, plan: str) -> str:
     return html
 
 
-def build_full_email(geri: Optional[Dict], eeri: Optional[Dict], alerts: List[Dict],
+def build_full_email(geri: Optional[Dict], eeri: Optional[Dict],
                      assets: Dict, plan: str, ai_digest: Optional[str] = None) -> Tuple[str, str]:
     level = PLAN_LEVELS.get(plan, 0)
     plan_label = PLAN_LABELS.get(plan, plan.title())
@@ -376,8 +323,7 @@ def build_full_email(geri: Optional[Dict], eeri: Optional[Dict], alerts: List[Di
     subject = f"[EnergyRiskIQ] Daily Intelligence: GERI {geri_val}/100 ({geri_band})"
 
     geri_section = build_geri_section_email(geri, plan) if geri else ''
-    eeri_section = build_eeri_section_email(eeri, plan) if eeri and level >= 0 else ''
-    alerts_section = build_alerts_section_email(alerts, plan)
+    eeri_section = build_eeri_section_email(eeri, plan) if eeri else ''
     assets_section = build_assets_section_email(assets, plan)
 
     digest_section = ''
@@ -413,7 +359,6 @@ def build_full_email(geri: Optional[Dict], eeri: Optional[Dict], alerts: List[Di
 
     {geri_section}
     {eeri_section}
-    {alerts_section}
     {assets_section}
     {digest_section}
     {upgrade_section}
@@ -515,26 +460,7 @@ def build_eeri_telegram(eeri: Dict, plan: str) -> str:
     return "\n".join(parts)
 
 
-def build_alerts_telegram(alerts: List[Dict], plan: str) -> str:
-    level = PLAN_LEVELS.get(plan, 0)
-    limit = 2 if level == 0 else 5 if level <= 2 else 10
-    visible = alerts[:limit]
-
-    if not visible:
-        return ""
-
-    parts = []
-    parts.append(f"*Top Risk Events ({len(visible)})*")
-    for a in visible:
-        sev = a.get('severity', 0)
-        region = a.get('scope_region', 'Global')
-        headline = a.get('headline', 'Alert')
-        parts.append(f"[{sev}/5] {headline} | {region}")
-
-    return "\n".join(parts)
-
-
-def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict], alerts: List[Dict],
+def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict],
                         plan: str, ai_digest: Optional[str] = None) -> str:
     plan_label = PLAN_LABELS.get(plan, plan.title())
     parts = []
@@ -548,11 +474,6 @@ def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict], alerts: List
 
     if eeri:
         parts.append(build_eeri_telegram(eeri, plan))
-        parts.append("")
-
-    alerts_text = build_alerts_telegram(alerts, plan)
-    if alerts_text:
-        parts.append(alerts_text)
         parts.append("")
 
     if ai_digest:
@@ -570,7 +491,7 @@ def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict], alerts: List
 
 
 def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[Dict],
-                                  alerts: List[Dict], assets: Dict) -> Optional[str]:
+                                  assets: Dict) -> Optional[str]:
     try:
         from openai import OpenAI
         client = OpenAI()
@@ -584,11 +505,6 @@ def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[
         eeri_trend = eeri.get('trend_1d', 0) if eeri else 0
 
         risk_tone = get_risk_tone(geri_val, geri_trend)
-
-        alert_limit = 2 if level == 0 else 5 if level <= 2 else 10
-        alerts_text = ""
-        for a in alerts[:alert_limit]:
-            alerts_text += f"- [{a.get('severity', 0)}/5] {a.get('headline', '')} | Region: {a.get('scope_region', 'Global')}\n"
 
         asset_text = ""
         if assets.get('brent'):
@@ -608,26 +524,23 @@ def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[
             section_instructions = """OUTPUT (PERSONAL PLAN - max 400 words):
 1) EXECUTIVE RISK SNAPSHOT: Global risk tone, 3 key drivers, interpretation
 2) INDEX MOVEMENT SUMMARY: GERI + EERI with interpretations
-3) TOP RISK EVENTS: 3-5 alerts with brief commentary
-4) ASSET IMPACT: Directional impacts
-5) 7-DAY RISK TREND"""
+3) ASSET IMPACT: Directional impacts on key commodities
+4) 7-DAY RISK TREND"""
         elif level == 2:
             section_instructions = """OUTPUT (TRADER PLAN - max 600 words):
 1) EXECUTIVE RISK SNAPSHOT with risk tone analysis
 2) INDEX MOVEMENT SUMMARY: GERI + EERI with WHY each moved
-3) TOP RISK EVENTS with detailed commentary + spillover
-4) CROSS-ASSET IMPACT: Each asset with directional impact + magnitude
-5) PROBABILITY-BASED OUTLOOK: Spike/breakout probabilities
-6) FORWARD WATCHLIST with probability and confidence"""
+3) CROSS-ASSET IMPACT: Each asset with directional impact + magnitude
+4) PROBABILITY-BASED OUTLOOK: Spike/breakout probabilities
+5) FORWARD WATCHLIST with probability and confidence"""
         elif level == 3:
             section_instructions = """OUTPUT (PRO PLAN - max 800 words):
 1) EXECUTIVE RISK SNAPSHOT with regime classification
 2) INDEX DECOMPOSITION: GERI component drivers
-3) TOP RISK EVENTS with cross-regional contagion analysis
-4) CROSS-ASSET SENSITIVITY TABLE
-5) REGIME CLASSIFICATION + shift detection
-6) SCENARIO OUTLOOK: Base case, Escalation, De-escalation
-7) FORWARD WATCHLIST with triggers"""
+3) CROSS-ASSET SENSITIVITY TABLE
+4) REGIME CLASSIFICATION + shift detection
+5) SCENARIO OUTLOOK: Base case, Escalation, De-escalation
+6) FORWARD WATCHLIST with triggers"""
         else:
             section_instructions = """OUTPUT (ENTERPRISE PLAN - max 1000 words):
 1) EXECUTIVE RISK SNAPSHOT with regime + contagion status
@@ -640,7 +553,7 @@ def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[
 8) STRATEGIC INTERPRETATION: Analyst Note"""
 
         system_prompt = """You are EnergyRiskIQ Intelligence Engine.
-Interpret yesterday's alerts + indices + real market data.
+Interpret today's risk indices and real market data.
 Be concise, trader-oriented, quantify relationships when data is provided.
 Separate: Facts / Interpretation / Watchlist.
 Professional, analytical tone. No promotional language.
@@ -654,9 +567,6 @@ RISK TONE: {risk_tone}
 INDEX SNAPSHOT:
 GERI: {geri_val}/100 ({geri_band}, change: {geri_trend:+d})
 EERI: {eeri_val}/100 (change: {eeri_trend:+d})
-
-TOP ALERTS:
-{alerts_text}
 
 ASSET MOVES:
 {asset_text}
@@ -775,16 +685,12 @@ def run_index_delivery() -> Dict:
         effective_date = geri.get('date') if geri else geri_date
 
         try:
-            is_delayed = level == 0
-            alert_limit = 2 if level == 0 else 5 if level <= 2 else 10
-            alerts = get_recent_alerts(limit=alert_limit, delayed=is_delayed)
-
             if plan not in digest_cache:
-                digest_cache[plan] = generate_ai_digest_for_plan(plan, geri, eeri, alerts, assets)
+                digest_cache[plan] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
             ai_digest = digest_cache[plan]
 
             if email and not has_been_delivered_today(user_id, 'email', effective_date):
-                subject, html_body = build_full_email(geri, eeri, alerts, assets, plan, ai_digest)
+                subject, html_body = build_full_email(geri, eeri, assets, plan, ai_digest)
                 result = send_email_v2(email, subject, html_body)
 
                 if result.success:
@@ -800,7 +706,7 @@ def run_index_delivery() -> Dict:
                 stats["emails_skipped"] += 1
 
             if chat_id and not has_been_delivered_today(user_id, 'telegram', effective_date):
-                telegram_msg = build_full_telegram(geri, eeri, alerts, plan, ai_digest)
+                telegram_msg = build_full_telegram(geri, eeri, plan, ai_digest)
                 result = send_telegram_v2(chat_id, telegram_msg)
 
                 if result.success:
