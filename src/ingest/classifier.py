@@ -31,15 +31,22 @@ REGULATORY_KEYWORDS = [
 ]
 
 REGION_MAPPINGS = {
-    'europe': ['ukraine', 'russia', 'eu', 'germany', 'france', 'romania', 'netherlands', 
-               'poland', 'uk', 'britain', 'spain', 'italy', 'norway', 'sweden'],
+    'europe': ['ukraine', 'eu', 'germany', 'france', 'romania', 'netherlands', 
+               'poland', 'uk', 'britain', 'spain', 'italy', 'norway', 'sweden',
+               'denmark', 'finland', 'belgium', 'austria', 'czech', 'hungary',
+               'portugal', 'greece', 'ireland'],
     'middle_east': ['israel', 'iran', 'gaza', 'lebanon', 'saudi', 'yemen', 'iraq', 
-                    'syria', 'qatar', 'uae', 'kuwait', 'bahrain'],
-    'black_sea': ['black sea', 'bosphorus', 'turkey', 'constanta', 'odessa'],
+                    'syria', 'qatar', 'uae', 'kuwait', 'bahrain', 'oman'],
+    'black_sea': ['black sea', 'bosphorus', 'turkey', 'constanta', 'odessa',
+                  'russia', 'russian', 'moscow', 'kremlin', 'gazprom', 'rosneft',
+                  'novatek', 'lukoil', 'sakhalin', 'yamal', 'nord stream',
+                  'siberia', 'druzhba'],
     'north_africa': ['suez', 'egypt', 'libya', 'algeria', 'morocco', 'tunisia'],
     'asia': ['china', 'japan', 'korea', 'india', 'singapore', 'taiwan', 'vietnam', 
-             'indonesia', 'malaysia', 'thailand', 'philippines'],
-    'north_america': ['usa', 'united states', 'canada', 'mexico', 'gulf of mexico']
+             'indonesia', 'malaysia', 'thailand', 'philippines', 'australia',
+             'beijing', 'shanghai'],
+    'north_america': ['usa', 'united states', 'canada', 'mexico', 'gulf of mexico',
+                      'washington', 'permian', 'shale']
 }
 
 HIGH_SEVERITY_KEYWORDS = [

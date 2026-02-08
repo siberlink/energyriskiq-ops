@@ -7,7 +7,7 @@ from typing import Optional, Dict, List, Any
 from enum import Enum
 
 INDEX_ID = "global:geo_energy_risk"
-MODEL_VERSION = "geri_v1"
+MODEL_VERSION = "geri_v1.1"
 
 VALID_ALERT_TYPES = [
     'HIGH_IMPACT_EVENT',
@@ -21,6 +21,63 @@ GERI_WEIGHTS = {
     'asset_risk': 0.20,
     'region_concentration': 0.15,
 }
+
+REGION_CLUSTER_WEIGHTS = {
+    'Middle East':              0.25,
+    'Russia / Black Sea':       0.20,
+    'China':                    0.15,
+    'United States':            0.15,
+    'Europe Internal':          0.10,
+    'LNG Exporters':            0.10,
+    'Emerging Supply Regions':  0.05,
+}
+
+REGION_TO_CLUSTER = {
+    'Middle East':   'Middle East',
+    'Black Sea':     'Russia / Black Sea',
+    'North America': 'United States',
+    'Europe':        'Europe Internal',
+    'Asia':          'China',
+    'North Africa':  'Emerging Supply Regions',
+    'Global':        None,
+}
+
+LNG_EXPORTER_KEYWORDS = [
+    'qatar', 'australia', 'norway', 'lng export', 'north field',
+    'gladstone lng', 'gorgon', 'ichthys', 'snohvit', 'hammerfest',
+    'prelude lng', 'wheatstone',
+]
+
+RUSSIA_KEYWORDS = [
+    'russia', 'russian', 'moscow', 'kremlin', 'gazprom', 'rosneft',
+    'novatek', 'lukoil', 'sakhalin', 'yamal', 'nord stream',
+    'power of siberia', 'druzhba',
+]
+
+NEUTRAL_WEIGHT = 1.0
+WEIGHT_SCALE_FACTOR = len(REGION_CLUSTER_WEIGHTS)
+
+
+def get_region_cluster(region: str, headline: str = "", body: str = "") -> str:
+    text = f"{headline} {body}".lower()
+
+    for kw in RUSSIA_KEYWORDS:
+        if kw in text:
+            return 'Russia / Black Sea'
+
+    for kw in LNG_EXPORTER_KEYWORDS:
+        if kw in text:
+            return 'LNG Exporters'
+
+    cluster = REGION_TO_CLUSTER.get(region)
+    return cluster if cluster else None
+
+
+def get_regional_weight(cluster: str) -> float:
+    if cluster is None:
+        return NEUTRAL_WEIGHT
+    raw = REGION_CLUSTER_WEIGHTS.get(cluster, NEUTRAL_WEIGHT / WEIGHT_SCALE_FACTOR)
+    return raw * WEIGHT_SCALE_FACTOR
 
 
 class RiskBand(Enum):
@@ -80,6 +137,7 @@ class GERIComponents:
     norm_regional_spike: float = 0.0
     norm_asset_risk: float = 0.0
     norm_region_concentration: float = 0.0
+    regional_weight_distribution: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -105,6 +163,10 @@ class GERIComponents:
                 'region_concentration': round(self.norm_region_concentration, 2),
             },
             'weights': GERI_WEIGHTS,
+            'regional_weighting': {
+                'model': REGION_CLUSTER_WEIGHTS,
+                'distribution': self.regional_weight_distribution,
+            },
         }
 
 

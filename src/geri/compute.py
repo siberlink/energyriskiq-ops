@@ -11,6 +11,9 @@ from src.geri.types import (
     AlertRecord,
     GERIComponents,
     VALID_ALERT_TYPES,
+    get_region_cluster,
+    get_regional_weight,
+    REGION_CLUSTER_WEIGHTS,
 )
 
 
@@ -88,6 +91,8 @@ def get_effective_risk_score(alert: AlertRecord) -> float:
 def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
     """
     Compute GERI components from a list of alerts.
+    Applies Regional Weighting Model v1.1 — risk scores are multiplied
+    by region-cluster influence weights before aggregation.
     Pure function - no side effects.
     """
     components = GERIComponents()
@@ -97,6 +102,8 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
         return components
     
     region_risk_totals: Dict[str, float] = defaultdict(float)
+    cluster_risk_totals: Dict[str, float] = defaultdict(float)
+    cluster_alert_counts: Dict[str, int] = defaultdict(int)
     severity_sum = 0.0
     alert_scores: List[Dict[str, Any]] = []
     
@@ -105,12 +112,21 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
         risk_score = get_effective_risk_score(alert)
         weight = alert.weight if alert.weight else 1.0
         region = alert.region if alert.region else "Unknown"
+        headline = alert.headline or ""
+        body = alert.body or ""
+        
+        cluster = get_region_cluster(region, headline, body)
+        regional_weight = get_regional_weight(cluster)
+        weighted_risk_score = risk_score * regional_weight
         
         severity_sum += severity
-        region_risk_totals[region] += risk_score
+        region_risk_totals[region] += weighted_risk_score
+        
+        cluster_name = cluster or "Unattributed"
+        cluster_risk_totals[cluster_name] += weighted_risk_score
+        cluster_alert_counts[cluster_name] += 1
         
         if alert.headline:
-            # For HIGH_IMPACT_EVENT, try to extract actual event title and category from body
             display_headline = alert.headline
             display_category = alert.category or ''
             if alert.alert_type == 'HIGH_IMPACT_EVENT' and alert.body:
@@ -125,22 +141,25 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
                 'headline': display_headline,
                 'alert_type': alert.alert_type,
                 'severity': severity,
-                'risk_score': risk_score,
+                'risk_score': weighted_risk_score,
+                'raw_risk_score': risk_score,
                 'region': region,
+                'cluster': cluster_name,
+                'regional_weight': round(regional_weight, 2),
                 'category': display_category,
             })
         
         if alert.alert_type == 'HIGH_IMPACT_EVENT':
             components.high_impact_events += 1
-            components.high_impact_score += severity * weight
+            components.high_impact_score += severity * weight * regional_weight
         
         elif alert.alert_type == 'REGIONAL_RISK_SPIKE':
             components.regional_spikes += 1
-            components.regional_spike_score += risk_score
+            components.regional_spike_score += weighted_risk_score
         
         elif alert.alert_type == 'ASSET_RISK_ALERT':
             components.asset_spikes += 1
-            components.asset_risk_score += risk_score
+            components.asset_risk_score += weighted_risk_score
     
     components.avg_severity = severity_sum / len(alerts) if alerts else 0.0
     
@@ -164,15 +183,27 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
             components.top_region_weight = max_region_risk / total_risk
             components.region_concentration_score_raw = components.top_region_weight * 100
     
+    total_cluster_risk = sum(cluster_risk_totals.values()) or 1.0
+    components.regional_weight_distribution = {
+        cluster: {
+            'weighted_risk': round(risk, 2),
+            'share_pct': round(risk / total_cluster_risk * 100, 1),
+            'alert_count': cluster_alert_counts[cluster],
+            'config_weight': REGION_CLUSTER_WEIGHTS.get(cluster, 0),
+        }
+        for cluster, risk in sorted(
+            cluster_risk_totals.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+    }
+    
     if alert_scores:
-        # Filter out REGIONAL_RISK_SPIKE - these are aggregated alerts, not atomic drivers
-        # Also filter out ASSET_RISK_SPIKE since they are derived alerts
         atomic_drivers = [
             a for a in alert_scores 
             if a.get('alert_type') not in ('REGIONAL_RISK_SPIKE', 'ASSET_RISK_SPIKE')
         ]
         
-        # Fall back to all alerts if no atomic drivers found
         candidates = atomic_drivers if atomic_drivers else alert_scores
         
         sorted_alerts = sorted(
@@ -180,7 +211,6 @@ def compute_components(alerts: List[AlertRecord]) -> GERIComponents:
             key=lambda x: (x['severity'], x['risk_score']),
             reverse=True
         )
-        # Deduplicate by headline, keeping highest-scored instance
         seen_headlines = set()
         unique_drivers = []
         for alert in sorted_alerts:
