@@ -143,7 +143,7 @@ def get_high_impact_events_global() -> List[Dict]:
     FROM events e
     WHERE e.severity_score >= 4
       AND e.category IN %s
-      AND e.region IN ('Europe', 'Middle East', 'Black Sea')
+      AND e.region IN ('Europe', 'Middle East', 'Black Sea', 'Asia', 'North Africa', 'South America', 'Russia', 'North America', 'Global')
       AND e.inserted_at >= NOW() - INTERVAL '24 hours'
       AND NOT EXISTS (
           SELECT 1 FROM alert_events ae 
@@ -239,7 +239,7 @@ def create_alert_event(
 
 def generate_regional_risk_spike_events(regions: List[str] = None) -> Dict:
     if regions is None:
-        regions = ['Europe', 'Middle East', 'Black Sea']
+        regions = ['Europe', 'Middle East', 'Black Sea', 'Asia', 'North Africa', 'South America', 'Russia', 'North America']
     
     created_event_ids = []
     skipped_count = 0
@@ -328,7 +328,7 @@ def generate_regional_risk_spike_events(regions: List[str] = None) -> Dict:
 
 def generate_asset_risk_spike_events(regions: List[str] = None, assets: List[str] = None) -> Dict:
     if regions is None:
-        regions = ['Europe', 'Middle East', 'Black Sea']
+        regions = ['Europe', 'Middle East', 'Black Sea', 'Asia', 'North Africa', 'South America', 'Russia', 'North America']
     if assets is None:
         assets = ['oil', 'gas', 'fx', 'freight']
     
@@ -634,8 +634,12 @@ def generate_global_alert_events() -> Dict:
     high_impact_result = generate_high_impact_event_alerts()
     storage_result = generate_storage_risk_events()
     
-    summary = get_risk_summary('Europe')
-    update_alert_state('Europe', summary['risk_7d'], summary['risk_30d'], summary['assets'])
+    for region in ['Europe', 'Middle East', 'Black Sea', 'Asia', 'North Africa', 'South America', 'Russia', 'North America']:
+        try:
+            summary = get_risk_summary(region)
+            update_alert_state(region, summary['risk_7d'], summary['risk_30d'], summary['assets'])
+        except Exception as e:
+            logger.warning(f"Failed to update alert_state for {region}: {e}")
     
     all_created = (
         regional_result['created'] + 
