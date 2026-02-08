@@ -208,11 +208,9 @@ def classify_region(title: str, raw_text: str = "", region_hint: Optional[str] =
         result = region_display_names.get(best_region, 'Global')
         
         if region_hint and region_hint in valid_regions:
-            hint_key = None
-            for key, display in region_display_names.items():
-                if display == region_hint:
-                    hint_key = key
-                    break
+            hint_to_key = {v: k for k, v in region_display_names.items()}
+            hint_to_key['Russia'] = 'black_sea'
+            hint_key = hint_to_key.get(region_hint)
             hint_score = region_scores.get(hint_key, 0) if hint_key else 0
             
             if result != 'Global' and best_score >= 2 and best_score > hint_score + 1:
