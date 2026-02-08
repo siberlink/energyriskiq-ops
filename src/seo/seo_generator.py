@@ -1014,7 +1014,27 @@ def generate_sitemap_entries() -> List[Dict]:
             'changefreq': 'never',
             'lastmod': lastmod
         })
-    
+
+    entries.append({
+        'loc': '/daily-geo-energy-intelligence-digest',
+        'priority': '0.9',
+        'changefreq': 'daily',
+        'lastmod': today
+    })
+
+    try:
+        from src.seo.digest_page_generator import get_public_digest_available_dates
+        digest_dates = get_public_digest_available_dates()
+        for dd in digest_dates:
+            entries.append({
+                'loc': f"/daily-geo-energy-intelligence-digest/{dd}",
+                'priority': '0.8',
+                'changefreq': 'never',
+                'lastmod': dd
+            })
+    except Exception:
+        pass
+
     return entries
 
 

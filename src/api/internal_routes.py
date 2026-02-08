@@ -326,6 +326,10 @@ def run_seo_generator(
         generate_and_save_regional_daily_page,
         REGION_DISPLAY_NAMES,
     )
+    from src.seo.digest_page_generator import (
+        generate_public_digest_model,
+        save_public_digest_page,
+    )
     from src.db.migrations import run_seo_tables_migration
     
     run_seo_tables_migration()
@@ -392,6 +396,25 @@ def run_seo_generator(
             results['pages'].append({'date': target.isoformat(), 'alerts': model['stats']['total_alerts'], 'dry_run': True})
         results['regional_pages'].extend(generate_regional_for_date(target, dry_run))
     
+    results['digest_pages'] = []
+    digest_targets = set()
+    for p in results['pages']:
+        digest_targets.add(p['date'])
+    if not digest_targets:
+        digest_targets.add(yesterday.isoformat())
+
+    for dt_str in digest_targets:
+        try:
+            digest_date = dt.strptime(dt_str, '%Y-%m-%d').date()
+            if not dry_run:
+                digest_model = generate_public_digest_model(digest_date)
+                digest_id = save_public_digest_page(digest_date, digest_model)
+                results['digest_pages'].append({'date': dt_str, 'page_id': digest_id})
+            else:
+                results['digest_pages'].append({'date': dt_str, 'dry_run': True})
+        except Exception as e:
+            results['digest_pages'].append({'date': dt_str, 'error': str(e)})
+
     entries = generate_sitemap_entries()
     results['sitemap_entries'] = len(entries)
     

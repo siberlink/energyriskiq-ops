@@ -846,6 +846,8 @@ def migrate_alerts_v2_safety_schema():
     
     logger.info("Alerts v2 safety schema migration complete.")
 
+    run_public_digest_migration()
+
 
 def run_digest_tables_migration():
     """Create tables for digest batching (Step 5)."""
@@ -1394,6 +1396,24 @@ def run_signal_quality_migration():
     logger.info("Signal quality migration complete.")
 
 
+def run_public_digest_migration():
+    logger.info("Running public digest pages migration...")
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS public_digest_pages (
+                id SERIAL PRIMARY KEY,
+                page_date DATE NOT NULL UNIQUE,
+                seo_title TEXT,
+                seo_description TEXT,
+                page_json JSONB,
+                generated_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            );
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_public_digest_date ON public_digest_pages(page_date DESC);")
+    logger.info("Public digest pages migration complete.")
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     run_migrations()
@@ -1406,3 +1426,4 @@ if __name__ == "__main__":
     run_oil_price_migration()
     run_gas_storage_migration()
     run_signal_quality_migration()
+    run_public_digest_migration()

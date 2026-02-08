@@ -35,6 +35,10 @@ from src.seo.seo_generator import (
     generate_regional_daily_page_model,
     REGION_DISPLAY_NAMES,
 )
+from src.seo.digest_page_generator import (
+    get_public_digest_page,
+    get_recent_public_digest_pages,
+)
 from src.geri.geri_service import get_geri_for_user, get_geri_delayed
 from src.geri.interpretation import generate_interpretation as generate_geri_interpretation
 from src.geri.geri_history_service import (
@@ -4928,3 +4932,849 @@ async def geri_monthly_page(request: Request, year: int, month: int):
     """
     
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+
+
+def get_digest_dark_styles() -> str:
+    return """
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+        .nav {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-inner { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #f1f5f9;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+        .nav-links a { color: #94a3b8; text-decoration: none; font-weight: 500; font-size: 14px; }
+        .nav-links a:hover { color: #f1f5f9; }
+        .cta-btn-nav {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white !important;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .cta-btn-nav:hover { opacity: 0.9; }
+        .breadcrumbs {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+            padding-top: 1.5rem;
+        }
+        .breadcrumbs a { color: #60a5fa; text-decoration: none; }
+        .breadcrumbs a:hover { text-decoration: underline; }
+        .digest-header-bar {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .digest-header-bar .digest-date {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .digest-header-bar .digest-date strong {
+            color: #e2e8f0;
+        }
+        .digest-delayed-badge {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .digest-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .digest-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .digest-card-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0;
+        }
+        .digest-card-header .digest-section-icon {
+            font-size: 16px;
+        }
+        .digest-card-body {
+            padding: 20px;
+        }
+        .digest-risk-tone {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .digest-risk-tone.tone-red { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .digest-risk-tone.tone-orange { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .digest-risk-tone.tone-yellow { background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); }
+        .digest-risk-tone.tone-green { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); }
+        .digest-risk-tone.tone-gray { background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); }
+        .digest-risk-tone .tone-label {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .digest-risk-tone.tone-red .tone-label { color: #ef4444; }
+        .digest-risk-tone.tone-orange .tone-label { color: #f97316; }
+        .digest-risk-tone.tone-yellow .tone-label { color: #eab308; }
+        .digest-risk-tone.tone-green .tone-label { color: #22c55e; }
+        .digest-risk-tone.tone-gray .tone-label { color: #94a3b8; }
+        .digest-index-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .digest-index-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .digest-index-card .index-name {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .digest-index-card .index-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .digest-index-card .index-band {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .digest-index-card .index-trend {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .digest-index-card .index-trend.up { color: #ef4444; }
+        .digest-index-card .index-trend.down { color: #22c55e; }
+        .digest-index-card .index-trend.flat { color: #94a3b8; }
+        .digest-asset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        .digest-asset-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+        .digest-asset-item .asset-label {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .digest-asset-item .asset-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .digest-asset-item .asset-change {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .digest-asset-item .asset-change.positive { color: #22c55e; }
+        .digest-asset-item .asset-change.negative { color: #ef4444; }
+        .digest-asset-item .asset-change.neutral { color: #94a3b8; }
+        .digest-alert-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        .digest-alert-item .alert-headline {
+            font-weight: 600;
+            color: #f1f5f9;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+        .digest-alert-item .alert-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .digest-alert-item .alert-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .digest-severity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .digest-severity-dot.sev-5 { background: #ef4444; }
+        .digest-severity-dot.sev-4 { background: #f97316; }
+        .digest-severity-dot.sev-3 { background: #eab308; }
+        .digest-severity-dot.sev-2 { background: #3b82f6; }
+        .digest-severity-dot.sev-1 { background: #22c55e; }
+        .digest-narrative {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            line-height: 1.7;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+        .digest-narrative h2 {
+            color: #f1f5f9;
+            font-size: 16px;
+            margin: 20px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #334155;
+        }
+        .digest-narrative h2:first-child {
+            margin-top: 0;
+        }
+        .digest-narrative strong {
+            color: #e2e8f0;
+        }
+        .digest-narrative ul, .digest-narrative ol {
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+        .digest-narrative li {
+            margin-bottom: 4px;
+        }
+        .digest-locked-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .digest-locked-section .lock-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .digest-locked-section .lock-title {
+            color: #60a5fa;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .digest-locked-section .lock-desc {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+        .digest-locked-section .lock-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .digest-locked-section .lock-btn:hover {
+            opacity: 0.9;
+        }
+        .digest-nav-pagination {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+            padding: 1rem 0;
+            border-top: 1px solid #334155;
+        }
+        .digest-nav-pagination a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .digest-nav-pagination a:hover { text-decoration: underline; }
+        .page-list {
+            list-style: none;
+            display: grid;
+            gap: 0.5rem;
+        }
+        .page-list li a {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #f1f5f9;
+            transition: border-color 0.2s;
+        }
+        .page-list li a:hover { border-color: #60a5fa; }
+        .page-list .date { font-weight: 600; }
+        footer {
+            background: #1e293b;
+            border-top: 1px solid #334155;
+            color: #94a3b8;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        footer a { color: #60a5fa; text-decoration: none; }
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .footer-links { display: flex; gap: 1.5rem; }
+        @media (max-width: 768px) {
+            .digest-header-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .digest-index-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .digest-asset-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .nav-links { display: none; }
+            .footer-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    """
+
+
+def render_digest_nav() -> str:
+    return """
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="logo">
+                <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                EnergyRiskIQ
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                <a href="/users" class="cta-btn-nav">Get Started</a>
+            </div>
+        </div>
+    </nav>
+    """
+
+
+def render_digest_footer() -> str:
+    return """
+    <footer>
+        <div class="footer-inner">
+            <div>&copy; 2026 EnergyRiskIQ. All rights reserved.</div>
+            <div class="footer-links">
+                <a href="/">Home</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                <a href="/sitemap.html">Sitemap</a>
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+            </div>
+        </div>
+    </footer>
+    """
+
+
+def render_digest_html(d: dict) -> str:
+    import re as _re
+    tone = d.get('risk_tone', {})
+    tone_color = tone.get('color', 'gray')
+    tone_icons = {'red': '&#x1F534;', 'orange': '&#x1F7E0;', 'yellow': '&#x1F7E1;', 'green': '&#x1F7E2;', 'gray': '&#x26AA;'}
+    tone_icon = tone_icons.get(tone_color, '&#x26AA;')
+
+    delay_badge = '<span class="digest-delayed-badge">24h Delayed (Free Plan)</span>' if d.get('is_delayed') else ''
+
+    header_bar = f"""
+    <div class="digest-header-bar">
+        <div class="digest-date">
+            <strong>Digest Date:</strong> {d.get('digest_date', '')} &nbsp;|&nbsp;
+            <strong>Based on Alerts From:</strong> {d.get('alerts_date', '')} &nbsp;|&nbsp;
+            <strong>Total Alerts:</strong> {d.get('total_alerts_yesterday', 0)}
+        </div>
+        {delay_badge}
+    </div>
+    """
+
+    risk_tone_html = f"""
+    <div class="digest-risk-tone tone-{tone_color}">
+        <span style="font-size: 28px;">{tone_icon}</span>
+        <div>
+            <div class="tone-label">Global Risk Tone: {tone.get('tone', 'Unknown')}</div>
+            <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">Based on {d.get('total_alerts_yesterday', 0)} alerts analyzed from {d.get('alerts_date', '')}</div>
+        </div>
+    </div>
+    """
+
+    geri = d.get('geri')
+    index_cards = ''
+    if geri:
+        band_colors = {'CRITICAL': '#ef4444', 'ELEVATED': '#f59e0b', 'MODERATE': '#eab308', 'LOW': '#22c55e'}
+        color = band_colors.get(str(geri.get('band', '')), '#94a3b8')
+        trend = geri.get('trend_1d', 0) or 0
+        trend_class = 'up' if trend > 0 else 'down' if trend < 0 else 'flat'
+        trend_arrow = '&#x2191;' if trend > 0 else '&#x2193;' if trend < 0 else '&#x2192;'
+        trend_7d = geri.get('trend_7d', 0) or 0
+        index_cards += f"""
+        <div class="digest-index-card">
+            <div class="index-name">GERI</div>
+            <div class="index-value">{geri.get('value', 'N/A')}</div>
+            <div class="index-band" style="background: {color}20; color: {color};">{geri.get('band', 'N/A')}</div>
+            <div class="index-trend {trend_class}">{trend_arrow} {'+' if trend > 0 else ''}{trend} (1d) | {'+' if trend_7d > 0 else ''}{trend_7d} (7d)</div>
+        </div>
+        """
+
+    index_cards += """
+    <div class="digest-index-card" style="opacity: 0.5; position: relative;">
+        <div class="index-name">EERI</div>
+        <div class="index-value" style="filter: blur(4px);">--</div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #60a5fa;">Personal+</div>
+    </div>
+    <div class="digest-index-card" style="opacity: 0.5; position: relative;">
+        <div class="index-name">EGSI-M</div>
+        <div class="index-value" style="filter: blur(4px);">--</div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; font-size: 11px; color: #60a5fa;">Personal+</div>
+    </div>
+    """
+
+    index_summary = f"""
+    <div class="digest-card">
+        <div class="digest-card-header">
+            <span class="digest-section-icon">&#x1F4CA;</span>
+            <h3>Index Movement Summary</h3>
+        </div>
+        <div class="digest-card-body">
+            <div class="digest-index-grid">{index_cards}</div>
+        </div>
+    </div>
+    """
+
+    asset_changes = d.get('asset_changes', {})
+    asset_items = ''
+    for key, data in asset_changes.items():
+        label = data.get('label', key)
+        value = data.get('current', 0)
+        change_text = ''
+        change_class = 'neutral'
+        if 'change_pct' in data:
+            pct = data['change_pct']
+            change_text = f"{'+'if pct > 0 else ''}{pct:.2f}%"
+            if key in ('vix', 'storage'):
+                change_class = 'negative' if pct > 0 else 'positive' if pct < 0 else 'neutral'
+            else:
+                change_class = 'positive' if pct > 0 else 'negative' if pct < 0 else 'neutral'
+        elif 'change_delta' in data:
+            delta = data['change_delta']
+            change_text = f"{'+'if delta > 0 else ''}{delta}"
+            if key == 'vix':
+                change_class = 'negative' if delta > 0 else 'positive' if delta < 0 else 'neutral'
+            elif key == 'storage':
+                change_class = 'negative' if delta < 0 else 'positive' if delta > 0 else 'neutral'
+            else:
+                change_class = 'positive' if delta > 0 else 'negative' if delta < 0 else 'neutral'
+
+        if key == 'eurusd':
+            display_val = f"{value:.4f}"
+        elif key == 'storage':
+            display_val = f"{value}%"
+        elif key in ('brent', 'ttf'):
+            display_val = f"${value:.2f}"
+        else:
+            display_val = f"{value:.2f}" if isinstance(value, float) else str(value)
+
+        asset_items += f"""
+        <div class="digest-asset-item">
+            <div class="asset-label">{label}</div>
+            <div class="asset-value">{display_val}</div>
+            <div class="asset-change {change_class}">{change_text}</div>
+        </div>
+        """
+
+    asset_section = ''
+    if asset_items:
+        asset_section = f"""
+        <div class="digest-card">
+            <div class="digest-card-header">
+                <span class="digest-section-icon">&#x1F4B9;</span>
+                <h3>Market Reaction (24h)</h3>
+            </div>
+            <div class="digest-card-body">
+                <div class="digest-asset-grid">{asset_items}</div>
+            </div>
+        </div>
+        """
+
+    alerts_list = d.get('alerts', [])
+    alerts_items = ''
+    for a in alerts_list:
+        sev = a.get('severity', 0)
+        conf = a.get('confidence', 0)
+        conf_str = f"{conf * 100:.0f}%" if conf else ''
+        alerts_items += f"""
+        <div class="digest-alert-item">
+            <div class="alert-headline">
+                <span class="digest-severity-dot sev-{sev}"></span>
+                {a.get('headline', '')}
+            </div>
+            <div class="alert-meta">
+                <span>Region: {a.get('region', 'N/A')}</span>
+                <span>Severity: {sev}/5</span>
+                <span>Category: {a.get('category', 'N/A')}</span>
+                {'<span>Confidence: ' + conf_str + '</span>' if conf_str else ''}
+            </div>
+        </div>
+        """
+
+    total_hidden = (d.get('total_alerts_yesterday', 0)) - len(alerts_list)
+    more_note = ''
+    if total_hidden > 0:
+        more_note = f"""
+        <div style="text-align: center; padding: 12px; color: #64748b; font-size: 12px; border-top: 1px solid #334155; margin-top: 12px;">
+            +{total_hidden} more alerts available with <a href="/users#plans" style="color: #60a5fa; font-weight: 600; text-decoration: none;">Personal plan ($9.95/mo)</a>
+        </div>
+        """
+
+    alerts_section = ''
+    if alerts_items:
+        alerts_section = f"""
+        <div class="digest-card">
+            <div class="digest-card-header">
+                <span class="digest-section-icon">&#x26A0;&#xFE0F;</span>
+                <h3>Top Risk Events ({len(alerts_list)})</h3>
+            </div>
+            <div class="digest-card-body">
+                {alerts_items}
+                {more_note}
+            </div>
+        </div>
+        """
+
+    def locked_section(title, desc, plan, price):
+        return f"""
+        <div class="digest-locked-section">
+            <div class="lock-icon">&#x1F512;</div>
+            <div class="lock-title">{title}</div>
+            <div class="lock-desc">{desc}</div>
+            <a class="lock-btn" href="/users#plans">Upgrade to {plan} ({price})</a>
+        </div>
+        """
+
+    locked_html = ''
+    locked_html += locked_section('Risk Correlation Analysis', 'See how risk indices relate to asset prices with 7-day correlation data.', 'Personal', '$9.95/mo')
+    locked_html += locked_section('Regime Classification', 'Understand the current risk regime: Calm, Risk Build, Shock, or Gas-Storage Stress.', 'Trader', '$29/mo')
+    locked_html += locked_section('Volatility Outlook', 'See current volatility regime and VIX-informed market stress outlook.', 'Trader', '$29/mo')
+
+    narrative = d.get('ai_narrative', '')
+    narrative_html = ''
+    if narrative:
+        rendered = narrative
+        rendered = _re.sub(r'## (.*)', r'<h2>\1</h2>', rendered)
+        rendered = _re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', rendered)
+        rendered = _re.sub(r'^- (.*)', r'<li>\1</li>', rendered, flags=_re.MULTILINE)
+        rendered = _re.sub(r'^\* (.*)', r'<li>\1</li>', rendered, flags=_re.MULTILINE)
+        rendered = _re.sub(r'(<li>.*?</li>)', lambda m: '<ul>' + m.group(0) + '</ul>', rendered, flags=_re.DOTALL)
+        rendered = rendered.replace('</ul>\n<ul>', '\n')
+        rendered = rendered.replace('\n\n', '<br><br>')
+        rendered = rendered.replace('\n', '<br>')
+
+        narrative_html = f"""
+        <div class="digest-card">
+            <div class="digest-card-header">
+                <span class="digest-section-icon">&#x1F9E0;</span>
+                <h3>Executive Intelligence Brief</h3>
+                <span style="background: rgba(59,130,246,0.2); color: #60a5fa; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">AI-Generated</span>
+            </div>
+            <div class="digest-card-body">
+                <div class="digest-narrative">{rendered}</div>
+            </div>
+        </div>
+        """
+
+    upgrade_hints = d.get('upgrade_hints', [])
+    upgrade_html = ''
+    if upgrade_hints:
+        next_plan_hints = {}
+        for h in upgrade_hints:
+            p = h['plan']
+            if p not in next_plan_hints:
+                next_plan_hints[p] = []
+            next_plan_hints[p].append(h['feature'])
+
+        plan_colors = {'Personal': '#3b82f6', 'Trader': '#f59e0b', 'Pro': '#ef4444', 'Enterprise': '#a855f7'}
+        cards = ''
+        for plan_name, features in next_plan_hints.items():
+            color = plan_colors.get(plan_name, '#3b82f6')
+            price = ''
+            for h in upgrade_hints:
+                if h['plan'] == plan_name:
+                    price = h.get('price', '')
+                    break
+            features_html = ''.join(f'<li>{f}</li>' for f in features)
+            cards += f"""
+            <div style="background: {color}10; border: 1px solid {color}30; border-radius: 10px; padding: 16px; flex: 1; min-width: 200px;">
+                <div style="color: {color}; font-weight: 700; font-size: 14px; margin-bottom: 8px;">{plan_name} {price}</div>
+                <ul style="color: #94a3b8; font-size: 12px; padding-left: 16px; margin: 0;">
+                    {features_html}
+                </ul>
+                <a href="/users#plans" style="display: inline-block; margin-top: 12px; background: {color}; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none;">Upgrade</a>
+            </div>
+            """
+
+        upgrade_html = f"""
+        <div class="digest-card">
+            <div class="digest-card-header">
+                <span class="digest-section-icon">&#x1F513;</span>
+                <h3>Unlock More Intelligence</h3>
+            </div>
+            <div class="digest-card-body">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    {cards}
+                </div>
+            </div>
+        </div>
+        """
+
+    disclaimer = """
+    <div style="text-align: center; padding: 12px; color: #64748b; font-size: 11px; margin-top: 8px;">
+        Informational only. Not financial advice. | EnergyRiskIQ Intelligence Engine
+    </div>
+    """
+
+    return header_bar + risk_tone_html + index_summary + asset_section + alerts_section + locked_html + narrative_html + upgrade_html + disclaimer
+
+
+@router.get("/daily-geo-energy-intelligence-digest/history", response_class=HTMLResponse)
+async def digest_history_page():
+    pages = get_recent_public_digest_pages(limit=90)
+
+    pages_html = ""
+    for p in pages:
+        page_date = p['page_date']
+        if isinstance(page_date, str):
+            page_date_obj = datetime.fromisoformat(page_date).date()
+        else:
+            page_date_obj = page_date
+        date_display = page_date_obj.strftime("%B %d, %Y")
+        pages_html += f"""
+        <li>
+            <a href="/daily-geo-energy-intelligence-digest/{page_date_obj.isoformat()}">
+                <span class="date">{date_display}</span>
+            </a>
+        </li>
+        """
+
+    if not pages_html:
+        pages_html = '<li style="color: #94a3b8; padding: 1rem;">No digest pages available yet.</li>'
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Geo-Energy Intelligence Digest - History | EnergyRiskIQ</title>
+        <meta name="description" content="Browse the archive of daily geo-energy risk intelligence digests from EnergyRiskIQ. Free GERI index data, market reactions, and AI risk analysis.">
+        <link rel="canonical" href="{BASE_URL}/daily-geo-energy-intelligence-digest/history">
+        <meta property="og:title" content="Daily Geo-Energy Intelligence Digest - History | EnergyRiskIQ">
+        <meta property="og:description" content="Browse the archive of daily geo-energy risk intelligence digests.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="{BASE_URL}/daily-geo-energy-intelligence-digest/history">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        {get_digest_dark_styles()}
+    </head>
+    <body>
+        {render_digest_nav()}
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / <a href="/daily-geo-energy-intelligence-digest">Digest</a> / History
+                </div>
+                <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem; color: #f1f5f9;">Daily Geo-Energy Intelligence Digest Archive</h1>
+                <p style="color: #94a3b8; margin-bottom: 2rem;">Browse past daily intelligence digests with GERI index movements, market reactions, and AI-generated risk analysis.</p>
+                <ul class="page-list">
+                    {pages_html}
+                </ul>
+            </div>
+        </main>
+        {render_digest_footer()}
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html, headers={"Cache-Control": "no-cache"})
+
+
+@router.get("/daily-geo-energy-intelligence-digest/{date_str}", response_class=HTMLResponse)
+async def digest_date_page(date_str: str):
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Invalid date format")
+
+    page = get_public_digest_page(target_date)
+    if not page or not page.get('model'):
+        raise HTTPException(status_code=404, detail="Digest page not found for this date")
+
+    d = page['model']
+    formatted_date = target_date.strftime("%B %d, %Y")
+    seo_title = d.get('seo_title', f"Daily Geo-Energy Intelligence Digest - {formatted_date} | EnergyRiskIQ")
+    seo_desc = d.get('seo_description', f"Free daily geo-energy risk intelligence digest for {formatted_date}.")
+
+    prev_date = (target_date - timedelta(days=1)).isoformat()
+    next_date = (target_date + timedelta(days=1))
+    today = date.today()
+    next_link = ''
+    if next_date < today:
+        next_link = f'<a href="/daily-geo-energy-intelligence-digest/{next_date.isoformat()}">Next Day &rarr;</a>'
+    prev_link = f'<a href="/daily-geo-energy-intelligence-digest/{prev_date}">&larr; Previous Day</a>'
+
+    digest_body = render_digest_html(d)
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{seo_title}</title>
+        <meta name="description" content="{seo_desc}">
+        <link rel="canonical" href="{BASE_URL}/daily-geo-energy-intelligence-digest/{date_str}">
+        <meta property="og:title" content="{seo_title}">
+        <meta property="og:description" content="{seo_desc}">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{BASE_URL}/daily-geo-energy-intelligence-digest/{date_str}">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        {get_digest_dark_styles()}
+    </head>
+    <body>
+        {render_digest_nav()}
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / <a href="/daily-geo-energy-intelligence-digest">Digest</a> / {formatted_date}
+                </div>
+                <h1 style="font-size: 1.5rem; margin-bottom: 1rem; color: #f1f5f9;">Daily Geo-Energy Intelligence Digest - {formatted_date}</h1>
+                {digest_body}
+                <div class="digest-nav-pagination">
+                    {prev_link}
+                    {next_link}
+                </div>
+            </div>
+        </main>
+        {render_digest_footer()}
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html, headers={"Cache-Control": "no-cache"})
+
+
+@router.get("/daily-geo-energy-intelligence-digest", response_class=HTMLResponse)
+async def digest_latest_page():
+    pages = get_recent_public_digest_pages(limit=1)
+    if pages:
+        page_date = pages[0]['page_date']
+        if isinstance(page_date, str):
+            date_str = page_date[:10]
+        else:
+            date_str = page_date.isoformat()
+        return await digest_date_page(date_str)
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Geo-Energy Intelligence Digest | EnergyRiskIQ</title>
+        <meta name="description" content="Daily geo-energy risk intelligence digest with GERI index, market reactions, and AI analysis. Free from EnergyRiskIQ.">
+        <link rel="canonical" href="{BASE_URL}/daily-geo-energy-intelligence-digest">
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        {get_digest_dark_styles()}
+    </head>
+    <body>
+        {render_digest_nav()}
+        <main>
+            <div class="container" style="text-align: center; padding: 4rem 1rem;">
+                <h1 style="font-size: 1.75rem; color: #f1f5f9; margin-bottom: 1rem;">Daily Geo-Energy Intelligence Digest</h1>
+                <p style="color: #94a3b8; margin-bottom: 2rem;">No digest pages have been generated yet. Check back soon.</p>
+                <a href="/users" class="cta-btn-nav" style="display: inline-block; padding: 12px 32px; font-size: 16px;">Get Real-Time Alerts</a>
+            </div>
+        </main>
+        {render_digest_footer()}
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html, headers={"Cache-Control": "no-cache"})
