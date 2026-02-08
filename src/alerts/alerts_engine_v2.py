@@ -139,7 +139,7 @@ THEMATIC_CATEGORIES = (
 def get_high_impact_events_global() -> List[Dict]:
     query = """
     SELECT e.id, e.title, e.region, e.category, e.severity_score, e.ai_summary, 
-           e.source_url, e.published_at, e.ai_impact_score, e.ai_affected_assets, e.ai_confidence
+           e.source_url, e.event_time, e.ai_impact_json, e.signal_quality_score
     FROM events e
     WHERE e.severity_score >= 4
       AND e.category IN %s
@@ -429,21 +429,29 @@ def generate_high_impact_event_alerts() -> Dict:
             "event_id": event['id'],
             "title": event.get('title'),
             "source_url": event.get('source_url'),
-            "published_at": event.get('published_at'),
+            "event_time": str(event.get('event_time')) if event.get('event_time') else None,
             "region": event['region'],
             "category": event.get('category')
         }
         
+        ai_impact = {}
+        if event.get('ai_impact_json'):
+            try:
+                import json as _json
+                ai_impact = _json.loads(event['ai_impact_json']) if isinstance(event['ai_impact_json'], str) else event['ai_impact_json']
+            except Exception:
+                ai_impact = {}
+        
         classification_data = {
             "alert_type": "HIGH_IMPACT_EVENT",
             "ai_summary": event.get('ai_summary'),
-            "ai_impact_score": float(event['ai_impact_score']) if event.get('ai_impact_score') else None,
-            "ai_affected_assets": event.get('ai_affected_assets') or []
+            "ai_impact_score": float(ai_impact.get('impact_score', 0)) if ai_impact.get('impact_score') else None,
+            "ai_affected_assets": ai_impact.get('affected_assets', [])
         }
         
         event_category = event.get('category', 'geopolitical')
-        confidence_val = event.get('ai_confidence')
-        confidence_score = float(confidence_val) if confidence_val else 0.7
+        sq_score = event.get('signal_quality_score')
+        confidence_score = float(sq_score) / 100.0 if sq_score else 0.7
         
         event_id, was_skipped = create_alert_event(
             alert_type='HIGH_IMPACT_EVENT',
