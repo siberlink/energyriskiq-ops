@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from typing import Optional
 from fastapi import APIRouter, Header, HTTPException
 
@@ -32,6 +32,7 @@ LOCK_IDS = {
     'backfill_egsi': 5002,
     'calculate_oil_changes': 5003,
     'backfill_eurusd': 5004,
+    'geri_compute': 6001,
 }
 
 
@@ -472,6 +473,56 @@ def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
+    
+    return response
+
+
+@router.post("/run/geri-compute")
+def run_geri_compute(
+    mode: str = "yesterday",
+    force: bool = False,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Trigger GERI computation.
+    
+    Modes:
+      - yesterday: Compute GERI for yesterday (default, used by daily scheduler)
+      - backfill: Auto-backfill all dates with alerts but no GERI value
+    
+    Args:
+      - force: If True, recompute and overwrite existing values (required for v1.1 migration)
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.geri.service import compute_geri_for_date, auto_backfill
+    from src.geri.types import MODEL_VERSION
+    
+    def geri_job():
+        if mode == "backfill":
+            result = auto_backfill(force=force)
+            result['model_version'] = MODEL_VERSION
+            return result
+        else:
+            yesterday = date.today() - timedelta(days=1)
+            result = compute_geri_for_date(yesterday, force=force)
+            if result:
+                return {
+                    'date': result.index_date.isoformat(),
+                    'value': result.value,
+                    'band': result.band.value,
+                    'model_version': result.model_version,
+                    'trend_1d': result.trend_1d,
+                    'trend_7d': result.trend_7d,
+                }
+            return {'message': 'No computation needed (already exists or no data)', 'model_version': MODEL_VERSION}
+    
+    response, status_code = run_job_with_lock('geri_compute', geri_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
     
     return response
 
