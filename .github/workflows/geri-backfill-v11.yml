@@ -1,0 +1,101 @@
+name: "[One-Time] GERI v1.1 Regional Weighting Backfill"
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force recompute existing values (true/false)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  APP_URL: https://energy-risk-iq--emilsiberlink.replit.app
+
+jobs:
+  geri-backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Trigger GERI v1.1 Backfill
+        id: backfill
+        run: |
+          echo "## GERI v1.1 Regional Weighting Backfill" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Triggering GERI backfill with force=${{ inputs.force }}..."
+          echo "Model: geri_v1.1 (Regional Weighting Model)"
+          echo "Clusters: Middle East 25%, Russia/Black Sea 20%, China 15%, US 15%, Europe 10%, LNG Exporters 10%, Emerging 5%"
+          echo ""
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ env.APP_URL }}/internal/run/geri-compute?mode=backfill&force=${{ inputs.force }}" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --max-time 300)
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "HTTP Code: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "GERI backfill completed successfully"
+            echo "status=success" >> $GITHUB_OUTPUT
+
+            computed=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('details',{}).get('computed',0))" 2>/dev/null || echo "unknown")
+            skipped=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('details',{}).get('skipped',0))" 2>/dev/null || echo "unknown")
+            failed=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('details',{}).get('failed',0))" 2>/dev/null || echo "unknown")
+            model=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('details',{}).get('model_version','unknown'))" 2>/dev/null || echo "unknown")
+            duration=$(echo "$body" | python3 -c "import sys,json; d=json.load(sys.stdin); print(round(d.get('duration_seconds',0),1))" 2>/dev/null || echo "unknown")
+
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Model Version | $model |" >> $GITHUB_STEP_SUMMARY
+            echo "| Days Computed | $computed |" >> $GITHUB_STEP_SUMMARY
+            echo "| Days Skipped | $skipped |" >> $GITHUB_STEP_SUMMARY
+            echo "| Days Failed | $failed |" >> $GITHUB_STEP_SUMMARY
+            echo "| Duration | ${duration}s |" >> $GITHUB_STEP_SUMMARY
+            echo "| Force Recompute | ${{ inputs.force }} |" >> $GITHUB_STEP_SUMMARY
+          elif [ "$http_code" -eq 409 ]; then
+            echo "::warning::GERI backfill is already running (HTTP 409)"
+            echo "status=busy" >> $GITHUB_OUTPUT
+            echo "**Status:** Another GERI computation is already in progress. Try again later." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::error::GERI backfill failed with HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "**Status:** FAILED (HTTP $http_code)" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$body" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Verify GERI Public API
+        if: steps.backfill.outputs.status == 'success'
+        run: |
+          echo ""
+          echo "Verifying GERI public endpoint..."
+          response=$(curl -s "${{ env.APP_URL }}/api/v1/indices/geri/public")
+          echo "Public GERI response: $response"
+
+          value=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('value','null'))" 2>/dev/null || echo "null")
+          band=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('band','null'))" 2>/dev/null || echo "null")
+          model=$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('model_version','null'))" 2>/dev/null || echo "null")
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Public GERI Verification" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| GERI Value | $value |" >> $GITHUB_STEP_SUMMARY
+          echo "| Risk Band | $band |" >> $GITHUB_STEP_SUMMARY
+          echo "| Model Version | $model |" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$value" != "null" ] && [ "$value" != "None" ]; then
+            echo "GERI public API is serving data successfully"
+          else
+            echo "::warning::GERI public API returned null value - may need more time for data to propagate"
+          fi
