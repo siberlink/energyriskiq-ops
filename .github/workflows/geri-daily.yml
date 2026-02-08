@@ -37,19 +37,23 @@ jobs:
       - name: Compute GERI for yesterday
         id: geri
         run: |
-          echo "Computing GERI index for yesterday..."
-          response=$(curl -s -X POST "${{ env.APP_URL }}/api/v1/indices/geri/compute-yesterday" \
+          echo "Computing GERI v1.1 index for yesterday..."
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ env.APP_URL }}/internal/run/geri-compute?mode=yesterday&force=false" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
-          echo "Response: $response"
-          
-          if echo "$response" | grep -q '"success":true'; then
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
             echo "GERI computation successful"
             echo "status=success" >> $GITHUB_OUTPUT
-          elif echo "$response" | grep -q '"skipped":true'; then
-            echo "GERI computation skipped (already exists)"
-            echo "status=skipped" >> $GITHUB_OUTPUT
           else
-            echo "GERI computation may have failed"
+            echo "::warning::GERI computation returned HTTP $http_code"
             echo "status=failed" >> $GITHUB_OUTPUT
             exit 1
           fi
