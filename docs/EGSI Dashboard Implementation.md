@@ -470,6 +470,304 @@ EnergyRiskIQ's full lifecycle data provides unique capabilities:
 
 ---
 
+## 18. Dashboard UI Feature Map
+
+### Master Layout
+
+```
+HEADER
+  EGSI Dashboard | Plan Badge | Last Update | Alert Status | Upgrade CTA
+
+ROW 1 — HEADLINE INTELLIGENCE
+  [ EGSI Score Gauge ] [ Stress Classification ] [ Trend Momentum Panel ]
+
+ROW 2 — DRIVERS & SYSTEM PRESSURE
+  [ Driver Decomposition Chart ] [ Storage Stress Panel ]
+  [ LNG / Supply Stress Panel ] [ Infrastructure / Chokepoint Panel ]
+
+ROW 3 — MARKET IMPACT INTELLIGENCE
+  [ Asset Overlay Chart ] [ Correlation & Divergence Panel ]
+  [ Regime Classification Panel ]
+
+ROW 4 — PREDICTIVE INTELLIGENCE
+  [ Probability Forecast Panel ] [ Forward Stress Radar ]
+  [ Scenario Simulation Panel ]
+
+ROW 5 — DECISION SUPPORT
+  [ AI Intelligence Narrative ] [ Backtesting Explorer ]
+  [ Alert Builder ] [ Portfolio Stress Panel ]
+
+FOOTER
+  Stress Timeline Replay | Methodology | Export Tools
+```
+
+### Widget Visibility Per Plan
+
+#### FREE
+
+| Row | Widget | Status |
+|-----|--------|--------|
+| 1 | EGSI Score Gauge | Visible |
+| 1 | Stress Classification | Visible |
+| 1 | 7-Day Momentum Arrow | Visible |
+| 2 | Top 2 Stress Drivers (Simplified Bars) | Visible |
+| 3 | Entire row | Locked (blurred preview) |
+| 4 | Entire row | Locked |
+| 5 | AI Daily Summary (Simplified) | Visible |
+| 5 | Backtesting | Locked |
+| 5 | Alert Builder | Locked |
+| 5 | Portfolio Panel | Locked |
+| Footer | Stress Timeline Replay (Limited Episodes) | Visible |
+
+#### PERSONAL
+
+| Row | Widget | Status |
+|-----|--------|--------|
+| 1 | Full Headline Intelligence | Visible |
+| 2 | Full Driver Decomposition | Visible |
+| 2 | Storage Stress Panel | Visible |
+| 2 | LNG / Supply Panel | Visible |
+| 2 | Chokepoint Advanced Analytics | Locked |
+| 3 | Asset Overlay Chart (Max 2 Assets) | Visible |
+| 3 | Correlation Panel (30D / 90D only) | Visible |
+| 3 | Divergence Engine | Locked |
+| 3 | Regime Classification | Locked |
+| 4 | Entire row | Locked |
+| 5 | Weekly AI Intelligence Report | Visible |
+| 5 | Backtesting | Locked |
+| 5 | Alert Builder | Locked |
+| 5 | Portfolio Panel | Locked |
+| Footer | Full Stress Timeline Replay | Visible |
+
+#### TRADER
+
+| Row | Widget | Status |
+|-----|--------|--------|
+| 1 | Full access | Visible |
+| 2 | Full System Pressure Panels | Visible |
+| 3 | Unlimited Asset Overlay | Visible |
+| 3 | Correlation + Divergence Panel | Visible |
+| 3 | Regime Classification Panel | Visible |
+| 4 | Probability Forecast Panel (7D + 30D) | Visible |
+| 4 | Scenario Simulation | Locked |
+| 4 | Forward Radar | Locked |
+| 5 | Backtesting Explorer | Visible |
+| 5 | Advanced Alert Builder (Preset rules only) | Visible |
+| 5 | Portfolio Stress | Locked |
+
+#### PRO
+
+| Row | Widget | Status |
+|-----|--------|--------|
+| 1 | Full | Visible |
+| 2 | Full + Advanced Chokepoint Analytics | Visible |
+| 3 | Full Market Intelligence Layer | Visible |
+| 4 | Probability Engine Full Horizons | Visible |
+| 4 | Forward Stress Radar | Visible |
+| 4 | Scenario Simulation Engine | Visible |
+| 5 | AI Trade Intelligence Narratives | Visible |
+| 5 | Full Backtesting | Visible |
+| 5 | Custom Alert Builder | Visible |
+| 5 | Portfolio Stress | Locked |
+
+#### ENTERPRISE
+
+Everything unlocked, plus:
+
+| Row | Widget | Status |
+|-----|--------|--------|
+| 5 | Portfolio Stress Panel | Visible |
+| 5 | Custom Risk Models | Visible |
+| 5 | Multi-Region Gas Stress Layer | Visible |
+| 5 | API Monitoring Panel | Visible |
+
+---
+
+## 19. Feature Flag JSON Schema
+
+Backend enforcement schema controlling UI visibility and logic permissions:
+
+```json
+{
+  "egsi_features": {
+
+    "headline": {
+      "score_gauge": ["free", "personal", "trader", "pro", "enterprise"],
+      "stress_classification": ["free", "personal", "trader", "pro", "enterprise"],
+      "momentum_panel": ["free", "personal", "trader", "pro", "enterprise"]
+    },
+
+    "drivers": {
+      "driver_decomposition": ["personal", "trader", "pro", "enterprise"],
+      "storage_panel": ["personal", "trader", "pro", "enterprise"],
+      "lng_supply_panel": ["personal", "trader", "pro", "enterprise"],
+      "chokepoint_analytics": ["pro", "enterprise"]
+    },
+
+    "market_impact": {
+      "asset_overlay_basic": ["personal", "trader", "pro", "enterprise"],
+      "asset_overlay_unlimited": ["trader", "pro", "enterprise"],
+      "correlation_panel": ["personal", "trader", "pro", "enterprise"],
+      "divergence_engine": ["trader", "pro", "enterprise"],
+      "regime_classification": ["trader", "pro", "enterprise"]
+    },
+
+    "predictive": {
+      "probability_basic": ["trader", "pro", "enterprise"],
+      "probability_advanced": ["pro", "enterprise"],
+      "forward_stress_radar": ["pro", "enterprise"],
+      "scenario_simulation": ["pro", "enterprise"]
+    },
+
+    "decision_support": {
+      "ai_summary_basic": ["free", "personal", "trader", "pro", "enterprise"],
+      "ai_trade_narrative": ["pro", "enterprise"],
+      "backtesting_basic": ["trader", "pro", "enterprise"],
+      "backtesting_full": ["pro", "enterprise"],
+      "alert_builder_basic": ["trader"],
+      "alert_builder_advanced": ["pro", "enterprise"],
+      "portfolio_stress": ["enterprise"]
+    },
+
+    "exports": {
+      "csv_export": ["trader", "pro", "enterprise"],
+      "data_api": ["enterprise"]
+    }
+  }
+}
+```
+
+---
+
+## 20. Upgrade Prompt Strategy
+
+Psychological conversion triggers used contextually throughout the dashboard:
+
+### Type A — Insight Teasing
+
+> "You are seeing headline stress levels. Unlock driver decomposition to understand WHY stress is rising."
+
+### Type B — Missed Opportunity Messaging
+
+Triggered when divergence is detected:
+
+> "TTF Gas is deviating from stress model expectations. Upgrade to Trader to access divergence intelligence."
+
+### Type C — Risk Anxiety Trigger
+
+Triggered when stress enters elevated range:
+
+> "Stress escalation detected. Professional users monitor probability projections during these phases."
+
+### Type D — Tool Ownership Trigger
+
+Triggered when user clicks a locked scenario tool:
+
+> "Run forward gas crisis simulations and anticipate price movements."
+
+### Type E — Data Depth Trigger
+
+Triggered when user attempts to export:
+
+> "Export full historical stress dataset for modelling and trading research."
+
+---
+
+## 21. Alert Tiering Architecture
+
+### FREE
+
+- Major Stress Spike Alerts only
+- Delayed delivery
+- Dashboard notification only
+
+### PERSONAL
+
+- Daily Stress Change Alerts
+- Storage acceleration alerts
+- Email delivery
+
+### TRADER
+
+- Asset divergence alerts
+- Price breakout probability alerts
+- LNG congestion alerts
+- Real-time delivery
+- Email + SMS / Telegram
+
+### PRO
+
+- Predictive stress escalation alerts
+- Scenario-based alerts
+- Custom threshold alerts
+- Signal confidence ranking
+- Multi-index correlation alerts
+
+### ENTERPRISE
+
+- Portfolio exposure alerts
+- Infrastructure disruption alerts
+- Custom weighted risk alerts
+- API alert streaming
+- Team alert routing
+
+---
+
+## 22. Sales Messaging Stack
+
+### Hero Positioning
+
+**Headline:** Europe Gas Stress Intelligence — Before Markets React
+
+**Subheadline:** Track systemic gas pressure, identify market impact, and anticipate disruption risk using EGSI — Europe's operational gas stress intelligence index.
+
+### Value Pillars
+
+1. **Understand System Pressure** — Monitor storage, supply disruption, LNG congestion, and infrastructure risk in one unified intelligence model.
+2. **Detect Market Impact Early** — Identify asset mispricing and stress contagion across gas, oil, FX, volatility, and freight markets.
+3. **Anticipate Disruption Risk** — Probability modelling and scenario simulations help users anticipate crisis phases before market pricing adjusts.
+
+### Plan Positioning Stack
+
+| Plan | Positioning Statement |
+|------|----------------------|
+| Free | "Track stress visibility" |
+| Personal | "Understand stress drivers" |
+| Trader | "Trade stress intelligence" |
+| Pro | "Anticipate stress events" |
+| Enterprise | "Operate on stress intelligence" |
+
+### Social Proof Angle
+
+> EGSI models gas system stress using full lifecycle storage and market data across multiple European crisis cycles.
+
+### High-Conversion CTA Block
+
+> Markets react to headlines. Infrastructure reacts to pressure. EGSI tracks the pressure.
+
+**CTA Buttons:**
+
+- View Live EGSI
+- Explore Stress Drivers
+- Run Scenario Simulation
+
+### Recommended Add-On
+
+**Comparison Slider:** "Market price vs Gas system stress" — high conversion booster showing the relationship between EGSI stress levels and actual market pricing.
+
+---
+
+## 23. Pricing Perception Matrix
+
+| Plan | Price | Perceived Value |
+|------|-------|----------------|
+| Personal | $9.95 | Research Tool |
+| Trader | $29 | Trading Signal |
+| Pro | $49 | Professional Risk Platform |
+| Enterprise | $129 | Institutional Intelligence |
+
+---
+
 ## Related Documentation
 
 - `docs/EGSI.md` — Original EGSI specification and strategic vision
