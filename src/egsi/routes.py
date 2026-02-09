@@ -4,6 +4,7 @@ EGSI API Routes
 Mounted under /api/v1/indices
 """
 import logging
+import json
 from datetime import date, datetime
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
@@ -14,11 +15,13 @@ from src.egsi.repo import (
     get_egsi_m_for_date,
     get_egsi_m_latest,
     get_egsi_m_history,
+    get_egsi_m_delayed,
     get_egsi_s_for_date,
     get_egsi_s_latest,
     get_egsi_s_history,
+    get_egsi_s_delayed,
 )
-from src.egsi.egsi_history_service import get_egsi_m_delayed
+from src.egsi.egsi_history_service import get_egsi_m_delayed as get_egsi_m_delayed_hours
 from src.egsi.service import compute_egsi_m_for_date, get_egsi_m_status
 from src.egsi.service_egsi_s import compute_egsi_s_for_date, get_egsi_s_status
 
@@ -51,7 +54,7 @@ async def get_egsi_m_public():
     """
     check_enabled()
     
-    result = get_egsi_m_delayed(delay_hours=24)
+    result = get_egsi_m_delayed_hours(delay_hours=24)
     
     if not result:
         return {
@@ -379,4 +382,126 @@ async def get_egsi_s_by_date(target_date: str):
     return {
         'success': True,
         'data': result,
+    }
+
+
+def _parse_components(raw):
+    """Parse components JSON if stored as string."""
+    if raw is None:
+        return {}
+    if isinstance(raw, str):
+        return json.loads(raw)
+    return raw
+
+
+@router.get("/egsi/dashboard")
+async def get_egsi_dashboard(
+    plan: str = Query("free", description="User plan tier"),
+    history_days: int = Query(30, description="Days of history to return"),
+):
+    """
+    Combined EGSI dashboard endpoint for authenticated users.
+    Returns EGSI-M + EGSI-S latest data, components, drivers, and history.
+    Plan-tiered: free users get 24h delayed data, paid users get real-time.
+    """
+    check_enabled()
+
+    use_delayed = plan == 'free'
+
+    if use_delayed:
+        egsi_m = get_egsi_m_delayed(delay_days=1)
+        egsi_s = get_egsi_s_delayed(delay_days=1)
+    else:
+        egsi_m = get_egsi_m_latest()
+        egsi_s = get_egsi_s_latest()
+
+    egsi_m_data = None
+    if egsi_m:
+        components = _parse_components(egsi_m.get('components'))
+        m_date = egsi_m.get('date')
+        if hasattr(m_date, 'isoformat'):
+            m_date = m_date.isoformat()
+        computed_at = egsi_m.get('computed_at')
+        if hasattr(computed_at, 'isoformat'):
+            computed_at = computed_at.isoformat()
+        egsi_m_data = {
+            'value': round(float(egsi_m.get('value', 0)), 1),
+            'band': egsi_m.get('band', 'LOW'),
+            'trend_1d': round(float(egsi_m.get('trend_1d', 0)), 1) if egsi_m.get('trend_1d') is not None else None,
+            'trend_7d': round(float(egsi_m.get('trend_7d', 0)), 1) if egsi_m.get('trend_7d') is not None else None,
+            'date': m_date,
+            'explanation': egsi_m.get('explanation', ''),
+            'is_delayed': use_delayed,
+            'computed_at': computed_at,
+            'components': {
+                'reri_eu': components.get('reri_eu', {}),
+                'theme_pressure': components.get('theme_pressure', {}),
+                'asset_transmission': components.get('asset_transmission', {}),
+                'chokepoint_factor': components.get('chokepoint_factor', {}),
+            },
+            'top_drivers': components.get('top_drivers', [])[:5],
+            'chokepoint_watch': components.get('chokepoint_factor', {}).get('hits', [])[:5],
+            'interpretation': components.get('interpretation', egsi_m.get('explanation', '')),
+        }
+
+    egsi_s_data = None
+    if egsi_s:
+        s_components = _parse_components(egsi_s.get('components'))
+        s_date = egsi_s.get('date')
+        if hasattr(s_date, 'isoformat'):
+            s_date = s_date.isoformat()
+        s_computed = egsi_s.get('computed_at')
+        if hasattr(s_computed, 'isoformat'):
+            s_computed = s_computed.isoformat()
+        egsi_s_data = {
+            'value': round(float(egsi_s.get('value', 0)), 1),
+            'band': egsi_s.get('band', 'LOW'),
+            'trend_1d': round(float(egsi_s.get('trend_1d', 0)), 1) if egsi_s.get('trend_1d') is not None else None,
+            'trend_7d': round(float(egsi_s.get('trend_7d', 0)), 1) if egsi_s.get('trend_7d') is not None else None,
+            'date': s_date,
+            'explanation': egsi_s.get('explanation', ''),
+            'computed_at': s_computed,
+            'data_sources': egsi_s.get('data_sources', []),
+            'components': {
+                'storage': s_components.get('storage', {}),
+                'price': s_components.get('price', {}),
+                'flows': s_components.get('flows', {}),
+                'winter_readiness': s_components.get('winter_readiness', {}),
+                'alerts': s_components.get('alerts', {}),
+            },
+            'top_drivers': s_components.get('top_drivers', [])[:5],
+            'interpretation': s_components.get('interpretation', egsi_s.get('explanation', '')),
+        }
+
+    max_history = {
+        'free': 14,
+        'personal': 90,
+        'trader': 365,
+        'pro': 365,
+        'enterprise': 365,
+    }.get(plan, 14)
+    actual_days = min(history_days, max_history)
+
+    m_history = get_egsi_m_history(days=actual_days)
+    s_history = get_egsi_s_history(days=actual_days)
+
+    def format_history(items):
+        return [{
+            'date': h.get('date').isoformat() if hasattr(h.get('date'), 'isoformat') else h.get('date'),
+            'value': round(float(h.get('value', 0)), 1),
+            'band': h.get('band'),
+            'trend_1d': round(float(h.get('trend_1d', 0)), 1) if h.get('trend_1d') is not None else None,
+        } for h in items]
+
+    return {
+        'success': True,
+        'plan': plan,
+        'egsi_m': egsi_m_data,
+        'egsi_s': egsi_s_data,
+        'history': {
+            'egsi_m': format_history(m_history),
+            'egsi_s': format_history(s_history),
+            'days': actual_days,
+            'max_days': max_history,
+        },
     }

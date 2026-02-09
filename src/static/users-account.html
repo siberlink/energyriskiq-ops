@@ -319,7 +319,7 @@
 
         .snapshot-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             margin-bottom: 32px;
         }
@@ -356,6 +356,7 @@
         .snapshot-card-icon.geri { background: rgba(239, 68, 68, 0.15); color: #f87171; }
         .snapshot-card-icon.eeri { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
         .snapshot-card-icon.digest { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .snapshot-card-icon.egsi { background: rgba(16, 185, 129, 0.15); color: #34d399; }
         .snapshot-card-title {
             font-size: 16px;
             font-weight: 600;
@@ -3560,6 +3561,82 @@
             color: #e2e8f0;
             border-bottom: 1px solid #1e293b;
         }
+        /* ========== EGSI Dashboard Styles ========== */
+        .egsi-plan-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; background: linear-gradient(135deg, #10b981, #059669); color: white; margin-left: 8px; vertical-align: middle; }
+        .egsi-loading { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .egsi-loading .spinner { width: 40px; height: 40px; border: 3px solid #10b981; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        .egsi-dual-index-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .egsi-index-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; }
+        .egsi-m-card { border-left: 3px solid #10b981; }
+        .egsi-s-card { border-left: 3px solid #06b6d4; }
+        .egsi-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .egsi-card-label { font-size: 18px; font-weight: 700; color: #f1f5f9; }
+        .egsi-card-sublabel { font-size: 12px; color: #64748b; }
+        .egsi-realtime-badge { background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
+        .egsi-delayed-badge { background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
+        .egsi-value-display { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+        .egsi-value-number { font-size: 42px; font-weight: 800; color: #f1f5f9; line-height: 1; }
+        .egsi-value-band { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .egsi-band-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .egsi-band-normal { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .egsi-band-elevated { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .egsi-band-high { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .egsi-band-critical { background: rgba(220, 38, 38, 0.3); color: #fca5a5; }
+        .egsi-trend-row { display: flex; gap: 16px; margin-bottom: 8px; }
+        .egsi-trend { font-size: 13px; display: flex; align-items: center; gap: 4px; }
+        .egsi-trend-up { color: #f87171; }
+        .egsi-trend-down { color: #4ade80; }
+        .egsi-trend-flat { color: #94a3b8; }
+        .egsi-date { font-size: 12px; color: #64748b; }
+        .egsi-section-title { font-size: 16px; font-weight: 600; color: #e2e8f0; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #334155; }
+        .egsi-components-section, .egsi-drivers-section, .egsi-chokepoint-section, .egsi-storage-panel, .egsi-interpretation-section, .egsi-history-section { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .egsi-components-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .egsi-component-group-title { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .egsi-component-item { margin-bottom: 12px; }
+        .egsi-component-label { display: flex; justify-content: space-between; font-size: 13px; color: #cbd5e1; margin-bottom: 4px; }
+        .egsi-component-bar { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+        .egsi-component-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .egsi-component-fill.egsi-m-fill { background: linear-gradient(90deg, #10b981, #34d399); }
+        .egsi-component-fill.egsi-s-fill { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+        .egsi-component-bar-placeholder { color: #64748b; font-size: 13px; padding: 12px; text-align: center; }
+        .egsi-drivers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .egsi-drivers-col-title { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .egsi-driver-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 8px; }
+        .egsi-driver-rank { width: 24px; height: 24px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .egsi-driver-text { font-size: 13px; color: #cbd5e1; line-height: 1.4; }
+        .egsi-driver-meta { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .egsi-chokepoint-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; margin-bottom: 8px; }
+        .egsi-chokepoint-name { font-size: 14px; font-weight: 600; color: #e2e8f0; flex: 1; }
+        .egsi-chokepoint-cat { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .egsi-chokepoint-weight { font-size: 13px; font-weight: 600; color: #10b981; }
+        .egsi-storage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .egsi-storage-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; }
+        .egsi-storage-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+        .egsi-storage-value { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+        .egsi-storage-bar { height: 6px; background: #334155; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .egsi-storage-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 3px; }
+        .egsi-interpretation-box { background: #0f172a; border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 20px; font-size: 14px; color: #cbd5e1; line-height: 1.6; }
+        .egsi-history-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .egsi-history-info { font-size: 12px; color: #64748b; }
+        .egsi-history-table-wrap { overflow-x: auto; }
+        .egsi-history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .egsi-history-table th { background: #0f172a; color: #94a3b8; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #334155; white-space: nowrap; }
+        .egsi-history-table td { padding: 8px 12px; border-bottom: 1px solid #1e293b; color: #cbd5e1; white-space: nowrap; }
+        .egsi-history-table tr:hover td { background: rgba(16, 185, 129, 0.05); }
+        .egsi-upgrade-prompt { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 24px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+        .egsi-upgrade-icon { font-size: 28px; flex-shrink: 0; }
+        .egsi-upgrade-text { flex: 1; }
+        .egsi-upgrade-text strong { color: #f1f5f9; font-size: 15px; }
+        .egsi-upgrade-text p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+        .egsi-upgrade-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+        .egsi-upgrade-btn:hover { opacity: 0.9; }
+        @media (max-width: 768px) {
+            .egsi-dual-index-row { grid-template-columns: 1fr; }
+            .egsi-components-grid { grid-template-columns: 1fr; }
+            .egsi-drivers-grid { grid-template-columns: 1fr; }
+            .egsi-upgrade-prompt { flex-direction: column; text-align: center; }
+        }
+        /* ========== End EGSI Dashboard Styles ========== */
     </style>
 </head>
 <body>
@@ -3627,6 +3704,15 @@
             <div class="eeri-upgrade-hint" id="eeriUpgradeHint" style="display: none;">
                 (Upgrade to Pro for full EERI access)
             </div>
+            <a class="nav-item" id="egsiNavItem" onclick="showSection('egsi'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </span>
+                EGSI Dashboard
+                <span class="pro-badge-nav" id="egsiBadge">FREE</span>
+            </a>
             <a class="nav-item" id="digestNavItem" onclick="showSection('digest'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3763,6 +3849,23 @@
                         <div class="snapshot-loading"><div class="spinner"></div></div>
                     </div>
                 </div>
+
+                <div class="snapshot-card" onclick="showSection('egsi');" id="snapshotEgsi">
+                    <div class="snapshot-card-header">
+                        <div class="snapshot-card-icon egsi">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="snapshot-card-title">EGSI</div>
+                            <div class="snapshot-card-subtitle">Europe Gas Stress Index</div>
+                        </div>
+                    </div>
+                    <div id="snapshotEgsiBody">
+                        <div class="snapshot-loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -3834,6 +3937,114 @@
             </div>
             
             <div class="content-card" style="margin-top: 24px; display: none;" id="lockedSamplesSection">
+            </div>
+        </div>
+
+        <!-- EGSI Dashboard Section -->
+        <div class="section-content" id="section-egsi">
+            <div class="page-header">
+                <h1 class="page-title">EGSI Dashboard <span class="egsi-plan-badge" id="egsiHeaderBadge"></span></h1>
+                <p class="page-subtitle" id="egsiHeaderSubtitle">Europe Gas Stress Index - Market & System intelligence</p>
+            </div>
+            <div id="egsiContent">
+                <div class="egsi-loading" id="egsiLoading">
+                    <div class="spinner"></div>
+                    <p>Loading EGSI data...</p>
+                </div>
+                <div class="egsi-dashboard" id="egsiDashboard" style="display: none;">
+                    <div class="egsi-dual-index-row">
+                        <div class="egsi-index-card egsi-m-card" id="egsiMCard">
+                            <div class="egsi-card-header">
+                                <span class="egsi-card-label">EGSI-M</span>
+                                <span class="egsi-card-sublabel">Market / Transmission</span>
+                                <span class="egsi-realtime-badge" id="egsiMRealtimeBadge" style="display:none;">REAL-TIME</span>
+                                <span class="egsi-delayed-badge" id="egsiMDelayedBadge" style="display:none;">24H DELAYED</span>
+                            </div>
+                            <div class="egsi-value-display">
+                                <span class="egsi-value-number" id="egsiMValue">--</span>
+                                <span class="egsi-value-band" id="egsiMBand">--</span>
+                            </div>
+                            <div class="egsi-trend-row">
+                                <span class="egsi-trend" id="egsiMTrend1d"></span>
+                                <span class="egsi-trend" id="egsiMTrend7d"></span>
+                            </div>
+                            <div class="egsi-date" id="egsiMDate"></div>
+                        </div>
+                        <div class="egsi-index-card egsi-s-card" id="egsiSCard">
+                            <div class="egsi-card-header">
+                                <span class="egsi-card-label">EGSI-S</span>
+                                <span class="egsi-card-sublabel">System / Storage</span>
+                            </div>
+                            <div class="egsi-value-display">
+                                <span class="egsi-value-number" id="egsiSValue">--</span>
+                                <span class="egsi-value-band" id="egsiSBand">--</span>
+                            </div>
+                            <div class="egsi-trend-row">
+                                <span class="egsi-trend" id="egsiSTrend1d"></span>
+                                <span class="egsi-trend" id="egsiSTrend7d"></span>
+                            </div>
+                            <div class="egsi-date" id="egsiSDate"></div>
+                        </div>
+                    </div>
+                    <div class="egsi-components-section" id="egsiComponentsSection" style="display:none;">
+                        <h3 class="egsi-section-title">Component Breakdown</h3>
+                        <div class="egsi-components-grid">
+                            <div class="egsi-component-group">
+                                <h4 class="egsi-component-group-title">EGSI-M Components</h4>
+                                <div id="egsiMComponents"><div class="egsi-component-bar-placeholder">Loading...</div></div>
+                            </div>
+                            <div class="egsi-component-group" id="egsiSComponentsGroup">
+                                <h4 class="egsi-component-group-title">EGSI-S Components</h4>
+                                <div id="egsiSComponents"><div class="egsi-component-bar-placeholder">Loading...</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="egsi-drivers-section" id="egsiDriversSection" style="display:none;">
+                        <h3 class="egsi-section-title">Top Risk Drivers</h3>
+                        <div class="egsi-drivers-grid">
+                            <div class="egsi-drivers-col">
+                                <h4 class="egsi-drivers-col-title">Market Drivers</h4>
+                                <div id="egsiMDrivers"></div>
+                            </div>
+                            <div class="egsi-drivers-col" id="egsiSDriversCol">
+                                <h4 class="egsi-drivers-col-title">System Drivers</h4>
+                                <div id="egsiSDrivers"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="egsi-chokepoint-section" id="egsiChokepointSection" style="display:none;">
+                        <h3 class="egsi-section-title">Chokepoint Watch</h3>
+                        <div id="egsiChokepointList"></div>
+                    </div>
+                    <div class="egsi-storage-panel" id="egsiStoragePanel" style="display:none;">
+                        <h3 class="egsi-section-title">EU Gas Storage Status</h3>
+                        <div class="egsi-storage-grid" id="egsiStorageGrid"></div>
+                    </div>
+                    <div class="egsi-interpretation-section" id="egsiInterpretationSection" style="display:none;">
+                        <h3 class="egsi-section-title">AI Interpretation</h3>
+                        <div class="egsi-interpretation-box" id="egsiInterpretation"></div>
+                    </div>
+                    <div class="egsi-history-section" id="egsiHistorySection" style="display:none;">
+                        <h3 class="egsi-section-title">Historical Trend</h3>
+                        <div class="egsi-history-controls" id="egsiHistoryControls">
+                            <span class="egsi-history-info" id="egsiHistoryInfo"></span>
+                        </div>
+                        <div class="egsi-history-table-wrap">
+                            <table class="egsi-history-table" id="egsiHistoryTable">
+                                <thead><tr><th>Date</th><th>EGSI-M</th><th>Band</th><th>1d</th><th>EGSI-S</th><th>Band</th><th>1d</th></tr></thead>
+                                <tbody id="egsiHistoryBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="egsi-upgrade-prompt" id="egsiUpgradePrompt" style="display:none;">
+                        <div class="egsi-upgrade-icon">&#9889;</div>
+                        <div class="egsi-upgrade-text">
+                            <strong id="egsiUpgradeTitle">Unlock deeper EGSI intelligence</strong>
+                            <p id="egsiUpgradeDesc">Upgrade your plan to access real-time data, extended history, component breakdowns, AI interpretations, and more.</p>
+                        </div>
+                        <button class="egsi-upgrade-btn" onclick="showSection('plans');">Upgrade Now</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -4394,6 +4605,7 @@
             loadGeriSnapshot();
             loadEeriSnapshot();
             loadDigestSnapshot();
+            loadEgsiSnapshot();
         }
 
         async function loadGeriSnapshot() {
@@ -4607,6 +4819,16 @@
                     eeriBadge.className = 'pro-badge-nav badge-' + (plan || 'free');
                 }
                 if (eeriUpgradeHint) eeriUpgradeHint.style.display = 'none';
+            }
+
+            const egsiNavItem = document.getElementById('egsiNavItem');
+            const egsiBadge = document.getElementById('egsiBadge');
+            if (egsiNavItem) {
+                egsiNavItem.onclick = function() { showSection('egsi'); closeMobileMenu(); };
+                if (egsiBadge) {
+                    egsiBadge.textContent = eeriTierLabels[plan] || 'FREE';
+                    egsiBadge.className = 'pro-badge-nav badge-' + (plan || 'free');
+                }
             }
         }
 
@@ -8073,6 +8295,242 @@
 
         /* End Daily Digest Module */
 
+        /* ========== EGSI Dashboard Module ========== */
+        const EGSI_PLAN_CONFIG = {
+            free: { label: 'Free', realtime: false, historyDays: 14, showComponents: false, showDrivers: false, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Unlock full EGSI intelligence', upgradeDesc: 'Upgrade to Personal for real-time data, component breakdowns, and 90 days of history.' },
+            personal: { label: 'Personal', realtime: true, historyDays: 90, showComponents: true, showDrivers: true, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Go deeper with Trader tier', upgradeDesc: 'Upgrade to Trader for chokepoint monitoring, storage analysis, and full historical data.' },
+            trader: { label: 'Trader', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: false, showHistory: true, upgradeTitle: 'Unlock AI interpretation with Pro', upgradeDesc: 'Upgrade to Pro for AI-powered market interpretation and scenario analysis.' },
+            pro: { label: 'Pro', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: true, showHistory: true, upgradeTitle: 'Enterprise-grade intelligence', upgradeDesc: 'Contact us for institutional-grade features, API access, and team workspace.' },
+            enterprise: { label: 'Enterprise', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: true, showHistory: true, upgradeTitle: '', upgradeDesc: '' },
+        };
+
+        let egsiDataCache = null;
+
+        async function loadEgsiDashboard() {
+            const plan = currentUser?.plan || 'free';
+            const config = EGSI_PLAN_CONFIG[plan] || EGSI_PLAN_CONFIG.free;
+            document.getElementById('egsiLoading').style.display = 'block';
+            document.getElementById('egsiDashboard').style.display = 'none';
+            const badge = document.getElementById('egsiHeaderBadge');
+            if (badge) badge.textContent = config.label.toUpperCase();
+            try {
+                const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=' + plan + '&history_days=' + config.historyDays, { headers: { 'X-User-Token': sessionToken } });
+                const json = await resp.json();
+                if (!json.success) {
+                    document.getElementById('egsiLoading').innerHTML = '<p style="color:#94a3b8;">No EGSI data available yet. Data will appear once the index engine runs.</p>';
+                    return;
+                }
+                egsiDataCache = json;
+                document.getElementById('egsiLoading').style.display = 'none';
+                document.getElementById('egsiDashboard').style.display = 'block';
+                renderEgsiDualIndex(json, config);
+                renderEgsiComponents(json, config);
+                renderEgsiDrivers(json, config);
+                renderEgsiChokepoints(json, config);
+                renderEgsiStorage(json, config);
+                renderEgsiInterpretation(json, config);
+                renderEgsiHistory(json, config);
+                renderEgsiUpgradePrompt(config);
+            } catch (e) {
+                console.error('EGSI dashboard error:', e);
+                document.getElementById('egsiLoading').innerHTML = '<p style="color:#f87171;">Failed to load EGSI dashboard. Please try again later.</p>';
+            }
+        }
+
+        function egsiFormatBand(band) { return 'egsi-band-' + (band || 'low').toLowerCase(); }
+
+        function egsiFormatTrend(val, label) {
+            if (val === null || val === undefined) return '';
+            const n = parseFloat(val);
+            const cls = n > 0 ? 'egsi-trend-up' : n < 0 ? 'egsi-trend-down' : 'egsi-trend-flat';
+            const arrow = n > 0 ? '&#9650;' : n < 0 ? '&#9660;' : '&#8212;';
+            return '<span class="egsi-trend ' + cls + '">' + arrow + ' ' + (n > 0 ? '+' : '') + n.toFixed(1) + ' (' + label + ')</span>';
+        }
+
+        function egsiFormatDate(dateStr) {
+            if (!dateStr) return '';
+            return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function renderEgsiDualIndex(data, config) {
+            if (data.egsi_m) {
+                const m = data.egsi_m;
+                document.getElementById('egsiMValue').textContent = m.value !== null ? m.value.toFixed(1) : '--';
+                const mBand = document.getElementById('egsiMBand');
+                mBand.textContent = m.band || '--';
+                mBand.className = 'egsi-value-band ' + egsiFormatBand(m.band);
+                document.getElementById('egsiMTrend1d').innerHTML = egsiFormatTrend(m.trend_1d, '1d');
+                document.getElementById('egsiMTrend7d').innerHTML = egsiFormatTrend(m.trend_7d, '7d');
+                document.getElementById('egsiMDate').textContent = egsiFormatDate(m.date);
+                if (m.is_delayed) {
+                    document.getElementById('egsiMDelayedBadge').style.display = 'inline-block';
+                    document.getElementById('egsiMRealtimeBadge').style.display = 'none';
+                } else {
+                    document.getElementById('egsiMDelayedBadge').style.display = 'none';
+                    document.getElementById('egsiMRealtimeBadge').style.display = 'inline-block';
+                }
+            }
+            if (data.egsi_s) {
+                const s = data.egsi_s;
+                document.getElementById('egsiSValue').textContent = s.value !== null ? s.value.toFixed(1) : '--';
+                const sBand = document.getElementById('egsiSBand');
+                sBand.textContent = s.band || '--';
+                sBand.className = 'egsi-value-band ' + egsiFormatBand(s.band);
+                document.getElementById('egsiSTrend1d').innerHTML = egsiFormatTrend(s.trend_1d, '1d');
+                document.getElementById('egsiSTrend7d').innerHTML = egsiFormatTrend(s.trend_7d, '7d');
+                document.getElementById('egsiSDate').textContent = egsiFormatDate(s.date);
+            } else {
+                document.getElementById('egsiSCard').innerHTML = '<div style="padding:24px;text-align:center;color:#64748b;">EGSI-S data not yet available</div>';
+            }
+        }
+
+        function renderEgsiComponents(data, config) {
+            const section = document.getElementById('egsiComponentsSection');
+            if (!config.showComponents) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            if (data.egsi_m && data.egsi_m.components) {
+                const c = data.egsi_m.components;
+                const items = [
+                    { label: 'RERI (EU Risk)', value: c.reri_eu?.contribution || c.reri_eu?.value || 0, max: 0.35 },
+                    { label: 'Gas Theme Pressure', value: c.theme_pressure?.contribution || 0, max: 0.35 },
+                    { label: 'Asset Transmission', value: c.asset_transmission?.contribution || 0, max: 0.20 },
+                    { label: 'Chokepoint Factor', value: c.chokepoint_factor?.contribution || 0, max: 0.10 },
+                ];
+                document.getElementById('egsiMComponents').innerHTML = items.map(function(item) {
+                    const pct = Math.min(100, Math.round((item.value / (item.max || 1)) * 100));
+                    return '<div class="egsi-component-item"><div class="egsi-component-label"><span>' + item.label + '</span><span>' + (item.value * 100).toFixed(1) + '</span></div><div class="egsi-component-bar"><div class="egsi-component-fill egsi-m-fill" style="width:' + pct + '%"></div></div></div>';
+                }).join('');
+            }
+            const sGroup = document.getElementById('egsiSComponentsGroup');
+            if (data.egsi_s && data.egsi_s.components) {
+                sGroup.style.display = 'block';
+                const sc = data.egsi_s.components;
+                const sItems = [
+                    { label: 'Storage Stress', value: sc.storage?.contribution || 0, max: 0.20 },
+                    { label: 'Price Volatility', value: sc.price?.contribution || 0, max: 0.20 },
+                    { label: 'Injection/Flows', value: sc.flows?.contribution || 0, max: 0.20 },
+                    { label: 'Winter Readiness', value: sc.winter_readiness?.contribution || 0, max: 0.25 },
+                    { label: 'Supply Alerts', value: sc.alerts?.contribution || 0, max: 0.15 },
+                ];
+                document.getElementById('egsiSComponents').innerHTML = sItems.map(function(item) {
+                    const pct = Math.min(100, Math.round((item.value / (item.max || 1)) * 100));
+                    return '<div class="egsi-component-item"><div class="egsi-component-label"><span>' + item.label + '</span><span>' + (item.value * 100).toFixed(1) + '</span></div><div class="egsi-component-bar"><div class="egsi-component-fill egsi-s-fill" style="width:' + pct + '%"></div></div></div>';
+                }).join('');
+            } else { sGroup.style.display = 'none'; }
+        }
+
+        function renderEgsiDrivers(data, config) {
+            const section = document.getElementById('egsiDriversSection');
+            if (!config.showDrivers) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            function renderDriverList(drivers, containerId) {
+                const container = document.getElementById(containerId);
+                if (!drivers || drivers.length === 0) { container.innerHTML = '<div style="color:#64748b;font-size:13px;padding:12px;">No drivers reported</div>'; return; }
+                container.innerHTML = drivers.map(function(d, i) {
+                    const headline = d.headline || d.label || d.driver || 'Risk driver';
+                    const meta = d.severity ? '<div class="egsi-driver-meta">' + (d.severity || '') + (d.confidence ? ' | Conf: ' + d.confidence : '') + '</div>' : '';
+                    return '<div class="egsi-driver-item"><div class="egsi-driver-rank">' + (i + 1) + '</div><div><div class="egsi-driver-text">' + headline + '</div>' + meta + '</div></div>';
+                }).join('');
+            }
+            renderDriverList(data.egsi_m?.top_drivers, 'egsiMDrivers');
+            const sCol = document.getElementById('egsiSDriversCol');
+            if (data.egsi_s?.top_drivers && data.egsi_s.top_drivers.length > 0) { sCol.style.display = 'block'; renderDriverList(data.egsi_s.top_drivers, 'egsiSDrivers'); }
+            else { sCol.style.display = 'none'; }
+        }
+
+        function renderEgsiChokepoints(data, config) {
+            const section = document.getElementById('egsiChokepointSection');
+            if (!config.showChokepoints || !data.egsi_m?.chokepoint_watch || data.egsi_m.chokepoint_watch.length === 0) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            document.getElementById('egsiChokepointList').innerHTML = data.egsi_m.chokepoint_watch.map(function(cp) {
+                return '<div class="egsi-chokepoint-item"><div class="egsi-chokepoint-name">' + (cp.name || cp.id || 'Unknown') + '</div><div class="egsi-chokepoint-cat">' + (cp.category || '') + '</div><div class="egsi-chokepoint-weight">' + (cp.weight ? cp.weight.toFixed(2) : '') + '</div></div>';
+            }).join('');
+        }
+
+        function renderEgsiStorage(data, config) {
+            const section = document.getElementById('egsiStoragePanel');
+            if (!config.showStorage || !data.egsi_s?.components?.storage) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            const stor = data.egsi_s.components.storage;
+            const price = data.egsi_s.components.price || {};
+            const winter = data.egsi_s.components.winter_readiness || {};
+            const items = [
+                { label: 'Storage Level', value: (stor.level_pct * 100).toFixed(1) + '%', bar: stor.level_pct * 100 },
+                { label: 'Target Level', value: (stor.target_pct * 100).toFixed(1) + '%', bar: stor.target_pct * 100 },
+                { label: 'TTF Price', value: price.ttf_current ? (price.ttf_current.toFixed(2) + ' EUR/MWh') : 'N/A', bar: null },
+                { label: 'Days to Winter', value: winter.days_to_winter !== undefined ? winter.days_to_winter + ' days' : 'N/A', bar: null },
+            ];
+            document.getElementById('egsiStorageGrid').innerHTML = items.map(function(item) {
+                const barHtml = item.bar !== null ? '<div class="egsi-storage-bar"><div class="egsi-storage-fill" style="width:' + Math.min(100, item.bar) + '%"></div></div>' : '';
+                return '<div class="egsi-storage-item"><div class="egsi-storage-label">' + item.label + '</div><div class="egsi-storage-value">' + item.value + '</div>' + barHtml + '</div>';
+            }).join('');
+        }
+
+        function renderEgsiInterpretation(data, config) {
+            const section = document.getElementById('egsiInterpretationSection');
+            if (!config.showInterpretation) { section.style.display = 'none'; return; }
+            const mInterp = data.egsi_m?.interpretation || '';
+            const sInterp = data.egsi_s?.interpretation || '';
+            const combined = [mInterp, sInterp].filter(Boolean).join('<br><br>');
+            if (!combined) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            document.getElementById('egsiInterpretation').innerHTML = combined;
+        }
+
+        function renderEgsiHistory(data, config) {
+            const section = document.getElementById('egsiHistorySection');
+            if (!config.showHistory || !data.history) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            document.getElementById('egsiHistoryInfo').textContent = 'Showing ' + data.history.days + ' days (max ' + data.history.max_days + ' for your plan)';
+            const mHist = data.history.egsi_m || [];
+            const sHist = data.history.egsi_s || [];
+            const sMap = {};
+            sHist.forEach(function(h) { sMap[h.date] = h; });
+            const rows = mHist.slice(0, 30).map(function(m) {
+                const s = sMap[m.date];
+                const mTrendCls = m.trend_1d > 0 ? 'egsi-trend-up' : m.trend_1d < 0 ? 'egsi-trend-down' : 'egsi-trend-flat';
+                const sTrendCls = s && s.trend_1d > 0 ? 'egsi-trend-up' : s && s.trend_1d < 0 ? 'egsi-trend-down' : 'egsi-trend-flat';
+                return '<tr><td>' + egsiFormatDate(m.date) + '</td><td style="font-weight:600;">' + m.value.toFixed(1) + '</td><td><span class="' + egsiFormatBand(m.band) + '" style="padding:2px 8px;border-radius:10px;font-size:11px;">' + m.band + '</span></td><td class="' + mTrendCls + '">' + (m.trend_1d !== null ? (m.trend_1d > 0 ? '+' : '') + m.trend_1d.toFixed(1) : '-') + '</td><td style="font-weight:600;">' + (s ? s.value.toFixed(1) : '-') + '</td><td>' + (s ? '<span class="' + egsiFormatBand(s.band) + '" style="padding:2px 8px;border-radius:10px;font-size:11px;">' + s.band + '</span>' : '-') + '</td><td class="' + sTrendCls + '">' + (s && s.trend_1d !== null ? (s.trend_1d > 0 ? '+' : '') + s.trend_1d.toFixed(1) : '-') + '</td></tr>';
+            });
+            document.getElementById('egsiHistoryBody').innerHTML = rows.join('');
+        }
+
+        function renderEgsiUpgradePrompt(config) {
+            const prompt = document.getElementById('egsiUpgradePrompt');
+            if (!config.upgradeTitle) { prompt.style.display = 'none'; return; }
+            prompt.style.display = 'flex';
+            document.getElementById('egsiUpgradeTitle').textContent = config.upgradeTitle;
+            document.getElementById('egsiUpgradeDesc').textContent = config.upgradeDesc;
+        }
+
+        async function loadEgsiSnapshot() {
+            const body = document.getElementById('snapshotEgsiBody');
+            try {
+                const plan = currentUser?.plan || 'free';
+                const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=' + plan + '&history_days=1', { headers: { 'X-User-Token': sessionToken } });
+                const json = await resp.json();
+                if (!json.success || !json.egsi_m) { body.innerHTML = '<div class="snapshot-card-detail">No EGSI data available yet</div>'; return; }
+                const m = json.egsi_m;
+                const val = m.value !== null ? m.value.toFixed(1) : '--';
+                const band = m.band || 'N/A';
+                const bandCls = 'band-' + (band || '').toLowerCase().replace(/\s+/g, '-');
+                let trendHtml = '';
+                if (m.trend_1d !== null && m.trend_1d !== undefined) {
+                    const t = parseFloat(m.trend_1d);
+                    const cls = t > 0 ? 'trend-up' : t < 0 ? 'trend-down' : 'trend-flat';
+                    const arrow = t > 0 ? '&#9650;' : t < 0 ? '&#9660;' : '&#8212;';
+                    trendHtml = '<div class="snapshot-card-trend ' + cls + '">' + arrow + ' ' + (t > 0 ? '+' : '') + t.toFixed(1) + ' (1d)</div>';
+                }
+                const dateStr = m.date ? egsiFormatDate(m.date) : '';
+                const delayTag = m.is_delayed ? ' (24h delayed)' : '';
+                body.innerHTML = '<div class="snapshot-card-value">' + val + '</div><span class="snapshot-card-band ' + bandCls + '">' + band + '</span>' + trendHtml + '<div class="snapshot-card-meta">' + dateStr + delayTag + '</div>';
+            } catch (e) {
+                console.error('EGSI snapshot error:', e);
+                body.innerHTML = '<div class="snapshot-card-detail">Unable to load</div>';
+            }
+        }
+        /* ========== End EGSI Dashboard Module ========== */
+
         function showSection(sectionId) {
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -8092,6 +8550,8 @@
                 loadEeriProData();
             } else if (sectionId === 'digest') {
                 loadDailyDigest();
+            } else if (sectionId === 'egsi') {
+                loadEgsiDashboard();
             }
         }
 

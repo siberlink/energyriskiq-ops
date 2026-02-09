@@ -376,6 +376,43 @@ def save_egsi_s_result(result: EGSISResult) -> bool:
         return False
 
 
+def get_egsi_s_delayed(delay_days: int = 1, region: str = 'Europe') -> Optional[Dict[str, Any]]:
+    """Fetch EGSI-S result with delay for free/public access."""
+    target_date = date.today() - timedelta(days=delay_days)
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                SELECT index_date, region, index_value, band, trend_1d, trend_7d,
+                       components_json, explanation, data_sources, model_version, computed_at
+                FROM egsi_s_daily
+                WHERE region = %s AND index_date <= %s
+                ORDER BY index_date DESC
+                LIMIT 1
+            """, (region, target_date))
+            row = cursor.fetchone()
+        if not row:
+            return None
+        components = row['components_json']
+        if isinstance(components, str):
+            components = json.loads(components)
+        return {
+            'date': row['index_date'],
+            'region': row['region'],
+            'value': float(row['index_value']),
+            'band': row['band'],
+            'trend_1d': float(row['trend_1d']) if row['trend_1d'] else None,
+            'trend_7d': float(row['trend_7d']) if row['trend_7d'] else None,
+            'components': components,
+            'explanation': row['explanation'],
+            'data_sources': row['data_sources'] or [],
+            'model_version': row['model_version'],
+            'computed_at': row['computed_at'],
+        }
+    except Exception as e:
+        logger.error(f"Error fetching delayed EGSI-S: {e}")
+        return None
+
+
 def get_egsi_s_for_date(target_date: date, region: str = 'Europe') -> Optional[Dict[str, Any]]:
     """Fetch EGSI-S for a specific date."""
     try:
