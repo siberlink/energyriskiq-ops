@@ -84,6 +84,6 @@ Adaptive source weighting system that calibrates feed weights based on measured 
 - **Gas Storage Data:** AGSI+ (GIE API)
 - **Gas Price Data:** OilPriceAPI (for TTF natural gas)
 - **Oil Price Data:** OilPriceAPI (for Brent/WTI crude oil)
-- **VIX Data:** Yahoo Finance (yfinance)
+- **VIX Data:** Yahoo Finance (yfinance) primary, FRED (Federal Reserve Bank of St. Louis) fallback — no API key required
 - **FX Data:** Oanda (for EUR/USD)
 - **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv, yfinance.

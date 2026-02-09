@@ -1001,7 +1001,7 @@ def run_backfill_market_data(
     """
     validate_runner_token(x_runner_token)
     
-    from src.ingest.market_data import fetch_vix_data, save_vix_snapshots
+    from src.ingest.market_data import fetch_vix_data, save_vix_snapshots, fetch_vix_from_fred
     from src.ingest.ttf_gas import backfill_ttf_history
     from src.ingest.eurusd import backfill_eurusd_history
     
@@ -1009,17 +1009,23 @@ def run_backfill_market_data(
         results = {}
         
         logger.info(f"Backfilling VIX data for {vix_days} days...")
+        vix_source = "yfinance"
         vix_snapshots = fetch_vix_data(days=vix_days)
+        if not vix_snapshots:
+            logger.warning("yfinance failed for VIX backfill, trying FRED...")
+            vix_source = "fred"
+            vix_snapshots = fetch_vix_from_fred(days=vix_days)
         if vix_snapshots:
             saved = save_vix_snapshots(vix_snapshots)
             results['vix'] = {
                 "status": "success",
-                "message": f"Saved {saved} VIX snapshots",
+                "source": vix_source,
+                "message": f"Saved {saved} VIX snapshots via {vix_source}",
                 "count": saved,
                 "date_range": f"{vix_snapshots[0].date} to {vix_snapshots[-1].date}" if vix_snapshots else "N/A"
             }
         else:
-            results['vix'] = {"status": "error", "message": "Failed to fetch VIX data"}
+            results['vix'] = {"status": "error", "message": "Failed to fetch VIX data from both yfinance and FRED"}
         
         logger.info(f"Backfilling TTF gas data...")
         ttf_result = backfill_ttf_history()
@@ -1030,6 +1036,44 @@ def run_backfill_market_data(
         results['eurusd'] = eurusd_result
         
         return results
+    
+    response, status_code = run_job_with_lock('market_data_capture', backfill_job)
+    
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    
+    return response
+
+
+@router.post("/run/backfill-vix-fred")
+def run_backfill_vix_fred(
+    start_date: str = "2025-11-01",
+    end_date: str = None,
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill missing VIX data from FRED (Federal Reserve Bank of St. Louis).
+    
+    Only fills gaps — existing records (e.g. from yfinance) are preserved.
+    
+    Args:
+        start_date: Start date (YYYY-MM-DD), default 2025-11-01
+        end_date: End date (YYYY-MM-DD), default yesterday
+    """
+    validate_runner_token(x_runner_token)
+    
+    from src.ingest.market_data import backfill_vix_from_fred
+    
+    try:
+        sd = datetime.strptime(start_date, "%Y-%m-%d").date()
+        ed = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else (datetime.now().date() - timedelta(days=1))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {e}")
+    
+    def backfill_job():
+        return backfill_vix_from_fred(sd, ed)
     
     response, status_code = run_job_with_lock('market_data_capture', backfill_job)
     

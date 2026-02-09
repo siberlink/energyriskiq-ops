@@ -1,7 +1,8 @@
 """
 Market Data Collection Module
 
-Fetches VIX (Volatility Index) data from Yahoo Finance using yfinance library.
+Fetches VIX (Volatility Index) data from Yahoo Finance (primary) with
+FRED (Federal Reserve Bank of St. Louis) as a reliable fallback source.
 Data is stored in vix_snapshots table.
 
 Note: Freight (BDI/Baltic Dry Index) requires paid subscription to Baltic Exchange.
@@ -9,12 +10,14 @@ Freight functions are disabled and return "unavailable" status.
 """
 
 import logging
+import io
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
 import yfinance as yf
 import pandas as pd
+import requests
 
 from src.db.db import get_cursor, execute_one
 
@@ -85,6 +88,152 @@ def fetch_vix_data(days: int = 30) -> List[VIXSnapshot]:
         return []
 
 
+def fetch_vix_from_fred(days: int = 30) -> List[VIXSnapshot]:
+    """
+    Fetch VIX closing data from FRED (Federal Reserve Bank of St. Louis).
+    
+    Uses the free CSV endpoint — no API key required.
+    FRED provides closing prices only (no OHLC), so open/high/low are set to 0.
+    
+    Args:
+        days: Number of days of history to fetch (default 30)
+        
+    Returns:
+        List of VIXSnapshot objects
+    """
+    logger.info(f"Fetching VIX data from FRED for last {days} days...")
+    
+    try:
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days + 5)
+        
+        url = (
+            f"https://fred.stlouisfed.org/graph/fredgraph.csv"
+            f"?id=VIXCLS"
+            f"&cosd={start_date.isoformat()}"
+            f"&coed={end_date.isoformat()}"
+        )
+        
+        response = requests.get(url, timeout=15)
+        response.raise_for_status()
+        
+        df = pd.read_csv(io.StringIO(response.text))
+        
+        if df.empty:
+            logger.warning("No VIX data returned from FRED")
+            return []
+        
+        date_col = 'observation_date' if 'observation_date' in df.columns else 'DATE'
+        
+        snapshots = []
+        for _, row in df.iterrows():
+            date_str = str(row.get(date_col, ''))
+            value = row.get('VIXCLS', '')
+            
+            if str(value).strip() in ('', '.') or pd.isna(value):
+                continue
+            
+            try:
+                close_val = float(value)
+            except (ValueError, TypeError):
+                continue
+            
+            snapshots.append(VIXSnapshot(
+                date=date_str,
+                vix_close=close_val,
+                vix_open=0,
+                vix_high=0,
+                vix_low=0,
+                source="fred"
+            ))
+        
+        logger.info(f"Fetched {len(snapshots)} VIX data points from FRED")
+        return snapshots
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch VIX data from FRED: {e}")
+        return []
+
+
+def backfill_vix_from_fred(start_date: date, end_date: date) -> Dict[str, Any]:
+    """
+    Backfill missing VIX data from FRED for a specific date range.
+    
+    Only inserts records for dates that don't already exist in the database.
+    Existing records (e.g. from yfinance with full OHLC) are preserved.
+    
+    Args:
+        start_date: Start of backfill range
+        end_date: End of backfill range
+        
+    Returns:
+        Dict with status and counts
+    """
+    logger.info(f"Backfilling VIX from FRED: {start_date} to {end_date}")
+    
+    try:
+        url = (
+            f"https://fred.stlouisfed.org/graph/fredgraph.csv"
+            f"?id=VIXCLS"
+            f"&cosd={start_date.isoformat()}"
+            f"&coed={end_date.isoformat()}"
+        )
+        
+        response = requests.get(url, timeout=15)
+        response.raise_for_status()
+        
+        df = pd.read_csv(io.StringIO(response.text))
+        
+        if df.empty:
+            return {"status": "error", "message": "No data from FRED"}
+        
+        date_col = 'observation_date' if 'observation_date' in df.columns else 'DATE'
+        
+        inserted = 0
+        skipped = 0
+        
+        with get_cursor() as cursor:
+            for _, row in df.iterrows():
+                date_str = str(row.get(date_col, ''))
+                value = row.get('VIXCLS', '')
+                
+                if str(value).strip() in ('', '.') or pd.isna(value):
+                    continue
+                
+                try:
+                    close_val = float(value)
+                except (ValueError, TypeError):
+                    continue
+                
+                cursor.execute(
+                    "SELECT 1 FROM vix_snapshots WHERE date = %s",
+                    (date_str,)
+                )
+                if cursor.fetchone():
+                    skipped += 1
+                    continue
+                
+                cursor.execute("""
+                    INSERT INTO vix_snapshots 
+                    (date, vix_close, vix_open, vix_high, vix_low, source)
+                    VALUES (%s, %s, 0, 0, 0, 'fred')
+                """, (date_str, close_val))
+                inserted += 1
+        
+        logger.info(f"FRED backfill: {inserted} inserted, {skipped} skipped (already existed)")
+        return {
+            "status": "success",
+            "message": f"Backfilled {inserted} VIX records from FRED",
+            "inserted": inserted,
+            "skipped": skipped,
+            "range": f"{start_date} to {end_date}"
+        }
+        
+    except Exception as e:
+        logger.error(f"FRED backfill failed: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 def fetch_freight_data(days: int = 30) -> List[FreightSnapshot]:
     """
     DISABLED: Baltic Dry Index (BDI) requires paid subscription to Baltic Exchange.
@@ -151,15 +300,24 @@ def capture_vix_snapshot() -> Dict[str, Any]:
     """
     Main entry point: Fetch and store VIX data.
     
+    Tries Yahoo Finance first (full OHLC data). If that fails,
+    falls back to FRED (closing prices only).
+    
     Returns:
         Dict with status and data about the operation.
     """
+    source_used = "yfinance"
     snapshots = fetch_vix_data(days=7)
+    
+    if not snapshots:
+        logger.warning("yfinance failed, falling back to FRED for VIX data")
+        source_used = "fred"
+        snapshots = fetch_vix_from_fred(days=7)
     
     if not snapshots:
         return {
             "status": "error",
-            "message": "Failed to fetch VIX data from Yahoo Finance"
+            "message": "Failed to fetch VIX data from both Yahoo Finance and FRED"
         }
     
     saved = save_vix_snapshots(snapshots)
@@ -167,7 +325,8 @@ def capture_vix_snapshot() -> Dict[str, Any]:
     
     return {
         "status": "success",
-        "message": f"Captured {saved} VIX snapshots",
+        "source": source_used,
+        "message": f"Captured {saved} VIX snapshots via {source_used}",
         "latest_date": latest.date if latest else None,
         "latest_value": latest.vix_close if latest else None,
         "count": saved
