@@ -768,6 +768,285 @@ Triggered when user attempts to export:
 
 ---
 
+## 24. Probability Engine — Concept Model
+
+### Primary Purpose
+
+The EGSI Probability Engine answers:
+
+> "Given current system stress conditions, what is the probability that specific gas market stress events occur within defined time horizons?"
+
+The engine does **not** predict prices directly. It predicts **stress outcomes** that markets react to. This is far more robust and defensible.
+
+### Strategic Positioning Statement
+
+> EGSI does not predict prices directly. It models systemic gas stress conditions that historically precede price movements and supply disruptions.
+
+---
+
+### Core Event Set
+
+| Event | Definition | Example |
+|-------|-----------|---------|
+| **A — TTF Price Spike** | Probability TTF gas price rises above statistical threshold | P(TTF moves +15% within 30 days) |
+| **B — Storage Crisis Acceleration** | Probability storage draw exceeds seasonal norms | Storage deviation beyond 1.5 sigma |
+| **C — Supply Disruption Escalation** | Probability pipeline/LNG flow reduction increases system-wide risk | Multi-source supply stress |
+| **D — Market Panic Regime** | Probability system transitions into panic volatility state | VIX correlation + TTF volatility surge |
+| **E — Infrastructure Stress Cascade** | Probability multiple chokepoints become simultaneously stressed | 2+ chokepoint flags active |
+
+### Event Probability Taxonomy
+
+| Horizon | Events |
+|---------|--------|
+| **Short Term (7-14 days)** | Price spike, volatility surge, LNG congestion |
+| **Mid Term (30-60 days)** | Storage stress, supply deficit, infrastructure stress |
+| **Structural (90-180 days)** | System imbalance, seasonal crisis risk |
+
+---
+
+### Engine Architecture (7 Layers)
+
+#### Layer 1 — Feature Engineering
+
+Transforms raw EGSI + asset data into predictive signals.
+
+**Input Data Sources (already available):**
+
+- EGSI historical values
+- Storage levels
+- TTF prices
+- Brent prices
+- VIX
+- EUR/USD
+- LNG & supply stress signals
+- Chokepoint flags
+- Alert classification outputs
+
+**Core Feature Set:**
+
+**1. Stress Level Metrics**
+
+- EGSI Level
+- EGSI Momentum
+- EGSI Acceleration
+- EGSI Volatility
+
+**2. System Pressure Components**
+
+- Storage deviation vs seasonal norm
+- Supply shock intensity
+- LNG congestion intensity
+- Infrastructure disruption score
+
+**3. Market Behavior Features**
+
+- Rolling correlations: EGSI-TTF, EGSI-VIX, EGSI-Brent
+
+**4. Divergence Residuals**
+
+- `Residual = Actual Asset Movement - Expected Movement based on EGSI`
+- Extremely powerful predictive signal
+
+**5. Regime Classification Features**
+
+- Binary and categorical regime flags: Normal, Structural Stress, Event Shock, Panic Mode
+
+---
+
+#### Layer 2 — Conditional Probability Modelling
+
+Answers: "Historically, when system stress looked like THIS, what happened next?"
+
+**Method 1 — Bucketed Historical Conditioning**
+
+Create stress buckets (EGSI 0-25, 25-50, 50-75, 75-100) and compute event frequency over time horizons.
+
+Example output when EGSI = 70-80:
+
+| Event | 30D Probability |
+|-------|----------------|
+| TTF +10% | 46% |
+| Storage crisis | 31% |
+| Panic regime | 22% |
+
+**Method 2 — Momentum Conditioning**
+
+Probability increases when high stress combines with rising or accelerating momentum:
+
+```
+P(Event | EGSI Level, EGSI Momentum, EGSI Acceleration)
+```
+
+**Method 3 — Multi-Factor Conditional Tables**
+
+Include storage stress, LNG congestion, and chokepoint risk:
+
+```
+P(TTF spike | EGSI > 65 AND Storage deviation > 1.2 sigma AND LNG congestion high)
+```
+
+---
+
+#### Layer 3 — Logistic Probability Engine
+
+Advanced model layer producing smooth probability curves.
+
+**Model:**
+
+```
+Z = w1 * EGSI_Level
+  + w2 * EGSI_Momentum
+  + w3 * Storage_Stress
+  + w4 * LNG_Congestion
+  + w5 * Divergence_Residual
+  + w6 * Regime_Flag
+
+P(Event) = 1 / (1 + e^(-Z))
+```
+
+Produces smooth probability curves instead of step buckets.
+
+---
+
+#### Layer 4 — Probability Calibration
+
+Makes the system professional-grade by calibrating probabilities against real outcomes.
+
+**Techniques:**
+
+- **Reliability Curves:** When model predicts 70% probability, did event occur ~70% of the time?
+- **Brier Score:** Measures overall probability accuracy.
+- **Rolling Recalibration:** Update weights periodically based on new data.
+
+---
+
+#### Layer 5 — Confidence Scoring
+
+Probability alone is dangerous. Each prediction includes signal reliability.
+
+**Confidence depends on:**
+
+- Data completeness
+- Regime clarity
+- Model agreement
+- Historical sample size
+
+**Example output:**
+
+```
+TTF Spike Probability: 58%
+Signal Confidence: HIGH
+```
+
+---
+
+#### Layer 6 — Forward Stress Radar
+
+Visual flagship feature showing probability curves over time horizons:
+
+```
+7 Day Risk Curve
+30 Day Risk Curve
+60 Day Risk Curve
+```
+
+Displayed as an expanding risk cone.
+
+---
+
+#### Layer 7 — Scenario Simulation Integration
+
+Users modify inputs and recompute probabilities.
+
+Example: User toggles "Norway pipeline outage" → engine recomputes all event probabilities with modified stress assumptions.
+
+---
+
+### Dashboard Output Format
+
+**Probability Panel:**
+
+```
+TTF Price Spike
+  Probability (30D): 42%
+  Confidence: Medium
+  Historical Baseline: 27%
+```
+
+**Risk Radar Panel:**
+
+```
+Storage Crisis Risk:
+  7D  → 12%
+  30D → 35%
+  60D → 58%
+```
+
+**Narrative Panel:**
+
+AI-generated explanation:
+
+> "Current stress configuration historically precedes storage crisis acceleration within 30-60 days."
+
+---
+
+### Backtesting Engine
+
+Critical for credibility. Each event prediction must be trackable.
+
+**Metrics generated:**
+
+- Hit rate
+- False positive rate
+- Calibration curves
+- Regime performance
+
+These metrics become marketing assets.
+
+---
+
+### Daily Compute Flow
+
+| Step | Action |
+|------|--------|
+| 1 | Update EGSI + components |
+| 2 | Compute feature set |
+| 3 | Compute event probabilities |
+| 4 | Run calibration checks |
+| 5 | Generate UI outputs + alerts |
+
+---
+
+### Commercial Differentiation
+
+| Plan | Probability Engine Access |
+|------|--------------------------|
+| Free | Stress level only |
+| Personal | Historical conditional tables |
+| Trader | Probability outputs |
+| Pro | Full probability modelling + scenario simulations |
+| Enterprise | Custom event modelling |
+
+---
+
+### Advanced Feature: Probability Change Tracking (Pro+)
+
+Shows probability movement over time:
+
+> "Probability increased from 28% → 41% in last 3 days"
+
+---
+
+### Competitive Advantage: Secret Weapon
+
+The combination of three capabilities provides dramatically improved prediction power:
+
+1. **Divergence residuals** — detect when markets misprice stress
+2. **Regime detection** — classify stress state for conditional modelling
+3. **Storage seasonality modelling** — leverage seasonal patterns most competitors ignore
+
+---
+
 ## Related Documentation
 
 - `docs/EGSI.md` — Original EGSI specification and strategic vision

@@ -1,0 +1,387 @@
+🧠 EGSI Probability Engine Concept Model
+(Strategic + Mathematical + Commercial Architecture)
+
+NO CODE — but fully implementation-ready conceptually.
+
+🎯 PRIMARY PURPOSE OF THE ENGINE
+
+The EGSI Probability Engine answers:
+
+“Given current system stress conditions, what is the probability that specific gas market stress events occur within defined time horizons?”
+
+🧩 EVENTS THE ENGINE SHOULD PREDICT
+
+You should NOT predict “price directly”.
+
+You predict stress outcomes that markets react to.
+
+This is far more robust and defensible.
+
+🎯 CORE EVENT SET
+EVENT A — TTF Price Spike
+
+Definition:
+Probability that TTF gas price rises above statistical threshold.
+
+Example:
+
+Probability TTF moves +15% within 30 days
+
+EVENT B — Storage Crisis Acceleration
+
+Definition:
+Probability storage draw exceeds seasonal norms.
+
+EVENT C — Supply Disruption Escalation
+
+Definition:
+Probability pipeline / LNG flow reduction stress increases system-wide risk score.
+
+EVENT D — Market Panic Regime
+
+Definition:
+Probability system transitions into panic volatility state.
+
+EVENT E — Infrastructure Stress Cascade
+
+Definition:
+Probability multiple chokepoints become simultaneously stressed.
+
+🧭 ENGINE STRUCTURE (Layered Model)
+🔹 LAYER 1 — Feature Engineering Layer
+
+Transforms raw EGSI + asset data into predictive signals.
+
+INPUT DATA SOURCES
+
+You already have the perfect dataset:
+
+• EGSI historical values
+• Storage levels
+• TTF prices
+• Brent prices
+• VIX
+• EUR/USD
+• LNG & supply stress signals
+• Chokepoint flags
+• Alert classification outputs
+
+CORE FEATURE SET
+1️⃣ Stress Level Metrics
+
+EGSI Level
+EGSI Momentum
+EGSI Acceleration
+EGSI Volatility
+
+2️⃣ System Pressure Components
+
+Storage deviation vs seasonal norm
+Supply shock intensity
+LNG congestion intensity
+Infrastructure disruption score
+
+3️⃣ Market Behavior Features
+
+Rolling correlations:
+
+EGSI ↔ TTF
+EGSI ↔ VIX
+EGSI ↔ Brent
+
+4️⃣ Divergence Residuals
+
+This is VERY powerful.
+
+Residual = Actual Asset Movement − Expected Movement based on EGSI
+
+5️⃣ Regime Classification Features
+
+Binary and categorical regime flags:
+
+• Normal
+• Structural Stress
+• Event Shock
+• Panic Mode
+
+🔹 LAYER 2 — Conditional Probability Modelling
+
+This layer answers:
+
+"Historically, when system stress looked like THIS, what happened next?"
+
+Method 1 — Bucketed Historical Conditioning
+
+You create stress buckets.
+
+Example:
+
+EGSI 0–25
+EGSI 25–50
+EGSI 50–75
+EGSI 75–100
+
+
+For each bucket compute:
+
+Event frequency over time horizons.
+
+Example Output
+When EGSI = 70–80:
+
+TTF +10% within 30 days occurred 46% of time
+Storage crisis occurred 31% of time
+Panic regime occurred 22% of time
+
+
+This is extremely powerful marketing and statistically stable.
+
+Method 2 — Momentum Conditioning
+
+Probability increases when:
+
+High stress + rising momentum
+High stress + accelerating momentum
+
+Example:
+
+P(Event | EGSI Level, EGSI Momentum, EGSI Acceleration)
+
+Method 3 — Multi-Factor Conditional Tables
+
+Include:
+
+Storage stress
+LNG congestion
+Chokepoint risk
+
+Example:
+
+P(TTF spike | EGSI > 65 AND Storage deviation > 1.2σ AND LNG congestion high)
+
+🔹 LAYER 3 — Logistic Probability Engine
+
+This is your advanced model layer.
+
+Concept
+
+You model:
+
+Probability(Event) =
+Sigmoid(Weighted Stress Factors)
+
+Inputs
+
+Weighted linear combination:
+
+Z =
+w1 × EGSI Level
++ w2 × EGSI Momentum
++ w3 × Storage Stress
++ w4 × LNG Congestion
++ w5 × Divergence Residual
++ w6 × Regime Flag
+
+Output
+P(Event) = 1 / (1 + e^(-Z))
+
+
+This allows smooth probability curves instead of step buckets.
+
+🔹 LAYER 4 — Probability Calibration Layer
+
+This is what makes the system professional-grade.
+
+You must calibrate probabilities against real outcomes.
+
+Calibration Techniques
+Reliability Curves
+
+Check:
+
+When model predicts 70% probability
+Did event occur ~70% of time?
+
+Brier Score
+
+Measures probability accuracy.
+
+Rolling Recalibration
+
+Update weights periodically.
+
+🔹 LAYER 5 — Confidence Scoring
+
+Probability alone is dangerous.
+
+You must add signal reliability.
+
+Confidence depends on:
+
+• Data completeness
+• Regime clarity
+• Model agreement
+• Historical sample size
+
+Example UI:
+
+TTF Spike Probability: 58%
+Signal Confidence: HIGH
+
+🔹 LAYER 6 — Forward Stress Radar
+
+This becomes your visual flagship.
+
+It shows probability curves over time horizons.
+
+7 Day Risk Curve
+30 Day Risk Curve
+60 Day Risk Curve
+
+
+Displayed as expanding risk cone.
+
+🔹 LAYER 7 — Scenario Simulation Integration
+
+Modify inputs and recompute probability.
+
+Example:
+
+User toggles:
+
+"Norway pipeline outage"
+
+Engine recomputes event probabilities.
+
+🧠 EVENT PROBABILITY TAXONOMY
+
+You should categorize outputs.
+
+SHORT TERM EVENTS
+
+7–14 days
+
+Price spike
+Volatility surge
+LNG congestion
+
+MID TERM EVENTS
+
+30–60 days
+
+Storage stress
+Supply deficit
+Infrastructure stress
+
+STRUCTURAL EVENTS
+
+90–180 days
+
+System imbalance
+Seasonal crisis risk
+
+💰 COMMERCIAL DIFFERENTIATION STRATEGY
+FREE
+
+Shows only stress level
+
+PERSONAL
+
+Shows historical conditional tables
+
+TRADER
+
+Shows probability outputs
+
+PRO
+
+Shows full probability modelling + scenario simulations
+
+ENTERPRISE
+
+Shows custom event modelling
+
+🧩 OUTPUT FORMAT DESIGN (Dashboard)
+Probability Panel
+TTF Price Spike
+Probability (30D): 42%
+Confidence: Medium
+Historical Baseline: 27%
+
+Risk Radar Panel
+Storage Crisis Risk:
+7D → 12%
+30D → 35%
+60D → 58%
+
+Narrative Panel
+
+AI explains:
+
+Current stress configuration historically precedes storage crisis acceleration within 30–60 days.
+
+🔬 BACKTESTING ENGINE DESIGN
+
+Critical for credibility.
+
+Each event prediction must be trackable.
+
+You generate:
+
+• Hit rate
+• False positive rate
+• Calibration curves
+• Regime performance
+
+These metrics become marketing assets.
+
+🧭 DAILY COMPUTE FLOW (Conceptual)
+Step 1
+
+Update EGSI + components
+
+Step 2
+
+Compute feature set
+
+Step 3
+
+Compute event probabilities
+
+Step 4
+
+Run calibration checks
+
+Step 5
+
+Generate UI outputs + alerts
+
+⭐ YOUR SECRET WEAPON (Most Competitors Don't Do This)
+
+Combine:
+
+Divergence residuals
+
+Regime detection
+
+Storage seasonality modelling
+
+This dramatically improves prediction power.
+
+🔥 OPTIONAL ADVANCED FEATURE (Pro+ Only)
+Probability Change Tracking
+
+Shows:
+
+“Probability increased from 28% → 41% in last 3 days”
+
+Users LOVE this.
+
+🧠 STRATEGIC POSITIONING STATEMENT (Marketing Gold)
+
+You can safely claim:
+
+EGSI does not predict prices directly.
+It models systemic gas stress conditions that historically precede price movements and supply disruptions.
+
+This sounds extremely credible.
