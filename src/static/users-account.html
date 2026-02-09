@@ -3630,6 +3630,40 @@
         .egsi-upgrade-text p { color: #94a3b8; font-size: 13px; margin-top: 4px; }
         .egsi-upgrade-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
         .egsi-upgrade-btn:hover { opacity: 0.9; }
+        .egsi-history-view-toggle { display: flex; gap: 0; border: 1px solid #334155; border-radius: 8px; overflow: hidden; }
+        .egsi-view-btn { background: transparent; border: none; color: #94a3b8; padding: 6px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .egsi-view-btn.active { background: rgba(16,185,129,0.2); color: #34d399; }
+        .egsi-chart-range-btns { display: flex; gap: 4px; }
+        .egsi-range-btn { background: transparent; border: 1px solid #334155; color: #94a3b8; padding: 4px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .egsi-range-btn.active { background: rgba(16,185,129,0.2); color: #34d399; border-color: #10b981; }
+        .egsi-trajectory { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-bottom: 4px; }
+        .egsi-trajectory-rising { background: rgba(239,68,68,0.15); color: #f87171; }
+        .egsi-trajectory-declining { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .egsi-trajectory-stable { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .egsi-trajectory-recovering { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .egsi-velocity-tag { font-size: 10px; color: #64748b; margin-top: 4px; }
+        .egsi-regime-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px; letter-spacing: 0.3px; }
+        .egsi-percentile { font-size: 11px; color: #94a3b8; margin-top: 4px; font-style: italic; }
+        .egsi-driver-impact { font-size: 11px; color: #64748b; margin-top: 4px; line-height: 1.5; }
+        .egsi-driver-trend-tag { font-size: 11px; margin-top: 2px; }
+        .egsi-driver-trend-escalating { color: #f87171; }
+        .egsi-driver-trend-active { color: #fbbf24; }
+        .egsi-driver-trend-monitoring { color: #4ade80; }
+        .egsi-what-changed { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .egsi-change-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 13px; color: #cbd5e1; }
+        .egsi-change-item:last-child { border-bottom: none; }
+        .egsi-change-up { color: #f87171; }
+        .egsi-change-down { color: #4ade80; }
+        .egsi-change-icon { font-weight: 700; width: 20px; text-align: center; }
+        .egsi-outlook-panel { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.08)); border: 1px solid rgba(16,185,129,0.25); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .egsi-outlook-title { font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 8px; }
+        .egsi-outlook-text { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+        .egsi-outlook-basis { font-size: 11px; color: #64748b; margin-top: 8px; font-style: italic; }
+        .egsi-narrative-panel { background: #1e293b; border: 1px solid rgba(16,185,129,0.2); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .egsi-narrative-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .egsi-narrative-text { font-size: 14px; color: #cbd5e1; line-height: 1.7; }
+        .egsi-regime-change-row td { background: rgba(245,158,11,0.08) !important; border-left: 3px solid #f59e0b; }
+        .egsi-component-tooltip { position: relative; cursor: help; }
         @media (max-width: 768px) {
             .egsi-dual-index-row { grid-template-columns: 1fr; }
             .egsi-components-grid { grid-template-columns: 1fr; }
@@ -3968,6 +4002,7 @@
                                 <span class="egsi-trend" id="egsiMTrend1d"></span>
                                 <span class="egsi-trend" id="egsiMTrend7d"></span>
                             </div>
+                            <div id="egsiMExtras"></div>
                             <div class="egsi-date" id="egsiMDate"></div>
                         </div>
                         <div class="egsi-index-card egsi-s-card" id="egsiSCard">
@@ -3983,8 +4018,13 @@
                                 <span class="egsi-trend" id="egsiSTrend1d"></span>
                                 <span class="egsi-trend" id="egsiSTrend7d"></span>
                             </div>
+                            <div id="egsiSExtras"></div>
                             <div class="egsi-date" id="egsiSDate"></div>
                         </div>
+                    </div>
+                    <div class="egsi-what-changed" id="egsiWhatChanged" style="display:none;">
+                        <h3 class="egsi-section-title">What Changed Today</h3>
+                        <div id="egsiWhatChangedList"></div>
                     </div>
                     <div class="egsi-components-section" id="egsiComponentsSection" style="display:none;">
                         <h3 class="egsi-section-title">Component Breakdown</h3>
@@ -4024,16 +4064,43 @@
                         <h3 class="egsi-section-title">AI Interpretation</h3>
                         <div class="egsi-interpretation-box" id="egsiInterpretation"></div>
                     </div>
+                    <div class="egsi-outlook-panel" id="egsiOutlookPanel" style="display:none;">
+                        <div class="egsi-outlook-title">&#9889; Stress Outlook (Next 14 Days)</div>
+                        <div class="egsi-outlook-text" id="egsiOutlookText"></div>
+                        <div class="egsi-outlook-basis" id="egsiOutlookBasis"></div>
+                    </div>
+                    <div class="egsi-narrative-panel" id="egsiNarrativePanel" style="display:none;">
+                        <div class="egsi-narrative-title">&#128202; Stress Narrative Summary</div>
+                        <div class="egsi-narrative-text" id="egsiNarrativeText"></div>
+                    </div>
                     <div class="egsi-history-section" id="egsiHistorySection" style="display:none;">
-                        <h3 class="egsi-section-title">Historical Trend</h3>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <h3 class="egsi-section-title" style="margin-bottom:0;border-bottom:none;">Historical Trend</h3>
+                            <div class="egsi-history-view-toggle">
+                                <button class="egsi-view-btn active" id="egsiChartViewBtn" onclick="egsiSwitchView('chart')">Chart</button>
+                                <button class="egsi-view-btn" id="egsiTableViewBtn" onclick="egsiSwitchView('table')">Table</button>
+                            </div>
+                        </div>
                         <div class="egsi-history-controls" id="egsiHistoryControls">
                             <span class="egsi-history-info" id="egsiHistoryInfo"></span>
+                            <div class="egsi-chart-range-btns" id="egsiChartRangeBtns">
+                                <button class="egsi-range-btn active" onclick="egsiSetRange(30)">30D</button>
+                                <button class="egsi-range-btn" onclick="egsiSetRange(90)">90D</button>
+                                <button class="egsi-range-btn" onclick="egsiSetRange(0)">YTD</button>
+                            </div>
                         </div>
-                        <div class="egsi-history-table-wrap">
-                            <table class="egsi-history-table" id="egsiHistoryTable">
-                                <thead><tr><th>Date</th><th>EGSI-M</th><th>Band</th><th>1d</th><th>EGSI-S</th><th>Band</th><th>1d</th></tr></thead>
-                                <tbody id="egsiHistoryBody"></tbody>
-                            </table>
+                        <div id="egsiChartView">
+                            <div style="position:relative;height:350px;">
+                                <canvas id="egsiHistoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div id="egsiTableView" style="display:none;">
+                            <div class="egsi-history-table-wrap">
+                                <table class="egsi-history-table" id="egsiHistoryTable">
+                                    <thead><tr><th>Date</th><th>EGSI-M</th><th>Band</th><th>1d</th><th>7d Avg</th><th>&#11014;&#11015;</th><th>EGSI-S</th><th>Band</th><th>1d</th></tr></thead>
+                                    <tbody id="egsiHistoryBody"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div class="egsi-upgrade-prompt" id="egsiUpgradePrompt" style="display:none;">
@@ -8298,7 +8365,7 @@
         /* ========== EGSI Dashboard Module ========== */
         const EGSI_PLAN_CONFIG = {
             free: { label: 'Free', realtime: false, historyDays: 14, showComponents: false, showDrivers: false, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Unlock full EGSI intelligence', upgradeDesc: 'Upgrade to Personal for real-time data, component breakdowns, and 90 days of history.' },
-            personal: { label: 'Personal', realtime: true, historyDays: 90, showComponents: true, showDrivers: true, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Go deeper with Trader tier', upgradeDesc: 'Upgrade to Trader for chokepoint monitoring, storage analysis, and full historical data.' },
+            personal: { label: 'Personal', realtime: true, historyDays: 90, showComponents: true, showDrivers: true, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Go deeper with Trader intelligence', upgradeDesc: 'Upgrade to Trader to unlock: \u2713 Market impact intelligence \u2713 Asset divergence detection \u2713 Forward stress probabilities \u2713 Full historical analytics' },
             trader: { label: 'Trader', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: false, showHistory: true, upgradeTitle: 'Unlock AI interpretation with Pro', upgradeDesc: 'Upgrade to Pro for AI-powered market interpretation and scenario analysis.' },
             pro: { label: 'Pro', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: true, showHistory: true, upgradeTitle: 'Enterprise-grade intelligence', upgradeDesc: 'Contact us for institutional-grade features, API access, and team workspace.' },
             enterprise: { label: 'Enterprise', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: true, showHistory: true, upgradeTitle: '', upgradeDesc: '' },
@@ -8324,11 +8391,14 @@
                 document.getElementById('egsiLoading').style.display = 'none';
                 document.getElementById('egsiDashboard').style.display = 'block';
                 renderEgsiDualIndex(json, config);
+                renderEgsiWhatChanged(json, config);
                 renderEgsiComponents(json, config);
                 renderEgsiDrivers(json, config);
                 renderEgsiChokepoints(json, config);
                 renderEgsiStorage(json, config);
                 renderEgsiInterpretation(json, config);
+                renderEgsiOutlook(json, config);
+                renderEgsiNarrative(json, config);
                 renderEgsiHistory(json, config);
                 renderEgsiUpgradePrompt(config);
             } catch (e) {
@@ -8350,6 +8420,52 @@
         function egsiFormatDate(dateStr) {
             if (!dateStr) return '';
             return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function renderEgsiCardExtras(prefix, indexData, historyArr) {
+            var el = document.getElementById(prefix + 'Extras');
+            if (!el) return;
+            var html = '';
+            var t1d = parseFloat(indexData.trend_1d || 0);
+            var t7d = parseFloat(indexData.trend_7d || 0);
+            var trajectory, trajClass;
+            if (t1d > 0 && t7d > 0 && t1d > t7d) { trajectory = 'RAPIDLY RISING \u2B08'; trajClass = 'egsi-trajectory-rising'; }
+            else if (t1d > 0 && t7d > 0) { trajectory = 'RISING \u2191'; trajClass = 'egsi-trajectory-rising'; }
+            else if (t1d > 0 && t7d <= 0) { trajectory = 'RECOVERING \u2197'; trajClass = 'egsi-trajectory-recovering'; }
+            else if (Math.abs(t1d) < 1 && Math.abs(t7d) < 1) { trajectory = 'STABLE \u2192'; trajClass = 'egsi-trajectory-stable'; }
+            else if (t1d <= 0 && t7d > 0) { trajectory = 'COOLING \u2198'; trajClass = 'egsi-trajectory-declining'; }
+            else if (t1d < 0 && t7d < 0 && Math.abs(t1d) > Math.abs(t7d)) { trajectory = 'RAPIDLY DECLINING \u2B0A'; trajClass = 'egsi-trajectory-declining'; }
+            else if (t1d < 0) { trajectory = 'DECLINING \u2193'; trajClass = 'egsi-trajectory-declining'; }
+            else { trajectory = 'STABLE \u2192'; trajClass = 'egsi-trajectory-stable'; }
+            html += '<div class="egsi-trajectory ' + trajClass + '">Trajectory: ' + trajectory + '</div>';
+            var velocity = Math.abs(t1d);
+            var velLabel;
+            if (velocity > 10) velLabel = 'FAST';
+            else if (velocity > 5) velLabel = 'MODERATE';
+            else if (velocity > 2) velLabel = 'SLOW';
+            else velLabel = 'MINIMAL';
+            html += '<div class="egsi-velocity-tag">Velocity: ' + velLabel + '</div>';
+            var band = (indexData.band || '').toUpperCase();
+            var regime;
+            if (band === 'CRITICAL') regime = 'SYSTEMIC CRISIS';
+            else if (band === 'HIGH') regime = 'ACUTE MARKET STRESS';
+            else if (band === 'ELEVATED') regime = 'ELEVATED RISK ENVIRONMENT';
+            else if (band === 'NORMAL') regime = 'BALANCED FUNDAMENTALS';
+            else regime = 'LOW STRESS BASELINE';
+            var regimeColor = band === 'CRITICAL' ? 'rgba(220,38,38,0.2);color:#fca5a5' : band === 'HIGH' ? 'rgba(239,68,68,0.15);color:#f87171' : band === 'ELEVATED' ? 'rgba(245,158,11,0.15);color:#fbbf24' : band === 'NORMAL' ? 'rgba(59,130,246,0.15);color:#60a5fa' : 'rgba(34,197,94,0.15);color:#4ade80';
+            html += '<div class="egsi-regime-badge" style="background:' + regimeColor + '">REGIME: ' + regime + '</div>';
+            if (historyArr && historyArr.length >= 5) {
+                var val = indexData.value;
+                var sorted = historyArr.map(function(h) { return h.value; }).sort(function(a,b) { return a - b; });
+                var rank = sorted.filter(function(v) { return v <= val; }).length;
+                var pctile = Math.round((rank / sorted.length) * 100);
+                if (pctile >= 50) {
+                    html += '<div class="egsi-percentile">Top ' + (100 - pctile) + '% of historical readings</div>';
+                } else {
+                    html += '<div class="egsi-percentile">Below median stress (Percentile: ' + pctile + '%)</div>';
+                }
+            }
+            el.innerHTML = html;
         }
 
         function renderEgsiDualIndex(data, config) {
@@ -8382,9 +8498,15 @@
             } else {
                 document.getElementById('egsiSCard').innerHTML = '<div style="padding:24px;text-align:center;color:#64748b;">EGSI-S data not yet available</div>';
             }
+            var mHist = data.history && data.history.egsi_m ? data.history.egsi_m : [];
+            var sHist = data.history && data.history.egsi_s ? data.history.egsi_s : [];
+            if (data.egsi_m) renderEgsiCardExtras('egsiM', data.egsi_m, mHist);
+            if (data.egsi_s) renderEgsiCardExtras('egsiS', data.egsi_s, sHist);
         }
 
         function renderEgsiComponents(data, config) {
+            var mTooltips = { 'RERI (EU Risk)': 'Measures regional escalation risk from geopolitical events affecting European energy security', 'Gas Theme Pressure': 'Aggregated pressure from energy-related news themes indicating market stress', 'Asset Transmission': 'Measures how risk events transmit to specific energy assets like gas, oil, and power', 'Chokepoint Factor': 'Tracks critical infrastructure bottleneck risks at key transit points' };
+            var sTooltips = { 'Storage Stress': 'Measures deviation of current storage levels from seasonal targets', 'Price Volatility': 'Tracks TTF natural gas price volatility relative to moving averages', 'Injection/Flows': 'Monitors gas injection rates and cross-border flow patterns', 'Winter Readiness': 'Assesses system preparedness for peak winter demand periods', 'Supply Alerts': 'Counts and scores supply-disruption related intelligence alerts' };
             const section = document.getElementById('egsiComponentsSection');
             if (!config.showComponents) { section.style.display = 'none'; return; }
             section.style.display = 'block';
@@ -8396,9 +8518,12 @@
                     { label: 'Asset Transmission', value: c.asset_transmission?.contribution || 0, max: 0.20 },
                     { label: 'Chokepoint Factor', value: c.chokepoint_factor?.contribution || 0, max: 0.10 },
                 ];
+                var totalM = data.egsi_m.value || 1;
                 document.getElementById('egsiMComponents').innerHTML = items.map(function(item) {
                     const pct = Math.min(100, Math.round((item.value / (item.max || 1)) * 100));
-                    return '<div class="egsi-component-item"><div class="egsi-component-label"><span>' + item.label + '</span><span>' + (item.value * 100).toFixed(1) + '</span></div><div class="egsi-component-bar"><div class="egsi-component-fill egsi-m-fill" style="width:' + pct + '%"></div></div></div>';
+                    var pctOfTotal = totalM > 0 ? Math.round((item.value / (totalM / 100)) * 100) : 0;
+                    var tooltip = mTooltips[item.label] || '';
+                    return '<div class="egsi-component-item egsi-component-tooltip" title="' + tooltip + '"><div class="egsi-component-label"><span>' + item.label + ' \u2014 ' + (item.value * 100).toFixed(1) + ' (' + pctOfTotal + '% of EGSI-M)</span><span>' + (item.value * 100).toFixed(1) + '</span></div><div class="egsi-component-bar"><div class="egsi-component-fill egsi-m-fill" style="width:' + pct + '%"></div></div></div>';
                 }).join('');
             }
             const sGroup = document.getElementById('egsiSComponentsGroup');
@@ -8412,9 +8537,12 @@
                     { label: 'Winter Readiness', value: sc.winter_readiness?.contribution || 0, max: 0.25 },
                     { label: 'Supply Alerts', value: sc.alerts?.contribution || 0, max: 0.15 },
                 ];
+                var totalS = data.egsi_s.value || 1;
                 document.getElementById('egsiSComponents').innerHTML = sItems.map(function(item) {
                     const pct = Math.min(100, Math.round((item.value / (item.max || 1)) * 100));
-                    return '<div class="egsi-component-item"><div class="egsi-component-label"><span>' + item.label + '</span><span>' + (item.value * 100).toFixed(1) + '</span></div><div class="egsi-component-bar"><div class="egsi-component-fill egsi-s-fill" style="width:' + pct + '%"></div></div></div>';
+                    var pctOfTotal = totalS > 0 ? Math.round((item.value / (totalS / 100)) * 100) : 0;
+                    var tooltip = sTooltips[item.label] || '';
+                    return '<div class="egsi-component-item egsi-component-tooltip" title="' + tooltip + '"><div class="egsi-component-label"><span>' + item.label + ' \u2014 ' + (item.value * 100).toFixed(1) + ' (' + pctOfTotal + '% of EGSI-S)</span><span>' + (item.value * 100).toFixed(1) + '</span></div><div class="egsi-component-bar"><div class="egsi-component-fill egsi-s-fill" style="width:' + pct + '%"></div></div></div>';
                 }).join('');
             } else { sGroup.style.display = 'none'; }
         }
@@ -8423,13 +8551,29 @@
             const section = document.getElementById('egsiDriversSection');
             if (!config.showDrivers) { section.style.display = 'none'; return; }
             section.style.display = 'block';
+            function getDriverImpact(cat) {
+                cat = (cat || '').toLowerCase();
+                if (cat === 'energy' || cat === 'asset_risk') return '\u2191 Price volatility risk \u00B7 \u2191 Supply disruption probability';
+                if (cat === 'war' || cat === 'regional_risk') return '\u2191 Supply disruption risk \u00B7 \u2191 Transit uncertainty';
+                if (cat === 'high_impact') return '\u2191 Market stress acceleration \u00B7 \u2191 Price spike probability';
+                return '\u2191 Market uncertainty';
+            }
+            function getDriverTrend(score) {
+                var s = parseFloat(score || 0);
+                if (s >= 4.5) return { label: 'Escalating \u2191', cls: 'egsi-driver-trend-escalating' };
+                if (s >= 3.5) return { label: 'Active \u2192', cls: 'egsi-driver-trend-active' };
+                return { label: 'Monitoring \u2193', cls: 'egsi-driver-trend-monitoring' };
+            }
             function renderDriverList(drivers, containerId) {
                 const container = document.getElementById(containerId);
                 if (!drivers || drivers.length === 0) { container.innerHTML = '<div style="color:#64748b;font-size:13px;padding:12px;">No drivers reported</div>'; return; }
                 container.innerHTML = drivers.map(function(d, i) {
                     const headline = d.headline || d.label || d.driver || 'Risk driver';
                     const meta = d.severity ? '<div class="egsi-driver-meta">' + (d.severity || '') + (d.confidence ? ' | Conf: ' + d.confidence : '') + '</div>' : '';
-                    return '<div class="egsi-driver-item"><div class="egsi-driver-rank">' + (i + 1) + '</div><div><div class="egsi-driver-text">' + headline + '</div>' + meta + '</div></div>';
+                    var impact = '<div class="egsi-driver-impact">' + getDriverImpact(d.category) + '</div>';
+                    var trend = getDriverTrend(d.score);
+                    var trendHtml = '<div class="egsi-driver-trend-tag ' + trend.cls + '">Confidence: ' + (d.confidence || 'N/A') + ' \u00B7 Trend: ' + trend.label + '</div>';
+                    return '<div class="egsi-driver-item"><div class="egsi-driver-rank">' + (i + 1) + '</div><div><div class="egsi-driver-text">' + headline + '</div>' + meta + impact + trendHtml + '</div></div>';
                 }).join('');
             }
             renderDriverList(data.egsi_m?.top_drivers, 'egsiMDrivers');
@@ -8482,15 +8626,28 @@
             if (!config.showHistory || !data.history) { section.style.display = 'none'; return; }
             section.style.display = 'block';
             document.getElementById('egsiHistoryInfo').textContent = 'Showing ' + data.history.days + ' days (max ' + data.history.max_days + ' for your plan)';
+            renderEgsiChart(data, 30);
             const mHist = data.history.egsi_m || [];
             const sHist = data.history.egsi_s || [];
             const sMap = {};
             sHist.forEach(function(h) { sMap[h.date] = h; });
-            const rows = mHist.slice(0, 30).map(function(m) {
+            var mReversed = [].concat(mHist).reverse();
+            var avg7dMap = {};
+            for (var i = 0; i < mReversed.length; i++) {
+                var windowSlice = mReversed.slice(Math.max(0, i - 6), i + 1);
+                var sum = 0; windowSlice.forEach(function(w) { sum += w.value; });
+                avg7dMap[mReversed[i].date] = (sum / windowSlice.length).toFixed(1);
+            }
+            const rows = mHist.slice(0, 30).map(function(m, idx) {
                 const s = sMap[m.date];
                 const mTrendCls = m.trend_1d > 0 ? 'egsi-trend-up' : m.trend_1d < 0 ? 'egsi-trend-down' : 'egsi-trend-flat';
                 const sTrendCls = s && s.trend_1d > 0 ? 'egsi-trend-up' : s && s.trend_1d < 0 ? 'egsi-trend-down' : 'egsi-trend-flat';
-                return '<tr><td>' + egsiFormatDate(m.date) + '</td><td style="font-weight:600;">' + m.value.toFixed(1) + '</td><td><span class="' + egsiFormatBand(m.band) + '" style="padding:2px 8px;border-radius:10px;font-size:11px;">' + m.band + '</span></td><td class="' + mTrendCls + '">' + (m.trend_1d !== null ? (m.trend_1d > 0 ? '+' : '') + m.trend_1d.toFixed(1) : '-') + '</td><td style="font-weight:600;">' + (s ? s.value.toFixed(1) : '-') + '</td><td>' + (s ? '<span class="' + egsiFormatBand(s.band) + '" style="padding:2px 8px;border-radius:10px;font-size:11px;">' + s.band + '</span>' : '-') + '</td><td class="' + sTrendCls + '">' + (s && s.trend_1d !== null ? (s.trend_1d > 0 ? '+' : '') + s.trend_1d.toFixed(1) : '-') + '</td></tr>';
+                var arrow7d = avg7dMap[m.date] || '-';
+                var trendArrow = m.trend_1d > 0 ? '\u25B2' : m.trend_1d < 0 ? '\u25BC' : '\u2014';
+                var trendArrowCls = m.trend_1d > 0 ? 'egsi-trend-up' : m.trend_1d < 0 ? 'egsi-trend-down' : 'egsi-trend-flat';
+                var prevBand = idx < mHist.length - 1 ? mHist[idx + 1].band : m.band;
+                var rowCls = (m.band !== prevBand && idx > 0) ? ' class="egsi-regime-change-row"' : '';
+                return '<tr' + rowCls + '><td>' + egsiFormatDate(m.date) + '</td><td style="font-weight:600;">' + m.value.toFixed(1) + '</td><td><span class="' + egsiFormatBand(m.band) + '" style="padding:2px 8px;border-radius:10px;font-size:11px;">' + m.band + '</span></td><td class="' + mTrendCls + '">' + (m.trend_1d !== null ? (m.trend_1d > 0 ? '+' : '') + m.trend_1d.toFixed(1) : '-') + '</td><td>' + arrow7d + '</td><td class="' + trendArrowCls + '">' + trendArrow + '</td><td style="font-weight:600;">' + (s ? s.value.toFixed(1) : '-') + '</td><td>' + (s ? '<span class="' + egsiFormatBand(s.band) + '" style="padding:2px 8px;border-radius:10px;font-size:11px;">' + s.band + '</span>' : '-') + '</td><td class="' + sTrendCls + '">' + (s && s.trend_1d !== null ? (s.trend_1d > 0 ? '+' : '') + s.trend_1d.toFixed(1) : '-') + '</td></tr>';
             });
             document.getElementById('egsiHistoryBody').innerHTML = rows.join('');
         }
@@ -8529,6 +8686,253 @@
                 body.innerHTML = '<div class="snapshot-card-detail">Unable to load</div>';
             }
         }
+        var egsiChart = null;
+        var egsiChartData = null;
+
+        function egsiSwitchView(view) {
+            document.getElementById('egsiChartView').style.display = view === 'chart' ? 'block' : 'none';
+            document.getElementById('egsiTableView').style.display = view === 'table' ? 'block' : 'none';
+            document.getElementById('egsiChartViewBtn').classList.toggle('active', view === 'chart');
+            document.getElementById('egsiTableViewBtn').classList.toggle('active', view === 'table');
+            document.getElementById('egsiChartRangeBtns').style.display = view === 'chart' ? 'flex' : 'none';
+        }
+
+        function egsiSetRange(days) {
+            document.querySelectorAll('.egsi-range-btn').forEach(function(b) { b.classList.remove('active'); });
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+            renderEgsiChart(egsiChartData, days);
+        }
+
+        function renderEgsiChart(data, rangeDays) {
+            if (!data || !data.history) return;
+            egsiChartData = data;
+            var mHist = data.history.egsi_m || [];
+            var sHist = data.history.egsi_s || [];
+            var mFiltered = [].concat(mHist).reverse();
+            var sFiltered = [].concat(sHist).reverse();
+            if (rangeDays > 0) {
+                mFiltered = mFiltered.slice(-rangeDays);
+                sFiltered = sFiltered.slice(-rangeDays);
+            } else {
+                var yearStart = new Date().getFullYear() + '-01-01';
+                mFiltered = mFiltered.filter(function(h) { return h.date >= yearStart; });
+                sFiltered = sFiltered.filter(function(h) { return h.date >= yearStart; });
+            }
+            var sMap = {};
+            sFiltered.forEach(function(h) { sMap[h.date] = h; });
+            var labels = mFiltered.map(function(h) {
+                var d = new Date(h.date + 'T00:00:00');
+                return d.toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+            });
+            var mValues = mFiltered.map(function(h) { return h.value; });
+            var sValues = mFiltered.map(function(h) { return sMap[h.date] ? sMap[h.date].value : null; });
+            var ctx = document.getElementById('egsiHistoryChart');
+            if (egsiChart) { egsiChart.destroy(); }
+            var stressBandsPlugin = {
+                id: 'egsiStressBands',
+                beforeDraw: function(chart) {
+                    var cCtx = chart.ctx;
+                    var yAxis = chart.scales.y;
+                    var xAxis = chart.scales.x;
+                    var bands = [
+                        { min: 0, max: 20, color: 'rgba(34,197,94,0.06)' },
+                        { min: 20, max: 40, color: 'rgba(59,130,246,0.06)' },
+                        { min: 40, max: 60, color: 'rgba(245,158,11,0.06)' },
+                        { min: 60, max: 80, color: 'rgba(239,68,68,0.06)' },
+                        { min: 80, max: 100, color: 'rgba(220,38,38,0.08)' },
+                    ];
+                    bands.forEach(function(band) {
+                        var yTop = yAxis.getPixelForValue(Math.min(band.max, yAxis.max));
+                        var yBot = yAxis.getPixelForValue(Math.max(band.min, yAxis.min));
+                        if (yBot > yTop) {
+                            cCtx.fillStyle = band.color;
+                            cCtx.fillRect(xAxis.left, yTop, xAxis.width, yBot - yTop);
+                        }
+                    });
+                }
+            };
+            egsiChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'EGSI-M (Market)',
+                            data: mValues,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16,185,129,0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: mValues.length > 60 ? 0 : 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#10b981',
+                        },
+                        {
+                            label: 'EGSI-S (System)',
+                            data: sValues,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6,182,212,0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: sValues.length > 60 ? 0 : 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#06b6d4',
+                            yAxisID: 'y1',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { size: 12 } } },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#cbd5e1',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(tooltipCtx) {
+                                    return tooltipCtx.dataset.label + ': ' + (tooltipCtx.parsed.y !== null ? tooltipCtx.parsed.y.toFixed(1) : 'N/A');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 }, grid: { color: 'rgba(51,65,85,0.3)' } },
+                        y: { position: 'left', title: { display: true, text: 'EGSI-M', color: '#10b981', font: { size: 11 } }, ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(51,65,85,0.3)' }, min: 0 },
+                        y1: { position: 'right', title: { display: true, text: 'EGSI-S', color: '#06b6d4', font: { size: 11 } }, ticks: { color: '#64748b', font: { size: 10 } }, grid: { drawOnChartArea: false }, min: 0 }
+                    }
+                },
+                plugins: [stressBandsPlugin]
+            });
+        }
+
+        function renderEgsiWhatChanged(data, config) {
+            var section = document.getElementById('egsiWhatChanged');
+            if (!config.showComponents) { section.style.display = 'none'; return; }
+            var mHist = data.history && data.history.egsi_m ? data.history.egsi_m : [];
+            var sHist = data.history && data.history.egsi_s ? data.history.egsi_s : [];
+            if (mHist.length < 2 && sHist.length < 2) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            var changes = [];
+            if (data.egsi_m && mHist.length >= 2) {
+                var todayVal = data.egsi_m.value;
+                var yesterdayVal = mHist[1] ? mHist[1].value : mHist[0].value;
+                var delta = todayVal - yesterdayVal;
+                if (Math.abs(delta) > 0.5) {
+                    changes.push({ text: 'Market stress ' + (delta > 0 ? 'increased' : 'decreased') + ' by ' + Math.abs(delta).toFixed(1) + ' points', up: delta > 0 });
+                }
+                var todayBand = data.egsi_m.band;
+                var yesterBand = mHist.length > 1 ? mHist[1].band : mHist[0].band;
+                if (todayBand !== yesterBand) {
+                    changes.push({ text: 'Stress band shifted from ' + yesterBand + ' to ' + todayBand, up: true });
+                }
+            }
+            if (data.egsi_m && data.egsi_m.components) {
+                var c = data.egsi_m.components;
+                if (c.theme_pressure && c.theme_pressure.contribution > 0.1) changes.push({ text: 'Theme pressure elevated at ' + (c.theme_pressure.contribution * 100).toFixed(1) + '%', up: true });
+                if (c.asset_transmission && c.asset_transmission.contribution > 0.03) changes.push({ text: 'Asset transmission stress at ' + (c.asset_transmission.contribution * 100).toFixed(1) + '%', up: true });
+                if (c.chokepoint_factor && c.chokepoint_factor.contribution > 0) changes.push({ text: 'Chokepoint disruptions detected', up: true });
+                if ((!c.theme_pressure || c.theme_pressure.contribution === 0) && (!c.chokepoint_factor || c.chokepoint_factor.contribution === 0)) changes.push({ text: 'No active theme pressure or chokepoint disruptions', up: false });
+            }
+            if (data.egsi_s && data.egsi_s.components && data.egsi_s.components.storage) {
+                var stor = data.egsi_s.components.storage;
+                if (stor.level_pct && stor.target_pct) {
+                    var deficit = ((stor.target_pct - stor.level_pct) * 100).toFixed(1);
+                    if (deficit > 5) changes.push({ text: 'Storage ' + deficit + '% below seasonal target', up: true });
+                }
+            }
+            if (data.egsi_s && data.egsi_s.components && data.egsi_s.components.price && data.egsi_s.components.price.volatility_norm > 0.1) {
+                changes.push({ text: 'Price volatility elevated', up: true });
+            } else if (data.egsi_s && data.egsi_s.components && data.egsi_s.components.price) {
+                changes.push({ text: 'Price volatility contained', up: false });
+            }
+            if (changes.length === 0) changes.push({ text: 'No significant changes detected today', up: false });
+            document.getElementById('egsiWhatChangedList').innerHTML = changes.map(function(ch) {
+                var cls = ch.up ? 'egsi-change-up' : 'egsi-change-down';
+                var icon = ch.up ? '+' : '\u2212';
+                return '<div class="egsi-change-item ' + cls + '"><span class="egsi-change-icon">' + icon + '</span><span>' + ch.text + '</span></div>';
+            }).join('');
+        }
+
+        function renderEgsiOutlook(data, config) {
+            var section = document.getElementById('egsiOutlookPanel');
+            if (!config.showComponents) { section.style.display = 'none'; return; }
+            var m = data.egsi_m;
+            if (!m) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            var t1d = parseFloat(m.trend_1d || 0);
+            var t7d = parseFloat(m.trend_7d || 0);
+            var band = (m.band || '').toUpperCase();
+            var outlook, basis;
+            if (t1d > 5 && t7d > 3) {
+                outlook = 'Significant escalation risk. Market stress momentum suggests sustained elevated readings over the next 1-2 weeks unless stabilizing factors emerge.';
+                basis = 'Based on: accelerating momentum, rising 7-day trend, ' + band.toLowerCase() + ' stress band';
+            } else if (t1d > 2 && t7d > 0) {
+                outlook = 'Moderate escalation risk. Current stress trajectory points to gradually increasing pressure, with potential for stress band elevation.';
+                basis = 'Based on: positive momentum, upward 7-day trend';
+            } else if (Math.abs(t1d) < 2 && Math.abs(t7d) < 2) {
+                outlook = 'Stable conditions expected. Stress indicators suggest continuation of current regime with low probability of sharp movements.';
+                basis = 'Based on: minimal momentum, stable 7-day trend';
+            } else if (t1d < -2 && t7d < 0) {
+                outlook = 'De-escalation likely. Declining momentum suggests stress relief over the coming days, though residual risks remain from underlying drivers.';
+                basis = 'Based on: declining momentum, negative 7-day trend';
+            } else {
+                outlook = 'Mixed signals. Conflicting short-term and medium-term trends suggest potential for volatility in stress readings. Close monitoring recommended.';
+                basis = 'Based on: divergent short-term and 7-day momentum';
+            }
+            if (data.egsi_s && data.egsi_s.components && data.egsi_s.components.storage && data.egsi_s.components.storage.level_pct < 0.4) {
+                basis += ', low storage levels (' + (data.egsi_s.components.storage.level_pct * 100).toFixed(0) + '%)';
+            }
+            document.getElementById('egsiOutlookText').textContent = outlook;
+            document.getElementById('egsiOutlookBasis').textContent = basis;
+        }
+
+        function renderEgsiNarrative(data, config) {
+            var section = document.getElementById('egsiNarrativePanel');
+            if (!config.showComponents) { section.style.display = 'none'; return; }
+            var m = data.egsi_m;
+            var s = data.egsi_s;
+            if (!m) { section.style.display = 'none'; return; }
+            section.style.display = 'block';
+            var mVal = m.value ? m.value.toFixed(1) : '0';
+            var t7d = parseFloat(m.trend_7d || 0);
+            var narrative = 'European gas market stress is currently at ' + mVal + ' (' + m.band + ')';
+            if (t7d > 3) narrative += ', with accelerating pressure over the past week';
+            else if (t7d > 0) narrative += ', showing a gradually rising trend';
+            else if (t7d < -3) narrative += ', with significant relief observed over the past week';
+            else if (t7d < 0) narrative += ', on a declining trajectory';
+            else narrative += ', in a stable pattern';
+            narrative += '. ';
+            if (m.top_drivers && m.top_drivers.length > 0) {
+                var topDriver = m.top_drivers[0];
+                narrative += 'The primary driver is "' + (topDriver.headline || 'market conditions') + '" ';
+                if (topDriver.severity >= 4) narrative += 'at critical severity. ';
+                else narrative += 'at moderate severity. ';
+            }
+            if (s && s.components && s.components.storage) {
+                var stor = s.components.storage;
+                var pct = (stor.level_pct * 100).toFixed(0);
+                var target = (stor.target_pct * 100).toFixed(0);
+                narrative += 'Storage levels stand at ' + pct + '% against a seasonal target of ' + target + '%';
+                if (stor.level_pct < stor.target_pct - 0.1) narrative += ', indicating below-target reserves that warrant close monitoring';
+                else narrative += ', within acceptable range';
+                narrative += '. ';
+            }
+            if (s && s.components && s.components.price && s.components.price.ttf_current) {
+                narrative += 'TTF gas prices are at \u20AC' + s.components.price.ttf_current.toFixed(2) + '/MWh';
+                if (s.components.price.volatility_norm > 0.1) narrative += ' with elevated volatility';
+                else narrative += ' with contained volatility';
+                narrative += '.';
+            }
+            document.getElementById('egsiNarrativeText').textContent = narrative;
+        }
+
         /* ========== End EGSI Dashboard Module ========== */
 
         function showSection(sectionId) {
