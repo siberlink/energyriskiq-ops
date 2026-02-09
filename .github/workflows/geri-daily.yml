@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  APP_URL: https://energy-risk-iq--emilsiberlink.replit.app
+  APP_URL: ${{ secrets.APP_URL }}
 
 jobs:
   compute-indices:

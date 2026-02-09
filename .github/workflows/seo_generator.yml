@@ -52,7 +52,7 @@ jobs:
             PARAMS="${PARAMS}backfill=${{ inputs.backfill }}"
           fi
           
-          URL="${{ secrets.REPLIT_APP_URL }}/internal/run/seo"
+          URL="${{ secrets.APP_URL }}/internal/run/seo"
           if [ -n "$PARAMS" ]; then
             URL="$URL?$PARAMS"
           fi

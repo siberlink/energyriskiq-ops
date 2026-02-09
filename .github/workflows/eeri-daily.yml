@@ -12,7 +12,7 @@ jobs:
       - name: Compute EERI for yesterday
         run: |
           echo "Computing EERI index for yesterday at 01:00 UTC..."
-          response=$(curl -s -X POST "https://energy-risk-iq--emilsiberlink.replit.app/api/v1/indices/eeri/compute-yesterday" \
+          response=$(curl -s -X POST "${{ secrets.APP_URL }}/api/v1/indices/eeri/compute-yesterday" \
             -H "Content-Type: application/json")
           echo "Response: $response"
           
