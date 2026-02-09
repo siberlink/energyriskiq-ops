@@ -2024,6 +2024,105 @@
             .eeri-value { font-size: 2.5rem; }
         }
 
+        /* Digest Public Display Styles */
+        .digest-public-container {
+            margin: 1.5rem auto;
+            max-width: 500px;
+        }
+        .digest-card {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 16px;
+            padding: 1.75rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .digest-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(168, 85, 247, 0.2);
+        }
+        .digest-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .digest-icon {
+            font-size: 2.5rem;
+        }
+        .digest-title-block {
+            text-align: left;
+        }
+        .digest-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+        .digest-subtitle {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+        .digest-value-display {
+            text-align: center;
+            margin: 1.25rem 0;
+        }
+        .digest-tone {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .digest-alerts-count {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+        .digest-alerts-count span {
+            color: #c084fc;
+            font-weight: 600;
+        }
+        .digest-headlines {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .digest-headline-item {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            padding: 0.3rem 0;
+            line-height: 1.4;
+        }
+        .digest-headline-item::before {
+            content: "▸ ";
+            color: #a855f7;
+        }
+        .digest-footer {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .digest-delay-badge {
+            display: inline-block;
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-weight: 500;
+        }
+        .digest-tone-Stabilizing { color: #4ade80; }
+        .digest-tone-Stable { color: #4ade80; }
+        .digest-tone-Low { color: #4ade80; }
+        .digest-tone-Moderate { color: #fbbf24; }
+        .digest-tone-Elevated { color: #f97316; }
+        .digest-tone-Escalating { color: #ef4444; }
+        .digest-tone-Critical { color: #ef4444; }
+        .digest-tone-Unknown { color: #94a3b8; }
+        @media (max-width: 600px) {
+            .digest-card { padding: 1.25rem; }
+            .digest-title { font-size: 1.1rem; }
+            .digest-icon { font-size: 2rem; }
+            .digest-tone { font-size: 1.25rem; }
+        }
+
         /* EGSI Public Display Styles */
         .egsi-public-container {
             margin: 1.5rem auto;
@@ -2382,6 +2481,94 @@
             <div style="text-align: center;">
                 <p style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
                     EGSI is published daily by EnergyRiskIQ as a gas-specific stress indicator for European energy markets.<br>
+                    Informational only. Not financial advice.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Daily Digest Presentation -->
+    <section class="section section-digest" id="digest-section" style="background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); padding: 4rem 0;">
+        <div class="section-inner" style="max-width: 1000px; margin: 0 auto; padding: 0 1.5rem;">
+            <div class="section-header" style="text-align: center; margin-bottom: 2.5rem;">
+                <h2 style="font-size: 2.25rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.75rem;">Daily Geo-Energy Intelligence Digest</h2>
+                <p style="font-size: 1.1rem; color: #94a3b8; margin-bottom: 1.5rem;">AI-powered daily briefing synthesizing global energy risk intelligence</p>
+                <p style="font-size: 1rem; color: #cbd5e1; line-height: 1.7; max-width: 800px; margin: 0 auto;">
+                    Every day, our AI engine processes dozens of geopolitical and energy supply events, cross-references them with proprietary risk indices, and delivers a concise executive intelligence brief covering risk tone, key drivers, market impacts, and forward-looking signals.
+                </p>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Each digest includes:</p>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+                    <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">executive risk snapshot</span>
+                    <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">AI narrative analysis</span>
+                    <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">top risk events</span>
+                    <span style="background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem;">cross-market impact</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📰</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Daily Briefing</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Comprehensive daily summary of global energy risk events and market implications.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🤖</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">AI-Powered Analysis</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Machine-generated executive narrative with strategic interpretation and forward signals.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Index Integration</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Combines GERI, EERI, and EGSI index movements with event context and trend analysis.</p>
+                </div>
+                <div style="text-align: center; padding: 1.25rem;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 0.5rem;">Plan-Tiered Depth</h3>
+                    <p style="font-size: 0.875rem; color: #94a3b8; line-height: 1.5;">Free users get executive snapshots. Upgrade for regime analysis, scenarios, and full intelligence.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <p style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Latest Intelligence Digest</p>
+            </div>
+
+            <div id="digest-public-section" class="digest-public-container" style="display: none; max-width: 500px; margin: 0 auto 1.5rem auto;">
+                <a href="/daily-geo-energy-intelligence-digest" class="digest-card-link" style="text-decoration: none; color: inherit; display: block;" title="Daily Geo-Energy Intelligence Digest" aria-label="Daily Geo-Energy Intelligence Digest">
+                <div class="digest-card" style="text-align: center; padding: 1.5rem; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px;">
+                    <div class="digest-header" style="justify-content: center; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="digest-icon" style="font-size: 2.5rem;">📰</span>
+                        <span style="font-size: 1.1rem; font-weight: 600; color: #e2e8f0;">Daily Intelligence Digest: <span id="digest-tone" style="color: #c084fc;">--</span></span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #888; margin: 0.5rem 0;">AI-powered executive briefing on global geo-energy risk</p>
+                    <p id="digest-alerts-info" style="font-size: 0.9rem; color: #94a3b8; margin: 0.5rem 0;">Alerts analyzed: <span id="digest-alert-count" style="color: #c084fc; font-weight: 600;">--</span></p>
+                    <div id="digest-headlines-container" class="digest-headlines" style="display: none;">
+                        <div id="digest-headline-1" class="digest-headline-item"></div>
+                        <div id="digest-headline-2" class="digest-headline-item"></div>
+                    </div>
+                    <div class="digest-footer">
+                        <span class="digest-delay-badge">24h delayed · Free access</span>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+                <a href="/daily-geo-energy-intelligence-digest" style="display: inline-flex; align-items: center; gap: 0.5rem; background: #a855f7; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">
+                    Read Today's Digest
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+                <a href="/daily-geo-energy-intelligence-digest/history" style="display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: #c084fc; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; border: 1px solid #a855f7; transition: background 0.2s;">
+                    Browse Digest Archive
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+
+            <div style="text-align: center;">
+                <p style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
+                    The Daily Digest is generated by EnergyRiskIQ's AI engine, synthesizing alerts into actionable intelligence.<br>
                     Informational only. Not financial advice.
                 </p>
             </div>
@@ -3353,6 +3540,40 @@
         
         // Load EGSI on page load
         loadEgsiPublic();
+
+        async function loadDigestPublic() {
+            try {
+                const response = await fetch('/api/v1/digest/public');
+                const data = await response.json();
+
+                if (data && data.available) {
+                    const section = document.getElementById('digest-public-section');
+
+                    const toneEl = document.getElementById('digest-tone');
+                    const tone = typeof data.risk_tone === 'object' ? (data.risk_tone.tone || 'Unknown') : (data.risk_tone || 'Unknown');
+                    toneEl.textContent = tone;
+                    const toneClass = tone.split(' ')[0].split('&')[0].trim();
+                    toneEl.className = 'digest-tone-' + toneClass;
+
+                    document.getElementById('digest-alert-count').textContent = data.total_alerts || '0';
+
+                    const headlines = data.top_headlines || [];
+                    if (headlines.length > 0) {
+                        const container = document.getElementById('digest-headlines-container');
+                        container.style.display = 'block';
+                        if (headlines[0]) document.getElementById('digest-headline-1').textContent = headlines[0];
+                        if (headlines[1]) document.getElementById('digest-headline-2').textContent = headlines[1];
+                        else document.getElementById('digest-headline-2').style.display = 'none';
+                    }
+
+                    section.style.display = 'block';
+                }
+            } catch (error) {
+                console.log('Digest data not available:', error);
+            }
+        }
+
+        loadDigestPublic();
     </script>
 </body>
 </html>

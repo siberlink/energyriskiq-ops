@@ -625,3 +625,43 @@ def get_upgrade_hints(plan_level: int):
         hints.append({"feature": "Portfolio Risk Mapping", "plan": "Enterprise", "price": "$129/mo"})
         hints.append({"feature": "API Access", "plan": "Enterprise", "price": "$129/mo"})
     return hints
+
+
+@router.get("/public")
+def get_digest_public_snapshot():
+    row = execute_one("""
+        SELECT page_date, page_json
+        FROM public_digest_pages
+        ORDER BY page_date DESC
+        LIMIT 1
+    """)
+    if not row:
+        return {"available": False}
+
+    page_json = row["page_json"]
+    if isinstance(page_json, str):
+        model = json.loads(page_json)
+    else:
+        model = page_json
+
+    geri = model.get("geri") or {}
+    raw_tone = model.get("risk_tone", "Unknown")
+    if isinstance(raw_tone, dict):
+        risk_tone = raw_tone.get("tone", "Unknown")
+    else:
+        risk_tone = str(raw_tone) if raw_tone else "Unknown"
+    total_alerts = model.get("total_alerts_yesterday", 0)
+    digest_date = model.get("digest_date", row["page_date"].isoformat() if hasattr(row["page_date"], "isoformat") else str(row["page_date"]))
+    alerts = model.get("alerts", [])
+    top_headlines = [a.get("headline", "") for a in alerts[:2]]
+
+    return {
+        "available": True,
+        "date": digest_date,
+        "risk_tone": risk_tone,
+        "total_alerts": total_alerts,
+        "geri_value": geri.get("value"),
+        "geri_band": geri.get("band"),
+        "top_headlines": top_headlines,
+        "is_delayed": True
+    }
