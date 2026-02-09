@@ -1329,6 +1329,237 @@ The smallest high-power set for strong probability outputs:
 
 ---
 
+## 26. Probability Engine — Default Weights & Calibration
+
+### Core Probability Equation
+
+For any event E (e.g., TTF_spike_30d, storage_crisis_30d, panic_14d):
+
+```
+P(E_t) = 1 / (1 + e^(-Z_t))
+
+Z_t = b0 + Σ(wi * Xi_t)
+```
+
+**Standardized inputs (all 0-1):**
+
+| Input | Source |
+|-------|--------|
+| X1 = `f_system_stress` | F10.1 |
+| X2 = `f_pressure` | F10.2 |
+| X3 = `f_fragility` | F10.3 |
+| X4 = `f_tail` | F10.4 |
+| X5 = `f_divergence` | F10.5 |
+| X6 = `f_reg_struct` | F9.2 (0/1) |
+| X7 = `f_reg_event` | F9.3 (0/1) |
+| X8 = `f_reg_panic` | F9.4 (0/1) |
+| X9 = `f_egsi_mom14_norm` (optional) | `CLAMP((f_egsi_mom14 + 5)/10, 0, 1)` |
+
+Using 0-1 composites keeps weights interpretable and stable.
+
+---
+
+### General-Purpose Baseline Weights
+
+```
+b0 = -2.20    (baseline ~10% when all Xi = 0)
+
+w_system_stress = 1.40
+w_pressure      = 1.25
+w_fragility     = 0.90
+w_tail          = 0.85
+w_divergence    = 0.70
+w_reg_struct    = 0.35
+w_reg_event     = 0.55
+w_reg_panic     = 1.10
+w_mom14         = 0.60  (optional)
+```
+
+**Design rationale:**
+
+- Stress + pressure drive most outcomes
+- Fragility adds "market readiness" signal
+- Tail risk is nonlinear (infrastructure/chokepoint)
+- Divergence boosts odds of "catch-up move"
+- Panic regime is a strong multiplier
+
+---
+
+### Event-Specific Weight Sets
+
+#### Event A — TTF Spike (30D)
+
+Higher weight on divergence + fragility.
+
+```
+b0 = -2.30
+w_system_stress = 1.20    w_pressure = 1.10
+w_fragility     = 1.15    w_tail     = 0.65
+w_divergence    = 1.10    w_reg_struct = 0.25
+w_reg_event     = 0.55    w_reg_panic  = 0.95
+w_mom14         = 0.55
+```
+
+#### Event B — Storage Crisis (30D)
+
+Highest weight on pressure (storage deficit + draw speed).
+
+```
+b0 = -2.10
+w_system_stress = 1.05    w_pressure = 1.55
+w_fragility     = 0.55    w_tail     = 0.75
+w_divergence    = 0.35    w_reg_struct = 0.55
+w_reg_event     = 0.35    w_reg_panic  = 0.60
+w_mom14         = 0.45
+```
+
+#### Event C — Panic Regime (14D)
+
+High weight on market fragility + panic regime; divergence less important.
+
+```
+b0 = -2.60
+w_system_stress = 1.15    w_pressure = 0.95
+w_fragility     = 1.35    w_tail     = 0.95
+w_divergence    = 0.30    w_reg_struct = 0.25
+w_reg_event     = 0.65    w_reg_panic  = 1.35
+w_mom14         = 0.40
+```
+
+#### Event D — Supply Disruption (30D)
+
+Highest weight on tail risk + event regime.
+
+```
+b0 = -2.35
+w_system_stress = 1.00    w_pressure = 1.10
+w_fragility     = 0.45    w_tail     = 1.40
+w_divergence    = 0.25    w_reg_struct = 0.20
+w_reg_event     = 1.05    w_reg_panic  = 0.85
+w_mom14         = 0.35
+```
+
+---
+
+### Calibration Plan
+
+Goals: **Discrimination** (higher risk days get higher probabilities) and **Calibration** (predicted 60% happens ~60% of the time).
+
+#### Dataset Creation
+
+For each day `t`:
+
+- **Features:** Xi_t (computed using data up to t only)
+- **Label:** Y_t = 1 if event occurs in horizon H, else 0
+
+Examples:
+
+- TTF_spike_30d: `Y_t = 1 if (TTF_(t+30) - TTF_t) / TTF_t >= threshold`
+- panic_14d: `Y_t = 1 if any day in [t+1..t+14] has panic regime`
+
+Remove last H days from training (no future label available).
+
+#### Two-Stage Weight Fitting
+
+**Stage A — Start with default priors**
+
+Use the weights above to generate initial probabilities.
+
+**Stage B — Learn scaling + adjustments**
+
+| Option | Method | When to Use |
+|--------|--------|-------------|
+| Option 1 (fast + stable) | Calibrate only: keep weights fixed, learn `a` and `c` in `P_cal = 1/(1 + e^(-(a*Z + c)))` | Start here — amazingly effective |
+| Option 2 (full) | Refit logistic with L2 regularization, constrain weights positive, initialize at defaults | After proving Option 1 works |
+
+#### Walk-Forward Validation (Non-Negotiable)
+
+Rolling windows to avoid leakage and prove robustness.
+
+**Schedule A:**
+
+- Train on first 60-70% of history
+- Validate on next 10%
+- Test on final 20%
+- Roll forward monthly/quarterly
+
+**Schedule B:**
+
+- Train: 2 years
+- Test: next 6 months
+- Slide forward by 3 months
+- Track performance per regime (normal vs stress vs panic)
+
+#### Calibration Methods
+
+| Method | Description | When to Use |
+|--------|-------------|-------------|
+| Platt Scaling (recommended) | The `a*Z + c` approach | Default choice, especially for rare events |
+| Isotonic Calibration | Better when nonlinear | Only with enough samples per event |
+
+#### Internal Metrics
+
+| Metric | Purpose |
+|--------|---------|
+| Brier Score | Overall probability accuracy |
+| Log Loss | Penalizes overconfidence |
+| AUC | Ranking quality |
+| Reliability Table | Predicted bins vs realized frequency |
+
+#### Reliability Bins
+
+Bin predictions into [0-10], [10-20], ... [90-100]%. For each bin report count and realized event rate. Target: realized frequency approximately equals predicted probability.
+
+---
+
+### Confidence Scoring Layer
+
+Probability without confidence is dangerous. Add a confidence score `C_t` (0-100).
+
+#### Components
+
+| Component | Measures |
+|-----------|----------|
+| `C_data` | Data completeness (missing points reduces) |
+| `C_regime` | Regime clarity (multiple triggers reduce) |
+| `C_sample` | Historical sample size in similar conditions |
+| `C_agree` | Agreement across models (bucket vs logistic) |
+
+#### Formula
+
+```
+C_t = 100 * CLAMP(0.30 * C_data + 0.25 * C_sample + 0.25 * C_agree + 0.20 * C_regime, 0, 1)
+```
+
+Each component is 0-1.
+
+---
+
+### Deployment Cadence
+
+| Frequency | Action |
+|-----------|--------|
+| Daily | Recompute features |
+| Monthly | Recalibrate `a` and `c` (fast, safe) |
+| Quarterly | Refit full weights (only if drift is proven) |
+
+---
+
+### User-Facing Output (UX)
+
+For each event in the dashboard:
+
+```
+Probability (30D): 42%
+Confidence: Medium
+Baseline (same stress bucket): 27%
+What changed: "Storage pressure rising + divergence widening"
+```
+
+This becomes the sticky differentiator — showing not just what the probability is, but why it changed and how it compares to the historical baseline.
+
+---
+
 ## Related Documentation
 
 - `docs/EGSI.md` — Original EGSI specification and strategic vision

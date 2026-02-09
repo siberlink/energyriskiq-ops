@@ -1,0 +1,281 @@
+1) Default Weights Template
+1.1 Core probability equation
+
+For any event E (e.g., TTF_spike_30d, storage_crisis_30d, panic_14d):
+
+P(E_t) = 1 / (1 + e^(-Z_t))
+
+Z_t = b0 + Σ (wi * Xi_t)
+
+Where your standardized inputs are:
+
+X1 = f_system_stress (0–1)
+
+X2 = f_pressure (0–1)
+
+X3 = f_fragility (0–1)
+
+X4 = f_tail (0–1)
+
+X5 = f_divergence (0–1)
+
+X6 = f_reg_struct (0/1)
+
+X7 = f_reg_event (0/1)
+
+X8 = f_reg_panic (0/1)
+
+(optional) X9 = f_egsi_mom14_norm (0–1) where f_egsi_mom14_norm = CLAMP((f_egsi_mom14 + 5)/10,0,1) if you want explicit momentum
+
+Note: Using your 0–1 composites keeps weights interpretable and stable.
+
+1.2 Default weights (general-purpose baseline)
+
+Use this baseline for most events, then adjust per event type below.
+
+b0 = -2.20 (baseline ~10% when all Xi ≈ 0)
+
+w_system_stress = 1.40
+w_pressure = 1.25
+w_fragility = 0.90
+w_tail = 0.85
+w_divergence = 0.70
+w_reg_struct = 0.35
+w_reg_event = 0.55
+w_reg_panic = 1.10
+
+If you include momentum explicitly:
+w_mom14 = 0.60
+
+Why this works as a starting prior:
+
+stress + pressure drive most outcomes
+
+fragility adds “market readiness”
+
+tail risk is nonlinear (infrastructure / chokepoint)
+
+divergence boosts odds of “catch-up move”
+
+panic regime is a strong multiplier
+
+2) Event-Specific Default Weight Sets
+
+You’ll get better early results by specializing weights per event.
+
+2.1 Event A: TTF_spike_30d
+
+Higher weight on divergence + fragility.
+
+b0 = -2.30
+w_system_stress = 1.20
+w_pressure = 1.10
+w_fragility = 1.15
+w_tail = 0.65
+w_divergence = 1.10
+w_reg_struct = 0.25
+w_reg_event = 0.55
+w_reg_panic = 0.95
+(optional) w_mom14 = 0.55
+
+2.2 Event B: storage_crisis_30d
+
+Highest weight on pressure (storage deficit + draw speed), moderate stress.
+
+b0 = -2.10
+w_system_stress = 1.05
+w_pressure = 1.55
+w_fragility = 0.55
+w_tail = 0.75
+w_divergence = 0.35
+w_reg_struct = 0.55
+w_reg_event = 0.35
+w_reg_panic = 0.60
+(optional) w_mom14 = 0.45
+
+2.3 Event C: panic_14d
+
+High weight on market fragility + panic regime; divergence less important.
+
+b0 = -2.60
+w_system_stress = 1.15
+w_pressure = 0.95
+w_fragility = 1.35
+w_tail = 0.95
+w_divergence = 0.30
+w_reg_struct = 0.25
+w_reg_event = 0.65
+w_reg_panic = 1.35
+(optional) w_mom14 = 0.40
+
+2.4 Event D: supply_disruption_30d (proxy / stress escalation)
+
+Highest weight on tail + event regime.
+
+b0 = -2.35
+w_system_stress = 1.00
+w_pressure = 1.10
+w_fragility = 0.45
+w_tail = 1.40
+w_divergence = 0.25
+w_reg_struct = 0.20
+w_reg_event = 1.05
+w_reg_panic = 0.85
+(optional) w_mom14 = 0.35
+
+3) Calibration Plan (Make probabilities “true”)
+
+You want two things:
+
+Discrimination: higher risk days get higher probabilities
+
+Calibration: predicted 60% happens about 60% of the time
+
+3.1 Data set creation
+
+For each day t:
+
+Features: Xi_t (all computed using data up to t)
+Label: Y_t = 1 if event occurs in horizon H, else 0
+
+Examples:
+
+TTF_spike_30d: Y_t = 1 if (TTF_(t+30)-TTF_t)/TTF_t >= threshold
+
+panic_14d: Y_t = 1 if any day in [t+1..t+14] has panic regime
+
+Important:
+
+Remove last H days from training (no future label available).
+
+Use walk-forward splits (see below).
+
+3.2 Fit weights (two-stage approach)
+Stage A — Start with your default priors
+
+Use the weights above to generate initial probabilities.
+
+Stage B — Learn scaling + small adjustments
+
+Do either:
+
+Option 1 (fast + stable): “Calibrate only”
+
+Keep weights fixed
+
+Learn only a and c:
+
+P_cal = 1 / (1 + e^(-(a*Z + c)))
+
+This corrects over/underconfidence without changing signal logic.
+
+Option 2 (full): Refit logistic with priors
+
+Fit logistic regression on Xi
+
+Use L2 regularization
+
+Constrain weights to remain positive (recommended for interpretability)
+
+Initialize at defaults, then optimize.
+
+In practice: start with Option 1 first (it’s amazingly effective), then Option 2 later.
+
+3.3 Walk-forward validation (non-negotiable)
+
+Use rolling windows to avoid leakage and prove robustness.
+
+Example schedule:
+
+Train on first 60–70% of history
+
+Validate on next 10%
+
+Test on final 20%
+Then roll forward monthly/quarterly.
+
+Or do:
+
+Train: 2 years
+
+Test: next 6 months
+
+Slide forward by 3 months
+
+Track performance per regime (normal vs stress vs panic).
+
+3.4 Calibration methods (choose 1)
+Method A: Platt scaling (recommended)
+
+That’s the a*Z + c approach above.
+
+Method B: Isotonic calibration (better when nonlinear)
+
+Only if you have enough samples per event.
+
+Rule of thumb:
+
+If event is rare, prefer Platt scaling.
+
+3.5 Metrics to publish internally (and later market carefully)
+
+Brier Score (overall probability accuracy)
+
+Log Loss (penalizes overconfidence)
+
+AUC (ranking quality)
+
+Reliability table: predicted bins vs realized frequency
+
+3.6 Reliability bins (simple and powerful)
+
+Bin predictions into:
+[0–10], [10–20], … [90–100]%
+
+For each bin report:
+
+count
+
+realized event rate
+
+You want:
+realized ≈ predicted.
+
+4) Confidence Scoring Layer (Pro feature, increases trust)
+
+Probability without confidence is dangerous. Add a confidence score C_t (0–100).
+
+4.1 Confidence components
+
+C_data: data completeness (missing points reduces)
+
+C_regime: regime clarity (if multiple regimes trigger, reduce)
+
+C_sample: historical sample size in similar conditions (bucket count)
+
+C_agree: agreement across models (bucket model vs logistic)
+
+4.2 Simple confidence formula
+
+C_t = 100 * CLAMP(0.30*C_data + 0.25*C_sample + 0.25*C_agree + 0.20*C_regime, 0, 1)
+
+(Each C_* is 0–1)
+
+5) Deployment cadence (keep it stable)
+
+Recompute features daily
+
+Recalibrate a and c monthly (fast, safe)
+
+Refit full weights quarterly (only if drift is proven)
+
+6) What you should show users (UX truth)
+
+In the UI, for each event:
+
+Probability (30D): 42%
+Confidence: Medium
+Baseline (same stress bucket): 27%
+What changed: “Storage pressure rising + divergence widening”
+
+This becomes your sticky differentiator.
