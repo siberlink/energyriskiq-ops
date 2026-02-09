@@ -1,0 +1,401 @@
+EGSI Feature Engineering Specification
+Scope
+
+Daily frequency (end-of-day). All features computed for date t using only data up to t.
+
+Core inputs (daily):
+
+EGSI_t (0–100)
+
+EGSI_storage_t (0–100)
+
+EGSI_supply_t (0–100)
+
+EGSI_lng_t (0–100)
+
+EGSI_market_t (0–100)
+
+EGSI_chokepoint_t (0–100)
+
+Assets: TTF_t, BRENT_t, VIX_t, EURUSD_t
+
+Storage raw: STOR_pct_t (EU gas storage % fullness, 0–100) and/or STOR_bcm_t (optional)
+
+Constants/parameters (recommend defaults):
+
+Returns windows: w = {7, 14, 30, 90}
+
+Moving average: ma = {7, 14}
+
+Z-score windows: z = {30, 90, 180}
+
+Seasonality: season_window = 5 days around day-of-year
+
+Winsorization: cap z-scores to [-4, +4]
+
+Helper functions (conceptual):
+
+ln(x) natural log
+
+SMA(x,n) simple moving average of last n values
+
+STD(x,n) rolling standard deviation of last n values
+
+EMA(x,n) exponential moving average (optional)
+
+Z(x,n) = (x - SMA(x,n)) / (STD(x,n) + eps)
+
+CLAMP(x,a,b)
+
+I(condition) indicator 1/0
+
+PCTL(x,n) percentile rank of x_t within last n values
+
+DOY(t) day-of-year (1..365)
+
+Use eps = 1e-9 to avoid division by zero.
+
+0) Normalization & Base Transform Features
+F0.1 EGSI Level (normalized 0–1)
+
+f_egsi_level = EGSI_t / 100
+
+F0.2 Component Levels (0–1)
+
+f_storage_level = EGSI_storage_t / 100
+f_supply_level = EGSI_supply_t / 100
+f_lng_level = EGSI_lng_t / 100
+f_market_level = EGSI_market_t / 100
+f_chokepoint_level = EGSI_chokepoint_t / 100
+
+F0.3 Stress Category (ordinal 0..3)
+
+f_stress_cat = 0*I(EGSI_t<25) + 1*I(25<=EGSI_t<50) + 2*I(50<=EGSI_t<75) + 3*I(EGSI_t>=75)
+
+1) EGSI Dynamics (Momentum, Acceleration, Volatility)
+F1.1 1-day Change
+
+f_egsi_d1 = EGSI_t - EGSI_(t-1)
+
+F1.2 7-day Change
+
+f_egsi_d7 = EGSI_t - EGSI_(t-7)
+
+F1.3 14-day Change
+
+f_egsi_d14 = EGSI_t - EGSI_(t-14)
+
+F1.4 7-day Momentum (avg daily slope)
+
+f_egsi_mom7 = (EGSI_t - EGSI_(t-7)) / 7
+
+F1.5 14-day Momentum
+
+f_egsi_mom14 = (EGSI_t - EGSI_(t-14)) / 14
+
+F1.6 Acceleration (momentum change)
+
+f_egsi_accel7 = f_egsi_mom7 - ((EGSI_(t-7) - EGSI_(t-14)) / 7)
+
+F1.7 EGSI Volatility (rolling std)
+
+f_egsi_vol30 = STD(EGSI,30)
+f_egsi_vol90 = STD(EGSI,90)
+
+F1.8 EGSI Z-Score (stress anomaly)
+
+f_egsi_z90 = CLAMP(Z(EGSI,90),-4,4)
+f_egsi_z180 = CLAMP(Z(EGSI,180),-4,4)
+
+F1.9 EGSI Percentile (rarity)
+
+f_egsi_pct180 = PCTL(EGSI,180)
+
+2) Storage Feature Block (Seasonality + Drawdown Stress)
+2A) Storage Level vs Seasonal Norm (key)
+
+Compute a seasonal baseline using DOY.
+
+F2.1 Seasonal Mean (conceptual)
+
+STOR_seas_mean_t = mean( STOR_pct_{d} ) for all past dates d where abs(DOY(d)-DOY(t))<=season_window
+
+F2.2 Seasonal Std (conceptual)
+
+STOR_seas_std_t = std( STOR_pct_{d} ) for all past dates d where abs(DOY(d)-DOY(t))<=season_window
+
+F2.3 Storage Seasonal Z (core)
+
+f_stor_seas_z = CLAMP( (STOR_pct_t - STOR_seas_mean_t) / (STOR_seas_std_t + eps), -4, 4 )
+
+Interpretation: negative = below normal (stress).
+
+F2.4 Storage Deficit (positive = worse)
+
+f_stor_deficit = CLAMP( (STOR_seas_mean_t - STOR_pct_t) / 100, 0, 1 )
+
+2B) Storage Drawdown Speed (acceleration risk)
+F2.5 7-day Storage Change
+
+f_stor_d7 = STOR_pct_t - STOR_pct_(t-7)
+
+F2.6 Drawdown Rate (positive = drawing)
+
+f_stor_draw7 = CLAMP( (STOR_pct_(t-7) - STOR_pct_t) / 7, 0, 5 )
+
+F2.7 Drawdown Z (rare fast drawdowns)
+
+f_stor_draw_z90 = CLAMP( Z(f_stor_draw7,90), -4, 4 )
+
+2C) Storage Pressure Composite (0–1)
+
+f_storage_pressure = CLAMP( 0.6*f_stor_deficit + 0.4*CLAMP(f_stor_draw_z90/4,0,1), 0, 1 )
+
+3) Supply & LNG Feature Block (Stress Pulse Detection)
+
+These assume you have component indices or proxy scores.
+
+F3.1 Supply Stress Level
+
+f_supply = f_supply_level
+
+F3.2 LNG Stress Level
+
+f_lng = f_lng_level
+
+F3.3 Supply Stress Spike Flag
+
+f_supply_spike = I( (EGSI_supply_t - SMA(EGSI_supply,30)) > 1.5*STD(EGSI_supply,30) )
+
+F3.4 LNG Stress Spike Flag
+
+f_lng_spike = I( (EGSI_lng_t - SMA(EGSI_lng,30)) > 1.5*STD(EGSI_lng,30) )
+
+F3.5 Combined Flow Stress (0–1)
+
+f_flow_stress = CLAMP( 0.5*f_supply + 0.5*f_lng, 0, 1 )
+
+F3.6 Flow Stress Momentum
+
+f_flow_mom7 = ((EGSI_supply_t+EGSI_lng_t) - (EGSI_supply_(t-7)+EGSI_lng_(t-7))) / 7 / 200
+
+(division by 200 normalizes 0..1 scale)
+
+4) Market Stress Feature Block (Volatility & Fragility)
+F4.1 Market Stress Level
+
+f_market = f_market_level
+
+F4.2 Market Stress Z
+
+f_market_z90 = CLAMP(Z(EGSI_market,90),-4,4)
+
+F4.3 Market Stress Spike Flag
+
+f_market_spike = I( (EGSI_market_t - SMA(EGSI_market,30)) > 2*STD(EGSI_market,30) )
+
+5) Chokepoint/Infrastructure Feature Block (Tail Risk)
+F5.1 Chokepoint Level
+
+f_chokepoint = f_chokepoint_level
+
+F5.2 Chokepoint Spike
+
+f_chokepoint_spike = I( (EGSI_chokepoint_t - SMA(EGSI_chokepoint,30)) > 2*STD(EGSI_chokepoint,30) )
+
+F5.3 Tail Risk Composite (0–1)
+
+f_tail_risk = CLAMP( 0.7*f_chokepoint + 0.3*I(EGSI_t>=75), 0, 1 )
+
+6) Asset Return Features (TTF, Brent, VIX, EURUSD)
+6A) Log returns (recommended)
+F6.1 TTF Return 1D
+
+r_ttf_1d = ln(TTF_t/TTF_(t-1))
+
+F6.2 Brent Return 1D
+
+r_brent_1d = ln(BRENT_t/BRENT_(t-1))
+
+F6.3 VIX Change 1D (log or pct)
+
+r_vix_1d = ln(VIX_t/VIX_(t-1))
+
+F6.4 EURUSD Return 1D
+
+r_eurusd_1d = ln(EURUSD_t/EURUSD_(t-1))
+
+6B) Rolling realized vol
+F6.5 TTF Vol 30D
+
+vol_ttf_30 = STD(r_ttf_1d,30) * sqrt(252)
+
+F6.6 Brent Vol 30D
+
+vol_brent_30 = STD(r_brent_1d,30) * sqrt(252)
+
+F6.7 EURUSD Vol 30D
+
+vol_eurusd_30 = STD(r_eurusd_1d,30) * sqrt(252)
+
+7) EGSI ↔ Asset Coupling (Correlation, Beta)
+
+These are “market impact intelligence” features.
+
+F7.1 Rolling Correlation (EGSI vs returns)
+
+corr_egsi_ttf_30 = corr( EGSI, r_ttf_1d ) over last 30 days
+corr_egsi_ttf_90 = corr( EGSI, r_ttf_1d ) over last 90 days
+
+(similar for Brent, VIX, EURUSD)
+
+F7.2 Rolling Beta (returns on EGSI changes)
+
+Define dEGSI_1d = EGSI_t - EGSI_(t-1)
+
+beta_ttf_90 = cov(r_ttf_1d, dEGSI_1d) over 90 / (var(dEGSI_1d) over 90 + eps)
+
+(similar for other assets)
+
+8) Divergence Residual Features (Your Differentiation Weapon)
+
+These identify mispricing vs stress.
+
+8A) Expected return from EGSI
+
+Using beta model:
+
+rhat_ttf_1d = beta_ttf_90 * dEGSI_1d
+
+8B) Residual
+
+resid_ttf_1d = r_ttf_1d - rhat_ttf_1d
+
+8C) Residual Z-score (divergence intensity)
+
+resid_ttf_z90 = CLAMP( Z(resid_ttf_1d,90), -4, 4 )
+
+8D) Divergence Flag
+
+div_ttf_flag = I( abs(resid_ttf_z90) >= 2 )
+
+8E) Divergence Direction (under/over-pricing)
+
+div_ttf_dir = 1*I(resid_ttf_z90>0) - 1*I(resid_ttf_z90<0)
+
+Interpretation:
+
+positive residual = asset moving more than expected (overreaction)
+
+negative residual = asset moving less than expected (underreaction)
+
+9) Regime Features (Rule-Based, Deterministic)
+
+Keep these deterministic first (high trust), then ML later.
+
+F9.1 Normal Regime
+
+reg_normal = I(EGSI_t<40 AND f_egsi_vol30 < 8)
+
+F9.2 Structural Stress Regime
+
+reg_struct = I(EGSI_t>=50 AND f_storage_pressure>=0.35 AND f_egsi_mom14>=0)
+
+F9.3 Event Shock Regime
+
+reg_event = I(f_supply_spike==1 OR f_lng_spike==1 OR f_chokepoint_spike==1)
+
+F9.4 Panic Regime
+
+reg_panic = I(EGSI_t>=75 AND (f_market_spike==1 OR f_egsi_vol30>=12 OR r_vix_1d>0.05))
+
+F9.5 Regime ID (single label)
+
+regime_id = 0*reg_normal + 1*reg_struct + 2*reg_event + 3*reg_panic
+
+(If multiple true, choose priority: panic > event > structural > normal)
+
+10) Probability-Ready Composite Features (0–1 Inputs)
+
+These are clean inputs for your logistic probability engine.
+
+F10.1 System Stress Composite
+
+f_system_stress = CLAMP( 0.5*f_egsi_level + 0.5*CLAMP(f_egsi_z180/4,0,1), 0, 1 )
+
+F10.2 Pressure Composite
+
+f_pressure = CLAMP( 0.6*f_storage_pressure + 0.4*f_flow_stress, 0, 1 )
+
+F10.3 Market Fragility Composite
+
+f_fragility = CLAMP( 0.5*CLAMP(f_market_z90/4,0,1) + 0.5*CLAMP(vol_ttf_30/0.8,0,1), 0, 1 )
+
+(0.8 is a normalization constant you can tune)
+
+F10.4 Tail Risk Composite
+
+f_tail = f_tail_risk
+
+F10.5 Divergence Composite (TTF-centric)
+
+f_divergence = CLAMP( abs(resid_ttf_z90)/4, 0, 1 )
+
+F10.6 Regime One-Hots (for model)
+
+f_reg_normal = reg_normal
+f_reg_struct = reg_struct
+f_reg_event = reg_event
+f_reg_panic = reg_panic
+
+11) Event Definition Features (for labeling outcomes)
+
+These define your “events” for training/backtesting.
+
+TTF Spike Event (example)
+Event A1: 30D TTF spike
+
+event_ttf_spike_30d = I( (TTF_(t+30) - TTF_t) / TTF_t >= 0.15 )
+
+(choose thresholds: 10%, 15%, 20% variants)
+
+Storage Crisis Event (example)
+Event B1: 30D storage deficit worsens
+
+event_stor_crisis_30d = I( f_stor_deficit_(t+30) - f_stor_deficit_t >= 0.10 )
+
+Panic Regime Event (example)
+
+event_panic_14d = I( max(reg_panic over t+1..t+14) == 1 )
+
+12) Minimal Feature Set (If you want lean MVP)
+
+If you need the smallest “high power” set, use these:
+
+f_egsi_level
+
+f_egsi_mom14
+
+f_egsi_z180
+
+f_storage_pressure
+
+f_flow_stress
+
+f_market_z90
+
+resid_ttf_z90
+
+regime_id
+
+This will already deliver strong probability outputs.
+
+Recommended Plan Gating (Strategic)
+
+Personal: show f_storage_pressure, f_flow_stress, f_market_z90 (as “drivers”)
+
+Trader: show correlations + divergence resid_ttf_z90
+
+Pro: show probability model outputs using composites f_system_stress, f_pressure, f_fragility, f_tail, f_divergence
+
+Enterprise: custom events + custom weights
