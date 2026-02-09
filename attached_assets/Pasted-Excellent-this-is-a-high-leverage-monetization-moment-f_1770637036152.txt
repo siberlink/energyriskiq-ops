@@ -1,0 +1,514 @@
+Excellent — this is a high-leverage monetization moment for EnergyRiskIQ.
+EGSI is extremely strong commercially because:
+
+👉 Gas stress = directly tradable
+👉 Highly relevant to Europe
+👉 Strong narrative clarity
+👉 You already have full lifecycle historical asset + storage + price data (huge competitive moat)
+
+So we will design EGSI dashboard features with:
+
+• Clear value ladder
+• Visible locked premium intelligence
+• Psychological upgrade triggers
+• Professional trader credibility
+• Enterprise differentiation
+
+You asked conceptual only → I’ll structure this as a Product Monetization Architecture + Strategic Feature Stack
+
+🧠 EGSI — Product Positioning First (Very Important)
+
+Before features, align the strategic perception.
+
+EGSI = Operational Stress Intelligence
+
+(Not just index value)
+
+EGSI answers:
+
+👉 “How stressed is European gas system RIGHT NOW?”
+👉 “Where is stress coming from?”
+👉 “What markets are exposed next?”
+👉 “What is probability of disruption?”
+
+🎯 EGSI Dashboard — Core Feature Categories
+
+Every plan tier will unlock progressively deeper intelligence layers.
+
+Layer 1 — Headline Intelligence
+
+Current EGSI score
+
+Stress level classification
+
+Trend direction
+
+Layer 2 — Drivers & Decomposition
+
+Storage stress
+
+Supply disruption risk
+
+LNG congestion
+
+Market volatility stress
+
+Chokepoint risk
+
+Layer 3 — Market Impact Intelligence
+
+Asset correlations
+
+Divergence detection
+
+Market regime classification
+
+Layer 4 — Predictive Intelligence
+
+Forward probability modelling
+
+Scenario stress simulations
+
+Early warning signals
+
+Layer 5 — Decision Support / Automation
+
+Alerts
+
+AI interpretation
+
+Backtesting
+
+Custom alerts
+
+🧩 EGSI Strategic Feature Ladder (By Plan)
+🆓 FREE PLAN — “Awareness & Curiosity”
+Goal
+
+Hook users. Build trust. Show value exists but is incomplete.
+
+✅ Dashboard Features
+EGSI Snapshot
+
+Current EGSI value
+
+Stress category label:
+
+Normal
+
+Elevated
+
+High
+
+Crisis
+
+Basic Trend Indicator
+
+7-day directional arrow
+
+Mini sparkline chart
+
+Daily EGSI Narrative Summary
+
+AI-generated plain language explanation:
+
+“Gas system stress remains elevated due to storage drawdown and LNG congestion.”
+
+Stress Driver Highlights (Partial)
+
+Show top 2 drivers only.
+
+Example:
+
+Storage Pressure
+
+LNG Import Congestion
+
+Public Historical Chart
+
+Full history but limited interaction
+
+No asset overlays
+
+Alerts
+
+Only major stress spike alerts
+
+Delayed delivery
+
+🚫 Locked (Visible but blurred)
+
+👉 Driver decomposition
+👉 Asset overlays
+👉 Probabilities
+👉 Forward signals
+👉 Divergence detection
+
+Psychological Upgrade Trigger
+
+Show:
+
+“Unlock market impact intelligence”
+
+👤 PERSONAL PLAN — $9.95
+Positioning: “Serious Observer / Analyst / Research User”
+
+This tier adds context + interpretation depth
+
+✅ Everything in Free PLUS:
+Full Stress Driver Decomposition
+
+User sees weighted contribution:
+
+Storage stress
+
+Supply disruptions
+
+LNG congestion
+
+Market volatility
+
+Infrastructure risk
+
+Interactive Historical Charts
+
+User can:
+
+Zoom
+
+Range select
+
+Compare periods
+
+Asset Overlay (Limited)
+
+Allow 2 assets simultaneously:
+
+TTF Gas
+
+EU Storage
+
+Brent Oil
+
+EUR/USD
+
+VIX
+
+Basic Correlation Metrics
+
+Rolling correlation 30D + 90D
+
+Risk Trend Interpretation Panel
+
+Explain whether stress is:
+
+Structural
+
+Event driven
+
+Seasonal
+
+Market sentiment driven
+
+Faster Alerts
+
+Near real-time alerts
+
+Email + dashboard
+
+Weekly Gas Stress Report
+
+Automatically generated narrative PDF.
+
+🚫 Locked
+
+👉 Probability modelling
+👉 Divergence residual analytics
+👉 Regime detection
+👉 Predictive alerts
+👉 AI trading intelligence
+
+Upgrade Trigger Messaging
+
+“See how stress historically moved markets → Upgrade to Trader”
+
+📈 TRADER PLAN — $29
+Positioning: “Market Intelligence & Trading Signal Layer”
+
+This tier becomes actionable intelligence
+
+✅ Everything in Personal PLUS:
+Full Asset Impact Intelligence
+
+Unlimited asset overlays.
+
+Divergence Detection Engine
+
+Shows when assets deviate from expected EGSI behavior.
+
+Example:
+
+“TTF Gas underpricing current stress by 18%”
+
+Regime Classification
+
+Identify:
+
+Panic regime
+
+Supply shock regime
+
+Storage crisis regime
+
+Normal seasonal regime
+
+Probability Forecasting
+
+Provide:
+
+Probability of supply disruption
+
+Probability of price spikes
+
+Probability of storage depletion risk
+
+(Time horizons: 7D / 30D)
+
+Early Warning Stress Signals
+
+Detect pre-crisis stress patterns.
+
+Backtesting Panel
+
+Users can test:
+
+“How did markets behave during past EGSI spikes?”
+
+Advanced Alerts
+
+Asset-linked alerts:
+
+TTF breakout probability
+
+LNG congestion stress alerts
+
+Storage acceleration alerts
+
+Export Data (Limited)
+
+CSV export for charts.
+
+🚫 Locked
+
+👉 Scenario modelling
+👉 AI trade narratives
+👉 Full signal automation
+👉 Portfolio stress modelling
+👉 Institutional data exports
+
+Upgrade Trigger
+
+“Run forward scenario simulations & AI trading playbooks → Upgrade to Pro”
+
+🧠 PRO PLAN — $49
+Positioning: “Professional Decision Intelligence”
+
+This becomes EnergyRiskIQ flagship monetization tier
+(Your strongest price-value balance)
+
+✅ Everything in Trader PLUS:
+Scenario Simulation Engine
+
+User can simulate:
+
+LNG outage
+
+Pipeline shutdown
+
+Storage draw shock
+
+Weather shock
+
+And see EGSI forward projection.
+
+AI Trade & Risk Narrative Generator
+
+AI explains:
+
+“Based on historical patterns, current stress suggests upward price skew for TTF within 10-20 trading days.”
+
+Full Probability Engine
+
+Includes:
+
+Multi-factor conditional modelling
+
+Probability bands
+
+Risk severity curves
+
+Signal Confidence Scoring
+
+Shows reliability level of each signal.
+
+Cross-Index Intelligence
+
+EGSI integrated with:
+
+GERI
+
+EERI
+
+Shows contagion risk.
+
+Professional Daily Gas Intelligence Digest
+
+Highly structured:
+
+Stress snapshot
+
+Market outlook
+
+Risk radar
+
+Trading bias summary
+
+Custom Alert Builder
+
+Users define:
+
+Stress thresholds
+
+Asset relationships
+
+Trigger logic
+
+Full Historical Dataset Access
+
+For research and modelling.
+
+🏢 ENTERPRISE PLAN — $129
+Positioning: “Operational Risk Intelligence Platform”
+
+This is where you sell to:
+
+• Utilities
+• LNG operators
+• Hedge funds
+• Energy consultancies
+• Government risk teams
+
+✅ Everything in Pro PLUS:
+Portfolio Stress Modelling
+
+Users upload asset exposure and see:
+
+“Portfolio vulnerability to gas stress events”
+
+API Access
+
+Direct EGSI feed integration.
+
+Multi-Region Gas Stress Dashboard
+
+Include:
+
+Europe
+
+Black Sea
+
+Global LNG routing risk
+
+Custom Risk Models
+
+Enterprise weighting customization.
+
+Real-Time Data Frequency
+
+Higher refresh cadence.
+
+Institutional Reporting Engine
+
+Auto-generated:
+
+Risk board reports
+
+Regulatory summaries
+
+Internal decision briefings
+
+Team Collaboration
+
+Shared dashboards & alerts.
+
+💡 Hidden Strategic Feature (Monetization Weapon)
+
+Add across all paid tiers:
+
+EGSI Stress Timeline Replay
+
+Allows users to replay past crises like:
+
+2022 European gas crisis
+
+Ukraine transit disruptions
+
+LNG winter shortages
+
+Extremely powerful storytelling tool.
+
+🧭 Strategic Upgrade Funnel
+Free → Personal
+
+Unlock context + understanding
+
+Personal → Trader
+
+Unlock market intelligence
+
+Trader → Pro
+
+Unlock predictive decision power
+
+Pro → Enterprise
+
+Unlock operational risk infrastructure
+
+⭐ Feature Differentiation Philosophy
+
+You MUST progressively unlock:
+
+Layer	Emotional Driver
+Free	Awareness
+Personal	Understanding
+Trader	Advantage
+Pro	Decision Power
+Enterprise	Control
+🔥 Where Your Real Data Creates Massive Value
+
+Because you have:
+
+• Full lifecycle storage data
+• Full asset price history
+• Full EGSI history
+
+You can uniquely offer:
+
+👉 Reliable backtesting
+👉 Real divergence analytics
+👉 Credible probability modelling
+👉 Historical regime learning
+
+This is extremely difficult for competitors.
+
+🧩 Optional Premium Differentiator (Highly Recommended)
+
+Add:
+
+EGSI Forward Stress Radar
+
+Visual forward risk cone.
+
+Only Pro + Enterprise.
+
+Very sticky feature.
