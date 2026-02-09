@@ -1408,6 +1408,124 @@
             font-weight: 600;
         }
 
+        .geri-asset-reaction {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .geri-asset-reaction-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .geri-asset-reaction-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+        .geri-asset-reaction-text {
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .geri-risk-watchlist {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+        .geri-risk-watchlist-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f59e0b;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .geri-risk-watchlist ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .geri-risk-watchlist li {
+            color: #cbd5e1;
+            font-size: 13px;
+            line-height: 1.6;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .geri-risk-watchlist li:last-child {
+            border-bottom: none;
+        }
+        .geri-watchlist-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f59e0b;
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+
+        .geri-chart-axis-label {
+            position: absolute;
+            bottom: 4px;
+            right: 12px;
+            font-size: 10px;
+            color: #4b5563;
+            font-style: italic;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .geri-band-tooltip {
+            position: relative;
+            cursor: help;
+        }
+        .geri-band-tooltip .geri-band-tip-text {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.5;
+            white-space: nowrap;
+            z-index: 10;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        .geri-band-tooltip:hover .geri-band-tip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        @media (max-width: 640px) {
+            .geri-band-tooltip .geri-band-tip-text {
+                white-space: normal;
+                min-width: 200px;
+                left: 0;
+                transform: none;
+            }
+        }
+
         .geri-simplified-drivers {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -4936,7 +5054,10 @@
                 showMomentumPanel: false,
                 showInterpretation: true,
                 useDelayedData: false,
-                showRealtimeBadge: false
+                showRealtimeBadge: false,
+                showAssetReaction: true,
+                showRiskWatchlist: true,
+                showChartAnnotations: true
             },
             trader: {
                 label: 'Decision Support',
@@ -4955,7 +5076,10 @@
                 showMomentumPanel: true,
                 showInterpretation: true,
                 useDelayedData: false,
-                showRealtimeBadge: true
+                showRealtimeBadge: true,
+                showAssetReaction: true,
+                showRiskWatchlist: true,
+                showChartAnnotations: true
             },
             pro: {
                 label: 'Institutional Analytics',
@@ -4974,7 +5098,10 @@
                 showMomentumPanel: true,
                 showInterpretation: true,
                 useDelayedData: false,
-                showRealtimeBadge: true
+                showRealtimeBadge: true,
+                showAssetReaction: true,
+                showRiskWatchlist: true,
+                showChartAnnotations: true
             },
             enterprise: {
                 label: 'Institutional Workspace',
@@ -4993,7 +5120,10 @@
                 showMomentumPanel: true,
                 showInterpretation: true,
                 useDelayedData: false,
-                showRealtimeBadge: true
+                showRealtimeBadge: true,
+                showAssetReaction: true,
+                showRiskWatchlist: true,
+                showChartAnnotations: true
             }
         };
 
@@ -5055,6 +5185,119 @@
                     '<div class="driver-label">Market Stress</div>' +
                     '<div class="driver-level ' + mkt.cls + '">' + mkt.text + '</div>' +
                 '</div>' +
+            '</div>';
+        }
+
+        function getBandTooltip(band) {
+            var b = (band || '').toUpperCase();
+            if (b === 'LOW') return 'Low = Stable conditions, no significant structural risk';
+            if (b === 'MODERATE') return 'Moderate = Rising structural stress, not crisis';
+            if (b === 'ELEVATED') return 'Elevated = Active risk drivers requiring close monitoring';
+            if (b === 'CRITICAL') return 'Critical = Systemic stress, multiple risk factors converging';
+            return '';
+        }
+
+        function buildAssetReactionSummary(geriData, overlayData) {
+            var activeAsset = null;
+            var activeKey = null;
+            var assetNames = { brent: 'Brent Oil', ttf: 'TTF Gas', vix: 'VIX', eurusd: 'EUR/USD', gas_storage: 'EU Gas Storage' };
+            var keys = ['brent', 'ttf', 'vix', 'eurusd', 'gas_storage'];
+            for (var i = 0; i < keys.length; i++) {
+                if (overlayData[keys[i]] && overlayData[keys[i]].active && overlayData[keys[i]].rawData.length >= 2) {
+                    activeAsset = assetNames[keys[i]];
+                    activeKey = keys[i];
+                    break;
+                }
+            }
+            if (!activeAsset || !activeKey) return '';
+
+            var raw = overlayData[activeKey].rawData;
+            var recent = raw.slice(-5);
+            if (recent.length < 2) return '';
+            var lastVal = recent[recent.length - 1].value;
+            var prevVal = recent[0].value;
+            var pctChange = prevVal !== 0 ? Math.abs(((lastVal - prevVal) / prevVal) * 100) : 0;
+
+            var geriHist = geriData || [];
+            var geriRecent = geriHist.slice(-5);
+            var geriDelta = 0;
+            if (geriRecent.length >= 2) {
+                geriDelta = geriRecent[geriRecent.length - 1].value - geriRecent[0].value;
+            }
+
+            var text = '';
+            if (pctChange < 1.5) {
+                text = activeAsset + ' has shown limited reaction to recent risk changes.';
+            } else if (Math.abs(geriDelta) > 3 && pctChange < 3) {
+                text = activeAsset + ' has remained relatively stable despite recent shifts in risk conditions.';
+            } else if (geriDelta > 3 && lastVal > prevVal) {
+                text = activeAsset + ' has moved higher alongside rising risk indicators.';
+            } else if (geriDelta > 3 && lastVal < prevVal) {
+                text = activeAsset + ' has softened even as risk indicators have increased.';
+            } else if (geriDelta < -3 && lastVal > prevVal) {
+                text = activeAsset + ' continues to firm despite easing risk conditions.';
+            } else {
+                text = activeAsset + ' is tracking broadly in line with current risk dynamics.';
+            }
+
+            return '<div class="geri-asset-reaction">' +
+                '<span class="geri-asset-reaction-icon">📊</span>' +
+                '<span class="geri-asset-reaction-label">Market context:</span>' +
+                '<span class="geri-asset-reaction-text">' + text + '</span>' +
+            '</div>';
+        }
+
+        function buildRiskWatchlist(topDrivers) {
+            var watchItems = [];
+            var seen = {};
+            for (var i = 0; i < topDrivers.length && watchItems.length < 3; i++) {
+                var d = topDrivers[i];
+                var headline = d.headline || d.type || '';
+                if (!headline) continue;
+
+                var region = d.region || '';
+                var category = d.category || '';
+                var sevRaw = d.severity;
+                var sev = typeof sevRaw === 'number' ? sevRaw : (sevRaw === 'high' ? 4 : sevRaw === 'medium' ? 3 : 2);
+
+                var watchText = '';
+                if (headline.toLowerCase().indexOf('russia') !== -1 || headline.toLowerCase().indexOf('ukraine') !== -1) {
+                    watchText = 'Russia\u2013Ukraine escalation';
+                } else if (headline.toLowerCase().indexOf('middle east') !== -1 || headline.toLowerCase().indexOf('iran') !== -1 || headline.toLowerCase().indexOf('israel') !== -1) {
+                    watchText = 'Middle East conflict spillover';
+                } else if (headline.toLowerCase().indexOf('opec') !== -1) {
+                    watchText = 'OPEC supply decision uncertainty';
+                } else if (headline.toLowerCase().indexOf('lng') !== -1 || headline.toLowerCase().indexOf('gas') !== -1) {
+                    watchText = 'LNG supply flow disruption';
+                } else if (headline.toLowerCase().indexOf('sanction') !== -1) {
+                    watchText = 'Sanctions regime shift';
+                } else if (headline.toLowerCase().indexOf('storage') !== -1 || headline.toLowerCase().indexOf('refill') !== -1) {
+                    watchText = 'Gas storage trajectory divergence';
+                } else if (headline.toLowerCase().indexOf('pipeline') !== -1) {
+                    watchText = 'Pipeline infrastructure risk';
+                } else if (headline.toLowerCase().indexOf('china') !== -1 || headline.toLowerCase().indexOf('demand') !== -1) {
+                    watchText = 'Asian demand surge pressure';
+                } else {
+                    var words = headline.split(/\s+/).slice(0, 5).join(' ');
+                    if (region) watchText = region + ': ' + words;
+                    else watchText = words;
+                }
+
+                if (!seen[watchText]) {
+                    seen[watchText] = true;
+                    watchItems.push(watchText);
+                }
+            }
+
+            if (watchItems.length === 0) return '';
+
+            var itemsHtml = watchItems.map(function(item) {
+                return '<li><span class="geri-watchlist-dot"></span><span>' + item + '</span></li>';
+            }).join('');
+
+            return '<div class="geri-risk-watchlist">' +
+                '<div class="geri-risk-watchlist-title"><span>⚠️</span> Risk Watch (next 48\u201372h)</div>' +
+                '<ul>' + itemsHtml + '</ul>' +
             '</div>';
         }
 
@@ -5189,7 +5432,7 @@
                         '<span style="font-size: 2rem;">🔥</span>' +
                         '<span style="font-size: 1.25rem; font-weight: 600; color: #e2e8f0;">Global Energy Risk Index:</span>' +
                     '</div>' +
-                    '<div class="geri-value-line" style="font-size: 1.5rem; font-weight: bold; color: ' + bandColor + '; margin-bottom: 8px;">' + (geri.value || '--') + ' / 100 (' + (geri.band || 'N/A') + ')</div>' +
+                    '<div class="geri-value-line" style="font-size: 1.5rem; font-weight: bold; color: ' + bandColor + '; margin-bottom: 8px;">' + (geri.value || '--') + ' / 100 <span class="geri-band-tooltip">(' + (geri.band || 'N/A') + ')<span class="geri-band-tip-text">' + getBandTooltip(geri.band) + '</span></span></div>' +
                     '<div class="geri-scale-ref" style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 12px;">0 = minimal risk · 100 = extreme systemic stress</div>' +
                     trendDisplay +
                     '<div class="geri-date-display" style="margin-top: 8px;">Date Computed: ' + computedAt + '</div>' +
@@ -5281,11 +5524,13 @@
                     trendIndicatorsHtml +
                     overlaySection +
                     '<div class="geri-chart-card">' +
-                        '<div class="geri-chart-container">' +
+                        '<div class="geri-chart-container" style="position:relative;">' +
                             '<canvas id="geriHistoryChart"></canvas>' +
+                            '<div class="geri-chart-axis-label" id="geriChartAxisLabel"></div>' +
                         '</div>' +
                         '<p class="chart-zoom-hint">💡 Pinch/scroll to zoom • Double-click to reset</p>' +
                     '</div>' +
+                    '<div id="geriAssetReaction"></div>' +
                 '</div>';
 
                 let driversHtml = '';
@@ -5350,13 +5595,18 @@
                     window.fullGeriInterpretation = interpretation;
                 }
 
+                let riskWatchlistHtml = '';
+                if (cfg.showRiskWatchlist && topDrivers.length > 0) {
+                    riskWatchlistHtml = buildRiskWatchlist(topDrivers);
+                }
+
                 let upgradePromptHtml = '';
                 const prompt = getGeriUpgradePrompt(plan);
                 if (prompt) {
                     upgradePromptHtml = '<div class="geri-upgrade-prompt">' + prompt + '</div>';
                 }
 
-                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + upgradePromptHtml;
+                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + riskWatchlistHtml + upgradePromptHtml;
                 
                 if (plan === 'free') {
                     marketOverlays.brent.active = true;
@@ -5549,6 +5799,15 @@
                     marketOverlays.brent.active = true;
                     updateMarketOverlays();
                 }
+
+                if (cfg.showAssetReaction) {
+                    var reactionEl = document.getElementById('geriAssetReaction');
+                    if (reactionEl) {
+                        reactionEl.innerHTML = buildAssetReactionSummary(geriHistoryData, marketOverlays);
+                    }
+                }
+
+                updateGeriChartAxisLabel();
                 
             } catch (error) {
                 console.error('Error loading GERI chart data:', error);
@@ -5818,10 +6077,82 @@
                         }
                     }
                 },
-                plugins: [bandPlugin]
+                plugins: [bandPlugin, geriAnnotationPlugin]
             });
         }
-        
+
+        var geriAnnotationPlugin = {
+            id: 'geriAnnotations',
+            afterDraw: function(chart) {
+                var plan = currentUser?.plan || 'free';
+                var cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
+                if (!cfg.showChartAnnotations) return;
+                if (!geriHistoryData || geriHistoryData.length < 3) return;
+
+                var ctx = chart.ctx;
+                var chartArea = chart.chartArea;
+                var xScale = chart.scales.x;
+                var yScale = chart.scales.y;
+                var labels = chart.data.labels;
+
+                for (var i = 1; i < geriHistoryData.length; i++) {
+                    var curr = geriHistoryData[i];
+                    var prev = geriHistoryData[i - 1];
+                    if (!curr || !prev) continue;
+
+                    var delta = curr.value - prev.value;
+                    var labelIdx = labels.indexOf(curr.date);
+                    if (labelIdx === -1) continue;
+
+                    var annotText = null;
+                    if (delta >= 8) {
+                        annotText = 'Risk spike';
+                    } else if (delta <= -8) {
+                        annotText = 'Risk drop';
+                    } else if (curr.value >= 75 && prev.value < 75) {
+                        annotText = 'Critical';
+                    }
+
+                    if (annotText) {
+                        var x = xScale.getPixelForValue(labelIdx);
+                        var y = yScale.getPixelForValue(curr.value);
+                        if (x < chartArea.left || x > chartArea.right) continue;
+
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(x, y - 14, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = delta > 0 ? 'rgba(239,68,68,0.7)' : 'rgba(34,197,94,0.7)';
+                        ctx.fill();
+
+                        ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                        ctx.fillStyle = 'rgba(148,163,184,0.7)';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(annotText, x, y - 20);
+                        ctx.restore();
+                    }
+                }
+            }
+        };
+
+        function updateGeriChartAxisLabel() {
+            var el = document.getElementById('geriChartAxisLabel');
+            if (!el) return;
+            var activeOverlay = null;
+            var names = { brent: 'Brent', ttf: 'TTF', vix: 'VIX', eurusd: 'EUR/USD', gas_storage: 'Storage' };
+            var keys = ['brent', 'ttf', 'vix', 'eurusd', 'gas_storage'];
+            for (var i = 0; i < keys.length; i++) {
+                if (marketOverlays[keys[i]] && marketOverlays[keys[i]].active) {
+                    activeOverlay = names[keys[i]];
+                    break;
+                }
+            }
+            if (activeOverlay) {
+                el.textContent = 'GERI (index) | ' + activeOverlay + ' (price context)';
+            } else {
+                el.textContent = 'GERI (index)';
+            }
+        }
+
         function setupRangeButtons() {
             const buttons = document.querySelectorAll('.chart-range-btn');
             const dataLength = geriHistoryData.length;
@@ -5946,6 +6277,16 @@
             });
             
             geriChart.update();
+            updateGeriChartAxisLabel();
+
+            var plan = currentUser?.plan || 'free';
+            var cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
+            if (cfg.showAssetReaction) {
+                var reactionEl = document.getElementById('geriAssetReaction');
+                if (reactionEl) {
+                    reactionEl.innerHTML = buildAssetReactionSummary(geriHistoryData, marketOverlays);
+                }
+            }
         }
 
         async function generateTelegramCode() {
