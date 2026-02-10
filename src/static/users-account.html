@@ -1814,6 +1814,15 @@
             font-size: 20px;
             font-weight: 700;
             color: #f1f5f9;
+            margin-bottom: 2px;
+        }
+
+        .plan-tagline {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
 
@@ -4723,6 +4732,124 @@
         let currentUser = null;
         let allAlerts = [];
         let userSettings = null;
+
+        const planTaglines = {
+            'free': 'Market Awareness',
+            'personal': 'Active Monitoring',
+            'trader': 'Trading Edge',
+            'pro': 'Institutional Analytics',
+            'enterprise': 'Strategic Infrastructure'
+        };
+
+        function getPlanCardFeatures(planCode) {
+            const s = (label, cls) => `<li class="pf-section ${cls}">${label}</li>`;
+            const allFeatures = {
+                'free': [
+                    s('GERI — Global Energy Risk', 'pf-geri'),
+                    '24h delayed GERI score & band',
+                    '14-day Brent price chart',
+                    '3 simplified driver categories',
+                    s('EERI — European Energy Risk', 'pf-eeri'),
+                    'Weekly overview (avg, band, trend)',
+                    'Cross-asset direction table',
+                    'Basic market interpretation',
+                    s('EGSI — Gas Stress', 'pf-egsi'),
+                    'Public delayed EGSI-M & EGSI-S',
+                    'Basic storage level display',
+                    s('Daily Digest', 'pf-digest'),
+                    'Executive snapshot (24h delayed)',
+                    '2 top alerts summary',
+                    'GERI direction indicator'
+                ],
+                'personal': [
+                    s('GERI — Global Energy Risk', 'pf-geri'),
+                    'Real-time GERI score & band',
+                    '90-day history chart',
+                    'Single asset overlay selector',
+                    'Expanded drivers with regions',
+                    s('EERI — European Energy Risk', 'pf-eeri'),
+                    'Mini overlay charts (EERI vs assets)',
+                    'Alignment labels (Confirm / Mixed / Diverge)',
+                    'Historical context & percentiles',
+                    'Probability outlook with ranges',
+                    s('EGSI — Gas Stress', 'pf-egsi'),
+                    'Real-time EGSI-M & EGSI-S',
+                    'Storage trajectory & refill rate',
+                    'TTF price correlation',
+                    s('Daily Digest', 'pf-digest'),
+                    'Multi-index summary (real-time)',
+                    '7-day trend analysis',
+                    'Cross-index correlations'
+                ],
+                'trader': [
+                    s('GERI — Global Energy Risk', 'pf-geri'),
+                    'Full GERI history access',
+                    '2 simultaneous chart overlays',
+                    'Smoothing (Raw / 3D MA / 7D MA)',
+                    'Regime markers & momentum panel',
+                    s('EERI — European Energy Risk', 'pf-eeri'),
+                    'Reaction speed analysis',
+                    'Risk acceleration tracking',
+                    'Conditional historical tendencies',
+                    'Volatility expectation commentary',
+                    s('EGSI — Gas Stress', 'pf-egsi'),
+                    'EGSI component decomposition',
+                    'Winter stress probability',
+                    'Storage vs 5-year avg comparison',
+                    s('Daily Digest', 'pf-digest'),
+                    'Regime classification',
+                    'Probability scoring per risk',
+                    'Conditional trigger alerts'
+                ],
+                'pro': [
+                    s('GERI — Global Energy Risk', 'pf-geri'),
+                    '4 simultaneous chart overlays',
+                    'AI narrative & commentary',
+                    'Regime persistence probability',
+                    s('EERI — European Energy Risk', 'pf-eeri'),
+                    'Component attribution summary',
+                    'Analog weeks identification',
+                    'Scenario outlook (Esc / Stab / De-esc)',
+                    'Real-time EERI + asset stress panel',
+                    'Daily AI-generated risk summary',
+                    s('EGSI — Gas Stress', 'pf-egsi'),
+                    'EGSI forward scenario modelling',
+                    'Injection/withdrawal rate analysis',
+                    'Cross-commodity stress signals',
+                    s('Daily Digest', 'pf-digest'),
+                    'Beta sensitivities',
+                    'Scenario forecasts',
+                    'Macro event impact analysis'
+                ],
+                'enterprise': [
+                    s('GERI — Global Energy Risk', 'pf-geri'),
+                    '5 overlays + team workspace',
+                    'Full decomposition & attribution',
+                    'Custom alert thresholds',
+                    s('EERI — European Energy Risk', 'pf-eeri'),
+                    'Multi-region spillover analysis',
+                    'Sector impact forecast',
+                    'Portfolio exposure commentary',
+                    'Multi-week risk path forecast',
+                    s('EGSI — Gas Stress', 'pf-egsi'),
+                    'Custom storage threshold alerts',
+                    'Multi-country storage comparison',
+                    'Pipeline flow disruption signals',
+                    s('Daily Digest', 'pf-digest'),
+                    'Full institutional intelligence',
+                    'Custom briefing schedules',
+                    'API access for digest data'
+                ]
+            };
+            return allFeatures[planCode] || allFeatures['free'];
+        }
+
+        function renderPlanFeaturesList(features) {
+            return features.map(f => {
+                if (f.startsWith('<li class="pf-section')) return f;
+                return `<li>${f}</li>`;
+            }).join('');
+        }
 
         // Mobile Menu Functions
         function toggleMobileMenu() {
@@ -9451,21 +9578,15 @@
                         btnText = `Downgrade to ${plan.display_name}`;
                     }
                     
-                    const planCardFeatures = {
-                        'free': ['Weekly EERI overview', 'Cross-asset direction table', 'Basic interpretation', 'Basic next-week context'],
-                        'personal': ['Everything in Free', 'Mini overlay charts', 'Alignment labels', 'Historical context', 'Probability outlook'],
-                        'trader': ['Everything in Personal', 'Reaction speed analysis', 'Risk acceleration tracking', 'Conditional tendencies', 'Volatility commentary'],
-                        'pro': ['Everything in Trader', 'Component attribution', 'Analog weeks', 'Regime persistence', 'Scenario outlook', 'Real-time EERI', 'Daily AI summary'],
-                        'enterprise': ['Everything in Pro', 'Multi-region spillover', 'Sector impact forecast', 'Portfolio exposure', 'Multi-week risk paths']
-                    };
-                    const features = planCardFeatures[plan.plan_code] || [];
+                    const features = getPlanCardFeatures(plan.plan_code);
                     
                     return `
                         <div class="plan-card ${isCurrent ? 'current' : ''}">
                             <div class="plan-name">${plan.display_name}</div>
+                            <div class="plan-tagline">${planTaglines[plan.plan_code] || ''}</div>
                             <div class="plan-price">${plan.price > 0 ? '€' + plan.price.toFixed(2) : 'Free'}<span>${plan.price > 0 ? '/mo' : ''}</span></div>
                             <ul class="plan-features">
-                                ${features.map(f => `<li>${f}</li>`).join('')}
+                                ${renderPlanFeaturesList(features)}
                             </ul>
                             <button class="${btnClass}" 
                                     ${btnDisabled}
@@ -9487,68 +9608,21 @@
             const modalBody = document.getElementById('planModalBody');
             const modalBtn = document.getElementById('planModalBtn');
             
-            const planFeatures = {
-                'free': {
-                    color: '#22c55e',
-                    features: [
-                        'Weekly EERI overview (average, high/low, band, trend)',
-                        'Cross-asset weekly direction table',
-                        'Basic market interpretation',
-                        'Basic next-week context'
-                    ]
-                },
-                'personal': {
-                    color: '#3b82f6',
-                    features: [
-                        'Everything in Free',
-                        'Mini weekly overlay charts (EERI vs each asset)',
-                        'Alignment labels: Confirming / Mixed / Diverging',
-                        'Basic historical context with percentile analysis',
-                        'Simple probability outlook with confidence ranges'
-                    ]
-                },
-                'trader': {
-                    color: '#f59e0b',
-                    features: [
-                        'Everything in Personal',
-                        'Asset reaction speed analysis',
-                        'Week-vs-week risk acceleration tracking',
-                        'Conditional historical tendencies',
-                        'Volatility expectation commentary'
-                    ]
-                },
-                'pro': {
-                    color: '#ef4444',
-                    features: [
-                        'Everything in Trader',
-                        'Component attribution summary',
-                        'Historical analog weeks identification',
-                        'Regime persistence probability',
-                        'Cross-asset transmission narrative',
-                        'Scenario outlook (Escalation / Stabilization / De-escalation)',
-                        'Real-time EERI display with asset stress panel',
-                        'Daily AI-generated risk summary'
-                    ]
-                },
-                'enterprise': {
-                    color: '#a855f7',
-                    features: [
-                        'Everything in Pro',
-                        'Multi-region spillover risk analysis',
-                        'Sector impact forecast (Power, Industrial, LNG, Storage)',
-                        'Portfolio exposure commentary',
-                        'Multi-week risk path forecast bands'
-                    ]
-                }
+            const planColors = {
+                'free': '#22c55e',
+                'personal': '#3b82f6',
+                'trader': '#f59e0b',
+                'pro': '#ef4444',
+                'enterprise': '#a855f7'
             };
-            
-            const pf = planFeatures[planCode] || planFeatures['free'];
+            const pColor = planColors[planCode] || '#3b82f6';
+            const features = getPlanCardFeatures(planCode);
             
             const settingsNote = `
-                <div style="background: #1e3a5f; border: 1px solid ${pf.color}; border-radius: 8px; padding: 14px; margin-top: 16px;">
-                    <p style="color: ${pf.color}; font-weight: 600; margin-bottom: 8px;">EERI Dashboard Features:</p>
-                    <ul style="color: #cbd5e1; margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7;">
-                        ${pf.features.map(f => '<li>' + f + '</li>').join('')}
+                <div style="background: #0f172a; border: 1px solid ${pColor}33; border-radius: 8px; padding: 14px; margin-top: 16px;">
+                    <p style="color: ${pColor}; font-weight: 600; margin-bottom: 8px;">Plan Features:</p>
+                    <ul class="plan-features" style="margin: 0; padding: 0; font-size: 12px; line-height: 1.6;">
+                        ${renderPlanFeaturesList(features)}
                     </ul>
                 </div>
             `;
@@ -9751,21 +9825,15 @@
                     btnText = `Downgrade to ${plan.display_name}`;
                 }
                 
-                const planCardFeatures2 = {
-                    'free': ['Weekly EERI overview', 'Cross-asset direction table', 'Basic interpretation', 'Basic next-week context'],
-                    'personal': ['Everything in Free', 'Mini overlay charts', 'Alignment labels', 'Historical context', 'Probability outlook'],
-                    'trader': ['Everything in Personal', 'Reaction speed analysis', 'Risk acceleration tracking', 'Conditional tendencies', 'Volatility commentary'],
-                    'pro': ['Everything in Trader', 'Component attribution', 'Analog weeks', 'Regime persistence', 'Scenario outlook', 'Real-time EERI', 'Daily AI summary'],
-                    'enterprise': ['Everything in Pro', 'Multi-region spillover', 'Sector impact forecast', 'Portfolio exposure', 'Multi-week risk paths']
-                };
-                const features = planCardFeatures2[plan.plan_code] || [];
+                const features = getPlanCardFeatures(plan.plan_code);
                 
                 return `
                     <div class="plan-card ${isCurrent ? 'current' : ''}">
                         <div class="plan-name">${plan.display_name}</div>
+                        <div class="plan-tagline">${planTaglines[plan.plan_code] || ''}</div>
                         <div class="plan-price">${plan.price > 0 ? '€' + plan.price.toFixed(2) : 'Free'}<span>${plan.price > 0 ? '/mo' : ''}</span></div>
                         <ul class="plan-features">
-                            ${features.map(f => `<li>${f}</li>`).join('')}
+                            ${renderPlanFeaturesList(features)}
                         </ul>
                         <button class="${btnClass}" 
                                 ${btnDisabled}
