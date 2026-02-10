@@ -1826,6 +1826,83 @@
             margin-bottom: 8px;
         }
 
+        .delivery-prefs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .delivery-pref-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .delivery-pref-card:hover {
+            border-color: #334155;
+        }
+
+        .delivery-pref-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid;
+            border-color: inherit;
+        }
+
+        .delivery-pref-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .delivery-pref-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .delivery-pref-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .delivery-pref-channels {
+            display: flex;
+            gap: 16px;
+        }
+
+        .delivery-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .delivery-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        .delivery-toggle-label {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
         .plan-price {
             font-size: 32px;
             font-weight: 700;
@@ -4584,11 +4661,8 @@
                 <div class="card-body">
                     <div id="telegramNotAvailable" style="display: none;">
                         <p style="color: #94a3b8; font-size: 14px; margin-bottom: 16px;">
-                            Telegram notifications are available on Trader, Pro, and Enterprise plans.
+                            Connect your Telegram account to receive daily intelligence reports directly on your phone.
                         </p>
-                        <a href="#" onclick="showSection('plans')" class="filter-btn" style="text-decoration: none; display: inline-block;">
-                            Upgrade to Enable
-                        </a>
                     </div>
                     
                     <div id="telegramLinked" style="display: none;">
@@ -4665,62 +4739,104 @@
                 </div>
             </div>
 
-            <!-- Alert Settings Section -->
+            <!-- Delivery Preferences Section -->
             <div class="content-card" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h2 class="card-title">Alert Preferences</h2>
+                    <h2 class="card-title">Daily Delivery Preferences</h2>
                 </div>
                 <div class="card-body">
-                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 16px;">
-                        Configure which alerts you want to receive based on your plan.
+                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">
+                        Choose which daily intelligence reports you want to receive. Deliveries are sent once per day.
                     </p>
                     
-                    <div id="alertSettingsInfo" style="margin-bottom: 20px;">
-                        <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 16px;">
-                            <div>
-                                <span style="color: #64748b; font-size: 13px;">Plan:</span>
-                                <span id="settingsPlanBadge" class="stat-badge" style="margin-left: 8px;">--</span>
+                    <div id="deliveryPrefsContainer">
+                        <div class="delivery-prefs-grid">
+                            <div class="delivery-pref-card" data-index="geri">
+                                <div class="delivery-pref-header" style="border-color: #3b82f6;">
+                                    <span class="delivery-pref-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">G</span>
+                                    <div>
+                                        <div class="delivery-pref-title">GERI</div>
+                                        <div class="delivery-pref-desc">Global Energy Risk Index</div>
+                                    </div>
+                                </div>
+                                <div class="delivery-pref-channels">
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_geri_email" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Email</span>
+                                    </label>
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_geri_telegram" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Telegram</span>
+                                    </label>
+                                </div>
                             </div>
-                            <div>
-                                <span style="color: #64748b; font-size: 13px;">Regions Used:</span>
-                                <span id="settingsRegionCount" style="color: #f1f5f9; font-weight: 600; margin-left: 8px;">0 / 1</span>
+
+                            <div class="delivery-pref-card" data-index="eeri">
+                                <div class="delivery-pref-header" style="border-color: #f59e0b;">
+                                    <span class="delivery-pref-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">E</span>
+                                    <div>
+                                        <div class="delivery-pref-title">EERI</div>
+                                        <div class="delivery-pref-desc">European Energy Risk Index</div>
+                                    </div>
+                                </div>
+                                <div class="delivery-pref-channels">
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_eeri_email" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Email</span>
+                                    </label>
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_eeri_telegram" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Telegram</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="delivery-pref-card" data-index="egsi">
+                                <div class="delivery-pref-header" style="border-color: #34d399;">
+                                    <span class="delivery-pref-icon" style="background: rgba(52, 211, 153, 0.15); color: #34d399;">S</span>
+                                    <div>
+                                        <div class="delivery-pref-title">EGSI</div>
+                                        <div class="delivery-pref-desc">Gas Stress Index</div>
+                                    </div>
+                                </div>
+                                <div class="delivery-pref-channels">
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_egsi_email" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Email</span>
+                                    </label>
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_egsi_telegram" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Telegram</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="delivery-pref-card" data-index="daily_digest">
+                                <div class="delivery-pref-header" style="border-color: #a78bfa;">
+                                    <span class="delivery-pref-icon" style="background: rgba(167, 139, 250, 0.15); color: #a78bfa;">D</span>
+                                    <div>
+                                        <div class="delivery-pref-title">Daily Digest</div>
+                                        <div class="delivery-pref-desc">AI Intelligence Briefing</div>
+                                    </div>
+                                </div>
+                                <div class="delivery-pref-channels">
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_daily_digest_email" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Email</span>
+                                    </label>
+                                    <label class="delivery-toggle">
+                                        <input type="checkbox" id="pref_daily_digest_telegram" onchange="saveDeliveryPreferences()">
+                                        <span class="delivery-toggle-label">Telegram</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Add New Setting Form -->
-                    <div style="background: #0f172a; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                        <h3 style="font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px;">Add Alert Setting</h3>
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
-                            <div style="flex: 1; min-width: 180px;">
-                                <label style="display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px;">Alert Type</label>
-                                <select id="newAlertType" class="filter-input" style="width: 100%;">
-                                    <option value="">Select alert type...</option>
-                                </select>
-                            </div>
-                            <div style="flex: 1; min-width: 180px;">
-                                <label style="display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px;">Region</label>
-                                <select id="newAlertRegion" class="filter-input" style="width: 100%;">
-                                    <option value="">Select region...</option>
-                                </select>
-                            </div>
-                            <button class="filter-btn" onclick="addAlertSetting()" style="height: 38px;">
-                                Add Setting
-                            </button>
-                        </div>
-                        <p id="addSettingError" style="color: #f87171; font-size: 13px; margin-top: 12px; display: none;"></p>
-                    </div>
-                    
-                    <!-- Current Settings List -->
-                    <div>
-                        <h3 style="font-size: 15px; font-weight: 600; color: #f1f5f9; margin-bottom: 16px;">Your Active Settings</h3>
-                        <div id="currentSettingsList">
-                            <div class="loading"><div class="spinner"></div></div>
-                        </div>
-                        <div id="noSettingsMessage" style="display: none; text-align: center; padding: 32px; color: #64748b;">
-                            <p style="font-size: 14px;">No alert settings configured yet.</p>
-                            <p style="font-size: 13px; margin-top: 8px;">Add a setting above to start receiving alerts.</p>
-                        </div>
+
+                        <div id="deliveryPrefStatus" style="margin-top: 12px; font-size: 13px; color: #4ade80; display: none;"></div>
+                        <div id="deliveryPrefError" style="margin-top: 12px; font-size: 13px; color: #f87171; display: none;"></div>
+                        <p id="telegramPrefNote" style="display: none; margin-top: 12px; font-size: 12px; color: #64748b;">
+                            To receive Telegram messages, connect your Telegram account in the section above.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -4940,6 +5056,9 @@
                 renderAllowedAlertTypes(allowedAlertTypes, dashboard.alerts.locked_types || []);
                 renderLockedSamples(dashboard.alerts.locked_samples || []);
                 renderSettingsFromDashboard(dashboard.settings);
+                if (dashboard.delivery_preferences) {
+                    renderDeliveryPreferences(dashboard.delivery_preferences);
+                }
                 
                 if (plansResponse.ok) {
                     const plansData = await plansResponse.json();
@@ -5122,13 +5241,11 @@
         function updateTelegramUI() {
             if (!currentUser) return;
             
-            const plan = currentUser.plan || 'free';
-            const telegramEnabled = ['trader', 'pro', 'enterprise'].includes(plan);
             const isLinked = !!currentUser.telegram_chat_id;
             
-            document.getElementById('telegramNotAvailable').style.display = telegramEnabled ? 'none' : 'block';
-            document.getElementById('telegramLinked').style.display = (telegramEnabled && isLinked) ? 'block' : 'none';
-            document.getElementById('telegramNotLinked').style.display = (telegramEnabled && !isLinked) ? 'block' : 'none';
+            document.getElementById('telegramNotAvailable').style.display = 'none';
+            document.getElementById('telegramLinked').style.display = isLinked ? 'block' : 'none';
+            document.getElementById('telegramNotLinked').style.display = !isLinked ? 'block' : 'none';
             
             const geriNavItem = document.getElementById('geriNavItem');
             const geriBadge = document.getElementById('geriBadge');
@@ -9974,6 +10091,74 @@
             } catch (error) {
                 alert('Failed to remove setting. Please try again.');
             }
+        }
+
+        function renderDeliveryPreferences(prefs) {
+            const indices = ['geri', 'eeri', 'egsi', 'daily_digest'];
+            const hasTelegram = !!(currentUser && currentUser.telegram_chat_id);
+            
+            indices.forEach(idx => {
+                const p = prefs[idx] || { email: false, telegram: false };
+                const emailCb = document.getElementById(`pref_${idx}_email`);
+                const tgCb = document.getElementById(`pref_${idx}_telegram`);
+                if (emailCb) emailCb.checked = p.email;
+                if (tgCb) {
+                    tgCb.checked = p.telegram;
+                    if (!hasTelegram) {
+                        tgCb.disabled = true;
+                        tgCb.checked = false;
+                    }
+                }
+            });
+            
+            const tgNote = document.getElementById('telegramPrefNote');
+            if (tgNote && !hasTelegram) {
+                tgNote.style.display = 'block';
+            }
+        }
+
+        let deliverySaveTimeout = null;
+        async function saveDeliveryPreferences() {
+            if (deliverySaveTimeout) clearTimeout(deliverySaveTimeout);
+            
+            deliverySaveTimeout = setTimeout(async () => {
+                const statusEl = document.getElementById('deliveryPrefStatus');
+                const errorEl = document.getElementById('deliveryPrefError');
+                statusEl.style.display = 'none';
+                errorEl.style.display = 'none';
+                
+                const body = {
+                    geri_email: document.getElementById('pref_geri_email')?.checked || false,
+                    geri_telegram: document.getElementById('pref_geri_telegram')?.checked || false,
+                    eeri_email: document.getElementById('pref_eeri_email')?.checked || false,
+                    eeri_telegram: document.getElementById('pref_eeri_telegram')?.checked || false,
+                    egsi_email: document.getElementById('pref_egsi_email')?.checked || false,
+                    egsi_telegram: document.getElementById('pref_egsi_telegram')?.checked || false,
+                    daily_digest_email: document.getElementById('pref_daily_digest_email')?.checked || false,
+                    daily_digest_telegram: document.getElementById('pref_daily_digest_telegram')?.checked || false
+                };
+                
+                try {
+                    const response = await fetch('/users/delivery-preferences', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-User-Token': sessionToken
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to save');
+                    
+                    statusEl.textContent = 'Preferences saved';
+                    statusEl.style.display = 'block';
+                    setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+                } catch (error) {
+                    console.error('Error saving delivery preferences:', error);
+                    errorEl.textContent = 'Failed to save preferences. Please try again.';
+                    errorEl.style.display = 'block';
+                }
+            }, 500);
         }
 
         window.onerror = function(msg, url, line, col, error) {

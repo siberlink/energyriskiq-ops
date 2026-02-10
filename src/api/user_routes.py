@@ -48,6 +48,17 @@ class UserSettingRequest(BaseModel):
     enabled: bool = True
 
 
+class DeliveryPreferencesRequest(BaseModel):
+    geri_email: bool = False
+    geri_telegram: bool = False
+    eeri_email: bool = False
+    eeri_telegram: bool = False
+    egsi_email: bool = False
+    egsi_telegram: bool = False
+    daily_digest_email: bool = False
+    daily_digest_telegram: bool = False
+
+
 def generate_verification_token():
     return secrets.token_urlsafe(32)
 
@@ -861,6 +872,68 @@ def delete_user_setting(setting_id: int, x_user_token: Optional[str] = Header(No
     return {"success": True, "deleted_id": setting_id}
 
 
+VALID_INDEX_CODES = ['geri', 'eeri', 'egsi', 'daily_digest']
+
+@router.get("/delivery-preferences")
+def get_delivery_preferences(x_user_token: Optional[str] = Header(None)):
+    """Get user delivery preferences for index notifications."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    with get_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO user_delivery_preferences (user_id, index_code, email_enabled, telegram_enabled)
+            SELECT %s, code, FALSE, FALSE
+            FROM unnest(%s::text[]) AS code
+            ON CONFLICT (user_id, index_code) DO NOTHING
+        """, (user_id, VALID_INDEX_CODES))
+        
+        cursor.execute("""
+            SELECT index_code, email_enabled, telegram_enabled
+            FROM user_delivery_preferences
+            WHERE user_id = %s
+            ORDER BY index_code
+        """, (user_id,))
+        rows = cursor.fetchall()
+    
+    prefs = {}
+    for row in rows:
+        prefs[row['index_code']] = {
+            'email': row['email_enabled'],
+            'telegram': row['telegram_enabled']
+        }
+    
+    return {"preferences": prefs}
+
+
+@router.put("/delivery-preferences")
+def update_delivery_preferences(body: DeliveryPreferencesRequest, x_user_token: Optional[str] = Header(None)):
+    """Update user delivery preferences for index notifications."""
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    
+    updates = [
+        ('geri', body.geri_email, body.geri_telegram),
+        ('eeri', body.eeri_email, body.eeri_telegram),
+        ('egsi', body.egsi_email, body.egsi_telegram),
+        ('daily_digest', body.daily_digest_email, body.daily_digest_telegram),
+    ]
+    
+    with get_cursor() as cursor:
+        for index_code, email_on, tg_on in updates:
+            cursor.execute("""
+                INSERT INTO user_delivery_preferences (user_id, index_code, email_enabled, telegram_enabled)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (user_id, index_code)
+                DO UPDATE SET email_enabled = EXCLUDED.email_enabled,
+                              telegram_enabled = EXCLUDED.telegram_enabled,
+                              updated_at = NOW()
+            """, (user_id, index_code, email_on, tg_on))
+    
+    logger.info(f"Updated delivery preferences for user {user_id}")
+    return {"success": True}
+
+
 @router.get("/dashboard")
 def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit: int = 100):
     """
@@ -1023,6 +1096,25 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
                         "allowed_by_plan": True
                     })
         
+        cursor.execute("""
+            INSERT INTO user_delivery_preferences (user_id, index_code, email_enabled, telegram_enabled)
+            SELECT %s, code, FALSE, FALSE
+            FROM unnest(%s::text[]) AS code
+            ON CONFLICT (user_id, index_code) DO NOTHING
+        """, (user_id, VALID_INDEX_CODES))
+        cursor.execute("""
+            SELECT index_code, email_enabled, telegram_enabled
+            FROM user_delivery_preferences
+            WHERE user_id = %s
+        """, (user_id,))
+        delivery_pref_rows = cursor.fetchall()
+        delivery_prefs = {}
+        for row in delivery_pref_rows:
+            delivery_prefs[row['index_code']] = {
+                'email': row['email_enabled'],
+                'telegram': row['telegram_enabled']
+            }
+        
         locked_samples = []
         if locked_types:
             try:
@@ -1093,5 +1185,6 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
                 }
                 for s in settings_rows
             ]
-        }
+        },
+        "delivery_preferences": delivery_prefs
     }
