@@ -151,10 +151,29 @@ async def create_checkout(
                     "message": "Plan updated successfully",
                     "subscription_id": updated_sub["id"]
                 }
+            except stripe.InvalidRequestError as e:
+                logger.warning(f"Subscription {user['stripe_subscription_id']} invalid (likely sandbox), clearing and creating new checkout: {e}")
+                with get_cursor() as cur:
+                    cur.execute(
+                        "UPDATE users SET stripe_subscription_id = NULL, subscription_status = NULL WHERE id = %s",
+                        (user["id"],)
+                    )
             except Exception as e:
                 logger.warning(f"Could not update existing subscription, creating new checkout: {e}")
         
         customer_id = user["stripe_customer_id"]
+        if customer_id:
+            try:
+                stripe.Customer.retrieve(customer_id)
+            except stripe.InvalidRequestError:
+                logger.warning(f"Stripe customer {customer_id} not found (likely sandbox ID), creating new customer for user {user['id']}")
+                customer_id = None
+                with get_cursor() as cur:
+                    cur.execute(
+                        "UPDATE users SET stripe_customer_id = NULL, stripe_subscription_id = NULL, subscription_status = NULL WHERE id = %s",
+                        (user["id"],)
+                    )
+        
         if not customer_id:
             customer = await create_customer(
                 email=user["email"],
