@@ -78,7 +78,7 @@ Adaptive source weighting system that calibrates feed weights based on measured 
 
 - **Database:** PostgreSQL
 - **AI:** OpenAI (gpt-4.1-mini)
-- **Payment Processing:** Stripe
+- **Payment Processing:** Stripe (Live mode). Note: The Replit Stripe integration shows "Sandbox" but is NOT used — Live keys are stored directly as Replit Secrets (`STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`). The code in `stripe_client.py` checks environment variable secrets first, so the integration connector is bypassed. Webhook endpoint: `https://energyriskiq.com/api/v1/billing/webhook`.
 - **Email Service:** Brevo
 - **Messaging Service:** Telegram Bot API
 - **SMS Service:** Twilio (optional)
