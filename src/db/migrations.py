@@ -612,6 +612,8 @@ def run_migrations():
     logger.info("Running billing migration...")
     run_billing_migration()
     
+    sync_stripe_live_ids()
+    
     logger.info("Migrations completed successfully.")
 
 
@@ -974,6 +976,40 @@ def run_user_settings_migration():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_settings_enabled ON user_settings(enabled);")
     
     logger.info("User settings migration complete.")
+
+
+STRIPE_LIVE_IDS = {
+    "personal": {
+        "product_id": "prod_TxDFkfsuuvvLcK",
+        "price_id": "price_1SzIp3Q4PqMfSEvF4HhWPB5y"
+    },
+    "trader": {
+        "product_id": "prod_TxDFvAIuiyV101",
+        "price_id": "price_1SzIp4Q4PqMfSEvFmU1CTgNj"
+    },
+    "pro": {
+        "product_id": "prod_TxDFtt2O3f7MFs",
+        "price_id": "price_1SzIp4Q4PqMfSEvFIOr0QlN9"
+    },
+    "enterprise": {
+        "product_id": "prod_TxDFGvTLiO1yuH",
+        "price_id": "price_1SzIp5Q4PqMfSEvFsKBVblKP"
+    }
+}
+
+
+def sync_stripe_live_ids():
+    """Ensure plan_settings has the correct Live Stripe product/price IDs."""
+    logger.info("Syncing Stripe Live IDs to plan_settings...")
+    with get_cursor() as cursor:
+        for plan_code, ids in STRIPE_LIVE_IDS.items():
+            cursor.execute("""
+                UPDATE plan_settings
+                SET stripe_product_id = %s, stripe_price_id = %s
+                WHERE plan_code = %s
+                AND (stripe_product_id IS DISTINCT FROM %s OR stripe_price_id IS DISTINCT FROM %s)
+            """, (ids["product_id"], ids["price_id"], plan_code, ids["product_id"], ids["price_id"]))
+    logger.info("Stripe Live IDs synced.")
 
 
 def run_billing_migration():
