@@ -5301,13 +5301,89 @@
             '</div>';
         }
 
-        function getGeriUpgradePrompt(plan) {
-            const prompts = {
-                'free': '💡 <a onclick="showSection(\'plans\')">Unlock 90-day history, asset selection, and more with Personal Plan</a>',
-                'personal': '💡 <a onclick="showSection(\'plans\')">Unlock multi-asset overlays, divergence analytics with Trader Plan</a>',
-                'trader': '💡 <a onclick="showSection(\'plans\')">Unlock 4-asset overlays, AI narratives with Pro Plan</a>'
-            };
-            return prompts[plan] || '';
+        function buildGeriUpgradeCards(plan) {
+            const planLevel = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}[plan] || 0;
+            if (planLevel >= 4) return '';
+
+            var html = '<div class="ws-upgrade-hint">';
+            html += '<div class="ws-upgrade-title">Unlock Deeper GERI Intelligence</div>';
+            html += '<div class="ws-upgrade-subtitle">See what each plan adds to your Global Energy Risk Dashboard</div>';
+            html += '<div class="ws-upgrade-cards">';
+
+            if (planLevel < 1) {
+                html += '<div class="ws-plan-card card-personal">';
+                html += '<div class="ws-plan-card-name plan-personal">Personal</div>';
+                html += '<div class="ws-plan-card-price">$9.95 / month</div>';
+                html += '<div class="ws-plan-card-tagline">Real-time GERI data with asset overlays, trend indicators, and 90 days of risk history for active monitoring.</div>';
+                html += '<ul class="ws-plan-card-features">';
+                html += '<li>Real-time GERI data (no 24h delay)</li>';
+                html += '<li>90-day history with 7d / 30d / 90d ranges</li>';
+                html += '<li>5 asset overlays (Brent, TTF, VIX, EUR/USD, Storage)</li>';
+                html += '<li>Driver region & severity breakdown</li>';
+                html += '<li>7-day trend indicators & direction signals</li>';
+                html += '<li>Asset reaction summary & risk watchlist</li>';
+                html += '<li>Chart annotations for risk spikes & drops</li>';
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            if (planLevel < 2) {
+                html += '<div class="ws-plan-card card-trader">';
+                html += '<div class="ws-plan-card-name plan-trader">Trader</div>';
+                html += '<div class="ws-plan-card-price">$29 / month</div>';
+                html += '<div class="ws-plan-card-tagline">Advanced analytical tools with smoothing, regime detection, and momentum tracking for tactical risk positioning.</div>';
+                html += '<ul class="ws-plan-card-features">';
+                html += '<li>Full history with all date ranges including "All"</li>';
+                html += '<li>2 simultaneous asset overlays</li>';
+                html += '<li>Smoothing modes (Raw / 3-Day MA / 7-Day MA)</li>';
+                html += '<li>Regime markers on chart (Critical, Elevated thresholds)</li>';
+                html += '<li>Momentum panel with acceleration tracking</li>';
+                html += '<li>Event markers for key risk inflection points</li>';
+                html += '</ul>';
+                if (planLevel >= 1) { html += '<div class="ws-plan-card-includes">Includes all Personal features</div>'; }
+                html += '</div>';
+            }
+
+            if (planLevel < 3) {
+                html += '<div class="ws-plan-card card-pro">';
+                html += '<div class="ws-plan-card-name plan-pro">Pro</div>';
+                html += '<div class="ws-plan-card-price">$49 / month</div>';
+                html += '<div class="ws-plan-card-tagline">Institutional-grade analytics with 4-asset overlays, AI narrative access, and deep structural risk decomposition.</div>';
+                html += '<ul class="ws-plan-card-features">';
+                html += '<li>4 simultaneous asset overlays</li>';
+                html += '<li>AI-powered risk narrative & scenario analysis</li>';
+                html += '<li>GERI decomposition by risk category</li>';
+                html += '<li>Cross-asset correlation intelligence</li>';
+                html += '<li>Forward risk regime probability</li>';
+                html += '</ul>';
+                if (planLevel >= 2) { html += '<div class="ws-plan-card-includes">Includes all Trader features</div>'; }
+                else if (planLevel >= 1) { html += '<div class="ws-plan-card-includes">Includes all Personal + Trader features</div>'; }
+                else { html += '<div class="ws-plan-card-includes">Includes all Personal + Trader features</div>'; }
+                html += '</div>';
+            }
+
+            html += '<div class="ws-plan-card card-enterprise">';
+            html += '<div class="ws-plan-card-name plan-enterprise">Enterprise</div>';
+            html += '<div class="ws-plan-card-price">$129 / month</div>';
+            html += '<div class="ws-plan-card-tagline">Full institutional workspace with 5-asset overlays, team collaboration, portfolio exposure modeling, and custom risk alerts.</div>';
+            html += '<ul class="ws-plan-card-features">';
+            html += '<li>5 simultaneous asset overlays</li>';
+            html += '<li>Team workspace with shared dashboards</li>';
+            html += '<li>Portfolio exposure & sector impact modeling</li>';
+            html += '<li>Custom risk threshold alerts</li>';
+            html += '<li>Multi-region spillover risk analysis</li>';
+            html += '</ul>';
+            if (planLevel >= 3) { html += '<div class="ws-plan-card-includes">Includes all Pro features</div>'; }
+            else if (planLevel >= 2) { html += '<div class="ws-plan-card-includes">Includes all Trader + Pro features</div>'; }
+            else if (planLevel >= 1) { html += '<div class="ws-plan-card-includes">Includes all Personal + Trader + Pro features</div>'; }
+            else { html += '<div class="ws-plan-card-includes">Includes all Personal + Trader + Pro features</div>'; }
+            html += '</div>';
+
+            html += '</div>';
+            html += '<button onclick="showSection(\'plans\')">Upgrade Your Plan</button>';
+            html += '</div>';
+
+            return html;
         }
 
         function showOverlayLimitToast(maxOverlays) {
@@ -5600,13 +5676,9 @@
                     riskWatchlistHtml = buildRiskWatchlist(topDrivers);
                 }
 
-                let upgradePromptHtml = '';
-                const prompt = getGeriUpgradePrompt(plan);
-                if (prompt) {
-                    upgradePromptHtml = '<div class="geri-upgrade-prompt">' + prompt + '</div>';
-                }
+                let upgradeCardsHtml = buildGeriUpgradeCards(plan);
 
-                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + riskWatchlistHtml + upgradePromptHtml;
+                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + riskWatchlistHtml + upgradeCardsHtml;
                 
                 if (plan === 'free') {
                     marketOverlays.brent.active = true;
