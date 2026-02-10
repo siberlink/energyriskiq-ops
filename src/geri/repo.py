@@ -100,6 +100,13 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
     return alerts
 
 
+def _recalc_band(row_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """Recalculate band from value to prevent stale label mismatches."""
+    if row_dict and row_dict.get('value') is not None:
+        row_dict['band'] = get_band(int(row_dict['value'])).value
+    return row_dict
+
+
 def get_index_for_date(target_date: date) -> Optional[Dict[str, Any]]:
     """Get stored index value for a specific date."""
     sql = """
@@ -114,7 +121,7 @@ def get_index_for_date(target_date: date) -> Optional[Dict[str, Any]]:
         row = cursor.fetchone()
         
         if row:
-            return dict(row)
+            return _recalc_band(dict(row))
     
     return None
 
@@ -134,7 +141,7 @@ def get_index_history(from_date: date, to_date: date) -> List[Dict[str, Any]]:
         cursor.execute(sql, (INDEX_ID, from_date, to_date))
         rows = cursor.fetchall()
         for row in rows:
-            results.append(dict(row))
+            results.append(_recalc_band(dict(row)))
     
     return results
 
@@ -158,7 +165,7 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
         cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:
-            return dict(row)
+            return _recalc_band(dict(row))
     
     return None
 
@@ -185,7 +192,7 @@ def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
         cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:
-            return dict(row)
+            return _recalc_band(dict(row))
     
     return None
 

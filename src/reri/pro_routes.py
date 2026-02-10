@@ -43,7 +43,8 @@ RISK_BAND_COLORS = {
     'LOW': '#22c55e',
     'MODERATE': '#eab308',
     'ELEVATED': '#f97316',
-    'CRITICAL': '#ef4444',
+    'SEVERE': '#ef4444',
+    'CRITICAL': '#dc2626',
 }
 
 
@@ -429,10 +430,12 @@ async def get_eeri_pro_history(
             value = float(row['value']) if row['value'] else 0
             values.append(value)
             
+            from src.reri.types import get_band as eeri_get_band
+            recalc_band = eeri_get_band(int(value)).value if value is not None else row['band']
             data.append({
                 'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
                 'value': value,
-                'band': row['band'],
+                'band': recalc_band,
                 'trend_1d': row['trend_1d'],
                 'trend_7d': row['trend_7d'],
             })
@@ -444,7 +447,7 @@ async def get_eeri_pro_history(
             for i in range(6, len(data)):
                 data[i]['smoothed'] = round(sum(values[i-6:i+1]) / 7, 1)
         
-        band_distribution = {'LOW': 0, 'MODERATE': 0, 'ELEVATED': 0, 'CRITICAL': 0}
+        band_distribution = {'LOW': 0, 'MODERATE': 0, 'ELEVATED': 0, 'SEVERE': 0, 'CRITICAL': 0}
         for d in data:
             band = d.get('band', 'LOW')
             if band in band_distribution:
@@ -532,14 +535,15 @@ async def get_regime_statistics():
                 'data': None,
             }
         
-        band_counts = {'LOW': 0, 'MODERATE': 0, 'ELEVATED': 0, 'CRITICAL': 0}
+        band_counts = {'LOW': 0, 'MODERATE': 0, 'ELEVATED': 0, 'SEVERE': 0, 'CRITICAL': 0}
         values = []
         transitions = []
         prev_band = None
         
         for row in reversed(rows):
-            band = row['band']
+            from src.reri.types import get_band as eeri_get_band2
             value = float(row['value']) if row['value'] else 0
+            band = eeri_get_band2(int(value)).value if value is not None else row['band']
             values.append(value)
             
             if band in band_counts:

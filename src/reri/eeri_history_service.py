@@ -8,8 +8,15 @@ from datetime import date, datetime, timedelta
 from typing import Optional, List, Dict, Any
 
 from src.db.db import get_cursor, execute_query
-from src.reri.types import EERI_INDEX_ID, RERIResult, EERIComponents, RiskBand
+from src.reri.types import EERI_INDEX_ID, RERIResult, EERIComponents, RiskBand, get_band
 import json
+
+
+def _recalc_band(value, stored_band):
+    """Always recalculate band from value to prevent stale label mismatches."""
+    if value is not None:
+        return get_band(int(value)).value
+    return stored_band
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +122,7 @@ def get_eeri_by_date(target_date: date) -> Optional[Dict[str, Any]]:
         return {
             'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
             'value': row['value'],
-            'band': row['band'],
+            'band': _recalc_band(row['value'], row['band']),
             'trend_1d': row['trend_1d'],
             'trend_7d': row['trend_7d'],
             'interpretation': interpretation,
@@ -160,7 +167,7 @@ def get_latest_eeri_public() -> Optional[Dict[str, Any]]:
         return {
             'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
             'value': row['value'],
-            'band': row['band'],
+            'band': _recalc_band(row['value'], row['band']),
             'trend_1d': row['trend_1d'],
             'trend_7d': row['trend_7d'],
             'interpretation': interpretation,
@@ -210,7 +217,7 @@ def get_eeri_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
         return {
             'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
             'value': row['value'],
-            'band': row['band'],
+            'band': _recalc_band(row['value'], row['band']),
             'trend_1d': row['trend_1d'],
             'trend_7d': row['trend_7d'],
             'interpretation': interpretation,
@@ -252,7 +259,7 @@ def get_eeri_monthly_data(year: int, month: int) -> List[Dict[str, Any]]:
             results.append({
                 'date': row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']),
                 'value': row['value'],
-                'band': row['band'],
+                'band': _recalc_band(row['value'], row['band']),
                 'trend_7d': row['trend_7d'],
                 'interpretation': components.get('interpretation', ''),
                 'top_drivers': components.get('top_drivers', drivers[:3])[:2],

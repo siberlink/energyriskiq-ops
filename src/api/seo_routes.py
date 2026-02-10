@@ -2354,7 +2354,7 @@ async def geri_page(request: Request):
                 if (allData.length === 0) return;
                 const labels = allData.map(d => d.date ? d.date.substring(5) : '');
                 const values = allData.map(d => d.value);
-                const bandColors = {{ 'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316', 'CRITICAL': '#ef4444' }};
+                const bandColors = {{ 'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316', 'SEVERE': '#ef4444', 'CRITICAL': '#dc2626' }};
                 const pointColors = allData.map(d => bandColors[d.band] || '#6b7280');
                 new Chart(canvas, {{
                     type: 'line',
@@ -5380,7 +5380,7 @@ def render_digest_html(d: dict) -> str:
     geri = d.get('geri')
     index_cards = ''
     if geri:
-        band_colors = {'CRITICAL': '#ef4444', 'ELEVATED': '#f59e0b', 'MODERATE': '#eab308', 'LOW': '#22c55e'}
+        band_colors = {'CRITICAL': '#dc2626', 'SEVERE': '#ef4444', 'ELEVATED': '#f97316', 'MODERATE': '#eab308', 'LOW': '#22c55e'}
         color = band_colors.get(str(geri.get('band', '')), '#94a3b8')
         trend = geri.get('trend_1d', 0) or 0
         trend_class = 'up' if trend > 0 else 'down' if trend < 0 else 'flat'

@@ -46,6 +46,23 @@ def get_all_users_with_plans() -> List[Dict]:
         return [dict(row) for row in cursor.fetchall()]
 
 
+def _recalc_band_from_value(result: Dict) -> Dict:
+    """Recalculate band from value to prevent stale label mismatches."""
+    if result and result.get('value') is not None:
+        v = int(result['value'])
+        if v <= 20:
+            result['band'] = 'LOW'
+        elif v <= 40:
+            result['band'] = 'MODERATE'
+        elif v <= 60:
+            result['band'] = 'ELEVATED'
+        elif v <= 80:
+            result['band'] = 'SEVERE'
+        else:
+            result['band'] = 'CRITICAL'
+    return result
+
+
 def get_latest_geri(delayed: bool = False) -> Optional[Dict]:
     if delayed:
         sql = """
@@ -69,7 +86,7 @@ def get_latest_geri(delayed: bool = False) -> Optional[Dict]:
         result = dict(row)
         if result.get('components') and isinstance(result['components'], str):
             result['components'] = json.loads(result['components'])
-        return result
+        return _recalc_band_from_value(result)
     return None
 
 
@@ -81,7 +98,7 @@ def get_geri_history(days: int = 7) -> List[Dict]:
         ORDER BY date DESC
         LIMIT %s
     """, (days,))
-    return [dict(r) for r in rows] if rows else []
+    return [_recalc_band_from_value(dict(r)) for r in rows] if rows else []
 
 
 def get_latest_eeri() -> Optional[Dict]:
@@ -98,7 +115,7 @@ def get_latest_eeri() -> Optional[Dict]:
             result['components'] = json.loads(result['components'])
         if result.get('drivers') and isinstance(result['drivers'], str):
             result['drivers'] = json.loads(result['drivers'])
-        return result
+        return _recalc_band_from_value(result)
     return None
 
 

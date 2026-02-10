@@ -1463,3 +1463,38 @@ if __name__ == "__main__":
     run_gas_storage_migration()
     run_signal_quality_migration()
     run_public_digest_migration()
+    _recalculate_stale_bands()
+
+
+def _recalculate_stale_bands():
+    """Fix any band labels that don't match the 5-band system (20-point intervals)."""
+    band_fix_sql = """
+    UPDATE {table} SET band = 
+      CASE 
+        WHEN value <= 20 THEN 'LOW'
+        WHEN value <= 40 THEN 'MODERATE'
+        WHEN value <= 60 THEN 'ELEVATED'
+        WHEN value <= 80 THEN 'SEVERE'
+        ELSE 'CRITICAL'
+      END
+    WHERE band != CASE 
+        WHEN value <= 20 THEN 'LOW'
+        WHEN value <= 40 THEN 'MODERATE'
+        WHEN value <= 60 THEN 'ELEVATED'
+        WHEN value <= 80 THEN 'SEVERE'
+        ELSE 'CRITICAL'
+      END
+      AND value IS NOT NULL
+    """
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(band_fix_sql.format(table='intel_indices_daily'))
+            geri_fixed = cursor.rowcount
+            cursor.execute(band_fix_sql.format(table='reri_indices_daily'))
+            eeri_fixed = cursor.rowcount
+        if geri_fixed or eeri_fixed:
+            logger.info(f"Band recalculation: fixed {geri_fixed} GERI + {eeri_fixed} EERI stale band labels.")
+        else:
+            logger.info("Band recalculation: all bands are correct.")
+    except Exception as e:
+        logger.warning(f"Band recalculation skipped: {e}")
