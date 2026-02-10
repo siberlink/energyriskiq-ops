@@ -146,9 +146,9 @@ def get_common_styles():
         .risk-band-row.active { background: rgba(255, 255, 255, 0.1); box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); }
         .band-range { font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.85rem; color: #6b7280; min-width: 50px; }
         .band-indicator { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
-        .band-indicator.normal { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
-        .band-indicator.elevated { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); }
-        .band-indicator.high { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .band-indicator.low { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .band-indicator.moderate { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); }
+        .band-indicator.elevated { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
         .band-indicator.severe { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
         .band-indicator.critical { background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%); box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
         .band-name { font-weight: 500; color: #374151; font-size: 0.95rem; }
@@ -655,8 +655,8 @@ async def eeri_public_page(request: Request):
     current_band = eeri['band']
     band_classes = {
         'LOW': 'low',
-        'MODERATE': 'elevated',
-        'ELEVATED': 'high',
+        'MODERATE': 'moderate',
+        'ELEVATED': 'elevated',
         'SEVERE': 'severe',
         'CRITICAL': 'critical',
     }
@@ -775,18 +775,18 @@ async def eeri_public_page(request: Request):
                     <div class="risk-bands-container">
                         <div class="risk-band-row {'active' if eeri['band'] == 'LOW' else ''}">
                             <span class="band-range">0–20</span>
-                            <span class="band-indicator normal"></span>
-                            <span class="band-name">Normal</span>
+                            <span class="band-indicator low"></span>
+                            <span class="band-name">Low</span>
                         </div>
                         <div class="risk-band-row {'active' if eeri['band'] == 'MODERATE' else ''}">
                             <span class="band-range">21–40</span>
-                            <span class="band-indicator elevated"></span>
-                            <span class="band-name">Elevated</span>
+                            <span class="band-indicator moderate"></span>
+                            <span class="band-name">Moderate</span>
                         </div>
                         <div class="risk-band-row {'active' if eeri['band'] == 'ELEVATED' else ''}">
                             <span class="band-range">41–60</span>
-                            <span class="band-indicator high"></span>
-                            <span class="band-name">High</span>
+                            <span class="band-indicator elevated"></span>
+                            <span class="band-name">Elevated</span>
                         </div>
                         <div class="risk-band-row {'active' if eeri['band'] == 'SEVERE' else ''}">
                             <span class="band-range">61–80</span>
@@ -1131,11 +1131,11 @@ async def eeri_methodology_page():
                 <h3>Risk Bands</h3>
                 <p>The final index value maps to interpretable risk bands:</p>
                 <ul>
-                    <li><strong>0-25 (Normal):</strong> Markets operating within normal parameters</li>
-                    <li><strong>26-50 (Elevated):</strong> Heightened vigilance recommended</li>
-                    <li><strong>51-75 (High):</strong> Active risk management advised</li>
-                    <li><strong>76-90 (Severe):</strong> Significant disruption risk present</li>
-                    <li><strong>91-100 (Critical):</strong> Extreme systemic stress conditions</li>
+                    <li><strong>0-20 (Low):</strong> Markets operating within normal parameters</li>
+                    <li><strong>21-40 (Moderate):</strong> Background tension, standard monitoring</li>
+                    <li><strong>41-60 (Elevated):</strong> Active risk management advised</li>
+                    <li><strong>61-80 (Severe):</strong> Significant disruption risk present</li>
+                    <li><strong>81-100 (Critical):</strong> Extreme systemic stress conditions</li>
                 </ul>
                 
                 <h3>Data Sources</h3>

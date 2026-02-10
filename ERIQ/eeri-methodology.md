@@ -31,14 +31,15 @@ The scale is normalised against a rolling historical baseline, ensuring that the
 
 ### 2.2 Risk Bands
 
-Each daily EERI value maps to one of four risk bands:
+Each daily EERI value maps to one of five risk bands:
 
 | Risk Band | Range | Interpretation |
 |-----------|-------|----------------|
-| **LOW** | 0 - 25 | European energy environment is calm. No significant geopolitical or supply disruption signals are active. Standard operations can proceed without elevated monitoring. |
-| **MODERATE** | 26 - 50 | Background risk is present. Some supply concerns, regional tensions, or policy uncertainties exist, but systemic disruption is not indicated. Routine monitoring is appropriate. |
-| **ELEVATED** | 51 - 75 | Meaningful risk accumulation detected across European energy markets. Multiple stress vectors are contributing simultaneously. Active monitoring and hedging consideration are warranted. Gas, freight, or power markets may be showing early sensitivity. |
-| **CRITICAL** | 76 - 100 | Severe systemic stress affecting European energy security. Risk signals are converging across supply, transit, and market channels. Historical precedent suggests high probability of price dislocation, supply tightening, or both. Defensive positioning and contingency planning are strongly indicated. |
+| **LOW** | 0 - 20 | European energy environment is calm. No significant geopolitical or supply disruption signals are active. Standard operations can proceed without elevated monitoring. |
+| **MODERATE** | 21 - 40 | Background risk is present. Some supply concerns, regional tensions, or policy uncertainties exist, but systemic disruption is not indicated. Routine monitoring is appropriate. |
+| **ELEVATED** | 41 - 60 | Meaningful risk accumulation detected across European energy markets. Multiple stress vectors are contributing simultaneously. Active monitoring and hedging consideration are warranted. Gas, freight, or power markets may be showing early sensitivity. |
+| **SEVERE** | 61 - 80 | Significant systemic stress affecting European energy security. Risk signals are converging across supply, transit, and market channels. Active hedging and contingency planning are strongly advised. Price dislocation or supply tightening probability is high. |
+| **CRITICAL** | 81 - 100 | Critical systemic stress affecting European energy security. Risk signals have converged across all major channels. Historical precedent indicates imminent or active market disruption. Defensive positioning and emergency contingency protocols are strongly indicated. |
 
 ### 2.3 Trend Indicators
 

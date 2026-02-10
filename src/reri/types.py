@@ -96,17 +96,20 @@ class RiskBand(Enum):
     LOW = "LOW"
     MODERATE = "MODERATE"
     ELEVATED = "ELEVATED"
+    SEVERE = "SEVERE"
     CRITICAL = "CRITICAL"
 
 
 def get_band(value: int) -> RiskBand:
     """Map index value (0-100) to risk band."""
-    if value <= 25:
+    if value <= 20:
         return RiskBand.LOW
-    elif value <= 50:
+    elif value <= 40:
         return RiskBand.MODERATE
-    elif value <= 75:
+    elif value <= 60:
         return RiskBand.ELEVATED
+    elif value <= 80:
+        return RiskBand.SEVERE
     else:
         return RiskBand.CRITICAL
 

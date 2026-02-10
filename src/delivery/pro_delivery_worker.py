@@ -132,7 +132,7 @@ def get_band_color(band: str) -> str:
         'LOW': '#22c55e',
         'MODERATE': '#f59e0b',
         'ELEVATED': '#f97316',
-        'HIGH': '#ef4444',
+        'SEVERE': '#ef4444',
         'CRITICAL': '#dc2626',
     }
     return colors.get(band, '#64748b')

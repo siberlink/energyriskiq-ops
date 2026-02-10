@@ -29,14 +29,15 @@ In practice, the index oscillates within the middle range, with extreme values r
 
 ### 2.2 Risk Bands
 
-The GERI value maps to four distinct risk bands, providing an immediate qualitative interpretation:
+The GERI value maps to five distinct risk bands, providing an immediate qualitative interpretation:
 
 | Risk Band | Range | Interpretation |
 |-----------|-------|----------------|
-| **LOW** | 0 - 25 | Benign geopolitical environment. Energy supply risks are minimal. Markets are operating under normal conditions with no significant escalation signals. |
-| **MODERATE** | 26 - 50 | Background risk is present but manageable. Some regional tensions or supply concerns exist, but systemic contagion is not indicated. Standard monitoring posture. |
-| **ELEVATED** | 51 - 75 | Meaningful risk accumulation detected. Multiple regions or risk vectors are contributing to a heightened threat environment. Active monitoring and hedging consideration warranted. |
-| **CRITICAL** | 76 - 100 | Severe systemic stress. Risk signals are converging across regions and asset classes. Historical precedent suggests high probability of market dislocation, supply disruption, or both. Defensive positioning strongly indicated. |
+| **LOW** | 0 - 20 | Benign geopolitical environment. Energy supply risks are minimal. Markets are operating under normal conditions with no significant escalation signals. |
+| **MODERATE** | 21 - 40 | Background risk is present but manageable. Some regional tensions or supply concerns exist, but systemic contagion is not indicated. Standard monitoring posture. |
+| **ELEVATED** | 41 - 60 | Meaningful risk accumulation detected. Multiple regions or risk vectors are contributing to a heightened threat environment. Active monitoring and hedging consideration warranted. |
+| **SEVERE** | 61 - 80 | Severe disruption pressure across multiple regions. Risk signals are converging with high probability of market dislocation. Active hedging and contingency planning strongly advised. |
+| **CRITICAL** | 81 - 100 | Critical systemic stress. Risk signals have converged across regions and asset classes. Historical precedent indicates imminent or active market disruption and supply chain compromise. Defensive positioning and emergency protocols indicated. |
 
 ### 2.3 Trend Indicators
 

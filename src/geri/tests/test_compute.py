@@ -31,18 +31,22 @@ class TestBandMapping(unittest.TestCase):
     
     def test_low_band(self):
         self.assertEqual(get_band(0), RiskBand.LOW)
-        self.assertEqual(get_band(25), RiskBand.LOW)
+        self.assertEqual(get_band(20), RiskBand.LOW)
     
     def test_moderate_band(self):
-        self.assertEqual(get_band(26), RiskBand.MODERATE)
-        self.assertEqual(get_band(50), RiskBand.MODERATE)
+        self.assertEqual(get_band(21), RiskBand.MODERATE)
+        self.assertEqual(get_band(40), RiskBand.MODERATE)
     
     def test_elevated_band(self):
-        self.assertEqual(get_band(51), RiskBand.ELEVATED)
-        self.assertEqual(get_band(75), RiskBand.ELEVATED)
+        self.assertEqual(get_band(41), RiskBand.ELEVATED)
+        self.assertEqual(get_band(60), RiskBand.ELEVATED)
+    
+    def test_severe_band(self):
+        self.assertEqual(get_band(61), RiskBand.SEVERE)
+        self.assertEqual(get_band(80), RiskBand.SEVERE)
     
     def test_critical_band(self):
-        self.assertEqual(get_band(76), RiskBand.CRITICAL)
+        self.assertEqual(get_band(81), RiskBand.CRITICAL)
         self.assertEqual(get_band(100), RiskBand.CRITICAL)
 
 

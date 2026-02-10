@@ -61,6 +61,7 @@ def generate_interpretation(
             'LOW': 'conditions are stable with minimal risk signals across global energy markets',
             'MODERATE': 'moderate structural stress is present, requiring standard monitoring',
             'ELEVATED': 'elevated structural stress with heightened disruption potential across key regions',
+            'SEVERE': 'severe disruption pressure with high probability of market dislocation',
             'CRITICAL': 'critical structural stress with significant market disruption underway or imminent'
         }
         band_desc = band_descriptions.get(band, 'conditions require monitoring')
@@ -166,12 +167,19 @@ def _fallback_interpretation(value: int, band: str, top_regions: List[str]) -> s
             "The elevated stress level reflects a combination of factors affecting supply, transit, or demand dynamics in key regions. "
             "While conditions do not yet indicate critical disruption, the trajectory suggests prudent contingency awareness is advisable for energy-dependent operations."
         ),
-        'CRITICAL': (
-            f"Global energy markets are under significant stress, with risk indicators reflecting critical pressure affecting {regions_text}. "
-            "Current conditions demand heightened attention from all market stakeholders, with potential implications for energy security and pricing."
+        'SEVERE': (
+            f"Global energy markets are under severe stress, with risk indicators reflecting significant disruption pressure across {regions_text}. "
+            "Current conditions suggest high probability of market dislocation, warranting active hedging and contingency planning."
             "\n\n"
-            "Multiple stress factors are converging to create challenging market conditions, affecting supply availability, transit corridors, or critical infrastructure. "
-            "The situation warrants active monitoring and consideration of contingency measures by relevant parties across the energy value chain."
+            "Multiple stress factors are converging across supply, transit, and pricing channels, creating an environment where disruption risk is materially elevated. "
+            "Market participants should consider defensive positioning and closely monitor developments in affected regions for signs of further escalation."
+        ),
+        'CRITICAL': (
+            f"Global energy markets are under critical stress, with risk indicators reflecting extreme pressure affecting {regions_text}. "
+            "Current conditions demand immediate attention from all market stakeholders, with significant implications for energy security and pricing."
+            "\n\n"
+            "Multiple stress factors have converged to create acute market conditions, affecting supply availability, transit corridors, and critical infrastructure simultaneously. "
+            "The situation warrants urgent monitoring and activation of contingency measures by relevant parties across the energy value chain."
         )
     }
     
