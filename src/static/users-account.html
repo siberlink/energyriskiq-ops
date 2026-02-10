@@ -5599,7 +5599,7 @@
             if (planLevel < 1) {
                 html += '<div class="ws-plan-card card-personal">';
                 html += '<div class="ws-plan-card-name plan-personal">Personal</div>';
-                html += '<div class="ws-plan-card-price">$9.95 / month</div>';
+                html += '<div class="ws-plan-card-price">€9.95 / month</div>';
                 html += '<div class="ws-plan-card-tagline">Real-time GERI data with asset overlays, trend indicators, and 90 days of risk history for active monitoring.</div>';
                 html += '<ul class="ws-plan-card-features">';
                 html += '<li>Real-time GERI data (no 24h delay)</li>';
@@ -5616,7 +5616,7 @@
             if (planLevel < 2) {
                 html += '<div class="ws-plan-card card-trader">';
                 html += '<div class="ws-plan-card-name plan-trader">Trader</div>';
-                html += '<div class="ws-plan-card-price">$29 / month</div>';
+                html += '<div class="ws-plan-card-price">€29 / month</div>';
                 html += '<div class="ws-plan-card-tagline">Advanced analytical tools with smoothing, regime detection, and momentum tracking for tactical risk positioning.</div>';
                 html += '<ul class="ws-plan-card-features">';
                 html += '<li>Full history with all date ranges including "All"</li>';
@@ -5633,7 +5633,7 @@
             if (planLevel < 3) {
                 html += '<div class="ws-plan-card card-pro">';
                 html += '<div class="ws-plan-card-name plan-pro">Pro</div>';
-                html += '<div class="ws-plan-card-price">$49 / month</div>';
+                html += '<div class="ws-plan-card-price">€49 / month</div>';
                 html += '<div class="ws-plan-card-tagline">Institutional-grade analytics with 4-asset overlays, AI narrative access, and deep structural risk decomposition.</div>';
                 html += '<ul class="ws-plan-card-features">';
                 html += '<li>4 simultaneous asset overlays</li>';
@@ -5650,7 +5650,7 @@
 
             html += '<div class="ws-plan-card card-enterprise">';
             html += '<div class="ws-plan-card-name plan-enterprise">Enterprise</div>';
-            html += '<div class="ws-plan-card-price">$129 / month</div>';
+            html += '<div class="ws-plan-card-price">€129 / month</div>';
             html += '<div class="ws-plan-card-tagline">Full institutional workspace with 5-asset overlays, team collaboration, portfolio exposure modeling, and custom risk alerts.</div>';
             html += '<ul class="ws-plan-card-features">';
             html += '<li>5 simultaneous asset overlays</li>';
@@ -7434,7 +7434,7 @@
                 if (planLevel < 1) {
                     html += '<div class="ws-plan-card card-personal">';
                     html += '<div class="ws-plan-card-name plan-personal">Personal</div>';
-                    html += '<div class="ws-plan-card-price">$9.95 / month</div>';
+                    html += '<div class="ws-plan-card-price">€9.95 / month</div>';
                     html += '<div class="ws-plan-card-tagline">Historical context and probability insights to better interpret energy market volatility.</div>';
                     html += '<ul class="ws-plan-card-features">';
                     html += '<li>Mini weekly overlay charts (EERI vs each asset)</li>';
@@ -7448,7 +7448,7 @@
                 if (planLevel < 2) {
                     html += '<div class="ws-plan-card card-trader">';
                     html += '<div class="ws-plan-card-name plan-trader">Trader</div>';
-                    html += '<div class="ws-plan-card-price">$29 / month</div>';
+                    html += '<div class="ws-plan-card-price">€29 / month</div>';
                     html += '<div class="ws-plan-card-tagline">Tactical intelligence with reaction speed analysis and conditional probability modeling for active risk monitoring.</div>';
                     html += '<ul class="ws-plan-card-features">';
                     html += '<li>Asset reaction speed analysis (which led, which lagged)</li>';
@@ -7463,7 +7463,7 @@
                 if (planLevel < 3) {
                     html += '<div class="ws-plan-card card-pro">';
                     html += '<div class="ws-plan-card-name plan-pro">Pro</div>';
-                    html += '<div class="ws-plan-card-price">$49 / month</div>';
+                    html += '<div class="ws-plan-card-price">€49 / month</div>';
                     html += '<div class="ws-plan-card-tagline">Full structural risk intelligence with regime persistence, historical analogs, and scenario outlooks.</div>';
                     html += '<ul class="ws-plan-card-features">';
                     html += '<li>Component attribution summary (what drove the week)</li>';
@@ -7479,7 +7479,7 @@
 
                 html += '<div class="ws-plan-card card-enterprise">';
                 html += '<div class="ws-plan-card-name plan-enterprise">Enterprise</div>';
-                html += '<div class="ws-plan-card-price">$129 / month</div>';
+                html += '<div class="ws-plan-card-price">€129 / month</div>';
                 html += '<div class="ws-plan-card-tagline">Strategic multi-region energy risk forecasting, sector-level impact modeling, and portfolio exposure intelligence.</div>';
                 html += '<ul class="ws-plan-card-features">';
                 html += '<li>Multi-region spillover risk (Europe \u2194 Middle East \u2194 Black Sea)</li>';
@@ -8447,43 +8447,43 @@
             if (planLevel >= 1) {
                 html += renderCorrelationsSection(d, planLevel);
             } else {
-                html += renderLockedSection('Risk Correlation Analysis', 'See how risk indices relate to asset prices with 7-day correlation data.', 'Personal', '$9.95/mo');
+                html += renderLockedSection('Risk Correlation Analysis', 'See how risk indices relate to asset prices with 7-day correlation data.', 'Personal', '€9.95/mo');
             }
 
             if (planLevel >= 2) {
                 html += renderRegimeSection(d);
             } else {
-                html += renderLockedSection('Regime Classification', 'Understand the current risk regime: Calm, Risk Build, Shock, or Gas-Storage Stress.', 'Trader', '$29/mo');
+                html += renderLockedSection('Regime Classification', 'Understand the current risk regime: Calm, Risk Build, Shock, or Gas-Storage Stress.', 'Trader', '€29/mo');
             }
 
             if (planLevel >= 2) {
                 html += renderForwardWatchlistSection(d);
             } else if (planLevel >= 1) {
-                html += renderLockedSection('Forward Watchlist', 'Monitor high-severity events and critical risk thresholds that may impact markets.', 'Trader', '$29/mo');
+                html += renderLockedSection('Forward Watchlist', 'Monitor high-severity events and critical risk thresholds that may impact markets.', 'Trader', '€29/mo');
             }
 
             if (planLevel >= 2) {
                 html += renderProbabilityScoringSection(d);
             } else if (planLevel >= 1) {
-                html += renderLockedSection('Probability Scoring', 'Access escalation, de-escalation, and stability probability assessments.', 'Trader', '$29/mo');
+                html += renderLockedSection('Probability Scoring', 'Access escalation, de-escalation, and stability probability assessments.', 'Trader', '€29/mo');
             }
 
             if (planLevel >= 2) {
                 html += renderVolatilityOutlookSection(d);
             } else {
-                html += renderLockedSection('Volatility Outlook', 'See current volatility regime and VIX-informed market stress outlook.', 'Trader', '$29/mo');
+                html += renderLockedSection('Volatility Outlook', 'See current volatility regime and VIX-informed market stress outlook.', 'Trader', '€29/mo');
             }
 
             if (planLevel >= 3) {
                 html += renderBetasSection(d);
             } else if (planLevel >= 2) {
-                html += renderLockedSection('Asset Sensitivity Dashboard', 'Access GERI beta coefficients vs Brent, TTF, VIX for institutional-grade analysis.', 'Pro', '$49/mo');
+                html += renderLockedSection('Asset Sensitivity Dashboard', 'Access GERI beta coefficients vs Brent, TTF, VIX for institutional-grade analysis.', 'Pro', '€49/mo');
             }
 
             if (planLevel >= 3) {
                 html += renderScenarioForecastsSection(d);
             } else if (planLevel >= 2) {
-                html += renderLockedSection('Scenario Forecasts', 'View base case, escalation, and de-escalation scenario projections with GERI forecasts.', 'Pro', '$49/mo');
+                html += renderLockedSection('Scenario Forecasts', 'View base case, escalation, and de-escalation scenario projections with GERI forecasts.', 'Pro', '€49/mo');
             }
 
             if (d.ai_narrative) {
@@ -8665,7 +8665,7 @@
             let moreNote = '';
             if (totalHidden > 0 && planLevel < 1) {
                 moreNote = `<div style="text-align: center; padding: 12px; color: #64748b; font-size: 12px; border-top: 1px solid #334155; margin-top: 12px;">
-                    +${totalHidden} more alerts available with <button onclick="showSection('plans')" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-weight: 600; font-size: 12px;">Personal plan ($9.95/mo)</button>
+                    +${totalHidden} more alerts available with <button onclick="showSection('plans')" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-weight: 600; font-size: 12px;">Personal plan (€9.95/mo)</button>
                 </div>`;
             } else if (totalHidden > 0 && planLevel < 3) {
                 moreNote = `<div style="text-align: center; padding: 12px; color: #64748b; font-size: 12px; border-top: 1px solid #334155; margin-top: 12px;">
