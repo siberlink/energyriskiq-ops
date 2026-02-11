@@ -183,8 +183,22 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
             max_completion_tokens=config["max_response_tokens"],
         )
 
-        answer = (response.choices[0].message.content or "").strip()
+        choice = response.choices[0]
+        finish_reason = choice.finish_reason
+        refusal = getattr(choice.message, 'refusal', None)
+        answer = (choice.message.content or "").strip()
         tokens_used = response.usage.total_tokens if response.usage else 0
+
+        if refusal:
+            logger.warning(f"ERIQ model refusal: {refusal}")
+        if not answer:
+            logger.warning(f"ERIQ empty response - finish_reason={finish_reason}, refusal={refusal}, tokens={tokens_used}")
+            if refusal:
+                answer = "I understand your question, but I need to clarify: I provide risk intelligence and analysis, not specific trading advice. Let me help you understand how our indices can inform your risk awareness instead. Could you rephrase your question in terms of understanding risk?"
+            elif finish_reason == "length":
+                answer = "My response was too long to complete. Could you ask a more specific question so I can give you a focused answer?"
+            else:
+                answer = "I wasn't able to generate a response for that question. Could you try rephrasing it? For example, ask about what a specific index measures or what current readings indicate."
 
         if upgrade_msg:
             answer += f"\n\n---\n*{upgrade_msg}*"
