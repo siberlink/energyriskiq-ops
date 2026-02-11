@@ -885,5 +885,217 @@ That single rule prevents 80% of hallucinations and liability. Every response ER
 
 ---
 
+## Database Access Architecture
+
+### The Question
+
+Should ERIQ have access to the database where all EnergyRiskIQ data resides?
+
+**Answer:** Yes — but only through a controlled, read-only, context-building layer. ERIQ should never have direct or unrestricted database access.
+
+This is a critical architectural decision that affects accuracy, security, compliance, performance, monetization enforcement, hallucination prevention, and enterprise trust.
+
+### The Golden Rule
+
+**The bot never talks directly to the database.**
+
+Instead:
+1. The bot talks to a **Context Assembly Layer** (Data Gateway)
+2. That layer safely queries the database
+3. That layer returns a structured, validated snapshot
+4. The bot only sees that snapshot
+
+### Why Direct Database Access Is Dangerous
+
+**Security Risk:**
+If ERIQ queries tables directly, it could accidentally expose proprietary formulas, other users' data, internal validation logic, or enterprise portfolios.
+
+**Hallucination Risk:**
+LLMs are unreliable at writing SQL, understanding schema nuance, and handling missing joins. This causes silent incorrect answers — the worst type of error in risk intelligence.
+
+**Monetization Breakage:**
+If the bot queries raw data, plan gating becomes easy to bypass and users may see restricted datasets they have not paid for.
+
+**Performance Problems:**
+LLMs generating queries can trigger heavy table scans, slow dashboards, and increase cost unpredictably.
+
+---
+
+## Context Assembly Layer (CAL)
+
+CAL is the most important architectural component for ERIQ. It sits between the database and the bot, building clean intelligence snapshots.
+
+### What CAL Does
+
+When a user asks a question, CAL constructs a structured context object:
+
+```
+BotContext {
+  user_plan          — subscription tier and permissions
+  page_type          — which dashboard/page the user is viewing
+  index_values       — current GERI, EERI, EGSI-M, EGSI-S values + deltas
+  pillar_contributions — component scores and changes
+  contributing_alerts — alert IDs, headlines, severity, regions
+  asset_snapshots    — Brent, TTF, VIX, EUR/USD, Storage latest values
+  divergence_metrics — residuals, z-scores, correlation breakdowns
+  regime_labels      — current regime classification
+  data_quality_flags — missing feeds, stale timestamps, incomplete series
+}
+```
+
+The bot receives truth, only allowed data, and already verified data.
+
+### How CAL Interacts With the Database
+
+**CAL can safely query:**
+- Index tables (intel_indices_daily, reri_indices_daily, egsi_m_daily, egsi_s_daily)
+- Pillar contribution tables
+- Alerts tables (alert_events)
+- Asset time-series tables (oil_price_snapshots, ttf_gas_snapshots, vix_snapshots, eurusd_snapshots, gas_storage_snapshots)
+- Probability outputs
+- Divergence metrics
+- Regime classification tables
+
+**CAL controls:**
+- Which tables are queried
+- Which columns are exposed
+- Which time windows are returned
+- Which aggregation level is applied
+- Which user plan can see which data
+
+### CAL as the Monetization Engine
+
+CAL enforces plan-tiered data access. The bot never decides permissions — CAL decides permissions.
+
+**Free user — CAL returns:**
+- Index score (24h delayed)
+- Pillar summary (high-level)
+- Top-level explanation data
+
+**Personal user — CAL returns:**
+- Real-time index scores
+- Pillar deltas
+- Top 3 alert contributors
+
+**Trader user — CAL returns:**
+- All Personal data plus:
+- Divergence metrics
+- Asset relationships and correlations
+- Scenario inputs
+- Regime classification
+
+**Pro user — CAL returns:**
+- All Trader data plus:
+- Full driver attribution
+- Probability engine outputs
+- Model confidence and data quality flags
+- Rolling betas
+
+**Enterprise user — CAL returns:**
+- All Pro data plus:
+- Portfolio overlays
+- Custom entities
+- Team data
+- Compliance export metadata
+
+### CAL as the Anti-Hallucination Weapon
+
+Without CAL, the bot guesses: *"Maybe supply disruptions drove the spike..."*
+
+With CAL, the bot sees:
+```
+Supply pillar: +18
+Top alerts:
+  - Norway outage (severity 4/5)
+  - Strait chokepoint tension (severity 3/5)
+```
+
+The bot becomes evidence-driven, deterministic, and trustworthy.
+
+---
+
+## Data Access Stack
+
+The complete data flow from database to user:
+
+```
+[Database Layer]
+       ↓
+[Analytics / Aggregation Services]
+       ↓
+[Context Assembly Layer (CAL)]
+       ↓
+[Guardrail / Entitlement Layer]
+       ↓
+[ERIQ Analyst]
+       ↓
+[User]
+```
+
+Each layer has a distinct responsibility. No layer is bypassed.
+
+---
+
+## Data Exposure Rules
+
+### What ERIQ Should See (Approved)
+
+- Final index values (GERI, EERI, EGSI-M, EGSI-S)
+- Pillar contributions and component scores
+- Alert summaries (headlines, severity, regions, categories)
+- Asset summaries (prices, changes, directional signals)
+- Derived model outputs (regime labels, divergence metrics, correlations)
+- Data quality indicators (missing feeds, stale data flags)
+
+### What ERIQ Should Never See (Restricted)
+
+- Raw ingestion feeds (unprocessed RSS/API data)
+- Internal scoring formulas or proprietary weighting models
+- Other users' watchlists, portfolios, or preferences
+- Admin diagnostics and internal system health data
+- Unvalidated intermediate calculations
+- Database schema, table names, or column structures
+
+---
+
+## Security Best Practices for CAL
+
+| Requirement | Implementation |
+|-------------|---------------|
+| Read-Only | CAL never allows write operations to the database |
+| Column-Whitelisted | Only approved fields are exposed to the bot |
+| Plan-Aware | Entitlement logic enforced inside CAL before data reaches the bot |
+| Audit Logged | Every bot request is logged with context hash and response |
+| Cached | Avoids heavy database calls by caching frequently requested snapshots |
+| Rate-Limited | Prevents excessive queries from a single user session |
+
+---
+
+## Reusability Benefit
+
+CAL becomes reusable across the entire platform:
+
+- API products (public and internal endpoints)
+- Enterprise dashboards
+- Mobile applications (future)
+- Future AI assistants beyond ERIQ
+- Analytics exports and compliance reports
+
+CAL becomes the **intelligence delivery backbone** for EnergyRiskIQ — a single, controlled interface through which all consumers of intelligence data access the platform's outputs.
+
+---
+
+## Mental Model
+
+```
+Database    = Raw truth (all data, all history, all internal logic)
+CAL         = Curated intelligence (validated, permission-gated, structured)
+ERIQ        = Interpreter (transforms curated intelligence into narrative)
+```
+
+The bot is powerful because of what it receives, not because of what it can access. By controlling the input, the platform controls the output — ensuring accuracy, safety, and commercial integrity at every interaction.
+
+---
+
 *ERIQ Expert Analyst — EnergyRiskIQ Interpretation Intelligence Layer*
-*Document Version: v3 | February 2026*
+*Document Version: v4 | February 2026*
