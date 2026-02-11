@@ -178,9 +178,9 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
     try:
         client = get_openai_client()
         response = client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-4.1-mini",
             messages=messages,
-            max_completion_tokens=config["max_response_tokens"],
+            max_tokens=config["max_response_tokens"],
         )
 
         choice = response.choices[0]

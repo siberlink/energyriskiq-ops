@@ -12,7 +12,7 @@ ERIQ_PLAN_CONFIG = {
     "free": {
         "max_questions_per_day": 3,
         "modes": ["explain"],
-        "max_response_tokens": 400,
+        "max_response_tokens": 1200,
         "history_days": 7,
         "alert_limit": 5,
         "asset_days": 3,
@@ -26,7 +26,7 @@ ERIQ_PLAN_CONFIG = {
     "personal": {
         "max_questions_per_day": 15,
         "modes": ["explain", "interpret"],
-        "max_response_tokens": 600,
+        "max_response_tokens": 2000,
         "history_days": 30,
         "alert_limit": 10,
         "asset_days": 7,
@@ -40,7 +40,7 @@ ERIQ_PLAN_CONFIG = {
     "trader": {
         "max_questions_per_day": 60,
         "modes": ["explain", "interpret", "decide_support"],
-        "max_response_tokens": 1000,
+        "max_response_tokens": 3000,
         "history_days": 90,
         "alert_limit": 20,
         "asset_days": 14,
@@ -54,7 +54,7 @@ ERIQ_PLAN_CONFIG = {
     "pro": {
         "max_questions_per_day": 200,
         "modes": ["explain", "interpret", "decide_support"],
-        "max_response_tokens": 2000,
+        "max_response_tokens": 4000,
         "history_days": 180,
         "alert_limit": 30,
         "asset_days": 30,
@@ -68,7 +68,7 @@ ERIQ_PLAN_CONFIG = {
     "enterprise": {
         "max_questions_per_day": 999999,
         "modes": ["explain", "interpret", "decide_support"],
-        "max_response_tokens": 3000,
+        "max_response_tokens": 5000,
         "history_days": 365,
         "alert_limit": 50,
         "asset_days": 60,
