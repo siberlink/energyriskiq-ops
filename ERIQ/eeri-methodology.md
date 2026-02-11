@@ -208,7 +208,7 @@ EERI operates a strict information tiering policy to protect intellectual proper
 
 **Publicly visible (delayed):**
 - Index value (0-100)
-- Risk band (LOW / MODERATE / ELEVATED / CRITICAL)
+- Risk band (LOW / MODERATE / ELEVATED / SEVERE / CRITICAL)
 - Trend direction (RISING / FALLING / STABLE)
 - AI-generated interpretation narrative
 - Top 2-3 risk driver headlines
@@ -278,8 +278,8 @@ EERI's historical trajectory can be divided into recognisable risk regimes:
 |--------|----------------|------------------|
 | **Calm** | EERI in LOW/MODERATE bands, stable trend, minimal driver activity | Weeks to months |
 | **Escalation** | EERI rising, crossing from MODERATE to ELEVATED, increasing driver count and severity | Days to weeks |
-| **Crisis** | EERI in ELEVATED/CRITICAL, multiple asset classes stressed, high driver concentration | Days to weeks |
-| **De-escalation** | EERI falling from CRITICAL/ELEVATED, driver intensity decreasing, asset stress easing | Days to weeks |
+| **Crisis** | EERI in SEVERE/CRITICAL, multiple asset classes stressed, high driver concentration | Days to weeks |
+| **De-escalation** | EERI falling from CRITICAL/SEVERE, driver intensity decreasing, asset stress easing | Days to weeks |
 | **Recovery** | EERI returning to LOW/MODERATE, normalisation of asset stress, driver count declining | Weeks |
 
 Regime transitions are the most actionable signals in the index. The shift from Calm to Escalation is the early warning. The shift from Escalation to Crisis is the confirmation. The shift from Crisis to De-escalation is the turning point.
