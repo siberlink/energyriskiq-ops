@@ -180,8 +180,7 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
         response = client.chat.completions.create(
             model="gpt-5.1",
             messages=messages,
-            max_tokens=config["max_response_tokens"],
-            temperature=0.4,
+            max_completion_tokens=config["max_response_tokens"],
         )
 
         answer = (response.choices[0].message.content or "").strip()
