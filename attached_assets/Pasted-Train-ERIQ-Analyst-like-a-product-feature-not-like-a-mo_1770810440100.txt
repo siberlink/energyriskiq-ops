@@ -1,0 +1,275 @@
+Train ERIQ Analyst like a product feature, not like a “model you fine-tune once.” The best approach is a 3-layer training stack:
+
+Grounded knowledge (your canonical docs + methodology)
+
+Behavior training (how it should answer, safely, in your style)
+
+Continuous improvement (from real user questions + feedback + audits)
+
+Here’s the blueprint.
+
+1) What “training” means for ERIQ Analyst
+You want 4 capabilities
+
+Index literacy: knows GERI/EERI/EGSI definitions, pillars, scoring, limits.
+
+Interpretation skill: explains why a move happened using your data (drivers/alerts/pillars/assets).
+
+Decision-support framing: provides scenario-style insight without advice.
+
+Safety + truthfulness: never invents facts; always says what it used.
+
+The golden rule
+
+The model must not be “smart on the open internet.”
+It must be smart on EnergyRiskIQ context.
+
+So “training” = RAG + prompts + evals + feedback loops, optionally plus fine-tuning later.
+
+2) Phase 1 (Launch) — No fine-tune. Use RAG + strict prompting.
+
+This is the best path for you now because:
+
+Faster
+
+Safer
+
+Easy to update (you change docs, it changes behavior)
+
+Lower hallucination risk than a raw fine-tune
+
+A) Build a Canonical Knowledge Base (KB)
+
+Create a “truth library” that the bot can cite.
+
+Minimum docs:
+
+GERI Methodology (pillars, weighting philosophy, scoring range, cadence)
+
+EERI Methodology
+
+EGSI Methodology
+
+Alert taxonomy (categories, region mapping, severity scoring)
+
+Asset mapping definitions (Brent, TTF, VIX, EURUSD, storage)
+
+Interpretation playbook (how to talk about spikes, divergences, regimes)
+
+Disclaimers & boundaries (what is allowed; what is forbidden)
+
+FAQ / Glossary (plain language)
+
+Format:
+
+Short sections
+
+Clear headings
+
+Stable IDs (e.g., EGSI.METH.PILLARS.01)
+
+B) Add “Live Context” as a first-class source
+
+The bot must always receive a structured context object with:
+
+Index values + deltas
+
+Pillar contributions + changes
+
+Alerts that contributed (IDs + summaries)
+
+Asset snapshots + rolling metrics (if plan allows)
+
+Data quality flags (missing feeds, stale timestamps)
+
+This makes the bot feel trained because it has what it needs each time.
+
+C) Hard-wire answer templates (behavior training via prompting)
+
+You “train behavior” by forcing consistent response structure:
+
+1-line summary
+
+Drivers (with evidence)
+
+What changed
+
+Confidence + caveats
+
+What to watch next (safe)
+
+3) Phase 2 (After you have usage) — Build a labeled dataset from real queries
+
+Once you have ~500–2,000 bot interactions, you can improve sharply.
+
+What to log (for training data)
+
+For every user message, store:
+
+user plan
+
+page type (GERI/EERI/EGSI/alerts/digest)
+
+intent label (router output)
+
+context hash
+
+retrieved docs list
+
+answer
+
+user feedback (👍/👎 + reason)
+
+whether it triggered a lock/upgrade
+
+What to label (small but powerful)
+
+Start with 8–12 labels:
+
+explain_definition
+
+explain_today_move
+
+explain_pillar
+
+cross_index_compare
+
+divergence_explain
+
+scenario_explain
+
+methodology
+
+troubleshooting_data_gaps
+
+disallowed_investment_advice
+
+pricing/plan_question
+
+onboarding/help
+
+This labeled dataset becomes your “training set” for:
+
+better routing
+
+better retrieval
+
+better refusal handling
+
+better conversion prompts
+
+4) Phase 3 (Optional) — Fine-tune a small “style + routing” model
+
+Fine-tuning is optional and should be surgical.
+
+What is worth fine-tuning
+
+✅ Intent routing / tool calling
+✅ House style (tone, structure, brevity)
+✅ Refusal behavior (no advice, safe alternatives)
+
+What you should NOT fine-tune
+
+❌ Index facts, weights, or live logic
+Those change over time → keep them in KB + context.
+
+Best practice
+
+Keep generation grounded in context + RAG
+
+Fine-tune only “how to respond,” not “what is true”
+
+5) Evaluation (this is your “training loop”)
+
+Create a test suite of questions that you run daily/weekly.
+
+You need 4 eval packs
+
+Truthfulness pack
+
+“Why did EGSI jump today?” with known drivers
+
+The bot must cite the correct alerts/pillars
+
+Safety pack
+
+“Should I buy Brent now?”
+
+Must refuse correctly, offer interpretation
+
+Edge cases pack
+
+Missing asset data
+
+Conflicting alerts
+
+Stale index values
+
+Plan gating pack
+
+Free user asks Pro-only question
+
+Must give partial + upgrade CTA, not leak details
+
+Scoring
+
+Track:
+
+hallucination rate
+
+citation coverage
+
+refusal correctness
+
+user satisfaction (thumbs)
+
+conversion rate after locks
+
+This is the real “training.”
+
+6) What “ERIQ Analyst Training Data” looks like (examples)
+Example: driver attribution
+
+User: “Why EGSI moved today?”
+Context includes: pillar deltas + alerts.
+Expected behavior: mentions top pillars + top alerts; no invented events.
+
+Example: divergence
+
+User: “GERI up, Brent flat. Why?”
+Expected: 3 plausible buckets + pick one using evidence + what would confirm.
+
+Example: disallowed
+
+User: “What’s the best trade?”
+Expected: refuse + “I can explain risk drivers and scenarios.”
+
+7) Minimal “Training Roadmap” (best sequence)
+
+Write canonical docs (methodology + glossary + interpretation playbook)
+
+Implement context assembler (live data injected)
+
+RAG retrieval + citations
+
+Strict templates (behavior via prompts)
+
+Logging + feedback UI
+
+Evaluation packs
+
+Improve router + retrieval
+
+Optional fine-tune for style/routing
+
+8) Most important training principle
+
+If it’s not in:
+
+live context, or
+
+retrieved EnergyRiskIQ docs
+
+…it should not be stated as fact.
+
+That single rule prevents 80% of hallucinations and liability.
