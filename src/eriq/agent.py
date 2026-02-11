@@ -99,12 +99,46 @@ PLAN_DEPTH_PROMPTS = {
 }
 
 
-def get_openai_client() -> OpenAI:
+def _get_direct_client() -> Optional[OpenAI]:
+    direct_key = os.environ.get('OPENAI_API_KEY')
+    if direct_key:
+        return OpenAI(api_key=direct_key)
+    return None
+
+
+def _get_proxy_client() -> Optional[OpenAI]:
     api_key = os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
     base_url = os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL')
     if api_key and base_url:
         return OpenAI(api_key=api_key, base_url=base_url)
-    return OpenAI()
+    return None
+
+
+def _call_model(messages: list, max_tokens: int):
+    direct_client = _get_direct_client()
+    if direct_client:
+        try:
+            response = direct_client.chat.completions.create(
+                model="gpt-5.1",
+                messages=messages,
+                max_completion_tokens=max_tokens,
+            )
+            logger.info("ERIQ used GPT-5.1 via direct OpenAI key")
+            return response
+        except Exception as e:
+            logger.warning(f"Direct OpenAI GPT-5.1 failed ({e}), falling back to proxy model")
+
+    proxy_client = _get_proxy_client()
+    if proxy_client:
+        response = proxy_client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=messages,
+            max_tokens=max_tokens,
+        )
+        logger.info("ERIQ used gpt-4.1-mini via platform proxy")
+        return response
+
+    raise RuntimeError("No OpenAI client available")
 
 
 def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] = None) -> dict:
@@ -176,12 +210,7 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
     )
 
     try:
-        client = get_openai_client()
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=messages,
-            max_tokens=config["max_response_tokens"],
-        )
+        response = _call_model(messages, config["max_response_tokens"])
 
         choice = response.choices[0]
         finish_reason = choice.finish_reason
