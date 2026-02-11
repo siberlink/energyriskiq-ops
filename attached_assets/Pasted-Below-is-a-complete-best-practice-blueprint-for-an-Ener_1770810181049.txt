@@ -1,0 +1,470 @@
+Below is a complete, best-practice blueprint for an EnergyRiskIQ “Interpretation Intelligence Layer” bot (NOT a generic chatbot). It’s designed to maximize user value, retention, and plan upgrades while keeping hallucinations + liability low.
+
+1) Bot Feature Tiering Per User Plan (Best Conversion + Low Risk)
+Core concept
+
+Your bot has 3 modes:
+
+Explain (safe, educational, low liability)
+
+Interpret (contextual + index-driven reasoning)
+
+Decide-support (scenario + portfolio/asset implications, highest value)
+
+You gate mode depth, daily question limits, and data granularity.
+
+Free
+
+Goal: onboarding + curiosity → upgrade
+
+Questions/day: 3
+
+Modes: Explain only
+
+Access:
+
+“What is GERI/EERI/EGSI?”
+
+“What does 70 mean historically?”
+
+“How is this index constructed?” (high-level)
+
+Output limits:
+
+No forward scenarios
+
+No asset mapping
+
+No “what to do”
+
+Upgrade hooks:
+
+“To explain today’s drivers + alert contributors, upgrade.”
+
+Personal ($9)
+
+Goal: daily habit formation
+
+Questions/day: 15
+
+Modes: Explain + Interpret (basic)
+
+Access:
+
+“Why did EGSI change today?” (drivers summary)
+
+“Top contributors (pillars)”
+
+“Compare today vs 7-day average”
+
+Data shown:
+
+Pillar deltas
+
+Top 3 alert contributors (headline-level)
+
+Output:
+
+“Plain English daily narrative” (short)
+
+Upgrade hooks:
+
+“Trader plan unlocks cross-index + asset divergence.”
+
+Trader ($29)
+
+Goal: trading relevance + retention
+
+Questions/day: 60
+
+Modes: Explain + Interpret + Decide-support (light)
+
+Access:
+
+Cross-index interpretation (GERI vs EERI vs EGSI)
+
+Divergence detection explanations (GERI rising, Brent flat)
+
+Asset-impact translation (directional sensitivity, not advice)
+
+Data shown:
+
+Correlation/beta summaries (rolling)
+
+Divergence residual highlights
+
+Regime classification label (if you have it)
+
+Output:
+
+“Market-facing narrative”
+
+“Scenarios: base/upside/downside” (probabilistic, cautious)
+
+Upgrade hooks:
+
+“Pro unlocks full driver attribution + backtest references + alerts explanation depth.”
+
+Pro ($49)
+
+Goal: your flagship “Live Index Intelligence” experience
+
+Questions/day: 200
+
+Modes: full suite (Explain/Interpret/Decide-support)
+
+Access:
+
+Full driver attribution (pillars + top alerts + entity/chokepoints)
+
+“What changed since yesterday?” with change log
+
+“What events most likely caused this?”
+
+“Explain signal quality” (noise vs regime shift)
+
+Data shown:
+
+Full contributor list (top N)
+
+Probability engine output explanation (calibration-aware)
+
+Model confidence + missing data flags
+
+Output:
+
+“Trader-grade briefing”
+
+“Risk to assets map” (impact score bands)
+
+“Watchlist suggestions” (NOT trades)
+
+Upgrade hooks:
+
+“Enterprise unlocks custom portfolio mapping, team workspaces, compliance exports.”
+
+Enterprise ($129)
+
+Goal: keep teams + justify cost
+
+Questions/day: Unlimited (fair use)
+
+Modes: full + Organization features
+
+Access:
+
+Portfolio exposure mapping (user-defined)
+
+Custom entities/chokepoints list
+
+Team shared threads + saved briefs
+
+Compliance export mode (audit logs)
+
+Output:
+
+“Executive brief”
+
+“Ops risk brief” (supply chain / shipping focus)
+
+“Compliance-safe narrative”
+
+2) Exact UI Placement Strategy (Where it prints money)
+Rule: the bot must be contextual (pre-loaded with what user is viewing)
+A) Global floating button (all pages)
+
+Bottom-right: “Ask ERIQ Analyst”
+
+Shows: “Ask about what you’re viewing” as default.
+
+B) Index Dashboard pages (GERI/EERI/EGSI)
+
+Place two bot entry points:
+
+Inline “Explain Today” card (high CTR)
+
+Next to the index score
+
+Button: “Explain today’s move”
+
+Returns a short narrative with:
+
+Drivers
+
+What changed
+
+Confidence/missing data flags
+
+Chart contextual button (feature expansion)
+
+On hover near chart legend:
+
+“Explain this divergence”
+
+“Compare to last month”
+
+“What caused this spike?”
+
+C) Alerts pages
+
+Button: “How did these alerts affect today’s index?”
+
+This helps users understand why alerts matter.
+
+D) Daily Digest page
+
+Top: “Ask about today’s digest”
+
+Also: “Generate a trader brief” (Trader+)
+
+E) Upgrade moments placement (high conversion)
+
+When user clicks a locked answer (e.g., “Show top contributors”)
+
+When user asks a Trader/Pro-only question
+
+When user requests “scenario” / “asset impact” / “divergence explanation”
+
+3) Technical Architecture (RAG + Context Pipeline) — Robust + Safe
+High-level components
+
+Context Assembler (deterministic)
+
+RAG Retriever (methodology + glossary + docs)
+
+Answer Generator (LLM)
+
+Verifier (post-check + citations)
+
+Policy Guardrails (pre + post)
+
+Telemetry + Monetization Triggers
+
+Data sources the bot can use
+
+A) “Live Context” (highest priority)
+
+Today’s index values (GERI/EERI/EGSI)
+
+Pillar contributions/deltas
+
+Recent alerts + categories + regions
+
+Regime label (if available)
+
+Asset snapshots (Brent, TTF, VIX, EUR/USD, storage)
+
+Divergence metrics (residuals, z-scores)
+
+B) “Knowledge Base” (RAG)
+
+Index methodology pages
+
+FAQ/Glossary
+
+“How to interpret EGSI”
+
+“What does probability mean”
+
+Internal policy: disclaimers, allowed outputs
+
+C) User plan + permissions
+
+Max detail level
+
+Which datasets they can see
+
+Limits per day
+
+Retrieval strategy (important)
+
+Use two-stage retrieval:
+
+Intent routing: “methodology” vs “today interpretation” vs “asset impact”
+
+Targeted retrieval:
+
+Methodology → docs
+
+“why changed today” → live context (NO need for heavy RAG)
+
+“what is EGSI” → glossary + methodology
+
+“compare last month” → time-series slice + brief summary
+
+Output format rules
+
+Always include:
+
+Data used: “Based on EGSI pillars + last 24h alerts + TTF snapshot”
+
+Confidence flags: missing feeds, incomplete asset series, etc.
+
+Disclaimers: informational, not financial advice
+
+4) Prompt Engineering Framework (Templates that feel “Bloomberg-like”)
+System prompt (core identity)
+
+“You are ERIQ Analyst, a geo-energy risk interpretation assistant.”
+
+“You must use provided context; if missing, say what’s missing.”
+
+“Never give investment advice or trades.”
+
+“Cite internal sources by doc title/section (not URLs).”
+
+Intent router prompt
+
+Classify into:
+
+Define/Explain (glossary)
+
+Interpret index move (drivers)
+
+Cross-index analysis
+
+Asset impact translation
+
+Scenario explanation
+
+Troubleshooting (data gaps)
+
+Response templates (the best ones)
+Template: “Explain Today’s Move”
+
+One-line summary (plain English)
+
+Top drivers (pillars + alerts)
+
+What changed since yesterday
+
+Asset reaction snapshot (if allowed)
+
+Confidence & caveats
+
+What to watch next (safe)
+
+Template: “Divergence”
+
+What diverged (signal vs asset)
+
+Typical reasons (3 buckets)
+
+Which bucket fits today (using evidence)
+
+What would confirm/deny tomorrow
+
+Template: “Cross-index”
+
+How indices differ
+
+What the current combo implies
+
+Which region/pillar is leading
+
+Second-order effects (safe)
+
+5) Guardrails + Hallucination Mitigation (Non-negotiable)
+Pre-answer constraints
+
+If a question asks for:
+
+“Should I buy/sell?”
+
+“Trade recommendations”
+
+“Price targets”
+→ refuse + redirect to “risk interpretation only”
+
+Evidence requirement
+
+The bot must not say “because X happened” unless:
+
+X is present in alert set, or
+
+X is present in knowledge base, or
+
+X is explicitly in the provided context
+
+“I don’t know” policy
+
+If data missing:
+
+Say what’s missing
+
+Offer alternative view:
+
+“I can still explain the methodology”
+
+“I can summarize drivers from alerts only”
+
+Post-answer verifier
+
+Check for:
+
+Uncited claims
+
+Advice language
+
+Overconfident forecasts
+
+Forbidden outputs (buy/sell)
+
+If triggered:
+
+regenerate with safer framing
+
+Enterprise audit log
+
+Store:
+
+user prompt
+
+context snapshot hash
+
+retrieved docs list
+
+final answer
+This becomes a selling point.
+
+6) Monetization Trigger Logic (Best psychological conversion)
+Trigger types
+
+Hard lock (feature not available)
+
+Soft lock (teaser + partial answer)
+
+Rate limit (you used 3/3 today)
+
+Depth lock (you can answer but not with full details)
+
+Best conversion pattern: “Answer → Then lock the next layer”
+
+Example (Free user asks: “Why EGSI jumped today?”)
+
+Give:
+
+Basic explanation (pillars)
+Then:
+
+“Top contributor alerts are a Pro feature.”
+
+Upgrade prompt copy (high-performing style)
+
+Use:
+
+“Unlock today’s driver attribution”
+
+“See which alerts moved EGSI”
+
+“Get cross-index + asset divergence explanations”
+
+“Turn raw alerts into a 60-second brief”
+
+Upgrade UI
+
+3 bullets max
+
+1 screenshot thumbnail (bot showing deep answer)
+
+“Upgrade to Trader / Pro” CTA
