@@ -143,6 +143,31 @@ def update_plan_allowance(user_id: int, plan: str):
         """, (new_allowance, user_id))
 
 
+def reset_monthly_allowance_on_payment(user_id: int, plan: str, invoice_id: str):
+    existing = execute_query(
+        "SELECT id FROM eriq_token_ledger WHERE source = 'stripe_renewal' AND ref_info = %s",
+        (f"invoice:{invoice_id}",)
+    )
+    if existing:
+        logger.info(f"Token allowance already granted for invoice {invoice_id}, skipping")
+        return
+
+    allowance = PLAN_TOKEN_ALLOWANCE.get(plan, 100_000)
+    ensure_token_balance(user_id, plan)
+
+    now = datetime.now(timezone.utc)
+    with get_cursor() as cur:
+        cur.execute("""
+            UPDATE eriq_token_balances
+            SET allowance_remaining = %s, plan_monthly_allowance = %s,
+                period_start = %s, updated_at = NOW()
+            WHERE user_id = %s
+        """, (allowance, allowance, now, user_id))
+        _log_ledger(cur, user_id, allowance, "stripe_renewal", f"invoice:{invoice_id}")
+
+    logger.info(f"Monthly token allowance reset for user {user_id}: {allowance} tokens (invoice {invoice_id})")
+
+
 def _maybe_reset_monthly(user_id: int, plan: str):
     rows = execute_query("""
         SELECT period_start FROM eriq_token_balances WHERE user_id = %s

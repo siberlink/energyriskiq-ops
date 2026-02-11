@@ -92,6 +92,13 @@ async def handle_checkout_session_completed(session: dict):
             
             apply_plan_settings_to_user(user_id, plan_code)
             logger.info(f"User {user_id} upgraded to {plan_code}")
+
+            try:
+                from src.eriq.tokens import reset_monthly_allowance_on_payment
+                reset_monthly_allowance_on_payment(user_id, plan_code, session["id"])
+                logger.info(f"Initial token allowance granted for user {user_id} on plan {plan_code}")
+            except Exception as e:
+                logger.error(f"Failed to grant initial token allowance for user {user_id}: {e}")
         else:
             logger.error(f"Could not find plan for price {price_id}")
 
@@ -160,6 +167,19 @@ async def handle_invoice_paid(invoice: dict):
                 (user_id,)
             )
         logger.info(f"User {user_id} invoice paid, subscription active")
+
+        try:
+            from src.billing.stripe_client import get_subscription
+            subscription = get_subscription(subscription_id)
+            price_id = subscription["items"]["data"][0]["price"]["id"]
+            plan_code = get_plan_code_from_price_id(price_id)
+
+            if plan_code and plan_code != "free":
+                from src.eriq.tokens import reset_monthly_allowance_on_payment
+                reset_monthly_allowance_on_payment(user_id, plan_code, invoice["id"])
+                logger.info(f"Token allowance reset for user {user_id} on plan {plan_code}")
+        except Exception as e:
+            logger.error(f"Failed to reset token allowance for user {user_id}: {e}")
 
 
 async def handle_invoice_payment_failed(invoice: dict):
