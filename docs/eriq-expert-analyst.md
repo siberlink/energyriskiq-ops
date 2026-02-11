@@ -1097,5 +1097,280 @@ The bot is powerful because of what it receives, not because of what it can acce
 
 ---
 
+## Application Access Map
+
+### Design Principle
+
+ERIQ Analyst should access intelligence layers, interpretation layers, user context layers, historical learning layers, and product usage layers — but never raw ingestion or proprietary formula cores.
+
+With access only to indices and alerts, ERIQ is a good assistant. With access to all recommended application layers, it becomes a category-defining AI risk analyst.
+
+---
+
+## Core Access Domains
+
+### 1. Index Engine Outputs
+
+**ERIQ should access:**
+- Current index values (GERI, EERI, EGSI-M, EGSI-S)
+- Historical index series
+- Pillar contributions and component scores
+- Change drivers (delta attribution)
+- Regime classification outputs
+- Probability engine outputs
+- Divergence residual outputs
+
+**Why this is critical:**
+Allows ERIQ to answer why an index moved, how unusual the move is, whether it signals a regime shift, and how indices relate to each other.
+
+### 2. Alert Intelligence System
+
+One of EnergyRiskIQ's strongest differentiators.
+
+**ERIQ should access:**
+- Alert summaries (headlines, body text)
+- Alert severity scores
+- Alert category tags
+- Alert-to-pillar mappings (which alerts drove which components)
+- Alert persistence and decay metadata
+- Alert clustering results (when available)
+
+**Enables ERIQ to explain:**
+- Which events actually drove risk
+- Why certain headlines may no longer matter (decay)
+- Which signals are noise versus structural shifts
+
+### 3. Asset Intelligence Layer
+
+Transforms ERIQ from a research tool into trading intelligence.
+
+**ERIQ should access:**
+- Asset snapshots (Brent, TTF, VIX, EUR/USD, Storage)
+- Rolling correlations and betas
+- Divergence detection outputs
+- Regime-conditioned asset sensitivity
+- Asset volatility context
+
+**Enables ERIQ to translate:**
+- Risk into market implications
+- Risk-versus-asset disagreements
+- Probabilistic asset pressure narratives
+
+This dramatically increases Trader plan conversion.
+
+### 4. Historical Event and Index Memory Layer
+
+A massive intelligence multiplier.
+
+**ERIQ should access:**
+- Historical high-risk periods
+- Similar pattern detection
+- Past alert clusters
+- Historical regime transitions
+- Historical asset reactions during comparable events
+
+**Enables ERIQ to answer:**
+- "When did we last see this pattern?"
+- "How did markets react historically?"
+- "Is this escalation typical or exceptional?"
+
+This makes ERIQ feel like a senior analyst with institutional memory.
+
+### 5. User Personalization Layer
+
+Underrated but extremely powerful for retention and enterprise stickiness.
+
+**ERIQ should access:**
+- User subscription plan
+- User preferred regions and assets
+- Saved watchlists
+- Past bot conversations (conversation history)
+- User behavior patterns (most viewed indices, most asked questions)
+- Organization portfolios (Enterprise tier)
+
+**Enables ERIQ to provide:**
+- Personalized interpretations tailored to user interests
+- Portfolio-aware narratives
+- Region-specific summaries
+- Smart follow-up questions based on conversation history
+
+### 6. Daily Digest Intelligence System
+
+The engagement engine.
+
+**ERIQ should access:**
+- Digest summaries
+- Narrative structure and section content
+- Highlighted risk drivers
+- Editorial commentary tags
+- Digest-to-index linking (which digest sections reference which indices)
+
+**Enables ERIQ to:**
+- Expand digest analysis on demand
+- Translate digest content into scenario paths
+- Generate custom briefs from digest data
+- Explain the editorial reasoning behind highlighted items
+
+This dramatically improves daily login habit formation.
+
+### 7. Methodology and Knowledge Base (RAG)
+
+The brain of ERIQ.
+
+**ERIQ must access:**
+- GERI methodology documentation
+- EERI methodology documentation
+- EGSI methodology documentation
+- Glossary of terms
+- Interpretation playbook
+- FAQ content
+- Compliance rules and disclaimers
+
+**Enables ERIQ to:**
+- Teach users how the platform works
+- Prevent hallucinations by grounding answers in canonical documentation
+- Maintain brand authority and consistency
+- Reduce support load by answering methodology questions directly
+
+### 8. Model Confidence and Data Quality Layer
+
+An enterprise trust booster.
+
+**ERIQ should access:**
+- Feed completeness indicators
+- Model confidence scores
+- Uncertainty markers
+- Missing data flags
+- Outlier detection outputs
+
+**Enables ERIQ to say:**
+- "Confidence is reduced today because storage data is incomplete."
+- "This reading should be interpreted with caution — two of five asset feeds were unavailable."
+
+Enterprise clients value this transparency highly.
+
+### 9. Plan Entitlement and Monetization Engine
+
+Revenue-critical.
+
+**ERIQ should access:**
+- Feature entitlements for the current user
+- Usage quotas (questions remaining today)
+- Upgrade eligibility
+- Feature lock metadata (which features are gated at this plan level)
+
+**Enables ERIQ to:**
+- Tailor answer depth per plan automatically
+- Trigger upgrade prompts naturally at the right moments
+- Avoid accidental data leakage to lower-tier users
+
+### 10. Product Analytics and Feedback Layer
+
+A secret weapon most SaaS platforms ignore.
+
+**ERIQ should access:**
+- Most frequently asked questions
+- Failed interpretations (low-satisfaction responses)
+- User feedback tags (thumbs up/down with reasons)
+- Feature usage patterns across the platform
+
+**Enables ERIQ to:**
+- Improve its own responses over time
+- Guide the product roadmap based on what users actually want
+- Identify gaps in documentation or methodology explanations
+
+---
+
+## Bonus Access Domains (Advanced — Future Value)
+
+### 11. Scenario Simulation Engine
+
+If implemented in a future phase, ERIQ could:
+- Run "what if" simulations based on hypothetical events
+- Stress-test alert escalation paths
+- Forecast regime transition probabilities under different assumptions
+
+Enterprise clients pay heavily for scenario simulation capability.
+
+### 12. Content Generation and Reporting Layer
+
+ERIQ could auto-create:
+- Executive briefs for board-level consumption
+- Trading briefs for desk distribution
+- Risk committee summaries
+- Weekly geopolitical outlooks
+
+### 13. Cross-Index Interaction Models
+
+Enables intelligence such as:
+- "An EGSI spike of this magnitude increases the probability of EERI escalation within 48 hours"
+- "Historical patterns suggest GERI readings above 65 precede TTF volatility expansion by 2-3 trading days"
+
+This is a significant differentiation feature in the competitive landscape.
+
+---
+
+## Restricted Access (What ERIQ Must Never Access)
+
+For security and intellectual property protection:
+
+- Raw ingestion feeds (unprocessed RSS, API responses)
+- Raw scoring algorithms and internal computation logic
+- Internal weighting formulas and calibration parameters
+- Other users' sensitive data (watchlists, portfolios, preferences)
+- Admin debugging systems and internal diagnostics
+- Pre-validation model outputs (intermediate calculations before quality checks)
+
+---
+
+## Final Access Architecture
+
+```
+[Application Modules]
+         ↓
+[Analytics & Model Output Services]
+         ↓
+[Context Assembly Layer (CAL)]
+         ↓
+[Entitlement Guardrail Layer]
+         ↓
+[ERIQ Analyst]
+         ↓
+[User]
+```
+
+---
+
+## Integration Priority Order
+
+Recommended sequence for connecting application layers to ERIQ:
+
+| Priority | Domain | Impact |
+|----------|--------|--------|
+| 1 | Index engine outputs | Core functionality — ERIQ cannot operate without this |
+| 2 | Alert intelligence | Primary driver explanation capability |
+| 3 | Asset intelligence | Trading relevance and Trader plan conversion |
+| 4 | Methodology knowledge base | Hallucination prevention and education |
+| 5 | User personalization | Retention and enterprise stickiness |
+| 6 | Historical pattern memory | Senior analyst-level depth |
+| 7 | Daily digest system | Engagement and daily habit formation |
+| 8 | Confidence and quality layer | Enterprise trust and transparency |
+| 9 | Monetization engine | Revenue optimization and plan gating |
+| 10 | Analytics feedback layer | Continuous improvement and product intelligence |
+
+---
+
+## Strategic Assessment
+
+| Access Level | Result |
+|-------------|--------|
+| Indices + Alerts only | Good assistant |
+| All 10 recommended layers | Category-defining AI risk analyst |
+| All 10 + bonus domains (Scenarios, Reports, Cross-Index Models) | Enterprise-grade decision-support platform |
+
+ERIQ evolves into: an interpretation engine, a personalized analyst, a risk education platform, a conversion engine, an enterprise knowledge assistant, and a product intelligence feedback loop.
+
+---
+
 *ERIQ Expert Analyst — EnergyRiskIQ Interpretation Intelligence Layer*
-*Document Version: v4 | February 2026*
+*Document Version: v5 | February 2026*
