@@ -129,6 +129,7 @@ def build_context(user_id: int, plan: str, question: str) -> dict:
         "correlations": None,
         "betas": None,
         "data_quality": {},
+        "analytics_insights": None,
     }
 
     try:
@@ -147,6 +148,7 @@ def build_context(user_id: int, plan: str, question: str) -> dict:
             ctx["betas"] = _compute_betas(ctx)
 
         ctx["data_quality"] = _assess_data_quality(ctx)
+        ctx["analytics_insights"] = _get_analytics_insights()
 
     except Exception as e:
         logger.error(f"Error building ERIQ context for user {user_id}: {e}", exc_info=True)
@@ -758,6 +760,58 @@ def _egsi_band(value: float) -> str:
     return "LOW"
 
 
+def _get_analytics_insights() -> dict:
+    try:
+        top_questions = execute_production_query("""
+            SELECT question, COUNT(*) as ask_count
+            FROM eriq_conversations
+            WHERE success = true AND created_at > NOW() - INTERVAL '14 days'
+            GROUP BY question
+            ORDER BY ask_count DESC
+            LIMIT 10
+        """)
+
+        low_satisfaction = execute_production_query("""
+            SELECT intent, mode, COUNT(*) as count,
+                   ROUND(AVG(rating)::numeric, 2) as avg_rating
+            FROM eriq_conversations
+            WHERE rating IS NOT NULL AND rating <= 2
+                  AND created_at > NOW() - INTERVAL '14 days'
+            GROUP BY intent, mode
+            ORDER BY count DESC
+            LIMIT 5
+        """)
+
+        tag_summary = execute_production_query("""
+            SELECT unnest(feedback_tags) as tag, COUNT(*) as count
+            FROM eriq_conversations
+            WHERE feedback_tags IS NOT NULL AND feedback_tags != '{}'
+                  AND created_at > NOW() - INTERVAL '14 days'
+            GROUP BY tag
+            ORDER BY count DESC
+            LIMIT 8
+        """)
+
+        return {
+            "frequently_asked": [
+                {"question": r["question"], "count": r["ask_count"]}
+                for r in (top_questions or [])
+            ],
+            "low_satisfaction_patterns": [
+                {"intent": r["intent"], "mode": r["mode"], "count": r["count"],
+                 "avg_rating": float(r["avg_rating"]) if r.get("avg_rating") else None}
+                for r in (low_satisfaction or [])
+            ],
+            "feedback_tags": [
+                {"tag": r["tag"], "count": r["count"]}
+                for r in (tag_summary or [])
+            ],
+        }
+    except Exception as e:
+        logger.warning(f"Analytics insights unavailable: {e}")
+        return None
+
+
 def format_context_for_prompt(ctx: dict) -> str:
     parts = []
     parts.append(f"=== ERIQ LIVE CONTEXT SNAPSHOT ({ctx['timestamp']}) ===")
@@ -886,5 +940,20 @@ def format_context_for_prompt(ctx: dict) -> str:
         parts.append(f"\n--- DATA QUALITY: {dq.get('overall', 'unknown').upper()} ---")
         for issue in dq["issues"]:
             parts.append(f"  Warning: {issue}")
+
+    analytics = ctx.get("analytics_insights")
+    if analytics:
+        parts.append("\n--- ANALYTICS INSIGHTS (Self-Improvement Context) ---")
+        if analytics.get("frequently_asked"):
+            parts.append("Most frequently asked questions (last 14 days):")
+            for faq in analytics["frequently_asked"][:5]:
+                parts.append(f"  [{faq['count']}x] {faq['question']}")
+        if analytics.get("low_satisfaction_patterns"):
+            parts.append("Low-satisfaction patterns:")
+            for lsp in analytics["low_satisfaction_patterns"]:
+                parts.append(f"  intent={lsp['intent']}, mode={lsp['mode']}, count={lsp['count']}, avg_rating={lsp['avg_rating']}")
+        if analytics.get("feedback_tags"):
+            tags_str = ", ".join(f"{t['tag']}({t['count']})" for t in analytics["feedback_tags"])
+            parts.append(f"Feedback tag distribution: {tags_str}")
 
     return "\n".join(parts)

@@ -1527,6 +1527,18 @@ def run_eriq_migration():
                 CREATE INDEX IF NOT EXISTS idx_eriq_conv_created
                 ON eriq_conversations (created_at)
             """)
+            cursor.execute("""
+                ALTER TABLE eriq_conversations
+                ADD COLUMN IF NOT EXISTS feedback_tags TEXT[] DEFAULT '{}'
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_eriq_conv_rating
+                ON eriq_conversations (rating) WHERE rating IS NOT NULL
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_eriq_conv_intent
+                ON eriq_conversations (intent)
+            """)
             logger.info("ERIQ conversations table migration completed")
     except Exception as e:
         logger.warning(f"ERIQ migration skipped: {e}")
