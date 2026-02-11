@@ -178,7 +178,7 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
     try:
         client = get_openai_client()
         response = client.chat.completions.create(
-            model="gpt-4.1-mini",
+            model="gpt-5.1",
             messages=messages,
             max_tokens=config["max_response_tokens"],
             temperature=0.4,
