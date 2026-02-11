@@ -1498,3 +1498,35 @@ def _recalculate_stale_bands():
             logger.info("Band recalculation: all bands are correct.")
     except Exception as e:
         logger.warning(f"Band recalculation skipped: {e}")
+
+
+def run_eriq_migration():
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS eriq_conversations (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    question TEXT NOT NULL,
+                    response TEXT,
+                    intent VARCHAR(50),
+                    mode VARCHAR(30),
+                    plan VARCHAR(30),
+                    tokens_used INTEGER DEFAULT 0,
+                    rating INTEGER,
+                    feedback_comment TEXT,
+                    success BOOLEAN DEFAULT true,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_eriq_conv_user_date
+                ON eriq_conversations (user_id, created_at)
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_eriq_conv_created
+                ON eriq_conversations (created_at)
+            """)
+            logger.info("ERIQ conversations table migration completed")
+    except Exception as e:
+        logger.warning(f"ERIQ migration skipped: {e}")
