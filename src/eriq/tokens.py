@@ -168,6 +168,57 @@ def reset_monthly_allowance_on_payment(user_id: int, plan: str, invoice_id: str)
     logger.info(f"Monthly token allowance reset for user {user_id}: {allowance} tokens (invoice {invoice_id})")
 
 
+def handle_plan_upgrade_tokens(user_id: int, new_plan: str, subscription_id: str):
+    new_allowance = PLAN_TOKEN_ALLOWANCE.get(new_plan, 100_000)
+    ensure_token_balance(user_id, new_plan)
+
+    now = datetime.now(timezone.utc)
+    ref_key = f"upgrade:{subscription_id}:{new_plan}:{now.strftime('%Y-%m')}"
+    existing = execute_query(
+        "SELECT id FROM eriq_token_ledger WHERE source = 'plan_upgrade' AND ref_info = %s",
+        (ref_key,)
+    )
+    if existing:
+        logger.info(f"Upgrade tokens already granted for {ref_key}, skipping")
+        return
+
+    rows = execute_query("""
+        SELECT plan_monthly_allowance, allowance_remaining
+        FROM eriq_token_balances WHERE user_id = %s
+    """, (user_id,))
+
+    if not rows:
+        return
+
+    old_allowance = rows[0]["plan_monthly_allowance"]
+    current_remaining = rows[0]["allowance_remaining"]
+
+    if new_allowance <= old_allowance:
+        clamped = min(current_remaining, new_allowance)
+        with get_cursor() as cur:
+            cur.execute("""
+                UPDATE eriq_token_balances
+                SET plan_monthly_allowance = %s, allowance_remaining = %s, updated_at = NOW()
+                WHERE user_id = %s
+            """, (new_allowance, clamped, user_id))
+        logger.info(f"Plan downgrade for user {user_id}: allowance cap updated to {new_allowance}, remaining clamped to {clamped}")
+        return
+
+    bonus = new_allowance - old_allowance
+
+    with get_cursor() as cur:
+        cur.execute("""
+            UPDATE eriq_token_balances
+            SET plan_monthly_allowance = %s,
+                allowance_remaining = allowance_remaining + %s,
+                updated_at = NOW()
+            WHERE user_id = %s
+        """, (new_allowance, bonus, user_id))
+        _log_ledger(cur, user_id, bonus, "plan_upgrade", ref_key)
+
+    logger.info(f"Plan upgrade for user {user_id}: +{bonus} tokens (old={old_allowance}, new={new_allowance})")
+
+
 def _maybe_reset_monthly(user_id: int, plan: str):
     rows = execute_query("""
         SELECT period_start FROM eriq_token_balances WHERE user_id = %s

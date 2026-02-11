@@ -127,6 +127,12 @@ async def handle_subscription_updated(subscription: dict):
         apply_plan_settings_to_user(user_id, plan_code)
         logger.info(f"User {user_id} subscription updated to {plan_code} (status: {subscription['status']})")
 
+        try:
+            from src.eriq.tokens import handle_plan_upgrade_tokens
+            handle_plan_upgrade_tokens(user_id, plan_code, subscription["id"])
+        except Exception as e:
+            logger.error(f"Failed to adjust tokens on plan change for user {user_id}: {e}")
+
 
 async def handle_subscription_deleted(subscription: dict):
     logger.info(f"Processing customer.subscription.deleted: {subscription['id']}")
