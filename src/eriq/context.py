@@ -1,7 +1,8 @@
+import json
 import logging
 from datetime import datetime, timedelta, date
 from typing import Optional
-from src.db.db import execute_query, execute_one
+from src.db.db import execute_query, execute_one, execute_production_query, execute_production_one
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +103,19 @@ def get_questions_used_today(user_id: int) -> int:
     return row["cnt"] if row else 0
 
 
+def _parse_json(val):
+    if val is None:
+        return None
+    if isinstance(val, dict) or isinstance(val, list):
+        return val
+    if isinstance(val, str):
+        try:
+            return json.loads(val)
+        except Exception:
+            return None
+    return None
+
+
 def build_context(user_id: int, plan: str, question: str) -> dict:
     config = get_plan_config(plan)
     ctx = {
@@ -135,7 +149,7 @@ def build_context(user_id: int, plan: str, question: str) -> dict:
         ctx["data_quality"] = _assess_data_quality(ctx)
 
     except Exception as e:
-        logger.error(f"Error building ERIQ context for user {user_id}: {e}")
+        logger.error(f"Error building ERIQ context for user {user_id}: {e}", exc_info=True)
         ctx["data_quality"]["error"] = str(e)
 
     return ctx
@@ -143,19 +157,30 @@ def build_context(user_id: int, plan: str, question: str) -> dict:
 
 def _get_geri_context(config: dict) -> dict:
     days = min(config["history_days"], 90)
-    rows = execute_query("""
-        SELECT date, value, band, trend_1d, trend_7d, interpretation, components
-        FROM intel_indices_daily
-        WHERE index_id = 'geri'
-        ORDER BY date DESC
-        LIMIT %s
-    """, (days,))
+    if config.get("delayed"):
+        rows = execute_production_query("""
+            SELECT date, value, band, trend_1d, trend_7d, interpretation, components
+            FROM intel_indices_daily
+            WHERE index_id = 'global:geo_energy_risk' AND date < CURRENT_DATE
+            ORDER BY date DESC
+            LIMIT %s
+        """, (days,))
+    else:
+        rows = execute_production_query("""
+            SELECT date, value, band, trend_1d, trend_7d, interpretation, components
+            FROM intel_indices_daily
+            WHERE index_id = 'global:geo_energy_risk'
+            ORDER BY date DESC
+            LIMIT %s
+        """, (days,))
     if not rows:
         return {"available": False}
 
     latest = dict(rows[0])
     val = float(latest.get("value", 0))
     latest["band"] = _geri_band(val)
+    components = _parse_json(latest.get("components"))
+
     result = {
         "available": True,
         "current": {
@@ -169,15 +194,44 @@ def _get_geri_context(config: dict) -> dict:
         "history": [],
     }
 
-    if config.get("show_pillars") and latest.get("components"):
-        import json
-        comps = latest["components"]
-        if isinstance(comps, str):
-            try:
-                comps = json.loads(comps)
-            except Exception:
-                comps = {}
-        result["current"]["pillars"] = comps
+    if config.get("show_pillars") and components:
+        normalized = components.get("normalized", {})
+        weights = components.get("weights", {})
+        result["current"]["pillars"] = {
+            "high_impact": {"value": normalized.get("high_impact", 0), "weight": weights.get("high_impact", 0.4)},
+            "regional_spike": {"value": normalized.get("regional_spike", 0), "weight": weights.get("regional_spike", 0.25)},
+            "region_concentration": {"value": normalized.get("region_concentration", 0), "weight": weights.get("region_concentration", 0.15)},
+            "asset_risk": {"value": normalized.get("asset_risk", 0), "weight": weights.get("asset_risk", 0.2)},
+        }
+        result["current"]["total_alerts"] = components.get("total_alerts", 0)
+        result["current"]["avg_severity"] = components.get("avg_severity", 0)
+
+    if config.get("show_drivers") and components:
+        top_drivers = components.get("top_drivers", [])
+        result["current"]["top_drivers"] = []
+        for d in top_drivers[:7]:
+            result["current"]["top_drivers"].append({
+                "headline": d.get("headline", ""),
+                "category": d.get("category", ""),
+                "region": d.get("region", ""),
+                "cluster": d.get("cluster", ""),
+                "severity": d.get("severity", 0),
+                "risk_score": round(d.get("risk_score", 0), 3),
+            })
+        top_regions = components.get("top_regions", [])
+        result["current"]["top_regions"] = top_regions[:5]
+        regional_weighting = components.get("regional_weighting", {})
+        if regional_weighting:
+            dist = regional_weighting.get("distribution", {})
+            result["current"]["regional_distribution"] = {
+                k: {"share_pct": v.get("share_pct", 0), "alert_count": v.get("alert_count", 0)}
+                for k, v in dist.items()
+            }
+
+    if config.get("show_regime") and components:
+        result["current"]["asset_spikes"] = components.get("asset_spikes", 0)
+        result["current"]["regional_spikes"] = components.get("regional_spikes", 0)
+        result["current"]["insufficient_history"] = components.get("insufficient_history", False)
 
     for r in rows[1:]:
         v = float(r.get("value", 0))
@@ -185,6 +239,7 @@ def _get_geri_context(config: dict) -> dict:
             "date": str(r.get("date", "")),
             "value": v,
             "band": _geri_band(v),
+            "trend_1d": float(r.get("trend_1d", 0) or 0),
         })
 
     return result
@@ -192,19 +247,31 @@ def _get_geri_context(config: dict) -> dict:
 
 def _get_eeri_context(config: dict) -> dict:
     days = min(config["history_days"], 90)
-    rows = execute_query("""
-        SELECT date, value, band, trend_1d, trend_7d, interpretation, components, drivers
-        FROM reri_indices_daily
-        WHERE index_id = 'europe:eeri'
-        ORDER BY date DESC
-        LIMIT %s
-    """, (days,))
+    if config.get("delayed"):
+        rows = execute_production_query("""
+            SELECT date, value, band, trend_1d, trend_7d, interpretation, components, drivers
+            FROM reri_indices_daily
+            WHERE index_id = 'europe:eeri' AND date < CURRENT_DATE
+            ORDER BY date DESC
+            LIMIT %s
+        """, (days,))
+    else:
+        rows = execute_production_query("""
+            SELECT date, value, band, trend_1d, trend_7d, interpretation, components, drivers
+            FROM reri_indices_daily
+            WHERE index_id = 'europe:eeri'
+            ORDER BY date DESC
+            LIMIT %s
+        """, (days,))
     if not rows:
         return {"available": False}
 
     latest = dict(rows[0])
     val = float(latest.get("value", 0))
     latest["band"] = _eeri_band(val)
+    components = _parse_json(latest.get("components"))
+    drivers_raw = _parse_json(latest.get("drivers"))
+
     result = {
         "available": True,
         "current": {
@@ -218,25 +285,29 @@ def _get_eeri_context(config: dict) -> dict:
         "history": [],
     }
 
-    if config.get("show_pillars") and latest.get("components"):
-        import json
-        comps = latest["components"]
-        if isinstance(comps, str):
-            try:
-                comps = json.loads(comps)
-            except Exception:
-                comps = {}
-        result["current"]["pillars"] = comps
+    if config.get("show_pillars") and components:
+        weights = components.get("weights", {})
+        result["current"]["pillars"] = {}
+        for key in ["reri_eu", "theme_pressure", "asset_transmission", "contagion"]:
+            comp_data = components.get(key, {})
+            if isinstance(comp_data, dict):
+                result["current"]["pillars"][key] = {
+                    "value": comp_data.get("value", comp_data.get("raw", 0)),
+                    "normalized": comp_data.get("normalized", 0),
+                    "weight": weights.get(key, 0),
+                }
 
-    if config.get("show_drivers") and latest.get("drivers"):
-        import json
-        drivers = latest["drivers"]
-        if isinstance(drivers, str):
-            try:
-                drivers = json.loads(drivers)
-            except Exception:
-                drivers = []
-        result["current"]["drivers"] = drivers
+    if config.get("show_drivers") and drivers_raw:
+        result["current"]["top_drivers"] = []
+        driver_list = drivers_raw if isinstance(drivers_raw, list) else components.get("top_drivers", [])
+        for d in driver_list[:7]:
+            result["current"]["top_drivers"].append({
+                "headline": d.get("headline", ""),
+                "category": d.get("category", ""),
+                "severity": d.get("severity", 0),
+                "score": round(d.get("score", 0), 3),
+                "confidence": d.get("confidence", 0),
+            })
 
     for r in rows[1:]:
         v = float(r.get("value", 0))
@@ -244,6 +315,7 @@ def _get_eeri_context(config: dict) -> dict:
             "date": str(r.get("date", "")),
             "value": v,
             "band": _eeri_band(v),
+            "trend_1d": float(r.get("trend_1d", 0) or 0),
         })
 
     return result
@@ -251,18 +323,31 @@ def _get_eeri_context(config: dict) -> dict:
 
 def _get_egsi_m_context(config: dict) -> dict:
     days = min(config["history_days"], 90)
-    rows = execute_query("""
-        SELECT index_date as date, index_value as value, band, trend_1d, trend_7d, interpretation
-        FROM egsi_m_daily
-        ORDER BY index_date DESC
-        LIMIT %s
-    """, (days,))
+    if config.get("delayed"):
+        rows = execute_production_query("""
+            SELECT index_date as date, index_value as value, band, trend_1d, trend_7d,
+                   interpretation, components_json
+            FROM egsi_m_daily
+            WHERE index_date < CURRENT_DATE
+            ORDER BY index_date DESC
+            LIMIT %s
+        """, (days,))
+    else:
+        rows = execute_production_query("""
+            SELECT index_date as date, index_value as value, band, trend_1d, trend_7d,
+                   interpretation, components_json
+            FROM egsi_m_daily
+            ORDER BY index_date DESC
+            LIMIT %s
+        """, (days,))
     if not rows:
         return {"available": False}
 
     latest = dict(rows[0])
     val = float(latest.get("value", 0))
     latest["band"] = _egsi_band(val)
+    components = _parse_json(latest.get("components_json"))
+
     result = {
         "available": True,
         "current": {
@@ -275,6 +360,31 @@ def _get_egsi_m_context(config: dict) -> dict:
         },
         "history": [],
     }
+
+    if config.get("show_pillars") and components:
+        weights = components.get("weights", {})
+        result["current"]["pillars"] = {}
+        for key in ["reri_eu", "theme_pressure", "chokepoint_factor", "asset_transmission"]:
+            comp_data = components.get(key, {})
+            if isinstance(comp_data, dict):
+                result["current"]["pillars"][key] = {
+                    "raw": comp_data.get("raw", 0),
+                    "normalized": comp_data.get("normalized", 0),
+                    "contribution": comp_data.get("contribution", 0),
+                    "weight": weights.get(key, 0),
+                }
+
+    if config.get("show_drivers") and components:
+        top_drivers = components.get("top_drivers", [])
+        result["current"]["top_drivers"] = []
+        for d in top_drivers[:5]:
+            result["current"]["top_drivers"].append({
+                "headline": d.get("headline", ""),
+                "category": d.get("category", ""),
+                "region": d.get("region", ""),
+                "severity": d.get("severity", 0),
+                "score": round(d.get("score", 0), 3),
+            })
 
     for r in rows[1:]:
         v = float(r.get("value", 0))
@@ -289,18 +399,31 @@ def _get_egsi_m_context(config: dict) -> dict:
 
 def _get_egsi_s_context(config: dict) -> dict:
     days = min(config["history_days"], 90)
-    rows = execute_query("""
-        SELECT index_date as date, index_value as value, band, trend_1d, trend_7d, interpretation
-        FROM egsi_s_daily
-        ORDER BY index_date DESC
-        LIMIT %s
-    """, (days,))
+    if config.get("delayed"):
+        rows = execute_production_query("""
+            SELECT index_date as date, index_value as value, band, trend_1d, trend_7d,
+                   interpretation, components_json
+            FROM egsi_s_daily
+            WHERE index_date < CURRENT_DATE
+            ORDER BY index_date DESC
+            LIMIT %s
+        """, (days,))
+    else:
+        rows = execute_production_query("""
+            SELECT index_date as date, index_value as value, band, trend_1d, trend_7d,
+                   interpretation, components_json
+            FROM egsi_s_daily
+            ORDER BY index_date DESC
+            LIMIT %s
+        """, (days,))
     if not rows:
         return {"available": False}
 
     latest = dict(rows[0])
     val = float(latest.get("value", 0))
     latest["band"] = _egsi_band(val)
+    components = _parse_json(latest.get("components_json"))
+
     result = {
         "available": True,
         "current": {
@@ -313,6 +436,25 @@ def _get_egsi_s_context(config: dict) -> dict:
         },
         "history": [],
     }
+
+    if config.get("show_pillars") and components:
+        result["current"]["pillars"] = {}
+        for key in ["storage", "flows", "price", "alerts", "winter_readiness"]:
+            comp_data = components.get(key, {})
+            if isinstance(comp_data, dict):
+                result["current"]["pillars"][key] = {
+                    "contribution": comp_data.get("contribution", 0),
+                }
+                if key == "storage":
+                    result["current"]["pillars"][key]["level_pct"] = comp_data.get("level_pct", 0)
+                    result["current"]["pillars"][key]["target_pct"] = comp_data.get("target_pct", 0)
+                    result["current"]["pillars"][key]["stress_raw"] = comp_data.get("stress_raw", 0)
+                elif key == "price":
+                    result["current"]["pillars"][key]["ttf_current"] = comp_data.get("ttf_current", 0)
+                    result["current"]["pillars"][key]["ttf_ma7"] = comp_data.get("ttf_ma7", 0)
+                    result["current"]["pillars"][key]["volatility_raw"] = comp_data.get("volatility_raw", 0)
+                elif key == "flows":
+                    result["current"]["pillars"][key]["injection_rate"] = comp_data.get("injection_rate", 0)
 
     for r in rows[1:]:
         v = float(r.get("value", 0))
@@ -328,58 +470,69 @@ def _get_egsi_s_context(config: dict) -> dict:
 def _get_alerts_context(config: dict) -> list:
     limit = config["alert_limit"]
     if config.get("delayed"):
-        start = date.today() - timedelta(days=2)
-        end = date.today() - timedelta(days=1)
+        rows = execute_production_query("""
+            SELECT id, alert_type, scope_region, scope_assets, severity, headline,
+                   category, confidence, created_at, classification
+            FROM alert_events
+            WHERE created_at < NOW() - INTERVAL '24 hours'
+            ORDER BY created_at DESC, severity DESC
+            LIMIT %s
+        """, (limit,))
     else:
-        start = date.today() - timedelta(days=1)
-        end = date.today() + timedelta(days=1)
-
-    rows = execute_query("""
-        SELECT id, alert_type, scope_region, scope_assets, severity, headline, body,
-               category, confidence, created_at, classification
-        FROM alert_events
-        WHERE created_at >= %s AND created_at < %s
-        ORDER BY severity DESC, created_at DESC
-        LIMIT %s
-    """, (start, end, limit))
+        rows = execute_production_query("""
+            SELECT id, alert_type, scope_region, scope_assets, severity, headline,
+                   category, confidence, created_at, classification
+            FROM alert_events
+            ORDER BY created_at DESC, severity DESC
+            LIMIT %s
+        """, (limit,))
 
     if not rows:
         return []
 
     alerts = []
     for r in rows:
+        assets_val = r.get("scope_assets")
+        if isinstance(assets_val, list):
+            assets_list = assets_val
+        elif isinstance(assets_val, str) and assets_val.startswith("{"):
+            assets_list = [a.strip() for a in assets_val.strip("{}").split(",") if a.strip()]
+        else:
+            assets_list = []
+
         alerts.append({
             "headline": r["headline"],
             "severity": r["severity"],
-            "category": r["category"],
-            "region": r["scope_region"],
-            "assets": r["scope_assets"] if r["scope_assets"] else [],
-            "confidence": float(r["confidence"]) if r["confidence"] else 0,
-            "classification": r.get("classification"),
-            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            "category": r.get("category", ""),
+            "region": r.get("scope_region", "Global"),
+            "alert_type": r.get("alert_type", ""),
+            "assets": assets_list,
+            "confidence": float(r["confidence"]) if r.get("confidence") else 0,
+            "classification": r.get("classification", ""),
+            "created_at": r["created_at"].isoformat() if r.get("created_at") else None,
         })
     return alerts
 
 
 def _get_asset_context(config: dict) -> dict:
     days = config["asset_days"]
-    brent = execute_query(
-        "SELECT date, brent_price, brent_change_pct FROM oil_price_snapshots ORDER BY date DESC LIMIT %s",
+    brent = execute_production_query(
+        "SELECT date, brent_price, brent_change_pct, wti_price, brent_wti_spread FROM oil_price_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    ttf = execute_query(
+    ttf = execute_production_query(
         "SELECT date, ttf_price FROM ttf_gas_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    vix = execute_query(
+    vix = execute_production_query(
         "SELECT date, vix_close FROM vix_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    eurusd = execute_query(
+    eurusd = execute_production_query(
         "SELECT date, rate FROM eurusd_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    storage = execute_query(
+    storage = execute_production_query(
         "SELECT date, eu_storage_percent, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
@@ -391,12 +544,13 @@ def _get_asset_context(config: dict) -> dict:
         for r in rows:
             entry = {"date": str(r.get("date", ""))}
             for f in fields:
-                entry[f] = float(r[f]) if r.get(f) is not None else None
+                v = r.get(f)
+                entry[f] = float(v) if v is not None else None
             result.append(entry)
         return result
 
     assets = {
-        "brent": fmt(brent, ["brent_price", "brent_change_pct"]),
+        "brent": fmt(brent, ["brent_price", "brent_change_pct", "wti_price", "brent_wti_spread"]),
         "ttf": fmt(ttf, ["ttf_price"]),
         "vix": fmt(vix, ["vix_close"]),
         "eurusd": fmt(eurusd, ["rate"]),
@@ -435,11 +589,12 @@ def _compute_risk_tone(geri: Optional[dict]) -> Optional[dict]:
 def _compute_regime(ctx: dict) -> Optional[str]:
     geri = ctx["indices"].get("geri", {})
     eeri = ctx["indices"].get("eeri", {})
-    if not geri.get("available") or not eeri.get("available"):
+    egsi_s = ctx["indices"].get("egsi_s", {})
+    if not geri.get("available"):
         return None
 
     geri_val = geri["current"]["value"]
-    eeri_val = eeri["current"]["value"]
+    eeri_val = eeri["current"]["value"] if eeri.get("available") else 0
 
     vix_val = 0
     vix_data = ctx["assets"].get("vix", [])
@@ -451,10 +606,14 @@ def _compute_regime(ctx: dict) -> Optional[str]:
     if storage_data:
         storage_pct = storage_data[0].get("eu_storage_percent")
 
+    egsi_s_val = egsi_s["current"]["value"] if egsi_s.get("available") else 0
+
     if geri_val >= 70 and vix_val >= 25:
         return "Shock"
-    if eeri_val >= 70 and storage_pct and storage_pct < 40:
+    if egsi_s_val >= 60 and storage_pct and storage_pct < 40:
         return "Gas-Storage Stress"
+    if eeri_val >= 70:
+        return "European Energy Crisis"
     if geri_val >= 50 and vix_val >= 20:
         return "Risk Build"
     if geri_val >= 50:
@@ -472,14 +631,14 @@ def _compute_correlations(ctx: dict) -> Optional[dict]:
     if len(geri_history) < 7:
         return None
 
-    geri_values = [float(g.get("value", 0)) for g in geri_history[:7]]
+    geri_values = [float(g.get("value", 0)) for g in geri_history[:14]]
     assets = ctx["assets"]
     correlations = {}
 
     for key, field in [("brent", "brent_price"), ("ttf", "ttf_price"), ("vix", "vix_close")]:
         data = assets.get(key, [])
         if len(data) >= 7:
-            asset_values = [float(d.get(field, 0) or 0) for d in data[:7]]
+            asset_values = [float(d.get(field, 0) or 0) for d in data[:14]]
             n = min(len(geri_values), len(asset_values))
             if n < 5:
                 continue
@@ -529,11 +688,22 @@ def _compute_betas(ctx: dict) -> Optional[dict]:
 
 
 def _assess_data_quality(ctx: dict) -> dict:
-    quality = {"overall": "good", "issues": []}
+    quality = {"overall": "good", "issues": [], "available_indices": []}
 
     for idx_name in ["geri", "eeri", "egsi_m", "egsi_s"]:
         idx = ctx["indices"].get(idx_name, {})
-        if not idx.get("available"):
+        if idx.get("available"):
+            quality["available_indices"].append(idx_name.upper())
+            cur_date = idx["current"].get("date", "")
+            if cur_date:
+                try:
+                    d = datetime.strptime(cur_date, "%Y-%m-%d").date()
+                    age = (date.today() - d).days
+                    if age > 2:
+                        quality["issues"].append(f"{idx_name.upper()} data is {age} days old")
+                except Exception:
+                    pass
+        else:
             quality["issues"].append(f"{idx_name.upper()} data unavailable")
 
     for asset_name in ["brent", "ttf", "vix", "eurusd", "storage"]:
@@ -590,55 +760,103 @@ def _egsi_band(value: float) -> str:
 
 def format_context_for_prompt(ctx: dict) -> str:
     parts = []
-    parts.append(f"=== ERIQ CONTEXT SNAPSHOT ({ctx['timestamp']}) ===")
+    parts.append(f"=== ERIQ LIVE CONTEXT SNAPSHOT ({ctx['timestamp']}) ===")
     parts.append(f"User Plan: {ctx['plan'].upper()}")
 
     if ctx.get("risk_tone"):
         parts.append(f"Overall Risk Tone: {ctx['risk_tone']['tone']}")
     if ctx.get("regime"):
-        parts.append(f"Current Regime: {ctx['regime']}")
+        parts.append(f"Current Regime Classification: {ctx['regime']}")
 
-    for idx_key, idx_label in [("geri", "GERI"), ("eeri", "EERI"), ("egsi_m", "EGSI-M"), ("egsi_s", "EGSI-S")]:
+    dq = ctx.get("data_quality", {})
+    if dq.get("available_indices"):
+        parts.append(f"Active Indices: {', '.join(dq['available_indices'])}")
+
+    for idx_key, idx_label in [("geri", "GERI (Global Energy Risk Index)"), ("eeri", "EERI (European Escalation Risk Index)"), ("egsi_m", "EGSI-M (Europe Gas Stress - Market)"), ("egsi_s", "EGSI-S (Europe Gas Stress - System)")]:
         idx = ctx["indices"].get(idx_key, {})
         if idx.get("available"):
             cur = idx["current"]
             parts.append(f"\n--- {idx_label} ---")
-            parts.append(f"Value: {cur['value']:.1f} | Band: {cur['band']} | Date: {cur['date']}")
-            parts.append(f"1-Day Trend: {cur['trend_1d']:+.1f} | 7-Day Trend: {cur['trend_7d']:+.1f}")
+            parts.append(f"Current Value: {cur['value']:.1f} | Band: {cur['band']} | Date: {cur['date']}")
+            parts.append(f"1-Day Change: {cur['trend_1d']:+.1f} | 7-Day Change: {cur['trend_7d']:+.1f}")
+
             if cur.get("interpretation"):
                 interp = cur["interpretation"]
-                if len(interp) > 300:
-                    interp = interp[:300] + "..."
+                if len(interp) > 500:
+                    interp = interp[:500] + "..."
                 parts.append(f"AI Interpretation: {interp}")
+
             if cur.get("pillars"):
                 pillars = cur["pillars"]
-                if isinstance(pillars, dict):
-                    pillar_strs = [f"{k}: {v}" for k, v in pillars.items()]
-                    parts.append(f"Pillar Components: {', '.join(pillar_strs)}")
-            if cur.get("drivers"):
-                drivers = cur["drivers"]
-                if isinstance(drivers, list):
-                    for d in drivers[:5]:
-                        if isinstance(d, dict):
-                            parts.append(f"  Driver: {d.get('label', d.get('headline', str(d)))}")
+                parts.append("Pillar Contributions:")
+                for p_name, p_data in pillars.items():
+                    if isinstance(p_data, dict):
+                        val_str = ""
+                        if "value" in p_data:
+                            val_str = f"value={p_data['value']}"
+                        elif "contribution" in p_data:
+                            val_str = f"contribution={p_data['contribution']}"
+                        if "normalized" in p_data:
+                            val_str += f", normalized={p_data['normalized']}"
+                        if "weight" in p_data:
+                            val_str += f", weight={p_data['weight']}"
+                        if "level_pct" in p_data:
+                            val_str += f", storage_level={p_data['level_pct']}"
+                        if "ttf_current" in p_data:
+                            val_str += f", ttf={p_data['ttf_current']}"
+                        parts.append(f"  {p_name}: {val_str}")
+
+            if cur.get("top_drivers"):
+                parts.append("Top Drivers:")
+                for d in cur["top_drivers"]:
+                    parts.append(f"  [{d.get('severity', 0)}/5] {d.get('headline', '')} (Category: {d.get('category', '')}, Region: {d.get('region', d.get('cluster', 'N/A'))})")
+
+            if cur.get("top_regions"):
+                regions_str = ", ".join([f"{r.get('region', 'N/A')}: {r.get('risk_total', 0):.2f}" for r in cur["top_regions"]])
+                parts.append(f"Top Risk Regions: {regions_str}")
+
+            if cur.get("regional_distribution"):
+                parts.append("Regional Risk Distribution:")
+                for region, rd in cur["regional_distribution"].items():
+                    if rd.get("share_pct", 0) > 1:
+                        parts.append(f"  {region}: {rd['share_pct']:.1f}% ({rd.get('alert_count', 0)} alerts)")
+
+            if cur.get("total_alerts"):
+                parts.append(f"Total Contributing Alerts: {cur['total_alerts']}")
 
             hist = idx.get("history", [])
             if hist:
-                recent = hist[:5]
-                hist_str = ", ".join([f"{h['date']}: {h['value']:.1f}" for h in recent])
+                recent = hist[:7]
+                hist_str = ", ".join([f"{h['date']}: {h['value']:.1f} ({h.get('band', _geri_band(h['value']) if idx_key in ['geri'] else '')})" for h in recent])
                 parts.append(f"Recent History: {hist_str}")
+        else:
+            parts.append(f"\n--- {idx_label} ---")
+            parts.append("Data: Not available")
 
     if ctx.get("alerts"):
-        parts.append(f"\n--- RECENT ALERTS ({len(ctx['alerts'])} total) ---")
-        for a in ctx["alerts"][:10]:
-            parts.append(f"  [{a['severity']}] {a['headline']} (Region: {a.get('region', 'Global')}, Category: {a.get('category', 'N/A')})")
+        parts.append(f"\n--- RECENT ALERTS ({len(ctx['alerts'])} shown) ---")
+        for a in ctx["alerts"][:15]:
+            time_str = ""
+            if a.get("created_at"):
+                time_str = f" @ {a['created_at'][:16]}"
+            parts.append(f"  [{a['severity']}/5] {a['headline']} (Region: {a.get('region', 'Global')}, Category: {a.get('category', 'N/A')}, Type: {a.get('alert_type', 'N/A')}{time_str})")
+    else:
+        parts.append("\n--- RECENT ALERTS ---")
+        parts.append("No recent alerts available")
 
     assets = ctx.get("assets", {})
     if any(assets.get(k) for k in ["brent", "ttf", "vix", "eurusd", "storage"]):
         parts.append("\n--- ASSET SNAPSHOT ---")
         if assets.get("brent"):
             b = assets["brent"][0]
-            parts.append(f"Brent Crude: ${b.get('brent_price', 'N/A')}/bbl (Change: {b.get('brent_change_pct', 'N/A')}%)")
+            price = b.get('brent_price', 'N/A')
+            change = b.get('brent_change_pct', 'N/A')
+            wti = b.get('wti_price', 'N/A')
+            spread = b.get('brent_wti_spread', 'N/A')
+            parts.append(f"Brent Crude: ${price}/bbl (Change: {change}%) | WTI: ${wti}/bbl | Spread: ${spread}")
+            if len(assets["brent"]) > 1:
+                hist_brent = [f"{b2.get('date', '?')}: ${b2.get('brent_price', 0)}" for b2 in assets["brent"][1:5]]
+                parts.append(f"  Brent History: {', '.join(hist_brent)}")
         if assets.get("ttf"):
             t = assets["ttf"][0]
             parts.append(f"TTF Gas: EUR {t.get('ttf_price', 'N/A')}/MWh")
@@ -653,16 +871,17 @@ def format_context_for_prompt(ctx: dict) -> str:
             parts.append(f"EU Gas Storage: {s.get('eu_storage_percent', 'N/A')}% (Band: {s.get('risk_band', 'N/A')})")
 
     if ctx.get("correlations"):
-        parts.append(f"\n--- 7-DAY CORRELATIONS (GERI vs.) ---")
+        parts.append(f"\n--- ROLLING CORRELATIONS (GERI vs.) ---")
         for k, v in ctx["correlations"].items():
-            parts.append(f"  {k.upper()}: {v:+.2f}")
+            label = {"brent": "Brent Crude", "ttf": "TTF Gas", "vix": "VIX"}.get(k, k.upper())
+            parts.append(f"  {label}: {v:+.2f}")
 
     if ctx.get("betas"):
-        parts.append(f"\n--- ROLLING BETAS ---")
+        parts.append(f"\n--- ROLLING BETAS (GERI sensitivity) ---")
         for k, v in ctx["betas"].items():
-            parts.append(f"  {k.upper()}: {v:.3f}")
+            label = {"brent": "Brent Crude", "ttf": "TTF Gas", "vix": "VIX"}.get(k, k.upper())
+            parts.append(f"  {label}: {v:.3f}")
 
-    dq = ctx.get("data_quality", {})
     if dq.get("issues"):
         parts.append(f"\n--- DATA QUALITY: {dq.get('overall', 'unknown').upper()} ---")
         for issue in dq["issues"]:

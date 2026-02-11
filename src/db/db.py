@@ -53,6 +53,44 @@ def execute_one(query: str, params: tuple = None):
         return cursor.fetchone()
 
 
+def get_production_database_url() -> str:
+    url = os.environ.get("PRODUCTION_DATABASE_URL")
+    if url:
+        return url
+    return get_database_url()
+
+@contextmanager
+def get_production_connection():
+    conn = None
+    try:
+        conn = psycopg2.connect(get_production_database_url())
+        yield conn
+    except Exception as e:
+        logger.error(f"Production database connection error: {e}")
+        raise
+    finally:
+        if conn:
+            conn.close()
+
+def execute_production_query(query: str, params: tuple = None):
+    with get_production_connection() as conn:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        try:
+            cursor.execute(query, params)
+            return cursor.fetchall()
+        finally:
+            cursor.close()
+
+def execute_production_one(query: str, params: tuple = None):
+    with get_production_connection() as conn:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        try:
+            cursor.execute(query, params)
+            return cursor.fetchone()
+        finally:
+            cursor.close()
+
+
 @contextmanager
 def advisory_lock(lock_id: int):
     conn = None
