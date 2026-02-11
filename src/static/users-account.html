@@ -10721,11 +10721,10 @@
         let eriqIsLoading = false;
 
         async function loadEriqStatus() {
-            const token = localStorage.getItem('session_token');
-            if (!token) return;
+            if (!sessionToken) return;
             try {
                 const resp = await fetch('/api/v1/eriq/status', {
-                    headers: { 'X-User-Token': token }
+                    headers: { 'X-User-Token': sessionToken }
                 });
                 if (resp.ok) {
                     const data = await resp.json();
@@ -10776,8 +10775,7 @@
             const question = input.value.trim();
             if (!question || eriqIsLoading) return;
 
-            const token = localStorage.getItem('session_token');
-            if (!token) {
+            if (!sessionToken) {
                 eriqAddMessage('assistant', 'Please sign in to use ERIQ Analyst.');
                 return;
             }
@@ -10798,7 +10796,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-User-Token': token
+                        'X-User-Token': sessionToken
                     },
                     body: JSON.stringify({
                         question: question,
