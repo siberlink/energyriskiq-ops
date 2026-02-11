@@ -1,5 +1,6 @@
 import logging
 import os
+import stripe
 from datetime import date
 from fastapi import APIRouter, Header, HTTPException
 from typing import Optional, List
@@ -9,6 +10,10 @@ from src.api.user_routes import verify_user_session
 from src.eriq.agent import ask_eriq
 from src.eriq.context import get_user_plan, get_plan_config, get_questions_used_today
 from src.eriq.knowledge_base import load_knowledge_base
+from src.eriq.tokens import (
+    get_token_status, credit_purchased_tokens, TOKEN_PACKS, TOKEN_PRICE_EUR_PER_100K
+)
+from src.billing.stripe_client import init_stripe, ensure_stripe_initialized
 from src.db.db import get_cursor, execute_query
 
 logger = logging.getLogger(__name__)
@@ -312,6 +317,126 @@ def eriq_analytics(x_internal_token: Optional[str] = Header(None)):
         }
 
     return analytics
+
+
+class TokenCheckoutRequest(BaseModel):
+    token_pack: int
+
+
+@router.get("/tokens/status")
+def eriq_token_status(x_user_token: Optional[str] = Header(None)):
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    plan = get_user_plan(user_id)
+    status = get_token_status(user_id, plan)
+    status["packs"] = TOKEN_PACKS
+    return status
+
+
+@router.post("/tokens/checkout")
+def eriq_token_checkout(body: TokenCheckoutRequest, x_user_token: Optional[str] = Header(None)):
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+
+    pack = None
+    for p in TOKEN_PACKS:
+        if p["tokens"] == body.token_pack:
+            pack = p
+            break
+
+    if not pack:
+        raise HTTPException(status_code=400, detail="Invalid token pack")
+
+    try:
+        init_stripe()
+
+        with get_cursor(commit=False) as cur:
+            cur.execute("SELECT email, stripe_customer_id FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        customer_id = user["stripe_customer_id"]
+        if not customer_id:
+            customer = stripe.Customer.create(
+                email=user["email"],
+                metadata={"user_id": str(user_id)}
+            )
+            customer_id = customer["id"]
+            with get_cursor() as cur:
+                cur.execute("UPDATE users SET stripe_customer_id = %s WHERE id = %s", (customer_id, user_id))
+
+        price_cents = int(pack["price_eur"] * 100)
+
+        app_url = os.environ.get("APP_URL")
+        if app_url:
+            base_url = app_url.rstrip("/")
+        else:
+            domain = os.environ.get("REPLIT_DOMAINS", "").split(",")[0]
+            base_url = f"https://{domain}" if domain else "http://localhost:5000"
+
+        checkout_session = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "eur",
+                    "unit_amount": price_cents,
+                    "product_data": {
+                        "name": f"ERIQ Tokens - {pack['label']}",
+                        "description": f"{pack['label']} tokens for ERIQ Expert Analyst",
+                    },
+                },
+                "quantity": 1,
+            }],
+            mode="payment",
+            success_url=f"{base_url}/users/account?tokens=success&amount={pack['label']}",
+            cancel_url=f"{base_url}/users/account?tokens=cancelled",
+            metadata={
+                "user_id": str(user_id),
+                "token_pack": str(pack["tokens"]),
+                "type": "eriq_tokens",
+            },
+        )
+
+        return {"checkout_url": checkout_session.url, "session_id": checkout_session.id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Token checkout error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to create token checkout")
+
+
+def handle_token_purchase_webhook(session_data: dict):
+    metadata = session_data.get("metadata", {})
+    if metadata.get("type") != "eriq_tokens":
+        return False
+
+    user_id = int(metadata.get("user_id", 0))
+    token_pack = int(metadata.get("token_pack", 0))
+    session_id = session_data.get("id", "")
+
+    if not user_id or not token_pack:
+        logger.error(f"Invalid token purchase webhook data: {metadata}")
+        return False
+
+    if session_data.get("payment_status") != "paid":
+        logger.warning(f"Token purchase not paid: {session_id}")
+        return False
+
+    existing = execute_query(
+        "SELECT id FROM eriq_token_ledger WHERE source = 'purchase' AND ref_info = %s",
+        (f"stripe:{session_id}",)
+    )
+    if existing:
+        logger.info(f"Token purchase already credited for session {session_id}, skipping")
+        return True
+
+    credit_purchased_tokens(user_id, token_pack, session_id)
+    logger.info(f"Token purchase completed: user={user_id}, tokens={token_pack}, session={session_id}")
+    return True
 
 
 def _log_conversation(user_id: int, question: str, response: str, intent: str,

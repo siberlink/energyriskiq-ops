@@ -12,6 +12,7 @@ from src.eriq.knowledge_base import (
     load_knowledge_base, retrieve_relevant_docs, format_knowledge_for_prompt
 )
 from src.eriq.router import classify_intent, check_mode_access, get_upgrade_message
+from src.eriq.tokens import check_can_use, deduct_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +159,16 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
             "plan": plan,
         }
 
+    can_use, token_status = check_can_use(user_id, plan)
+    if not can_use:
+        return {
+            "success": False,
+            "error": "token_limit",
+            "message": "You've used all your ERIQ tokens for this month. Purchase additional tokens to continue using ERIQ.",
+            "token_status": token_status,
+            "plan": plan,
+        }
+
     intent, required_mode, confidence = classify_intent(question)
 
     if intent == "disallowed":
@@ -232,6 +243,17 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
         if upgrade_msg:
             answer += f"\n\n---\n*{upgrade_msg}*"
 
+        try:
+            deduct_tokens(user_id, tokens_used)
+        except Exception as te:
+            logger.error(f"Token deduction failed for user {user_id}: {te}")
+
+        updated_token_status = None
+        try:
+            _, updated_token_status = check_can_use(user_id, plan)
+        except Exception:
+            pass
+
         return {
             "success": True,
             "response": answer,
@@ -241,6 +263,7 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
             "questions_used": questions_used + 1,
             "questions_limit": max_questions,
             "tokens_used": tokens_used,
+            "token_status": updated_token_status,
             "data_quality": ctx.get("data_quality", {}).get("overall", "unknown"),
             "grounded": True,
             "confidence": confidence,

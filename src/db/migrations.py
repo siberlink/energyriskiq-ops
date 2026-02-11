@@ -1540,5 +1540,31 @@ def run_eriq_migration():
                 ON eriq_conversations (intent)
             """)
             logger.info("ERIQ conversations table migration completed")
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS eriq_token_balances (
+                    user_id INTEGER PRIMARY KEY,
+                    plan_monthly_allowance INTEGER NOT NULL DEFAULT 50000,
+                    allowance_remaining INTEGER NOT NULL DEFAULT 50000,
+                    purchased_balance INTEGER NOT NULL DEFAULT 0,
+                    period_start TIMESTAMP DEFAULT DATE_TRUNC('month', NOW()),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS eriq_token_ledger (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    delta_tokens INTEGER NOT NULL,
+                    source VARCHAR(30) NOT NULL,
+                    ref_info TEXT,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_token_ledger_user
+                ON eriq_token_ledger (user_id, created_at)
+            """)
+            logger.info("ERIQ token tables migration completed")
     except Exception as e:
         logger.warning(f"ERIQ migration skipped: {e}")

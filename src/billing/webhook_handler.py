@@ -67,6 +67,12 @@ async def handle_checkout_session_completed(session: dict):
         return
     
     user_id = int(user_id)
+
+    if session.get("metadata", {}).get("type") == "eriq_tokens":
+        from src.api.eriq_routes import handle_token_purchase_webhook
+        handle_token_purchase_webhook(session)
+        return
+
     subscription_id = session.get("subscription")
     
     if subscription_id:
