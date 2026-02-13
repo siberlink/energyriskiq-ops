@@ -966,167 +966,176 @@
             }
         }
 
-        /* Section: Sample Alerts */
-        .section-alerts {
+        /* Section: Proprietary Indices */
+        .section-indices {
             background: var(--bg-light);
         }
 
-        .alerts-grid {
+        .indices-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
         }
 
-        .alert-card {
+        .index-card {
             background: white;
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid var(--border);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
         }
 
-        .alert-card:hover {
+        .index-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
         }
 
-        .alert-header {
-            padding: 1rem 1.5rem;
+        .index-card-header {
+            padding: 1.25rem 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
 
-        .alert-header.critical {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+        .index-card-header.geri {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.03));
             border-bottom: 2px solid #EF4444;
         }
 
-        .alert-header.warning {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+        .index-card-header.eeri {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.03));
             border-bottom: 2px solid #F59E0B;
         }
 
-        .alert-header.info {
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.05));
+        .index-card-header.egsi {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.03));
+            border-bottom: 2px solid #10B981;
+        }
+
+        .index-card-header.digest {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.08), rgba(0, 102, 255, 0.03));
             border-bottom: 2px solid var(--primary);
         }
 
-        .alert-icon {
-            font-size: 1.5rem;
+        .index-card-icon {
+            font-size: 1.4rem;
         }
 
-        .alert-type {
-            font-size: 0.75rem;
+        .index-card-label {
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
         }
 
-        .alert-header.critical .alert-type {
-            color: #DC2626;
+        .index-card-header.geri .index-card-label { color: #DC2626; }
+        .index-card-header.eeri .index-card-label { color: #D97706; }
+        .index-card-header.egsi .index-card-label { color: #059669; }
+        .index-card-header.digest .index-card-label { color: var(--primary); }
+
+        .index-card-body {
+            padding: 1.25rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        .alert-header.warning .alert-type {
-            color: #D97706;
-        }
-
-        .alert-header.info .alert-type {
-            color: var(--primary);
-        }
-
-        .alert-body {
-            padding: 1.5rem;
-        }
-
-        .alert-title {
-            font-size: 1.1rem;
+        .index-card-title {
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--secondary);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .index-card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
             margin-bottom: 1rem;
         }
 
-        .alert-content {
+        .index-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            flex: 1;
         }
 
-        .alert-line {
-            font-size: 0.9rem;
+        .index-features li {
+            font-size: 0.82rem;
             color: var(--text-secondary);
-            line-height: 1.5;
             display: flex;
             align-items: flex-start;
             gap: 0.5rem;
+            line-height: 1.4;
         }
 
-        .alert-line strong {
-            color: var(--secondary);
-            font-weight: 600;
-        }
-
-        .alert-metric {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-weight: 600;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .metric-up {
-            background: rgba(239, 68, 68, 0.1);
-            color: #DC2626;
-        }
-
-        .metric-high {
-            background: rgba(245, 158, 11, 0.15);
-            color: #D97706;
-        }
-
-        .alert-assets {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .asset-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            background: var(--bg-light);
-            padding: 0.35rem 0.65rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--secondary);
-        }
-
-        .asset-tag .arrow {
-            color: #DC2626;
-        }
-
-        .alert-badge {
+        .index-features li::before {
+            content: '';
             display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            margin-top: 0.4rem;
+            flex-shrink: 0;
+            background: var(--bullet-color, #94a3b8);
+        }
+
+        .index-card.geri { --bullet-color: #EF4444; }
+        .index-card.eeri { --bullet-color: #F59E0B; }
+        .index-card.egsi { --bullet-color: #10B981; }
+        .index-card.digest { --bullet-color: var(--primary); }
+
+        .index-card-footer {
+            padding: 0.75rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .index-tier-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.2rem 0.55rem;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .index-tier-badge.free {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .index-tier-badge.paid {
             background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
             color: white;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 100px;
-            margin-top: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        @media (max-width: 900px) {
-            .alerts-grid {
+        .index-tier-text {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 1100px) {
+            .indices-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.25rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .indices-grid {
                 grid-template-columns: 1fr;
-                gap: 1.5rem;
+                gap: 1.25rem;
             }
         }
 
@@ -2820,87 +2829,103 @@
         </div>
     </section>
 
-    <!-- Section: Sample Alerts -->
-    <section class="section section-alerts">
+    <!-- Section: Proprietary Indices & Daily Intelligence -->
+    <section class="section section-indices">
         <div class="section-inner">
             <div class="section-header">
-                <h2>What You'll Receive <span class="highlight">(Examples)</span></h2>
+                <h2>Proprietary Indices & <span class="highlight">Daily Intelligence</span></h2>
             </div>
 
-            <div class="alerts-grid">
-                <!-- Regional Risk Alert -->
-                <div class="alert-card">
-                    <div class="alert-header critical">
-                        <span class="alert-icon">🚨</span>
-                        <span class="alert-type">Regional Risk Alert</span>
+            <div class="indices-grid">
+                <!-- GERI -->
+                <div class="index-card geri">
+                    <div class="index-card-header geri">
+                        <span class="index-card-icon">🌍</span>
+                        <span class="index-card-label">Global Energy Risk Index</span>
                     </div>
-                    <div class="alert-body">
-                        <h4 class="alert-title">Europe Geo-Energy Risk Spike</h4>
-                        <div class="alert-content">
-                            <p class="alert-line">
-                                <strong>Risk score:</strong> 
-                                <span class="alert-metric metric-up">58 → 72 (+24%)</span>
-                            </p>
-                            <p class="alert-line">
-                                <strong>Drivers:</strong> Middle East escalation, LNG outage
-                            </p>
-                            <p class="alert-line"><strong>Assets impacted:</strong></p>
-                            <div class="alert-assets">
-                                <span class="asset-tag">Gas <span class="arrow">↑</span></span>
-                                <span class="asset-tag">Oil <span class="arrow">↑</span></span>
-                                <span class="asset-tag">FX risk-off</span>
-                            </div>
-                        </div>
+                    <div class="index-card-body">
+                        <h4 class="index-card-title">GERI</h4>
+                        <p class="index-card-desc">Single composite score (0-100) capturing systemic geo-energy risk across all major regions.</p>
+                        <ul class="index-features">
+                            <li>Regional weighting across 7 geo-clusters</li>
+                            <li>Daily scoring with trend & momentum</li>
+                            <li>Regime classification (Low / Elevated / High / Critical)</li>
+                            <li>Brent, WTI & VIX overlay correlation</li>
+                            <li>AI-generated daily interpretation</li>
+                        </ul>
+                    </div>
+                    <div class="index-card-footer">
+                        <span class="index-tier-badge free">Free</span>
+                        <span class="index-tier-text">24h delayed | Real-time from Personal</span>
                     </div>
                 </div>
 
-                <!-- Asset Risk Alert -->
-                <div class="alert-card">
-                    <div class="alert-header warning">
-                        <span class="alert-icon">⚠️</span>
-                        <span class="alert-type">Asset Risk Alert</span>
+                <!-- EERI -->
+                <div class="index-card eeri">
+                    <div class="index-card-header eeri">
+                        <span class="index-card-icon">⚡</span>
+                        <span class="index-card-label">Europe Escalation Risk Index</span>
                     </div>
-                    <div class="alert-body">
-                        <h4 class="alert-title">Gas Risk Rising in Europe</h4>
-                        <div class="alert-content">
-                            <p class="alert-line">
-                                <strong>Risk level:</strong> 
-                                <span class="alert-metric metric-high">High</span>
-                            </p>
-                            <p class="alert-line">
-                                <strong>Time horizon:</strong> 7 days
-                            </p>
-                            <p class="alert-line">
-                                <strong>Drivers:</strong> Pipeline disruption + cold forecast
-                            </p>
-                        </div>
+                    <div class="index-card-body">
+                        <h4 class="index-card-title">EERI</h4>
+                        <p class="index-card-desc">Measures escalation pressure across European energy supply chains and geopolitical flashpoints.</p>
+                        <ul class="index-features">
+                            <li>Component breakdown: Supply, Transit, Demand, Geopolitical</li>
+                            <li>Top risk driver identification</li>
+                            <li>Asset stress panel (Gas, Oil, FX)</li>
+                            <li>Historical regime statistics</li>
+                            <li>AI-powered daily summary</li>
+                        </ul>
+                    </div>
+                    <div class="index-card-footer">
+                        <span class="index-tier-badge free">Free</span>
+                        <span class="index-tier-text">Public score | Full detail from Pro</span>
+                    </div>
+                </div>
+
+                <!-- EGSI -->
+                <div class="index-card egsi">
+                    <div class="index-card-header egsi">
+                        <span class="index-card-icon">🔥</span>
+                        <span class="index-card-label">Europe Gas Stress Index</span>
+                    </div>
+                    <div class="index-card-body">
+                        <h4 class="index-card-title">EGSI</h4>
+                        <p class="index-card-desc">Dual-index system tracking European gas market stress and storage/system vulnerability.</p>
+                        <ul class="index-features">
+                            <li>EGSI-M: Market stress (TTF price + volatility)</li>
+                            <li>EGSI-S: System stress (storage + refill rate)</li>
+                            <li>Live EU storage data (AGSI+)</li>
+                            <li>Winter preparedness scoring</li>
+                            <li>TTF price integration & seasonal context</li>
+                        </ul>
+                    </div>
+                    <div class="index-card-footer">
+                        <span class="index-tier-badge free">Free</span>
+                        <span class="index-tier-text">Public score | Full data from Personal</span>
                     </div>
                 </div>
 
                 <!-- Daily Digest -->
-                <div class="alert-card">
-                    <div class="alert-header info">
-                        <span class="alert-icon">🗓</span>
-                        <span class="alert-type">Daily Risk Digest</span>
+                <div class="index-card digest">
+                    <div class="index-card-header digest">
+                        <span class="index-card-icon">📊</span>
+                        <span class="index-card-label">Daily Intelligence Digest</span>
                     </div>
-                    <div class="alert-body">
-                        <h4 class="alert-title">EnergyRiskIQ Daily Digest — Europe</h4>
-                        <div class="alert-content">
-                            <p class="alert-line">
-                                <strong>Risk:</strong> 
-                                <span class="alert-metric metric-up">68 (Rising)</span>
-                            </p>
-                            <p class="alert-line">
-                                <strong>Top events:</strong> Sanctions, port congestion
-                            </p>
-                            <p class="alert-line"><strong>Asset snapshot:</strong></p>
-                            <div class="alert-assets">
-                                <span class="asset-tag">Gas <span class="arrow">↑</span></span>
-                                <span class="asset-tag">Oil <span class="arrow">↑</span></span>
-                                <span class="asset-tag">Freight <span class="arrow">↑</span></span>
-                            </div>
-                        </div>
-                        <span class="alert-badge">Paid Feature</span>
+                    <div class="index-card-body">
+                        <h4 class="index-card-title">AI-Powered Briefing</h4>
+                        <p class="index-card-desc">Morning intelligence briefing synthesizing all indices, alerts, and market signals into actionable insight.</p>
+                        <ul class="index-features">
+                            <li>Multi-index synthesis (GERI + EERI + EGSI)</li>
+                            <li>Trend analysis with 7-day direction</li>
+                            <li>Regime probability & correlation signals</li>
+                            <li>Delivered via Email and Telegram</li>
+                            <li>Plan-tiered depth (Basic to Institutional)</li>
+                        </ul>
+                    </div>
+                    <div class="index-card-footer">
+                        <span class="index-tier-badge paid">Paid</span>
+                        <span class="index-tier-text">Available from Personal plan</span>
                     </div>
                 </div>
             </div>
