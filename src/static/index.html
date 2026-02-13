@@ -711,145 +711,231 @@
             }
         }
 
-        /* Section: Differentiators */
-        .section-diff {
+        /* Section: Meet ERIQ */
+        .section-eriq {
             background: var(--bg-light);
         }
 
-        .diff-content {
+        .eriq-intro {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .eriq-intro p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .eriq-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4rem;
+            gap: 3rem;
             align-items: start;
         }
 
-        .comparison-table {
+        .eriq-chat-preview {
             background: white;
             border-radius: 16px;
-            overflow: hidden;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
         }
 
-        .comparison-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .eriq-chat-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.85rem 1.25rem;
             background: var(--secondary);
-        }
-
-        .comparison-header span {
-            padding: 1rem 1.5rem;
-            font-weight: 700;
-            font-size: 0.9rem;
             color: white;
-            text-align: center;
         }
 
-        .comparison-header span:first-child {
-            background: rgba(255, 255, 255, 0.1);
+        .eriq-chat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10B981;
+            animation: eriq-pulse 2s ease-in-out infinite;
         }
 
-        .comparison-header span:last-child {
+        @keyframes eriq-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .eriq-chat-bar span {
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .eriq-chat-body {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .eriq-msg {
+            max-width: 88%;
+            padding: 0.85rem 1.1rem;
+            border-radius: 14px;
+            font-size: 0.85rem;
+            line-height: 1.55;
+        }
+
+        .eriq-msg.user {
+            align-self: flex-end;
             background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border-bottom-right-radius: 4px;
         }
 
-        .comparison-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-bottom: 1px solid var(--border);
+        .eriq-msg.bot {
+            align-self: flex-start;
+            background: var(--bg-light);
+            color: var(--secondary);
+            border-bottom-left-radius: 4px;
         }
 
-        .comparison-row:last-child {
-            border-bottom: none;
+        .eriq-msg.bot strong {
+            color: var(--primary);
         }
 
-        .comparison-row span {
-            padding: 1rem 1.5rem;
-            font-size: 0.95rem;
+        .eriq-chat-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .eriq-chat-input span {
+            color: var(--text-light);
+            font-size: 0.82rem;
+            flex: 1;
+        }
+
+        .eriq-chat-input .eriq-send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
+            flex-shrink: 0;
         }
 
-        .comparison-row .old {
-            color: var(--text-light);
-            background: rgba(0, 0, 0, 0.02);
+        .eriq-chat-input .eriq-send-btn svg {
+            width: 14px;
+            height: 14px;
+            color: white;
         }
 
-        .comparison-row .new {
-            color: var(--secondary);
-            font-weight: 600;
-            background: rgba(0, 212, 170, 0.05);
-        }
-
-        .diff-list {
+        .eriq-capabilities {
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1rem;
         }
 
-        .diff-item {
+        .eriq-cap {
             display: flex;
             align-items: flex-start;
             gap: 1rem;
             background: white;
             padding: 1.25rem 1.5rem;
-            border-radius: 12px;
+            border-radius: 14px;
             border: 1px solid var(--border);
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .diff-item:hover {
+        .eriq-cap:hover {
             transform: translateX(4px);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
         }
 
-        .diff-icon {
-            width: 40px;
-            height: 40px;
-            min-width: 40px;
-            background: linear-gradient(135deg, var(--primary-light), rgba(0, 212, 170, 0.1));
-            border-radius: 10px;
+        .eriq-cap-icon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .diff-icon svg {
+        .eriq-cap-icon svg {
             width: 20px;
             height: 20px;
-            color: var(--primary);
         }
 
-        .diff-text h4 {
-            font-size: 1rem;
+        .eriq-cap-icon.cap-rag { background: rgba(99, 102, 241, 0.1); }
+        .eriq-cap-icon.cap-rag svg { color: #6366F1; }
+        .eriq-cap-icon.cap-live { background: rgba(16, 185, 129, 0.1); }
+        .eriq-cap-icon.cap-live svg { color: #059669; }
+        .eriq-cap-icon.cap-modes { background: rgba(245, 158, 11, 0.1); }
+        .eriq-cap-icon.cap-modes svg { color: #D97706; }
+        .eriq-cap-icon.cap-plan { background: rgba(0, 102, 255, 0.1); }
+        .eriq-cap-icon.cap-plan svg { color: var(--primary); }
+
+        .eriq-cap-text h4 {
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--secondary);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem;
         }
 
-        .diff-text p {
-            font-size: 0.9rem;
+        .eriq-cap-text p {
+            font-size: 0.85rem;
             color: var(--text-secondary);
             line-height: 1.5;
         }
 
+        .eriq-cta-row {
+            text-align: center;
+            margin-top: 2.5rem;
+        }
+
+        .eriq-cta-row a {
+            display: inline-block;
+            padding: 0.85rem 2.5rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .eriq-cta-row a:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .eriq-cta-sub {
+            font-size: 0.82rem;
+            color: var(--text-light);
+            margin-top: 0.6rem;
+        }
+
         @media (max-width: 900px) {
-            .diff-content {
+            .eriq-layout {
                 grid-template-columns: 1fr;
-                gap: 2.5rem;
+                gap: 2rem;
             }
         }
 
         @media (max-width: 480px) {
-            .comparison-header span,
-            .comparison-row span {
-                padding: 0.85rem 1rem;
-                font-size: 0.85rem;
+            .eriq-msg {
+                max-width: 92%;
+                font-size: 0.82rem;
             }
 
-            .diff-item {
+            .eriq-cap {
                 padding: 1rem;
             }
         }
@@ -2816,98 +2902,83 @@
         </div>
     </section>
 
-    <!-- Section: What Makes Us Different -->
-    <section class="section section-diff" id="features">
+    <!-- Section: Meet ERIQ -->
+    <section class="section section-eriq" id="features">
         <div class="section-inner">
             <div class="section-header">
-                <h2>What Makes <span class="highlight">EnergyRiskIQ</span> Different</h2>
+                <h2>Meet <span class="highlight">ERIQ</span> — Your AI Risk Analyst</h2>
             </div>
 
-            <div class="diff-content">
-                <div class="comparison-table">
-                    <div class="comparison-header">
-                        <span>Traditional News</span>
-                        <span>EnergyRiskIQ</span>
+            <div class="eriq-intro">
+                <p>Stop reading news. Start asking questions. ERIQ connects live index data, methodology knowledge, and market context into answers built for energy professionals.</p>
+            </div>
+
+            <div class="eriq-layout">
+                <div class="eriq-chat-preview">
+                    <div class="eriq-chat-bar">
+                        <div class="eriq-chat-dot"></div>
+                        <span>ERIQ Expert Analyst</span>
                     </div>
-                    <div class="comparison-row">
-                        <span class="old">Headlines</span>
-                        <span class="new">Risk signals</span>
+                    <div class="eriq-chat-body">
+                        <div class="eriq-msg user">What's driving European energy risk this week?</div>
+                        <div class="eriq-msg bot">GERI is at <strong>72.4</strong> (Elevated regime), up 6.3 points in 7 days. Three drivers dominate: <strong>Russia/Black Sea</strong> cluster (+18% severity from naval escalation), <strong>EGSI-S winter stress</strong> rising to 68 as EU storage draw accelerates, and <strong>TTF spot</strong> breaching the 90-day resistance at EUR 42.6/MWh. The EERI component breakdown shows supply-side risk outweighing demand factors 3:1.</div>
+                        <div class="eriq-msg user">Should I hedge TTF exposure before Friday?</div>
+                        <div class="eriq-msg bot">Based on current regime classification (<strong>Elevated</strong>) and 14-day rolling beta of TTF-to-GERI at <strong>0.87</strong>, the probability of further upside in TTF is ~65% through Friday. Historical pattern matching shows 4 of 5 similar regime transitions in the past 90 days preceded a 3-8% TTF move within 48 hours.</div>
                     </div>
-                    <div class="comparison-row">
-                        <span class="old">Articles</span>
-                        <span class="new">Structured alerts</span>
-                    </div>
-                    <div class="comparison-row">
-                        <span class="old">Opinions</span>
-                        <span class="new">Probabilities & trends</span>
-                    </div>
-                    <div class="comparison-row">
-                        <span class="old">Late reaction</span>
-                        <span class="new">Early warning</span>
+                    <div class="eriq-chat-input">
+                        <span>Ask ERIQ anything about energy risk...</span>
+                        <div class="eriq-send-btn">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </div>
                     </div>
                 </div>
 
-                <div class="diff-list">
-                    <div class="diff-item">
-                        <div class="diff-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
+                <div class="eriq-capabilities">
+                    <div class="eriq-cap">
+                        <div class="eriq-cap-icon cap-rag">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         </div>
-                        <div class="diff-text">
-                            <h4>Risk Scoring Engine</h4>
-                            <p>Not just summaries — quantified risk scores you can act on</p>
+                        <div class="eriq-cap-text">
+                            <h4>Methodology-Grounded</h4>
+                            <p>Answers draw from 196 knowledge chunks across GERI, EERI & EGSI methodology documents — not hallucinated opinions</p>
                         </div>
                     </div>
 
-                    <div class="diff-item">
-                        <div class="diff-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
-                            </svg>
+                    <div class="eriq-cap">
+                        <div class="eriq-cap-icon cap-live">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
-                        <div class="diff-text">
-                            <h4>Energy-First Focus</h4>
-                            <p>Oil, gas, LNG, and freight — the assets that matter</p>
+                        <div class="eriq-cap-text">
+                            <h4>Live Production Data</h4>
+                            <p>Reads real-time GERI, EERI, EGSI scores, Brent/WTI/TTF prices, VIX, EU storage, correlations & regime state from live databases</p>
                         </div>
                     </div>
 
-                    <div class="diff-item">
-                        <div class="diff-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
+                    <div class="eriq-cap">
+                        <div class="eriq-cap-icon cap-modes">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                         </div>
-                        <div class="diff-text">
-                            <h4>Europe-Centric Intelligence</h4>
-                            <p>Deep focus on European energy markets and geopolitics</p>
+                        <div class="eriq-cap-text">
+                            <h4>Three Intelligence Modes</h4>
+                            <p>Explain (learn why), Interpret (understand what it means), Decide (get actionable support) — progressively unlocked by plan tier</p>
                         </div>
                     </div>
 
-                    <div class="diff-item">
-                        <div class="diff-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                            </svg>
+                    <div class="eriq-cap">
+                        <div class="eriq-cap-icon cap-plan">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         </div>
-                        <div class="diff-text">
-                            <h4>Alert-Driven, Not Dashboard-Driven</h4>
-                            <p>Intelligence comes to you — no manual monitoring needed</p>
-                        </div>
-                    </div>
-
-                    <div class="diff-item">
-                        <div class="diff-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                        <div class="diff-text">
-                            <h4>Built for Traders & Operators</h4>
-                            <p>Designed for decision-makers, not journalists</p>
+                        <div class="eriq-cap-text">
+                            <h4>Plan-Tiered Depth</h4>
+                            <p>Free users get basic explanations. Traders get regime context & probabilities. Pro & Enterprise unlock full scenario forecasts & beta sensitivities</p>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="eriq-cta-row">
+                <a href="/users/signup">Try ERIQ Free — 3 Questions per Day</a>
+                <p class="eriq-cta-sub">No credit card required. Upgrade anytime for deeper intelligence.</p>
             </div>
         </div>
     </section>
