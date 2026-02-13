@@ -778,6 +778,73 @@
             }
         }
 
+        /* Section: ERIQ Intro Question */
+        .section-eriq-intro {
+            background: var(--bg-white);
+            padding: 4rem 0 3.5rem;
+        }
+
+        .eriq-intro-inner {
+            max-width: 720px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 0 1.5rem;
+        }
+
+        .eriq-intro-question {
+            font-size: clamp(1.3rem, 2.8vw, 1.7rem);
+            font-weight: 800;
+            color: var(--secondary);
+            line-height: 1.4;
+            margin-bottom: 1.25rem;
+        }
+
+        .eriq-intro-question .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .eriq-intro-answer {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 1.5rem;
+        }
+
+        .eriq-intro-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            animation: eriq-bounce 2s ease-in-out infinite;
+        }
+
+        .eriq-intro-arrow svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+
+        @keyframes eriq-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        @media (max-width: 480px) {
+            .section-eriq-intro {
+                padding: 3rem 0 2.5rem;
+            }
+
+            .eriq-intro-question {
+                font-size: 1.2rem;
+            }
+        }
+
         /* Section: Meet ERIQ */
         .section-eriq {
             background: var(--bg-light);
@@ -3281,6 +3348,17 @@
                         <span class="index-tier-text">Available from Personal plan</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: ERIQ Intro Question -->
+    <section class="section-eriq-intro">
+        <div class="eriq-intro-inner">
+            <p class="eriq-intro-question">When geopolitical tensions spike and energy markets shift — do you know which signals are <span class="highlight">noise</span> and which will <span class="highlight">move price</span>?</p>
+            <p class="eriq-intro-answer">Most professionals can't. Not because they lack expertise, but because they lack a system that separates signal from chaos in real time. That's exactly what ERIQ was built to do.</p>
+            <div class="eriq-intro-arrow">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
             </div>
         </div>
     </section>
