@@ -854,87 +854,220 @@
             }
         }
 
-        /* Section: How It Works */
-        .section-how {
+        /* Section: Intelligence Edge */
+        .section-edge {
             background: var(--bg-white);
         }
 
-        .steps-grid {
+        .edge-intro {
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto 3rem;
+        }
+
+        .edge-intro p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .edge-tiers {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            margin-bottom: 4rem;
-            position: relative;
+            margin-bottom: 3rem;
         }
 
-        .steps-grid::before {
-            content: '';
-            position: absolute;
-            top: 48px;
-            left: 12.5%;
-            right: 12.5%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-            z-index: 0;
-        }
-
-        .step-card {
+        .edge-tier {
             background: white;
             border-radius: 16px;
-            padding: 2rem 1.5rem;
-            text-align: center;
             border: 1px solid var(--border);
-            position: relative;
-            z-index: 1;
+            overflow: hidden;
             transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .step-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-        }
-
-        .step-number {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            border-radius: 50%;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.25rem;
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: white;
+            flex-direction: column;
         }
 
-        .step-card h3 {
-            font-size: 1.1rem;
+        .edge-tier:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .edge-tier.featured {
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.12);
+        }
+
+        .edge-tier-top {
+            padding: 1.5rem 1.75rem 1rem;
+        }
+
+        .edge-tier-tag {
+            display: inline-block;
+            font-size: 0.65rem;
             font-weight: 700;
-            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.25rem 0.65rem;
+            border-radius: 100px;
             margin-bottom: 0.75rem;
         }
 
-        .step-card p {
-            font-size: 0.9rem;
+        .edge-tier-tag.free-tag {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .edge-tier-tag.growth-tag {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+        }
+
+        .edge-tier-tag.pro-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: #4F46E5;
+        }
+
+        .edge-tier-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 0.35rem;
+        }
+
+        .edge-tier-sub {
+            font-size: 0.88rem;
             color: var(--text-secondary);
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
-        .how-tagline {
+        .edge-tier-body {
+            padding: 0.75rem 1.75rem 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .edge-tier-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.25rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            flex: 1;
+        }
+
+        .edge-tier-features li {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            line-height: 1.45;
+        }
+
+        .edge-tier-features li .feat-icon {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+
+        .edge-tier-features li .feat-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .edge-tier.tier-free .feat-icon svg { stroke: #10B981; }
+        .edge-tier.tier-growth .feat-icon svg { stroke: var(--primary); }
+        .edge-tier.tier-pro .feat-icon svg { stroke: #6366F1; }
+
+        .edge-tier-cta {
+            display: inline-block;
             text-align: center;
-            max-width: 600px;
-            margin: 0 auto;
+            padding: 0.7rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
         }
 
-        .how-tagline p {
-            font-size: 1.25rem;
+        .edge-tier-cta.cta-free {
+            background: rgba(16, 185, 129, 0.08);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .edge-tier-cta.cta-free:hover {
+            background: rgba(16, 185, 129, 0.15);
+        }
+
+        .edge-tier-cta.cta-primary {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border: none;
+        }
+
+        .edge-tier-cta.cta-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .edge-tier-cta.cta-pro {
+            background: rgba(99, 102, 241, 0.08);
+            color: #4F46E5;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .edge-tier-cta.cta-pro:hover {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .edge-bottom {
+            text-align: center;
+            padding: 2rem 0 0;
+        }
+
+        .edge-bottom-stat {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .edge-stat-item {
+            text-align: center;
+        }
+
+        .edge-stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .edge-stat-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 0.15rem;
+        }
+
+        .edge-bottom-line {
+            font-size: 1.15rem;
             color: var(--secondary);
             font-weight: 600;
             line-height: 1.6;
         }
 
-        .how-tagline p .highlight {
+        .edge-bottom-line .highlight {
             background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -942,27 +1075,16 @@
         }
 
         @media (max-width: 900px) {
-            .steps-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.25rem;
-            }
-
-            .steps-grid::before {
-                display: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .steps-grid {
+            .edge-tiers {
                 grid-template-columns: 1fr;
+                gap: 1.25rem;
+                max-width: 480px;
+                margin-left: auto;
+                margin-right: auto;
             }
 
-            .step-card {
-                padding: 1.5rem 1.25rem;
-            }
-
-            .how-tagline p {
-                font-size: 1.1rem;
+            .edge-bottom-stat {
+                gap: 2rem;
             }
         }
 
@@ -2790,41 +2912,137 @@
         </div>
     </section>
 
-    <!-- Section: How It Works -->
-    <section class="section section-how">
+    <!-- Section: Your Intelligence Edge -->
+    <section class="section section-edge">
         <div class="section-inner">
             <div class="section-header">
-                <h2>How <span class="highlight">EnergyRiskIQ</span> Works</h2>
+                <h2>Your Intelligence <span class="highlight">Edge</span></h2>
             </div>
 
-            <div class="steps-grid">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <h3>Global Events Monitored</h3>
-                    <p>Geopolitics, energy markets, supply chains — continuously tracked from trusted sources</p>
+            <div class="edge-intro">
+                <p>Most professionals react to energy risk after it moves markets. EnergyRiskIQ gives you the signals, scores, and context to act before they do.</p>
+            </div>
+
+            <div class="edge-tiers">
+                <!-- Free Tier -->
+                <div class="edge-tier tier-free">
+                    <div class="edge-tier-top">
+                        <span class="edge-tier-tag free-tag">Start Free</span>
+                        <h3 class="edge-tier-title">Stay Aware</h3>
+                        <p class="edge-tier-sub">Baseline risk visibility, no credit card required</p>
+                    </div>
+                    <div class="edge-tier-body">
+                        <ul class="edge-tier-features">
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                GERI, EERI & EGSI public scores (24h delayed)
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Daily risk alerts via Email
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                ERIQ AI Analyst (3 questions/day)
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                14-day Brent price chart
+                            </li>
+                        </ul>
+                        <a href="/users/signup" class="edge-tier-cta cta-free">Create Free Account</a>
+                    </div>
                 </div>
 
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <h3>AI Risk Analysis</h3>
-                    <p>Each event is summarized and impact-scored by our AI engine</p>
+                <!-- Growth Tier -->
+                <div class="edge-tier tier-growth featured">
+                    <div class="edge-tier-top">
+                        <span class="edge-tier-tag growth-tag">Most Popular</span>
+                        <h3 class="edge-tier-title">Trade Smarter</h3>
+                        <p class="edge-tier-sub">Real-time indices, trends & actionable intelligence</p>
+                    </div>
+                    <div class="edge-tier-body">
+                        <ul class="edge-tier-features">
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Real-time GERI + EERI + EGSI with full history
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                AI Daily Intelligence Digest (Email + Telegram)
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Asset overlays: Brent, WTI, TTF, VIX, EUR/USD
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Regime markers, momentum & smoothing tools
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                ERIQ AI Analyst (up to 60 questions/day)
+                            </li>
+                        </ul>
+                        <a href="/users/signup" class="edge-tier-cta cta-primary">Start with Personal or Trader</a>
+                    </div>
                 </div>
 
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <h3>Risk Index Computed</h3>
-                    <p>Rolling Europe risk score calculated over 7-day and 30-day windows</p>
-                </div>
-
-                <div class="step-card">
-                    <div class="step-number">4</div>
-                    <h3>Alerts Sent</h3>
-                    <p>You're notified only when risk rises or conditions meaningfully change</p>
+                <!-- Pro/Enterprise Tier -->
+                <div class="edge-tier tier-pro">
+                    <div class="edge-tier-top">
+                        <span class="edge-tier-tag pro-tag">Institutional Grade</span>
+                        <h3 class="edge-tier-title">Dominate Risk</h3>
+                        <p class="edge-tier-sub">Full decomposition, scenarios & AI-powered decision support</p>
+                    </div>
+                    <div class="edge-tier-body">
+                        <ul class="edge-tier-features">
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Everything in Trader, plus EERI full component drill-down
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                AI narrative & scenario forecasts
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Beta sensitivities & correlation analysis
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                ERIQ AI Analyst with full Decide-mode access
+                            </li>
+                            <li>
+                                <span class="feat-icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></span>
+                                Institutional-depth daily briefings
+                            </li>
+                        </ul>
+                        <a href="/users/signup" class="edge-tier-cta cta-pro">Explore Pro & Enterprise</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="how-tagline">
-                <p>You don't need to "check" EnergyRiskIQ.<br><span class="highlight">It checks risk for you.</span></p>
+            <div class="edge-bottom">
+                <div class="edge-bottom-stat">
+                    <div class="edge-stat-item">
+                        <div class="edge-stat-number">3</div>
+                        <div class="edge-stat-label">Proprietary Indices</div>
+                    </div>
+                    <div class="edge-stat-item">
+                        <div class="edge-stat-number">40+</div>
+                        <div class="edge-stat-label">Sources Monitored</div>
+                    </div>
+                    <div class="edge-stat-item">
+                        <div class="edge-stat-number">7</div>
+                        <div class="edge-stat-label">Geo-Clusters Tracked</div>
+                    </div>
+                    <div class="edge-stat-item">
+                        <div class="edge-stat-number">24/7</div>
+                        <div class="edge-stat-label">Continuous Analysis</div>
+                    </div>
+                </div>
+                <p class="edge-bottom-line">Risk doesn't wait for market hours. <span class="highlight">Neither should your intelligence.</span></p>
             </div>
         </div>
     </section>
