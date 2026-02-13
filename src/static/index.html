@@ -894,6 +894,79 @@
             line-height: 1.5;
         }
 
+        .eriq-value-line {
+            text-align: center;
+            max-width: 660px;
+            margin: -1.5rem auto 2.5rem;
+            font-size: 0.95rem;
+            color: var(--secondary);
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .eriq-value-line .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .eriq-chat-context {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.78rem;
+            color: var(--text-light);
+            border-bottom: 1px solid var(--border);
+            font-style: italic;
+        }
+
+        .eriq-chat-cta {
+            display: block;
+            text-align: center;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .eriq-chat-cta:hover {
+            opacity: 0.9;
+        }
+
+        .eriq-mode-examples {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .eriq-mode-ex {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.08);
+            color: #92400E;
+            white-space: nowrap;
+        }
+
+        .eriq-authority {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            letter-spacing: 0.02em;
+        }
+
+        .eriq-authority span {
+            display: inline-block;
+            padding: 0.3rem 0.85rem;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 100px;
+            border: 1px solid var(--border);
+        }
+
         .eriq-cta-row {
             text-align: center;
             margin-top: 2.5rem;
@@ -2913,17 +2986,20 @@
                 <p>Stop reading news. Start asking questions. ERIQ connects live index data, methodology knowledge, and market context into answers built for energy professionals.</p>
             </div>
 
+            <p class="eriq-value-line">Identify energy risk shifts earlier, understand market implications faster, and turn geopolitical noise into <span class="highlight">actionable intelligence</span>.</p>
+
             <div class="eriq-layout">
                 <div class="eriq-chat-preview">
                     <div class="eriq-chat-bar">
                         <div class="eriq-chat-dot"></div>
                         <span>ERIQ Expert Analyst</span>
                     </div>
+                    <div class="eriq-chat-context">ERIQ translates complex geo-energy signals into clear, actionable answers.</div>
                     <div class="eriq-chat-body">
                         <div class="eriq-msg user">What's driving European energy risk this week?</div>
-                        <div class="eriq-msg bot">GERI is at <strong>72.4</strong> (Elevated regime), up 6.3 points in 7 days. Three drivers dominate: <strong>Russia/Black Sea</strong> cluster (+18% severity from naval escalation), <strong>EGSI-S winter stress</strong> rising to 68 as EU storage draw accelerates, and <strong>TTF spot</strong> breaching the 90-day resistance at EUR 42.6/MWh. The EERI component breakdown shows supply-side risk outweighing demand factors 3:1.</div>
-                        <div class="eriq-msg user">Should I hedge TTF exposure before Friday?</div>
-                        <div class="eriq-msg bot">Based on current regime classification (<strong>Elevated</strong>) and 14-day rolling beta of TTF-to-GERI at <strong>0.87</strong>, the probability of further upside in TTF is ~65% through Friday. Historical pattern matching shows 4 of 5 similar regime transitions in the past 90 days preceded a 3-8% TTF move within 48 hours.</div>
+                        <div class="eriq-msg bot">GERI is at <strong>72.4</strong> (Elevated regime), up 6.3 points in 7 days. Three drivers dominate: <strong>Russia/Black Sea</strong> tensions (+18% severity), <strong>winter gas stress</strong> rising as EU storage draw accelerates, and <strong>TTF spot prices</strong> pushing above recent resistance levels. Supply-side risk is outweighing demand factors 3:1.</div>
+                        <div class="eriq-msg user">How is current risk likely to affect TTF exposure this week?</div>
+                        <div class="eriq-msg bot">Under the current <strong>Elevated</strong> regime, TTF shows strong sensitivity to GERI movements (14-day rolling beta: <strong>0.87</strong>). Historical pattern matching shows 4 of 5 similar regime transitions in the past 90 days preceded a 3-8% TTF price move within 48 hours. Monitor the Russia/Black Sea cluster and EGSI-S storage trajectory as leading indicators.</div>
                     </div>
                     <div class="eriq-chat-input">
                         <span>Ask ERIQ anything about energy risk...</span>
@@ -2931,6 +3007,7 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </div>
                     </div>
+                    <a href="/users/signup" class="eriq-chat-cta">Ask ERIQ About Today's Risk</a>
                 </div>
 
                 <div class="eriq-capabilities">
@@ -2939,8 +3016,8 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                         </div>
                         <div class="eriq-cap-text">
-                            <h4>Methodology-Grounded</h4>
-                            <p>Answers draw from 196 knowledge chunks across GERI, EERI & EGSI methodology documents — not hallucinated opinions</p>
+                            <h4>Built on Transparent Methodology</h4>
+                            <p>Every answer is grounded in 196 knowledge chunks across GERI, EERI & EGSI methodology documents — verifiable, not hallucinated</p>
                         </div>
                     </div>
 
@@ -2949,8 +3026,8 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
                         <div class="eriq-cap-text">
-                            <h4>Live Production Data</h4>
-                            <p>Reads real-time GERI, EERI, EGSI scores, Brent/WTI/TTF prices, VIX, EU storage, correlations & regime state from live databases</p>
+                            <h4>Connected to Live Markets</h4>
+                            <p>Reads real-time GERI, EERI, EGSI scores, Brent/WTI/TTF prices, VIX, EU storage, correlations & regime state directly from production systems</p>
                         </div>
                     </div>
 
@@ -2960,7 +3037,12 @@
                         </div>
                         <div class="eriq-cap-text">
                             <h4>Three Intelligence Modes</h4>
-                            <p>Explain (learn why), Interpret (understand what it means), Decide (get actionable support) — progressively unlocked by plan tier</p>
+                            <p>Explain, Interpret, and Decide — progressively unlocked by plan tier</p>
+                            <div class="eriq-mode-examples">
+                                <span class="eriq-mode-ex">Explain: "Why did GERI move?"</span>
+                                <span class="eriq-mode-ex">Interpret: "What does it mean for Europe?"</span>
+                                <span class="eriq-mode-ex">Decide: "What scenarios should I monitor?"</span>
+                            </div>
                         </div>
                     </div>
 
@@ -2969,9 +3051,13 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         </div>
                         <div class="eriq-cap-text">
-                            <h4>Plan-Tiered Depth</h4>
-                            <p>Free users get basic explanations. Traders get regime context & probabilities. Pro & Enterprise unlock full scenario forecasts & beta sensitivities</p>
+                            <h4>Deeper Answers as You Grow</h4>
+                            <p>Free users get clear explanations. Traders get regime context & probabilities. Pro & Enterprise unlock full scenario forecasts & correlation analysis</p>
                         </div>
+                    </div>
+
+                    <div class="eriq-authority">
+                        <span>Designed for energy traders, analysts & risk managers</span>
                     </div>
                 </div>
             </div>
