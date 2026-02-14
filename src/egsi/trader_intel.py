@@ -519,6 +519,236 @@ def compute_weekly_driver() -> Dict[str, Any]:
     }
 
 
+def compute_rolling_correlations(days: int = 90) -> List[Dict[str, Any]]:
+    egsi = execute_production_query("""
+        SELECT index_date as date, index_value as value
+        FROM egsi_m_daily
+        WHERE index_date >= CURRENT_DATE - %s
+        ORDER BY index_date ASC
+    """, (days,))
+
+    if not egsi or len(egsi) < 30:
+        return []
+
+    asset_queries = {
+        'TTF': ("SELECT date, ttf_price as value FROM ttf_gas_snapshots WHERE date >= CURRENT_DATE - %s ORDER BY date ASC", (days,)),
+        'Brent': ("SELECT date, brent_price as value FROM oil_price_snapshots WHERE date >= CURRENT_DATE - %s ORDER BY date ASC", (days,)),
+        'VIX': ("SELECT date, vix_close as value FROM vix_snapshots WHERE date >= CURRENT_DATE - %s ORDER BY date ASC", (days,)),
+        'EUR/USD': ("SELECT date, rate as value FROM eurusd_snapshots WHERE date >= CURRENT_DATE - %s ORDER BY date ASC", (days,)),
+        'Storage': ("SELECT date, eu_storage_percent as value FROM gas_storage_snapshots WHERE date >= CURRENT_DATE - %s ORDER BY date ASC", (days,)),
+    }
+
+    egsi_map = {_safe_date(r['date']): _to_float(r['value']) for r in egsi}
+    egsi_dates = [_safe_date(r['date']) for r in egsi]
+
+    results = []
+    for asset_name, (query, params) in asset_queries.items():
+        rows = execute_production_query(query, params)
+        if not rows:
+            continue
+        asset_map = {_safe_date(r['date']): _to_float(r['value']) for r in rows}
+        aligned_egsi = []
+        aligned_asset = []
+        for d in egsi_dates:
+            if d in asset_map and egsi_map.get(d) is not None and asset_map[d] is not None:
+                aligned_egsi.append(egsi_map[d])
+                aligned_asset.append(asset_map[d])
+
+        if len(aligned_egsi) < 10:
+            continue
+
+        window = 30
+        correlations = []
+        step = max(1, len(aligned_egsi) // 20)
+        for i in range(window, len(aligned_egsi), step):
+            seg_e = aligned_egsi[i - window:i]
+            seg_a = aligned_asset[i - window:i]
+            corr = _pearson(seg_e, seg_a)
+            correlations.append(round(corr, 3))
+
+        full_corr = _pearson(aligned_egsi, aligned_asset)
+        latest_corr = _pearson(aligned_egsi[-window:], aligned_asset[-window:]) if len(aligned_egsi) >= window else full_corr
+
+        results.append({
+            'asset': asset_name,
+            'correlation': round(latest_corr, 3),
+            'full_period': round(full_corr, 3),
+            'rolling': correlations,
+            'sample_size': len(aligned_egsi),
+        })
+
+    results.sort(key=lambda x: abs(x['correlation']), reverse=True)
+    return results
+
+
+def compute_component_decomposition() -> Dict[str, Any]:
+    rows = execute_production_query("""
+        SELECT component_key, driver_type,
+               COUNT(*) as count,
+               AVG(score) as avg_score,
+               MAX(score) as max_score,
+               AVG(severity) as avg_severity
+        FROM egsi_drivers_daily
+        WHERE index_family = 'egsi_m'
+          AND index_date >= CURRENT_DATE - 30
+        GROUP BY component_key, driver_type
+        ORDER BY avg_score DESC NULLS LAST
+    """)
+
+    if not rows:
+        return {'components': [], 'total_drivers': 0}
+
+    total_score = sum(_to_float(r['avg_score']) or 0 for r in rows)
+    components = []
+    for r in rows:
+        avg_s = _to_float(r['avg_score']) or 0
+        weight = round((avg_s / total_score * 100) if total_score > 0 else 0, 1)
+        components.append({
+            'component': r['component_key'] or 'unknown',
+            'type': r['driver_type'] or 'unknown',
+            'avg_score': round(avg_s, 2),
+            'max_score': round(_to_float(r['max_score']) or 0, 2),
+            'avg_severity': round(_to_float(r['avg_severity']) or 0, 1),
+            'count': int(r['count']),
+            'weight_pct': weight,
+        })
+
+    return {
+        'components': components[:10],
+        'total_drivers': sum(int(r['count']) for r in rows),
+        'period_days': 30,
+    }
+
+
+def compute_regime_transition_probability() -> Dict[str, Any]:
+    rows = execute_production_query("""
+        WITH ordered AS (
+            SELECT index_date, band,
+                   LAG(band) OVER (ORDER BY index_date) as prev_band
+            FROM egsi_m_daily
+        )
+        SELECT prev_band, band as next_band, COUNT(*) as transitions
+        FROM ordered
+        WHERE prev_band IS NOT NULL
+        GROUP BY prev_band, band
+        ORDER BY prev_band, transitions DESC
+    """)
+
+    if not rows:
+        return {'transitions': {}, 'current_band': None}
+
+    transition_counts = {}
+    for r in rows:
+        prev = r['prev_band']
+        nxt = r['next_band']
+        cnt = int(r['transitions'])
+        if prev not in transition_counts:
+            transition_counts[prev] = {}
+        transition_counts[prev][nxt] = cnt
+
+    probabilities = {}
+    for band, targets in transition_counts.items():
+        total = sum(targets.values())
+        probabilities[band] = {}
+        for target, cnt in targets.items():
+            probabilities[band][target] = round(cnt / total * 100, 1) if total > 0 else 0
+
+    latest = execute_production_query("""
+        SELECT band FROM egsi_m_daily ORDER BY index_date DESC LIMIT 1
+    """)
+    current_band = latest[0]['band'] if latest else None
+
+    current_probs = probabilities.get(current_band, {})
+    all_bands = ['LOW', 'NORMAL', 'ELEVATED', 'HIGH', 'CRITICAL']
+    next_probs = []
+    for b in all_bands:
+        next_probs.append({
+            'band': b,
+            'probability': current_probs.get(b, 0),
+            'is_current': b == current_band,
+        })
+
+    return {
+        'current_band': current_band,
+        'next_day_probabilities': next_probs,
+        'full_matrix': probabilities,
+    }
+
+
+def compute_cross_index_spillover(days: int = 90) -> List[Dict[str, Any]]:
+    egsi = execute_production_query("""
+        SELECT index_date as date, index_value as value
+        FROM egsi_m_daily
+        WHERE index_date >= CURRENT_DATE - %s
+        ORDER BY index_date ASC
+    """, (days,))
+
+    if not egsi or len(egsi) < 14:
+        return []
+
+    egsi_map = {_safe_date(r['date']): _to_float(r['value']) for r in egsi}
+    egsi_dates = [_safe_date(r['date']) for r in egsi]
+
+    index_queries = {
+        'GERI': "SELECT calculated_at::date as date, risk_score as value FROM risk_indices WHERE region = 'global' AND window_days = 7 AND calculated_at::date >= CURRENT_DATE - %s ORDER BY calculated_at::date ASC",
+        'EERI': "SELECT calculated_at::date as date, risk_score as value FROM risk_indices WHERE region = 'europe' AND window_days = 7 AND calculated_at::date >= CURRENT_DATE - %s ORDER BY calculated_at::date ASC",
+    }
+
+    results = []
+    for idx_name, query in index_queries.items():
+        try:
+            rows = execute_production_query(query, (days,))
+            if not rows:
+                continue
+
+            idx_map = {}
+            for r in rows:
+                d = _safe_date(r['date'])
+                idx_map[d] = _to_float(r['value'])
+
+            aligned_egsi = []
+            aligned_idx = []
+            for d in egsi_dates:
+                if d in idx_map and egsi_map.get(d) is not None and idx_map[d] is not None:
+                    aligned_egsi.append(egsi_map[d])
+                    aligned_idx.append(idx_map[d])
+
+            if len(aligned_egsi) < 10:
+                continue
+
+            corr = _pearson(aligned_egsi, aligned_idx)
+
+            egsi_changes = [aligned_egsi[i] - aligned_egsi[i-1] for i in range(1, len(aligned_egsi))]
+            idx_changes = [aligned_idx[i] - aligned_idx[i-1] for i in range(1, len(aligned_idx))]
+
+            lead_corr = 0
+            lag_corr = 0
+            if len(egsi_changes) >= 5 and len(idx_changes) >= 5:
+                lead_corr = _pearson(egsi_changes[:-1], idx_changes[1:])
+                lag_corr = _pearson(egsi_changes[1:], idx_changes[:-1])
+
+            if abs(lead_corr) > abs(lag_corr) and abs(lead_corr) > 0.2:
+                lead_lag = f'EGSI leads {idx_name} by ~1 day'
+            elif abs(lag_corr) > abs(lead_corr) and abs(lag_corr) > 0.2:
+                lead_lag = f'{idx_name} leads EGSI by ~1 day'
+            else:
+                lead_lag = 'Contemporaneous movement'
+
+            results.append({
+                'index': idx_name,
+                'correlation': round(corr, 3),
+                'lead_correlation': round(lead_corr, 3),
+                'lag_correlation': round(lag_corr, 3),
+                'lead_lag_insight': lead_lag,
+                'sample_size': len(aligned_egsi),
+            })
+        except Exception as e:
+            logger.warning(f"Cross-index spillover error for {idx_name}: {e}")
+            continue
+
+    return results
+
+
 def get_egsi_trader_intel(plan_level: int = 2) -> Dict[str, Any]:
     result = {}
 
@@ -577,5 +807,31 @@ def get_egsi_trader_intel(plan_level: int = 2) -> Dict[str, Any]:
         result['weekly_driver'] = {'headline': None}
 
     result['plan_level'] = plan_level
+
+    if plan_level >= 3:
+        try:
+            result['rolling_correlations'] = compute_rolling_correlations(days=90)
+        except Exception as e:
+            logger.error(f"Rolling correlations error: {e}")
+            result['rolling_correlations'] = []
+
+        try:
+            result['component_decomposition'] = compute_component_decomposition()
+        except Exception as e:
+            logger.error(f"Component decomposition error: {e}")
+            result['component_decomposition'] = {'components': [], 'total_drivers': 0}
+
+        try:
+            result['regime_transition_probability'] = compute_regime_transition_probability()
+        except Exception as e:
+            logger.error(f"Regime transition probability error: {e}")
+            result['regime_transition_probability'] = {'transitions': {}, 'current_band': None}
+
+    if plan_level >= 4:
+        try:
+            result['cross_index_spillover'] = compute_cross_index_spillover(days=90)
+        except Exception as e:
+            logger.error(f"Cross-index spillover error: {e}")
+            result['cross_index_spillover'] = []
 
     return result

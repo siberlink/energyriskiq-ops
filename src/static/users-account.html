@@ -5006,6 +5006,49 @@
                             <div class="egsi-trader-card-title">&#128269; Analog Event Finder</div>
                             <div class="egsi-analog-list" id="egsiAnalogList"></div>
                         </div>
+
+                        <div id="egsiProSection" style="display:none;">
+                            <div class="egsi-section-divider" style="margin-top:24px;">
+                                <h3 class="egsi-section-title" style="font-size:16px;color:#f1f5f9;">&#128200; Pro Intelligence <span class="egsi-tier-badge" style="background:rgba(168,85,247,0.2);color:#c084fc;">PRO</span></h3>
+                            </div>
+
+                            <div class="egsi-trader-card" id="egsiRollingCorrCard">
+                                <div class="egsi-trader-card-title">Rolling Correlations (30-Day)</div>
+                                <div id="egsiRollingCorrContent"></div>
+                            </div>
+
+                            <div class="egsi-trader-card" id="egsiComponentDecompCard">
+                                <div class="egsi-trader-card-title">Stress Component Decomposition</div>
+                                <div id="egsiComponentDecompContent"></div>
+                            </div>
+
+                            <div class="egsi-trader-card" id="egsiRegimeTransCard">
+                                <div class="egsi-trader-card-title">Regime Transition Probability</div>
+                                <div id="egsiRegimeTransContent"></div>
+                            </div>
+                        </div>
+
+                        <div id="egsiEnterpriseSection" style="display:none;">
+                            <div class="egsi-section-divider" style="margin-top:24px;">
+                                <h3 class="egsi-section-title" style="font-size:16px;color:#f1f5f9;">&#127961; Enterprise Intelligence <span class="egsi-tier-badge" style="background:rgba(251,146,60,0.2);color:#fb923c;">ENTERPRISE</span></h3>
+                            </div>
+
+                            <div class="egsi-trader-card" id="egsiSpilloverCard">
+                                <div class="egsi-trader-card-title">Cross-Index Contagion Analysis</div>
+                                <div id="egsiSpilloverContent"></div>
+                            </div>
+                        </div>
+
+                        <div id="egsiTraderProUpgradePrompt" style="display:none;">
+                            <div class="egsi-upgrade-prompt" style="display:flex;margin-top:16px;">
+                                <div class="egsi-upgrade-icon">&#128200;</div>
+                                <div class="egsi-upgrade-text">
+                                    <strong id="egsiTraderProUpgradeTitle">Unlock Pro EGSI Intelligence</strong>
+                                    <p id="egsiTraderProUpgradeDesc">Upgrade to Pro for rolling correlations, stress decomposition, regime transition probabilities, and AI-powered interpretation.</p>
+                                </div>
+                                <button class="egsi-upgrade-btn" onclick="showSection('plans');">Upgrade Now</button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- EGSI Trader Upgrade Prompt (for lower tiers) -->
@@ -10774,6 +10817,42 @@
                 renderEgsiOverlayChart();
                 renderEgsiStorageSeasonalChart(json.data.storage_seasonal);
                 renderEgsiAnalogFinder(json.data.analog_finder);
+
+                if (planLevel >= 3) {
+                    document.getElementById('egsiProSection').style.display = 'block';
+                    renderEgsiRollingCorrelations(json.data.rolling_correlations);
+                    renderEgsiComponentDecomp(json.data.component_decomposition);
+                    renderEgsiRegimeTransition(json.data.regime_transition_probability);
+                    document.getElementById('egsiTraderProUpgradePrompt').style.display = 'none';
+                } else {
+                    document.getElementById('egsiProSection').style.display = 'none';
+                    document.getElementById('egsiTraderProUpgradePrompt').style.display = 'block';
+                }
+
+                if (planLevel >= 4) {
+                    document.getElementById('egsiEnterpriseSection').style.display = 'block';
+                    renderEgsiSpillover(json.data.cross_index_spillover);
+                } else {
+                    document.getElementById('egsiEnterpriseSection').style.display = 'none';
+                }
+
+                var tierLabel = planLevel >= 4 ? 'Enterprise Intelligence' : (planLevel >= 3 ? 'Pro Intelligence' : 'Trader Intelligence');
+                var sectionTitle = document.querySelector('#egsiTraderIntelSection .egsi-section-title');
+                if (sectionTitle) {
+                    var badgeClass = planLevel >= 4 ? 'style="background:rgba(251,146,60,0.2);color:#fb923c;"' : (planLevel >= 3 ? 'style="background:rgba(168,85,247,0.2);color:#c084fc;"' : '');
+                    var badgeLabel = planLevel >= 4 ? 'ENTERPRISE' : (planLevel >= 3 ? 'PRO' : 'TRADER+');
+                    sectionTitle.innerHTML = '&#9889; ' + tierLabel + ' <span class="egsi-tier-badge" ' + badgeClass + '>' + badgeLabel + '</span>';
+                }
+
+                if (planLevel >= 3) {
+                    var proUpTitle = document.getElementById('egsiTraderProUpgradeTitle');
+                    var proUpDesc = document.getElementById('egsiTraderProUpgradeDesc');
+                    if (planLevel < 4 && proUpTitle && proUpDesc) {
+                        proUpTitle.textContent = 'Unlock Enterprise EGSI Intelligence';
+                        proUpDesc.textContent = 'Upgrade to Enterprise for cross-index contagion analysis, GERI/EERI spillover detection, and institutional-grade intelligence.';
+                        document.getElementById('egsiTraderProUpgradePrompt').style.display = 'block';
+                    }
+                }
             } catch (e) {
                 console.error('EGSI Trader Intel error:', e);
             }
@@ -10984,6 +11063,111 @@
                 return '<div class="egsi-analog-item"><div class="egsi-analog-dates">' + a.start_date + ' to ' + a.end_date + '</div><div class="egsi-analog-meta">Similarity: <strong>' + (a.similarity * 100).toFixed(0) + '%</strong> | Avg: ' + a.avg_value + ' | Band: ' + a.band_at_time + '</div><div class="egsi-analog-outcome" style="color:' + outcomeColor + '">7d after: ' + outcomeText + '</div></div>';
             }).join('');
             document.getElementById('egsiAnalogList').innerHTML = html;
+        }
+
+        /* ========== EGSI Pro Intelligence Renderers ========== */
+        function renderEgsiRollingCorrelations(data) {
+            var el = document.getElementById('egsiRollingCorrContent');
+            if (!data || data.length === 0) {
+                el.innerHTML = '<div style="color:#64748b;font-size:13px;">Insufficient data for correlation analysis.</div>';
+                return;
+            }
+            var html = '<div style="display:grid;gap:12px;">';
+            data.forEach(function(c) {
+                var corrVal = c.correlation;
+                var corrColor = corrVal > 0.5 ? '#f87171' : corrVal > 0.2 ? '#fbbf24' : corrVal < -0.2 ? '#4ade80' : '#94a3b8';
+                var barWidth = Math.abs(corrVal) * 100;
+                var label = corrVal > 0.7 ? 'Strong +' : corrVal > 0.4 ? 'Moderate +' : corrVal > 0.1 ? 'Weak +' : corrVal < -0.7 ? 'Strong -' : corrVal < -0.4 ? 'Moderate -' : corrVal < -0.1 ? 'Weak -' : 'Negligible';
+                html += '<div style="background:#0f172a;border-radius:8px;padding:12px;">';
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+                html += '<span style="color:#e2e8f0;font-weight:600;font-size:13px;">' + c.asset + '</span>';
+                html += '<span style="color:' + corrColor + ';font-weight:700;font-size:14px;">' + (corrVal > 0 ? '+' : '') + corrVal.toFixed(3) + '</span>';
+                html += '</div>';
+                html += '<div style="background:#1e293b;border-radius:4px;height:6px;overflow:hidden;">';
+                html += '<div style="width:' + barWidth + '%;height:100%;background:' + corrColor + ';border-radius:4px;transition:width 0.5s;"></div></div>';
+                html += '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#64748b;">';
+                html += '<span>' + label + '</span><span>Full period: ' + (c.full_period > 0 ? '+' : '') + c.full_period.toFixed(3) + '</span>';
+                html += '</div></div>';
+            });
+            html += '</div>';
+            el.innerHTML = html;
+        }
+
+        function renderEgsiComponentDecomp(data) {
+            var el = document.getElementById('egsiComponentDecompContent');
+            if (!data || !data.components || data.components.length === 0) {
+                el.innerHTML = '<div style="color:#64748b;font-size:13px;">No component data available.</div>';
+                return;
+            }
+            var html = '<div style="font-size:11px;color:#64748b;margin-bottom:10px;">Last ' + (data.period_days || 30) + ' days | ' + (data.total_drivers || 0) + ' total driver events</div>';
+            html += '<div style="display:grid;gap:8px;">';
+            var colors = ['#10b981', '#06b6d4', '#a78bfa', '#f59e0b', '#f87171', '#2dd4bf', '#fb923c', '#818cf8', '#e879f9', '#94a3b8'];
+            data.components.forEach(function(c, i) {
+                var color = colors[i % colors.length];
+                html += '<div style="background:#0f172a;border-radius:8px;padding:10px 12px;">';
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+                html += '<span style="color:#e2e8f0;font-size:13px;font-weight:600;">' + (c.component || 'Unknown') + '</span>';
+                html += '<span style="color:' + color + ';font-weight:700;font-size:13px;">' + c.weight_pct + '%</span>';
+                html += '</div>';
+                html += '<div style="background:#1e293b;border-radius:4px;height:6px;overflow:hidden;">';
+                html += '<div style="width:' + Math.min(c.weight_pct, 100) + '%;height:100%;background:' + color + ';border-radius:4px;"></div></div>';
+                html += '<div style="font-size:11px;color:#64748b;margin-top:4px;">Type: ' + (c.type || '--') + ' | Avg score: ' + (c.avg_score || '--') + ' | Events: ' + (c.count || 0) + '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            el.innerHTML = html;
+        }
+
+        function renderEgsiRegimeTransition(data) {
+            var el = document.getElementById('egsiRegimeTransContent');
+            if (!data || !data.next_day_probabilities) {
+                el.innerHTML = '<div style="color:#64748b;font-size:13px;">No transition data available.</div>';
+                return;
+            }
+            var bandColors = { LOW: '#4ade80', NORMAL: '#60a5fa', ELEVATED: '#fbbf24', HIGH: '#f97316', CRITICAL: '#ef4444' };
+            var html = '<div style="color:#94a3b8;font-size:12px;margin-bottom:12px;">Current band: <strong style="color:' + (bandColors[data.current_band] || '#94a3b8') + '">' + (data.current_band || '--') + '</strong> | Next-day transition probabilities:</div>';
+            html += '<div style="display:grid;gap:8px;">';
+            data.next_day_probabilities.forEach(function(p) {
+                var color = bandColors[p.band] || '#94a3b8';
+                var isCurrent = p.is_current;
+                html += '<div style="background:' + (isCurrent ? 'rgba(16,185,129,0.1)' : '#0f172a') + ';border:1px solid ' + (isCurrent ? 'rgba(16,185,129,0.3)' : 'transparent') + ';border-radius:8px;padding:10px 12px;">';
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+                html += '<span style="color:' + color + ';font-weight:600;font-size:13px;">' + p.band + (isCurrent ? ' (current)' : '') + '</span>';
+                html += '<span style="color:#e2e8f0;font-weight:700;font-size:14px;">' + p.probability.toFixed(1) + '%</span>';
+                html += '</div>';
+                html += '<div style="background:#1e293b;border-radius:4px;height:8px;overflow:hidden;">';
+                html += '<div style="width:' + Math.min(p.probability, 100) + '%;height:100%;background:' + color + ';border-radius:4px;transition:width 0.5s;"></div></div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            el.innerHTML = html;
+        }
+
+        /* ========== EGSI Enterprise Intelligence Renderers ========== */
+        function renderEgsiSpillover(data) {
+            var el = document.getElementById('egsiSpilloverContent');
+            if (!data || data.length === 0) {
+                el.innerHTML = '<div style="color:#64748b;font-size:13px;">Insufficient cross-index data for contagion analysis.</div>';
+                return;
+            }
+            var html = '<div style="display:grid;gap:12px;">';
+            data.forEach(function(s) {
+                var corrColor = Math.abs(s.correlation) > 0.5 ? '#f87171' : Math.abs(s.correlation) > 0.3 ? '#fbbf24' : '#94a3b8';
+                html += '<div style="background:#0f172a;border-radius:8px;padding:14px;">';
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+                html += '<span style="color:#e2e8f0;font-weight:700;font-size:14px;">EGSI vs ' + s.index + '</span>';
+                html += '<span style="color:' + corrColor + ';font-weight:700;font-size:15px;">' + (s.correlation > 0 ? '+' : '') + s.correlation.toFixed(3) + '</span>';
+                html += '</div>';
+                html += '<div style="color:#94a3b8;font-size:12px;margin-bottom:6px;">' + (s.lead_lag_insight || 'Unknown relationship') + '</div>';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;">';
+                html += '<div style="color:#64748b;">Lead corr: <span style="color:#cbd5e1;">' + (s.lead_correlation > 0 ? '+' : '') + s.lead_correlation.toFixed(3) + '</span></div>';
+                html += '<div style="color:#64748b;">Lag corr: <span style="color:#cbd5e1;">' + (s.lag_correlation > 0 ? '+' : '') + s.lag_correlation.toFixed(3) + '</span></div>';
+                html += '</div>';
+                html += '<div style="font-size:11px;color:#475569;margin-top:6px;">Sample: ' + s.sample_size + ' days</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            el.innerHTML = html;
         }
 
         /* ========== End EGSI Dashboard Module ========== */

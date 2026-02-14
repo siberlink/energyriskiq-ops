@@ -328,6 +328,13 @@ async def get_geri_trader_intel_endpoint(
             'upgrade_required': True,
         }
     
+    if plan_level < 2:
+        return {
+            'success': False,
+            'message': 'GERI Trader Intelligence requires Trader plan or above',
+            'upgrade_required': True,
+        }
+
     try:
         from src.geri.trader_intel import get_geri_trader_intel
         data = get_geri_trader_intel(plan_level=max(2, min(4, plan_level)))

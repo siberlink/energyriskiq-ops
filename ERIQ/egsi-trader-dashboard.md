@@ -1,90 +1,91 @@
 # EGSI Trader Intelligence Dashboard
 
 ## Overview
-The EGSI Trader Intelligence module provides tactical analytics for Trader-tier subscribers (plan_level >= 2) on the EGSI (Europe Gas Stress Index) dashboard. It adds 9 interactive intelligence modules beyond the base EGSI dashboard.
+The EGSI Trader Intelligence module provides plan-tiered tactical analytics on the EGSI (Europe Gas Stress Index) dashboard. Each upgraded plan inherits all features from lower tiers plus unique tier-specific capabilities.
 
-## Plan Gating
+## Plan Gating (Feature Cascading)
 - **Free/Personal (plan_level 0-1):** See upgrade prompt, no trader intel
-- **Trader (plan_level 2):** All 9 modules, 90-day asset overlay history
-- **Pro (plan_level 3):** All Trader + 365-day asset overlay history
-- **Enterprise (plan_level 4):** All Pro features
+- **Trader (plan_level 2):** 9 base modules, 90-day asset overlay history, upgrade prompt for Pro
+- **Pro (plan_level 3):** All 9 Trader modules + 3 Pro-exclusive modules (rolling correlations, component decomposition, regime transition probability), 365-day asset overlay history, upgrade prompt for Enterprise
+- **Enterprise (plan_level 4):** All Pro features + 1 Enterprise-exclusive module (cross-index contagion analysis), no upgrade prompt
 
 ## API Endpoint
 `GET /api/v1/indices/egsi/trader-intel`
 - Authentication: X-User-Token header (server-side plan enforcement)
-- Returns: JSON with all 9 module datasets
+- plan_level defaults to 0, auth failure returns error (no fallback to paid access)
+- Returns: JSON with modules based on plan_level
 
-## 9 Intelligence Modules
+## Trader Modules (plan_level >= 2)
 
 ### 1. Stress Momentum Gauge
 RSI-like indicator (0-100) for EGSI-M stress momentum over 14 days.
 - Labels: OVERBOUGHT (>=70), BUILDING (>=55), NEUTRAL, EASING (<=45), OVERSOLD (<=30)
-- Uses: Average gain/loss ratio over lookback window
 - Source: `egsi_m_daily.index_value`
 
 ### 2. TTF vs EGSI Divergence Indicator
 Z-score spread between normalized TTF price and EGSI-M stress level.
 - Signals: OVERPRICED (>1.5σ), UNDERPRICED (<-1.5σ), SLIGHT_PREMIUM, SLIGHT_DISCOUNT, ALIGNED
-- Uses 90-day normalization window
 - Source: `egsi_m_daily` JOIN `ttf_gas_snapshots`
 
 ### 3. Biggest Risk Driver of the Week
 Top driver headline from the past 7 days by score/severity.
 - Source: `egsi_drivers_daily` WHERE `index_family = 'egsi_m'`
-- Shows: headline, severity, confidence, type, source
 
 ### 4. Risk Radar (30-Day Outlook)
 Heuristic bias indicators across 4 factors:
-- Stress Momentum: Based on trend_1d and trend_7d
-- Storage Draw Risk: Current vs seasonal norm
-- Price Volatility: TTF coefficient of variation
-- Supply Disruption: Current stress band level
+- Stress Momentum, Storage Draw Risk, Price Volatility, Supply Disruption
 - Overall bias: RISK_ON, LEANING_UP, NEUTRAL, LEANING_DOWN, RISK_OFF
 
 ### 5. Scenario Impact Analysis
-Forward scenario ranges for 2-week horizon based on current momentum:
-- If stress accelerates (high range)
-- Base case (trend continues)
-- If stress reverses (low range)
-- Each scenario shows EGSI range, implied band, and TTF impact direction
+Forward scenario ranges for 2-week horizon based on current momentum.
 
 ### 6. Regime History (12 months)
-Bar chart showing days spent in each stress band (LOW/NORMAL/ELEVATED/HIGH/CRITICAL).
-- Includes percentage breakdown and transition count
-- Source: `egsi_m_daily.band` GROUP BY
+Bar chart showing days spent in each stress band with transition count.
 
 ### 7. EGSI vs Assets Overlay Chart
-Interactive line chart with EGSI-M and selectable asset overlays:
-- TTF gas price, Brent crude, VIX, EUR/USD, EU Storage %
-- Checkbox toggles for each asset
-- Date-aligned with EGSI-M as primary axis
-- Sources: `ttf_gas_snapshots`, `oil_price_snapshots`, `vix_snapshots`, `eurusd_snapshots`, `gas_storage_snapshots`
+Interactive line chart with toggleable overlays: TTF, Brent, VIX, EUR/USD, Storage.
+- spanGaps enabled for continuous lines across weekends
 
 ### 8. EU Gas Storage vs Seasonal Average
 Line chart comparing current storage trajectory against seasonal norms.
-- Shows deficit/surplus from seasonal target
-- Source: `gas_storage_snapshots.eu_storage_percent` and `seasonal_norm`
 
 ### 9. Analog Event Finder
-Pattern matching algorithm finding historical periods similar to the current 14-day EGSI-M pattern.
-- Uses normalized Pearson correlation (threshold: 0.7)
-- Shows top 5 matches with similarity score, dates, band, and 7-day outcome
-- Source: Full `egsi_m_daily` history
+Pattern matching via Pearson correlation finding similar historical stress periods.
 
-## Data Sources
-| Module | Tables Used |
-|--------|------------|
-| Momentum | egsi_m_daily |
-| Divergence | egsi_m_daily, ttf_gas_snapshots |
-| Weekly Driver | egsi_drivers_daily |
-| Risk Radar | egsi_m_daily, gas_storage_snapshots, ttf_gas_snapshots |
-| Alert Impact | egsi_m_daily |
-| Regime History | egsi_m_daily |
-| Asset Overlay | egsi_m_daily, ttf_gas_snapshots, oil_price_snapshots, vix_snapshots, eurusd_snapshots, gas_storage_snapshots |
-| Storage Seasonal | gas_storage_snapshots |
-| Analog Finder | egsi_m_daily |
+## Pro-Exclusive Modules (plan_level >= 3)
+
+### 10. Rolling Correlations (30-Day)
+30-day rolling Pearson correlations between EGSI-M and 5 assets (TTF, Brent, VIX, EUR/USD, Storage).
+- Shows latest 30d correlation, full-period correlation, correlation strength label
+- Sorted by absolute correlation strength
+
+### 11. Stress Component Decomposition
+Breakdown of EGSI-M stress drivers by component type over last 30 days.
+- Shows each component's weight percentage, average score, max score, event count
+- Source: `egsi_drivers_daily` GROUP BY component_key, driver_type
+
+### 12. Regime Transition Probability
+Historical probability of transitioning between stress bands based on full history.
+- Shows current band highlighted with next-day probability for each possible band
+- Full transition matrix available
+- Source: `egsi_m_daily.band` with LAG window function
+
+## Enterprise-Exclusive Module (plan_level >= 4)
+
+### 13. Cross-Index Contagion Analysis
+Correlation and lead/lag analysis between EGSI-M and other risk indices (GERI, EERI).
+- Shows correlation coefficient, lead/lag correlation, and directional insight
+- Detects whether EGSI leads or lags other indices
+- Source: `egsi_m_daily` cross-joined with `risk_indices`
+
+## Frontend Sections
+- `#egsiTraderIntelSection` - Contains all Trader modules (9 cards)
+- `#egsiProSection` - Contains Pro-exclusive modules (3 cards), hidden for Trader
+- `#egsiEnterpriseSection` - Contains Enterprise-exclusive module (1 card), hidden for Pro
+- `#egsiTraderProUpgradePrompt` - Contextual upgrade prompt (shows Pro upgrade for Trader, Enterprise upgrade for Pro)
+- Section title dynamically updates to reflect tier: "Trader Intelligence", "Pro Intelligence", or "Enterprise Intelligence"
 
 ## Files
 - Backend: `src/egsi/trader_intel.py`
 - API Route: `src/egsi/routes.py` (endpoint: `/egsi/trader-intel`)
-- Frontend: `src/static/users-account.html` (EGSI Trader Intelligence section)
+- Frontend: `src/static/users-account.html` (EGSI intelligence sections)

@@ -25,7 +25,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **API:** A FastAPI application serves as the primary interface.
 - **SEO Growth System:** Generates SEO-optimized daily alert pages, dynamic sitemaps, and rich meta-data.
 - **Billing & Subscription:** Integrates with Stripe for subscription management.
-- **Plan-Tiered Dashboards:** Progressive intelligence depth across 5 subscription tiers for GERI, EERI, and EGSI dashboards, offering varying levels of data, history, analytics, and tactical intelligence modules (e.g., regime analysis, correlations, shock detectors).
+- **Plan-Tiered Dashboards:** Progressive intelligence depth across 5 subscription tiers for GERI, EERI, and EGSI dashboards. Each upgraded plan inherits all previous plan features plus unique tier-specific capabilities (proper feature cascading). EGSI example: Trader gets 9 base modules (momentum, divergence, drivers, radar, scenarios, regime history, asset overlay, storage seasonal, analog finder). Pro adds rolling correlations, component decomposition, regime transition probability. Enterprise adds cross-index contagion/spillover analysis.
 - **Daily Geo-Energy Intelligence Digest:** AI-powered daily briefing on the user dashboard with plan-tiered features, generated using OpenAI gpt-4.1-mini.
 - **ERIQ Expert Analyst:** An AI-powered interpretation intelligence bot accessible at `/users/account` using GPT-5.1 (with gpt-4.1-mini fallback) and RAG from a knowledge base. It includes a Product Analytics & Feedback Layer and a Context Assembly Layer (CAL) for plan-gated database snapshots and contextual information.
 - **ERIQ Token Economy:** Manages plan-based monthly token allowances and purchased token balances, resetting on Stripe subscription payment events.
@@ -38,6 +38,11 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Digest System:** Consolidates multiple alert deliveries into periodic summary messages.
 - **Production Hardening:** Includes preflight checks, health checks, user allowlisting, and circuit breakers.
 - **Observability:** Tracks engine runs and provides internal API endpoints for monitoring.
+
+## Test Credentials
+- **Email:** emil.siberlink@gmail.com
+- **Password:** Regen@3010
+- **PIN:** 221967
 
 ## External Dependencies
 
