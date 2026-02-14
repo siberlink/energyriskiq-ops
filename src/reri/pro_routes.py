@@ -7,8 +7,9 @@ asset stress data, and historical intelligence.
 Mounted under /api/v1/eeri-pro
 """
 import logging
+import math
 from datetime import date, datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 from fastapi import APIRouter, HTTPException, Query, Depends, Header
 import json
 
@@ -725,4 +726,380 @@ async def get_weekly_snapshot_endpoint(
     return {
         'success': True,
         'data': snapshot,
+    }
+
+
+REACTION_LAG_MAP = {
+    'ttf': {'asset': 'TTF Gas', 'lag': '1–2 days', 'note': 'Most sensitive to European risk shifts'},
+    'brent': {'asset': 'Brent Oil', 'lag': '3–5 days', 'note': 'Global supply/demand dampens reaction speed'},
+    'vix': {'asset': 'VIX', 'lag': 'Same day', 'note': 'Instantaneous risk-sentiment transmission'},
+    'eurusd': {'asset': 'EUR/USD', 'lag': '2–3 days', 'note': 'FX adjusts via macro channel with delay'},
+    'storage': {'asset': 'EU Gas Storage', 'lag': 'Structural', 'note': 'Physical flow adjustment, not traded'},
+}
+
+KEY_DATES_CALENDAR = [
+    {'category': 'Storage', 'event': 'AGSI+ Weekly Storage Update', 'frequency': 'Weekly (Wed)'},
+    {'category': 'OPEC', 'event': 'OPEC+ JMMC / Full Meeting', 'frequency': 'Monthly / Quarterly'},
+    {'category': 'EU Policy', 'event': 'EU Energy Council', 'frequency': 'As scheduled'},
+    {'category': 'Sanctions', 'event': 'EU/US Sanctions Review Deadlines', 'frequency': 'Periodic'},
+    {'category': 'Gas', 'event': 'TTF Front-Month Expiry', 'frequency': 'Monthly'},
+    {'category': 'Data', 'event': 'IEA Oil Market Report', 'frequency': 'Monthly'},
+]
+
+
+def _compute_pearson_correlation(x: List[float], y: List[float]) -> Optional[float]:
+    """Compute Pearson correlation between two aligned series."""
+    n = min(len(x), len(y))
+    if n < 7:
+        return None
+    x, y = x[:n], y[:n]
+    mean_x = sum(x) / n
+    mean_y = sum(y) / n
+    cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
+    std_x = math.sqrt(sum((xi - mean_x) ** 2 for xi in x))
+    std_y = math.sqrt(sum((yi - mean_y) ** 2 for yi in y))
+    if std_x == 0 or std_y == 0:
+        return 0.0
+    return round(cov / (std_x * std_y), 2)
+
+
+def _compute_30d_correlations() -> Dict[str, Any]:
+    """Compute 30-day rolling correlations between EERI and each asset."""
+    end_date = date.today()
+    start_date = end_date - timedelta(days=35)
+
+    asset_queries = {
+        'ttf': ("SELECT date, ttf_price AS value FROM ttf_gas_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'TTF Gas'),
+        'brent': ("SELECT date, brent_price AS value FROM oil_price_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'Brent Oil'),
+        'vix': ("SELECT date, vix_close AS value FROM vix_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'VIX'),
+        'eurusd': ("SELECT date, rate AS value FROM eurusd_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EUR/USD'),
+        'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EU Storage'),
+    }
+
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                SELECT date, value FROM reri_indices_daily
+                WHERE index_id = %s AND date >= %s AND date <= %s
+                ORDER BY date ASC
+            """, (EERI_INDEX_ID, start_date, end_date))
+            eeri_rows = cursor.fetchall()
+
+        eeri_by_date = {r['date']: float(r['value']) for r in eeri_rows}
+        eeri_dates = sorted(eeri_by_date.keys())
+
+        correlations = []
+        for asset_key, (query, display_name) in asset_queries.items():
+            try:
+                with get_cursor() as cursor:
+                    cursor.execute(query, (start_date, end_date))
+                    asset_rows = cursor.fetchall()
+                asset_by_date = {r['date']: float(r['value']) for r in asset_rows if r['value'] is not None}
+
+                common_dates = sorted(set(eeri_dates) & set(asset_by_date.keys()))
+                if len(common_dates) < 7:
+                    correlations.append({
+                        'asset': display_name,
+                        'key': asset_key,
+                        'correlation': None,
+                        'sample_size': len(common_dates),
+                        'strength': 'insufficient data',
+                    })
+                    continue
+
+                eeri_vals = [eeri_by_date[d] for d in common_dates]
+                asset_vals = [asset_by_date[d] for d in common_dates]
+                corr = _compute_pearson_correlation(eeri_vals, asset_vals)
+
+                abs_corr = abs(corr) if corr is not None else 0
+                if abs_corr >= 0.7:
+                    strength = 'strong'
+                elif abs_corr >= 0.4:
+                    strength = 'moderate'
+                else:
+                    strength = 'weak'
+
+                correlations.append({
+                    'asset': display_name,
+                    'key': asset_key,
+                    'correlation': corr,
+                    'sample_size': len(common_dates),
+                    'strength': strength,
+                })
+            except Exception as e:
+                logger.warning(f"Error computing correlation for {asset_key}: {e}")
+                correlations.append({
+                    'asset': display_name,
+                    'key': asset_key,
+                    'correlation': None,
+                    'sample_size': 0,
+                    'strength': 'error',
+                })
+
+        correlations.sort(key=lambda x: abs(x['correlation']) if x['correlation'] is not None else 0, reverse=True)
+        return {'correlations': correlations, 'period_days': 30}
+
+    except Exception as e:
+        logger.error(f"Error computing 30d correlations: {e}")
+        return {'correlations': [], 'period_days': 30}
+
+
+def _detect_risk_shock() -> Optional[Dict[str, Any]]:
+    """Detect rapid EERI acceleration (Δ ≥ +10 in 2 days)."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                SELECT date, value FROM reri_indices_daily
+                WHERE index_id = %s
+                ORDER BY date DESC LIMIT 5
+            """, (EERI_INDEX_ID,))
+            rows = cursor.fetchall()
+
+        if len(rows) < 3:
+            return None
+
+        rows = list(reversed(rows))
+        for i in range(len(rows) - 2):
+            v_start = float(rows[i]['value'])
+            v_end = float(rows[i + 2]['value'])
+            delta = v_end - v_start
+            if delta >= 10:
+                return {
+                    'detected': True,
+                    'delta': round(delta, 1),
+                    'from_value': round(v_start, 1),
+                    'to_value': round(v_end, 1),
+                    'from_date': rows[i]['date'].isoformat() if hasattr(rows[i]['date'], 'isoformat') else str(rows[i]['date']),
+                    'to_date': rows[i + 2]['date'].isoformat() if hasattr(rows[i + 2]['date'], 'isoformat') else str(rows[i + 2]['date']),
+                    'message': f'Rapid Acceleration Detected: EERI rose {delta:.0f} points in 2 days ({v_start:.0f} → {v_end:.0f})',
+                }
+
+        return {'detected': False}
+
+    except Exception as e:
+        logger.warning(f"Error detecting risk shock: {e}")
+        return None
+
+
+def _compute_regime_persistence_from_data() -> Dict[str, Any]:
+    """Compute regime persistence probability from actual historical data."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                SELECT date, value, band FROM reri_indices_daily
+                WHERE index_id = %s
+                ORDER BY date ASC
+            """, (EERI_INDEX_ID,))
+            rows = cursor.fetchall()
+
+        if len(rows) < 14:
+            from src.reri.eeri_weekly_snapshot import REGIME_PERSISTENCE
+            current_band = rows[-1]['band'] if rows else 'MODERATE'
+            fallback = REGIME_PERSISTENCE.get(current_band, REGIME_PERSISTENCE['MODERATE'])
+            return {
+                'probability': round((fallback['prob_low'] + fallback['prob_high']) / 2 * 100),
+                'confidence': fallback['confidence'],
+                'narrative': fallback['narrative'],
+                'sample_size': len(rows),
+                'current_band': current_band,
+            }
+
+        from src.reri.types import get_band as eeri_get_band
+        bands = []
+        for r in rows:
+            val = float(r['value']) if r['value'] else 0
+            bands.append(eeri_get_band(int(val)).value)
+
+        current_band = bands[-1]
+        current_value = float(rows[-1]['value'])
+
+        total_transitions = 0
+        persist_count = 0
+        for i in range(len(bands) - 7):
+            week_band = bands[i]
+            next_week_end = min(i + 7, len(bands) - 1)
+            next_band = bands[next_week_end]
+            total_transitions += 1
+            if next_band == week_band:
+                persist_count += 1
+
+        prob = round((persist_count / total_transitions * 100)) if total_transitions > 0 else 50
+
+        if total_transitions >= 20:
+            confidence = 'High'
+        elif total_transitions >= 10:
+            confidence = 'Medium'
+        else:
+            confidence = 'Low'
+
+        threshold_map = {'LOW': 20, 'MODERATE': 40, 'ELEVATED': 60, 'SEVERE': 80}
+        threshold = threshold_map.get(current_band, 60)
+        above_threshold_days = sum(1 for r in rows[-7:] if float(r['value']) >= threshold)
+
+        return {
+            'probability': prob,
+            'confidence': confidence,
+            'narrative': f'Based on {total_transitions} historical week-transitions, the {current_band} regime has a {prob}% probability of persisting next week.',
+            'sample_size': total_transitions,
+            'current_band': current_band,
+            'current_value': round(current_value, 1),
+            'days_above_threshold': above_threshold_days,
+        }
+
+    except Exception as e:
+        logger.error(f"Error computing regime persistence: {e}")
+        return {'probability': 50, 'confidence': 'Low', 'narrative': 'Insufficient data for persistence calculation.', 'sample_size': 0}
+
+
+def _get_data_timestamps() -> Dict[str, Any]:
+    """Get the latest update timestamps for all data sources."""
+    timestamps = {}
+    queries = {
+        'eeri': ("SELECT date, computed_at FROM reri_indices_daily WHERE index_id = %s ORDER BY date DESC LIMIT 1", (EERI_INDEX_ID,)),
+        'ttf': ("SELECT date FROM ttf_gas_snapshots ORDER BY date DESC LIMIT 1", None),
+        'brent': ("SELECT date FROM oil_price_snapshots ORDER BY date DESC LIMIT 1", None),
+        'vix': ("SELECT date FROM vix_snapshots ORDER BY date DESC LIMIT 1", None),
+        'eurusd': ("SELECT date FROM eurusd_snapshots ORDER BY date DESC LIMIT 1", None),
+        'storage': ("SELECT date FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1", None),
+    }
+
+    try:
+        with get_cursor() as cursor:
+            for key, (query, params) in queries.items():
+                if params:
+                    cursor.execute(query, params)
+                else:
+                    cursor.execute(query)
+                row = cursor.fetchone()
+                if row:
+                    d = row.get('date')
+                    ts = {
+                        'date': d.isoformat() if hasattr(d, 'isoformat') else str(d),
+                    }
+                    if 'computed_at' in dict(row) if hasattr(row, 'keys') else False:
+                        ca = row.get('computed_at')
+                        if ca:
+                            ts['computed_at'] = ca.isoformat() if hasattr(ca, 'isoformat') else str(ca)
+                    timestamps[key] = ts
+                else:
+                    timestamps[key] = {'date': 'N/A'}
+    except Exception as e:
+        logger.warning(f"Error fetching data timestamps: {e}")
+
+    return timestamps
+
+
+def _compute_asset_impact_ranking() -> List[Dict[str, Any]]:
+    """Rank assets by sensitivity to EERI this week (absolute pct move × correlation)."""
+    correlations = _compute_30d_correlations()
+    corr_map = {c['key']: abs(c['correlation']) if c['correlation'] is not None else 0 for c in correlations.get('correlations', [])}
+
+    end_date = date.today()
+    start_date = end_date - timedelta(days=7)
+
+    asset_queries = {
+        'ttf': ("SELECT date, ttf_price AS value FROM ttf_gas_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'TTF Gas'),
+        'brent': ("SELECT date, brent_price AS value FROM oil_price_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'Brent Oil'),
+        'vix': ("SELECT date, vix_close AS value FROM vix_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'VIX'),
+        'eurusd': ("SELECT date, rate AS value FROM eurusd_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EUR/USD'),
+        'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EU Storage'),
+    }
+
+    ranking = []
+    try:
+        with get_cursor() as cursor:
+            for asset_key, (query, display_name) in asset_queries.items():
+                cursor.execute(query, (start_date, end_date))
+                rows = cursor.fetchall()
+                if len(rows) >= 2:
+                    first_val = float(rows[0]['value'])
+                    last_val = float(rows[-1]['value'])
+                    if first_val != 0:
+                        pct_move = ((last_val - first_val) / first_val) * 100
+                    else:
+                        pct_move = 0
+                    sensitivity = abs(pct_move) * corr_map.get(asset_key, 0.3)
+                    ranking.append({
+                        'asset': display_name,
+                        'key': asset_key,
+                        'weekly_move_pct': round(pct_move, 2),
+                        'last_value': round(last_val, 2),
+                        'sensitivity_score': round(sensitivity, 2),
+                    })
+
+        ranking.sort(key=lambda x: x['sensitivity_score'], reverse=True)
+        for i, r in enumerate(ranking):
+            r['rank'] = i + 1
+
+    except Exception as e:
+        logger.warning(f"Error computing asset impact ranking: {e}")
+
+    return ranking
+
+
+def _generate_trading_insight(eeri_value: float, band: str, trend_7d: float, shock: Optional[Dict], correlations: Dict) -> str:
+    """Generate a one-line shareable trading insight."""
+    top_corr = None
+    corrs = correlations.get('correlations', [])
+    if corrs:
+        top_corr = corrs[0]
+
+    if shock and shock.get('detected'):
+        return f"Risk shock detected: EERI surged {shock['delta']:.0f} pts in 2 days — energy-linked assets face directional pressure."
+
+    if band == 'CRITICAL' and trend_7d > 5:
+        return f"EERI at {eeri_value:.0f} (Critical) and accelerating — highest conviction for energy risk hedging."
+    elif band in ('CRITICAL', 'SEVERE') and trend_7d < -5:
+        return f"Energy risk easing from {band} ({eeri_value:.0f}), but declines often stall — watch for reversal signals."
+    elif band in ('CRITICAL', 'SEVERE'):
+        asset_name = top_corr['asset'] if top_corr else 'gas markets'
+        return f"EERI at {eeri_value:.0f} ({band}) — {asset_name} most exposed with {top_corr['correlation']:.2f} correlation." if top_corr and top_corr['correlation'] else f"EERI at {eeri_value:.0f} ({band}) — elevated risk persists across energy assets."
+    elif band == 'ELEVATED':
+        return f"EERI in Elevated range ({eeri_value:.0f}) — moderate risk with potential for episodic volatility."
+    else:
+        return f"EERI at {eeri_value:.0f} ({band}) — baseline conditions, seasonal patterns dominate."
+
+
+@router.get("/trader-intel")
+async def get_trader_intelligence():
+    """
+    Trader-tier intelligence modules: reaction lag, correlations,
+    regime persistence, risk shock detector, key dates, data timestamps,
+    asset impact ranking, and one-line trading insight.
+    Available to Trader plan and above.
+    """
+    check_enabled()
+
+    result = get_latest_eeri_public()
+    eeri_value = float(result.get('value', 0)) if result else 0
+    band = result.get('band', 'MODERATE') if result else 'MODERATE'
+    trend_7d = float(result.get('trend_7d', 0)) if result else 0
+
+    reaction_lag = [REACTION_LAG_MAP[k] for k in ['ttf', 'brent', 'vix', 'eurusd', 'storage']]
+    correlations = _compute_30d_correlations()
+    regime_persistence = _compute_regime_persistence_from_data()
+    shock = _detect_risk_shock()
+    data_timestamps = _get_data_timestamps()
+    asset_ranking = _compute_asset_impact_ranking()
+    trading_insight = _generate_trading_insight(eeri_value, band, trend_7d, shock, correlations)
+    key_dates = KEY_DATES_CALENDAR
+
+    return {
+        'success': True,
+        'data': {
+            'reaction_lag': reaction_lag,
+            'correlations': correlations,
+            'regime_persistence': regime_persistence,
+            'risk_shock': shock,
+            'data_timestamps': data_timestamps,
+            'asset_impact_ranking': asset_ranking,
+            'trading_insight': trading_insight,
+            'key_dates': key_dates,
+            'weekend_note': 'Prices carried forward on non-trading days.',
+            'eeri_current': {
+                'value': eeri_value,
+                'band': band,
+                'trend_7d': trend_7d,
+            },
+        },
     }

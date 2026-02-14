@@ -704,15 +704,15 @@ def get_weekly_snapshot_tiered(plan: str = 'free') -> Optional[Dict[str, Any]]:
 
         result['volatility_commentary'] = _generate_volatility_commentary(band, trend, momentum['label'])
 
+        persistence = REGIME_PERSISTENCE.get(band, REGIME_PERSISTENCE['MODERATE'])
+        result['regime_persistence'] = persistence
+
     if plan_level >= 3:
         week_start = date.fromisoformat(base_snapshot['week_start'])
         week_end = date.fromisoformat(base_snapshot['week_end'])
 
         attribution = _get_component_attribution(week_start, week_end)
         result['component_attribution'] = attribution
-
-        persistence = REGIME_PERSISTENCE.get(band, REGIME_PERSISTENCE['MODERATE'])
-        result['regime_persistence'] = persistence
 
         scenarios = SCENARIO_TEMPLATES.get(band, SCENARIO_TEMPLATES['MODERATE'])
         result['scenario_outlook'] = [

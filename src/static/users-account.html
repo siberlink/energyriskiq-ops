@@ -3462,6 +3462,232 @@
             padding: 24px;
             margin-bottom: 16px;
         }
+
+        .eeri-trader-only {
+            display: none;
+        }
+        .eeri-trader-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .eeri-data-timestamp-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #0f172a;
+            border-radius: 10px;
+        }
+        .eeri-data-timestamp-bar .ts-item {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .eeri-data-timestamp-bar .ts-item strong {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .eeri-shock-banner {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: #fca5a5;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .eeri-shock-banner .shock-icon {
+            font-size: 22px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .eeri-shock-banner .shock-delta {
+            font-weight: 700;
+            color: #f87171;
+        }
+        .eeri-insight-banner {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 12px;
+            padding: 18px 22px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #e2e8f0;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        .eeri-lag-table,
+        .eeri-key-dates-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .eeri-lag-table th,
+        .eeri-key-dates-table th {
+            text-align: left;
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #334155;
+        }
+        .eeri-lag-table td,
+        .eeri-key-dates-table td {
+            padding: 10px 12px;
+            font-size: 14px;
+            color: #e2e8f0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .eeri-lag-table tr:last-child td,
+        .eeri-key-dates-table tr:last-child td {
+            border-bottom: none;
+        }
+        .eeri-lag-table td:nth-child(3) {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .eeri-correlation-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .eeri-correlation-row:last-child {
+            border-bottom: none;
+        }
+        .eeri-correlation-row .corr-asset {
+            width: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+        .eeri-correlation-row .corr-bar-wrap {
+            flex: 1;
+            height: 20px;
+            background: #0f172a;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        .eeri-correlation-row .corr-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .eeri-correlation-row .corr-bar.positive { background: #22c55e; }
+        .eeri-correlation-row .corr-bar.negative { background: #ef4444; }
+        .eeri-correlation-row .corr-val {
+            width: 55px;
+            text-align: right;
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+            flex-shrink: 0;
+        }
+        .eeri-correlation-row .corr-strength {
+            width: 60px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .corr-strength.strong { color: #4ade80; }
+        .corr-strength.moderate { color: #fbbf24; }
+        .corr-strength.weak { color: #94a3b8; }
+        .eeri-persistence-badge {
+            text-align: center;
+            padding: 20px;
+        }
+        .eeri-persistence-badge .persist-value {
+            font-size: 56px;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+        .eeri-persistence-badge .persist-label {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+        .eeri-persistence-badge .persist-narrative {
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-top: 16px;
+            text-align: left;
+        }
+        .eeri-persistence-badge .persist-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 12px;
+        }
+        .eeri-impact-rank {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        .eeri-impact-rank:last-child {
+            border-bottom: none;
+        }
+        .eeri-impact-rank .rank-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .eeri-impact-rank .rank-asset {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        .eeri-impact-rank .rank-value {
+            font-size: 14px;
+            color: #f1f5f9;
+            font-weight: 600;
+            text-align: right;
+        }
+        .eeri-impact-rank .rank-move {
+            font-size: 13px;
+            width: 70px;
+            text-align: right;
+        }
+        .eeri-impact-rank .rank-move.up { color: #f87171; }
+        .eeri-impact-rank .rank-move.down { color: #4ade80; }
+        .eeri-impact-rank .rank-score {
+            font-size: 12px;
+            color: #94a3b8;
+            width: 60px;
+            text-align: right;
+        }
+        .eeri-weekend-note {
+            font-size: 12px;
+            color: #64748b;
+            font-style: italic;
+            padding: 8px 0 0 0;
+        }
+        @media (max-width: 768px) {
+            .eeri-data-timestamp-bar { flex-direction: column; gap: 6px; }
+            .eeri-correlation-row .corr-asset { width: 70px; font-size: 12px; }
+            .eeri-correlation-row .corr-strength { display: none; }
+            .eeri-impact-rank .rank-score { display: none; }
+        }
         .ws-dash-header {
             display: flex;
             justify-content: space-between;
@@ -4511,6 +4737,56 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Trader Intelligence Modules (Trader/Pro/Enterprise) -->
+                    <div class="eeri-trader-only eeri-trader-panel" id="eeriDataTimestamps">
+                        <h3 class="eeri-section-title">Data Sources — Last Updated</h3>
+                        <div class="eeri-data-timestamp-bar" id="eeriTimestampBar"></div>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-shock-banner" id="eeriShockBanner" style="display:none;">
+                        <span class="shock-icon">&#9888;</span>
+                        <div id="eeriShockMessage"></div>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-insight-banner" id="eeriInsightBanner"></div>
+
+                    <div class="eeri-trader-only eeri-trader-panel" id="eeriReactionLagPanel">
+                        <h3 class="eeri-section-title">Reaction Lag Analysis</h3>
+                        <span class="eeri-section-subtitle">How quickly each asset responds to EERI shifts</span>
+                        <table class="eeri-lag-table" style="margin-top:14px;">
+                            <thead><tr><th>Asset</th><th>Avg Reaction Lag</th><th>Note</th></tr></thead>
+                            <tbody id="eeriLagBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-trader-panel" id="eeriCorrelationPanel">
+                        <h3 class="eeri-section-title">30-Day Rolling Correlations</h3>
+                        <span class="eeri-section-subtitle">Correlation between EERI and key assets</span>
+                        <div id="eeriCorrelationList" style="margin-top:14px;"></div>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-trader-panel" id="eeriPersistencePanel">
+                        <h3 class="eeri-section-title">Regime Persistence Probability</h3>
+                        <span class="eeri-section-subtitle">Likelihood the current risk band continues next week</span>
+                        <div class="eeri-persistence-badge" id="eeriPersistenceBadge"></div>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-trader-panel" id="eeriImpactRankPanel">
+                        <h3 class="eeri-section-title">Asset Impact Ranking</h3>
+                        <span class="eeri-section-subtitle">Ranked by EERI sensitivity score</span>
+                        <div id="eeriImpactRankList" style="margin-top:14px;"></div>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-trader-panel" id="eeriKeyDatesPanel">
+                        <h3 class="eeri-section-title">Key Energy Market Dates</h3>
+                        <table class="eeri-key-dates-table" style="margin-top:14px;">
+                            <thead><tr><th>Category</th><th>Event</th><th>Frequency</th></tr></thead>
+                            <tbody id="eeriKeyDatesBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="eeri-trader-only eeri-weekend-note" id="eeriWeekendNote"></div>
 
                     <!-- Historical Intelligence Section (Pro/Enterprise only) -->
                     <div class="eeri-history-card eeri-pro-only">
@@ -7234,11 +7510,13 @@
         async function loadEeriProData() {
             const plan = currentUser?.plan || 'free';
             const isProTier = ['pro', 'enterprise'].includes(plan);
+            const isTraderTier = ['trader', 'pro', 'enterprise'].includes(plan);
             
             const loadingEl = document.getElementById('eeriProLoading');
             const lockedEl = document.getElementById('eeriProLocked');
             const dashboardEl = document.getElementById('eeriProDashboard');
             const proOnlySections = document.querySelectorAll('.eeri-pro-only');
+            const traderOnlySections = document.querySelectorAll('.eeri-trader-only');
             
             const headerBadge = document.getElementById('eeriHeaderBadge');
             const headerSubtitle = document.getElementById('eeriHeaderSubtitle');
@@ -7265,11 +7543,20 @@
             proOnlySections.forEach(el => {
                 el.style.display = isProTier ? '' : 'none';
             });
+            traderOnlySections.forEach(el => {
+                el.style.display = isTraderTier ? '' : 'none';
+            });
             
             try {
                 const fetchPromises = [
                     fetch(`/api/v1/eeri-pro/weekly-snapshot?plan=${plan}`)
                 ];
+                
+                if (isTraderTier) {
+                    fetchPromises.push(
+                        fetch('/api/v1/eeri-pro/trader-intel')
+                    );
+                }
                 
                 if (isProTier) {
                     fetchPromises.push(
@@ -7294,10 +7581,20 @@
                     }
                 }
                 
-                if (isProTier && results.length > 1) {
-                    const realtimeData = await results[1].json();
-                    const summaryData = await results[2].json();
-                    const regimeData = await results[3].json();
+                let resultIdx = 1;
+                
+                if (isTraderTier) {
+                    const traderData = await results[resultIdx].json();
+                    resultIdx++;
+                    if (traderData.success && traderData.data) {
+                        renderTraderIntel(traderData.data);
+                    }
+                }
+                
+                if (isProTier) {
+                    const realtimeData = await results[resultIdx].json();
+                    const summaryData = await results[resultIdx + 1].json();
+                    const regimeData = await results[resultIdx + 2].json();
                     
                     if (realtimeData.success && realtimeData.data) {
                         renderEeriMainDisplay(realtimeData.data);
@@ -7323,6 +7620,98 @@
             } catch (error) {
                 console.error('Error loading EERI data:', error);
                 if (loadingEl) loadingEl.innerHTML = '<p style="color: #f87171;">Error loading EERI data. Please try again.</p>';
+            }
+        }
+
+        function renderTraderIntel(data) {
+            const tsBar = document.getElementById('eeriTimestampBar');
+            if (tsBar && data.data_timestamps) {
+                const ts = data.data_timestamps;
+                tsBar.innerHTML = Object.entries(ts).map(([key, obj]) => {
+                    const label = key.toUpperCase();
+                    const d = obj && obj.date ? obj.date : '--';
+                    return `<span class="ts-item"><strong>${label}:</strong> ${d}</span>`;
+                }).join('');
+            }
+
+            const shockBanner = document.getElementById('eeriShockBanner');
+            const shockMsg = document.getElementById('eeriShockMessage');
+            if (data.risk_shock && data.risk_shock.detected) {
+                if (shockBanner) shockBanner.style.display = '';
+                if (shockMsg) {
+                    shockMsg.innerHTML = `<span class="shock-delta">+${data.risk_shock.delta} pts</span> &mdash; ${data.risk_shock.message || 'Risk shock detected'}`;
+                }
+            } else {
+                if (shockBanner) shockBanner.style.display = 'none';
+            }
+
+            const insightEl = document.getElementById('eeriInsightBanner');
+            if (insightEl) {
+                insightEl.textContent = data.trading_insight || '';
+            }
+
+            const lagBody = document.getElementById('eeriLagBody');
+            if (lagBody && data.reaction_lag) {
+                lagBody.innerHTML = data.reaction_lag.map(r =>
+                    `<tr><td>${r.asset || ''}</td><td>${r.lag || ''}</td><td>${r.note || ''}</td></tr>`
+                ).join('');
+            }
+
+            const corrList = document.getElementById('eeriCorrelationList');
+            if (corrList && data.correlations) {
+                const corrs = data.correlations.correlations || [];
+                corrList.innerHTML = corrs.map(c => {
+                    const val = c.correlation || 0;
+                    const absVal = Math.abs(val);
+                    const widthPct = (absVal * 100).toFixed(0);
+                    const barClass = val >= 0 ? 'positive' : 'negative';
+                    const strengthClass = (c.strength || 'weak').toLowerCase();
+                    return `<div class="eeri-correlation-row">
+                        <span class="corr-asset">${c.asset || ''}</span>
+                        <div class="corr-bar-wrap"><div class="corr-bar ${barClass}" style="width:${widthPct}%"></div></div>
+                        <span class="corr-val">${val.toFixed(2)}</span>
+                        <span class="corr-strength ${strengthClass}">${c.strength || ''}</span>
+                    </div>`;
+                }).join('');
+            }
+
+            const persistEl = document.getElementById('eeriPersistenceBadge');
+            if (persistEl && data.regime_persistence) {
+                const rp = data.regime_persistence;
+                persistEl.innerHTML = `
+                    <div class="persist-value">${rp.probability || 0}%</div>
+                    <div class="persist-label">Probability of staying in <strong>${rp.current_band || '--'}</strong> band next week (Confidence: ${rp.confidence || '--'})</div>
+                    <div class="persist-narrative">${rp.narrative || ''}</div>
+                    <div class="persist-meta">Sample size: ${rp.sample_size || '--'} observations</div>
+                `;
+            }
+
+            const rankList = document.getElementById('eeriImpactRankList');
+            if (rankList && data.asset_impact_ranking) {
+                rankList.innerHTML = data.asset_impact_ranking.map(a => {
+                    const movePct = a.weekly_move_pct || 0;
+                    const moveClass = movePct >= 0 ? 'up' : 'down';
+                    const moveSign = movePct >= 0 ? '+' : '';
+                    return `<div class="eeri-impact-rank">
+                        <span class="rank-num">${a.rank || ''}</span>
+                        <span class="rank-asset">${a.asset || ''}</span>
+                        <span class="rank-value">${a.last_value != null ? a.last_value.toFixed(2) : '--'}</span>
+                        <span class="rank-move ${moveClass}">${moveSign}${movePct.toFixed(1)}%</span>
+                        <span class="rank-score">Score: ${a.sensitivity_score != null ? a.sensitivity_score.toFixed(2) : '--'}</span>
+                    </div>`;
+                }).join('');
+            }
+
+            const datesBody = document.getElementById('eeriKeyDatesBody');
+            if (datesBody && data.key_dates) {
+                datesBody.innerHTML = data.key_dates.map(d =>
+                    `<tr><td>${d.category || ''}</td><td>${d.event || ''}</td><td>${d.frequency || ''}</td></tr>`
+                ).join('');
+            }
+
+            const weekendNote = document.getElementById('eeriWeekendNote');
+            if (weekendNote) {
+                weekendNote.textContent = data.weekend_note || '';
             }
         }
 
