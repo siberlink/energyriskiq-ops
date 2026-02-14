@@ -977,6 +977,185 @@
             text-decoration: underline;
         }
 
+        .geri-trader-intel-section {
+            margin-top: 24px;
+        }
+        .geri-trader-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 16px;
+        }
+        .geri-trader-panel h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0 0 4px 0;
+        }
+        .geri-trader-panel .gti-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 14px;
+        }
+        .gti-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .gti-table th {
+            text-align: left;
+            color: #94a3b8;
+            font-weight: 500;
+            padding: 6px 10px;
+            border-bottom: 1px solid #334155;
+        }
+        .gti-table td {
+            padding: 8px 10px;
+            color: #e2e8f0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+        }
+        .gti-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .gti-badge-aligned { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .gti-badge-moderate { background: rgba(234,179,8,0.15); color: #facc15; }
+        .gti-badge-strong { background: rgba(239,68,68,0.15); color: #f87171; }
+        .gti-badge-insufficient { background: rgba(100,116,139,0.15); color: #94a3b8; }
+        .gti-confirmation-score {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+        }
+        .gti-score-number {
+            font-size: 2rem;
+            font-weight: 700;
+            min-width: 80px;
+            text-align: center;
+        }
+        .gti-score-bar {
+            flex: 1;
+            height: 10px;
+            background: #0f172a;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .gti-score-bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        .gti-storage-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            background: #0f172a;
+            border-radius: 10px;
+        }
+        .gti-storage-pct {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #10b981;
+            min-width: 80px;
+            text-align: center;
+        }
+        .gti-storage-detail {
+            flex: 1;
+        }
+        .gti-storage-narrative {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .gti-storage-diff {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+        .gti-regime-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: #0f172a;
+            border-radius: 10px;
+        }
+        .gti-regime-arrow {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .gti-regime-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .gti-reaction-summary {
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02));
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 10px;
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-style: italic;
+        }
+        .gti-alert-preview {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .gti-alert-preview li {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .gti-alert-preview li:last-child { border-bottom: none; }
+        .gti-alert-headline {
+            font-size: 13px;
+            color: #e2e8f0;
+            flex: 1;
+        }
+        .gti-alert-meta {
+            font-size: 11px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .gti-alert-severity {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .gti-sev-critical { background: rgba(239,68,68,0.15); color: #f87171; }
+        .gti-sev-high { background: rgba(249,115,22,0.15); color: #fb923c; }
+        .gti-sev-medium { background: rgba(234,179,8,0.15); color: #facc15; }
+        .gti-sev-low { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .gti-upgrade-cta {
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .gti-upgrade-cta a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .gti-last-updated {
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+            margin-top: 8px;
+        }
+
         /* Interpretation Modal */
         .interpretation-modal-overlay {
             display: none;
@@ -6311,15 +6490,25 @@
                     riskWatchlistHtml = buildRiskWatchlist(topDrivers);
                 }
 
+                let traderIntelHtml = '';
+                const isTraderPlus = ['trader', 'pro', 'enterprise'].includes(plan);
+                if (isTraderPlus) {
+                    traderIntelHtml = '<div class="geri-trader-intel-section" id="geriTraderIntelSection"><div class="geri-trader-panel" style="text-align:center; color:#64748b; padding:30px;"><div class="spinner" style="margin:0 auto 10px;"></div>Loading Trader Intelligence...</div></div>';
+                }
+
                 let upgradeCardsHtml = buildGeriUpgradeCards(plan);
 
-                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + riskWatchlistHtml + upgradeCardsHtml;
+                contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + traderIntelHtml + riskWatchlistHtml + upgradeCardsHtml;
                 
                 if (plan === 'free') {
                     marketOverlays.brent.active = true;
                 }
 
                 loadGeriChartData(geri);
+
+                if (isTraderPlus) {
+                    loadGeriTraderIntel();
+                }
                 
             } catch (error) {
                 console.error('Error loading GERI:', error.message, error.stack);
@@ -6327,6 +6516,120 @@
             }
         }
         
+        async function loadGeriTraderIntel() {
+            const section = document.getElementById('geriTraderIntelSection');
+            if (!section) return;
+            try {
+                const resp = await fetch('/api/v1/indices/geri/trader-intel', { headers: { 'X-User-Token': sessionToken } });
+                const result = await resp.json();
+                if (!result.success || !result.data) {
+                    section.innerHTML = '<div class="geri-trader-panel" style="text-align:center; color:#64748b;">Trader intelligence data is not yet available.</div>';
+                    return;
+                }
+                const d = result.data;
+                let html = '';
+
+                if (d.regime_transition && d.regime_transition.text && d.regime_transition.text !== 'Insufficient data') {
+                    const rt = d.regime_transition;
+                    const arrowColor = rt.transition === 'escalating' ? '#f87171' : (rt.transition === 'de-escalating' ? '#4ade80' : '#94a3b8');
+                    const arrow = rt.transition === 'escalating' ? '↑' : (rt.transition === 'de-escalating' ? '↓' : '→');
+                    html += '<div class="geri-trader-panel"><h4>Risk Regime Status</h4><div class="gti-subtitle">Current regime transition direction</div>' +
+                        '<div class="gti-regime-card"><span class="gti-regime-arrow" style="color:' + arrowColor + ';">' + arrow + '</span>' +
+                        '<span class="gti-regime-text">' + rt.text + '</span></div></div>';
+                }
+
+                if (d.confirmation && d.confirmation.score !== null) {
+                    const cs = d.confirmation;
+                    const scoreColor = cs.score >= 80 ? '#4ade80' : (cs.score >= 60 ? '#facc15' : (cs.score >= 40 ? '#f97316' : '#f87171'));
+                    html += '<div class="geri-trader-panel"><h4>Cross-Asset Confirmation</h4><div class="gti-subtitle">Are markets pricing risk consistently?</div>' +
+                        '<div class="gti-confirmation-score">' +
+                        '<div class="gti-score-number" style="color:' + scoreColor + ';">' + cs.score + '<span style="font-size:1rem; color:#64748b;">/100</span></div>' +
+                        '<div style="flex:1;"><div class="gti-score-bar"><div class="gti-score-bar-fill" style="width:' + cs.score + '%; background:' + scoreColor + ';"></div></div>' +
+                        '<div style="font-size:13px; color:' + scoreColor + '; margin-top:6px; font-weight:600;">' + cs.label + '</div></div></div>';
+                    if (cs.details && cs.details.length > 0) {
+                        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">';
+                        cs.details.forEach(function(det) {
+                            var name = det.asset.replace('_', ' ').replace('gas storage', 'Storage').replace('brent','Brent').replace('ttf','TTF').replace('vix','VIX').replace('eurusd','EUR/USD');
+                            var cls = det.status === 'confirming' ? 'gti-badge-aligned' : 'gti-badge-strong';
+                            html += '<span class="gti-badge ' + cls + '">' + name + ': ' + det.status + ' (' + (det.move_pct > 0 ? '+' : '') + det.move_pct + '%)</span>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+
+                if (d.divergence && d.divergence.length > 0) {
+                    var hasDivData = d.divergence.some(function(x) { return x.status !== 'insufficient data'; });
+                    if (hasDivData) {
+                        html += '<div class="geri-trader-panel"><h4>Divergence Indicator</h4><div class="gti-subtitle">Asset direction vs GERI direction (7-day)</div>' +
+                            '<table class="gti-table"><thead><tr><th>Asset</th><th>Status</th></tr></thead><tbody>';
+                        d.divergence.forEach(function(dv) {
+                            var badgeCls = 'gti-badge-insufficient';
+                            if (dv.status === 'Aligned') badgeCls = 'gti-badge-aligned';
+                            else if (dv.status === 'Moderate divergence') badgeCls = 'gti-badge-moderate';
+                            else if (dv.status === 'Strong divergence') badgeCls = 'gti-badge-strong';
+                            html += '<tr><td>' + dv.asset + '</td><td><span class="gti-badge ' + badgeCls + '">' + dv.status + '</span></td></tr>';
+                        });
+                        html += '</tbody></table></div>';
+                    }
+                }
+
+                if (d.lead_lag) {
+                    var llKeys = Object.keys(d.lead_lag);
+                    var hasLLData = llKeys.some(function(k) { return d.lead_lag[k].lag !== null; });
+                    if (hasLLData) {
+                        html += '<div class="geri-trader-panel"><h4>Lead/Lag Intelligence</h4><div class="gti-subtitle">Asset reaction timing relative to GERI risk changes</div>' +
+                            '<table class="gti-table"><thead><tr><th>Asset</th><th>Timing</th><th>Direction</th></tr></thead><tbody>';
+                        llKeys.forEach(function(k) {
+                            var ll = d.lead_lag[k];
+                            if (ll.lag !== null) {
+                                html += '<tr><td>' + ll.asset + '</td><td>' + (ll.lag_text || '--') + '</td><td style="color:#94a3b8;">' + (ll.direction || '--') + '</td></tr>';
+                            }
+                        });
+                        html += '</tbody></table></div>';
+                    }
+                }
+
+                if (d.storage_context && d.storage_context.current_pct !== null) {
+                    var sc = d.storage_context;
+                    var diffColor = sc.vs_seasonal > 0 ? '#4ade80' : (sc.vs_seasonal < -5 ? '#f87171' : '#facc15');
+                    var pctColor = sc.current_pct > 60 ? '#4ade80' : (sc.current_pct > 40 ? '#facc15' : '#f87171');
+                    html += '<div class="geri-trader-panel"><h4>EU Gas Storage Context</h4><div class="gti-subtitle">Current storage vs seasonal norms</div>' +
+                        '<div class="gti-storage-card"><div class="gti-storage-pct" style="color:' + pctColor + ';">' + sc.current_pct + '%</div>' +
+                        '<div class="gti-storage-detail"><div class="gti-storage-narrative">' + sc.narrative + '</div>' +
+                        '<div class="gti-storage-diff" style="color:' + diffColor + ';">' + sc.status + '</div></div></div></div>';
+                }
+
+                if (d.reaction_summary) {
+                    html += '<div class="geri-trader-panel"><h4>Asset Reaction Summary</h4><div class="gti-subtitle">How markets are responding to risk</div>' +
+                        '<div class="gti-reaction-summary">' + d.reaction_summary + '</div></div>';
+                }
+
+                if (d.alert_preview && d.alert_preview.length > 0) {
+                    html += '<div class="geri-trader-panel"><h4>Recent Risk Alerts</h4><div class="gti-subtitle">Latest events driving GERI</div>' +
+                        '<ul class="gti-alert-preview">';
+                    d.alert_preview.forEach(function(a) {
+                        var sevCls = 'gti-sev-' + (a.severity || 'medium').toLowerCase();
+                        html += '<li><div class="gti-alert-headline">' + (a.headline || 'Unnamed alert') + '</div>' +
+                            '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">' +
+                            '<span class="gti-alert-severity ' + sevCls + '">' + (a.severity || '') + '</span>' +
+                            '<span class="gti-alert-meta">' + (a.date || '') + '</span></div></li>';
+                    });
+                    html += '</ul>' +
+                        '<div class="gti-upgrade-cta"><a href="javascript:void(0)" onclick="showSection(\'plans\')">Upgrade to Pro for full alert intelligence →</a></div></div>';
+                }
+
+                if (d.last_updated) {
+                    html += '<div class="gti-last-updated">Trader Intelligence last updated: ' + d.last_updated + '</div>';
+                }
+
+                section.innerHTML = html || '<div class="geri-trader-panel" style="text-align:center; color:#64748b;">Trader intelligence data will appear once sufficient GERI history is available.</div>';
+            } catch (err) {
+                console.error('Error loading GERI trader intel:', err);
+                section.innerHTML = '<div class="geri-trader-panel" style="text-align:center; color:#64748b;">Error loading trader intelligence.</div>';
+            }
+        }
+
         // Chart instance reference
         let geriChart = null;
         let geriHistoryData = [];

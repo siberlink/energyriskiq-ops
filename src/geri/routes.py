@@ -294,6 +294,38 @@ async def auto_backfill_geri(force: bool = False):
         )
 
 
+@router.get("/geri/trader-intel")
+async def get_geri_trader_intel_endpoint():
+    """
+    Get GERI Trader Intelligence data.
+    
+    Returns tactical intelligence modules for Trader+ plans:
+    - Lead/Lag Intelligence Panel
+    - Divergence Indicator per asset
+    - Cross-Asset Confirmation Score (0-100)
+    - EU Gas Storage Seasonal Context
+    - Asset Reaction Summary Text
+    - Regime Transition Indicator
+    - Alert Preview (3 most recent)
+    """
+    check_enabled()
+    
+    try:
+        from src.geri.trader_intel import get_geri_trader_intel
+        data = get_geri_trader_intel()
+        return {
+            'success': True,
+            'data': data,
+        }
+    except Exception as e:
+        logger.error(f"Error computing GERI trader intel: {e}", exc_info=True)
+        return {
+            'success': False,
+            'message': f'Error computing trader intelligence: {str(e)}',
+            'data': None,
+        }
+
+
 @router.get("/geri/status")
 async def get_geri_status():
     """Get GERI module status."""
