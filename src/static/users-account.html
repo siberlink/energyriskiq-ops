@@ -3463,8 +3463,14 @@
             margin-bottom: 16px;
         }
 
+        .eeri-hidden {
+            display: none !important;
+        }
         .eeri-trader-only {
-            display: none;
+            /* Hidden by default via .eeri-hidden class, shown by JS for Trader+ plans */
+        }
+        .eeri-pro-only {
+            /* Hidden by default via .eeri-hidden class, shown by JS for Pro+ plans */
         }
         .eeri-trader-panel {
             background: #1e293b;
@@ -4669,7 +4675,7 @@
                 <div class="eeri-pro-dashboard" id="eeriProDashboard" style="display: none;">
 
                     <!-- Main Index Display Row (Pro/Enterprise only) -->
-                    <div class="eeri-main-row eeri-pro-only">
+                    <div class="eeri-main-row eeri-pro-only eeri-hidden">
                         <!-- EERI Value Card -->
                         <div class="eeri-value-card">
                             <div class="eeri-value-header">
@@ -4703,7 +4709,7 @@
                     </div>
 
                     <!-- Asset Stress Panel (Pro/Enterprise only) -->
-                    <div class="eeri-asset-stress-card eeri-pro-only">
+                    <div class="eeri-asset-stress-card eeri-pro-only eeri-hidden">
                         <div class="eeri-asset-stress-header">
                             <h3 class="eeri-section-title">Asset Stress Panel <span class="eeri-tooltip-icon" onclick="openEeriModal('assetStress')">ⓘ</span></h3>
                             <span class="eeri-section-subtitle">Current stress levels across energy asset classes</span>
@@ -4714,7 +4720,7 @@
                     </div>
 
                     <!-- Top Drivers Section (Pro/Enterprise only) -->
-                    <div class="eeri-drivers-card eeri-pro-only">
+                    <div class="eeri-drivers-card eeri-pro-only eeri-hidden">
                         <div class="eeri-drivers-header">
                             <h3 class="eeri-section-title">Top Risk Drivers</h3>
                             <span class="eeri-section-subtitle">Key factors driving today's EERI level</span>
@@ -4739,19 +4745,19 @@
                     </div>
 
                     <!-- Trader Intelligence Modules (Trader/Pro/Enterprise) -->
-                    <div class="eeri-trader-only eeri-trader-panel" id="eeriDataTimestamps">
+                    <div class="eeri-trader-only eeri-hidden eeri-trader-panel" id="eeriDataTimestamps">
                         <h3 class="eeri-section-title">Data Sources — Last Updated</h3>
                         <div class="eeri-data-timestamp-bar" id="eeriTimestampBar"></div>
                     </div>
 
-                    <div class="eeri-trader-only eeri-shock-banner" id="eeriShockBanner" style="display:none;">
+                    <div class="eeri-trader-only eeri-hidden eeri-shock-banner" id="eeriShockBanner" style="display:none;">
                         <span class="shock-icon">&#9888;</span>
                         <div id="eeriShockMessage"></div>
                     </div>
 
-                    <div class="eeri-trader-only eeri-insight-banner" id="eeriInsightBanner"></div>
+                    <div class="eeri-trader-only eeri-hidden eeri-insight-banner" id="eeriInsightBanner"></div>
 
-                    <div class="eeri-trader-only eeri-trader-panel" id="eeriReactionLagPanel">
+                    <div class="eeri-trader-only eeri-hidden eeri-trader-panel" id="eeriReactionLagPanel">
                         <h3 class="eeri-section-title">Reaction Lag Analysis</h3>
                         <span class="eeri-section-subtitle">How quickly each asset responds to EERI shifts</span>
                         <table class="eeri-lag-table" style="margin-top:14px;">
@@ -4760,25 +4766,25 @@
                         </table>
                     </div>
 
-                    <div class="eeri-trader-only eeri-trader-panel" id="eeriCorrelationPanel">
+                    <div class="eeri-trader-only eeri-hidden eeri-trader-panel" id="eeriCorrelationPanel">
                         <h3 class="eeri-section-title">30-Day Rolling Correlations</h3>
                         <span class="eeri-section-subtitle">Correlation between EERI and key assets</span>
                         <div id="eeriCorrelationList" style="margin-top:14px;"></div>
                     </div>
 
-                    <div class="eeri-trader-only eeri-trader-panel" id="eeriPersistencePanel">
+                    <div class="eeri-trader-only eeri-hidden eeri-trader-panel" id="eeriPersistencePanel">
                         <h3 class="eeri-section-title">Regime Persistence Probability</h3>
                         <span class="eeri-section-subtitle">Likelihood the current risk band continues next week</span>
                         <div class="eeri-persistence-badge" id="eeriPersistenceBadge"></div>
                     </div>
 
-                    <div class="eeri-trader-only eeri-trader-panel" id="eeriImpactRankPanel">
+                    <div class="eeri-trader-only eeri-hidden eeri-trader-panel" id="eeriImpactRankPanel">
                         <h3 class="eeri-section-title">Asset Impact Ranking</h3>
                         <span class="eeri-section-subtitle">Ranked by EERI sensitivity score</span>
                         <div id="eeriImpactRankList" style="margin-top:14px;"></div>
                     </div>
 
-                    <div class="eeri-trader-only eeri-trader-panel" id="eeriKeyDatesPanel">
+                    <div class="eeri-trader-only eeri-hidden eeri-trader-panel" id="eeriKeyDatesPanel">
                         <h3 class="eeri-section-title">Key Energy Market Dates</h3>
                         <table class="eeri-key-dates-table" style="margin-top:14px;">
                             <thead><tr><th>Category</th><th>Event</th><th>Frequency</th></tr></thead>
@@ -4786,10 +4792,10 @@
                         </table>
                     </div>
 
-                    <div class="eeri-trader-only eeri-weekend-note" id="eeriWeekendNote"></div>
+                    <div class="eeri-trader-only eeri-hidden eeri-weekend-note" id="eeriWeekendNote"></div>
 
                     <!-- Historical Intelligence Section (Pro/Enterprise only) -->
-                    <div class="eeri-history-card eeri-pro-only">
+                    <div class="eeri-history-card eeri-pro-only eeri-hidden">
                         <div class="eeri-history-header">
                             <h3 class="eeri-section-title">Historical Intelligence <span class="eeri-tooltip-icon" onclick="openEeriModal('history')">ⓘ</span></h3>
                             <div class="eeri-time-controls">
@@ -4848,7 +4854,7 @@
                     </div>
 
                     <!-- Regime Statistics -->
-                    <div class="eeri-regime-card eeri-pro-only">
+                    <div class="eeri-regime-card eeri-pro-only eeri-hidden">
                         <div class="eeri-regime-header">
                             <h3 class="eeri-section-title">Regime Statistics <span class="eeri-tooltip-icon" onclick="openEeriModal('regime')">ⓘ</span></h3>
                             <span class="eeri-section-subtitle">Risk band distribution (last 90 days)</span>
@@ -4867,7 +4873,7 @@
                     </div>
 
                     <!-- Daily Intelligence Summary Card (moved to bottom) -->
-                    <div class="eeri-summary-card eeri-pro-only" id="eeriDailySummary">
+                    <div class="eeri-summary-card eeri-pro-only eeri-hidden" id="eeriDailySummary">
                         <div class="eeri-summary-header">
                             <div class="eeri-summary-label">Daily Intelligence Summary</div>
                             <div class="eeri-summary-date" id="eeriSummaryDate">--</div>
@@ -7541,10 +7547,18 @@
             if (dashboardEl) dashboardEl.style.display = 'none';
             
             proOnlySections.forEach(el => {
-                el.style.display = isProTier ? '' : 'none';
+                if (isProTier) {
+                    el.classList.remove('eeri-hidden');
+                } else {
+                    el.classList.add('eeri-hidden');
+                }
             });
             traderOnlySections.forEach(el => {
-                el.style.display = isTraderTier ? '' : 'none';
+                if (isTraderTier) {
+                    el.classList.remove('eeri-hidden');
+                } else {
+                    el.classList.add('eeri-hidden');
+                }
             });
             
             try {
