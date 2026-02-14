@@ -6609,10 +6609,21 @@
                     html += '<div class="geri-trader-panel"><h4>Recent Risk Alerts</h4><div class="gti-subtitle">Latest events driving GERI</div>' +
                         '<ul class="gti-alert-preview">';
                     d.alert_preview.forEach(function(a) {
-                        var sevCls = 'gti-sev-' + (a.severity || 'medium').toLowerCase();
+                        var rawSev = a.severity;
+                        var sevLabel = 'medium';
+                        if (typeof rawSev === 'number') {
+                            if (rawSev >= 8) sevLabel = 'critical';
+                            else if (rawSev >= 6) sevLabel = 'high';
+                            else if (rawSev >= 4) sevLabel = 'medium';
+                            else sevLabel = 'low';
+                        } else if (typeof rawSev === 'string') {
+                            sevLabel = rawSev.toLowerCase();
+                        }
+                        var sevCls = 'gti-sev-' + sevLabel;
+                        var sevDisplay = sevLabel.charAt(0).toUpperCase() + sevLabel.slice(1);
                         html += '<li><div class="gti-alert-headline">' + (a.headline || 'Unnamed alert') + '</div>' +
                             '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">' +
-                            '<span class="gti-alert-severity ' + sevCls + '">' + (a.severity || '') + '</span>' +
+                            '<span class="gti-alert-severity ' + sevCls + '">' + sevDisplay + '</span>' +
                             '<span class="gti-alert-meta">' + (a.date || '') + '</span></div></li>';
                     });
                     html += '</ul>' +
