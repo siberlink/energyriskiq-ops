@@ -79,7 +79,7 @@ Provides current EU gas storage levels compared to historical seasonal averages.
 AI-generated narrative summarizing how key energy assets are responding to the current risk environment. Based on the most recent daily asset snapshots (Brent, TTF, VIX, EUR/USD, storage).
 
 ### 7. Alert Preview
-Shows the 3 most recent risk alerts with headline, severity, and date. Provides quick context on what events are driving GERI movements.
+Shows the 5 most recent risk alerts with headline, severity, and date. Provides quick context on what events are driving GERI movements.
 
 Severity levels: Critical, High, Medium, Low.
 

@@ -13,16 +13,25 @@ Computes tactical intelligence modules for Trader-tier GERI dashboard:
 import logging
 import math
 from datetime import date, timedelta
+from decimal import Decimal
 from typing import Dict, Any, List, Optional, Tuple
 
-from src.db.db import get_cursor
+from src.db.db import get_cursor, execute_production_query
+
+
+def _to_float(v):
+    if v is None:
+        return None
+    if isinstance(v, Decimal):
+        return float(v)
+    return float(v)
 
 logger = logging.getLogger(__name__)
 
 
 def compute_lead_lag(geri_series: List[Dict], asset_series: List[Dict], max_lag: int = 7) -> Dict[str, Any]:
-    geri_by_date = {r['date']: r['value'] for r in geri_series if r.get('value') is not None}
-    asset_by_date = {r['date']: r['value'] for r in asset_series if r.get('value') is not None}
+    geri_by_date = {r['date']: _to_float(r['value']) for r in geri_series if r.get('value') is not None}
+    asset_by_date = {r['date']: _to_float(r['value']) for r in asset_series if r.get('value') is not None}
 
     common_dates = sorted(set(geri_by_date.keys()) & set(asset_by_date.keys()))
     if len(common_dates) < 10:
@@ -84,8 +93,8 @@ def compute_lead_lag(geri_series: List[Dict], asset_series: List[Dict], max_lag:
 
 
 def compute_divergence(geri_series: List[Dict], asset_series: List[Dict], window: int = 7) -> str:
-    geri_by_date = {r['date']: r['value'] for r in geri_series if r.get('value') is not None}
-    asset_by_date = {r['date']: r['value'] for r in asset_series if r.get('value') is not None}
+    geri_by_date = {r['date']: _to_float(r['value']) for r in geri_series if r.get('value') is not None}
+    asset_by_date = {r['date']: _to_float(r['value']) for r in asset_series if r.get('value') is not None}
 
     common_dates = sorted(set(geri_by_date.keys()) & set(asset_by_date.keys()))
     if len(common_dates) < window:
@@ -111,7 +120,7 @@ def compute_divergence(geri_series: List[Dict], asset_series: List[Dict], window
 
 
 def compute_confirmation_score(geri_series: List[Dict], assets: Dict[str, List[Dict]], window: int = 7) -> Dict[str, Any]:
-    geri_by_date = {r['date']: r['value'] for r in geri_series if r.get('value') is not None}
+    geri_by_date = {r['date']: _to_float(r['value']) for r in geri_series if r.get('value') is not None}
     geri_dates = sorted(geri_by_date.keys())
     if len(geri_dates) < window:
         return {'score': None, 'label': 'Insufficient data', 'details': []}
@@ -134,7 +143,7 @@ def compute_confirmation_score(geri_series: List[Dict], assets: Dict[str, List[D
     }
 
     for asset_key, asset_data in assets.items():
-        a_by_date = {r['date']: r['value'] for r in asset_data if r.get('value') is not None}
+        a_by_date = {r['date']: _to_float(r['value']) for r in asset_data if r.get('value') is not None}
         common = sorted(set(recent_geri) & set(a_by_date.keys()))
         if len(common) < 3:
             continue
@@ -179,7 +188,7 @@ def compute_storage_context(storage_series: List[Dict]) -> Dict[str, Any]:
         return {'current_pct': None, 'seasonal_avg': None, 'vs_seasonal': None, 'narrative': 'No storage data'}
 
     latest = storage_series[-1]
-    current_pct = latest.get('value')
+    current_pct = _to_float(latest.get('value'))
     if current_pct is None:
         return {'current_pct': None, 'seasonal_avg': None, 'vs_seasonal': None, 'narrative': 'No storage data'}
 
@@ -282,9 +291,9 @@ def generate_reaction_summary(geri_series: List[Dict], divergences: Dict[str, st
         return ''
 
     latest = geri_series[-1]
-    value = latest.get('value', 0)
+    value = _to_float(latest.get('value')) or 0
     band = latest.get('band', 'MODERATE')
-    trend_7d = latest.get('trend_7d', 0) or 0
+    trend_7d = _to_float(latest.get('trend_7d')) or 0
 
     score = confirmation.get('score')
     score_label = confirmation.get('label', '')
@@ -317,52 +326,52 @@ def generate_reaction_summary(geri_series: List[Dict], divergences: Dict[str, st
         return f"GERI {trend_word} at {value} ({band}) — weak cross-asset confirmation. Markets may not be pricing risk adequately."
 
 
+def _normalize_row(row):
+    d = dict(row)
+    for k, v in d.items():
+        if isinstance(v, Decimal):
+            d[k] = float(v)
+    return d
+
+
 def get_geri_trader_intel() -> Dict[str, Any]:
-    with get_cursor() as cur:
-        cur.execute("""
-            SELECT date, value, band, trend_1d, trend_7d
-            FROM intel_indices_daily
-            ORDER BY date ASC
-        """)
-        geri_rows = [dict(r) for r in cur.fetchall()]
+    geri_rows = [_normalize_row(r) for r in execute_production_query("""
+        SELECT date, value, band, trend_1d, trend_7d
+        FROM intel_indices_daily
+        ORDER BY date ASC
+    """)]
 
-        cur.execute("""
-            SELECT date, brent_price as value FROM oil_price_snapshots
-            WHERE brent_price IS NOT NULL ORDER BY date ASC
-        """)
-        brent_rows = [dict(r) for r in cur.fetchall()]
+    brent_rows = [_normalize_row(r) for r in execute_production_query("""
+        SELECT date, brent_price as value FROM oil_price_snapshots
+        WHERE brent_price IS NOT NULL ORDER BY date ASC
+    """)]
 
-        cur.execute("""
-            SELECT date, ttf_price as value FROM ttf_gas_snapshots
-            WHERE ttf_price IS NOT NULL ORDER BY date ASC
-        """)
-        ttf_rows = [dict(r) for r in cur.fetchall()]
+    ttf_rows = [_normalize_row(r) for r in execute_production_query("""
+        SELECT date, ttf_price as value FROM ttf_gas_snapshots
+        WHERE ttf_price IS NOT NULL ORDER BY date ASC
+    """)]
 
-        cur.execute("""
-            SELECT date, vix_close as value FROM vix_snapshots
-            WHERE vix_close IS NOT NULL ORDER BY date ASC
-        """)
-        vix_rows = [dict(r) for r in cur.fetchall()]
+    vix_rows = [_normalize_row(r) for r in execute_production_query("""
+        SELECT date, vix_close as value FROM vix_snapshots
+        WHERE vix_close IS NOT NULL ORDER BY date ASC
+    """)]
 
-        cur.execute("""
-            SELECT date, rate as value FROM eurusd_snapshots
-            WHERE rate IS NOT NULL ORDER BY date ASC
-        """)
-        eurusd_rows = [dict(r) for r in cur.fetchall()]
+    eurusd_rows = [_normalize_row(r) for r in execute_production_query("""
+        SELECT date, rate as value FROM eurusd_snapshots
+        WHERE rate IS NOT NULL ORDER BY date ASC
+    """)]
 
-        cur.execute("""
-            SELECT date, eu_storage_percent as value FROM gas_storage_snapshots
-            WHERE eu_storage_percent IS NOT NULL ORDER BY date ASC
-        """)
-        storage_rows = [dict(r) for r in cur.fetchall()]
+    storage_rows = [_normalize_row(r) for r in execute_production_query("""
+        SELECT date, eu_storage_percent as value FROM gas_storage_snapshots
+        WHERE eu_storage_percent IS NOT NULL ORDER BY date ASC
+    """)]
 
-        cur.execute("""
-            SELECT headline, severity, scope_region, created_at
-            FROM alert_events
-            ORDER BY created_at DESC
-            LIMIT 3
-        """)
-        recent_alerts = [dict(r) for r in cur.fetchall()]
+    recent_alerts = [_normalize_row(r) for r in execute_production_query("""
+        SELECT headline, severity, scope_region, created_at
+        FROM alert_events
+        ORDER BY created_at DESC
+        LIMIT 5
+    """)]
 
     asset_map = {
         'brent': brent_rows,
@@ -431,9 +440,9 @@ def get_geri_trader_intel() -> Dict[str, Any]:
         'reaction_summary': reaction_summary,
         'alert_preview': alerts_preview,
         'geri_current': {
-            'value': latest_geri.get('value'),
+            'value': _to_float(latest_geri.get('value')),
             'band': latest_geri.get('band'),
-            'trend_7d': latest_geri.get('trend_7d'),
+            'trend_7d': _to_float(latest_geri.get('trend_7d')),
             'date': geri_date.isoformat() if hasattr(geri_date, 'isoformat') else str(geri_date) if geri_date else None,
         },
         'last_updated': geri_date.isoformat() if hasattr(geri_date, 'isoformat') else str(geri_date) if geri_date else None,

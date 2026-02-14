@@ -1,0 +1,161 @@
+Critical Features Missing for Trader
+
+These are Trader-grade must-haves.
+
+Without them, your dashboard is still mostly descriptive.
+
+🔴 Missing #1 — Lead/Lag Intelligence Panel
+
+This is one of your biggest differentiators.
+
+You need a small panel like:
+
+Asset Reaction Timing (last 180 days)
+
+TTF Gas → Risk leads by 3 days
+Brent → Risk leads by 5 days
+VIX → Moves same-day
+EUR/USD → Asset leads risk by 2 days
+
+
+Why traders need it:
+
+👉 Helps position trades
+👉 Helps anticipate moves
+👉 Makes your platform unique
+
+This belongs in Trader.
+
+🔴 Missing #2 — Divergence Indicator
+
+Even a SIMPLE version.
+
+Example:
+
+Current Divergence Status:
+
+TTF Gas: Moderate divergence
+Brent: Aligned
+VIX: Strong confirmation
+
+
+You don’t need full Z-score yet — just a label.
+
+This is a huge upgrade trigger.
+
+🔴 Missing #3 — Confirmation Score
+
+You talked about it earlier — now you need it.
+
+Example:
+
+Cross-Asset Confirmation: 62 / 100 (Moderate)
+
+
+This tells traders:
+
+👉 Is this risk real?
+👉 Is the market reacting?
+
+Very important.
+
+🔴 Missing #4 — Storage Context Indicator
+
+Right now you show storage as selectable asset, but traders need context.
+
+Example:
+
+EU Gas Storage:
+63% → Above seasonal average (+8%)
+
+
+This dramatically improves interpretation.
+
+⭐ 4. Important Secondary Features Missing
+
+These aren’t mandatory Day-1, but traders expect them soon.
+
+🟡 #5 — Asset Reaction Summary Text
+
+Add a short line under chart:
+
+“Brent reacting weakly to rising risk — possible delayed repricing.”
+
+This builds trust.
+
+🟡 #6 — Risk Regime Marker
+
+Instead of just “Moderate”, show:
+
+Regime: Transitioning → Elevated
+
+
+Traders think in regimes.
+
+🟡 #7 — Alert Preview
+
+Even if alerts are Pro feature, show teaser:
+
+Recent Alerts:
+• Europe Risk Spike
+• LNG Transit Alert
+
+
+This drives upgrades.
+
+⭐ 5. Things You Should NOT Add to Trader
+
+(save for Pro)
+
+Do NOT add yet:
+
+❌ Rolling correlations
+❌ Z-score charts
+❌ Probability forecasts
+❌ Backtesting panels
+❌ Scenario modeling
+❌ Custom thresholds
+
+Those are Pro/Enterprise territory.
+
+⭐ 6. UX Improvement Suggestions
+
+Small but powerful:
+
+✔ Add "Last Updated" timestamp
+
+Traders need trust.
+
+✔ Add Axis Label Clarification
+
+Right now users may ask:
+
+Is Brent normalized?
+
+Add small label:
+
+👉 “GERI Index vs Brent Price”
+
+✔ Allow Toggle: Indexed vs Raw
+
+Even traders like normalized view.
+
+✔ Add Hover → Driver Explanation
+
+Hover risk spike → show:
+
+“Russia pipeline incident”
+
+This is very powerful.
+
+⭐ 7. The 7 Features I Would Add Next (Priority Order)
+
+1️⃣ Lead/Lag Panel
+2️⃣ Divergence Label
+3️⃣ Confirmation Score
+4️⃣ Storage Seasonal Context
+5️⃣ Asset Reaction Summary Text
+6️⃣ Regime Transition Indicator
+7️⃣ Alert Preview Box
+
+After that, you are truly trader-grade.
