@@ -7,7 +7,7 @@ import logging
 import json
 from datetime import date, datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Header
 from pydantic import BaseModel
 
 from src.egsi.types import ENABLE_EGSI, EGSI_M_INDEX_ID
@@ -383,6 +383,59 @@ async def get_egsi_s_by_date(target_date: str):
         'success': True,
         'data': result,
     }
+
+
+@router.get("/egsi/trader-intel")
+async def get_egsi_trader_intel_endpoint(
+    x_user_token: Optional[str] = Header(None)
+):
+    """
+    Get EGSI Trader Intelligence data.
+    
+    Server-side plan enforcement: resolves user plan from session token.
+    - Trader (plan_level=2): All 9 base modules
+    - Pro (plan_level=3): All Trader + extended history overlay (365d)
+    - Enterprise (plan_level=4): All Pro features
+    """
+    check_enabled()
+
+    plan_level = 2
+    try:
+        from src.api.user_routes import verify_user_session
+        from src.db.db import get_cursor
+        session = verify_user_session(x_user_token)
+        user_id = session["user_id"]
+        with get_cursor(commit=False) as cur:
+            cur.execute("SELECT plan FROM user_plans WHERE user_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
+            row = cur.fetchone()
+            if row:
+                plan_map = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}
+                plan_level = plan_map.get(row['plan'], 2)
+    except Exception as auth_err:
+        logger.warning(f"Auth check for EGSI trader-intel: {auth_err}")
+        plan_level = 2
+
+    if plan_level < 2:
+        return {
+            'success': False,
+            'message': 'EGSI Trader Intelligence requires Trader plan or above',
+            'upgrade_required': True,
+        }
+
+    try:
+        from src.egsi.trader_intel import get_egsi_trader_intel
+        data = get_egsi_trader_intel(plan_level=max(2, min(4, plan_level)))
+        return {
+            'success': True,
+            'data': data,
+        }
+    except Exception as e:
+        logger.error(f"Error computing EGSI trader intel: {e}", exc_info=True)
+        return {
+            'success': False,
+            'message': f'Error computing trader intelligence: {str(e)}',
+            'data': None,
+        }
 
 
 def _parse_components(raw):

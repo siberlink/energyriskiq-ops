@@ -4414,6 +4414,77 @@
             .egsi-drivers-grid { grid-template-columns: 1fr; }
             .egsi-upgrade-prompt { flex-direction: column; text-align: center; }
         }
+        /* ========== EGSI Trader Intelligence Styles ========== */
+        .egsi-section-divider { margin-top: 32px; margin-bottom: 20px; padding-top: 20px; border-top: 2px solid rgba(16,185,129,0.3); }
+        .egsi-tier-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+        .egsi-tier-badge.trader { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .egsi-trader-top-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .egsi-trader-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .egsi-trader-card-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .egsi-momentum-gauge { text-align: center; margin-bottom: 12px; }
+        .egsi-momentum-value { font-size: 36px; font-weight: 800; color: #f1f5f9; }
+        .egsi-momentum-label { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-top: 2px; }
+        .egsi-momentum-bar-wrap { height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+        .egsi-momentum-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+        .egsi-momentum-overbought { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .egsi-momentum-building { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+        .egsi-momentum-neutral { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .egsi-momentum-easing { background: linear-gradient(90deg, #22c55e, #3b82f6); }
+        .egsi-momentum-oversold { background: linear-gradient(90deg, #10b981, #22c55e); }
+        .egsi-momentum-desc { font-size: 12px; color: #94a3b8; }
+        .egsi-divergence-signal { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+        .egsi-div-overpriced { color: #f87171; }
+        .egsi-div-underpriced { color: #4ade80; }
+        .egsi-div-slight-up { color: #fbbf24; }
+        .egsi-div-slight-down { color: #60a5fa; }
+        .egsi-div-aligned { color: #94a3b8; }
+        .egsi-divergence-zscore { font-size: 16px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; }
+        .egsi-divergence-desc { font-size: 12px; color: #94a3b8; line-height: 1.4; margin-bottom: 4px; }
+        .egsi-divergence-meta { font-size: 11px; color: #64748b; }
+        .egsi-weekly-headline { font-size: 15px; font-weight: 600; color: #f1f5f9; line-height: 1.4; margin-bottom: 8px; }
+        .egsi-weekly-meta { font-size: 11px; color: #64748b; }
+        .egsi-radar-badge { display: inline-block; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 20px; letter-spacing: 1px; margin-bottom: 12px; }
+        .egsi-radar-risk-on { background: rgba(239,68,68,0.2); color: #f87171; }
+        .egsi-radar-leaning-up { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .egsi-radar-neutral { background: rgba(100,116,139,0.2); color: #94a3b8; }
+        .egsi-radar-leaning-down { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .egsi-radar-risk-off { background: rgba(34,197,94,0.2); color: #4ade80; }
+        .egsi-radar-signal-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(51,65,85,0.5); }
+        .egsi-radar-signal-row:last-child { border-bottom: none; }
+        .egsi-radar-up { color: #f87171; font-size: 14px; }
+        .egsi-radar-down { color: #4ade80; font-size: 14px; }
+        .egsi-radar-flat { color: #94a3b8; font-size: 14px; }
+        .egsi-radar-signal-info { display: flex; flex-direction: column; gap: 2px; }
+        .egsi-radar-signal-info strong { font-size: 13px; color: #e2e8f0; }
+        .egsi-radar-signal-info span { font-size: 12px; color: #94a3b8; }
+        .egsi-impact-current { font-size: 13px; color: #cbd5e1; margin-bottom: 12px; }
+        .egsi-impact-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .egsi-scenario-card { background: #0f172a; border-radius: 10px; padding: 14px; border: 1px solid #334155; }
+        .egsi-scenario-up { border-left: 3px solid #ef4444; }
+        .egsi-scenario-base { border-left: 3px solid #f59e0b; }
+        .egsi-scenario-down { border-left: 3px solid #22c55e; }
+        .egsi-scenario-label { font-size: 12px; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+        .egsi-scenario-range { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+        .egsi-scenario-band { font-size: 11px; color: #94a3b8; margin-bottom: 2px; }
+        .egsi-scenario-ttf { font-size: 11px; color: #64748b; }
+        .egsi-regime-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .egsi-regime-band-label { font-size: 12px; font-weight: 600; color: #cbd5e1; width: 70px; text-align: right; }
+        .egsi-regime-bar-bg { flex: 1; height: 22px; background: #0f172a; border-radius: 6px; overflow: hidden; }
+        .egsi-regime-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+        .egsi-regime-days { font-size: 12px; color: #94a3b8; width: 80px; }
+        .egsi-regime-stats { font-size: 12px; color: #64748b; margin-top: 8px; }
+        .egsi-overlay-controls { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .egsi-overlay-toggle { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #cbd5e1; cursor: pointer; }
+        .egsi-overlay-toggle input { accent-color: #10b981; }
+        .egsi-storage-seasonal-meta { font-size: 12px; color: #94a3b8; margin-top: 8px; text-align: center; }
+        .egsi-analog-item { background: #0f172a; border-radius: 8px; padding: 12px; margin-bottom: 8px; border: 1px solid #334155; }
+        .egsi-analog-dates { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+        .egsi-analog-meta { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+        .egsi-analog-outcome { font-size: 12px; font-weight: 600; }
+        @media (max-width: 768px) {
+            .egsi-trader-top-row { grid-template-columns: 1fr; }
+            .egsi-impact-grid { grid-template-columns: 1fr; }
+        }
         /* ========== End EGSI Dashboard Styles ========== */
     </style>
 </head>
@@ -4858,6 +4929,97 @@
                             </div>
                         </div>
                     </div>
+                    <!-- EGSI Trader Intelligence Section (Trader+ only) -->
+                    <div id="egsiTraderIntelSection" style="display:none;">
+                        <div class="egsi-section-divider">
+                            <h3 class="egsi-section-title" style="font-size:18px;color:#f1f5f9;">&#9889; Trader Intelligence <span class="egsi-tier-badge trader">TRADER+</span></h3>
+                        </div>
+
+                        <div class="egsi-trader-top-row">
+                            <div class="egsi-trader-card egsi-momentum-card" id="egsiMomentumCard">
+                                <div class="egsi-trader-card-title">Stress Momentum</div>
+                                <div class="egsi-momentum-gauge" id="egsiMomentumGauge">
+                                    <div class="egsi-momentum-value" id="egsiMomentumValue">--</div>
+                                    <div class="egsi-momentum-label" id="egsiMomentumLabel">Loading...</div>
+                                </div>
+                                <div class="egsi-momentum-bar-wrap">
+                                    <div class="egsi-momentum-bar" id="egsiMomentumBar" style="width:50%"></div>
+                                </div>
+                                <div class="egsi-momentum-desc" id="egsiMomentumDesc"></div>
+                            </div>
+
+                            <div class="egsi-trader-card egsi-divergence-card" id="egsiDivergenceCard">
+                                <div class="egsi-trader-card-title">TTF vs EGSI Divergence</div>
+                                <div class="egsi-divergence-signal" id="egsiDivergenceSignal">--</div>
+                                <div class="egsi-divergence-zscore" id="egsiDivergenceZScore"></div>
+                                <div class="egsi-divergence-desc" id="egsiDivergenceDesc"></div>
+                                <div class="egsi-divergence-meta" id="egsiDivergenceMeta"></div>
+                            </div>
+
+                            <div class="egsi-trader-card egsi-weekly-driver-card" id="egsiWeeklyDriverCard">
+                                <div class="egsi-trader-card-title">&#128293; Top Risk Driver This Week</div>
+                                <div class="egsi-weekly-headline" id="egsiWeeklyHeadline">--</div>
+                                <div class="egsi-weekly-meta" id="egsiWeeklyMeta"></div>
+                            </div>
+                        </div>
+
+                        <div class="egsi-trader-card" id="egsiRiskRadarCard">
+                            <div class="egsi-trader-card-title">Risk Radar — 30-Day Outlook</div>
+                            <div class="egsi-radar-overall" id="egsiRadarOverall"></div>
+                            <div class="egsi-radar-signals" id="egsiRadarSignals"></div>
+                        </div>
+
+                        <div class="egsi-trader-card" id="egsiAlertImpactCard">
+                            <div class="egsi-trader-card-title">&#9888;&#65039; Scenario Impact Analysis</div>
+                            <div class="egsi-impact-scenarios" id="egsiImpactScenarios"></div>
+                        </div>
+
+                        <div class="egsi-trader-card" id="egsiRegimeHistoryCard">
+                            <div class="egsi-trader-card-title">Regime History (12 months)</div>
+                            <div class="egsi-regime-bars" id="egsiRegimeBars"></div>
+                            <div class="egsi-regime-stats" id="egsiRegimeStats"></div>
+                        </div>
+
+                        <div class="egsi-trader-card" id="egsiAssetOverlayCard">
+                            <div class="egsi-trader-card-title">EGSI vs Assets Overlay</div>
+                            <div class="egsi-overlay-controls" id="egsiOverlayControls">
+                                <label class="egsi-overlay-toggle"><input type="checkbox" id="egsiOverlayTTF" checked onchange="renderEgsiOverlayChart()"> TTF</label>
+                                <label class="egsi-overlay-toggle"><input type="checkbox" id="egsiOverlayBrent" onchange="renderEgsiOverlayChart()"> Brent</label>
+                                <label class="egsi-overlay-toggle"><input type="checkbox" id="egsiOverlayVIX" onchange="renderEgsiOverlayChart()"> VIX</label>
+                                <label class="egsi-overlay-toggle"><input type="checkbox" id="egsiOverlayEURUSD" onchange="renderEgsiOverlayChart()"> EUR/USD</label>
+                                <label class="egsi-overlay-toggle"><input type="checkbox" id="egsiOverlayStorage" onchange="renderEgsiOverlayChart()"> Storage</label>
+                            </div>
+                            <div style="position:relative;height:350px;">
+                                <canvas id="egsiOverlayChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="egsi-trader-card" id="egsiStorageSeasonalCard">
+                            <div class="egsi-trader-card-title">EU Gas Storage vs Seasonal Average</div>
+                            <div style="position:relative;height:280px;">
+                                <canvas id="egsiStorageSeasonalChart"></canvas>
+                            </div>
+                            <div class="egsi-storage-seasonal-meta" id="egsiStorageSeasonalMeta"></div>
+                        </div>
+
+                        <div class="egsi-trader-card" id="egsiAnalogFinderCard">
+                            <div class="egsi-trader-card-title">&#128269; Analog Event Finder</div>
+                            <div class="egsi-analog-list" id="egsiAnalogList"></div>
+                        </div>
+                    </div>
+
+                    <!-- EGSI Trader Upgrade Prompt (for lower tiers) -->
+                    <div id="egsiTraderUpgradePrompt" style="display:none;">
+                        <div class="egsi-upgrade-prompt" style="display:flex;">
+                            <div class="egsi-upgrade-icon">&#9889;</div>
+                            <div class="egsi-upgrade-text">
+                                <strong>Unlock EGSI Trader Intelligence</strong>
+                                <p>Upgrade to Trader to access: Asset overlays, TTF divergence signals, regime history, risk radar, stress momentum, scenario analysis, and more.</p>
+                            </div>
+                            <button class="egsi-upgrade-btn" onclick="showSection('plans');">Upgrade Now</button>
+                        </div>
+                    </div>
+
                     <div class="egsi-upgrade-prompt" id="egsiUpgradePrompt" style="display:none;">
                         <div class="egsi-upgrade-icon">&#9889;</div>
                         <div class="egsi-upgrade-text">
@@ -10047,6 +10209,7 @@
                 renderEgsiNarrative(json, config);
                 renderEgsiHistory(json, config);
                 renderEgsiUpgradePrompt(config);
+                loadEgsiTraderIntel();
             } catch (e) {
                 console.error('EGSI dashboard error:', e);
                 document.getElementById('egsiLoading').innerHTML = '<p style="color:#f87171;">Failed to load EGSI dashboard. Please try again later.</p>';
@@ -10577,6 +10740,249 @@
                 narrative += '.';
             }
             document.getElementById('egsiNarrativeText').textContent = narrative;
+        }
+
+        /* ========== EGSI Trader Intelligence Module ========== */
+        var egsiTraderData = null;
+        var egsiOverlayChartObj = null;
+        var egsiStorageChartObj = null;
+
+        async function loadEgsiTraderIntel() {
+            var planLevel = 0;
+            var planMap = {free: 0, personal: 1, trader: 2, pro: 3, enterprise: 4};
+            if (currentUser && currentUser.plan) planLevel = planMap[currentUser.plan] || 0;
+
+            if (planLevel < 2) {
+                document.getElementById('egsiTraderIntelSection').style.display = 'none';
+                document.getElementById('egsiTraderUpgradePrompt').style.display = 'block';
+                return;
+            }
+            document.getElementById('egsiTraderUpgradePrompt').style.display = 'none';
+
+            try {
+                var resp = await fetch('/api/v1/indices/egsi/trader-intel', { headers: { 'X-User-Token': sessionToken } });
+                var json = await resp.json();
+                if (!json.success || !json.data) return;
+                egsiTraderData = json.data;
+                document.getElementById('egsiTraderIntelSection').style.display = 'block';
+                renderEgsiMomentum(json.data.stress_momentum);
+                renderEgsiDivergence(json.data.ttf_divergence);
+                renderEgsiWeeklyDriver(json.data.weekly_driver);
+                renderEgsiRiskRadar(json.data.risk_radar);
+                renderEgsiAlertImpact(json.data.alert_impact);
+                renderEgsiRegimeHistory(json.data.regime_history);
+                renderEgsiOverlayChart();
+                renderEgsiStorageSeasonalChart(json.data.storage_seasonal);
+                renderEgsiAnalogFinder(json.data.analog_finder);
+            } catch (e) {
+                console.error('EGSI Trader Intel error:', e);
+            }
+        }
+
+        function renderEgsiMomentum(data) {
+            if (!data || data.rsi === null) return;
+            var rsi = data.rsi;
+            document.getElementById('egsiMomentumValue').textContent = rsi.toFixed(1);
+            var label = data.label || 'NEUTRAL';
+            document.getElementById('egsiMomentumLabel').textContent = label;
+            document.getElementById('egsiMomentumBar').style.width = rsi + '%';
+            var cls = '';
+            if (rsi >= 70) cls = 'egsi-momentum-overbought';
+            else if (rsi >= 55) cls = 'egsi-momentum-building';
+            else if (rsi <= 30) cls = 'egsi-momentum-oversold';
+            else if (rsi <= 45) cls = 'egsi-momentum-easing';
+            else cls = 'egsi-momentum-neutral';
+            document.getElementById('egsiMomentumBar').className = 'egsi-momentum-bar ' + cls;
+            document.getElementById('egsiMomentumDesc').textContent = data.description || '';
+        }
+
+        function renderEgsiDivergence(data) {
+            if (!data) return;
+            var el = document.getElementById('egsiDivergenceSignal');
+            var signal = data.signal || 'N/A';
+            var signalMap = {
+                'OVERPRICED': { text: 'OVERPRICED', cls: 'egsi-div-overpriced' },
+                'UNDERPRICED': { text: 'UNDERPRICED', cls: 'egsi-div-underpriced' },
+                'SLIGHT_PREMIUM': { text: 'SLIGHT PREMIUM', cls: 'egsi-div-slight-up' },
+                'SLIGHT_DISCOUNT': { text: 'SLIGHT DISCOUNT', cls: 'egsi-div-slight-down' },
+                'ALIGNED': { text: 'ALIGNED', cls: 'egsi-div-aligned' },
+            };
+            var s = signalMap[signal] || { text: signal, cls: '' };
+            el.textContent = s.text;
+            el.className = 'egsi-divergence-signal ' + s.cls;
+            if (data.z_score !== null && data.z_score !== undefined) {
+                document.getElementById('egsiDivergenceZScore').textContent = (data.z_score > 0 ? '+' : '') + data.z_score.toFixed(2) + '\u03C3';
+            }
+            document.getElementById('egsiDivergenceDesc').textContent = data.description || '';
+            var meta = '';
+            if (data.latest_egsi) meta += 'EGSI: ' + data.latest_egsi;
+            if (data.latest_ttf) meta += ' | TTF: \u20AC' + data.latest_ttf;
+            document.getElementById('egsiDivergenceMeta').textContent = meta;
+        }
+
+        function renderEgsiWeeklyDriver(data) {
+            if (!data || !data.headline) {
+                document.getElementById('egsiWeeklyHeadline').textContent = 'No significant driver this week';
+                return;
+            }
+            document.getElementById('egsiWeeklyHeadline').textContent = data.headline;
+            var meta = [];
+            if (data.severity) meta.push('Severity: ' + data.severity);
+            if (data.type) meta.push('Type: ' + data.type);
+            if (data.source) meta.push('Source: ' + data.source);
+            document.getElementById('egsiWeeklyMeta').textContent = meta.join(' | ');
+        }
+
+        function renderEgsiRiskRadar(data) {
+            if (!data) return;
+            var overallMap = {
+                'RISK_ON': { text: 'RISK ON', cls: 'egsi-radar-risk-on' },
+                'LEANING_UP': { text: 'LEANING UP', cls: 'egsi-radar-leaning-up' },
+                'NEUTRAL': { text: 'NEUTRAL', cls: 'egsi-radar-neutral' },
+                'LEANING_DOWN': { text: 'LEANING DOWN', cls: 'egsi-radar-leaning-down' },
+                'RISK_OFF': { text: 'RISK OFF', cls: 'egsi-radar-risk-off' },
+            };
+            var o = overallMap[data.overall_bias] || { text: data.overall_bias, cls: '' };
+            document.getElementById('egsiRadarOverall').innerHTML = '<span class="egsi-radar-badge ' + o.cls + '">' + o.text + '</span>';
+
+            var signalsHtml = (data.signals || []).map(function(s) {
+                var biasIcon = s.bias === 'UP' ? '<span class="egsi-radar-up">&#9650;</span>' : s.bias === 'DOWN' ? '<span class="egsi-radar-down">&#9660;</span>' : '<span class="egsi-radar-flat">&#8212;</span>';
+                return '<div class="egsi-radar-signal-row">' + biasIcon + '<div class="egsi-radar-signal-info"><strong>' + s.factor + '</strong><span>' + s.detail + '</span></div></div>';
+            }).join('');
+            document.getElementById('egsiRadarSignals').innerHTML = signalsHtml;
+        }
+
+        function renderEgsiAlertImpact(data) {
+            if (!data || !data.scenarios || data.scenarios.length === 0) return;
+            var html = '<div class="egsi-impact-current">Current: <strong>' + (data.current_value || '--') + '</strong> (' + (data.current_band || '--') + ') | Momentum: ' + (data.momentum || 0).toFixed(2) + '</div>';
+            html += '<div class="egsi-impact-grid">';
+            data.scenarios.forEach(function(sc) {
+                var cls = sc.label.indexOf('accelerates') >= 0 ? 'egsi-scenario-up' : sc.label.indexOf('reverses') >= 0 ? 'egsi-scenario-down' : 'egsi-scenario-base';
+                html += '<div class="egsi-scenario-card ' + cls + '"><div class="egsi-scenario-label">' + sc.label + '</div><div class="egsi-scenario-range">EGSI: ' + sc.egsi_range + '</div><div class="egsi-scenario-band">Band: ' + sc.implied_band + '</div><div class="egsi-scenario-ttf">TTF: ' + sc.ttf_impact + '</div></div>';
+            });
+            html += '</div>';
+            document.getElementById('egsiImpactScenarios').innerHTML = html;
+        }
+
+        function renderEgsiRegimeHistory(data) {
+            if (!data || !data.bands || data.bands.length === 0) return;
+            var colorMap = { LOW: '#22c55e', NORMAL: '#3b82f6', ELEVATED: '#f59e0b', HIGH: '#ef4444', CRITICAL: '#dc2626' };
+            var maxDays = Math.max.apply(null, data.bands.map(function(b) { return b.days; })) || 1;
+            var barsHtml = data.bands.map(function(b) {
+                var pct = Math.max(2, (b.days / maxDays) * 100);
+                var color = colorMap[b.band] || '#64748b';
+                return '<div class="egsi-regime-row"><span class="egsi-regime-band-label">' + b.band + '</span><div class="egsi-regime-bar-bg"><div class="egsi-regime-bar-fill" style="width:' + pct + '%;background:' + color + ';"></div></div><span class="egsi-regime-days">' + b.days + 'd (' + b.pct + '%)</span></div>';
+            }).join('');
+            document.getElementById('egsiRegimeBars').innerHTML = barsHtml;
+            document.getElementById('egsiRegimeStats').textContent = 'Total: ' + data.total_days + ' days | Transitions: ' + (data.transitions || 0);
+        }
+
+        function renderEgsiOverlayChart() {
+            if (!egsiTraderData || !egsiTraderData.asset_overlay) return;
+            var overlay = egsiTraderData.asset_overlay;
+            var datasets = [];
+            var egsiDates = (overlay.egsi_m || []).map(function(d) { return d.date; });
+            var labels = egsiDates.map(function(d) { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short'}); });
+
+            datasets.push({
+                label: 'EGSI-M',
+                data: (overlay.egsi_m || []).map(function(d) { return d.value; }),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16,185,129,0.1)',
+                borderWidth: 2, fill: false, tension: 0.3, yAxisID: 'y',
+                pointRadius: labels.length > 60 ? 0 : 2, pointHoverRadius: 4,
+            });
+
+            var assetConfigs = [
+                { id: 'egsiOverlayTTF', key: 'ttf', label: 'TTF (EUR/MWh)', color: '#f59e0b', yAxis: 'y1' },
+                { id: 'egsiOverlayBrent', key: 'brent', label: 'Brent (USD)', color: '#06b6d4', yAxis: 'y1' },
+                { id: 'egsiOverlayVIX', key: 'vix', label: 'VIX', color: '#a78bfa', yAxis: 'y1' },
+                { id: 'egsiOverlayEURUSD', key: 'eurusd', label: 'EUR/USD', color: '#fb923c', yAxis: 'y2' },
+                { id: 'egsiOverlayStorage', key: 'storage', label: 'EU Storage %', color: '#2dd4bf', yAxis: 'y2' },
+            ];
+
+            assetConfigs.forEach(function(ac) {
+                var cb = document.getElementById(ac.id);
+                if (!cb || !cb.checked) return;
+                var series = overlay[ac.key] || [];
+                var dateMap = {};
+                series.forEach(function(s) { dateMap[s.date] = s.value; });
+                var aligned = egsiDates.map(function(d) { return dateMap[d] !== undefined ? dateMap[d] : null; });
+                datasets.push({
+                    label: ac.label,
+                    data: aligned,
+                    borderColor: ac.color,
+                    borderWidth: 1.5, fill: false, tension: 0.3,
+                    pointRadius: 0, pointHoverRadius: 3,
+                    yAxisID: ac.yAxis,
+                    borderDash: [4, 2],
+                });
+            });
+
+            var ctx = document.getElementById('egsiOverlayChart');
+            if (egsiOverlayChartObj) egsiOverlayChartObj.destroy();
+            egsiOverlayChartObj = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1 } },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 45 }, grid: { color: 'rgba(51,65,85,0.3)' } },
+                        y: { position: 'left', title: { display: true, text: 'EGSI-M', color: '#10b981', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { color: 'rgba(51,65,85,0.3)' }, min: 0 },
+                        y1: { position: 'right', title: { display: true, text: 'Asset Price', color: '#f59e0b', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { drawOnChartArea: false } },
+                        y2: { display: false },
+                    },
+                },
+            });
+        }
+
+        function renderEgsiStorageSeasonalChart(data) {
+            if (!data || !data.current || data.current.length === 0) return;
+            var labels = data.current.map(function(d) { return new Date(d.date + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short'}); });
+            var currentVals = data.current.map(function(d) { return d.value; });
+            var seasonalVals = data.seasonal_avg.map(function(d) { return d.value; });
+
+            var ctx = document.getElementById('egsiStorageSeasonalChart');
+            if (egsiStorageChartObj) egsiStorageChartObj.destroy();
+            egsiStorageChartObj = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Current Storage %', data: currentVals, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: true, tension: 0.3, pointRadius: currentVals.length > 30 ? 0 : 3 },
+                        { label: 'Seasonal Average', data: seasonalVals, borderColor: '#94a3b8', borderWidth: 1.5, borderDash: [5, 3], fill: false, tension: 0.3, pointRadius: 0 },
+                    ],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } }, tooltip: { backgroundColor: '#1e293b', titleColor: '#f1f5f9', bodyColor: '#cbd5e1' } },
+                    scales: {
+                        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(51,65,85,0.3)' } },
+                        y: { title: { display: true, text: 'Storage %', color: '#10b981', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { color: 'rgba(51,65,85,0.3)' }, min: 0, max: 100 },
+                    },
+                },
+            });
+            var metaHtml = '';
+            if (data.latest_pct !== null) metaHtml += 'Current: ' + data.latest_pct + '%';
+            if (data.seasonal_norm_pct !== null) metaHtml += ' | Seasonal norm: ' + data.seasonal_norm_pct + '%';
+            if (data.deficit !== null) metaHtml += ' | Deficit: ' + (data.deficit > 0 ? '-' : '+') + Math.abs(data.deficit) + '%';
+            document.getElementById('egsiStorageSeasonalMeta').textContent = metaHtml;
+        }
+
+        function renderEgsiAnalogFinder(data) {
+            if (!data || !data.analogs || data.analogs.length === 0) {
+                document.getElementById('egsiAnalogList').innerHTML = '<div style="color:#64748b;font-size:13px;">Not enough history for pattern matching yet.</div>';
+                return;
+            }
+            var html = '<div style="color:#94a3b8;font-size:12px;margin-bottom:8px;">Current pattern avg: ' + (data.current_avg || '--') + ' | Window: ' + (data.pattern_window || 14) + ' days</div>';
+            html += data.analogs.map(function(a) {
+                var outcomeColor = a.outcome_7d === 'rose' ? '#f87171' : a.outcome_7d === 'fell' ? '#4ade80' : '#94a3b8';
+                var outcomeText = a.outcome_7d === 'rose' ? 'Stress rose' : a.outcome_7d === 'fell' ? 'Stress fell' : 'Stable';
+                return '<div class="egsi-analog-item"><div class="egsi-analog-dates">' + a.start_date + ' to ' + a.end_date + '</div><div class="egsi-analog-meta">Similarity: <strong>' + (a.similarity * 100).toFixed(0) + '%</strong> | Avg: ' + a.avg_value + ' | Band: ' + a.band_at_time + '</div><div class="egsi-analog-outcome" style="color:' + outcomeColor + '">7d after: ' + outcomeText + '</div></div>';
+            }).join('');
+            document.getElementById('egsiAnalogList').innerHTML = html;
         }
 
         /* ========== End EGSI Dashboard Module ========== */

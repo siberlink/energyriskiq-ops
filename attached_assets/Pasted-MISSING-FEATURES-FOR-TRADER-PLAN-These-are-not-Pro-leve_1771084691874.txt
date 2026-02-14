@@ -1,0 +1,241 @@
+MISSING FEATURES FOR TRADER PLAN
+
+These are not Pro-level, but they are essential for Trader tier.
+
+1️⃣ Asset Overlay Panel (VERY IMPORTANT)
+
+You have the data already:
+TTF, Brent, VIX, EUR/USD, Storage.
+
+Trader plan MUST show correlation visually.
+
+Add:
+
+EGSI vs Assets Chart
+Selectable:
+
+• TTF
+• Brent
+• VIX
+• EUR/USD
+• EU Storage
+
+Why?
+
+Because traders want to see:
+
+👉 Is price lagging stress?
+👉 Is volatility leading stress?
+👉 Is storage already priced in?
+
+This is the #1 missing feature.
+
+2️⃣ Divergence Indicator (Simplified)
+
+Not full Pro model.
+
+Just show:
+
+TTF vs EGSI Divergence:
+UNDERPRICED (−1.6σ)
+
+
+This creates enormous perceived value.
+
+3️⃣ Regime History Panel
+
+Traders think in regimes.
+
+Add:
+
+Last 12 months regimes:
+Normal 120 days
+Elevated 160 days
+High 60 days
+Crisis 25 days
+
+
+Or timeline chart.
+
+Helps strategy building.
+
+4️⃣ Analog Event Finder
+
+VERY sticky feature.
+
+Example:
+
+Similar Stress Patterns:
+Feb 2022 — LNG shock
+Oct 2021 — Storage crisis
+
+
+Click → show what happened to TTF.
+
+This makes your real historical data a monetization weapon.
+
+5️⃣ Risk Radar Panel (Simple Version)
+
+Not Pro probability engine yet.
+
+Just:
+
+Risk Bias (Next 30 Days):
+↑ Price volatility risk
+↑ Storage draw risk
+→ Supply disruption risk neutral
+
+
+This bridges analysis → action.
+
+6️⃣ Alert Impact Panel
+
+Right now alerts exist but not trader-oriented.
+
+Add:
+
+If Stress Continues:
+TTF risk band: +5% to +18%
+Volatility risk: HIGH
+
+
+No prediction guarantees — just scenario ranges.
+
+⭐ STORAGE PANEL IS VERY GOOD
+
+But add:
+
+Storage vs Seasonal Chart
+
+This is crucial for traders.
+
+Line chart:
+• Current storage
+• Seasonal average
+• Crisis years overlay
+
+This is huge for credibility.
+
+⭐ HISTORICAL CHART — GOOD, BUT ADD ONE THING
+
+Add background shading by regime.
+
+This is extremely powerful visually.
+
+Example:
+
+Green normal
+
+Yellow elevated
+
+Red high
+
+Dark red crisis
+
+Traders instantly understand regime structure.
+
+⭐ WHAT YOU DID PERFECTLY
+
+Your “What Changed Today” is outstanding.
+
+This alone creates daily habit.
+
+Your narrative summary is excellent too.
+
+Keep those.
+
+⭐ MONETIZATION STRATEGY COMMENT
+
+Trader plan should feel like:
+
+👉 “Market intelligence edge”
+
+Pro plan should feel like:
+
+👉 “Predictive intelligence engine”
+
+So don’t add probabilities yet here.
+
+But add correlations + divergence.
+
+⭐ FEATURES YOU SHOULD NOT ADD TO TRADER
+
+To protect Pro tier:
+
+❌ Scenario simulation
+❌ Probability % outputs
+❌ Custom alert builder
+❌ Backtesting panel
+❌ Portfolio stress modelling
+
+Keep those Pro/Enterprise.
+
+⭐ MOST IMPORTANT DAILY RETENTION FEATURES
+
+To grow EnergyRiskIQ with no audience, you need habit-forming features.
+
+Add these:
+
+1️⃣ Daily Stress Story
+
+1 paragraph auto-generated.
+
+You already started — good.
+
+2️⃣ “What Changed Since Yesterday”
+
+Already done — excellent.
+
+3️⃣ Biggest Risk Driver of the Week
+
+Small panel.
+
+4️⃣ Stress Momentum Gauge
+
+Like RSI but for stress.
+
+These keep traders coming back.
+
+⭐ PRIORITY ROADMAP FOR TRADER DASHBOARD
+
+Do these in order:
+
+#1 Asset Overlay Chart
+
+Massive perceived value.
+
+#2 Divergence Indicator
+
+Huge upgrade driver.
+
+#3 Storage vs Seasonal Chart
+
+Institutional credibility.
+
+#4 Regime History Panel
+
+Professional feel.
+
+#5 Analog Event Finder
+
+Your historical data becomes moat.
+
+#6 Risk Radar Panel
+
+Bridges analysis → trading thinking.
+
+⭐ FINAL PRODUCT STRATEGY COMMENT
+
+You are building something rare:
+
+A quantitative geopolitical-energy intelligence system.
+
+If you continue like this:
+
+👉 Personal = awareness
+👉 Trader = market edge
+👉 Pro = predictive engine
+
+You will absolutely get paying users.
+
+Especially because you’re targeting LNG analysts and traders (as we discussed in your LinkedIn/X strategy).
