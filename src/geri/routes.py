@@ -308,7 +308,7 @@ async def get_geri_trader_intel_endpoint(
     """
     check_enabled()
     
-    plan_level = 2
+    plan_level = 0
     try:
         from src.api.user_routes import verify_user_session
         from src.db.db import get_cursor
@@ -319,10 +319,14 @@ async def get_geri_trader_intel_endpoint(
             row = cur.fetchone()
             if row:
                 plan_map = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}
-                plan_level = plan_map.get(row['plan'], 2)
+                plan_level = plan_map.get(row['plan'], 0)
     except Exception as auth_err:
         logger.warning(f"Auth check for trader-intel: {auth_err}")
-        plan_level = 2
+        return {
+            'success': False,
+            'message': 'Authentication required for GERI Trader Intelligence',
+            'upgrade_required': True,
+        }
     
     try:
         from src.geri.trader_intel import get_geri_trader_intel
