@@ -326,6 +326,145 @@ def generate_reaction_summary(geri_series: List[Dict], divergences: Dict[str, st
         return f"GERI {trend_word} at {value} ({band}) — weak cross-asset confirmation. Markets may not be pricing risk adequately."
 
 
+def compute_rolling_correlations(geri_series: List[Dict], assets: Dict[str, List[Dict]], window: int = 30) -> List[Dict[str, Any]]:
+    geri_by_date = {r['date']: _to_float(r['value']) for r in geri_series if r.get('value') is not None}
+    results = []
+    asset_labels = {'brent': 'Brent Oil', 'ttf': 'TTF Gas', 'vix': 'VIX', 'eurusd': 'EUR/USD', 'gas_storage': 'EU Gas Storage'}
+    for key, series in assets.items():
+        a_by_date = {r['date']: _to_float(r['value']) for r in series if r.get('value') is not None}
+        common = sorted(set(geri_by_date.keys()) & set(a_by_date.keys()))
+        if len(common) < max(7, window // 2):
+            results.append({'asset': asset_labels.get(key, key), 'correlation': None, 'strength': 'Insufficient data', 'sample_size': len(common)})
+            continue
+        recent = common[-window:] if len(common) >= window else common
+        g_vals = [geri_by_date[d] for d in recent]
+        a_vals = [a_by_date[d] for d in recent]
+        mg = sum(g_vals) / len(g_vals)
+        ma = sum(a_vals) / len(a_vals)
+        num = sum((g - mg) * (a - ma) for g, a in zip(g_vals, a_vals))
+        dg = math.sqrt(sum((g - mg)**2 for g in g_vals)) or 1e-9
+        da = math.sqrt(sum((a - ma)**2 for a in a_vals)) or 1e-9
+        corr = round(num / (dg * da), 3)
+        if abs(corr) >= 0.7:
+            strength = 'Strong'
+        elif abs(corr) >= 0.4:
+            strength = 'Moderate'
+        else:
+            strength = 'Weak'
+        results.append({'asset': asset_labels.get(key, key), 'correlation': corr, 'strength': strength, 'sample_size': len(recent)})
+    return results
+
+
+def compute_risk_decomposition(geri_rows: List[Dict], alert_data: List[Dict]) -> Dict[str, Any]:
+    categories = {'Geopolitical': 0, 'Energy Supply': 0, 'Market Stress': 0, 'Infrastructure': 0, 'Regulatory': 0}
+    keyword_map = {
+        'Geopolitical': ['war', 'conflict', 'sanction', 'military', 'attack', 'missile', 'nuclear', 'treaty', 'peace', 'invasion', 'drone', 'ceasefire'],
+        'Energy Supply': ['pipeline', 'opec', 'production', 'export', 'lng', 'refinery', 'crude', 'supply', 'barrel', 'oil', 'gas', 'fuel'],
+        'Market Stress': ['price', 'volatility', 'crash', 'rally', 'inflation', 'recession', 'demand', 'market', 'trading', 'futures'],
+        'Infrastructure': ['storage', 'terminal', 'port', 'transit', 'capacity', 'maintenance', 'outage', 'infrastructure'],
+        'Regulatory': ['regulation', 'policy', 'tariff', 'tax', 'legislation', 'emissions', 'carbon', 'climate', 'mandate'],
+    }
+    for alert in alert_data:
+        headline = (alert.get('headline', '') or '').lower()
+        matched = False
+        for cat, keywords in keyword_map.items():
+            if any(kw in headline for kw in keywords):
+                sev = _to_float(alert.get('severity')) or 5
+                categories[cat] += sev
+                matched = True
+                break
+        if not matched:
+            categories['Geopolitical'] += (_to_float(alert.get('severity')) or 5)
+    total = sum(categories.values()) or 1
+    breakdown = []
+    for cat, val in sorted(categories.items(), key=lambda x: -x[1]):
+        pct = round((val / total) * 100, 1)
+        if pct > 0:
+            breakdown.append({'category': cat, 'contribution_pct': pct, 'raw_score': round(val, 1)})
+    return {'breakdown': breakdown, 'total_score': round(total, 1)}
+
+
+def compute_regime_probability(geri_rows: List[Dict]) -> Dict[str, Any]:
+    if len(geri_rows) < 14:
+        return {'current_band': None, 'probabilities': {}, 'text': 'Insufficient history'}
+    bands_map = {'LOW': 0, 'MODERATE': 1, 'ELEVATED': 2, 'SEVERE': 3, 'CRITICAL': 4}
+    transitions = {}
+    for i in range(1, len(geri_rows)):
+        prev_band = geri_rows[i-1].get('band', 'MODERATE')
+        curr_band = geri_rows[i].get('band', 'MODERATE')
+        if prev_band not in transitions:
+            transitions[prev_band] = {}
+        transitions[prev_band][curr_band] = transitions[prev_band].get(curr_band, 0) + 1
+    current = geri_rows[-1].get('band', 'MODERATE')
+    current_transitions = transitions.get(current, {})
+    total = sum(current_transitions.values()) or 1
+    probs = {}
+    for band in ['LOW', 'MODERATE', 'ELEVATED', 'SEVERE', 'CRITICAL']:
+        probs[band] = round((current_transitions.get(band, 0) / total) * 100, 1)
+    stay_prob = probs.get(current, 0)
+    escalate_prob = sum(v for k, v in probs.items() if bands_map.get(k, 0) > bands_map.get(current, 0))
+    deescalate_prob = sum(v for k, v in probs.items() if bands_map.get(k, 0) < bands_map.get(current, 0))
+    return {
+        'current_band': current,
+        'probabilities': probs,
+        'stay_probability': round(stay_prob, 1),
+        'escalation_probability': round(escalate_prob, 1),
+        'deescalation_probability': round(deescalate_prob, 1),
+        'text': f"From {current}: {stay_prob}% stay, {escalate_prob}% escalate, {deescalate_prob}% de-escalate"
+    }
+
+
+def compute_spillover_analysis(geri_rows: List[Dict], asset_map: Dict[str, List[Dict]]) -> List[Dict[str, Any]]:
+    asset_labels = {'brent': 'Brent Oil', 'ttf': 'TTF Gas', 'vix': 'VIX', 'eurusd': 'EUR/USD', 'gas_storage': 'EU Gas Storage'}
+    geri_by_date = {r['date']: _to_float(r['value']) for r in geri_rows if r.get('value') is not None}
+    if len(geri_by_date) < 14:
+        return []
+    geri_dates = sorted(geri_by_date.keys())
+    geri_vals = [geri_by_date[d] for d in geri_dates]
+    geri_changes = [geri_vals[i] - geri_vals[i-1] for i in range(1, len(geri_vals))]
+    spike_threshold = 3.0
+    spike_dates = set()
+    for i, chg in enumerate(geri_changes):
+        if abs(chg) >= spike_threshold:
+            spike_dates.add(geri_dates[i+1])
+    results = []
+    for key, series in asset_map.items():
+        a_by_date = {r['date']: _to_float(r['value']) for r in series if r.get('value') is not None}
+        reactions = []
+        for sd in spike_dates:
+            d_idx = geri_dates.index(sd) if sd in geri_dates else -1
+            if d_idx < 0:
+                continue
+            geri_chg = geri_changes[d_idx - 1] if d_idx > 0 and d_idx - 1 < len(geri_changes) else 0
+            for lag in range(0, 4):
+                check_idx = d_idx + lag
+                if check_idx < len(geri_dates):
+                    check_date = geri_dates[check_idx]
+                    prev_date = geri_dates[check_idx - 1] if check_idx > 0 else None
+                    if check_date in a_by_date and prev_date and prev_date in a_by_date:
+                        a_chg = a_by_date[check_date] - a_by_date[prev_date]
+                        if abs(a_by_date[prev_date]) > 0:
+                            a_pct = (a_chg / abs(a_by_date[prev_date])) * 100
+                            reactions.append({'lag': lag, 'pct': a_pct})
+                        break
+        if reactions:
+            avg_pct = round(sum(r['pct'] for r in reactions) / len(reactions), 2)
+            avg_lag = round(sum(r['lag'] for r in reactions) / len(reactions), 1)
+            sensitivity = 'High' if abs(avg_pct) > 2 else ('Moderate' if abs(avg_pct) > 0.5 else 'Low')
+        else:
+            avg_pct = 0
+            avg_lag = 0
+            sensitivity = 'Insufficient data'
+        results.append({
+            'asset': asset_labels.get(key, key),
+            'avg_reaction_pct': avg_pct,
+            'avg_reaction_lag_days': avg_lag,
+            'sensitivity': sensitivity,
+            'spike_events': len(reactions)
+        })
+    return sorted(results, key=lambda x: abs(x['avg_reaction_pct']), reverse=True)
+
+
 def _normalize_row(row):
     d = dict(row)
     for k, v in d.items():
@@ -334,7 +473,7 @@ def _normalize_row(row):
     return d
 
 
-def get_geri_trader_intel() -> Dict[str, Any]:
+def get_geri_trader_intel(plan_level: int = 2) -> Dict[str, Any]:
     geri_rows = [_normalize_row(r) for r in execute_production_query("""
         SELECT date, value, band, trend_1d, trend_7d
         FROM intel_indices_daily
@@ -431,7 +570,8 @@ def get_geri_trader_intel() -> Dict[str, Any]:
     latest_geri = geri_rows[-1] if geri_rows else {}
     geri_date = latest_geri.get('date')
 
-    return {
+    result = {
+        'plan_level': plan_level,
         'lead_lag': lead_lag,
         'divergence': divergence_display,
         'confirmation': confirmation,
@@ -447,3 +587,13 @@ def get_geri_trader_intel() -> Dict[str, Any]:
         },
         'last_updated': geri_date.isoformat() if hasattr(geri_date, 'isoformat') else str(geri_date) if geri_date else None,
     }
+
+    if plan_level >= 3:
+        result['rolling_correlations'] = compute_rolling_correlations(geri_rows, asset_map)
+        result['risk_decomposition'] = compute_risk_decomposition(geri_rows, recent_alerts)
+        result['regime_probability'] = compute_regime_probability(geri_rows)
+
+    if plan_level >= 4:
+        result['spillover_analysis'] = compute_spillover_analysis(geri_rows, asset_map)
+
+    return result

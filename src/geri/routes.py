@@ -6,7 +6,7 @@ Mounted under /api/v1/indices
 import logging
 from datetime import date, datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel
 
 from src.geri import ENABLE_GERI
@@ -295,24 +295,38 @@ async def auto_backfill_geri(force: bool = False):
 
 
 @router.get("/geri/trader-intel")
-async def get_geri_trader_intel_endpoint():
+async def get_geri_trader_intel_endpoint(
+    x_user_token: Optional[str] = Header(None)
+):
     """
     Get GERI Trader Intelligence data.
     
-    Returns tactical intelligence modules for Trader+ plans:
-    - Lead/Lag Intelligence Panel
-    - Divergence Indicator per asset
-    - Cross-Asset Confirmation Score (0-100)
-    - EU Gas Storage Seasonal Context
-    - Asset Reaction Summary Text
-    - Regime Transition Indicator
-    - Alert Preview (3 most recent)
+    Server-side plan enforcement: resolves user plan from session token.
+    - Trader (plan_level=2): 7 base modules (lead/lag, divergence, confirmation, storage, regime, reaction, alerts)
+    - Pro (plan_level=3): All Trader + rolling correlations, risk decomposition, regime probability
+    - Enterprise (plan_level=4): All Pro + spillover analysis
     """
     check_enabled()
     
+    plan_level = 2
+    try:
+        from src.api.user_routes import verify_user_session
+        from src.db.db import get_cursor
+        session = verify_user_session(x_user_token)
+        user_id = session["user_id"]
+        with get_cursor(commit=False) as cur:
+            cur.execute("SELECT plan FROM user_plans WHERE user_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
+            row = cur.fetchone()
+            if row:
+                plan_map = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}
+                plan_level = plan_map.get(row['plan'], 2)
+    except Exception as auth_err:
+        logger.warning(f"Auth check for trader-intel: {auth_err}")
+        plan_level = 2
+    
     try:
         from src.geri.trader_intel import get_geri_trader_intel
-        data = get_geri_trader_intel()
+        data = get_geri_trader_intel(plan_level=max(2, min(4, plan_level)))
         return {
             'success': True,
             'data': data,

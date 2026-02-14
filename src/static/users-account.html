@@ -1156,6 +1156,93 @@
             margin-top: 8px;
         }
 
+        .gti-tier-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .gti-tier-pro {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+        }
+        .gti-tier-enterprise {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+        }
+        .gti-pro-panel {
+            border-left: 3px solid #3b82f6;
+        }
+        .gti-enterprise-panel {
+            border-left: 3px solid #f59e0b;
+        }
+        .gti-regime-prob-card {
+            flex: 1;
+            min-width: 100px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .gti-regime-prob-label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+        }
+        .gti-regime-prob-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .gti-upgrade-section {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 16px;
+        }
+        .gti-upgrade-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+        }
+        .gti-upgrade-features {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .gti-upgrade-features span {
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid #334155;
+        }
+        .gti-upgrade-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gti-upgrade-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
         /* Interpretation Modal */
         .interpretation-modal-overlay {
             display: none;
@@ -6520,6 +6607,7 @@
             const section = document.getElementById('geriTraderIntelSection');
             if (!section) return;
             try {
+                const planLevel = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}[currentUser?.plan || 'trader'] || 2;
                 const resp = await fetch('/api/v1/indices/geri/trader-intel', { headers: { 'X-User-Token': sessionToken } });
                 const result = await resp.json();
                 if (!result.success || !result.data) {
@@ -6626,12 +6714,86 @@
                             '<span class="gti-alert-severity ' + sevCls + '">' + sevDisplay + '</span>' +
                             '<span class="gti-alert-meta">' + (a.date || '') + '</span></div></li>';
                     });
-                    html += '</ul>' +
-                        '<div class="gti-upgrade-cta"><a href="javascript:void(0)" onclick="showSection(\'plans\')">Upgrade to Pro for full alert intelligence →</a></div></div>';
+                    html += '</ul>';
+                    if (planLevel < 3) {
+                        html += '<div class="gti-upgrade-cta"><a href="javascript:void(0)" onclick="showSection(\'plans\')">Upgrade to Pro for full alert intelligence →</a></div>';
+                    }
+                    html += '</div>';
                 }
 
+                if (planLevel >= 3 && d.rolling_correlations && d.rolling_correlations.length > 0) {
+                    html += '<div class="geri-trader-panel gti-pro-panel"><h4><span class="gti-tier-badge gti-tier-pro">PRO</span> Cross-Asset Correlation Intelligence</h4>' +
+                        '<div class="gti-subtitle">30-day rolling Pearson correlations with GERI</div>' +
+                        '<table class="gti-table"><thead><tr><th>Asset</th><th>Correlation</th><th>Strength</th><th>Sample</th></tr></thead><tbody>';
+                    d.rolling_correlations.forEach(function(rc) {
+                        var corrColor = rc.correlation === null ? '#64748b' : (rc.correlation > 0.4 ? '#4ade80' : (rc.correlation < -0.4 ? '#f87171' : '#facc15'));
+                        html += '<tr><td>' + rc.asset + '</td>' +
+                            '<td style="color:' + corrColor + '; font-weight:600;">' + (rc.correlation !== null ? rc.correlation.toFixed(3) : '—') + '</td>' +
+                            '<td><span class="gti-badge ' + (rc.strength === 'Strong' ? 'gti-badge-strong' : (rc.strength === 'Moderate' ? 'gti-badge-moderate' : 'gti-badge-insufficient')) + '">' + rc.strength + '</span></td>' +
+                            '<td style="color:#64748b;">' + rc.sample_size + 'd</td></tr>';
+                    });
+                    html += '</tbody></table></div>';
+                }
+
+                if (planLevel >= 3 && d.risk_decomposition && d.risk_decomposition.breakdown && d.risk_decomposition.breakdown.length > 0) {
+                    html += '<div class="geri-trader-panel gti-pro-panel"><h4><span class="gti-tier-badge gti-tier-pro">PRO</span> GERI Risk Decomposition</h4>' +
+                        '<div class="gti-subtitle">Breakdown of risk contributions by category</div>';
+                    d.risk_decomposition.breakdown.forEach(function(b) {
+                        var barColor = b.category === 'Geopolitical' ? '#f87171' : (b.category === 'Energy Supply' ? '#f97316' : (b.category === 'Market Stress' ? '#facc15' : (b.category === 'Infrastructure' ? '#38bdf8' : '#a78bfa')));
+                        html += '<div style="margin-bottom:10px;">' +
+                            '<div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;"><span style="color:#e2e8f0;">' + b.category + '</span><span style="color:' + barColor + '; font-weight:600;">' + b.contribution_pct + '%</span></div>' +
+                            '<div style="height:8px; background:#1e293b; border-radius:4px; overflow:hidden;"><div style="width:' + b.contribution_pct + '%; height:100%; background:' + barColor + '; border-radius:4px;"></div></div></div>';
+                    });
+                    html += '</div>';
+                }
+
+                if (planLevel >= 3 && d.regime_probability && d.regime_probability.current_band) {
+                    var rp = d.regime_probability;
+                    var bandColors = {'LOW': '#4ade80', 'MODERATE': '#facc15', 'ELEVATED': '#f97316', 'SEVERE': '#f87171', 'CRITICAL': '#dc2626'};
+                    html += '<div class="geri-trader-panel gti-pro-panel"><h4><span class="gti-tier-badge gti-tier-pro">PRO</span> Regime Transition Probability</h4>' +
+                        '<div class="gti-subtitle">Forward-looking regime change likelihood based on historical transitions</div>' +
+                        '<div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:12px;">' +
+                        '<div class="gti-regime-prob-card"><div class="gti-regime-prob-label">Stay in ' + rp.current_band + '</div><div class="gti-regime-prob-value" style="color:' + (bandColors[rp.current_band] || '#94a3b8') + ';">' + rp.stay_probability + '%</div></div>' +
+                        '<div class="gti-regime-prob-card"><div class="gti-regime-prob-label">Escalation Risk</div><div class="gti-regime-prob-value" style="color:#f87171;">' + rp.escalation_probability + '%</div></div>' +
+                        '<div class="gti-regime-prob-card"><div class="gti-regime-prob-label">De-escalation</div><div class="gti-regime-prob-value" style="color:#4ade80;">' + rp.deescalation_probability + '%</div></div></div>' +
+                        '<div style="font-size:12px; color:#94a3b8;">Band probabilities: ';
+                    Object.keys(rp.probabilities).forEach(function(band, i) {
+                        if (i > 0) html += ' · ';
+                        html += '<span style="color:' + (bandColors[band] || '#94a3b8') + ';">' + band + ': ' + rp.probabilities[band] + '%</span>';
+                    });
+                    html += '</div></div>';
+                }
+
+                if (planLevel >= 4 && d.spillover_analysis && d.spillover_analysis.length > 0) {
+                    html += '<div class="geri-trader-panel gti-enterprise-panel"><h4><span class="gti-tier-badge gti-tier-enterprise">ENTERPRISE</span> Multi-Region Spillover Analysis</h4>' +
+                        '<div class="gti-subtitle">Asset sensitivity to GERI risk spikes (Δ≥3pts)</div>' +
+                        '<table class="gti-table"><thead><tr><th>Asset</th><th>Avg Reaction</th><th>Lag</th><th>Sensitivity</th><th>Events</th></tr></thead><tbody>';
+                    d.spillover_analysis.forEach(function(sp) {
+                        var sensColor = sp.sensitivity === 'High' ? '#f87171' : (sp.sensitivity === 'Moderate' ? '#facc15' : '#4ade80');
+                        html += '<tr><td>' + sp.asset + '</td>' +
+                            '<td style="color:' + (sp.avg_reaction_pct > 0 ? '#4ade80' : '#f87171') + '; font-weight:600;">' + (sp.avg_reaction_pct > 0 ? '+' : '') + sp.avg_reaction_pct + '%</td>' +
+                            '<td style="color:#94a3b8;">' + sp.avg_reaction_lag_days + 'd</td>' +
+                            '<td><span class="gti-badge" style="background:' + sensColor + '22; color:' + sensColor + '; border:1px solid ' + sensColor + '44;">' + sp.sensitivity + '</span></td>' +
+                            '<td style="color:#64748b;">' + sp.spike_events + '</td></tr>';
+                    });
+                    html += '</tbody></table></div>';
+                }
+
+                var tierLabel = planLevel >= 4 ? 'Enterprise Intelligence' : (planLevel >= 3 ? 'Pro Intelligence' : 'Trader Intelligence');
                 if (d.last_updated) {
-                    html += '<div class="gti-last-updated">Trader Intelligence last updated: ' + d.last_updated + '</div>';
+                    html += '<div class="gti-last-updated">' + tierLabel + ' last updated: ' + d.last_updated + '</div>';
+                }
+
+                if (planLevel < 3) {
+                    html += '<div class="gti-upgrade-section">' +
+                        '<div class="gti-upgrade-title">Unlock Pro Intelligence</div>' +
+                        '<div class="gti-upgrade-features"><span>Cross-Asset Correlations</span><span>Risk Decomposition</span><span>Regime Probability</span></div>' +
+                        '<button onclick="showSection(\'plans\')" class="gti-upgrade-btn">Upgrade to Pro →</button></div>';
+                } else if (planLevel < 4) {
+                    html += '<div class="gti-upgrade-section">' +
+                        '<div class="gti-upgrade-title">Unlock Enterprise Intelligence</div>' +
+                        '<div class="gti-upgrade-features"><span>Spillover Analysis</span><span>Portfolio Modeling</span><span>Custom Alert Thresholds</span></div>' +
+                        '<button onclick="showSection(\'plans\')" class="gti-upgrade-btn">Upgrade to Enterprise →</button></div>';
                 }
 
                 section.innerHTML = html || '<div class="geri-trader-panel" style="text-align:center; color:#64748b;">Trader intelligence data will appear once sufficient GERI history is available.</div>';
