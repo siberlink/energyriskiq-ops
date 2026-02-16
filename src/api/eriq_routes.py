@@ -30,6 +30,7 @@ VALID_FEEDBACK_TAGS = [
 class EriqAskRequest(BaseModel):
     question: str
     conversation_history: Optional[List[dict]] = None
+    page_context: Optional[str] = None
 
 
 class EriqFeedbackRequest(BaseModel):
@@ -64,6 +65,7 @@ def eriq_ask(body: EriqAskRequest, x_user_token: Optional[str] = Header(None)):
         user_id=user_id,
         question=question,
         conversation_history=body.conversation_history,
+        page_context=body.page_context,
     )
 
     try:

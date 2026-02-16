@@ -142,7 +142,17 @@ def _call_model(messages: list, max_tokens: int):
     raise RuntimeError("No OpenAI client available")
 
 
-def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] = None) -> dict:
+PAGE_CONTEXT_PROMPTS = {
+    "geri": """## Page Context: GERI Dashboard
+The user is currently viewing the GERI (Global Energy Risk Index) dashboard. They can see the current GERI value, band, trends, pillar breakdown, top drivers, regional distribution, and historical chart. Focus your answers on GERI-specific data, methodology, and what the current readings mean. Reference the specific values and drivers visible on their dashboard when possible.""",
+    "eeri": """## Page Context: EERI Dashboard
+The user is currently viewing the EERI (European Escalation Risk Index) dashboard. They can see the current EERI value, band, trends, pillar decomposition, weekly snapshots, and historical data. Focus your answers on European energy risk, EERI methodology, and what the current readings mean for European markets. Reference specific EERI values, components, and drivers visible on their dashboard.""",
+    "egsi": """## Page Context: EGSI Dashboard
+The user is currently viewing the EGSI (Europe Gas Stress Index) dashboard. They can see both EGSI-M (Market/Transmission) and EGSI-S (System/Storage) indices, stress bands, trend data, interpretations, and trader intelligence modules (if their plan allows). Focus your answers on European gas market stress, storage dynamics, TTF price relationships, and what the current EGSI readings indicate. Reference specific EGSI-M and EGSI-S values visible on their dashboard.""",
+}
+
+
+def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] = None, page_context: Optional[str] = None) -> dict:
     plan = get_user_plan(user_id)
     config = get_plan_config(plan)
 
@@ -218,6 +228,7 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
         context_text=context_text,
         knowledge_text=knowledge_text,
         conversation_history=conversation_history,
+        page_context=page_context,
     )
 
     try:
@@ -282,8 +293,12 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
 
 
 def _build_messages(question: str, plan: str, mode: str, context_text: str,
-                    knowledge_text: str, conversation_history: Optional[list] = None) -> list:
+                    knowledge_text: str, conversation_history: Optional[list] = None,
+                    page_context: Optional[str] = None) -> list:
     system_parts = [SYSTEM_PROMPT]
+
+    if page_context and page_context in PAGE_CONTEXT_PROMPTS:
+        system_parts.append(PAGE_CONTEXT_PROMPTS[page_context])
 
     mode_prompt = MODE_PROMPTS.get(mode, MODE_PROMPTS["explain"])
     system_parts.append(mode_prompt)

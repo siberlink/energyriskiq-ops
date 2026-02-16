@@ -5073,6 +5073,39 @@
                     </div>
                 </div>
             </div>
+
+            <div class="eriq-ctx-widget" id="eriqCtxEgsi" data-page="egsi">
+                <button class="eriq-ctx-toggle" onclick="toggleEriqCtxChat('egsi')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Ask ERIQ about EGSI</span>
+                </button>
+                <div class="eriq-ctx-panel" id="eriqCtxPanelEgsi" style="display:none;">
+                    <div class="eriq-ctx-header">
+                        <div class="eriq-ctx-header-left">
+                            <span class="eriq-ctx-dot"></span>
+                            <span>ERIQ — EGSI Context</span>
+                        </div>
+                        <button class="eriq-ctx-close" onclick="toggleEriqCtxChat('egsi')">&times;</button>
+                    </div>
+                    <div class="eriq-ctx-messages" id="eriqCtxMsgsEgsi">
+                        <div class="eriq-ctx-welcome">
+                            <p>I can help you understand the EGSI dashboard. Try asking:</p>
+                            <div class="eriq-ctx-suggestions">
+                                <button onclick="eriqCtxAsk('egsi','What is driving the current EGSI-M and EGSI-S readings?')">What's driving EGSI today?</button>
+                                <button onclick="eriqCtxAsk('egsi','Explain the difference between EGSI-M and EGSI-S')">EGSI-M vs EGSI-S explained</button>
+                                <button onclick="eriqCtxAsk('egsi','What does the current gas stress level mean for European energy security?')">What does this stress level mean?</button>
+                                <button onclick="eriqCtxAsk('egsi','How do TTF gas prices relate to the EGSI reading?')">TTF vs EGSI relationship</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="eriq-ctx-input-area">
+                        <input type="text" class="eriq-ctx-input" id="eriqCtxInputEgsi" placeholder="Ask about EGSI..." maxlength="2000" onkeydown="if(event.key==='Enter')eriqCtxSend('egsi')">
+                        <button class="eriq-ctx-send" onclick="eriqCtxSend('egsi')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Plans Section -->
@@ -5102,6 +5135,39 @@
                     <div class="geri-loading">
                         <div class="spinner"></div>
                         <p>Loading GERI data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="eriq-ctx-widget" id="eriqCtxGeri" data-page="geri">
+                <button class="eriq-ctx-toggle" onclick="toggleEriqCtxChat('geri')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Ask ERIQ about GERI</span>
+                </button>
+                <div class="eriq-ctx-panel" id="eriqCtxPanelGeri" style="display:none;">
+                    <div class="eriq-ctx-header">
+                        <div class="eriq-ctx-header-left">
+                            <span class="eriq-ctx-dot"></span>
+                            <span>ERIQ — GERI Context</span>
+                        </div>
+                        <button class="eriq-ctx-close" onclick="toggleEriqCtxChat('geri')">&times;</button>
+                    </div>
+                    <div class="eriq-ctx-messages" id="eriqCtxMsgsGeri">
+                        <div class="eriq-ctx-welcome">
+                            <p>I can help you understand the GERI dashboard. Try asking:</p>
+                            <div class="eriq-ctx-suggestions">
+                                <button onclick="eriqCtxAsk('geri','What is driving the current GERI reading?')">What's driving GERI today?</button>
+                                <button onclick="eriqCtxAsk('geri','Explain the GERI pillar breakdown I see on the dashboard')">Explain the pillar breakdown</button>
+                                <button onclick="eriqCtxAsk('geri','What does this GERI band mean for energy markets?')">What does this band mean?</button>
+                                <button onclick="eriqCtxAsk('geri','How is the Global Energy Risk Index calculated?')">How is GERI calculated?</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="eriq-ctx-input-area">
+                        <input type="text" class="eriq-ctx-input" id="eriqCtxInputGeri" placeholder="Ask about GERI..." maxlength="2000" onkeydown="if(event.key==='Enter')eriqCtxSend('geri')">
+                        <button class="eriq-ctx-send" onclick="eriqCtxSend('geri')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -5369,6 +5435,39 @@
                         <div class="eeri-modal-body" id="eeriModalBody">
                             <!-- Modal content rendered by JS -->
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="eriq-ctx-widget" id="eriqCtxEeri" data-page="eeri">
+                <button class="eriq-ctx-toggle" onclick="toggleEriqCtxChat('eeri')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Ask ERIQ about EERI</span>
+                </button>
+                <div class="eriq-ctx-panel" id="eriqCtxPanelEeri" style="display:none;">
+                    <div class="eriq-ctx-header">
+                        <div class="eriq-ctx-header-left">
+                            <span class="eriq-ctx-dot"></span>
+                            <span>ERIQ — EERI Context</span>
+                        </div>
+                        <button class="eriq-ctx-close" onclick="toggleEriqCtxChat('eeri')">&times;</button>
+                    </div>
+                    <div class="eriq-ctx-messages" id="eriqCtxMsgsEeri">
+                        <div class="eriq-ctx-welcome">
+                            <p>I can help you understand the EERI dashboard. Try asking:</p>
+                            <div class="eriq-ctx-suggestions">
+                                <button onclick="eriqCtxAsk('eeri','What is driving the current EERI reading?')">What's driving EERI today?</button>
+                                <button onclick="eriqCtxAsk('eeri','Explain the EERI component breakdown on this dashboard')">Explain the components</button>
+                                <button onclick="eriqCtxAsk('eeri','What does the current EERI level mean for European energy markets?')">What does this level mean?</button>
+                                <button onclick="eriqCtxAsk('eeri','How does the European Escalation Risk Index differ from GERI?')">How does EERI differ from GERI?</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="eriq-ctx-input-area">
+                        <input type="text" class="eriq-ctx-input" id="eriqCtxInputEeri" placeholder="Ask about EERI..." maxlength="2000" onkeydown="if(event.key==='Enter')eriqCtxSend('eeri')">
+                        <button class="eriq-ctx-send" onclick="eriqCtxSend('eeri')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -12020,6 +12119,217 @@
             0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
             40% { transform: scale(1); opacity: 1; }
         }
+
+        .eriq-ctx-widget {
+            margin-top: 24px;
+            position: relative;
+        }
+        .eriq-ctx-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(109, 40, 217, 0.1));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            color: #c4b5fd;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+        .eriq-ctx-toggle:hover {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(109, 40, 217, 0.2));
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #ddd6fe;
+        }
+        .eriq-ctx-toggle svg {
+            color: #8b5cf6;
+            flex-shrink: 0;
+        }
+        .eriq-ctx-panel {
+            margin-top: 8px;
+            background: #0f172a;
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: eriqCtxSlide 0.25s ease-out;
+        }
+        @keyframes eriqCtxSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .eriq-ctx-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(139, 92, 246, 0.08);
+            border-bottom: 1px solid #1e293b;
+        }
+        .eriq-ctx-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #c4b5fd;
+        }
+        .eriq-ctx-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+        }
+        .eriq-ctx-close {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+        .eriq-ctx-close:hover { color: #94a3b8; background: rgba(255,255,255,0.05); }
+        .eriq-ctx-messages {
+            max-height: 360px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        .eriq-ctx-messages::-webkit-scrollbar { width: 4px; }
+        .eriq-ctx-messages::-webkit-scrollbar-track { background: transparent; }
+        .eriq-ctx-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .eriq-ctx-welcome p {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .eriq-ctx-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .eriq-ctx-suggestions button {
+            padding: 8px 14px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 20px;
+            color: #c4b5fd;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .eriq-ctx-suggestions button:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+        .eriq-ctx-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid #1e293b;
+            background: rgba(15, 23, 42, 0.8);
+        }
+        .eriq-ctx-input {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .eriq-ctx-input:focus { border-color: #8b5cf6; }
+        .eriq-ctx-input::placeholder { color: #475569; }
+        .eriq-ctx-send {
+            background: #8b5cf6;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .eriq-ctx-send:hover { background: #7c3aed; }
+        .eriq-ctx-msg {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+            animation: eriqFadeIn 0.3s ease-out;
+        }
+        .eriq-ctx-msg.user { justify-content: flex-end; }
+        .eriq-ctx-msg-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-avatar {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .eriq-ctx-msg.user .eriq-ctx-msg-avatar {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .eriq-ctx-msg-bubble {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble {
+            background: #1e293b;
+            border: 1px solid #334155;
+        }
+        .eriq-ctx-msg.user .eriq-ctx-msg-bubble {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #e2e8f0;
+        }
+        .eriq-ctx-msg-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            padding-left: 38px;
+        }
+        .eriq-ctx-typing {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+        }
+        .eriq-ctx-typing .eriq-typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .eriq-ctx-typing .eriq-typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            animation: eriqBounce 1s infinite;
+        }
+
         .eriq-input-area {
             padding: 16px 20px;
             border-top: 1px solid #334155;
@@ -12187,6 +12497,150 @@
     </div>
 
     <script>
+        let eriqCtxHistory = { geri: [], eeri: [], egsi: [] };
+        let eriqCtxLoading = { geri: false, eeri: false, egsi: false };
+
+        function toggleEriqCtxChat(page) {
+            const panel = document.getElementById('eriqCtxPanel' + page.charAt(0).toUpperCase() + page.slice(1));
+            if (!panel) return;
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function eriqCtxAsk(page, question) {
+            const capPage = page.charAt(0).toUpperCase() + page.slice(1);
+            const input = document.getElementById('eriqCtxInput' + capPage);
+            if (input) {
+                input.value = question;
+            }
+            eriqCtxSend(page);
+        }
+
+        async function eriqCtxSend(page) {
+            const capPage = page.charAt(0).toUpperCase() + page.slice(1);
+            const input = document.getElementById('eriqCtxInput' + capPage);
+            const msgsContainer = document.getElementById('eriqCtxMsgs' + capPage);
+            const question = input ? input.value.trim() : '';
+            if (!question || eriqCtxLoading[page]) return;
+
+            if (!sessionToken) {
+                eriqCtxAddMsg(page, 'assistant', 'Please sign in to use ERIQ Analyst.');
+                return;
+            }
+
+            const welcome = msgsContainer.querySelector('.eriq-ctx-welcome');
+            if (welcome) welcome.remove();
+
+            eriqCtxAddMsg(page, 'user', question);
+            if (input) { input.value = ''; }
+
+            eriqCtxLoading[page] = true;
+            const typingEl = eriqCtxShowTyping(page);
+
+            try {
+                const resp = await fetch('/api/v1/eriq/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Token': sessionToken
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        conversation_history: eriqCtxHistory[page].slice(-6),
+                        page_context: page
+                    })
+                });
+
+                typingEl.remove();
+
+                if (!resp.ok) {
+                    if (resp.status === 401) {
+                        eriqCtxAddMsg(page, 'assistant', 'Your session has expired. Please sign in again.');
+                    } else {
+                        eriqCtxAddMsg(page, 'assistant', 'Something went wrong. Please try again.');
+                    }
+                    eriqCtxLoading[page] = false;
+                    return;
+                }
+
+                const data = await resp.json();
+                eriqCtxHistory[page].push({ role: 'user', content: question });
+
+                if (data.success) {
+                    eriqCtxAddMsg(page, 'assistant', data.response, { mode: data.mode });
+                    eriqCtxHistory[page].push({ role: 'assistant', content: data.response });
+                } else if (data.error === 'daily_limit') {
+                    eriqCtxAddMsg(page, 'assistant', data.message);
+                } else {
+                    eriqCtxAddMsg(page, 'assistant', data.message || 'I encountered an issue. Please try again.');
+                }
+            } catch (e) {
+                typingEl.remove();
+                eriqCtxAddMsg(page, 'assistant', 'Connection error. Please check your network and try again.');
+            }
+
+            eriqCtxLoading[page] = false;
+        }
+
+        function eriqCtxAddMsg(page, role, content, meta) {
+            const capPage = page.charAt(0).toUpperCase() + page.slice(1);
+            const container = document.getElementById('eriqCtxMsgs' + capPage);
+            if (!container) return;
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'eriq-ctx-msg ' + role;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'eriq-ctx-msg-avatar';
+            if (role === 'assistant') {
+                avatarDiv.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+            } else {
+                avatarDiv.textContent = 'You';
+            }
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'eriq-ctx-msg-bubble';
+            if (role === 'assistant') {
+                bubbleDiv.innerHTML = eriqFormatResponse(content);
+            } else {
+                bubbleDiv.textContent = content;
+            }
+
+            msgDiv.appendChild(avatarDiv);
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'display: flex; flex-direction: column; min-width: 0; flex: 1;';
+            wrapper.appendChild(bubbleDiv);
+
+            if (role === 'assistant' && meta && meta.mode) {
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'eriq-ctx-msg-meta';
+                const badge = document.createElement('span');
+                badge.className = 'eriq-msg-badge ' + meta.mode;
+                badge.textContent = meta.mode.replace('_', '-');
+                badge.style.cssText = 'font-size: 10px; padding: 2px 6px;';
+                metaDiv.appendChild(badge);
+                wrapper.appendChild(metaDiv);
+            }
+
+            msgDiv.appendChild(wrapper);
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function eriqCtxShowTyping(page) {
+            const capPage = page.charAt(0).toUpperCase() + page.slice(1);
+            const container = document.getElementById('eriqCtxMsgs' + capPage);
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'eriq-ctx-typing';
+            typingDiv.innerHTML = '<div class="eriq-ctx-msg-avatar" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="eriq-typing-dots"><span></span><span></span><span></span></div>';
+            container.appendChild(typingDiv);
+            container.scrollTop = container.scrollHeight;
+            return typingDiv;
+        }
+
         let eriqConversationHistory = [];
         let eriqIsLoading = false;
 
