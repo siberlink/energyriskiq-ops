@@ -12409,21 +12409,38 @@
                 font-size: 14px;
             }
             .eriq-floating-panel {
+                top: 0;
                 bottom: 0;
                 right: 0;
                 left: 0;
                 width: 100% !important;
                 min-width: unset !important;
                 max-width: unset !important;
-                height: 100vh !important;
-                max-height: 100vh !important;
+                height: 100% !important;
+                max-height: 100% !important;
                 min-height: unset !important;
                 border-radius: 0;
                 border: none;
                 resize: none;
             }
             .eriq-panel-resize-handle { display: none; }
-            .eriq-panel-header { border-radius: 0; }
+            .eriq-panel-header {
+                border-radius: 0;
+                padding-top: max(8px, env(safe-area-inset-top));
+            }
+            .eriq-panel-title {
+                padding: 12px 16px 10px;
+            }
+            .eriq-panel-close {
+                font-size: 32px;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(255,255,255,0.08);
+                border-radius: 10px;
+            }
             .eriq-input-area { border-radius: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
             .eriq-msg { max-width: 92%; }
             .eriq-suggestions { flex-direction: column; align-items: stretch; }
