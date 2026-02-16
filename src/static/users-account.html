@@ -4575,17 +4575,6 @@
                 Daily Digest
                 <span class="pro-badge-nav" id="digestBadge" style="background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 9px; padding: 2px 6px;">NEW</span>
             </a>
-            <a class="nav-item" id="eriqNavItem" onclick="showSection('eriq'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        <path d="M8 9h8"/>
-                        <path d="M8 13h6"/>
-                    </svg>
-                </span>
-                ERIQ Analyst
-                <span class="pro-badge-nav" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); font-size: 9px; padding: 2px 6px;">AI</span>
-            </a>
         </div>
 
         <div class="sidebar-section">
@@ -5490,59 +5479,62 @@
             </div>
         </div>
 
-        <!-- ERIQ Expert Analyst Section -->
-        <div class="section-content" id="section-eriq">
-            <div class="page-header">
-                <h1 style="display: flex; align-items: center; gap: 12px;">
-                    <span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ERIQ</span>
-                    Expert Analyst
-                </h1>
-                <p style="color: #94a3b8; margin-top: 4px;">AI-powered risk intelligence — ask anything about EnergyRiskIQ indices, alerts, and energy markets</p>
+        <button class="eriq-fab" id="eriqFab" onclick="toggleEriqPanel()" style="display:none;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <path d="M8 9h8" stroke-opacity="0.7"/>
+                <path d="M8 13h6" stroke-opacity="0.7"/>
+            </svg>
+            <span class="eriq-fab-label">Ask ERIQ</span>
+        </button>
+
+        <div class="eriq-floating-panel" id="eriqFloatingPanel">
+            <div class="eriq-panel-header" id="eriqPanelHeader">
+                <div class="eriq-panel-resize-handle" id="eriqResizeHandle"></div>
+                <div class="eriq-panel-title">
+                    <div class="eriq-panel-title-left">
+                        <span class="eriq-status-dot"></span>
+                        <span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">ERIQ</span>
+                        <span style="color: #94a3b8; font-size: 13px;">Expert Analyst</span>
+                    </div>
+                    <div class="eriq-panel-title-right">
+                        <span id="eriqQuotaText" style="font-size: 11px; color: #64748b;"></span>
+                        <button class="eriq-panel-close" onclick="toggleEriqPanel()">&times;</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="eriq-chat-container" id="eriqChatContainer">
-                <div class="eriq-status-bar" id="eriqStatusBar">
-                    <div class="eriq-status-left">
-                        <span class="eriq-status-dot"></span>
-                        <span id="eriqStatusText">ERIQ Online</span>
+            <div class="eriq-messages" id="eriqMessages">
+                <div class="eriq-welcome">
+                    <div class="eriq-avatar">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <path d="M8 9h8" stroke-opacity="0.6"/>
+                            <path d="M8 13h6" stroke-opacity="0.6"/>
+                        </svg>
                     </div>
-                    <div class="eriq-status-right">
-                        <span id="eriqQuotaText">Loading...</span>
+                    <h3>Welcome to ERIQ</h3>
+                    <p>Your Expert Risk Intelligence Analyst. Ask about indices, alerts, and energy markets.</p>
+                    <div class="eriq-suggestions" id="eriqSuggestions">
+                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current GERI reading and what does it mean?')">What is the current GERI?</button>
+                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('Explain today\'s top risk alerts')">Today's top alerts</button>
+                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('How does EnergyRiskIQ calculate the EERI?')">How is EERI calculated?</button>
+                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current risk regime?')">Current risk regime</button>
                     </div>
                 </div>
+            </div>
 
-                <div class="eriq-messages" id="eriqMessages">
-                    <div class="eriq-welcome">
-                        <div class="eriq-avatar">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                                <path d="M8 9h8" stroke-opacity="0.6"/>
-                                <path d="M8 13h6" stroke-opacity="0.6"/>
-                            </svg>
-                        </div>
-                        <h3>Welcome to ERIQ</h3>
-                        <p>I'm your Expert Risk Intelligence Analyst. I can explain our indices, interpret market signals, and help you understand the energy risk landscape.</p>
-                        <div class="eriq-suggestions" id="eriqSuggestions">
-                            <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current GERI reading and what does it mean?')">What is the current GERI?</button>
-                            <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('Explain today\'s top risk alerts')">Today's top alerts</button>
-                            <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('How does EnergyRiskIQ calculate the EERI?')">How is EERI calculated?</button>
-                            <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current risk regime?')">Current risk regime</button>
-                        </div>
-                    </div>
+            <div class="eriq-input-area">
+                <div class="eriq-input-wrapper">
+                    <textarea class="eriq-input" id="eriqInput" placeholder="Ask ERIQ anything..." rows="1" maxlength="2000" onkeydown="eriqHandleKeydown(event)" oninput="eriqAutoResize(this)"></textarea>
+                    <button class="eriq-send-btn" id="eriqSendBtn" onclick="eriqSendMessage()" disabled>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
                 </div>
-
-                <div class="eriq-input-area">
-                    <div class="eriq-input-wrapper">
-                        <textarea class="eriq-input" id="eriqInput" placeholder="Ask ERIQ about risk indices, alerts, energy markets..." rows="1" maxlength="2000" onkeydown="eriqHandleKeydown(event)" oninput="eriqAutoResize(this)"></textarea>
-                        <button class="eriq-send-btn" id="eriqSendBtn" onclick="eriqSendMessage()" disabled>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="22" y1="2" x2="11" y2="13"/>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="eriq-disclaimer">ERIQ provides risk intelligence, not financial advice. All analysis is grounded in EnergyRiskIQ data.</div>
-                </div>
+                <div class="eriq-disclaimer">ERIQ provides risk intelligence, not financial advice.</div>
             </div>
         </div>
 
@@ -5970,6 +5962,7 @@
                 allowedAlertTypes = dashboard.alerts.allowed_types || [];
                 
                 updateUI();
+                document.getElementById('eriqFab').style.display = '';
                 initializeFilters();
                 renderAlerts(allAlerts, allowedAlertTypes);
                 renderAllowedAlertTypes(allowedAlertTypes, dashboard.alerts.locked_types || []);
@@ -11292,8 +11285,6 @@
                 loadDailyDigest();
             } else if (sectionId === 'egsi') {
                 loadEgsiDashboard();
-            } else if (sectionId === 'eriq') {
-                loadEriqStatus();
             }
         }
 
@@ -11872,104 +11863,171 @@
     </div>
 
     <style>
-        .eriq-chat-container {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
+        .eriq-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9998;
             display: flex;
-            flex-direction: column;
-            height: calc(100vh - 180px);
-            min-height: 500px;
-            max-height: 800px;
-            overflow: hidden;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 22px;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(139, 92, 246, 0.45), 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .eriq-status-bar {
+        .eriq-fab:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.55), 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .eriq-fab.hidden { display: none; }
+        .eriq-fab svg { flex-shrink: 0; }
+
+        .eriq-floating-panel {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 33.33vw;
+            min-width: 380px;
+            max-width: 520px;
+            height: 60vh;
+            min-height: 400px;
+            max-height: 85vh;
+            z-index: 9999;
+            background: #0f172a;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(139, 92, 246, 0.15);
+            animation: eriqPanelIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .eriq-floating-panel.open {
+            display: flex;
+        }
+        @keyframes eriqPanelIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .eriq-panel-header {
+            position: relative;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(109, 40, 217, 0.08));
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            flex-shrink: 0;
+        }
+        .eriq-panel-resize-handle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 5px;
+            background: #475569;
+            border-radius: 3px;
+            margin-top: 6px;
+            cursor: ns-resize;
+            transition: background 0.2s;
+        }
+        .eriq-panel-resize-handle:hover { background: #8b5cf6; }
+        .eriq-panel-title {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px;
-            background: #0f172a;
-            border-bottom: 1px solid #334155;
-            border-radius: 16px 16px 0 0;
+            padding: 18px 16px 12px;
         }
-        .eriq-status-left {
+        .eriq-panel-title-left {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 13px;
-            color: #94a3b8;
         }
+        .eriq-panel-title-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .eriq-panel-close {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .eriq-panel-close:hover { color: #f1f5f9; background: rgba(255,255,255,0.06); }
+
         .eriq-status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: #22c55e;
             box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
-        }
-        .eriq-status-right {
-            font-size: 12px;
-            color: #64748b;
+            flex-shrink: 0;
         }
         .eriq-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
             scroll-behavior: smooth;
         }
-        .eriq-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-        .eriq-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .eriq-messages::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
-        }
+        .eriq-messages::-webkit-scrollbar { width: 5px; }
+        .eriq-messages::-webkit-scrollbar-track { background: transparent; }
+        .eriq-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         .eriq-welcome {
             text-align: center;
-            padding: 40px 20px;
+            padding: 24px 12px;
         }
         .eriq-welcome .eriq-avatar {
-            width: 64px;
-            height: 64px;
+            width: 52px;
+            height: 52px;
             background: rgba(139, 92, 246, 0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
+            margin: 0 auto 12px;
             border: 2px solid rgba(139, 92, 246, 0.3);
         }
         .eriq-welcome h3 {
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 700;
             color: #f1f5f9;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .eriq-welcome p {
             color: #94a3b8;
-            font-size: 14px;
-            line-height: 1.6;
-            max-width: 500px;
-            margin: 0 auto 24px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 360px;
+            margin: 0 auto 16px;
         }
         .eriq-suggestions {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
         }
         .eriq-suggestion-btn {
             background: rgba(139, 92, 246, 0.1);
             border: 1px solid rgba(139, 92, 246, 0.3);
             color: #c4b5fd;
-            padding: 8px 16px;
+            padding: 7px 14px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
@@ -12331,10 +12389,11 @@
         }
 
         .eriq-input-area {
-            padding: 16px 20px;
+            padding: 12px 16px;
             border-top: 1px solid #334155;
             background: #0f172a;
-            border-radius: 0 0 16px 16px;
+            border-radius: 0 0 20px 20px;
+            flex-shrink: 0;
         }
         .eriq-input-wrapper {
             display: flex;
@@ -12346,13 +12405,13 @@
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 12px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             color: #e2e8f0;
             font-size: 14px;
             font-family: inherit;
             resize: none;
-            max-height: 120px;
-            min-height: 44px;
+            max-height: 100px;
+            min-height: 40px;
             line-height: 1.5;
             outline: none;
             transition: border-color 0.2s;
@@ -12364,9 +12423,9 @@
             color: #475569;
         }
         .eriq-send-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             border: none;
             color: white;
@@ -12387,31 +12446,58 @@
         }
         .eriq-disclaimer {
             text-align: center;
-            font-size: 11px;
+            font-size: 10px;
             color: #475569;
-            margin-top: 8px;
+            margin-top: 6px;
         }
         .eriq-limit-warning {
             text-align: center;
-            padding: 12px;
+            padding: 10px;
             background: rgba(245, 158, 11, 0.1);
             border: 1px solid rgba(245, 158, 11, 0.3);
             border-radius: 8px;
             color: #fbbf24;
-            font-size: 13px;
-            margin: 8px 20px;
+            font-size: 12px;
+            margin: 6px 16px;
         }
+
         @media (max-width: 768px) {
-            .eriq-chat-container {
-                height: calc(100vh - 160px);
-                border-radius: 12px;
+            .eriq-fab {
+                bottom: 16px;
+                right: 16px;
+                padding: 12px 18px;
+                font-size: 14px;
             }
-            .eriq-msg {
-                max-width: 95%;
+            .eriq-floating-panel {
+                bottom: 0;
+                right: 0;
+                left: 0;
+                width: 100% !important;
+                min-width: unset !important;
+                max-width: unset !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                min-height: unset !important;
+                border-radius: 0;
+                border: none;
+                resize: none;
             }
-            .eriq-suggestions {
-                flex-direction: column;
-                align-items: center;
+            .eriq-panel-resize-handle { display: none; }
+            .eriq-panel-header { border-radius: 0; }
+            .eriq-input-area { border-radius: 0; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+            .eriq-msg { max-width: 92%; }
+            .eriq-suggestions { flex-direction: column; align-items: stretch; }
+            .eriq-suggestion-btn { text-align: center; }
+            .eriq-welcome { padding: 20px 16px; }
+            .eriq-welcome .eriq-avatar { width: 44px; height: 44px; }
+            .eriq-welcome h3 { font-size: 16px; }
+            .eriq-welcome p { font-size: 12px; }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .eriq-floating-panel {
+                width: 45vw;
+                min-width: 340px;
             }
         }
     </style>
@@ -12643,6 +12729,85 @@
 
         let eriqConversationHistory = [];
         let eriqIsLoading = false;
+        let eriqPanelOpen = false;
+        let eriqStatusLoaded = false;
+
+        function toggleEriqPanel() {
+            const panel = document.getElementById('eriqFloatingPanel');
+            const fab = document.getElementById('eriqFab');
+            eriqPanelOpen = !eriqPanelOpen;
+            if (eriqPanelOpen) {
+                panel.classList.add('open');
+                fab.classList.add('hidden');
+                if (!eriqStatusLoaded) {
+                    loadEriqStatus();
+                    eriqStatusLoaded = true;
+                }
+                setTimeout(() => {
+                    const input = document.getElementById('eriqInput');
+                    if (input) input.focus();
+                }, 300);
+            } else {
+                panel.classList.remove('open');
+                fab.classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && eriqPanelOpen) {
+                toggleEriqPanel();
+            }
+        });
+
+        (function initEriqResize() {
+            let isResizing = false;
+            let startY = 0;
+            let startH = 0;
+            document.addEventListener('mousedown', function(e) {
+                if (e.target.id === 'eriqResizeHandle') {
+                    isResizing = true;
+                    const panel = document.getElementById('eriqFloatingPanel');
+                    startY = e.clientY;
+                    startH = panel.offsetHeight;
+                    e.preventDefault();
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'ns-resize';
+                }
+            });
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing) return;
+                const panel = document.getElementById('eriqFloatingPanel');
+                const diff = startY - e.clientY;
+                const newH = Math.max(350, Math.min(window.innerHeight * 0.9, startH + diff));
+                panel.style.height = newH + 'px';
+            });
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.userSelect = '';
+                    document.body.style.cursor = '';
+                }
+            });
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.id === 'eriqResizeHandle') {
+                    isResizing = true;
+                    const panel = document.getElementById('eriqFloatingPanel');
+                    startY = e.touches[0].clientY;
+                    startH = panel.offsetHeight;
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            document.addEventListener('touchmove', function(e) {
+                if (!isResizing) return;
+                const panel = document.getElementById('eriqFloatingPanel');
+                const diff = startY - e.touches[0].clientY;
+                const newH = Math.max(350, Math.min(window.innerHeight * 0.9, startH + diff));
+                panel.style.height = newH + 'px';
+            }, { passive: false });
+            document.addEventListener('touchend', function() {
+                isResizing = false;
+            });
+        })();
 
         async function loadEriqStatus() {
             if (!sessionToken) return;
