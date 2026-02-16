@@ -5479,65 +5479,6 @@
             </div>
         </div>
 
-        <button class="eriq-fab" id="eriqFab" onclick="toggleEriqPanel()" style="display:none;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                <path d="M8 9h8" stroke-opacity="0.7"/>
-                <path d="M8 13h6" stroke-opacity="0.7"/>
-            </svg>
-            <span class="eriq-fab-label">Ask ERIQ</span>
-        </button>
-
-        <div class="eriq-floating-panel" id="eriqFloatingPanel">
-            <div class="eriq-panel-header" id="eriqPanelHeader">
-                <div class="eriq-panel-resize-handle" id="eriqResizeHandle"></div>
-                <div class="eriq-panel-title">
-                    <div class="eriq-panel-title-left">
-                        <span class="eriq-status-dot"></span>
-                        <span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">ERIQ</span>
-                        <span style="color: #94a3b8; font-size: 13px;">Expert Analyst</span>
-                    </div>
-                    <div class="eriq-panel-title-right">
-                        <span id="eriqQuotaText" style="font-size: 11px; color: #64748b;"></span>
-                        <button class="eriq-panel-close" onclick="toggleEriqPanel()">&times;</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="eriq-messages" id="eriqMessages">
-                <div class="eriq-welcome">
-                    <div class="eriq-avatar">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            <path d="M8 9h8" stroke-opacity="0.6"/>
-                            <path d="M8 13h6" stroke-opacity="0.6"/>
-                        </svg>
-                    </div>
-                    <h3>Welcome to ERIQ</h3>
-                    <p>Your Expert Risk Intelligence Analyst. Ask about indices, alerts, and energy markets.</p>
-                    <div class="eriq-suggestions" id="eriqSuggestions">
-                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current GERI reading and what does it mean?')">What is the current GERI?</button>
-                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('Explain today\'s top risk alerts')">Today's top alerts</button>
-                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('How does EnergyRiskIQ calculate the EERI?')">How is EERI calculated?</button>
-                        <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current risk regime?')">Current risk regime</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="eriq-input-area">
-                <div class="eriq-input-wrapper">
-                    <textarea class="eriq-input" id="eriqInput" placeholder="Ask ERIQ anything..." rows="1" maxlength="2000" onkeydown="eriqHandleKeydown(event)" oninput="eriqAutoResize(this)"></textarea>
-                    <button class="eriq-send-btn" id="eriqSendBtn" onclick="eriqSendMessage()" disabled>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="22" y1="2" x2="11" y2="13"/>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="eriq-disclaimer">ERIQ provides risk intelligence, not financial advice.</div>
-            </div>
-        </div>
-
         <!-- Settings Section -->
         <div class="section-content" id="section-settings">
             <div class="page-header">
@@ -5962,7 +5903,6 @@
                 allowedAlertTypes = dashboard.alerts.allowed_types || [];
                 
                 updateUI();
-                document.getElementById('eriqFab').style.display = '';
                 initializeFilters();
                 renderAlerts(allAlerts, allowedAlertTypes);
                 renderAllowedAlertTypes(allowedAlertTypes, dashboard.alerts.locked_types || []);
@@ -13058,5 +12998,63 @@
             }
         });
     </script>
+    <button class="eriq-fab" id="eriqFab" onclick="toggleEriqPanel()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M8 9h8" stroke-opacity="0.7"/>
+            <path d="M8 13h6" stroke-opacity="0.7"/>
+        </svg>
+        <span class="eriq-fab-label">Ask ERIQ</span>
+    </button>
+
+    <div class="eriq-floating-panel" id="eriqFloatingPanel">
+        <div class="eriq-panel-header" id="eriqPanelHeader">
+            <div class="eriq-panel-resize-handle" id="eriqResizeHandle"></div>
+            <div class="eriq-panel-title">
+                <div class="eriq-panel-title-left">
+                    <span class="eriq-status-dot"></span>
+                    <span style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">ERIQ</span>
+                    <span style="color: #94a3b8; font-size: 13px;">Expert Analyst</span>
+                </div>
+                <div class="eriq-panel-title-right">
+                    <span id="eriqQuotaText" style="font-size: 11px; color: #64748b;"></span>
+                    <button class="eriq-panel-close" onclick="toggleEriqPanel()">&times;</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="eriq-messages" id="eriqMessages">
+            <div class="eriq-welcome">
+                <div class="eriq-avatar">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <path d="M8 9h8" stroke-opacity="0.6"/>
+                        <path d="M8 13h6" stroke-opacity="0.6"/>
+                    </svg>
+                </div>
+                <h3>Welcome to ERIQ</h3>
+                <p>Your Expert Risk Intelligence Analyst. Ask about indices, alerts, and energy markets.</p>
+                <div class="eriq-suggestions" id="eriqSuggestions">
+                    <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current GERI reading and what does it mean?')">What is the current GERI?</button>
+                    <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('Explain today\'s top risk alerts')">Today's top alerts</button>
+                    <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('How does EnergyRiskIQ calculate the EERI?')">How is EERI calculated?</button>
+                    <button class="eriq-suggestion-btn" onclick="eriqAskSuggestion('What is the current risk regime?')">Current risk regime</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="eriq-input-area">
+            <div class="eriq-input-wrapper">
+                <textarea class="eriq-input" id="eriqInput" placeholder="Ask ERIQ anything..." rows="1" maxlength="2000" onkeydown="eriqHandleKeydown(event)" oninput="eriqAutoResize(this)"></textarea>
+                <button class="eriq-send-btn" id="eriqSendBtn" onclick="eriqSendMessage()" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="eriq-disclaimer">ERIQ provides risk intelligence, not financial advice.</div>
+        </div>
+    </div>
 </body>
 </html>
