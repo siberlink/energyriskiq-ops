@@ -4507,12 +4507,22 @@
 
         /* ========== Trial Banner ========== */
         .trial-banner {
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 10000;
             background: linear-gradient(135deg, #0c1929 0%, #1a1040 50%, #0c1929 100%);
             border-bottom: 1px solid rgba(99, 102, 241, 0.3);
             overflow: hidden;
+        }
+        body.has-trial-banner .header {
+            margin-top: 58px;
+        }
+        @media (max-width: 768px) {
+            body.has-trial-banner .header {
+                margin-top: 80px;
+            }
         }
         .trial-banner-glow {
             position: absolute;
@@ -4625,10 +4635,10 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
             </div>
             <div class="trial-banner-text">
-                <span class="trial-banner-headline">Exclusive Free Trial</span>
+                <span class="trial-banner-headline">Limited Time Offer</span>
                 <span class="trial-banner-msg" id="trialBannerMsg"></span>
             </div>
-            <button class="trial-banner-cta" onclick="showSection('plans'); closeMobileMenu();">Start Free Trial</button>
+            <button class="trial-banner-cta" onclick="showSection('plans'); closeMobileMenu();">Take Offer Today</button>
             <button class="trial-banner-close" onclick="dismissTrialBanner()" aria-label="Dismiss">&times;</button>
         </div>
     </div>
@@ -11589,18 +11599,15 @@
                 banner.style.display = 'none';
                 return;
             }
-            const messages = [
-                `Unlock full risk intelligence free for ${days} days — no commitment, cancel anytime.`,
-                `Limited offer: Get ${days} days of premium energy risk analytics at no cost.`,
-                `Start your ${days}-day free trial today and gain the edge in energy markets.`
-            ];
-            msg.textContent = messages[Math.floor(Math.random() * messages.length)];
+            msg.textContent = `For the next ${days} days you can try our Institutional Grade Indices & Daily Intelligence Digest`;
             banner.style.display = 'block';
+            document.body.classList.add('has-trial-banner');
         }
 
         function dismissTrialBanner() {
             const banner = document.getElementById('trialBanner');
             if (banner) banner.style.display = 'none';
+            document.body.classList.remove('has-trial-banner');
             sessionStorage.setItem('trialBannerDismissed', '1');
         }
 
