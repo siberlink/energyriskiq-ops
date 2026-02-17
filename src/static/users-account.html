@@ -6078,6 +6078,7 @@
                     cachedFreeTrialDays = plansData.free_trial_days || 0;
                     cachedBannerEnabled = !!plansData.banner_enabled;
                     cachedBannerCountdownEnd = plansData.banner_countdown_end || null;
+                    cachedBannerVersion = plansData.banner_version || 'none';
                 }
                 
                 updateUI();
@@ -11422,6 +11423,7 @@
                 const data = await response.json();
                 cachedBannerEnabled = !!data.banner_enabled;
                 cachedBannerCountdownEnd = data.banner_countdown_end || null;
+                cachedBannerVersion = data.banner_version || 'none';
                 renderPlans(data.plans || [], data.free_trial_days || 0);
             } catch (error) {
                 console.error('Error loading plans:', error);
@@ -11623,16 +11625,28 @@
         let cachedFreeTrialDays = 0;
         let cachedBannerEnabled = false;
         let cachedBannerCountdownEnd = null;
+        let cachedBannerVersion = 'none';
         let trialCountdownInterval = null;
+
+        function getBannerDismissData() {
+            try {
+                const raw = localStorage.getItem('trialBannerDismissData');
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch(e) { return null; }
+        }
+
+        function setBannerDismissData(data) {
+            localStorage.setItem('trialBannerDismissData', JSON.stringify(data));
+        }
 
         function showTrialBanner(days) {
             const banner = document.getElementById('trialBanner');
             const msg = document.getElementById('trialBannerMsg');
             if (!banner || !msg) return;
             const currentPlan = currentUser?.plan || 'free';
-            const dismissKey = 'trialBannerDismissed_' + days;
 
-            if (!cachedBannerEnabled || days <= 0 || currentPlan !== 'free' || sessionStorage.getItem(dismissKey) === '1') {
+            if (!cachedBannerEnabled || days <= 0 || currentPlan !== 'free') {
                 banner.style.display = 'none';
                 document.body.classList.remove('has-trial-banner');
                 if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
@@ -11646,6 +11660,28 @@
                     banner.style.display = 'none';
                     document.body.classList.remove('has-trial-banner');
                     return;
+                }
+            }
+
+            const dismissData = getBannerDismissData();
+            if (dismissData) {
+                if (dismissData.version !== cachedBannerVersion) {
+                    localStorage.removeItem('trialBannerDismissData');
+                } else {
+                    if (dismissData.count >= 3) {
+                        banner.style.display = 'none';
+                        document.body.classList.remove('has-trial-banner');
+                        if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                        return;
+                    }
+                    const lastDismissed = new Date(dismissData.lastDismissed);
+                    const hoursSince = (Date.now() - lastDismissed.getTime()) / (1000 * 60 * 60);
+                    if (hoursSince < 48) {
+                        banner.style.display = 'none';
+                        document.body.classList.remove('has-trial-banner');
+                        if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                        return;
+                    }
                 }
             }
 
@@ -11698,9 +11734,19 @@
             if (banner) banner.style.display = 'none';
             document.body.classList.remove('has-trial-banner');
             if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
-            if (cachedFreeTrialDays > 0) {
-                sessionStorage.setItem('trialBannerDismissed_' + cachedFreeTrialDays, '1');
+
+            const existing = getBannerDismissData();
+            const currentVersion = cachedBannerVersion || 'none';
+            let count = 1;
+            if (existing && existing.version === currentVersion) {
+                count = (existing.count || 0) + 1;
             }
+            setBannerDismissData({
+                version: currentVersion,
+                count: count,
+                lastDismissed: new Date().toISOString()
+            });
+
             const ub = document.getElementById('upgradeBanner');
             if (ub && (currentUser?.plan || 'free') === 'free') ub.style.display = 'flex';
         }

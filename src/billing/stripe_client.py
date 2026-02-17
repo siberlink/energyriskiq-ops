@@ -215,6 +215,7 @@ def set_free_trial_days(days: int) -> bool:
 
 
 def get_banner_settings() -> dict:
+    import hashlib
     try:
         with get_cursor(commit=False) as cursor:
             cursor.execute("SELECT value FROM app_settings WHERE key = 'banner_enabled'")
@@ -225,9 +226,12 @@ def get_banner_settings() -> dict:
             row2 = cursor.fetchone()
             countdown_end = row2["value"] if row2 else None
 
-            return {"banner_enabled": enabled, "banner_countdown_end": countdown_end}
+            version_str = f"{enabled}|{countdown_end or ''}"
+            banner_version = hashlib.md5(version_str.encode()).hexdigest()[:10]
+
+            return {"banner_enabled": enabled, "banner_countdown_end": countdown_end, "banner_version": banner_version}
     except Exception:
-        return {"banner_enabled": False, "banner_countdown_end": None}
+        return {"banner_enabled": False, "banner_countdown_end": None, "banner_version": "none"}
 
 
 def set_banner_settings(enabled: bool, timeframe_days: int = 0) -> dict:

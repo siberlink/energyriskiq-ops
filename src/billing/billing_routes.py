@@ -134,6 +134,7 @@ async def list_plans():
         "free_trial_days": trial_days,
         "banner_enabled": banner["banner_enabled"],
         "banner_countdown_end": banner["banner_countdown_end"],
+        "banner_version": banner.get("banner_version", "none"),
         "plans": [
             {
                 "plan_code": p["plan_code"],
