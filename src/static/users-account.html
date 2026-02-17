@@ -6217,40 +6217,45 @@
         function updateUI() {
             if (!currentUser) return;
 
-            document.getElementById('userEmail').textContent = currentUser.email;
-            document.getElementById('userAvatar').textContent = currentUser.email.charAt(0).toUpperCase();
+            const elUserEmail = document.getElementById('userEmail');
+            const elUserAvatar = document.getElementById('userAvatar');
+            if (elUserEmail) elUserEmail.textContent = currentUser.email;
+            if (elUserAvatar) elUserAvatar.textContent = currentUser.email.charAt(0).toUpperCase();
 
             const plan = currentUser.plan || 'free';
             const planDisplay = plan.charAt(0).toUpperCase() + plan.slice(1);
 
-            document.getElementById('planBadge').textContent = planDisplay;
-            document.getElementById('planBadge').className = 'header-badge';
+            const elPlanBadge = document.getElementById('planBadge');
+            if (elPlanBadge) { elPlanBadge.textContent = planDisplay; elPlanBadge.className = 'header-badge'; }
 
-            document.getElementById('currentPlan').textContent = planDisplay;
-            document.getElementById('planBadgeCard').textContent = planDisplay + ' Tier';
-            document.getElementById('planBadgeCard').className = 'stat-badge ' + plan;
+            const elCurrentPlan = document.getElementById('currentPlan');
+            if (elCurrentPlan) elCurrentPlan.textContent = planDisplay;
+            const elPlanBadgeCard = document.getElementById('planBadgeCard');
+            if (elPlanBadgeCard) { elPlanBadgeCard.textContent = planDisplay + ' Tier'; elPlanBadgeCard.className = 'stat-badge ' + plan; }
 
             if (currentUser.created_at) {
                 const date = new Date(currentUser.created_at);
-                document.getElementById('memberSince').textContent = date.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    year: 'numeric' 
-                });
-                document.getElementById('settingsCreated').textContent = date.toLocaleDateString();
+                const elMemberSince = document.getElementById('memberSince');
+                if (elMemberSince) elMemberSince.textContent = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                const elSettingsCreated = document.getElementById('settingsCreated');
+                if (elSettingsCreated) elSettingsCreated.textContent = date.toLocaleDateString();
             }
 
-            document.getElementById('settingsEmail').textContent = currentUser.email;
-            document.getElementById('settingsPlan').textContent = planDisplay;
+            const elSettingsEmail = document.getElementById('settingsEmail');
+            if (elSettingsEmail) elSettingsEmail.textContent = currentUser.email;
+            const elSettingsPlan = document.getElementById('settingsPlan');
+            if (elSettingsPlan) elSettingsPlan.textContent = planDisplay;
 
-            const userPlan = currentUser.plan || 'free';
-            if (userPlan === 'free' && cachedFreeTrialDays <= 0) {
-                document.getElementById('upgradeBanner').style.display = 'flex';
-            } else if (userPlan === 'free' && cachedFreeTrialDays > 0) {
-                document.getElementById('upgradeBanner').style.display = 'none';
+            const ub = document.getElementById('upgradeBanner');
+            if (plan === 'free' && cachedFreeTrialDays <= 0) {
+                if (ub) ub.style.display = 'flex';
+            } else if (plan === 'free' && cachedFreeTrialDays > 0) {
+                if (ub) ub.style.display = 'none';
             }
             
-            if (userPlan !== 'enterprise') {
-                document.getElementById('upgradeSidebarCard').style.display = 'block';
+            const elUpgradeSidebar = document.getElementById('upgradeSidebarCard');
+            if (plan !== 'enterprise' && elUpgradeSidebar) {
+                elUpgradeSidebar.style.display = 'block';
             }
             
             updateTelegramUI();
@@ -6261,9 +6266,12 @@
             const plan = currentUser.plan || 'free';
             const isLinked = !!currentUser.telegram_chat_id;
             
-            document.getElementById('telegramNotAvailable').style.display = 'none';
-            document.getElementById('telegramLinked').style.display = isLinked ? 'block' : 'none';
-            document.getElementById('telegramNotLinked').style.display = !isLinked ? 'block' : 'none';
+            const telNA = document.getElementById('telegramNotAvailable');
+            const telLinked = document.getElementById('telegramLinked');
+            const telNotLinked = document.getElementById('telegramNotLinked');
+            if (telNA) telNA.style.display = 'none';
+            if (telLinked) telLinked.style.display = isLinked ? 'block' : 'none';
+            if (telNotLinked) telNotLinked.style.display = !isLinked ? 'block' : 'none';
             
             const geriNavItem = document.getElementById('geriNavItem');
             const geriBadge = document.getElementById('geriBadge');
@@ -11698,11 +11706,13 @@
                 ? `${userSettings.current_region_count}` 
                 : `${userSettings.current_region_count} / ${userSettings.max_regions}`;
 
-            document.getElementById('settingsPlanBadge').textContent = planDisplay;
-            document.getElementById('settingsPlanBadge').className = 'stat-badge ' + plan;
-            document.getElementById('settingsRegionCount').textContent = regionCountText;
+            const elSettingsPlanBadge = document.getElementById('settingsPlanBadge');
+            if (elSettingsPlanBadge) { elSettingsPlanBadge.textContent = planDisplay; elSettingsPlanBadge.className = 'stat-badge ' + plan; }
+            const elRegionCount = document.getElementById('settingsRegionCount');
+            if (elRegionCount) elRegionCount.textContent = regionCountText;
 
             const typeSelect = document.getElementById('newAlertType');
+            if (!typeSelect) return;
             typeSelect.innerHTML = '<option value="">Select alert type...</option>';
             userSettings.allowed_alert_types.forEach(type => {
                 const displayName = type.replace(/_/g, ' ');
