@@ -1363,6 +1363,38 @@ def run_oil_price_migration():
     logger.info("Oil price migration complete.")
 
 
+def run_lng_price_migration():
+    """Create lng_price_snapshots table for LNG (JKM) price monitoring."""
+    logger.info("Running LNG price migration...")
+
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS lng_price_snapshots (
+                id SERIAL PRIMARY KEY,
+                date DATE NOT NULL,
+                jkm_price NUMERIC(8,2),
+                jkm_change_24h NUMERIC(8,2),
+                jkm_change_pct NUMERIC(6,2),
+                source TEXT,
+                raw_data JSONB,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(date)
+            );
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_lng_price_date
+            ON lng_price_snapshots(date DESC);
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_lng_jkm_price
+            ON lng_price_snapshots(jkm_price DESC);
+        """)
+
+    logger.info("LNG price migration complete.")
+
+
 def run_fix_skipped_alerts():
     """One-time fix for alert deliveries incorrectly marked as 'failed' when email was disabled."""
     with get_cursor() as cursor:
@@ -1460,6 +1492,7 @@ if __name__ == "__main__":
     run_reri_migration()
     run_gas_storage_migration()
     run_oil_price_migration()
+    run_lng_price_migration()
     run_gas_storage_migration()
     run_signal_quality_migration()
     run_public_digest_migration()

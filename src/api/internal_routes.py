@@ -27,6 +27,7 @@ LOCK_IDS = {
     'egsi_s_compute': 4002,
     'oil_price_capture': 4003,
     'gas_storage_capture': 4004,
+    'lng_price_capture': 4006,
     'market_data_capture': 4005,
     'backfill_snapshots': 5001,
     'backfill_egsi': 5002,
@@ -778,6 +779,33 @@ def run_oil_price_capture(
     if status_code == 500:
         raise HTTPException(status_code=500, detail=response)
     
+    return response
+
+
+@router.post("/run/lng-price-capture")
+def run_lng_price_capture(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Capture daily LNG prices (JKM) from OilPriceAPI.
+
+    Stores snapshot in lng_price_snapshots table for future index calculations.
+    Skips if snapshot already exists for today (idempotent).
+    """
+    validate_runner_token(x_runner_token)
+
+    from src.ingest.lng_price import capture_lng_price_snapshot
+
+    def lng_price_job():
+        return capture_lng_price_snapshot()
+
+    response, status_code = run_job_with_lock('lng_price_capture', lng_price_job)
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+
     return response
 
 
