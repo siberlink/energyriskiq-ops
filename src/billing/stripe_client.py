@@ -191,14 +191,44 @@ async def create_customer(email: str, user_id: int, name: Optional[str] = None) 
     return customer
 
 
+def get_free_trial_days() -> int:
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute("SELECT value FROM app_settings WHERE key = 'free_trial_days'")
+            row = cursor.fetchone()
+            return int(row["value"]) if row else 0
+    except Exception:
+        return 0
+
+
+def set_free_trial_days(days: int) -> bool:
+    if days not in (0, 14, 30):
+        raise ValueError("Trial days must be 0, 14, or 30")
+    with get_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES ('free_trial_days', %s, NOW())
+            ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = NOW()
+        """, (str(days), str(days)))
+    logger.info(f"Free trial days set to: {days}")
+    return True
+
+
 async def create_checkout_session(
     customer_id: str,
     price_id: str,
     success_url: str,
     cancel_url: str,
-    user_id: int
+    user_id: int,
+    trial_period_days: Optional[int] = None
 ) -> Dict[str, Any]:
     ensure_stripe_initialized()
+    subscription_data = {
+        "metadata": {"user_id": str(user_id)}
+    }
+    if trial_period_days and trial_period_days > 0:
+        subscription_data["trial_period_days"] = trial_period_days
+
     session = stripe.checkout.Session.create(
         customer=customer_id,
         payment_method_types=["card"],
@@ -207,11 +237,9 @@ async def create_checkout_session(
         success_url=success_url,
         cancel_url=cancel_url,
         metadata={"user_id": str(user_id)},
-        subscription_data={
-            "metadata": {"user_id": str(user_id)}
-        }
+        subscription_data=subscription_data
     )
-    logger.info(f"Created checkout session {session.id} for user {user_id}")
+    logger.info(f"Created checkout session {session.id} for user {user_id} (trial_days={trial_period_days})")
     return session
 
 

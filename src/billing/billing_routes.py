@@ -19,7 +19,8 @@ from src.billing.stripe_client import (
     construct_webhook_event,
     get_webhook_secret,
     get_stripe_mode,
-    get_plan_stripe_ids
+    get_plan_stripe_ids,
+    get_free_trial_days
 )
 from src.billing.webhook_handler import process_webhook_event
 from src.plans.plan_helpers import apply_plan_settings_to_user
@@ -224,12 +225,15 @@ async def create_checkout(
             else:
                 base_url = "http://localhost:5000"
         
+        trial_days = get_free_trial_days()
+        
         session = await create_checkout_session(
             customer_id=customer_id,
             price_id=plan["stripe_price_id"],
             success_url=f"{base_url}/users/account?billing=success&plan={request.plan_code}",
             cancel_url=f"{base_url}/users/account?billing=cancelled",
-            user_id=user["id"]
+            user_id=user["id"],
+            trial_period_days=trial_days if trial_days > 0 else None
         )
         
         return {"checkout_url": session["url"], "session_id": session["id"]}
