@@ -6059,6 +6059,12 @@
                 allAlerts = dashboard.alerts.items || [];
                 userSettings = dashboard.settings;
                 allowedAlertTypes = dashboard.alerts.allowed_types || [];
+
+                let plansData = null;
+                if (plansResponse.ok) {
+                    plansData = await plansResponse.json();
+                    cachedFreeTrialDays = plansData.free_trial_days || 0;
+                }
                 
                 updateUI();
                 initializeFilters();
@@ -6070,8 +6076,7 @@
                     renderDeliveryPreferences(dashboard.delivery_preferences);
                 }
                 
-                if (plansResponse.ok) {
-                    const plansData = await plansResponse.json();
+                if (plansData) {
                     renderPlans(plansData.plans || [], plansData.free_trial_days || 0);
                 }
                 
@@ -6237,8 +6242,10 @@
             document.getElementById('settingsEmail').textContent = currentUser.email;
             document.getElementById('settingsPlan').textContent = planDisplay;
 
-            if (plan === 'free') {
+            if (plan === 'free' && cachedFreeTrialDays <= 0) {
                 document.getElementById('upgradeBanner').style.display = 'flex';
+            } else if (plan === 'free' && cachedFreeTrialDays > 0) {
+                document.getElementById('upgradeBanner').style.display = 'none';
             }
             
             if (plan !== 'enterprise') {
@@ -11604,12 +11611,8 @@
             banner.style.display = 'block';
             document.body.classList.add('has-trial-banner');
 
-            const ubTitle = document.getElementById('upgradeBannerTitle');
-            const ubMsg = document.getElementById('upgradeBannerMsg');
-            const ubBtn = document.getElementById('upgradeBannerBtn');
-            if (ubTitle) ubTitle.textContent = 'Limited Time Offer';
-            if (ubMsg) ubMsg.textContent = `For the next ${days} days you can try our Institutional Grade Indices & Daily Intelligence Digest — completely free.`;
-            if (ubBtn) ubBtn.textContent = 'Take Offer Today';
+            const ub = document.getElementById('upgradeBanner');
+            if (ub) ub.style.display = 'none';
         }
 
         function dismissTrialBanner() {
