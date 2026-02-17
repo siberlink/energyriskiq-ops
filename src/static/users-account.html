@@ -12703,9 +12703,12 @@
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            z-index: 1000;
+            z-index: 10001;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 24px 16px;
         }
         .modal-content {
             background: #1e293b;
@@ -12715,6 +12718,8 @@
             width: 90%;
             position: relative;
             border: 1px solid #334155;
+            margin: auto;
+            max-height: none;
         }
         .modal-close {
             position: absolute;
