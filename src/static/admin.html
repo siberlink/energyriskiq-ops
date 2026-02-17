@@ -1257,6 +1257,17 @@
                     </div>
                 </div>
 
+                <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;margin-bottom:24px;">
+                    <h3 style="font-size:16px;font-weight:600;margin-bottom:8px;color:#e2e8f0;">Free Trial Period</h3>
+                    <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">When enabled, all new plan purchases will include a free trial. This does not apply to upgrades between plans.</p>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span id="trial-badge" style="font-size:16px;font-weight:700;padding:6px 16px;border-radius:6px;background:#334155;color:#94a3b8;">Loading...</span>
+                        <button onclick="setFreeTrial(0)" id="btn-trial-off" style="padding:8px 18px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">Off</button>
+                        <button onclick="setFreeTrial(14)" id="btn-trial-14" style="padding:8px 18px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">14 Days</button>
+                        <button onclick="setFreeTrial(30)" id="btn-trial-30" style="padding:8px 18px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">30 Days</button>
+                    </div>
+                </div>
+
                 <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;">
                     <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#e2e8f0;">Plan Stripe IDs</h3>
                     <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">Configure Stripe product and price IDs for each plan. Live IDs are set in the codebase. Sandbox IDs can be edited below.</p>
@@ -1881,6 +1892,57 @@
                 renderStripePlansTable(data.plans);
             } catch (e) {
                 console.error('Failed to load stripe settings:', e);
+            }
+            loadFreeTrial();
+        }
+
+        async function loadFreeTrial() {
+            try {
+                const res = await fetch('/admin/free-trial', {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                renderTrialBadge(data.days);
+            } catch (e) {
+                console.error('Failed to load free trial settings:', e);
+            }
+        }
+
+        function renderTrialBadge(days) {
+            const badge = document.getElementById('trial-badge');
+            if (days === 0) {
+                badge.textContent = 'DISABLED';
+                badge.style.background = '#334155';
+                badge.style.color = '#94a3b8';
+            } else {
+                badge.textContent = days + ' DAYS';
+                badge.style.background = '#065f46';
+                badge.style.color = '#6ee7b7';
+            }
+            document.getElementById('btn-trial-off').style.opacity = days === 0 ? '0.4' : '1';
+            document.getElementById('btn-trial-off').disabled = days === 0;
+            document.getElementById('btn-trial-14').style.opacity = days === 14 ? '0.4' : '1';
+            document.getElementById('btn-trial-14').disabled = days === 14;
+            document.getElementById('btn-trial-30').style.opacity = days === 30 ? '0.4' : '1';
+            document.getElementById('btn-trial-30').disabled = days === 30;
+        }
+
+        async function setFreeTrial(days) {
+            const label = days === 0 ? 'disable free trial' : `enable ${days}-day free trial for all new plan purchases`;
+            if (!confirm(`Are you sure you want to ${label}?`)) return;
+            try {
+                const res = await fetch('/admin/free-trial', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
+                    body: JSON.stringify({ days })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.detail || 'Failed'); return; }
+                alert(data.message);
+                renderTrialBadge(days);
+            } catch (e) {
+                alert('Error: ' + e.message);
             }
         }
 

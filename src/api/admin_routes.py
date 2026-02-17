@@ -15,7 +15,7 @@ from src.plans.plan_helpers import (
     ALL_ALERT_TYPES
 )
 from src.db.db import get_cursor
-from src.billing.stripe_client import get_stripe_mode, set_stripe_mode
+from src.billing.stripe_client import get_stripe_mode, set_stripe_mode, get_free_trial_days, set_free_trial_days
 
 logger = logging.getLogger(__name__)
 
@@ -279,4 +279,31 @@ def update_sandbox_ids(
         return {"success": True, "message": f"Sandbox IDs updated for {plan_code}"}
     except Exception as e:
         logger.error(f"Failed to update sandbox IDs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class FreeTrialUpdate(BaseModel):
+    days: int
+
+
+@router.get("/free-trial")
+def get_free_trial_status(x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    days = get_free_trial_days()
+    return {"days": days}
+
+
+@router.put("/free-trial")
+def update_free_trial(body: FreeTrialUpdate, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+
+    if body.days not in (0, 14, 30):
+        raise HTTPException(status_code=400, detail="Trial days must be 0 (disabled), 14, or 30")
+
+    try:
+        set_free_trial_days(body.days)
+        label = f"{body.days}-day free trial enabled" if body.days > 0 else "Free trial disabled"
+        return {"success": True, "days": body.days, "message": label}
+    except Exception as e:
+        logger.error(f"Failed to update free trial: {e}")
         raise HTTPException(status_code=500, detail=str(e))

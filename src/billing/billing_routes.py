@@ -165,6 +165,7 @@ async def create_checkout(
         
         init_stripe()
         
+        is_upgrade_fallback = False
         if user["stripe_subscription_id"] and user["subscription_status"] in ("active", "trialing"):
             try:
                 updated_sub = await update_subscription(
@@ -181,6 +182,7 @@ async def create_checkout(
                 }
             except stripe.InvalidRequestError as e:
                 logger.warning(f"Subscription {user['stripe_subscription_id']} invalid (likely sandbox), clearing and creating new checkout: {e}")
+                is_upgrade_fallback = True
                 with get_cursor() as cur:
                     cur.execute(
                         "UPDATE users SET stripe_subscription_id = NULL, subscription_status = NULL WHERE id = %s",
@@ -188,6 +190,7 @@ async def create_checkout(
                     )
             except Exception as e:
                 logger.warning(f"Could not update existing subscription, creating new checkout: {e}")
+                is_upgrade_fallback = True
         
         customer_id = user["stripe_customer_id"]
         if customer_id:
@@ -225,7 +228,7 @@ async def create_checkout(
             else:
                 base_url = "http://localhost:5000"
         
-        trial_days = get_free_trial_days()
+        trial_days = 0 if is_upgrade_fallback else get_free_trial_days()
         
         session = await create_checkout_session(
             customer_id=customer_id,
