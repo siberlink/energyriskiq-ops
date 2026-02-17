@@ -14,6 +14,17 @@ on:
           - backfill_egsi
           - backfill_market_data
           - backfill_eurusd
+          - backfill_lng
+      lng_start_date:
+        description: 'Start date for LNG backfill (YYYY-MM-DD format)'
+        required: false
+        default: '2026-01-13'
+        type: string
+      lng_end_date:
+        description: 'End date for LNG backfill (YYYY-MM-DD format)'
+        required: false
+        default: '2026-02-16'
+        type: string
       days:
         description: 'Number of days to backfill (only for backfill action)'
         required: false
@@ -263,5 +274,52 @@ jobs:
           echo "| Start Date | ${{ github.event.inputs.eurusd_start_date }} |" >> $GITHUB_STEP_SUMMARY
           echo "| End Date | ${{ github.event.inputs.eurusd_end_date }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Status | ${{ steps.backfill_eurusd.outcome }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY
+
+  backfill_lng:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ github.event.inputs.action == 'backfill_lng' }}
+    
+    steps:
+      - name: Backfill LNG Price Snapshots
+        id: backfill_lng
+        run: |
+          echo "Backfilling LNG prices from ${{ github.event.inputs.lng_start_date }} to ${{ github.event.inputs.lng_end_date }}..."
+          
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/backfill-lng?start_date=${{ github.event.inputs.lng_start_date }}&end_date=${{ github.event.inputs.lng_end_date }}" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::LNG backfill failed with HTTP $http_code"
+            exit 1
+          fi
+          
+          echo "LNG backfill completed successfully!"
+          echo "$body" | jq .
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Backfill LNG Price Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | backfill_lng |" >> $GITHUB_STEP_SUMMARY
+          echo "| Start Date | ${{ github.event.inputs.lng_start_date }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| End Date | ${{ github.event.inputs.lng_end_date }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.backfill_lng.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Triggered by | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Time | $(date -u +"%Y-%m-%d %H:%M:%S UTC") |" >> $GITHUB_STEP_SUMMARY

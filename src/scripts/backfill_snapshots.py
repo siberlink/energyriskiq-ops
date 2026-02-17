@@ -398,6 +398,193 @@ def backfill_egsi_indices(start_date: date, end_date: date) -> Dict[str, Any]:
     return results
 
 
+def fetch_lng_price_for_date(target_date: str) -> Optional[Dict[str, Any]]:
+    """Fetch JKM LNG price for a specific date from OilPriceAPI."""
+    if not OIL_PRICE_API_KEY:
+        logger.warning("OIL_PRICE_API_KEY not configured")
+        return None
+
+    dt = datetime.strptime(target_date, "%Y-%m-%d")
+    from_ts = int(dt.replace(hour=0, minute=0, second=0).timestamp())
+    to_ts = int(dt.replace(hour=23, minute=59, second=59).timestamp())
+
+    headers = {
+        "Authorization": f"Token {OIL_PRICE_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        url = f"{OIL_PRICE_API_BASE}/prices"
+        params = {
+            "by_code": "JKM_LNG_USD",
+            "by_period[from]": from_ts,
+            "by_period[to]": to_ts
+        }
+
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+
+        if response.status_code != 200:
+            logger.warning(f"OilPriceAPI returned {response.status_code} for JKM_LNG_USD on {target_date}")
+            return None
+
+        data = response.json()
+
+        if data.get("status") == "success" and data.get("data"):
+            data_obj = data["data"]
+            prices = data_obj.get("prices", []) if isinstance(data_obj, dict) else data_obj
+
+            if isinstance(prices, list) and len(prices) > 0:
+                price_entry = prices[-1]
+                return {
+                    "date": target_date,
+                    "jkm_price": float(price_entry.get("price", 0)),
+                    "raw": price_entry
+                }
+            elif isinstance(data_obj, dict) and data_obj.get("price"):
+                return {
+                    "date": target_date,
+                    "jkm_price": float(data_obj.get("price", 0)),
+                    "raw": data_obj
+                }
+
+        return None
+
+    except Exception as e:
+        logger.error(f"Failed to fetch JKM_LNG_USD for {target_date}: {e}")
+        return None
+
+
+def save_lng_price_snapshot_backfill(conn, data: Dict) -> bool:
+    """Save LNG price snapshot to database during backfill."""
+    try:
+        raw_data = {"jkm": data.get("raw")}
+
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO lng_price_snapshots
+                (date, jkm_price, jkm_change_24h, jkm_change_pct,
+                 source, raw_data)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (date) DO UPDATE SET
+                    jkm_price = EXCLUDED.jkm_price,
+                    raw_data = EXCLUDED.raw_data
+            """, (
+                data["date"],
+                data.get("jkm_price"),
+                0,
+                0,
+                "oilpriceapi_backfill",
+                json.dumps(raw_data)
+            ))
+        conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save LNG price: {e}")
+        conn.rollback()
+        return False
+
+
+def backfill_lng_prices(start_date: date, end_date: date) -> Dict[str, Any]:
+    """Backfill LNG price snapshots for the given date range."""
+    conn = get_db_connection()
+
+    results = {
+        "lng_price": {"success": 0, "failed": 0, "skipped": 0},
+        "dates_processed": []
+    }
+
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime("%Y-%m-%d")
+        logger.info(f"Processing LNG {date_str}...")
+        results["dates_processed"].append(date_str)
+
+        lng_data = fetch_lng_price_for_date(date_str)
+        if lng_data:
+            if save_lng_price_snapshot_backfill(conn, lng_data):
+                jkm = lng_data.get("jkm_price", "N/A")
+                logger.info(f"  LNG price: JKM ${jkm}")
+                results["lng_price"]["success"] += 1
+            else:
+                results["lng_price"]["failed"] += 1
+        else:
+            logger.warning(f"  LNG price: No data available")
+            results["lng_price"]["skipped"] += 1
+
+        time.sleep(0.5)
+        current_date += timedelta(days=1)
+
+    conn.close()
+
+    calculate_lng_price_changes()
+
+    return results
+
+
+def calculate_lng_price_changes() -> Dict[str, Any]:
+    """
+    Calculate 24h changes for LNG price snapshots by comparing consecutive days.
+    """
+    conn = get_db_connection()
+    updated_count = 0
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT date, jkm_price
+                FROM lng_price_snapshots
+                WHERE jkm_price IS NOT NULL AND jkm_price > 0
+                ORDER BY date ASC
+            """)
+            rows = cursor.fetchall()
+
+        if len(rows) < 2:
+            logger.warning("Not enough LNG data to calculate changes")
+            conn.close()
+            return {"status": "skipped", "message": "Not enough data", "updated": 0}
+
+        previous = None
+        for row in rows:
+            current_date, jkm_price = row
+
+            if previous is not None:
+                prev_date, prev_jkm = previous
+
+                jkm_change = jkm_price - prev_jkm if prev_jkm else 0
+                jkm_pct = (jkm_change / prev_jkm * 100) if prev_jkm else 0
+
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        UPDATE lng_price_snapshots
+                        SET jkm_change_24h = %s,
+                            jkm_change_pct = %s
+                        WHERE date = %s
+                    """, (
+                        round(float(jkm_change), 2),
+                        round(float(jkm_pct), 2),
+                        current_date
+                    ))
+                conn.commit()
+                updated_count += 1
+
+                logger.info(f"{current_date}: JKM {float(jkm_change):+.2f} ({float(jkm_pct):+.2f}%)")
+
+            previous = (current_date, jkm_price)
+
+        conn.close()
+
+        return {
+            "status": "success",
+            "message": f"Updated {updated_count} LNG records with 24h changes",
+            "updated": updated_count
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to calculate LNG changes: {e}")
+        conn.close()
+        return {"status": "error", "message": str(e), "updated": 0}
+
+
 def calculate_oil_price_changes() -> Dict[str, Any]:
     """
     Calculate 24h changes for oil price snapshots by comparing consecutive days.

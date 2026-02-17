@@ -988,6 +988,54 @@ def run_backfill_snapshots(
     return response
 
 
+@router.post("/run/backfill-lng")
+def run_backfill_lng(
+    start_date: str = "2026-01-13",
+    end_date: str = "2026-02-16",
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Backfill lng_price_snapshots table with historical JKM LNG prices.
+
+    Fetches historical data from OilPriceAPI for the specified date range.
+    Also calculates 24h changes after backfill.
+    """
+    validate_runner_token(x_runner_token)
+
+    from datetime import datetime
+    from src.scripts.backfill_snapshots import backfill_lng_prices
+
+    def backfill_lng_job():
+        try:
+            sd = datetime.strptime(start_date, "%Y-%m-%d").date()
+            ed = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            return {"status": "error", "message": "Invalid date format. Use YYYY-MM-DD."}
+
+        if sd > ed:
+            return {"status": "error", "message": f"start_date ({sd}) must be <= end_date ({ed})"}
+
+        logger.info(f"Starting LNG backfill from {sd} to {ed}")
+        results = backfill_lng_prices(sd, ed)
+
+        return {
+            "status": "success",
+            "start_date": str(sd),
+            "end_date": str(ed),
+            "lng_price": results["lng_price"],
+            "dates_processed": len(results["dates_processed"])
+        }
+
+    response, status_code = run_job_with_lock('lng_price_capture', backfill_lng_job)
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+
+    return response
+
+
 @router.post("/run/calculate-oil-changes")
 def run_calculate_oil_changes(
     x_runner_token: Optional[str] = Header(None)
