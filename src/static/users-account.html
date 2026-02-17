@@ -4778,10 +4778,10 @@
 
             <div id="upgradeBanner" class="upgrade-banner" style="display: none;">
                 <div class="upgrade-content">
-                    <h3>Upgrade to unlock more features</h3>
-                    <p>Get real-time alerts, asset risk tracking, and more with a paid plan.</p>
+                    <h3 id="upgradeBannerTitle">Upgrade to unlock more features</h3>
+                    <p id="upgradeBannerMsg">Get real-time indices, AI-powered analysis, and institutional-grade intelligence with a paid plan.</p>
                 </div>
-                <button class="upgrade-btn" onclick="showSection('plans')">View Plans</button>
+                <button class="upgrade-btn" id="upgradeBannerBtn" onclick="showSection('plans')">View Plans</button>
             </div>
 
             <div class="stats-grid">
@@ -11597,11 +11597,19 @@
             const currentPlan = currentUser?.plan || 'free';
             if (days <= 0 || currentPlan !== 'free' || sessionStorage.getItem('trialBannerDismissed') === '1') {
                 banner.style.display = 'none';
+                document.body.classList.remove('has-trial-banner');
                 return;
             }
             msg.textContent = `For the next ${days} days you can try our Institutional Grade Indices & Daily Intelligence Digest`;
             banner.style.display = 'block';
             document.body.classList.add('has-trial-banner');
+
+            const ubTitle = document.getElementById('upgradeBannerTitle');
+            const ubMsg = document.getElementById('upgradeBannerMsg');
+            const ubBtn = document.getElementById('upgradeBannerBtn');
+            if (ubTitle) ubTitle.textContent = 'Limited Time Offer';
+            if (ubMsg) ubMsg.textContent = `For the next ${days} days you can try our Institutional Grade Indices & Daily Intelligence Digest — completely free.`;
+            if (ubBtn) ubBtn.textContent = 'Take Offer Today';
         }
 
         function dismissTrialBanner() {
