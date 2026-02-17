@@ -6258,7 +6258,7 @@
 
         function updateTelegramUI() {
             if (!currentUser) return;
-            
+            const plan = currentUser.plan || 'free';
             const isLinked = !!currentUser.telegram_chat_id;
             
             document.getElementById('telegramNotAvailable').style.display = 'none';
