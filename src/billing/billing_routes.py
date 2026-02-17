@@ -127,7 +127,9 @@ async def seed_stripe_products(x_internal_token: Optional[str] = Header(None)):
 @router.get("/plans")
 async def list_plans():
     plans = get_all_plans()
+    trial_days = get_free_trial_days()
     return {
+        "free_trial_days": trial_days,
         "plans": [
             {
                 "plan_code": p["plan_code"],

@@ -2233,6 +2233,24 @@
         .plan-features .pf-section.pf-egsi { color: #34d399; }
         .plan-features .pf-section.pf-digest { color: #a78bfa; }
 
+        .plan-features .pf-includes {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4ade80;
+            display: block;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+        .plan-features .pf-includes::before {
+            content: "\2714  ";
+            color: #4ade80;
+        }
+
         .plan-features .pf-miss {
             color: #64748b;
             text-decoration: line-through;
@@ -5711,6 +5729,7 @@
 
         function getPlanCardFeatures(planCode) {
             const s = (label, cls) => `<li class="pf-section ${cls}">${label}</li>`;
+            const inc = (prevPlan) => `<li class="pf-includes">All features in ${prevPlan} Plan</li>`;
             const allFeatures = {
                 'free': [
                     s('GERI — Global Energy Risk', 'pf-geri'),
@@ -5730,6 +5749,7 @@
                     'GERI direction indicator'
                 ],
                 'personal': [
+                    inc('Free'),
                     s('GERI — Global Energy Risk', 'pf-geri'),
                     'Real-time GERI score & band',
                     '90-day history chart',
@@ -5750,6 +5770,7 @@
                     'Cross-index correlations'
                 ],
                 'trader': [
+                    inc('Personal'),
                     s('GERI — Global Energy Risk', 'pf-geri'),
                     'Full GERI history access',
                     '2 simultaneous chart overlays',
@@ -5770,6 +5791,7 @@
                     'Conditional trigger alerts'
                 ],
                 'pro': [
+                    inc('Trader'),
                     s('GERI — Global Energy Risk', 'pf-geri'),
                     '4 simultaneous chart overlays',
                     'AI narrative & commentary',
@@ -5790,6 +5812,7 @@
                     'Macro event impact analysis'
                 ],
                 'enterprise': [
+                    inc('Pro'),
                     s('GERI — Global Energy Risk', 'pf-geri'),
                     '5 overlays + team workspace',
                     'Full decomposition & attribution',
@@ -5814,7 +5837,7 @@
 
         function renderPlanFeaturesList(features) {
             return features.map(f => {
-                if (f.startsWith('<li class="pf-section')) return f;
+                if (f.startsWith('<li class="pf-section') || f.startsWith('<li class="pf-includes')) return f;
                 return `<li>${f}</li>`;
             }).join('');
         }
@@ -5914,7 +5937,7 @@
                 
                 if (plansResponse.ok) {
                     const plansData = await plansResponse.json();
-                    renderPlans(plansData.plans || []);
+                    renderPlans(plansData.plans || [], plansData.free_trial_days || 0);
                 }
                 
                 console.log(`Dashboard loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
@@ -11229,63 +11252,14 @@
         }
 
         async function loadPlans() {
-            const grid = document.getElementById('plansGrid');
-            
             try {
                 const response = await fetch('/billing/plans');
                 const data = await response.json();
-                const plans = data.plans || [];
-                
-                const planOrder = ['free', 'personal', 'trader', 'pro', 'enterprise'];
-                plans.sort((a, b) => planOrder.indexOf(a.plan_code) - planOrder.indexOf(b.plan_code));
-                
-                const currentPlan = currentUser?.plan || 'free';
-                const currentPlanIndex = planOrder.indexOf(currentPlan);
-
-                grid.innerHTML = plans.map(plan => {
-                    const planIndex = planOrder.indexOf(plan.plan_code);
-                    const isCurrent = plan.plan_code === currentPlan;
-                    const isUpgrade = planIndex > currentPlanIndex;
-                    const isDowngrade = planIndex < currentPlanIndex && plan.plan_code !== 'free';
-                    const isFree = plan.plan_code === 'free';
-                    
-                    let btnClass = 'plan-btn';
-                    let btnText = '';
-                    let btnDisabled = '';
-                    
-                    if (isCurrent) {
-                        btnClass += ' current';
-                        btnText = 'Current Plan';
-                        btnDisabled = 'disabled';
-                    } else if (isUpgrade) {
-                        btnClass += ' upgrade';
-                        btnText = `Upgrade to ${plan.display_name}`;
-                    } else if (isDowngrade || (isFree && currentPlan !== 'free')) {
-                        btnClass += ' downgrade';
-                        btnText = `Downgrade to ${plan.display_name}`;
-                    }
-                    
-                    const features = getPlanCardFeatures(plan.plan_code);
-                    
-                    return `
-                        <div class="plan-card ${isCurrent ? 'current' : ''}">
-                            <div class="plan-name">${plan.display_name}</div>
-                            <div class="plan-tagline">${planTaglines[plan.plan_code] || ''}</div>
-                            <div class="plan-price">${plan.price > 0 ? '€' + plan.price.toFixed(2) : 'Free'}<span>${plan.price > 0 ? '/mo' : ''}</span></div>
-                            <ul class="plan-features">
-                                ${renderPlanFeaturesList(features)}
-                            </ul>
-                            <button class="${btnClass}" 
-                                    ${btnDisabled}
-                                    onclick="openPlanModal('${plan.plan_code}', '${plan.display_name}', ${plan.price}, '${isUpgrade ? 'upgrade' : 'downgrade'}')">
-                                ${btnText}
-                            </button>
-                        </div>
-                    `;
-                }).join('');
+                renderPlans(data.plans || [], data.free_trial_days || 0);
             } catch (error) {
                 console.error('Error loading plans:', error);
-                grid.innerHTML = '<p style="color: #f87171;">Failed to load plans</p>';
+                const grid = document.getElementById('plansGrid');
+                if (grid) grid.innerHTML = '<p style="color: #f87171;">Failed to load plans</p>';
             }
         }
 
@@ -11479,9 +11453,13 @@
             renderAlertSettings();
         }
 
-        function renderPlans(plans) {
+        let cachedFreeTrialDays = 0;
+
+        function renderPlans(plans, freeTrialDays) {
             const grid = document.getElementById('plansGrid');
             if (!grid) return;
+            
+            if (freeTrialDays !== undefined) cachedFreeTrialDays = freeTrialDays;
             
             const planOrder = ['free', 'personal', 'trader', 'pro', 'enterprise'];
             plans.sort((a, b) => planOrder.indexOf(a.plan_code) - planOrder.indexOf(b.plan_code));
@@ -11506,7 +11484,11 @@
                     btnDisabled = 'disabled';
                 } else if (isUpgrade) {
                     btnClass += ' upgrade';
-                    btnText = `Upgrade to ${plan.display_name}`;
+                    if (cachedFreeTrialDays > 0) {
+                        btnText = `Try ${plan.display_name} FREE for ${cachedFreeTrialDays} Days`;
+                    } else {
+                        btnText = `Upgrade to ${plan.display_name}`;
+                    }
                 } else if (isDowngrade || (isFree && currentPlan !== 'free')) {
                     btnClass += ' downgrade';
                     btnText = `Downgrade to ${plan.display_name}`;
