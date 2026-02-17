@@ -6242,13 +6242,14 @@
             document.getElementById('settingsEmail').textContent = currentUser.email;
             document.getElementById('settingsPlan').textContent = planDisplay;
 
-            if (plan === 'free' && cachedFreeTrialDays <= 0) {
+            const userPlan = currentUser.plan || 'free';
+            if (userPlan === 'free' && cachedFreeTrialDays <= 0) {
                 document.getElementById('upgradeBanner').style.display = 'flex';
-            } else if (plan === 'free' && cachedFreeTrialDays > 0) {
+            } else if (userPlan === 'free' && cachedFreeTrialDays > 0) {
                 document.getElementById('upgradeBanner').style.display = 'none';
             }
             
-            if (plan !== 'enterprise') {
+            if (userPlan !== 'enterprise') {
                 document.getElementById('upgradeSidebarCard').style.display = 'block';
             }
             
