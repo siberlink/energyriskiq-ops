@@ -1240,7 +1240,7 @@
                     <div class="stat-card" id="stripe-mode-card" style="grid-column: span 2;">
                         <div class="stat-label">Current Mode</div>
                         <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
-                            <span id="stripe-mode-badge" style="font-size:20px;font-weight:700;padding:8px 20px;border-radius:8px;"></span>
+                            <span id="stripe-mode-badge" style="font-size:20px;font-weight:700;padding:8px 20px;border-radius:8px;background:#334155;color:#94a3b8;">Loading...</span>
                             <div style="display:flex;gap:8px;">
                                 <button onclick="switchStripeMode('live')" id="btn-mode-live" style="padding:8px 20px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">Switch to Live</button>
                                 <button onclick="switchStripeMode('sandbox')" id="btn-mode-sandbox" style="padding:8px 20px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">Switch to Sandbox</button>
@@ -1872,7 +1872,7 @@
         async function loadStripeSettings() {
             try {
                 const res = await fetch('/admin/stripe-mode', {
-                    headers: { 'X-Admin-Token': adminToken }
+                    headers: { 'X-Admin-Token': sessionToken }
                 });
                 if (!res.ok) throw new Error('Failed to load');
                 const data = await res.json();
@@ -1939,7 +1939,7 @@
             try {
                 const res = await fetch('/admin/stripe-mode', {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
                     body: JSON.stringify({ mode })
                 });
                 const data = await res.json();
@@ -1957,7 +1957,7 @@
             try {
                 const res = await fetch(`/admin/stripe-sandbox-ids/${planCode}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
                     body: JSON.stringify({ product_id: productId, price_id: priceId })
                 });
                 const data = await res.json();
