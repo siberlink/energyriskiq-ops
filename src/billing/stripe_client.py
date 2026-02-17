@@ -4,6 +4,8 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
+from src.db.db import get_cursor
+
 logger = logging.getLogger(__name__)
 
 PLAN_PRICE_EUR = {
@@ -14,33 +16,71 @@ PLAN_PRICE_EUR = {
     "enterprise": 129.00
 }
 
-_stripe_initialized = False
+_current_stripe_mode = None
 
-def get_stripe_credentials() -> Dict[str, str]:
+
+def get_stripe_mode() -> str:
+    """Get the current Stripe mode from the database (live or sandbox)."""
+    global _current_stripe_mode
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute("SELECT value FROM app_settings WHERE key = 'stripe_mode'")
+            row = cursor.fetchone()
+            mode = row["value"] if row else "live"
+            _current_stripe_mode = mode
+            return mode
+    except Exception:
+        return _current_stripe_mode or "live"
+
+
+def set_stripe_mode(mode: str) -> bool:
+    """Set the Stripe mode in the database. Returns True on success."""
+    global _current_stripe_mode
+    if mode not in ("live", "sandbox"):
+        raise ValueError("Mode must be 'live' or 'sandbox'")
+    with get_cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES ('stripe_mode', %s, NOW())
+            ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = NOW()
+        """, (mode, mode))
+    _current_stripe_mode = mode
+    _reinit_stripe(mode)
+    logger.info(f"Stripe mode switched to: {mode}")
+    return True
+
+
+def get_stripe_credentials_for_mode(mode: str = None) -> Dict[str, str]:
+    """Get Stripe credentials for the specified mode."""
+    if mode is None:
+        mode = get_stripe_mode()
+
+    if mode == "sandbox":
+        pub_key = os.environ.get("STRIPE_SANDBOX_PUBLISHABLE_KEY")
+        secret_key = os.environ.get("STRIPE_SANDBOX_SECRET_KEY")
+        if pub_key and secret_key:
+            return {"publishable_key": pub_key, "secret_key": secret_key, "mode": "sandbox"}
+        raise ValueError("Sandbox Stripe keys not configured. Set STRIPE_SANDBOX_PUBLISHABLE_KEY and STRIPE_SANDBOX_SECRET_KEY.")
+
     pub_key = os.environ.get("STRIPE_PUBLISHABLE_KEY")
     secret_key = os.environ.get("STRIPE_SECRET_KEY")
     if pub_key and secret_key:
-        logger.info("Using Stripe credentials from environment variables")
-        return {
-            "publishable_key": pub_key,
-            "secret_key": secret_key
-        }
-    
+        return {"publishable_key": pub_key, "secret_key": secret_key, "mode": "live"}
+
     hostname = os.environ.get("REPLIT_CONNECTORS_HOSTNAME")
     repl_identity = os.environ.get("REPL_IDENTITY")
     web_repl_renewal = os.environ.get("WEB_REPL_RENEWAL")
-    
+
     if repl_identity:
         x_replit_token = f"repl {repl_identity}"
     elif web_repl_renewal:
         x_replit_token = f"depl {web_repl_renewal}"
     else:
         raise ValueError("No Stripe credentials found. Set STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY.")
-    
+
     is_production = os.environ.get("REPLIT_DEPLOYMENT") == "1"
-    
     environments_to_try = ["production", "development"] if is_production else ["development"]
-    
+
     for target_environment in environments_to_try:
         url = f"https://{hostname}/api/v2/connection"
         params = {
@@ -48,37 +88,57 @@ def get_stripe_credentials() -> Dict[str, str]:
             "connector_names": "stripe",
             "environment": target_environment
         }
-        
+
         response = requests.get(url, params=params, headers={
             "Accept": "application/json",
             "X_REPLIT_TOKEN": x_replit_token
         })
-        
+
         if response.status_code != 200:
-            logger.warning(f"Stripe connector request for {target_environment} failed: {response.status_code}")
             continue
-        
+
         data = response.json()
         items = data.get("items", [])
-        
+
         if not items:
-            logger.warning(f"No Stripe connection found for {target_environment}")
             continue
-        
+
         connection = items[0]
         settings = connection.get("settings", {})
-        
+
         if settings.get("publishable") and settings.get("secret"):
-            if target_environment == "development" and is_production:
-                logger.warning("Using development/sandbox Stripe keys in production - for testing only!")
-            logger.info(f"Using Stripe {target_environment} credentials")
             return {
                 "publishable_key": settings["publishable"],
-                "secret_key": settings["secret"]
+                "secret_key": settings["secret"],
+                "mode": "live"
             }
-    
+
     raise ValueError("No Stripe connection configured. Set STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY secrets.")
 
+
+def get_stripe_credentials() -> Dict[str, str]:
+    """Get Stripe credentials for the currently active mode."""
+    return get_stripe_credentials_for_mode()
+
+
+def get_webhook_secret() -> Optional[str]:
+    """Get the webhook secret for the currently active Stripe mode."""
+    mode = get_stripe_mode()
+    if mode == "sandbox":
+        return os.environ.get("STRIPE_SANDBOX_WEBHOOK_SECRET")
+    return os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+
+def _reinit_stripe(mode: str = None):
+    """Reinitialize Stripe with the correct API key for the given mode."""
+    global _stripe_initialized
+    credentials = get_stripe_credentials_for_mode(mode)
+    stripe.api_key = credentials["secret_key"]
+    _stripe_initialized = True
+    logger.info(f"Stripe reinitialized for mode: {credentials['mode']}")
+
+
+_stripe_initialized = False
 
 def init_stripe() -> None:
     global _stripe_initialized
@@ -87,7 +147,7 @@ def init_stripe() -> None:
     credentials = get_stripe_credentials()
     stripe.api_key = credentials["secret_key"]
     _stripe_initialized = True
-    logger.info("Stripe initialized successfully")
+    logger.info(f"Stripe initialized successfully (mode: {credentials.get('mode', 'unknown')})")
 
 
 def get_stripe_publishable_key() -> str:
@@ -98,6 +158,26 @@ def get_stripe_publishable_key() -> str:
 def ensure_stripe_initialized():
     if not _stripe_initialized:
         init_stripe()
+
+
+def get_plan_stripe_ids(plan_code: str) -> Dict[str, Optional[str]]:
+    """Get the Stripe product/price IDs for a plan based on current mode."""
+    mode = get_stripe_mode()
+    with get_cursor(commit=False) as cursor:
+        if mode == "sandbox":
+            cursor.execute("""
+                SELECT stripe_product_id_sandbox as product_id, stripe_price_id_sandbox as price_id
+                FROM plan_settings WHERE plan_code = %s
+            """, (plan_code,))
+        else:
+            cursor.execute("""
+                SELECT stripe_product_id as product_id, stripe_price_id as price_id
+                FROM plan_settings WHERE plan_code = %s
+            """, (plan_code,))
+        row = cursor.fetchone()
+        if row:
+            return {"product_id": row["product_id"], "price_id": row["price_id"]}
+        return {"product_id": None, "price_id": None}
 
 
 async def create_customer(email: str, user_id: int, name: Optional[str] = None) -> Dict[str, Any]:

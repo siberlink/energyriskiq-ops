@@ -1013,6 +1013,15 @@
 
             <div class="sidebar-section">
                 <div class="sidebar-title">System</div>
+                <div class="nav-item" onclick="showSection('stripe')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                    </span>
+                    Stripe Settings
+                </div>
                 <div class="nav-item" onclick="showSection('api')">
                     <span class="nav-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1217,6 +1226,41 @@
                     <div style="overflow-x:auto;" id="feedsTableContainer">
                         <div style="padding:60px;text-align:center;"><div class="spinner" style="margin:auto;"></div></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Stripe Section -->
+            <div class="section-content" id="section-stripe">
+                <div class="page-header">
+                    <h1 class="page-title">Stripe Settings</h1>
+                    <p class="page-subtitle">Manage Stripe Live/Sandbox mode and product IDs</p>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom:24px;">
+                    <div class="stat-card" id="stripe-mode-card" style="grid-column: span 2;">
+                        <div class="stat-label">Current Mode</div>
+                        <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+                            <span id="stripe-mode-badge" style="font-size:20px;font-weight:700;padding:8px 20px;border-radius:8px;"></span>
+                            <div style="display:flex;gap:8px;">
+                                <button onclick="switchStripeMode('live')" id="btn-mode-live" style="padding:8px 20px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">Switch to Live</button>
+                                <button onclick="switchStripeMode('sandbox')" id="btn-mode-sandbox" style="padding:8px 20px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#e2e8f0;cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;">Switch to Sandbox</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Live Keys</div>
+                        <div id="stripe-live-status" style="margin-top:8px;font-size:14px;"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Sandbox Keys</div>
+                        <div id="stripe-sandbox-status" style="margin-top:8px;font-size:14px;"></div>
+                    </div>
+                </div>
+
+                <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;">
+                    <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#e2e8f0;">Plan Stripe IDs</h3>
+                    <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">Configure Stripe product and price IDs for each plan. Live IDs are set in the codebase. Sandbox IDs can be edited below.</p>
+                    <div id="stripe-plans-table" style="overflow-x:auto;"></div>
                 </div>
             </div>
 
@@ -1432,6 +1476,8 @@
                 loadPlanSettings();
             } else if (sectionId === 'feeds') {
                 loadFeedHealth();
+            } else if (sectionId === 'stripe') {
+                loadStripeSettings();
             }
         }
 
@@ -1821,6 +1867,105 @@
 
             html += '</tbody></table>';
             document.getElementById('feedsTableContainer').innerHTML = html;
+        }
+
+        async function loadStripeSettings() {
+            try {
+                const res = await fetch('/admin/stripe-mode', {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                renderStripeMode(data);
+                renderStripeStatus(data);
+                renderStripePlansTable(data.plans);
+            } catch (e) {
+                console.error('Failed to load stripe settings:', e);
+            }
+        }
+
+        function renderStripeMode(data) {
+            const badge = document.getElementById('stripe-mode-badge');
+            const isLive = data.mode === 'live';
+            badge.textContent = isLive ? 'LIVE' : 'SANDBOX';
+            badge.style.background = isLive ? '#991b1b' : '#854d0e';
+            badge.style.color = isLive ? '#fca5a5' : '#fde68a';
+            document.getElementById('btn-mode-live').style.opacity = isLive ? '0.4' : '1';
+            document.getElementById('btn-mode-sandbox').style.opacity = isLive ? '1' : '0.4';
+            document.getElementById('btn-mode-live').disabled = isLive;
+            document.getElementById('btn-mode-sandbox').disabled = !isLive;
+        }
+
+        function renderStripeStatus(data) {
+            const statusHtml = (s) => {
+                const keyIcon = s.keys_configured ? '<span style="color:#4ade80;">&#10003;</span>' : '<span style="color:#f87171;">&#10007;</span>';
+                const whIcon = s.webhook_configured ? '<span style="color:#4ade80;">&#10003;</span>' : '<span style="color:#f87171;">&#10007;</span>';
+                return `<div>${keyIcon} API Keys</div><div>${whIcon} Webhook Secret</div>`;
+            };
+            document.getElementById('stripe-live-status').innerHTML = statusHtml(data.live);
+            document.getElementById('stripe-sandbox-status').innerHTML = statusHtml(data.sandbox);
+        }
+
+        function renderStripePlansTable(plans) {
+            if (!plans || plans.length === 0) {
+                document.getElementById('stripe-plans-table').innerHTML = '<p style="color:#94a3b8;">No paid plans found.</p>';
+                return;
+            }
+            let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+            html += '<thead><tr style="border-bottom:1px solid #334155;">';
+            html += '<th style="text-align:left;padding:10px 8px;color:#94a3b8;font-weight:500;">Plan</th>';
+            html += '<th style="text-align:left;padding:10px 8px;color:#94a3b8;font-weight:500;">Live Product ID</th>';
+            html += '<th style="text-align:left;padding:10px 8px;color:#94a3b8;font-weight:500;">Live Price ID</th>';
+            html += '<th style="text-align:left;padding:10px 8px;color:#94a3b8;font-weight:500;">Sandbox Product ID</th>';
+            html += '<th style="text-align:left;padding:10px 8px;color:#94a3b8;font-weight:500;">Sandbox Price ID</th>';
+            html += '<th style="text-align:left;padding:10px 8px;color:#94a3b8;font-weight:500;">Actions</th>';
+            html += '</tr></thead><tbody>';
+            plans.forEach(p => {
+                html += `<tr style="border-bottom:1px solid #1e293b;">`;
+                html += `<td style="padding:10px 8px;color:#e2e8f0;font-weight:600;">${p.display_name}</td>`;
+                html += `<td style="padding:10px 8px;color:#94a3b8;font-family:monospace;font-size:11px;">${p.live_product_id || '<span style="color:#64748b;">—</span>'}</td>`;
+                html += `<td style="padding:10px 8px;color:#94a3b8;font-family:monospace;font-size:11px;">${p.live_price_id || '<span style="color:#64748b;">—</span>'}</td>`;
+                html += `<td style="padding:10px 8px;"><input type="text" id="sb-prod-${p.plan_code}" value="${p.sandbox_product_id}" placeholder="prod_..." style="width:100%;padding:6px 8px;background:#0f172a;border:1px solid #334155;border-radius:4px;color:#e2e8f0;font-size:11px;font-family:monospace;"/></td>`;
+                html += `<td style="padding:10px 8px;"><input type="text" id="sb-price-${p.plan_code}" value="${p.sandbox_price_id}" placeholder="price_..." style="width:100%;padding:6px 8px;background:#0f172a;border:1px solid #334155;border-radius:4px;color:#e2e8f0;font-size:11px;font-family:monospace;"/></td>`;
+                html += `<td style="padding:10px 8px;"><button onclick="saveSandboxIds('${p.plan_code}')" style="padding:6px 14px;border-radius:4px;border:none;background:#2563eb;color:#fff;cursor:pointer;font-size:12px;font-weight:500;">Save</button></td>`;
+                html += `</tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('stripe-plans-table').innerHTML = html;
+        }
+
+        async function switchStripeMode(mode) {
+            if (!confirm(`Switch Stripe to ${mode.toUpperCase()} mode? This takes effect immediately for all new checkouts.`)) return;
+            try {
+                const res = await fetch('/admin/stripe-mode', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+                    body: JSON.stringify({ mode })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.detail || 'Failed'); return; }
+                alert(data.message);
+                loadStripeSettings();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function saveSandboxIds(planCode) {
+            const productId = document.getElementById(`sb-prod-${planCode}`).value.trim();
+            const priceId = document.getElementById(`sb-price-${planCode}`).value.trim();
+            try {
+                const res = await fetch(`/admin/stripe-sandbox-ids/${planCode}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+                    body: JSON.stringify({ product_id: productId, price_id: priceId })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.detail || 'Failed'); return; }
+                alert('Sandbox IDs saved for ' + planCode);
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
         }
 
         checkSession();

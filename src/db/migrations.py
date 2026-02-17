@@ -578,13 +578,7 @@ def run_migrations():
         
         logger.info("Creating alert v2 indexes...")
         for idx_sql in create_alert_v2_indexes:
-            try:
-                cursor.execute(idx_sql)
-            except Exception as e:
-                if "already exists" in str(e).lower() or "duplicate key" in str(e).lower():
-                    logger.info(f"Index already exists, skipping: {idx_sql[:60]}...")
-                else:
-                    raise
+            cursor.execute(idx_sql)
     
     seed_plan_settings()
     
@@ -1010,6 +1004,30 @@ def sync_stripe_live_ids():
                 AND (stripe_product_id IS DISTINCT FROM %s OR stripe_price_id IS DISTINCT FROM %s)
             """, (ids["product_id"], ids["price_id"], plan_code, ids["product_id"], ids["price_id"]))
     logger.info("Stripe Live IDs synced.")
+
+
+def run_stripe_mode_migration():
+    """Add app_settings table for Stripe mode toggle and sandbox IDs to plan_settings."""
+    logger.info("Running Stripe mode migration...")
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS app_settings (
+                key VARCHAR(100) PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        cursor.execute("""
+            INSERT INTO app_settings (key, value)
+            VALUES ('stripe_mode', 'live')
+            ON CONFLICT (key) DO NOTHING
+        """)
+        cursor.execute("""
+            ALTER TABLE plan_settings
+            ADD COLUMN IF NOT EXISTS stripe_product_id_sandbox TEXT,
+            ADD COLUMN IF NOT EXISTS stripe_price_id_sandbox TEXT
+        """)
+    logger.info("Stripe mode migration complete.")
 
 
 def run_billing_migration():

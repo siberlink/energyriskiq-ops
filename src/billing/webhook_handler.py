@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 def get_plan_code_from_price_id(price_id: str) -> Optional[str]:
     with get_cursor(commit=False) as cur:
         cur.execute(
-            "SELECT plan_code FROM plan_settings WHERE stripe_price_id = %s",
-            (price_id,)
+            "SELECT plan_code FROM plan_settings WHERE stripe_price_id = %s OR stripe_price_id_sandbox = %s",
+            (price_id, price_id)
         )
         row = cur.fetchone()
         return row["plan_code"] if row else None

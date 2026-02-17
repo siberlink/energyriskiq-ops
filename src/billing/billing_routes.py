@@ -16,7 +16,10 @@ from src.billing.stripe_client import (
     cancel_subscription,
     update_subscription,
     get_subscription,
-    construct_webhook_event
+    construct_webhook_event,
+    get_webhook_secret,
+    get_stripe_mode,
+    get_plan_stripe_ids
 )
 from src.billing.webhook_handler import process_webhook_event
 from src.plans.plan_helpers import apply_plan_settings_to_user
@@ -48,26 +51,50 @@ def get_user_from_token(token: Optional[str]):
 
 
 def get_plan_with_stripe_ids(plan_code: str):
+    mode = get_stripe_mode()
     with get_cursor(commit=False) as cur:
-        cur.execute("""
-            SELECT plan_code, display_name, monthly_price_usd, currency, 
-                   stripe_product_id, stripe_price_id, allowed_alert_types, max_regions
-            FROM plan_settings 
-            WHERE plan_code = %s
-        """, (plan_code,))
+        if mode == "sandbox":
+            cur.execute("""
+                SELECT plan_code, display_name, monthly_price_usd, currency, 
+                       stripe_product_id_sandbox as stripe_product_id,
+                       stripe_price_id_sandbox as stripe_price_id,
+                       allowed_alert_types, max_regions
+                FROM plan_settings 
+                WHERE plan_code = %s
+            """, (plan_code,))
+        else:
+            cur.execute("""
+                SELECT plan_code, display_name, monthly_price_usd, currency, 
+                       stripe_product_id, stripe_price_id, allowed_alert_types, max_regions
+                FROM plan_settings 
+                WHERE plan_code = %s
+            """, (plan_code,))
         return cur.fetchone()
 
 
 def get_all_plans():
+    mode = get_stripe_mode()
     with get_cursor(commit=False) as cur:
-        cur.execute("""
-            SELECT plan_code, display_name, monthly_price_usd as price, currency,
-                   stripe_product_id, stripe_price_id, allowed_alert_types, max_regions,
-                   max_email_alerts_per_day, delivery_config
-            FROM plan_settings 
-            WHERE is_active = TRUE
-            ORDER BY monthly_price_usd ASC
-        """)
+        if mode == "sandbox":
+            cur.execute("""
+                SELECT plan_code, display_name, monthly_price_usd as price, currency,
+                       stripe_product_id_sandbox as stripe_product_id,
+                       stripe_price_id_sandbox as stripe_price_id,
+                       allowed_alert_types, max_regions,
+                       max_email_alerts_per_day, delivery_config
+                FROM plan_settings 
+                WHERE is_active = TRUE
+                ORDER BY monthly_price_usd ASC
+            """)
+        else:
+            cur.execute("""
+                SELECT plan_code, display_name, monthly_price_usd as price, currency,
+                       stripe_product_id, stripe_price_id, allowed_alert_types, max_regions,
+                       max_email_alerts_per_day, delivery_config
+                FROM plan_settings 
+                WHERE is_active = TRUE
+                ORDER BY monthly_price_usd ASC
+            """)
         return cur.fetchall()
 
 
@@ -329,9 +356,10 @@ async def stripe_webhook(request: Request):
     if not sig_header:
         raise HTTPException(status_code=400, detail="Missing stripe-signature header")
     
-    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    webhook_secret = get_webhook_secret()
     if not webhook_secret:
-        logger.error("STRIPE_WEBHOOK_SECRET not configured - rejecting webhook")
+        mode = get_stripe_mode()
+        logger.error(f"Webhook secret not configured for {mode} mode - rejecting webhook")
         raise HTTPException(status_code=500, detail="Webhook not configured")
     
     try:

@@ -2,6 +2,7 @@ import os
 import secrets
 import hashlib
 import time
+import logging
 from fastapi import APIRouter, HTTPException, Header
 from typing import Optional, List
 from pydantic import BaseModel
@@ -13,6 +14,10 @@ from src.plans.plan_helpers import (
     VALID_PLAN_CODES,
     ALL_ALERT_TYPES
 )
+from src.db.db import get_cursor
+from src.billing.stripe_client import get_stripe_mode, set_stripe_mode
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -164,4 +169,114 @@ def update_single_plan_settings(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class StripeModeUpdate(BaseModel):
+    mode: str
+
+
+class SandboxIdsUpdate(BaseModel):
+    product_id: Optional[str] = None
+    price_id: Optional[str] = None
+
+
+@router.get("/stripe-mode")
+def get_stripe_mode_status(x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    mode = get_stripe_mode()
+
+    live_configured = bool(os.environ.get("STRIPE_SECRET_KEY") and os.environ.get("STRIPE_PUBLISHABLE_KEY"))
+    sandbox_configured = bool(os.environ.get("STRIPE_SANDBOX_SECRET_KEY") and os.environ.get("STRIPE_SANDBOX_PUBLISHABLE_KEY"))
+    live_webhook = bool(os.environ.get("STRIPE_WEBHOOK_SECRET"))
+    sandbox_webhook = bool(os.environ.get("STRIPE_SANDBOX_WEBHOOK_SECRET"))
+
+    with get_cursor(commit=False) as cursor:
+        cursor.execute("""
+            SELECT plan_code, display_name,
+                   stripe_product_id, stripe_price_id,
+                   stripe_product_id_sandbox, stripe_price_id_sandbox
+            FROM plan_settings
+            WHERE plan_code != 'free'
+            ORDER BY monthly_price_usd ASC
+        """)
+        plans = cursor.fetchall()
+
+    return {
+        "mode": mode,
+        "live": {
+            "keys_configured": live_configured,
+            "webhook_configured": live_webhook
+        },
+        "sandbox": {
+            "keys_configured": sandbox_configured,
+            "webhook_configured": sandbox_webhook
+        },
+        "plans": [
+            {
+                "plan_code": p["plan_code"],
+                "display_name": p["display_name"],
+                "live_product_id": p["stripe_product_id"] or "",
+                "live_price_id": p["stripe_price_id"] or "",
+                "sandbox_product_id": p["stripe_product_id_sandbox"] or "",
+                "sandbox_price_id": p["stripe_price_id_sandbox"] or ""
+            }
+            for p in plans
+        ]
+    }
+
+
+@router.put("/stripe-mode")
+def update_stripe_mode(body: StripeModeUpdate, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+
+    if body.mode not in ("live", "sandbox"):
+        raise HTTPException(status_code=400, detail="Mode must be 'live' or 'sandbox'")
+
+    if body.mode == "sandbox":
+        if not os.environ.get("STRIPE_SANDBOX_SECRET_KEY") or not os.environ.get("STRIPE_SANDBOX_PUBLISHABLE_KEY"):
+            raise HTTPException(status_code=400, detail="Sandbox keys not configured")
+
+    try:
+        set_stripe_mode(body.mode)
+        return {"success": True, "mode": body.mode, "message": f"Stripe mode switched to {body.mode}"}
+    except Exception as e:
+        logger.error(f"Failed to switch Stripe mode: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/stripe-sandbox-ids/{plan_code}")
+def update_sandbox_ids(
+    plan_code: str,
+    body: SandboxIdsUpdate,
+    x_admin_token: Optional[str] = Header(None)
+):
+    verify_admin_token(x_admin_token)
+
+    if plan_code not in VALID_PLAN_CODES or plan_code == "free":
+        raise HTTPException(status_code=400, detail=f"Invalid plan_code: {plan_code}")
+
+    updates = []
+    params = []
+    if body.product_id is not None:
+        updates.append("stripe_product_id_sandbox = %s")
+        params.append(body.product_id)
+    if body.price_id is not None:
+        updates.append("stripe_price_id_sandbox = %s")
+        params.append(body.price_id)
+
+    if not updates:
+        raise HTTPException(status_code=400, detail="No updates provided")
+
+    params.append(plan_code)
+
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(
+                f"UPDATE plan_settings SET {', '.join(updates)} WHERE plan_code = %s",
+                tuple(params)
+            )
+        return {"success": True, "message": f"Sandbox IDs updated for {plan_code}"}
+    except Exception as e:
+        logger.error(f"Failed to update sandbox IDs: {e}")
         raise HTTPException(status_code=500, detail=str(e))
