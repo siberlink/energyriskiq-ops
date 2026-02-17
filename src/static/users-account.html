@@ -11602,7 +11602,8 @@
             const msg = document.getElementById('trialBannerMsg');
             if (!banner || !msg) return;
             const currentPlan = currentUser?.plan || 'free';
-            if (days <= 0 || currentPlan !== 'free' || sessionStorage.getItem('trialBannerDismissed') === '1') {
+            const dismissKey = 'trialBannerDismissed_' + days;
+            if (days <= 0 || currentPlan !== 'free' || sessionStorage.getItem(dismissKey) === '1') {
                 banner.style.display = 'none';
                 document.body.classList.remove('has-trial-banner');
                 return;
@@ -11619,7 +11620,11 @@
             const banner = document.getElementById('trialBanner');
             if (banner) banner.style.display = 'none';
             document.body.classList.remove('has-trial-banner');
-            sessionStorage.setItem('trialBannerDismissed', '1');
+            if (cachedFreeTrialDays > 0) {
+                sessionStorage.setItem('trialBannerDismissed_' + cachedFreeTrialDays, '1');
+            }
+            const ub = document.getElementById('upgradeBanner');
+            if (ub && (currentUser?.plan || 'free') === 'free') ub.style.display = 'flex';
         }
 
         function renderPlans(plans, freeTrialDays) {
