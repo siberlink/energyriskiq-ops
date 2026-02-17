@@ -15,7 +15,7 @@ from src.plans.plan_helpers import (
     ALL_ALERT_TYPES
 )
 from src.db.db import get_cursor
-from src.billing.stripe_client import get_stripe_mode, set_stripe_mode, get_free_trial_days, set_free_trial_days
+from src.billing.stripe_client import get_stripe_mode, set_stripe_mode, get_free_trial_days, set_free_trial_days, get_banner_settings, set_banner_settings
 
 logger = logging.getLogger(__name__)
 
@@ -306,4 +306,29 @@ def update_free_trial(body: FreeTrialUpdate, x_admin_token: Optional[str] = Head
         return {"success": True, "days": body.days, "message": label}
     except Exception as e:
         logger.error(f"Failed to update free trial: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class BannerSettingsUpdate(BaseModel):
+    enabled: bool
+    timeframe_days: int = 0
+
+
+@router.get("/banner-settings")
+def get_banner_settings_endpoint(x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    settings = get_banner_settings()
+    return settings
+
+
+@router.put("/banner-settings")
+def update_banner_settings_endpoint(body: BannerSettingsUpdate, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    if body.timeframe_days < 0:
+        raise HTTPException(status_code=400, detail="Timeframe days must be >= 0")
+    try:
+        result = set_banner_settings(body.enabled, body.timeframe_days)
+        return {"success": True, **result}
+    except Exception as e:
+        logger.error(f"Failed to update banner settings: {e}")
         raise HTTPException(status_code=500, detail=str(e))

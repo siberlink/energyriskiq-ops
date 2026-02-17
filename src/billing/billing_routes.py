@@ -20,7 +20,8 @@ from src.billing.stripe_client import (
     get_webhook_secret,
     get_stripe_mode,
     get_plan_stripe_ids,
-    get_free_trial_days
+    get_free_trial_days,
+    get_banner_settings
 )
 from src.billing.webhook_handler import process_webhook_event
 from src.plans.plan_helpers import apply_plan_settings_to_user
@@ -128,8 +129,11 @@ async def seed_stripe_products(x_internal_token: Optional[str] = Header(None)):
 async def list_plans():
     plans = get_all_plans()
     trial_days = get_free_trial_days()
+    banner = get_banner_settings()
     return {
         "free_trial_days": trial_days,
+        "banner_enabled": banner["banner_enabled"],
+        "banner_countdown_end": banner["banner_countdown_end"],
         "plans": [
             {
                 "plan_code": p["plan_code"],

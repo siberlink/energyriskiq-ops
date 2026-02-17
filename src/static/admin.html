@@ -1022,6 +1022,16 @@
                     </span>
                     Stripe Settings
                 </div>
+                <div class="nav-item" onclick="showSection('banner')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="4" rx="1"/>
+                            <path d="M4 7v11a2 2 0 002 2h12a2 2 0 002-2V7"/>
+                            <line x1="10" y1="11" x2="14" y2="11"/>
+                        </svg>
+                    </span>
+                    Banner Settings
+                </div>
                 <div class="nav-item" onclick="showSection('api')">
                     <span class="nav-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1275,6 +1285,56 @@
                 </div>
             </div>
 
+            <!-- Banner Settings Section -->
+            <div class="section-content" id="section-banner">
+                <div class="page-header">
+                    <h1 class="page-title">Banner Settings</h1>
+                    <p class="page-subtitle">Manage promotional banners displayed to users</p>
+                </div>
+
+                <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;margin-bottom:24px;">
+                    <h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:#e2e8f0;">One Time Offer - Free Trial</h3>
+                    <p style="font-size:12px;color:#94a3b8;margin-bottom:20px;">Control the "Limited Time Offer" banner shown to free-plan users across all account pages.</p>
+
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;">
+                        <span style="font-size:14px;font-weight:500;color:#e2e8f0;">Show Banner:</span>
+                        <label style="position:relative;display:inline-block;width:52px;height:28px;cursor:pointer;">
+                            <input type="checkbox" id="bannerEnabledToggle" onchange="toggleBannerEnabled()" style="opacity:0;width:0;height:0;">
+                            <span id="bannerToggleTrack" style="position:absolute;inset:0;background:#475569;border-radius:14px;transition:all .3s;"></span>
+                            <span id="bannerToggleThumb" style="position:absolute;top:2px;left:2px;width:24px;height:24px;background:#fff;border-radius:50%;transition:all .3s;"></span>
+                        </label>
+                        <span id="bannerStatusLabel" style="font-size:14px;font-weight:600;color:#94a3b8;">OFF</span>
+                    </div>
+
+                    <div style="border-top:1px solid #334155;padding-top:20px;">
+                        <div style="margin-bottom:12px;">
+                            <span style="font-size:14px;font-weight:500;color:#e2e8f0;">Countdown Time Frame</span>
+                            <p style="font-size:12px;color:#94a3b8;margin-top:4px;">Set a countdown period displayed next to "LIMITED TIME OFFER". Leave at 0 for no countdown.</p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                            <input type="number" id="bannerTimeframeDays" min="0" max="365" value="0" style="width:80px;padding:8px 12px;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#e2e8f0;font-size:14px;text-align:center;">
+                            <span style="font-size:14px;color:#94a3b8;">days</span>
+                            <button onclick="saveBannerSettings()" style="padding:8px 24px;border-radius:6px;border:none;background:#3b82f6;color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;">Save & Activate</button>
+                        </div>
+                    </div>
+
+                    <div style="border-top:1px solid #334155;padding-top:20px;">
+                        <div style="font-size:13px;font-weight:500;color:#94a3b8;margin-bottom:8px;">Current Status</div>
+                        <div id="bannerCurrentStatus" style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:16px;">
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <span id="bannerStatusDot" style="width:10px;height:10px;border-radius:50%;background:#475569;"></span>
+                                <span id="bannerStatusText" style="font-size:14px;color:#e2e8f0;">Loading...</span>
+                            </div>
+                            <div id="bannerCountdownPreview" style="margin-top:12px;display:none;">
+                                <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Countdown ends at:</div>
+                                <div id="bannerCountdownEndTime" style="font-size:14px;color:#f59e0b;font-weight:600;"></div>
+                                <div id="bannerCountdownLive" style="font-size:20px;color:#f59e0b;font-weight:700;margin-top:8px;font-family:monospace;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- API Section -->
             <div class="section-content" id="section-api">
                 <div class="page-header">
@@ -1489,6 +1549,8 @@
                 loadFeedHealth();
             } else if (sectionId === 'stripe') {
                 loadStripeSettings();
+            } else if (sectionId === 'banner') {
+                loadBannerSettings();
             }
         }
 
@@ -2027,6 +2089,114 @@
                 alert('Sandbox IDs saved for ' + planCode);
             } catch (e) {
                 alert('Error: ' + e.message);
+            }
+        }
+
+        let bannerCountdownInterval = null;
+
+        async function loadBannerSettings() {
+            try {
+                const res = await fetch('/admin/banner-settings', {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                updateBannerUI(data);
+            } catch (e) {
+                console.error('Error loading banner settings:', e);
+                showToast('Failed to load banner settings', 'error');
+            }
+        }
+
+        function updateBannerUI(data) {
+            const toggle = document.getElementById('bannerEnabledToggle');
+            const track = document.getElementById('bannerToggleTrack');
+            const thumb = document.getElementById('bannerToggleThumb');
+            const label = document.getElementById('bannerStatusLabel');
+            const dot = document.getElementById('bannerStatusDot');
+            const statusText = document.getElementById('bannerStatusText');
+            const cdPreview = document.getElementById('bannerCountdownPreview');
+            const cdEndTime = document.getElementById('bannerCountdownEndTime');
+            const cdLive = document.getElementById('bannerCountdownLive');
+
+            toggle.checked = data.banner_enabled;
+            if (data.banner_enabled) {
+                track.style.background = '#3b82f6';
+                thumb.style.left = '26px';
+                label.textContent = 'ON';
+                label.style.color = '#3b82f6';
+                dot.style.background = '#22c55e';
+                statusText.textContent = 'Banner is ACTIVE';
+            } else {
+                track.style.background = '#475569';
+                thumb.style.left = '2px';
+                label.textContent = 'OFF';
+                label.style.color = '#94a3b8';
+                dot.style.background = '#475569';
+                statusText.textContent = 'Banner is OFF';
+            }
+
+            if (bannerCountdownInterval) clearInterval(bannerCountdownInterval);
+
+            if (data.banner_countdown_end && data.banner_countdown_end !== '') {
+                const endDate = new Date(data.banner_countdown_end);
+                cdPreview.style.display = 'block';
+                cdEndTime.textContent = endDate.toLocaleString();
+
+                function updateCountdown() {
+                    const now = new Date();
+                    const diff = endDate - now;
+                    if (diff <= 0) {
+                        cdLive.textContent = '00 days : 00 hours : 00 min : 00 seconds';
+                        clearInterval(bannerCountdownInterval);
+                        return;
+                    }
+                    const d = Math.floor(diff / 86400000);
+                    const h = Math.floor((diff % 86400000) / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    cdLive.textContent = String(d).padStart(2, '0') + ' days : ' + String(h).padStart(2, '0') + ' hours : ' + String(m).padStart(2, '0') + ' min : ' + String(s).padStart(2, '0') + ' seconds';
+                }
+                updateCountdown();
+                bannerCountdownInterval = setInterval(updateCountdown, 1000);
+            } else {
+                cdPreview.style.display = 'none';
+            }
+        }
+
+        function toggleBannerEnabled() {
+            const toggle = document.getElementById('bannerEnabledToggle');
+            const track = document.getElementById('bannerToggleTrack');
+            const thumb = document.getElementById('bannerToggleThumb');
+            const label = document.getElementById('bannerStatusLabel');
+            if (toggle.checked) {
+                track.style.background = '#3b82f6';
+                thumb.style.left = '26px';
+                label.textContent = 'ON';
+                label.style.color = '#3b82f6';
+            } else {
+                track.style.background = '#475569';
+                thumb.style.left = '2px';
+                label.textContent = 'OFF';
+                label.style.color = '#94a3b8';
+            }
+        }
+
+        async function saveBannerSettings() {
+            const enabled = document.getElementById('bannerEnabledToggle').checked;
+            const days = parseInt(document.getElementById('bannerTimeframeDays').value) || 0;
+            try {
+                const res = await fetch('/admin/banner-settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
+                    body: JSON.stringify({ enabled, timeframe_days: days })
+                });
+                const data = await res.json();
+                if (!res.ok) { showToast(data.detail || 'Failed to save', 'error'); return; }
+                showToast('Banner settings saved successfully', 'success');
+                loadBannerSettings();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
             }
         }
 

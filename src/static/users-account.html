@@ -4635,7 +4635,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
             </div>
             <div class="trial-banner-text">
-                <span class="trial-banner-headline">Limited Time Offer</span>
+                <span class="trial-banner-headline">Limited Time Offer <span id="trialCountdown" style="display:none;font-size:11px;font-weight:600;color:#fbbf24;margin-left:8px;font-family:monospace;letter-spacing:0.5px;"></span></span>
                 <span class="trial-banner-msg" id="trialBannerMsg"></span>
             </div>
             <button class="trial-banner-cta" onclick="showSection('plans'); closeMobileMenu();">Take Offer Today</button>
@@ -6064,6 +6064,8 @@
                 if (plansResponse.ok) {
                     plansData = await plansResponse.json();
                     cachedFreeTrialDays = plansData.free_trial_days || 0;
+                    cachedBannerEnabled = !!plansData.banner_enabled;
+                    cachedBannerCountdownEnd = plansData.banner_countdown_end || null;
                 }
                 
                 updateUI();
@@ -11406,6 +11408,8 @@
             try {
                 const response = await fetch('/billing/plans');
                 const data = await response.json();
+                cachedBannerEnabled = !!data.banner_enabled;
+                cachedBannerCountdownEnd = data.banner_countdown_end || null;
                 renderPlans(data.plans || [], data.free_trial_days || 0);
             } catch (error) {
                 console.error('Error loading plans:', error);
@@ -11605,6 +11609,9 @@
         }
 
         let cachedFreeTrialDays = 0;
+        let cachedBannerEnabled = false;
+        let cachedBannerCountdownEnd = null;
+        let trialCountdownInterval = null;
 
         function showTrialBanner(days) {
             const banner = document.getElementById('trialBanner');
@@ -11612,23 +11619,73 @@
             if (!banner || !msg) return;
             const currentPlan = currentUser?.plan || 'free';
             const dismissKey = 'trialBannerDismissed_' + days;
-            if (days <= 0 || currentPlan !== 'free' || sessionStorage.getItem(dismissKey) === '1') {
+
+            if (!cachedBannerEnabled || days <= 0 || currentPlan !== 'free' || sessionStorage.getItem(dismissKey) === '1') {
                 banner.style.display = 'none';
                 document.body.classList.remove('has-trial-banner');
+                if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
                 return;
             }
+
+            if (cachedBannerCountdownEnd && cachedBannerCountdownEnd !== '') {
+                const endDate = new Date(cachedBannerCountdownEnd);
+                const now = new Date();
+                if (endDate <= now) {
+                    banner.style.display = 'none';
+                    document.body.classList.remove('has-trial-banner');
+                    return;
+                }
+            }
+
             msg.textContent = `For the next ${days} days you can try our Institutional Grade Indices & Daily Intelligence Digest`;
             banner.style.display = 'block';
             document.body.classList.add('has-trial-banner');
 
             const ub = document.getElementById('upgradeBanner');
             if (ub) ub.style.display = 'none';
+
+            startTrialCountdown();
+        }
+
+        function startTrialCountdown() {
+            if (trialCountdownInterval) clearInterval(trialCountdownInterval);
+            const cdEl = document.getElementById('trialCountdown');
+            if (!cdEl) return;
+
+            if (!cachedBannerCountdownEnd || cachedBannerCountdownEnd === '') {
+                cdEl.style.display = 'none';
+                return;
+            }
+
+            const endDate = new Date(cachedBannerCountdownEnd);
+            cdEl.style.display = 'inline';
+
+            function tick() {
+                const now = new Date();
+                const diff = endDate - now;
+                if (diff <= 0) {
+                    cdEl.textContent = '00 days : 00 hours : 00 min : 00 seconds';
+                    clearInterval(trialCountdownInterval);
+                    const banner = document.getElementById('trialBanner');
+                    if (banner) banner.style.display = 'none';
+                    document.body.classList.remove('has-trial-banner');
+                    return;
+                }
+                const d = Math.floor(diff / 86400000);
+                const h = Math.floor((diff % 86400000) / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                cdEl.textContent = String(d).padStart(2, '0') + ' days : ' + String(h).padStart(2, '0') + ' hours : ' + String(m).padStart(2, '0') + ' min : ' + String(s).padStart(2, '0') + ' seconds';
+            }
+            tick();
+            trialCountdownInterval = setInterval(tick, 1000);
         }
 
         function dismissTrialBanner() {
             const banner = document.getElementById('trialBanner');
             if (banner) banner.style.display = 'none';
             document.body.classList.remove('has-trial-banner');
+            if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
             if (cachedFreeTrialDays > 0) {
                 sessionStorage.setItem('trialBannerDismissed_' + cachedFreeTrialDays, '1');
             }

@@ -214,6 +214,47 @@ def set_free_trial_days(days: int) -> bool:
     return True
 
 
+def get_banner_settings() -> dict:
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute("SELECT value FROM app_settings WHERE key = 'banner_enabled'")
+            row = cursor.fetchone()
+            enabled = row["value"] == "true" if row else False
+
+            cursor.execute("SELECT value FROM app_settings WHERE key = 'banner_countdown_end'")
+            row2 = cursor.fetchone()
+            countdown_end = row2["value"] if row2 else None
+
+            return {"banner_enabled": enabled, "banner_countdown_end": countdown_end}
+    except Exception:
+        return {"banner_enabled": False, "banner_countdown_end": None}
+
+
+def set_banner_settings(enabled: bool, timeframe_days: int = 0) -> dict:
+    import datetime
+    with get_cursor() as cursor:
+        val = "true" if enabled else "false"
+        cursor.execute("""
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES ('banner_enabled', %s, NOW())
+            ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = NOW()
+        """, (val, val))
+
+        if timeframe_days > 0 and enabled:
+            end_time = (datetime.datetime.utcnow() + datetime.timedelta(days=timeframe_days)).isoformat() + "Z"
+        else:
+            end_time = ""
+
+        cursor.execute("""
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES ('banner_countdown_end', %s, NOW())
+            ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = NOW()
+        """, (end_time, end_time))
+
+    logger.info(f"Banner settings updated: enabled={enabled}, timeframe_days={timeframe_days}")
+    return get_banner_settings()
+
+
 async def create_checkout_session(
     customer_id: str,
     price_id: str,
