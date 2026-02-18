@@ -34,6 +34,7 @@ You have access to:
 7. **Competitive Positioning** — How to position EnergyRiskIQ's unique indices and intelligence capabilities
 8. **Campaign Planning** — Email marketing, social media, partnerships, and outreach strategies
 9. **Visual Analysis** — Analyze uploaded screenshots, charts, competitor pages, and marketing materials to provide data-driven insights
+10. **Image Generation** — Generate custom marketing images, banners, and social media visuals using DALL-E 3, with platform-specific sizing for LinkedIn, Facebook, X/Twitter, and custom dimensions
 
 ## Cross-Topic Memory
 You have access to conversations from ALL previous topics, not just the current one. Use this to:
@@ -69,6 +70,20 @@ When analyzing or recommending:
 - Never expose sensitive user data (names, emails) — only aggregate metrics"""
 
 MAX_RESPONSE_TOKENS = 6000
+
+PLATFORM_PRESETS = {
+    "linkedin_post": {"name": "LinkedIn Post", "dalle_size": "1024x1024", "display": "1200×1200"},
+    "linkedin_banner": {"name": "LinkedIn Banner", "dalle_size": "1792x1024", "display": "1584×396 (generated 1792×1024, crop to fit)"},
+    "linkedin_cover": {"name": "LinkedIn Cover", "dalle_size": "1792x1024", "display": "1128×191 (generated 1792×1024, crop to fit)"},
+    "facebook_post": {"name": "Facebook Post", "dalle_size": "1792x1024", "display": "1200×630"},
+    "facebook_cover": {"name": "Facebook Cover", "dalle_size": "1792x1024", "display": "820×312 (generated 1792×1024, crop to fit)"},
+    "twitter_post": {"name": "X/Twitter Post", "dalle_size": "1792x1024", "display": "1600×900"},
+    "twitter_header": {"name": "X/Twitter Header", "dalle_size": "1792x1024", "display": "1500×500 (generated 1792×1024, crop to fit)"},
+    "square": {"name": "Square (1:1)", "dalle_size": "1024x1024", "display": "1024×1024"},
+    "landscape": {"name": "Landscape (16:9)", "dalle_size": "1792x1024", "display": "1792×1024"},
+    "portrait": {"name": "Portrait (9:16)", "dalle_size": "1024x1792", "display": "1024×1792"},
+    "banner_wide": {"name": "Wide Banner", "dalle_size": "1792x1024", "display": "1792×1024"},
+}
 
 
 def _get_direct_client() -> Optional[OpenAI]:
@@ -269,3 +284,62 @@ def get_topic_history(topic_id: int, limit: int = 50) -> list:
         "tokens_used": r["tokens_used"],
         "created_at": r["created_at"].isoformat() if r["created_at"] else None,
     } for r in rows]
+
+
+def get_platform_presets() -> dict:
+    return PLATFORM_PRESETS
+
+
+def generate_elsa_image(prompt: str, platform: str = "square", quality: str = "standard", style: str = "vivid") -> dict:
+    preset = PLATFORM_PRESETS.get(platform, PLATFORM_PRESETS["square"])
+    dalle_size = preset["dalle_size"]
+
+    client = _get_direct_client()
+    if not client:
+        raise RuntimeError("No OpenAI API key available for image generation. DALL-E requires a direct OpenAI key.")
+
+    enhanced_prompt = (
+        f"Professional marketing image for the energy risk intelligence industry. "
+        f"Brand: EnergyRiskIQ. {prompt}. "
+        f"The image should be clean, modern, professional, and suitable for {preset['name']} use. "
+        f"Use a dark blue, purple, and teal color palette where appropriate."
+    )
+
+    logger.info(f"ELSA generating image: platform={platform}, size={dalle_size}, quality={quality}")
+
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=enhanced_prompt,
+            size=dalle_size,
+            quality=quality,
+            style=style,
+            n=1,
+            response_format="url",
+        )
+
+        image_url = response.data[0].url
+        revised_prompt = response.data[0].revised_prompt
+
+        logger.info(f"ELSA image generated successfully for {preset['name']}")
+
+        return {
+            "success": True,
+            "image_url": image_url,
+            "revised_prompt": revised_prompt,
+            "platform": platform,
+            "platform_name": preset["name"],
+            "size": dalle_size,
+            "display_size": preset["display"],
+            "quality": quality,
+            "style": style,
+        }
+
+    except Exception as e:
+        logger.error(f"ELSA image generation failed: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "platform": platform,
+            "platform_name": preset["name"],
+        }

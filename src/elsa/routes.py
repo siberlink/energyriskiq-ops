@@ -5,7 +5,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 from src.api.admin_routes import verify_admin_token
-from src.elsa.agent import ask_elsa_stream, create_topic, get_topics, get_topic_history
+from src.elsa.agent import ask_elsa_stream, create_topic, get_topics, get_topic_history, generate_elsa_image, get_platform_presets
 from src.elsa.knowledge_base import load_elsa_knowledge_base
 
 logger = logging.getLogger(__name__)
@@ -94,3 +94,58 @@ def elsa_topic_history(topic_id: int, x_admin_token: Optional[str] = Header(None
     verify_admin_token(x_admin_token)
     history = get_topic_history(topic_id, limit=100)
     return {"messages": history}
+
+
+class ElsaImageRequest(BaseModel):
+    prompt: str
+    platform: Optional[str] = "square"
+    quality: Optional[str] = "standard"
+    style: Optional[str] = "vivid"
+
+
+@router.get("/image/presets")
+def elsa_image_presets(x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    presets = get_platform_presets()
+    return {"presets": {k: {"name": v["name"], "display": v["display"]} for k, v in presets.items()}}
+
+
+VALID_QUALITIES = {"standard", "hd"}
+VALID_STYLES = {"vivid", "natural"}
+VALID_PLATFORMS = set(get_platform_presets().keys())
+
+
+@router.post("/image/generate")
+def elsa_generate_image(body: ElsaImageRequest, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+
+    prompt = body.prompt.strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="Image prompt cannot be empty")
+    if len(prompt) > 3000:
+        raise HTTPException(status_code=400, detail="Prompt is too long (max 3000 characters)")
+
+    quality = body.quality or "standard"
+    style = body.style or "vivid"
+    platform = body.platform or "square"
+
+    if quality not in VALID_QUALITIES:
+        raise HTTPException(status_code=400, detail=f"Invalid quality. Must be one of: {', '.join(VALID_QUALITIES)}")
+    if style not in VALID_STYLES:
+        raise HTTPException(status_code=400, detail=f"Invalid style. Must be one of: {', '.join(VALID_STYLES)}")
+    if platform not in VALID_PLATFORMS:
+        raise HTTPException(status_code=400, detail=f"Invalid platform. Must be one of: {', '.join(sorted(VALID_PLATFORMS))}")
+
+    try:
+        result = generate_elsa_image(
+            prompt=prompt,
+            platform=platform,
+            quality=quality,
+            style=style,
+        )
+        return result
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"ELSA image generation route failed: {e}")
+        raise HTTPException(status_code=500, detail="Image generation failed. Please try again.")
