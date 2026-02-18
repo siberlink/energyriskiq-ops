@@ -169,26 +169,48 @@ def _get_seo_metrics() -> str:
 
 
 def get_past_elsa_conversations(topic_id: int = None, limit: int = 10) -> str:
+    parts = []
+
     if topic_id:
-        rows = execute_query("""
+        current_rows = execute_query("""
             SELECT question, response, created_at FROM elsa_conversations
             WHERE topic_id = %s ORDER BY created_at DESC LIMIT %s
         """, (topic_id, limit)) or []
-    else:
-        rows = execute_query("""
-            SELECT question, response, created_at FROM elsa_conversations
-            ORDER BY created_at DESC LIMIT %s
-        """, (limit,)) or []
 
-    if not rows:
+        if current_rows:
+            parts.append("=== CURRENT TOPIC CONVERSATION HISTORY ===")
+            for r in reversed(current_rows):
+                parts.append(f"[{r['created_at']}] Q: {r['question']}")
+                resp = r['response'] or ""
+                if len(resp) > 500:
+                    resp = resp[:500] + "..."
+                parts.append(f"A: {resp}")
+
+    cross_topic_rows = execute_query("""
+        SELECT c.question, c.response, c.created_at, t.title as topic_title
+        FROM elsa_conversations c
+        JOIN elsa_topics t ON c.topic_id = t.id
+        WHERE (%s IS NULL OR c.topic_id != %s)
+        ORDER BY c.created_at DESC
+        LIMIT 20
+    """, (topic_id, topic_id)) or []
+
+    if cross_topic_rows:
+        parts.append("\n=== ELSA CROSS-TOPIC MEMORY (Insights from all past discussions) ===")
+        parts.append("Use these past insights to maintain continuity across topics and build on previous recommendations.")
+        seen_topics = set()
+        for r in cross_topic_rows:
+            topic_title = r.get('topic_title', 'Unknown')
+            if topic_title not in seen_topics:
+                seen_topics.add(topic_title)
+                parts.append(f"\n--- Topic: {topic_title} ---")
+            parts.append(f"[{r['created_at']}] Q: {r['question']}")
+            resp = r['response'] or ""
+            if len(resp) > 400:
+                resp = resp[:400] + "..."
+            parts.append(f"A: {resp}")
+
+    if not parts:
         return ""
-
-    parts = ["=== ELSA PAST CONVERSATIONS (Memory) ==="]
-    for r in reversed(rows):
-        parts.append(f"[{r['created_at']}] Q: {r['question']}")
-        resp = r['response'] or ""
-        if len(resp) > 500:
-            resp = resp[:500] + "..."
-        parts.append(f"A: {resp}")
 
     return "\n".join(parts)

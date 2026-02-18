@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Optional, List
+from typing import Optional, List, Generator
 from openai import OpenAI
 
 from src.elsa.knowledge_base import (
@@ -20,8 +20,9 @@ You are a senior marketing strategist, business intelligence expert, and growth 
 You have access to:
 1. **Product Documentation** — All documents from /docs and /ERIQ directories describing the platform's indices (GERI, EERI, EGSI), features, methodology, and architecture
 2. **Production Database** — Live business metrics including user counts, plan distribution, revenue, content metrics, alert volumes, ERIQ bot usage, and SEO data
-3. **Past Conversations** — Your previous conversations and insights, allowing you to build on past analyses and track recommendations over time
+3. **Past Conversations (Cross-Topic Memory)** — Your previous conversations from ALL topics, allowing you to build on past analyses, recall strategic decisions, and maintain continuity across different discussion threads
 4. **App Pages** — Understanding of all public-facing pages, dashboards, and user-facing features
+5. **Uploaded Images** — When the admin shares screenshots, charts, competitor pages, or marketing materials, you can analyze them visually
 
 ## Core Capabilities
 1. **Marketing Strategy** — Campaign ideas, positioning, messaging, competitive analysis
@@ -32,6 +33,14 @@ You have access to:
 6. **Product Insights** — Feature adoption analysis, user engagement patterns, feature prioritization input
 7. **Competitive Positioning** — How to position EnergyRiskIQ's unique indices and intelligence capabilities
 8. **Campaign Planning** — Email marketing, social media, partnerships, and outreach strategies
+9. **Visual Analysis** — Analyze uploaded screenshots, charts, competitor pages, and marketing materials to provide data-driven insights
+
+## Cross-Topic Memory
+You have access to conversations from ALL previous topics, not just the current one. Use this to:
+- Reference past recommendations and check if they were followed up on
+- Maintain consistency across different strategic discussions
+- Connect insights from different areas (e.g., SEO insights informing content strategy)
+- Build on previously discussed marketing channel setups when advising on other channels
 
 ## Communication Style
 - **Strategic and actionable** — Every insight should come with clear next steps
@@ -77,34 +86,36 @@ def _get_proxy_client() -> Optional[OpenAI]:
     return None
 
 
-def _call_model(messages: list, max_tokens: int):
+def _call_model_stream(messages: list, max_tokens: int) -> Generator:
     direct_client = _get_direct_client()
     if direct_client:
         try:
-            response = direct_client.chat.completions.create(
+            stream = direct_client.chat.completions.create(
                 model="gpt-5.1",
                 messages=messages,
                 max_completion_tokens=max_tokens,
+                stream=True,
             )
-            logger.info("ELSA used GPT-5.1 via direct OpenAI key")
-            return response
+            logger.info("ELSA streaming GPT-5.1 via direct OpenAI key")
+            return stream
         except Exception as e:
-            logger.warning(f"Direct OpenAI GPT-5.1 failed ({e}), falling back to proxy model")
+            logger.warning(f"Direct OpenAI GPT-5.1 streaming failed ({e}), falling back to proxy model")
 
     proxy_client = _get_proxy_client()
     if proxy_client:
-        response = proxy_client.chat.completions.create(
+        stream = proxy_client.chat.completions.create(
             model="gpt-4.1-mini",
             messages=messages,
             max_tokens=max_tokens,
+            stream=True,
         )
-        logger.info("ELSA used gpt-4.1-mini via platform proxy")
-        return response
+        logger.info("ELSA streaming gpt-4.1-mini via platform proxy")
+        return stream
 
     raise RuntimeError("No OpenAI client available for ELSA")
 
 
-def ask_elsa(question: str, topic_id: int = None, conversation_history: List[dict] = None) -> dict:
+def _build_messages(question: str, topic_id: int = None, conversation_history: List[dict] = None, image_data: str = None) -> list:
     try:
         relevant_docs = retrieve_relevant_elsa_docs(question, top_k=6)
         knowledge_text = format_elsa_knowledge(relevant_docs)
@@ -124,17 +135,6 @@ def ask_elsa(question: str, topic_id: int = None, conversation_history: List[dic
         logger.error(f"ELSA past conversations failed: {e}")
         past_convos = ""
 
-    if not topic_id:
-        try:
-            auto_title = question[:60].strip()
-            if len(question) > 60:
-                auto_title += "..."
-            topic = create_topic(auto_title)
-            topic_id = topic["id"]
-            logger.info(f"ELSA auto-created topic '{auto_title}' (id={topic_id})")
-        except Exception as e:
-            logger.warning(f"ELSA auto-topic creation failed: {e}")
-
     messages = [{"role": "system", "content": ELSA_SYSTEM_PROMPT}]
 
     if knowledge_text:
@@ -152,33 +152,62 @@ def ask_elsa(question: str, topic_id: int = None, conversation_history: List[dic
             if role in ("user", "assistant") and content:
                 messages.append({"role": role, "content": content})
 
-    messages.append({"role": "user", "content": question})
+    if image_data:
+        user_content = [
+            {"type": "text", "text": question},
+            {"type": "image_url", "image_url": {"url": image_data, "detail": "high"}}
+        ]
+        messages.append({"role": "user", "content": user_content})
+    else:
+        messages.append({"role": "user", "content": question})
+
+    return messages
+
+
+def ask_elsa_stream(question: str, topic_id: int = None, conversation_history: List[dict] = None, image_data: str = None) -> Generator:
+    if not topic_id:
+        try:
+            auto_title = question[:60].strip()
+            if len(question) > 60:
+                auto_title += "..."
+            topic = create_topic(auto_title)
+            topic_id = topic["id"]
+            logger.info(f"ELSA auto-created topic '{auto_title}' (id={topic_id})")
+        except Exception as e:
+            logger.warning(f"ELSA auto-topic creation failed: {e}")
+
+    yield f"data: {_json_encode({'type': 'topic', 'topic_id': topic_id})}\n\n"
+
+    messages = _build_messages(question, topic_id, conversation_history, image_data)
 
     try:
-        response = _call_model(messages, MAX_RESPONSE_TOKENS)
-        choice = response.choices[0]
-        answer = (choice.message.content or "").strip()
-        tokens_used = response.usage.total_tokens if response.usage else 0
+        stream = _call_model_stream(messages, MAX_RESPONSE_TOKENS)
+        full_response = []
 
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0:
+                delta = chunk.choices[0].delta
+                if delta and delta.content:
+                    text = delta.content
+                    full_response.append(text)
+                    yield f"data: {_json_encode({'type': 'chunk', 'content': text})}\n\n"
+
+        answer = "".join(full_response).strip()
         if not answer:
             answer = "I wasn't able to generate a response. Could you rephrase your question?"
 
-        _save_conversation(topic_id, question, answer, tokens_used)
+        _save_conversation(topic_id, question, answer, 0)
 
-        return {
-            "success": True,
-            "response": answer,
-            "tokens_used": tokens_used,
-            "topic_id": topic_id,
-        }
+        yield f"data: {_json_encode({'type': 'done', 'topic_id': topic_id})}\n\n"
 
     except Exception as e:
-        logger.error(f"ELSA OpenAI call failed: {e}")
-        return {
-            "success": False,
-            "error": "ai_error",
-            "message": "ELSA is experiencing a temporary issue. Please try again in a moment.",
-        }
+        logger.error(f"ELSA streaming failed: {e}")
+        yield f"data: {_json_encode({'type': 'error', 'message': 'ELSA is experiencing a temporary issue. Please try again in a moment.'})}\n\n"
+
+
+def _json_encode(obj: dict) -> str:
+    import json
+    return json.dumps(obj, ensure_ascii=False)
 
 
 def _save_conversation(topic_id: int, question: str, response: str, tokens_used: int):
