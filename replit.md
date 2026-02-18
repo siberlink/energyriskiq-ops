@@ -29,6 +29,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Daily Geo-Energy Intelligence Digest:** AI-powered daily briefing on the user dashboard with plan-tiered features, generated using OpenAI gpt-4.1-mini.
 - **ERIQ Expert Analyst:** An AI-powered interpretation intelligence bot using GPT-5.1 (with gpt-4.1-mini fallback) and RAG from a knowledge base. Accessible from the dedicated ERIQ section and as contextual widgets on GERI, EERI, and EGSI dashboard pages. Context-aware: passes `page_context` (geri/eeri/egsi) to the AI so responses focus on the index the user is viewing. Includes Product Analytics & Feedback Layer, Context Assembly Layer (CAL) for plan-gated database snapshots, and per-page conversation history.
 - **ERIQ Token Economy:** Manages plan-based monthly token allowances and purchased token balances, resetting on Stripe subscription payment events.
+- **ELSA Marketing Bot:** An AI-powered marketing and business intelligence advisor (GPT-5.1 with gpt-4.1-mini fallback) for the admin dashboard. Provides strategic advice on marketing, SEO, content strategy, user growth, and revenue optimization. Has full access to production database metrics, all documentation (/docs, /ERIQ), and conversation history organized by topics. Located in `src/elsa/` with agent, knowledge_base, context, and routes modules. Database tables: `elsa_topics`, `elsa_conversations`.
 
 **System Design Choices:**
 - **Database:** PostgreSQL is used for persistence.

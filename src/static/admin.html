@@ -848,7 +848,7 @@
         }
 
         .section-content.active {
-            display: block;
+            display: block !important;
         }
 
         /* Dashboard cards */
@@ -1040,6 +1040,18 @@
                         </svg>
                     </span>
                     API Status
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">AI Assistant</div>
+                <div class="nav-item" onclick="showSection('elsa')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </span>
+                    ELSA
                 </div>
             </div>
         </nav>
@@ -1336,6 +1348,52 @@
             </div>
 
             <!-- API Section -->
+            <div class="section-content" id="section-elsa" style="height: calc(100vh - 40px); display: none;">
+                <div style="display:flex; height:100%; gap:0; overflow:hidden;">
+                    <div id="elsaTopicsPanel" style="width:260px; min-width:200px; background:#0f172a; border-right:1px solid #1e293b; display:flex; flex-direction:column; height:100%;">
+                        <div style="padding:16px; border-bottom:1px solid #1e293b; display:flex; align-items:center; justify-content:space-between;">
+                            <h3 style="margin:0; font-size:15px; color:#f1f5f9;">Topics</h3>
+                            <button onclick="elsaNewTopic()" style="background:#3b82f6; color:#fff; border:none; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer;">+ New</button>
+                        </div>
+                        <div id="elsaTopicsList" style="flex:1; overflow-y:auto; padding:8px;"></div>
+                    </div>
+
+                    <div style="flex:1; display:flex; flex-direction:column; height:100%; background:#0f172a;">
+                        <div style="padding:12px 20px; border-bottom:1px solid #1e293b; display:flex; align-items:center; gap:12px;">
+                            <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#ec4899); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:14px;">E</div>
+                            <div>
+                                <div style="font-weight:600; color:#f1f5f9; font-size:15px;">ELSA</div>
+                                <div style="font-size:11px; color:#94a3b8;">Marketing & Strategic Advisor &bull; GPT-5.1</div>
+                            </div>
+                            <div id="elsaTopicTitle" style="margin-left:auto; font-size:13px; color:#64748b; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>
+                        </div>
+
+                        <div id="elsaChatMessages" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px;">
+                            <div style="text-align:center; padding:60px 20px;">
+                                <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#ec4899); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; font-size:28px; font-weight:700; color:#fff;">E</div>
+                                <h2 style="color:#f1f5f9; margin:0 0 8px;">Hi, I'm ELSA</h2>
+                                <p style="color:#94a3b8; max-width:500px; margin:0 auto 24px; line-height:1.6;">Your Marketing & Strategic Advisor. I have access to your entire production database, all documentation, and past conversations. Ask me about growth strategy, marketing campaigns, user analytics, SEO, content planning, or anything business-related.</p>
+                                <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:600px; margin:0 auto;">
+                                    <button onclick="elsaQuickAsk('Give me a summary of our current user growth and plan distribution')" style="background:#1e293b; border:1px solid #334155; color:#cbd5e1; border-radius:8px; padding:8px 14px; font-size:12px; cursor:pointer;">User Growth Summary</button>
+                                    <button onclick="elsaQuickAsk('What marketing strategies would help convert free users to paid plans?')" style="background:#1e293b; border:1px solid #334155; color:#cbd5e1; border-radius:8px; padding:8px 14px; font-size:12px; cursor:pointer;">Conversion Strategy</button>
+                                    <button onclick="elsaQuickAsk('Analyze our SEO performance and suggest improvements')" style="background:#1e293b; border:1px solid #334155; color:#cbd5e1; border-radius:8px; padding:8px 14px; font-size:12px; cursor:pointer;">SEO Analysis</button>
+                                    <button onclick="elsaQuickAsk('Create a content calendar for the next month focused on energy risk intelligence')" style="background:#1e293b; border:1px solid #334155; color:#cbd5e1; border-radius:8px; padding:8px 14px; font-size:12px; cursor:pointer;">Content Calendar</button>
+                                    <button onclick="elsaQuickAsk('What are the top revenue growth opportunities based on our current metrics?')" style="background:#1e293b; border:1px solid #334155; color:#cbd5e1; border-radius:8px; padding:8px 14px; font-size:12px; cursor:pointer;">Revenue Opportunities</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="padding:12px 20px; border-top:1px solid #1e293b;">
+                            <div style="display:flex; gap:8px;">
+                                <textarea id="elsaInput" placeholder="Ask ELSA about marketing, growth, SEO, content strategy..." rows="1" style="flex:1; background:#1e293b; border:1px solid #334155; color:#f1f5f9; border-radius:10px; padding:10px 14px; font-size:14px; resize:none; outline:none; font-family:inherit; max-height:120px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();elsaSend();}"></textarea>
+                                <button onclick="elsaSend()" id="elsaSendBtn" style="background:linear-gradient(135deg,#8b5cf6,#ec4899); border:none; color:#fff; border-radius:10px; padding:10px 16px; cursor:pointer; font-size:14px; font-weight:600; white-space:nowrap;">Send</button>
+                            </div>
+                            <div style="text-align:center; margin-top:6px; font-size:11px; color:#475569;">ELSA uses GPT-5.1 &bull; Responses are AI-generated</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="section-content" id="section-api">
                 <div class="page-header">
                     <h1 class="page-title">API Status</h1>
@@ -1551,6 +1609,8 @@
                 loadStripeSettings();
             } else if (sectionId === 'banner') {
                 loadBannerSettings();
+            } else if (sectionId === 'elsa') {
+                loadElsaTopics();
             }
         }
 
@@ -2200,7 +2260,219 @@
             }
         }
 
+        let elsaCurrentTopicId = null;
+        let elsaConversationHistory = [];
+        let elsaSending = false;
+
+        async function loadElsaTopics() {
+            try {
+                const res = await fetch('/admin/elsa/topics', {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                renderElsaTopics(data.topics || []);
+            } catch (e) {
+                console.error('Error loading ELSA topics:', e);
+            }
+        }
+
+        function renderElsaTopics(topics) {
+            const list = document.getElementById('elsaTopicsList');
+            if (!list) return;
+            if (topics.length === 0) {
+                list.innerHTML = '<div style="padding:12px; text-align:center; color:#64748b; font-size:12px;">No topics yet. Start a conversation or create a topic.</div>';
+                return;
+            }
+            list.innerHTML = topics.map(t => `
+                <div onclick="elsaLoadTopic(${t.id}, '${t.title.replace(/'/g, "\\'")}')" 
+                     style="padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px; background:${elsaCurrentTopicId === t.id ? '#1e293b' : 'transparent'}; border:1px solid ${elsaCurrentTopicId === t.id ? '#334155' : 'transparent'};"
+                     onmouseover="if(${elsaCurrentTopicId !== t.id})this.style.background='#1e293b'" 
+                     onmouseout="if(${elsaCurrentTopicId !== t.id})this.style.background='transparent'">
+                    <div style="font-size:13px; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.title}</div>
+                    <div style="font-size:11px; color:#64748b; margin-top:2px;">${t.message_count} messages</div>
+                </div>
+            `).join('');
+        }
+
+        async function elsaNewTopic() {
+            const title = prompt('Enter topic name:');
+            if (!title || !title.trim()) return;
+            try {
+                const res = await fetch('/admin/elsa/topics', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
+                    body: JSON.stringify({ title: title.trim() })
+                });
+                if (!res.ok) throw new Error('Failed');
+                const data = await res.json();
+                elsaCurrentTopicId = data.topic.id;
+                elsaConversationHistory = [];
+                document.getElementById('elsaTopicTitle').textContent = title.trim();
+                document.getElementById('elsaChatMessages').innerHTML = '';
+                elsaAddSystemMessage(`Topic "${title.trim()}" created. Ask me anything!`);
+                loadElsaTopics();
+            } catch (e) {
+                showToast('Failed to create topic', 'error');
+            }
+        }
+
+        async function elsaLoadTopic(topicId, title) {
+            elsaCurrentTopicId = topicId;
+            elsaConversationHistory = [];
+            document.getElementById('elsaTopicTitle').textContent = title;
+            document.getElementById('elsaChatMessages').innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Loading conversation...</div>';
+            loadElsaTopics();
+
+            try {
+                const res = await fetch(`/admin/elsa/topics/${topicId}/history`, {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                if (!res.ok) throw new Error('Failed');
+                const data = await res.json();
+                const container = document.getElementById('elsaChatMessages');
+                container.innerHTML = '';
+
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(m => {
+                        elsaAddUserMessage(m.question, false);
+                        elsaAddBotMessage(m.response, false);
+                        elsaConversationHistory.push({ role: 'user', content: m.question });
+                        elsaConversationHistory.push({ role: 'assistant', content: m.response });
+                    });
+                } else {
+                    elsaAddSystemMessage('No messages in this topic yet. Ask me something!');
+                }
+                container.scrollTop = container.scrollHeight;
+            } catch (e) {
+                showToast('Failed to load topic history', 'error');
+            }
+        }
+
+        function elsaQuickAsk(question) {
+            document.getElementById('elsaInput').value = question;
+            elsaSend();
+        }
+
+        async function elsaSend() {
+            if (elsaSending) return;
+            const input = document.getElementById('elsaInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            input.value = '';
+            input.style.height = 'auto';
+            elsaSending = true;
+            const sendBtn = document.getElementById('elsaSendBtn');
+            sendBtn.textContent = 'Thinking...';
+            sendBtn.style.opacity = '0.6';
+
+            elsaAddUserMessage(question);
+
+            const typingId = 'elsa-typing-' + Date.now();
+            const container = document.getElementById('elsaChatMessages');
+            const typingEl = document.createElement('div');
+            typingEl.id = typingId;
+            typingEl.style.cssText = 'display:flex; gap:10px; align-items:flex-start;';
+            typingEl.innerHTML = `
+                <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#ec4899); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:12px; flex-shrink:0;">E</div>
+                <div style="background:#1e293b; border-radius:12px; padding:12px 16px; color:#94a3b8; font-size:14px;">
+                    <span class="elsa-typing-dots">Thinking<span>.</span><span>.</span><span>.</span></span>
+                </div>
+            `;
+            container.appendChild(typingEl);
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                const res = await fetch('/admin/elsa/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
+                    body: JSON.stringify({
+                        question,
+                        topic_id: elsaCurrentTopicId,
+                        conversation_history: elsaConversationHistory.slice(-8)
+                    })
+                });
+                const data = await res.json();
+
+                const typing = document.getElementById(typingId);
+                if (typing) typing.remove();
+
+                if (data.success) {
+                    elsaAddBotMessage(data.response);
+                    elsaConversationHistory.push({ role: 'user', content: question });
+                    elsaConversationHistory.push({ role: 'assistant', content: data.response });
+                    if (data.topic_id && !elsaCurrentTopicId) {
+                        elsaCurrentTopicId = data.topic_id;
+                    }
+                    loadElsaTopics();
+                } else {
+                    elsaAddSystemMessage(data.message || 'Something went wrong. Please try again.');
+                }
+            } catch (e) {
+                const typing = document.getElementById(typingId);
+                if (typing) typing.remove();
+                elsaAddSystemMessage('Connection error. Please try again.');
+            }
+
+            elsaSending = false;
+            sendBtn.textContent = 'Send';
+            sendBtn.style.opacity = '1';
+        }
+
+        function elsaAddUserMessage(text, scroll = true) {
+            const container = document.getElementById('elsaChatMessages');
+            const el = document.createElement('div');
+            el.style.cssText = 'display:flex; gap:10px; align-items:flex-start; justify-content:flex-end;';
+            el.innerHTML = `
+                <div style="background:#3b82f6; border-radius:12px; padding:12px 16px; color:#fff; font-size:14px; max-width:75%; line-height:1.6; white-space:pre-wrap;">${escapeHtml(text)}</div>
+                <div style="width:32px; height:32px; border-radius:50%; background:#334155; display:flex; align-items:center; justify-content:center; font-weight:700; color:#94a3b8; font-size:12px; flex-shrink:0;">A</div>
+            `;
+            container.appendChild(el);
+            if (scroll) container.scrollTop = container.scrollHeight;
+        }
+
+        function elsaAddBotMessage(text, scroll = true) {
+            const container = document.getElementById('elsaChatMessages');
+            const el = document.createElement('div');
+            el.style.cssText = 'display:flex; gap:10px; align-items:flex-start;';
+            const formatted = elsaFormatMarkdown(text);
+            el.innerHTML = `
+                <div style="width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#ec4899); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:12px; flex-shrink:0;">E</div>
+                <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:14px 18px; color:#e2e8f0; font-size:14px; max-width:75%; line-height:1.7;">${formatted}</div>
+            `;
+            container.appendChild(el);
+            if (scroll) container.scrollTop = container.scrollHeight;
+        }
+
+        function elsaAddSystemMessage(text) {
+            const container = document.getElementById('elsaChatMessages');
+            const el = document.createElement('div');
+            el.style.cssText = 'text-align:center; padding:8px;';
+            el.innerHTML = `<span style="background:#1e293b; border-radius:8px; padding:6px 14px; color:#94a3b8; font-size:12px; display:inline-block;">${text}</span>`;
+            container.appendChild(el);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function elsaFormatMarkdown(text) {
+            let html = escapeHtml(text);
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            html = html.replace(/^### (.+)$/gm, '<h4 style="color:#f1f5f9; font-size:15px; margin:12px 0 6px;">$1</h4>');
+            html = html.replace(/^## (.+)$/gm, '<h3 style="color:#f1f5f9; font-size:16px; margin:14px 0 8px;">$1</h3>');
+            html = html.replace(/^# (.+)$/gm, '<h2 style="color:#f1f5f9; font-size:18px; margin:16px 0 8px;">$1</h2>');
+            html = html.replace(/^- (.+)$/gm, '<div style="padding-left:16px; position:relative;"><span style="position:absolute; left:4px; color:#8b5cf6;">&#8226;</span>$1</div>');
+            html = html.replace(/^\d+\. (.+)$/gm, function(match, p1) {
+                return '<div style="padding-left:16px;">&#8226; ' + p1 + '</div>';
+            });
+            html = html.replace(/---/g, '<hr style="border:none; border-top:1px solid #334155; margin:12px 0;">');
+            html = html.replace(/\n\n/g, '<br><br>');
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
+
         checkSession();
     </script>
 </body>
 </html>
+

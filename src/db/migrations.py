@@ -1619,3 +1619,34 @@ def run_eriq_migration():
             logger.info("ERIQ token tables migration completed")
     except Exception as e:
         logger.warning(f"ERIQ migration skipped: {e}")
+
+    try:
+        logger.info("Running ELSA tables migration...")
+        with get_cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS elsa_topics (
+                    id SERIAL PRIMARY KEY,
+                    title VARCHAR(200) NOT NULL,
+                    summary TEXT,
+                    message_count INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS elsa_conversations (
+                    id SERIAL PRIMARY KEY,
+                    topic_id INTEGER REFERENCES elsa_topics(id),
+                    question TEXT NOT NULL,
+                    response TEXT NOT NULL,
+                    tokens_used INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_elsa_conv_topic
+                ON elsa_conversations (topic_id, created_at)
+            """)
+            logger.info("ELSA tables migration completed")
+    except Exception as e:
+        logger.warning(f"ELSA migration skipped: {e}")

@@ -35,6 +35,7 @@ from src.egsi.routes import router as egsi_router
 from src.egsi.egsi_seo_routes import router as egsi_seo_router
 from src.eriq import ENABLE_ERIQ
 from src.api.eriq_routes import router as eriq_router
+from src.elsa.routes import router as elsa_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -164,6 +165,9 @@ if ENABLE_EGSI:
 if ENABLE_ERIQ:
     app.include_router(eriq_router)
     logger.info("ERIQ Expert Analyst module enabled - routes registered")
+
+app.include_router(elsa_router)
+logger.info("ELSA Marketing Bot module enabled - routes registered")
 
 @app.on_event("startup")
 async def startup_event():
