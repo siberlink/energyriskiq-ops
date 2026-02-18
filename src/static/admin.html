@@ -2301,15 +2301,29 @@
                 list.innerHTML = '<div style="padding:12px; text-align:center; color:#64748b; font-size:12px;">No topics yet. Start a conversation or create a topic.</div>';
                 return;
             }
-            list.innerHTML = topics.map(t => `
-                <div onclick="elsaLoadTopic(${t.id}, '${t.title.replace(/'/g, "\\'")}')" 
-                     style="padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px; background:${elsaCurrentTopicId === t.id ? '#1e293b' : 'transparent'}; border:1px solid ${elsaCurrentTopicId === t.id ? '#334155' : 'transparent'};"
-                     onmouseover="if(${elsaCurrentTopicId !== t.id})this.style.background='#1e293b'" 
-                     onmouseout="if(${elsaCurrentTopicId !== t.id})this.style.background='transparent'">
-                    <div style="font-size:13px; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.title}</div>
-                    <div style="font-size:11px; color:#64748b; margin-top:2px;">${t.message_count} messages</div>
-                </div>
-            `).join('');
+            list.innerHTML = '';
+            topics.forEach(t => {
+                const item = document.createElement('div');
+                item.dataset.topicId = t.id;
+                item.dataset.title = t.title;
+                const isActive = elsaCurrentTopicId === t.id;
+                item.style.cssText = `padding:10px 12px; border-radius:8px; cursor:pointer; margin-bottom:4px; background:${isActive ? '#1e293b' : 'transparent'}; border:1px solid ${isActive ? '#334155' : 'transparent'};`;
+                item.addEventListener('click', () => elsaLoadTopic(t.id, t.title));
+                item.addEventListener('mouseover', () => { if (elsaCurrentTopicId !== t.id) item.style.background = '#1e293b'; });
+                item.addEventListener('mouseout', () => { if (elsaCurrentTopicId !== t.id) item.style.background = 'transparent'; });
+
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = 'font-size:13px; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                titleDiv.textContent = t.title.replace(/\n/g, ' ');
+                item.appendChild(titleDiv);
+
+                const countDiv = document.createElement('div');
+                countDiv.style.cssText = 'font-size:11px; color:#64748b; margin-top:2px;';
+                countDiv.textContent = t.message_count + ' messages';
+                item.appendChild(countDiv);
+
+                list.appendChild(item);
+            });
         }
 
         async function elsaNewTopic() {
@@ -2337,7 +2351,7 @@
         async function elsaLoadTopic(topicId, title) {
             elsaCurrentTopicId = topicId;
             elsaConversationHistory = [];
-            document.getElementById('elsaTopicTitle').textContent = title;
+            document.getElementById('elsaTopicTitle').textContent = (title || '').replace(/\n/g, ' ');
             document.getElementById('elsaChatMessages').innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">Loading conversation...</div>';
             loadElsaTopics();
 
