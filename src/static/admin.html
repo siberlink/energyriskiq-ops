@@ -1394,7 +1394,7 @@
                             <div style="display:flex; gap:8px; align-items:flex-end;">
                                 <input type="file" id="elsaImageInput" accept="image/*" style="display:none;" onchange="elsaHandleImage(this)">
                                 <button onclick="document.getElementById('elsaImageInput').click()" title="Upload image for analysis" style="background:#1e293b; border:1px solid #334155; color:#94a3b8; border-radius:10px; padding:10px 12px; cursor:pointer; font-size:16px; flex-shrink:0; display:flex; align-items:center;">&#128247;</button>
-                                <textarea id="elsaInput" placeholder="Ask ELSA about marketing, growth, SEO, content strategy... You can also attach images." rows="1" style="flex:1; background:#1e293b; border:1px solid #334155; color:#f1f5f9; border-radius:10px; padding:10px 14px; font-size:14px; resize:none; outline:none; font-family:inherit; max-height:120px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();elsaSend();}"></textarea>
+                                <textarea id="elsaInput" placeholder="Ask ELSA about marketing, growth, SEO, content strategy... You can also attach images." rows="2" style="flex:1; background:#1e293b; border:1px solid #334155; color:#f1f5f9; border-radius:10px; padding:10px 14px; font-size:14px; resize:none; outline:none; font-family:inherit; min-height:50px; max-height:200px; overflow-y:auto;" oninput="elsaAutoResize(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();elsaSend();}"></textarea>
                                 <button onclick="elsaSend()" id="elsaSendBtn" style="background:linear-gradient(135deg,#8b5cf6,#ec4899); border:none; color:#fff; border-radius:10px; padding:10px 16px; cursor:pointer; font-size:14px; font-weight:600; white-space:nowrap;">Send</button>
                             </div>
                             <div style="text-align:center; margin-top:6px; font-size:11px; color:#475569;">ELSA uses GPT-5.1 &bull; Supports image analysis &bull; Cross-topic memory enabled</div>
@@ -2274,6 +2274,13 @@
         let elsaSending = false;
         let elsaPendingImage = null;
 
+        function elsaAutoResize(el) {
+            el.style.height = '50px';
+            if (el.scrollHeight > 50) {
+                el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+            }
+        }
+
         async function loadElsaTopics() {
             try {
                 const res = await fetch('/admin/elsa/topics', {
@@ -2398,7 +2405,7 @@
             const imageData = elsaPendingImage;
 
             input.value = '';
-            input.style.height = 'auto';
+            input.style.height = '50px';
             elsaRemoveImage();
             elsaSending = true;
             const sendBtn = document.getElementById('elsaSendBtn');
