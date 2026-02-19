@@ -887,35 +887,48 @@ def get_delivery_preferences(x_user_token: Optional[str] = Header(None)):
 @router.put("/delivery-preferences")
 def update_delivery_preferences(body: DeliveryPreferencesRequest, x_user_token: Optional[str] = Header(None)):
     """Update user delivery preferences for index notifications."""
-    session = verify_user_session(x_user_token)
-    user_id = session["user_id"]
-    
-    user_plan = execute_one(
-        "SELECT COALESCE(up.plan, 'free') as plan FROM users u LEFT JOIN user_plans up ON u.id = up.user_id WHERE u.id = %s",
-        (user_id,)
-    )
-    is_free = (not user_plan or user_plan['plan'] == 'free')
-    
-    updates = [
-        ('geri', False if is_free else body.geri_email, body.geri_telegram),
-        ('eeri', False if is_free else body.eeri_email, body.eeri_telegram),
-        ('egsi', False if is_free else body.egsi_email, body.egsi_telegram),
-        ('daily_digest', False if is_free else body.daily_digest_email, body.daily_digest_telegram),
-    ]
-    
-    with get_cursor() as cursor:
-        for index_code, email_on, tg_on in updates:
-            cursor.execute("""
-                INSERT INTO user_delivery_preferences (user_id, index_code, email_enabled, telegram_enabled)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (user_id, index_code)
-                DO UPDATE SET email_enabled = EXCLUDED.email_enabled,
-                              telegram_enabled = EXCLUDED.telegram_enabled,
-                              updated_at = NOW()
-            """, (user_id, index_code, email_on, tg_on))
-    
-    logger.info(f"Updated delivery preferences for user {user_id}")
-    return {"success": True}
+    try:
+        session = verify_user_session(x_user_token)
+        user_id = session["user_id"]
+        
+        plan = 'free'
+        try:
+            user_plan = execute_one(
+                "SELECT COALESCE(up.plan, 'free') as plan FROM users u LEFT JOIN user_plans up ON u.id = up.user_id WHERE u.id = %s",
+                (user_id,)
+            )
+            if user_plan and user_plan.get('plan'):
+                plan = user_plan['plan']
+        except Exception as e:
+            logger.warning(f"Could not fetch plan for user {user_id}, defaulting to free: {e}")
+        
+        is_free = (plan == 'free')
+        
+        updates = [
+            ('geri', False if is_free else body.geri_email, body.geri_telegram),
+            ('eeri', False if is_free else body.eeri_email, body.eeri_telegram),
+            ('egsi', False if is_free else body.egsi_email, body.egsi_telegram),
+            ('daily_digest', False if is_free else body.daily_digest_email, body.daily_digest_telegram),
+        ]
+        
+        with get_cursor() as cursor:
+            for index_code, email_on, tg_on in updates:
+                cursor.execute("""
+                    INSERT INTO user_delivery_preferences (user_id, index_code, email_enabled, telegram_enabled)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (user_id, index_code)
+                    DO UPDATE SET email_enabled = EXCLUDED.email_enabled,
+                                  telegram_enabled = EXCLUDED.telegram_enabled,
+                                  updated_at = NOW()
+                """, (user_id, index_code, email_on, tg_on))
+        
+        logger.info(f"Updated delivery preferences for user {user_id} (plan={plan})")
+        return {"success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving delivery preferences: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {str(e)}")
 
 
 @router.get("/dashboard")
