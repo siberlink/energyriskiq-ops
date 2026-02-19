@@ -5520,21 +5520,6 @@ def render_digest_html(d: dict) -> str:
         </div>
         """
 
-    def locked_section(title, desc, plan, price):
-        return f"""
-        <div class="digest-locked-section">
-            <div class="lock-icon">&#x1F512;</div>
-            <div class="lock-title">{title}</div>
-            <div class="lock-desc">{desc}</div>
-            <a class="lock-btn" href="/users#plans">Upgrade to {plan} ({price})</a>
-        </div>
-        """
-
-    locked_html = ''
-    locked_html += locked_section('Risk Correlation Analysis', 'See how risk indices relate to asset prices with 7-day correlation data.', 'Personal', '$9.95/mo')
-    locked_html += locked_section('Regime Classification', 'Understand the current risk regime: Calm, Risk Build, Shock, or Gas-Storage Stress.', 'Trader', '$29/mo')
-    locked_html += locked_section('Volatility Outlook', 'See current volatility regime and VIX-informed market stress outlook.', 'Trader', '$29/mo')
-
     narrative = d.get('ai_narrative', '')
     narrative_html = ''
     if narrative:
@@ -5561,57 +5546,13 @@ def render_digest_html(d: dict) -> str:
         </div>
         """
 
-    upgrade_hints = d.get('upgrade_hints', [])
-    upgrade_html = ''
-    if upgrade_hints:
-        next_plan_hints = {}
-        for h in upgrade_hints:
-            p = h['plan']
-            if p not in next_plan_hints:
-                next_plan_hints[p] = []
-            next_plan_hints[p].append(h['feature'])
-
-        plan_colors = {'Personal': '#3b82f6', 'Trader': '#f59e0b', 'Pro': '#ef4444', 'Enterprise': '#a855f7'}
-        cards = ''
-        for plan_name, features in next_plan_hints.items():
-            color = plan_colors.get(plan_name, '#3b82f6')
-            price = ''
-            for h in upgrade_hints:
-                if h['plan'] == plan_name:
-                    price = h.get('price', '')
-                    break
-            features_html = ''.join(f'<li>{f}</li>' for f in features)
-            cards += f"""
-            <div style="background: {color}10; border: 1px solid {color}30; border-radius: 10px; padding: 16px; flex: 1; min-width: 200px;">
-                <div style="color: {color}; font-weight: 700; font-size: 14px; margin-bottom: 8px;">{plan_name} {price}</div>
-                <ul style="color: #94a3b8; font-size: 12px; padding-left: 16px; margin: 0;">
-                    {features_html}
-                </ul>
-                <a href="/users#plans" style="display: inline-block; margin-top: 12px; background: {color}; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none;">Upgrade</a>
-            </div>
-            """
-
-        upgrade_html = f"""
-        <div class="digest-card">
-            <div class="digest-card-header">
-                <span class="digest-section-icon">&#x1F513;</span>
-                <h3>Unlock More Intelligence</h3>
-            </div>
-            <div class="digest-card-body">
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    {cards}
-                </div>
-            </div>
-        </div>
-        """
-
     disclaimer = """
     <div style="text-align: center; padding: 12px; color: #64748b; font-size: 11px; margin-top: 8px;">
         Informational only. Not financial advice. | EnergyRiskIQ Intelligence Engine
     </div>
     """
 
-    return header_bar + risk_tone_html + index_summary + asset_section + alerts_section + locked_html + narrative_html + upgrade_html + disclaimer
+    return header_bar + risk_tone_html + index_summary + asset_section + alerts_section + narrative_html + disclaimer
 
 
 @router.get("/daily-geo-energy-intelligence-digest/history", response_class=HTMLResponse)
