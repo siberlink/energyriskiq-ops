@@ -133,6 +133,45 @@ def get_asset_snapshots() -> Dict:
     return result
 
 
+def get_latest_egsi() -> Optional[Dict]:
+    row = execute_one("""
+        SELECT index_date as date, index_value as value, band, trend_1d, trend_7d,
+               components_json as components, interpretation
+        FROM egsi_m_daily
+        ORDER BY index_date DESC
+        LIMIT 1
+    """)
+    if row:
+        result = dict(row)
+        if result.get('components') and isinstance(result['components'], str):
+            result['components'] = json.loads(result['components'])
+        return _recalc_band_from_value(result)
+    return None
+
+
+def get_user_delivery_preferences(user_ids: List[int]) -> Dict[int, Dict[str, Dict[str, bool]]]:
+    if not user_ids:
+        return {}
+    with get_cursor(commit=False) as cursor:
+        cursor.execute("""
+            SELECT user_id, index_code, email_enabled, telegram_enabled
+            FROM user_delivery_preferences
+            WHERE user_id = ANY(%s)
+        """, (user_ids,))
+        rows = cursor.fetchall()
+
+    prefs = {}
+    for row in rows:
+        uid = row['user_id']
+        if uid not in prefs:
+            prefs[uid] = {}
+        prefs[uid][row['index_code']] = {
+            'email': row['email_enabled'],
+            'telegram': row['telegram_enabled']
+        }
+    return prefs
+
+
 def get_risk_tone(geri_value: int, trend_1d: int) -> str:
     if geri_value >= 70:
         return "Escalating"
@@ -299,6 +338,55 @@ def build_eeri_section_email(eeri: Dict, plan: str) -> str:
     return html
 
 
+def build_egsi_section_email(egsi: Dict, plan: str) -> str:
+    level = PLAN_LEVELS.get(plan, 0)
+    value = egsi.get('value', 0)
+    band = egsi.get('band', 'N/A')
+    trend_1d = egsi.get('trend_1d')
+    trend_7d = egsi.get('trend_7d')
+    egsi_date = egsi.get('date', '')
+    band_color = get_band_color(band)
+    components = egsi.get('components', {}) or {}
+    interpretation = egsi.get('interpretation') or ''
+
+    html = f"""
+    <div style="background:#1e293b;border-radius:12px;padding:24px;margin-bottom:20px;border-left:4px solid {band_color};">
+        <h2 style="color:#e2e8f0;margin:0 0 16px 0;font-size:20px;">Europe Gas Stress Index (EGSI)</h2>
+        <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px;">
+            <span style="font-size:48px;font-weight:700;color:{band_color};">{value}</span>
+            <span style="font-size:16px;color:#94a3b8;">/100</span>
+            <span style="background:{band_color}20;color:{band_color};padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">{band}</span>
+        </div>
+        <div style="color:#94a3b8;font-size:13px;margin-bottom:12px;">Date: {egsi_date}</div>
+    """
+
+    if level >= 1 and trend_1d is not None:
+        t1_color = '#ef4444' if float(trend_1d) > 0 else '#22c55e' if float(trend_1d) < 0 else '#94a3b8'
+        html += f'<div style="margin-bottom:4px;"><span style="color:#94a3b8;">24h Change:</span> <span style="color:{t1_color};font-weight:600;">{trend_arrow(trend_1d)}</span></div>'
+
+    if level >= 1 and trend_7d is not None:
+        t7_color = '#ef4444' if float(trend_7d) > 0 else '#22c55e' if float(trend_7d) < 0 else '#94a3b8'
+        html += f'<div style="margin-bottom:8px;"><span style="color:#94a3b8;">7-Day Change:</span> <span style="color:{t7_color};font-weight:600;">{trend_arrow(trend_7d)}</span></div>'
+
+    if level >= 2 and isinstance(components, dict):
+        comp_html = ""
+        for key in ['supply_score', 'demand_score', 'storage_score', 'price_score', 'geopolitical_score']:
+            val = components.get(key)
+            if val is not None:
+                label = key.replace('_', ' ').title()
+                comp_html += f'<div style="color:#cbd5e1;font-size:12px;padding-left:8px;">{label}: {val}</div>'
+        if comp_html:
+            html += f'<div style="margin-top:12px;"><span style="color:#94a3b8;font-size:13px;font-weight:600;">Component Scores:</span>{comp_html}</div>'
+
+    if interpretation and level >= 1:
+        max_len = 200 if level <= 1 else 500 if level <= 2 else 0
+        display_text = interpretation[:max_len] + "..." if max_len and len(interpretation) > max_len else interpretation
+        html += f'<div style="margin-top:16px;padding:12px;background:#0f172a;border-radius:8px;"><span style="color:#94a3b8;font-size:12px;font-weight:600;">AI Analysis</span><p style="color:#cbd5e1;font-size:13px;line-height:1.6;margin:8px 0 0 0;">{display_text}</p></div>'
+
+    html += '</div>'
+    return html
+
+
 def build_assets_section_email(assets: Dict, plan: str) -> str:
     level = PLAN_LEVELS.get(plan, 0)
     if not assets:
@@ -331,7 +419,10 @@ def build_assets_section_email(assets: Dict, plan: str) -> str:
 
 
 def build_full_email(geri: Optional[Dict], eeri: Optional[Dict],
-                     assets: Dict, plan: str, ai_digest: Optional[str] = None) -> Tuple[str, str]:
+                     assets: Dict, plan: str, ai_digest: Optional[str] = None,
+                     egsi: Optional[Dict] = None,
+                     enabled_indices: Optional[List[str]] = None) -> Tuple[str, str]:
+    all_enabled = enabled_indices is None
     level = PLAN_LEVELS.get(plan, 0)
     plan_label = PLAN_LABELS.get(plan, plan.title())
 
@@ -339,12 +430,13 @@ def build_full_email(geri: Optional[Dict], eeri: Optional[Dict],
     geri_band = geri.get('band', 'N/A') if geri else 'N/A'
     subject = f"[EnergyRiskIQ] Daily Intelligence: GERI {geri_val}/100 ({geri_band})"
 
-    geri_section = build_geri_section_email(geri, plan) if geri else ''
-    eeri_section = build_eeri_section_email(eeri, plan) if eeri else ''
+    geri_section = build_geri_section_email(geri, plan) if geri and (all_enabled or 'geri' in enabled_indices) else ''
+    eeri_section = build_eeri_section_email(eeri, plan) if eeri and (all_enabled or 'eeri' in enabled_indices) else ''
+    egsi_section = build_egsi_section_email(egsi, plan) if egsi and (all_enabled or 'egsi' in enabled_indices) else ''
     assets_section = build_assets_section_email(assets, plan)
 
     digest_section = ''
-    if ai_digest and level >= 0:
+    if ai_digest and (all_enabled or 'daily_digest' in enabled_indices):
         digest_section = f"""
         <div style="background:#1e293b;border-radius:12px;padding:24px;margin-bottom:20px;">
             <h2 style="color:#e2e8f0;margin:0 0 16px 0;font-size:20px;">Daily Intelligence Digest</h2>
@@ -376,6 +468,7 @@ def build_full_email(geri: Optional[Dict], eeri: Optional[Dict],
 
     {geri_section}
     {eeri_section}
+    {egsi_section}
     {assets_section}
     {digest_section}
     {upgrade_section}
@@ -477,23 +570,69 @@ def build_eeri_telegram(eeri: Dict, plan: str) -> str:
     return "\n".join(parts)
 
 
+def build_egsi_telegram(egsi: Dict, plan: str) -> str:
+    level = PLAN_LEVELS.get(plan, 0)
+    value = egsi.get('value', 0)
+    band = egsi.get('band', 'N/A')
+    trend_1d = egsi.get('trend_1d')
+    trend_7d = egsi.get('trend_7d')
+    components = egsi.get('components', {}) or {}
+    interpretation = egsi.get('interpretation') or ''
+
+    parts = []
+    parts.append("*EGSI Update*")
+    parts.append(f"Value: *{value}/100* ({band})")
+
+    if level >= 1 and trend_1d is not None:
+        parts.append(f"24h: {trend_arrow(trend_1d)}")
+    if level >= 1 and trend_7d is not None:
+        parts.append(f"7d: {trend_arrow(trend_7d)}")
+
+    if level >= 2 and isinstance(components, dict):
+        comp_parts = []
+        for key in ['supply_score', 'demand_score', 'storage_score', 'price_score']:
+            val = components.get(key)
+            if val is not None:
+                label = key.replace('_', ' ').title()
+                comp_parts.append(f"  - {label}: {val}")
+        if comp_parts:
+            parts.append("")
+            parts.append("Components:")
+            parts.extend(comp_parts)
+
+    if interpretation and level >= 1:
+        max_len = 150 if level <= 1 else 300
+        text = interpretation[:max_len] + "..." if len(interpretation) > max_len else interpretation
+        parts.append("")
+        parts.append(f"_{text}_")
+
+    return "\n".join(parts)
+
+
 def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict],
-                        plan: str, ai_digest: Optional[str] = None) -> str:
+                        plan: str, ai_digest: Optional[str] = None,
+                        egsi: Optional[Dict] = None,
+                        enabled_indices: Optional[List[str]] = None) -> str:
+    all_enabled = enabled_indices is None
     plan_label = PLAN_LABELS.get(plan, plan.title())
     parts = []
     parts.append(f"*EnergyRiskIQ Daily Intelligence*")
     parts.append(f"_{plan_label} | {datetime.now(timezone.utc).strftime('%b %d, %Y')}_")
     parts.append("")
 
-    if geri:
+    if geri and (all_enabled or 'geri' in enabled_indices):
         parts.append(build_geri_telegram(geri, plan))
         parts.append("")
 
-    if eeri:
+    if eeri and (all_enabled or 'eeri' in enabled_indices):
         parts.append(build_eeri_telegram(eeri, plan))
         parts.append("")
 
-    if ai_digest:
+    if egsi and (all_enabled or 'egsi' in enabled_indices):
+        parts.append(build_egsi_telegram(egsi, plan))
+        parts.append("")
+
+    if ai_digest and (all_enabled or 'daily_digest' in enabled_indices):
         level = PLAN_LEVELS.get(plan, 0)
         max_len = 300 if level <= 1 else 600 if level <= 2 else 1000
         digest_text = ai_digest[:max_len] + "..." if len(ai_digest) > max_len else ai_digest
@@ -658,7 +797,19 @@ def has_been_delivered_today(user_id: int, channel: str, index_date: date) -> bo
 
 
 def run_index_delivery() -> Dict:
-    logger.info("Starting Index & Digest delivery for all plans")
+    """
+    Preference-aware delivery for all plans.
+
+    Rules:
+    - FREE plan: Telegram only (no email)
+    - Paid plans (Personal, Trader, Pro, Enterprise): Email + Telegram
+    - Each user's enabled indices (geri, eeri, egsi, daily_digest) per channel
+      are read from user_delivery_preferences.
+    - If a user has no preferences set, they receive nothing (opt-in model).
+    - No daily email limits; delivery is purely based on user preferences.
+    - Content depth is plan-tiered (Free=basic, Enterprise=full).
+    """
+    logger.info("Starting preference-aware Index & Digest delivery for all plans")
 
     ensure_index_digest_unique_index()
 
@@ -679,9 +830,14 @@ def run_index_delivery() -> Dict:
 
     logger.info(f"Found {len(users)} verified users")
 
+    user_ids = [u['id'] for u in users]
+    all_prefs = get_user_delivery_preferences(user_ids)
+    logger.info(f"Loaded delivery preferences for {len(all_prefs)} users")
+
     geri_realtime = get_latest_geri(delayed=False)
     geri_delayed = get_latest_geri(delayed=True)
     eeri = get_latest_eeri()
+    egsi = get_latest_egsi()
     assets = get_asset_snapshots()
 
     if not geri_realtime:
@@ -693,6 +849,8 @@ def run_index_delivery() -> Dict:
         logger.warning("GERI missing date field")
         return dict(stats)
 
+    logger.info(f"Data loaded - GERI: {geri_realtime.get('value')}, EERI: {eeri.get('value') if eeri else 'N/A'}, EGSI: {egsi.get('value') if egsi else 'N/A'}")
+
     digest_cache = {}
 
     for user in users:
@@ -701,47 +859,77 @@ def run_index_delivery() -> Dict:
         chat_id = user.get('telegram_chat_id')
         plan = user.get('plan', 'free')
         level = PLAN_LEVELS.get(plan, 0)
+        is_free = (plan == 'free')
 
         stats["plans"][plan] = stats["plans"].get(plan, 0) + 1
+
+        user_prefs = all_prefs.get(user_id, {})
+        if not user_prefs:
+            stats["users_processed"] += 1
+            continue
+
+        email_indices = []
+        telegram_indices = []
+        for idx_code in ['geri', 'eeri', 'egsi', 'daily_digest']:
+            idx_pref = user_prefs.get(idx_code, {})
+            if idx_pref.get('email', False) and not is_free:
+                email_indices.append(idx_code)
+            if idx_pref.get('telegram', False):
+                telegram_indices.append(idx_code)
+
+        if not email_indices and not telegram_indices:
+            stats["users_processed"] += 1
+            continue
 
         geri = (geri_delayed or geri_realtime) if level == 0 else geri_realtime
         effective_date = geri.get('date') if geri else geri_date
 
         try:
-            if plan not in digest_cache:
-                digest_cache[plan] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
-            ai_digest = digest_cache[plan]
+            needs_digest = ('daily_digest' in email_indices or 'daily_digest' in telegram_indices)
+            ai_digest = None
+            if needs_digest:
+                if plan not in digest_cache:
+                    digest_cache[plan] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
+                ai_digest = digest_cache[plan]
 
-            if email and not has_been_delivered_today(user_id, 'email', effective_date):
-                subject, html_body = build_full_email(geri, eeri, assets, plan, ai_digest)
-                result = send_email_v2(email, subject, html_body)
+            if email_indices and email and not is_free:
+                if not has_been_delivered_today(user_id, 'email', effective_date):
+                    subject, html_body = build_full_email(
+                        geri, eeri, assets, plan, ai_digest,
+                        egsi=egsi, enabled_indices=email_indices
+                    )
+                    result = send_email_v2(email, subject, html_body)
 
-                if result.success:
-                    stats["emails_sent"] += 1
-                    record_index_delivery(user_id, 'email', 'sent', index_date=effective_date)
-                elif result.should_skip:
+                    if result.success:
+                        stats["emails_sent"] += 1
+                        record_index_delivery(user_id, 'email', 'sent', index_date=effective_date)
+                    elif result.should_skip:
+                        stats["emails_skipped"] += 1
+                        record_index_delivery(user_id, 'email', 'skipped', index_date=effective_date, error=result.skip_reason)
+                    else:
+                        stats["errors"].append(f"Email to {email}: {result.error}")
+                        record_index_delivery(user_id, 'email', 'failed', index_date=effective_date, error=result.error)
+                else:
                     stats["emails_skipped"] += 1
-                    record_index_delivery(user_id, 'email', 'skipped', index_date=effective_date, error=result.skip_reason)
+
+            if telegram_indices and chat_id:
+                if not has_been_delivered_today(user_id, 'telegram', effective_date):
+                    telegram_msg = build_full_telegram(
+                        geri, eeri, plan, ai_digest,
+                        egsi=egsi, enabled_indices=telegram_indices
+                    )
+                    result = send_telegram_v2(chat_id, telegram_msg)
+
+                    if result.success:
+                        stats["telegrams_sent"] += 1
+                        record_index_delivery(user_id, 'telegram', 'sent', index_date=effective_date)
+                    elif result.should_skip:
+                        stats["telegrams_skipped"] += 1
+                    else:
+                        stats["errors"].append(f"Telegram to {chat_id}: {result.error}")
+                        record_index_delivery(user_id, 'telegram', 'failed', index_date=effective_date, error=result.error)
                 else:
-                    stats["errors"].append(f"Email to {email}: {result.error}")
-                    record_index_delivery(user_id, 'email', 'failed', index_date=effective_date, error=result.error)
-            else:
-                stats["emails_skipped"] += 1
-
-            if chat_id and not has_been_delivered_today(user_id, 'telegram', effective_date):
-                telegram_msg = build_full_telegram(geri, eeri, plan, ai_digest)
-                result = send_telegram_v2(chat_id, telegram_msg)
-
-                if result.success:
-                    stats["telegrams_sent"] += 1
-                    record_index_delivery(user_id, 'telegram', 'sent', index_date=effective_date)
-                elif result.should_skip:
                     stats["telegrams_skipped"] += 1
-                else:
-                    stats["errors"].append(f"Telegram to {chat_id}: {result.error}")
-                    record_index_delivery(user_id, 'telegram', 'failed', index_date=effective_date, error=result.error)
-            else:
-                stats["telegrams_skipped"] += 1
 
             stats["users_processed"] += 1
 

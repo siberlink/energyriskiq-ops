@@ -1657,3 +1657,19 @@ def run_eriq_migration():
             logger.info("Widened telegram_link_code column to VARCHAR(64)")
     except Exception as e:
         logger.debug(f"telegram_link_code column resize skipped: {e}")
+
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                UPDATE plan_settings
+                SET delivery_config = jsonb_set(
+                    delivery_config,
+                    '{telegram}',
+                    '{"enabled": true, "send_all": true}'::jsonb
+                )
+                WHERE plan_code = 'free'
+                  AND (delivery_config->'telegram'->>'enabled')::boolean IS DISTINCT FROM true
+            """)
+            logger.info("Enabled Telegram delivery for Free plan")
+    except Exception as e:
+        logger.debug(f"Free plan Telegram update skipped: {e}")
