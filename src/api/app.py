@@ -36,6 +36,7 @@ from src.egsi.egsi_seo_routes import router as egsi_seo_router
 from src.eriq import ENABLE_ERIQ
 from src.api.eriq_routes import router as eriq_router
 from src.elsa.routes import router as elsa_router
+from src.api.signals_routes import router as signals_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -132,6 +133,12 @@ async def users_account_page_html():
     """Redirect to canonical URL for SEO."""
     return RedirectResponse(url="/users/account", status_code=301)
 
+@app.get("/energy-risk-intelligence-signals", include_in_schema=False)
+async def signals_landing_page():
+    response = FileResponse(os.path.join(STATIC_DIR, "energy-risk-intelligence-signals.html"), media_type="text/html")
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
+
 app.include_router(router)
 app.include_router(risk_router)
 app.include_router(alert_router)
@@ -146,6 +153,7 @@ app.include_router(ops_router)
 app.include_router(telegram_router)
 app.include_router(seo_router)
 app.include_router(billing_router)
+app.include_router(signals_router)
 
 if ENABLE_GERI:
     app.include_router(geri_router)

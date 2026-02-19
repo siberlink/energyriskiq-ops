@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDXY4E2P1N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZDXY4E2P1N');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Get structured energy risk signals before the headlines. Daily and weekly insights powered by proprietary indices RERI, EGSI, EERI and AI analyst. Free for traders, risk managers, and analysts.">
+    <meta name="keywords" content="energy risk signals, EGSI, EERI, RERI, European gas, power trading, risk intelligence, energy analyst, TTF, hedging">
+    <title>Energy Risk Intelligence Signals | EnergyRiskIQ</title>
+    <link rel="canonical" href="https://energyriskiq.com/energy-risk-intelligence-signals">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066FF;
+            --primary-dark: #0052CC;
+            --primary-light: #E6F0FF;
+            --secondary: #1A1A2E;
+            --accent: #00D4AA;
+            --text-primary: #1A1A2E;
+            --text-secondary: #64748B;
+            --text-light: #94A3B8;
+            --bg-white: #FFFFFF;
+            --bg-light: #F8FAFC;
+            --border: #E2E8F0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            background: var(--bg-white);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* NAV */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        .nav-logo img {
+            height: 32px;
+            width: auto;
+        }
+        .nav-logo span {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--secondary);
+            letter-spacing: -0.3px;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,102,255,0.12), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 0%, rgba(0,212,170,0.08), transparent);
+            pointer-events: none;
+        }
+        .hero-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem 4rem;
+            max-width: 760px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 100px;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.3px;
+        }
+        .badge svg {
+            width: 14px;
+            height: 14px;
+        }
+        h1 {
+            font-size: clamp(2rem, 5vw, 2.75rem);
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--secondary);
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.5px;
+        }
+        h2.sub {
+            font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+            font-weight: 500;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+            max-width: 640px;
+        }
+        h3.sub {
+            font-size: clamp(0.95rem, 2vw, 1.05rem);
+            font-weight: 400;
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            max-width: 580px;
+        }
+
+        /* FORM */
+        .signup-form {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        .form-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-field label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.2px;
+        }
+        .form-field input,
+        .form-field select {
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: var(--bg-white);
+            color: var(--text-primary);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            width: 100%;
+        }
+        .form-field input:focus,
+        .form-field select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,102,255,0.1);
+        }
+        .form-field input::placeholder {
+            color: var(--text-light);
+        }
+        .form-field select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%2394A3B8'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+        .cta-btn {
+            padding: 14px 28px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            letter-spacing: 0.2px;
+            margin-top: 4px;
+        }
+        .cta-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        .cta-btn:active {
+            transform: translateY(0);
+        }
+        .cta-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .form-note {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 4px;
+        }
+        .form-msg {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+        .form-msg.success {
+            background: #ECFDF5;
+            color: #059669;
+            border: 1px solid #A7F3D0;
+            display: block;
+        }
+        .form-msg.error {
+            background: #FEF2F2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+            display: block;
+        }
+
+        /* SUCCESS BANNER (post-verification) */
+        .verified-banner {
+            display: none;
+            background: linear-gradient(135deg, #059669, #0D9488);
+            color: #fff;
+            text-align: center;
+            padding: 18px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            position: relative;
+            z-index: 20;
+        }
+        .verified-banner svg {
+            vertical-align: middle;
+            margin-right: 8px;
+            width: 20px;
+            height: 20px;
+        }
+        .verified-banner.show {
+            display: block;
+        }
+
+        /* WHAT YOU GET */
+        .features {
+            background: var(--bg-light);
+            padding: 5rem 2rem;
+        }
+        .features-inner {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .features-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .features-header h2 {
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+        .features-header p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem 1.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.06);
+        }
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+        .card-icon svg {
+            width: 26px;
+            height: 26px;
+        }
+        .card-icon.blue {
+            background: var(--primary-light);
+        }
+        .card-icon.blue svg { color: var(--primary); }
+        .card-icon.green {
+            background: #ECFDF5;
+        }
+        .card-icon.green svg { color: #059669; }
+        .card-icon.purple {
+            background: #F3E8FF;
+        }
+        .card-icon.purple svg { color: #7C3AED; }
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 0.6rem;
+        }
+        .card p {
+            font-size: 0.93rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* FOOTER */
+        .lp-footer {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+        .lp-footer p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        .lp-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .lp-footer a:hover {
+            color: var(--primary);
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .nav {
+                padding: 1rem 1.25rem;
+            }
+            .hero-content {
+                padding: 2rem 1.25rem 3rem;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .cards {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .features {
+                padding: 3.5rem 1.25rem;
+            }
+            .signup-form {
+                max-width: 100%;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.65rem;
+            }
+            .hero-content {
+                padding: 1.5rem 1rem 2.5rem;
+            }
+            .card {
+                padding: 1.5rem 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="verified-banner" id="verifiedBanner">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        You Successfully Joined the Intelligence Signals Program
+    </div>
+
+    <section class="hero">
+        <nav class="nav">
+            <a href="/" class="nav-logo">
+                <img src="/static/logo.png" alt="EnergyRiskIQ">
+                <span>EnergyRiskIQ</span>
+            </a>
+        </nav>
+
+        <div class="hero-content">
+            <div class="badge">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Free Intelligence Signals
+            </div>
+
+            <h1>Get Structured Energy Risk Signals Before the Headlines</h1>
+
+            <h2 class="sub">Join EnergyRiskIQ's free list for daily/weekly insights powered by our proprietary indices (RERI, EGSI, EERI) and AI analyst.</h2>
+
+            <h3 class="sub">Perfect for traders, risk managers, and analysts in European gas &amp; power.</h3>
+
+            <form class="signup-form" id="signupForm" novalidate>
+                <div class="form-msg" id="formMsg"></div>
+
+                <div class="form-row">
+                    <div class="form-field">
+                        <label for="firstName">First Name <span style="color:var(--text-light);font-weight:400;">(optional)</span></label>
+                        <input type="text" id="firstName" name="first_name" placeholder="Your first name" autocomplete="given-name">
+                    </div>
+                    <div class="form-field">
+                        <label for="role">Role <span style="color:var(--text-light);font-weight:400;">(optional)</span></label>
+                        <select id="role" name="role">
+                            <option value="">Select your role</option>
+                            <option value="Energy Analyst">Energy Analyst</option>
+                            <option value="Portfolio Manager">Portfolio Manager</option>
+                            <option value="Risk Manager">Risk Manager</option>
+                            <option value="Trader">Trader</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email Address <span style="color:#DC2626;">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="your@email.com" required autocomplete="email">
+                </div>
+
+                <button type="submit" class="cta-btn" id="ctaBtn">Get FREE Access</button>
+                <p class="form-note">No spam. Unsubscribe anytime. We respect your inbox.</p>
+            </form>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="features-inner">
+            <div class="features-header">
+                <h2>What You Get</h2>
+                <p>Actionable intelligence delivered straight to your inbox</p>
+            </div>
+
+            <div class="cards">
+                <div class="card">
+                    <div class="card-icon blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h3>Index Moves Explained</h3>
+                    <p>Short breakdowns when EGSI / EERI jump or enter new regimes. Understand what's driving the numbers, not just the numbers themselves.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon green">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                    <h3>Market-Relevant Takeaways</h3>
+                    <p>"What this means for TTF, power, shipping, and hedging." Actionable context that connects risk signals to your trading decisions.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon purple">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <h3>Early Access to Tools</h3>
+                    <p>Priority access to new dashboards, alerts, and AI analyst features. Be the first to explore what's coming to EnergyRiskIQ.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="lp-footer">
+        <p>&copy; 2025 EnergyRiskIQ. All rights reserved. &nbsp;|&nbsp; <a href="/privacy">Privacy Policy</a> &nbsp;|&nbsp; <a href="/terms">Terms</a></p>
+    </footer>
+
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('verified') === 'true') {
+                document.getElementById('verifiedBanner').classList.add('show');
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+
+            var form = document.getElementById('signupForm');
+            var msg = document.getElementById('formMsg');
+            var btn = document.getElementById('ctaBtn');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                msg.className = 'form-msg';
+                msg.style.display = 'none';
+                msg.textContent = '';
+
+                var email = document.getElementById('email').value.trim();
+                if (!email) {
+                    showMsg('Please enter your email address.', 'error');
+                    return;
+                }
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    showMsg('Please enter a valid email address.', 'error');
+                    return;
+                }
+
+                var payload = { email: email };
+                var fn = document.getElementById('firstName').value.trim();
+                if (fn) payload.first_name = fn;
+                var role = document.getElementById('role').value;
+                if (role) payload.role = role;
+
+                btn.disabled = true;
+                btn.textContent = 'Submitting...';
+
+                fetch('/api/v1/signals/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(function(res) {
+                    return res.json().catch(function() { return {}; }).then(function(data) {
+                        return { ok: res.ok, data: data };
+                    });
+                })
+                .then(function(result) {
+                    if (result.ok && result.data.success) {
+                        showMsg(result.data.message, 'success');
+                        form.reset();
+                    } else {
+                        showMsg(result.data.detail || result.data.message || 'Something went wrong. Please try again.', 'error');
+                    }
+                })
+                .catch(function() {
+                    showMsg('Connection error. Please try again.', 'error');
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = 'Get FREE Access';
+                });
+            });
+
+            function showMsg(text, type) {
+                msg.textContent = text;
+                msg.className = 'form-msg ' + type;
+                msg.style.display = 'block';
+                msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        })();
+    </script>
+</body>
+</html>
