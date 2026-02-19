@@ -383,6 +383,52 @@
             box-shadow: 0 12px 40px rgba(0,0,0,0.15);
         }
 
+        /* SOCIAL PROOF */
+        .social-proof {
+            padding: 4rem 2rem;
+            background: var(--secondary);
+        }
+        .social-proof-inner {
+            max-width: 860px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .social-proof h2 {
+            font-size: clamp(1.3rem, 3vw, 1.6rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2rem;
+            letter-spacing: -0.3px;
+        }
+        .proof-items {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .proof-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: left;
+        }
+        .proof-item svg {
+            width: 22px;
+            height: 22px;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+        .proof-item span {
+            font-size: 0.95rem;
+            color: #CBD5E1;
+            line-height: 1.5;
+        }
+
         /* FOOTER */
         .lp-footer {
             text-align: center;
@@ -532,6 +578,26 @@
 
             <div class="index-showcase single">
                 <img src="/static/geri-intelligence-snapshot.png" alt="GERI Intelligence Dashboard - Global Energy Risk Index with Brent Oil price correlation chart and market context" class="index-img">
+            </div>
+        </div>
+    </section>
+
+    <section class="social-proof">
+        <div class="social-proof-inner">
+            <h2>Built for European Gas &amp; Power Professionals</h2>
+            <div class="proof-items">
+                <div class="proof-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    <span>Proprietary GERI, EERI, EGSI indices</span>
+                </div>
+                <div class="proof-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>Daily alerting and AI analyst already used by traders &amp; risk desks</span>
+                </div>
+                <div class="proof-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    <span>Designed for hedging, risk, and supply decisions</span>
+                </div>
             </div>
         </div>
     </section>
