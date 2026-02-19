@@ -366,10 +366,10 @@
 
         /* INDEX SHOWCASE */
         .index-showcase {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
             margin-top: 3rem;
+        }
+        .index-showcase.single {
+            max-width: 100%;
         }
         .index-img {
             width: 100%;
@@ -413,10 +413,6 @@
                 flex-direction: column;
             }
             .cards {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            .index-showcase {
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
@@ -534,10 +530,8 @@
                 </div>
             </div>
 
-            <div class="index-showcase">
-                <img src="/static/geri-index-card.png" alt="Global Energy Risk Index (GERI) - 31/100 Moderate" class="index-img">
-                <img src="/static/eeri-index-card.png" alt="European Energy Risk Index (EERI) - 57/100 Elevated" class="index-img">
-                <img src="/static/egsi-index-card.png" alt="Europe Gas Stress Index (EGSI) - 45/100 Elevated" class="index-img">
+            <div class="index-showcase single">
+                <img src="/static/geri-intelligence-snapshot.png" alt="GERI Intelligence Dashboard - Global Energy Risk Index with Brent Oil price correlation chart and market context" class="index-img">
             </div>
         </div>
     </section>
