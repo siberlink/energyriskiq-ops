@@ -588,7 +588,7 @@ The EnergyRiskIQ Team"""
     return {"success": True, "message": "If an account exists, a verification email will be sent."}
 
 
-TELEGRAM_ELIGIBLE_PLANS = ['trader', 'pro', 'enterprise']
+TELEGRAM_ELIGIBLE_PLANS = ['free', 'personal', 'trader', 'pro', 'enterprise']
 
 
 @router.post("/telegram/generate-code")
