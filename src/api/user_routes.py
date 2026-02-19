@@ -597,17 +597,6 @@ def generate_telegram_link_code(x_user_token: Optional[str] = Header(None)):
     user_id = session["user_id"]
     
     with get_cursor() as cursor:
-        cursor.execute("""
-            SELECT up.plan FROM user_plans up WHERE up.user_id = %s
-        """, (user_id,))
-        plan_row = cursor.fetchone()
-        
-        if not plan_row or plan_row['plan'] not in TELEGRAM_ELIGIBLE_PLANS:
-            raise HTTPException(
-                status_code=403, 
-                detail="Telegram notifications require Trader, Pro, or Enterprise plan"
-            )
-        
         code = secrets.token_urlsafe(16)
         expires = datetime.utcnow() + timedelta(minutes=15)
         
@@ -666,17 +655,6 @@ def link_telegram_manual(x_user_token: Optional[str] = Header(None), chat_id: st
         raise HTTPException(status_code=400, detail="Invalid Chat ID format. Chat ID should be a number.")
     
     with get_cursor() as cursor:
-        cursor.execute("""
-            SELECT up.plan FROM user_plans up WHERE up.user_id = %s
-        """, (user_id,))
-        plan_row = cursor.fetchone()
-        
-        if not plan_row or plan_row['plan'] not in TELEGRAM_ELIGIBLE_PLANS:
-            raise HTTPException(
-                status_code=403, 
-                detail="Telegram notifications require Trader, Pro, or Enterprise plan"
-            )
-        
         cursor.execute("""
             UPDATE users SET 
                 telegram_chat_id = %s,
