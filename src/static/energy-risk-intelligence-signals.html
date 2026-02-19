@@ -39,6 +39,9 @@
             --border: #E2E8F0;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--text-primary);
@@ -429,6 +432,31 @@
             line-height: 1.5;
         }
 
+        /* FINAL CTA */
+        .final-cta {
+            padding: 4.5rem 2rem;
+            background: var(--bg-white);
+            text-align: center;
+        }
+        .final-cta-inner {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .final-cta-text {
+            font-size: clamp(1.15rem, 2.8vw, 1.4rem);
+            font-weight: 600;
+            color: var(--secondary);
+            line-height: 1.5;
+            margin-bottom: 1.75rem;
+            letter-spacing: -0.2px;
+        }
+        .final-cta-btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 16px 36px;
+            font-size: 1.05rem;
+        }
+
         /* FOOTER */
         .lp-footer {
             text-align: center;
@@ -599,6 +627,13 @@
                     <span>Designed for hedging, risk, and supply decisions</span>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div class="final-cta-inner">
+            <p class="final-cta-text">Stay ahead of the next escalation, not stuck reacting to yesterday's news.</p>
+            <a href="#signupForm" class="cta-btn final-cta-btn">Get Free Access to EnergyRiskIQ Signals</a>
         </div>
     </section>
 
