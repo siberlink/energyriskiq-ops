@@ -1650,3 +1650,10 @@ def run_eriq_migration():
             logger.info("ELSA tables migration completed")
     except Exception as e:
         logger.warning(f"ELSA migration skipped: {e}")
+
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("ALTER TABLE users ALTER COLUMN telegram_link_code TYPE VARCHAR(64)")
+            logger.info("Widened telegram_link_code column to VARCHAR(64)")
+    except Exception as e:
+        logger.debug(f"telegram_link_code column resize skipped: {e}")

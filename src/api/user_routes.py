@@ -597,7 +597,7 @@ def generate_telegram_link_code(x_user_token: Optional[str] = Header(None)):
     user_id = session["user_id"]
     
     with get_cursor() as cursor:
-        code = secrets.token_urlsafe(16)
+        code = secrets.token_urlsafe(12)[:16]
         expires = datetime.utcnow() + timedelta(minutes=15)
         
         cursor.execute("""
