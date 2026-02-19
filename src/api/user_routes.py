@@ -912,11 +912,17 @@ def update_delivery_preferences(body: DeliveryPreferencesRequest, x_user_token: 
     session = verify_user_session(x_user_token)
     user_id = session["user_id"]
     
+    user_plan = execute_one(
+        "SELECT COALESCE(up.plan, 'free') as plan FROM users u LEFT JOIN user_plans up ON u.id = up.user_id WHERE u.id = %s",
+        (user_id,)
+    )
+    is_free = (not user_plan or user_plan['plan'] == 'free')
+    
     updates = [
-        ('geri', body.geri_email, body.geri_telegram),
-        ('eeri', body.eeri_email, body.eeri_telegram),
-        ('egsi', body.egsi_email, body.egsi_telegram),
-        ('daily_digest', body.daily_digest_email, body.daily_digest_telegram),
+        ('geri', False if is_free else body.geri_email, body.geri_telegram),
+        ('eeri', False if is_free else body.eeri_email, body.eeri_telegram),
+        ('egsi', False if is_free else body.egsi_email, body.egsi_telegram),
+        ('daily_digest', False if is_free else body.daily_digest_email, body.daily_digest_telegram),
     ]
     
     with get_cursor() as cursor:

@@ -5851,6 +5851,9 @@
 
                         <div id="deliveryPrefStatus" style="margin-top: 12px; font-size: 13px; color: #4ade80; display: none;"></div>
                         <div id="deliveryPrefError" style="margin-top: 12px; font-size: 13px; color: #f87171; display: none;"></div>
+                        <p id="emailPrefNote" style="display: none; margin-top: 12px; font-size: 12px; color: #f59e0b;">
+                            Email delivery is available on paid plans. <a href="#plans" style="color: #60a5fa; text-decoration: underline;">Upgrade</a> to enable email alerts.
+                        </p>
                         <p id="telegramPrefNote" style="display: none; margin-top: 12px; font-size: 12px; color: #64748b;">
                             To receive Telegram messages, connect your Telegram account in the section above.
                         </p>
@@ -11947,12 +11950,26 @@
         function renderDeliveryPreferences(prefs) {
             const indices = ['geri', 'eeri', 'egsi', 'daily_digest'];
             const hasTelegram = !!(currentUser && currentUser.telegram_chat_id);
+            const plan = (currentUser && currentUser.plan) ? currentUser.plan : 'free';
+            const isPaid = (plan !== 'free');
             
             indices.forEach(idx => {
                 const p = prefs[idx] || { email: false, telegram: false };
                 const emailCb = document.getElementById(`pref_${idx}_email`);
                 const tgCb = document.getElementById(`pref_${idx}_telegram`);
-                if (emailCb) emailCb.checked = p.email;
+                if (emailCb) {
+                    if (!isPaid) {
+                        emailCb.checked = false;
+                        emailCb.disabled = true;
+                        const label = emailCb.closest('.delivery-toggle');
+                        if (label) {
+                            label.style.opacity = '0.4';
+                            label.title = 'Email delivery is available on paid plans';
+                        }
+                    } else {
+                        emailCb.checked = p.email;
+                    }
+                }
                 if (tgCb) {
                     tgCb.checked = p.telegram;
                     if (!hasTelegram) {
@@ -11965,6 +11982,11 @@
             const tgNote = document.getElementById('telegramPrefNote');
             if (tgNote && !hasTelegram) {
                 tgNote.style.display = 'block';
+            }
+
+            if (!isPaid) {
+                const emailNote = document.getElementById('emailPrefNote');
+                if (emailNote) emailNote.style.display = 'block';
             }
         }
 
