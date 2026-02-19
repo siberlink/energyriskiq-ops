@@ -903,6 +903,143 @@
         .status-indicator.offline {
             background: #ef4444;
         }
+
+        .hamburger-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #e2e8f0;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 199;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 200;
+                width: 280px;
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .admin-main {
+                margin-left: 0;
+                padding: 20px 16px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .page-subtitle {
+                font-size: 13px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 12px !important;
+            }
+
+            .stat-card {
+                padding: 16px !important;
+            }
+
+            .stat-value {
+                font-size: 24px !important;
+            }
+
+            .header-logo {
+                font-size: 16px;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .user-avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .logout-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .header-badge {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+
+            .admin-header {
+                padding: 0 12px;
+            }
+
+            .content-card {
+                border-radius: 8px !important;
+            }
+
+            .card-header, .card-body {
+                padding: 16px !important;
+            }
+
+            .page-header {
+                margin-bottom: 20px;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .admin-main {
+                padding: 16px 12px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .login-card {
+                padding: 32px 24px;
+                margin: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -942,6 +1079,11 @@
         <!-- Header -->
         <header class="admin-header">
             <div class="header-left">
+                <button class="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
                 <span class="header-logo">EnergyRiskIQ</span>
                 <span class="header-badge">Admin</span>
             </div>
@@ -954,8 +1096,10 @@
             </div>
         </header>
 
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
         <!-- Sidebar -->
-        <nav class="admin-sidebar">
+        <nav class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-section">
                 <div class="sidebar-title">Main</div>
                 <div class="nav-item active" onclick="showSection('dashboard')">
@@ -1750,6 +1894,7 @@
 
             document.getElementById('section-' + sectionId).classList.add('active');
             if (event && event.currentTarget) event.currentTarget.classList.add('active');
+            closeSidebarOnMobile();
 
             if (sectionId === 'plans') {
                 loadPlanSettings();
@@ -3004,6 +3149,22 @@
 
         setInterval(pollAdminTicketUnread, 30000);
         /* ========== End Admin Tickets Module ========== */
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebarOnMobile() {
+            if (window.innerWidth <= 768) {
+                const sidebar = document.getElementById('adminSidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar) sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('active');
+            }
+        }
 
         checkSession();
     </script>
