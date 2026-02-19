@@ -29,8 +29,61 @@ ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH") or hashlib.sha256(
 ).hexdigest()
 ADMIN_PIN = os.environ.get("ADMIN_PIN", "342256")
 
-admin_sessions = {}
-SESSION_DURATION = 24 * 60 * 60
+SESSION_DURATION = 60 * 60
+
+
+def _init_admin_sessions_table():
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS admin_sessions (
+                    token VARCHAR(64) PRIMARY KEY,
+                    username VARCHAR(100) NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    expires_at TIMESTAMPTZ NOT NULL
+                )
+            """)
+    except Exception as e:
+        logger.warning(f"Could not create admin_sessions table: {e}")
+
+
+def _db_session_valid(token: str) -> bool:
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(
+                "SELECT 1 FROM admin_sessions WHERE token = %s AND expires_at > NOW()",
+                (token,)
+            )
+            return cursor.fetchone() is not None
+    except Exception:
+        return False
+
+
+def _db_session_create(token: str, username: str):
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO admin_sessions (token, username, expires_at) VALUES (%s, %s, NOW() + INTERVAL '%s seconds') ON CONFLICT (token) DO NOTHING",
+                (token, username, SESSION_DURATION)
+            )
+    except Exception as e:
+        logger.warning(f"Could not create admin session: {e}")
+
+
+def _db_session_delete(token: str):
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("DELETE FROM admin_sessions WHERE token = %s", (token,))
+    except Exception:
+        pass
+
+
+def _db_session_cleanup():
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("DELETE FROM admin_sessions WHERE expires_at < NOW()")
+    except Exception:
+        pass
 
 
 class LoginRequest(BaseModel):
@@ -40,47 +93,40 @@ class LoginRequest(BaseModel):
 
 
 def verify_admin_token(x_admin_token: Optional[str] = Header(None)):
-    if x_admin_token and x_admin_token in admin_sessions:
-        session = admin_sessions[x_admin_token]
-        if session["expires"] > time.time():
-            return True
-        else:
-            del admin_sessions[x_admin_token]
-    
+    if x_admin_token and _db_session_valid(x_admin_token):
+        return True
+
     if ADMIN_TOKEN and x_admin_token == ADMIN_TOKEN:
         return True
-    
+
     raise HTTPException(status_code=401, detail="Invalid or expired session")
 
 
 @router.post("/login")
 def admin_login(body: LoginRequest):
     password_hash = hashlib.sha256(body.password.encode()).hexdigest()
-    
+
     if (body.username == ADMIN_USERNAME and
         password_hash == ADMIN_PASSWORD_HASH and
         body.pin == ADMIN_PIN):
-        
+
         session_token = secrets.token_urlsafe(32)
-        admin_sessions[session_token] = {
-            "username": body.username,
-            "created": time.time(),
-            "expires": time.time() + SESSION_DURATION
-        }
-        
+        _db_session_create(session_token, body.username)
+        _db_session_cleanup()
+
         return {
             "success": True,
             "token": session_token,
             "expires_in": SESSION_DURATION
         }
-    
+
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
 @router.post("/logout")
 def admin_logout(x_admin_token: Optional[str] = Header(None)):
-    if x_admin_token and x_admin_token in admin_sessions:
-        del admin_sessions[x_admin_token]
+    if x_admin_token:
+        _db_session_delete(x_admin_token)
     return {"success": True}
 
 

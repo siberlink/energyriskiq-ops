@@ -200,6 +200,8 @@ async def startup_event():
             logger.info("ERIQ Expert Analyst module is ENABLED")
         from src.tickets.db import run_tickets_migration
         run_tickets_migration()
+        from src.api.admin_routes import _init_admin_sessions_table
+        _init_admin_sessions_table()
         logger.info("Database migrations completed")
         if ENABLE_GERI:
             logger.info("GERI module is ENABLED")
