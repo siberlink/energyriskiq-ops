@@ -589,7 +589,7 @@ async def eeri_public_page(request: Request):
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/alerts">Alerts</a>
-                    <a href="/users" class="cta-nav">Sign In</a>
+                    <a href="/users" class="cta-nav">Get FREE Access</a>
                 </div>
             </div></nav>
             <main>
@@ -719,7 +719,7 @@ async def eeri_public_page(request: Request):
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
@@ -1017,7 +1017,7 @@ async def eeri_updates_page():
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
@@ -1278,7 +1278,7 @@ async def eeri_history_page():
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         <main>
@@ -1445,7 +1445,7 @@ async def eeri_daily_snapshot(date_str: str):
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         

@@ -2764,7 +2764,7 @@ async def geri_updates_page():
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         

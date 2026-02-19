@@ -251,7 +251,7 @@ async def egsi_public_page(request: Request):
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/alerts">Alerts</a>
-                    <a href="/users" class="cta-nav">Sign In</a>
+                    <a href="/users" class="cta-nav">Get FREE Access</a>
                 </div>
             </div></nav>
             <main>
@@ -390,7 +390,7 @@ async def egsi_public_page(request: Request):
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
@@ -636,7 +636,7 @@ async def egsi_updates_page():
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
@@ -700,7 +700,7 @@ async def egsi_methodology_page():
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
@@ -874,7 +874,7 @@ async def egsi_history_page():
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
@@ -1098,7 +1098,7 @@ async def egsi_daily_snapshot(date_str: str):
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Sign In</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
