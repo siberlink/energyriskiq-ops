@@ -550,7 +550,7 @@ def render_nav() -> str:
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-btn">Get Started</a>
+                <a href="/users" class="cta-btn">Get FREE Access</a>
             </div>
         </div>
     </nav>
@@ -5322,7 +5322,7 @@ def render_digest_nav() -> str:
                 <a href="/alerts">Alerts</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                <a href="/users" class="cta-btn-nav">Get Started</a>
+                <a href="/users" class="cta-btn-nav">Get FREE Access</a>
             </div>
         </div>
     </nav>
@@ -5496,14 +5496,7 @@ def render_digest_html(d: dict) -> str:
         </div>
         """
 
-    total_hidden = (d.get('total_alerts_yesterday', 0)) - len(alerts_list)
     more_note = ''
-    if total_hidden > 0:
-        more_note = f"""
-        <div style="text-align: center; padding: 12px; color: #64748b; font-size: 12px; border-top: 1px solid #334155; margin-top: 12px;">
-            +{total_hidden} more alerts available with <a href="/users#plans" style="color: #60a5fa; font-weight: 600; text-decoration: none;">Personal plan ($9.95/mo)</a>
-        </div>
-        """
 
     alerts_section = ''
     if alerts_items:
