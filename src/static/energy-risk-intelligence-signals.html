@@ -351,6 +351,25 @@
             line-height: 1.6;
         }
 
+        /* INDEX SHOWCASE */
+        .index-showcase {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 3rem;
+        }
+        .index-img {
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .index-img:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
         /* FOOTER */
         .lp-footer {
             text-align: center;
@@ -381,6 +400,10 @@
                 flex-direction: column;
             }
             .cards {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .index-showcase {
                 grid-template-columns: 1fr;
                 gap: 16px;
             }
@@ -493,6 +516,12 @@
                     <h3>Early Access to Tools</h3>
                     <p>Priority access to new dashboards, alerts, and AI analyst features. Be the first to explore what's coming to EnergyRiskIQ.</p>
                 </div>
+            </div>
+
+            <div class="index-showcase">
+                <img src="/static/geri-index-card.png" alt="Global Energy Risk Index (GERI) - 31/100 Moderate" class="index-img">
+                <img src="/static/eeri-index-card.png" alt="European Energy Risk Index (EERI) - 57/100 Elevated" class="index-img">
+                <img src="/static/egsi-index-card.png" alt="Europe Gas Stress Index (EGSI) - 45/100 Elevated" class="index-img">
             </div>
         </div>
     </section>
