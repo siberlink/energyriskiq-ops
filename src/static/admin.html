@@ -1054,6 +1054,20 @@
                     ELSA
                 </div>
             </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Support</div>
+                <div class="nav-item" onclick="showSection('tickets')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            <path d="M8 10h8"/><path d="M8 14h4"/>
+                        </svg>
+                    </span>
+                    Tickets
+                    <span id="adminTicketsBadge" style="background:#ef4444;color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:auto;display:none;min-width:18px;text-align:center;">0</span>
+                </div>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -1483,6 +1497,83 @@
                     </div>
                 </div>
             </div>
+
+            <div class="section-content" id="section-tickets">
+                <div class="page-header">
+                    <h1 class="page-title">Support Tickets</h1>
+                    <p class="page-subtitle">Manage user support requests</p>
+                </div>
+
+                <div class="stats-grid" id="ticketStatsGrid">
+                    <div class="stat-card">
+                        <div class="stat-label">Open</div>
+                        <div class="stat-value" id="ticketStatOpen">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">In Progress</div>
+                        <div class="stat-value" id="ticketStatInProgress">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Resolved</div>
+                        <div class="stat-value" id="ticketStatResolved">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unread</div>
+                        <div class="stat-value" id="ticketStatUnread" style="color:#ef4444;">0</div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                    <select id="adminTicketFilterStatus" onchange="loadAdminTickets()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:8px 12px;border-radius:8px;font-size:13px;">
+                        <option value="">All Status</option>
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                    <select id="adminTicketFilterCategory" onchange="loadAdminTickets()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:8px 12px;border-radius:8px;font-size:13px;">
+                        <option value="">All Categories</option>
+                        <option value="support">Support</option>
+                        <option value="billing">Billing</option>
+                        <option value="feature_suggestion">Feature Suggestion</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div id="adminTicketsList" class="content-card">
+                    <div class="card-body" style="padding:0;">
+                        <div style="text-align:center;padding:40px;color:#64748b;">Loading tickets...</div>
+                    </div>
+                </div>
+
+                <div id="adminTicketDetailView" style="display:none;" class="content-card">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                        <h2 class="card-title" id="adminTicketDetailSubject">Ticket</h2>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <select id="adminTicketStatusSelect" onchange="updateAdminTicketStatus()" style="background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:6px 10px;border-radius:6px;font-size:12px;">
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                            <button onclick="backToAdminTicketsList()" style="background:#334155;color:#94a3b8;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Back</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                            <span id="adminTicketDetailCategory" style="background:#1e3a5f;color:#60a5fa;padding:4px 10px;border-radius:12px;font-size:12px;"></span>
+                            <span id="adminTicketDetailStatus" style="padding:4px 10px;border-radius:12px;font-size:12px;"></span>
+                            <span id="adminTicketDetailUser" style="color:#94a3b8;font-size:12px;padding:4px 0;"></span>
+                            <span id="adminTicketDetailDate" style="color:#64748b;font-size:12px;padding:4px 0;"></span>
+                        </div>
+                        <div id="adminTicketMessages" style="margin-bottom:20px;max-height:500px;overflow-y:auto;"></div>
+                        <div id="adminTicketReplyBox">
+                            <textarea id="adminTicketReplyMessage" rows="3" maxlength="5000" placeholder="Type your reply to the user..." style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:10px;border-radius:8px;font-size:14px;resize:vertical;margin-bottom:10px;box-sizing:border-box;"></textarea>
+                            <button onclick="submitAdminTicketReply()" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;">Send Reply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -1632,6 +1723,7 @@
             document.getElementById('adminPage').style.display = 'block';
             loadPlanSettings();
             loadDashboardStats();
+            pollAdminTicketUnread();
         }
 
         async function logout() {
@@ -1669,6 +1761,9 @@
                 loadBannerSettings();
             } else if (sectionId === 'elsa') {
                 loadElsaTopics();
+            } else if (sectionId === 'tickets') {
+                loadAdminTickets();
+                loadAdminTicketStats();
             }
         }
 
@@ -2735,6 +2830,180 @@
             html = html.replace(/\n/g, '<br>');
             return html;
         }
+
+        /* ========== Admin Tickets Module ========== */
+        let adminCurrentTicketId = null;
+
+        async function loadAdminTicketStats() {
+            try {
+                const res = await fetch('/api/v1/tickets/admin/stats', { headers: { 'X-Admin-Token': sessionToken } });
+                const data = await res.json();
+                document.getElementById('ticketStatOpen').textContent = data.open_count || 0;
+                document.getElementById('ticketStatInProgress').textContent = data.in_progress_count || 0;
+                document.getElementById('ticketStatResolved').textContent = data.resolved_count || 0;
+                document.getElementById('ticketStatUnread').textContent = data.unread_count || 0;
+            } catch (e) { console.error('Failed to load ticket stats:', e); }
+        }
+
+        async function loadAdminTickets() {
+            const status = document.getElementById('adminTicketFilterStatus')?.value || '';
+            const category = document.getElementById('adminTicketFilterCategory')?.value || '';
+            let url = '/api/v1/tickets/admin/all?';
+            if (status) url += 'status=' + status + '&';
+            if (category) url += 'category=' + category;
+            try {
+                const res = await fetch(url, { headers: { 'X-Admin-Token': sessionToken } });
+                const data = await res.json();
+                renderAdminTicketsList(data.tickets || []);
+            } catch (e) {
+                document.getElementById('adminTicketsList').innerHTML = '<div class="card-body"><p style="color:#f87171;">Failed to load tickets</p></div>';
+            }
+        }
+
+        function renderAdminTicketsList(tickets) {
+            const container = document.getElementById('adminTicketsList');
+            if (!tickets.length) {
+                container.innerHTML = '<div class="card-body" style="text-align:center;padding:40px;color:#64748b;">No tickets found</div>';
+                return;
+            }
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+
+            let html = '<div style="overflow-x:auto;">';
+            tickets.forEach(t => {
+                const sc = statusColors[t.status] || '#64748b';
+                const sl = statusLabels[t.status] || t.status;
+                const cl = t.category === 'other' && t.other_category ? t.other_category : (catLabels[t.category] || t.category);
+                const date = new Date(t.created_at).toLocaleDateString();
+                const unread = t.admin_unread ? '<span style="width:8px;height:8px;background:#ef4444;border-radius:50%;display:inline-block;margin-right:8px;"></span>' : '';
+                html += '<div onclick="openAdminTicketDetail(' + t.id + ')" style="padding:16px 20px;border-bottom:1px solid #1e293b;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background 0.2s;" onmouseover="this.style.background=\'#1e293b\'" onmouseout="this.style.background=\'transparent\'">';
+                html += unread;
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<div style="color:#e2e8f0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t.subject + '</div>';
+                html += '<div style="color:#64748b;font-size:12px;margin-top:4px;">' + (t.user_email || 'Unknown') + ' &middot; ' + cl + ' &middot; ' + date + ' &middot; ' + t.message_count + ' msgs</div>';
+                html += '</div>';
+                html += '<span style="background:' + sc + '20;color:' + sc + ';padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;">' + sl + '</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function openAdminTicketDetail(ticketId) {
+            adminCurrentTicketId = ticketId;
+            document.getElementById('adminTicketsList').style.display = 'none';
+            document.getElementById('adminTicketDetailView').style.display = 'block';
+            document.getElementById('ticketStatsGrid').style.display = 'none';
+
+            try {
+                const res = await fetch('/api/v1/tickets/admin/' + ticketId, { headers: { 'X-Admin-Token': sessionToken } });
+                const data = await res.json();
+                if (!data.ticket) { alert('Ticket not found'); backToAdminTicketsList(); return; }
+                renderAdminTicketDetail(data.ticket);
+                pollAdminTicketUnread();
+            } catch (e) { alert('Error loading ticket'); backToAdminTicketsList(); }
+        }
+
+        function renderAdminTicketDetail(ticket) {
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+
+            document.getElementById('adminTicketDetailSubject').textContent = ticket.subject;
+            const catLabel = ticket.category === 'other' && ticket.other_category ? ticket.other_category : (catLabels[ticket.category] || ticket.category);
+            document.getElementById('adminTicketDetailCategory').textContent = catLabel;
+
+            const sc = statusColors[ticket.status] || '#64748b';
+            const statusEl = document.getElementById('adminTicketDetailStatus');
+            statusEl.textContent = statusLabels[ticket.status] || ticket.status;
+            statusEl.style.background = sc + '20';
+            statusEl.style.color = sc;
+
+            document.getElementById('adminTicketStatusSelect').value = ticket.status;
+            document.getElementById('adminTicketDetailUser').textContent = 'User: ' + (ticket.user_email || 'Unknown');
+            document.getElementById('adminTicketDetailDate').textContent = 'Created ' + new Date(ticket.created_at).toLocaleString();
+
+            let msgHtml = '';
+            (ticket.messages || []).forEach(m => {
+                const isAdmin = m.sender_type === 'admin';
+                const align = isAdmin ? 'flex-end' : 'flex-start';
+                const bg = isAdmin ? '#1e3a5f' : '#1e293b';
+                const border = isAdmin ? '1px solid #2563eb40' : '1px solid #33415540';
+                const label = isAdmin ? '<span style="color:#60a5fa;font-size:11px;font-weight:600;">You (Admin)</span>' : '<span style="color:#94a3b8;font-size:11px;font-weight:600;">User</span>';
+                const time = new Date(m.created_at).toLocaleString();
+                msgHtml += '<div style="display:flex;justify-content:' + align + ';margin-bottom:12px;">';
+                msgHtml += '<div style="max-width:80%;background:' + bg + ';border:' + border + ';border-radius:12px;padding:12px 16px;">';
+                msgHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' + label + '<span style="color:#475569;font-size:10px;">' + time + '</span></div>';
+                msgHtml += '<div style="color:#e2e8f0;font-size:13px;line-height:1.6;white-space:pre-wrap;">' + m.message.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+                msgHtml += '</div></div>';
+            });
+            document.getElementById('adminTicketMessages').innerHTML = msgHtml;
+
+            const replyBox = document.getElementById('adminTicketReplyBox');
+            replyBox.style.display = ticket.status === 'closed' ? 'none' : 'block';
+
+            const msgContainer = document.getElementById('adminTicketMessages');
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        function backToAdminTicketsList() {
+            document.getElementById('adminTicketDetailView').style.display = 'none';
+            document.getElementById('adminTicketsList').style.display = 'block';
+            document.getElementById('ticketStatsGrid').style.display = '';
+            adminCurrentTicketId = null;
+            loadAdminTickets();
+            loadAdminTicketStats();
+        }
+
+        async function submitAdminTicketReply() {
+            const message = document.getElementById('adminTicketReplyMessage').value.trim();
+            if (!message) { alert('Please enter a message'); return; }
+            try {
+                const res = await fetch('/api/v1/tickets/admin/' + adminCurrentTicketId + '/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
+                    body: JSON.stringify({ message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('adminTicketReplyMessage').value = '';
+                    openAdminTicketDetail(adminCurrentTicketId);
+                } else { alert(data.detail || 'Failed to send reply'); }
+            } catch (e) { alert('Error sending reply'); }
+        }
+
+        async function updateAdminTicketStatus() {
+            const status = document.getElementById('adminTicketStatusSelect').value;
+            try {
+                const res = await fetch('/api/v1/tickets/admin/' + adminCurrentTicketId + '/status', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': sessionToken },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    openAdminTicketDetail(adminCurrentTicketId);
+                } else { alert(data.detail || 'Failed to update status'); }
+            } catch (e) { alert('Error updating status'); }
+        }
+
+        async function pollAdminTicketUnread() {
+            try {
+                const res = await fetch('/api/v1/tickets/admin/unread', { headers: { 'X-Admin-Token': sessionToken } });
+                const data = await res.json();
+                const badge = document.getElementById('adminTicketsBadge');
+                if (data.unread > 0) {
+                    badge.textContent = data.unread;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (e) {}
+        }
+
+        setInterval(pollAdminTicketUnread, 30000);
+        /* ========== End Admin Tickets Module ========== */
 
         checkSession();
     </script>

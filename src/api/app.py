@@ -37,6 +37,7 @@ from src.eriq import ENABLE_ERIQ
 from src.api.eriq_routes import router as eriq_router
 from src.elsa.routes import router as elsa_router
 from src.api.signals_routes import router as signals_router
+from src.tickets.routes import router as tickets_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -177,6 +178,9 @@ if ENABLE_ERIQ:
 app.include_router(elsa_router)
 logger.info("ELSA Marketing Bot module enabled - routes registered")
 
+app.include_router(tickets_router)
+logger.info("Tickets module enabled - routes registered")
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting EnergyRiskIQ API...")
@@ -194,6 +198,8 @@ async def startup_event():
         if ENABLE_ERIQ:
             run_eriq_migration()
             logger.info("ERIQ Expert Analyst module is ENABLED")
+        from src.tickets.db import run_tickets_migration
+        run_tickets_migration()
         logger.info("Database migrations completed")
         if ENABLE_GERI:
             logger.info("GERI module is ENABLED")

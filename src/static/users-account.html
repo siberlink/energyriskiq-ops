@@ -4767,6 +4767,20 @@
             </a>
         </div>
 
+        <div class="sidebar-section">
+            <div class="sidebar-title">Support</div>
+            <a class="nav-item" id="ticketsNavItem" onclick="showSection('tickets'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <path d="M8 10h8"/><path d="M8 14h4"/>
+                    </svg>
+                </span>
+                Tickets
+                <span id="ticketsBadge" class="pro-badge-nav" style="background:#ef4444;display:none;font-size:9px;padding:2px 6px;min-width:18px;text-align:center;">0</span>
+            </a>
+        </div>
+
         <div id="upgradeSidebarCard" class="upgrade-sidebar-card" style="display: none;">
             <div class="upgrade-sidebar-title">
                 <span>&#9889;</span> Unlock More Intelligence
@@ -5861,6 +5875,80 @@
                 </div>
             </div>
         </div>
+        <div class="section-content" id="section-tickets">
+            <div class="page-header">
+                <h1 class="page-title">Support Tickets</h1>
+                <p class="page-subtitle">Get help or share your feedback</p>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                <button onclick="showCreateTicketForm()" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;">+ New Ticket</button>
+                <select id="ticketFilterStatus" onchange="loadUserTickets()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:8px 12px;border-radius:8px;font-size:13px;">
+                    <option value="">All Status</option>
+                    <option value="open">Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="closed">Closed</option>
+                </select>
+            </div>
+
+            <div id="createTicketForm" style="display:none;" class="content-card">
+                <div class="card-header"><h2 class="card-title">Create New Ticket</h2></div>
+                <div class="card-body">
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">Category</label>
+                        <select id="newTicketCategory" onchange="toggleOtherCategory()" style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:10px;border-radius:8px;font-size:14px;">
+                            <option value="support">Support</option>
+                            <option value="billing">Billing</option>
+                            <option value="feature_suggestion">Feature Suggestion</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div id="otherCategoryField" style="display:none;margin-bottom:16px;">
+                        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">Please specify</label>
+                        <input id="newTicketOtherCategory" type="text" maxlength="100" placeholder="What is this about?" style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:10px;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">Subject</label>
+                        <input id="newTicketSubject" type="text" maxlength="200" placeholder="Brief description of your issue" style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:10px;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block;color:#94a3b8;font-size:13px;margin-bottom:6px;">Message</label>
+                        <textarea id="newTicketMessage" rows="5" maxlength="5000" placeholder="Describe your issue in detail..." style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:10px;border-radius:8px;font-size:14px;resize:vertical;box-sizing:border-box;"></textarea>
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="submitNewTicket()" style="background:#3b82f6;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;">Submit Ticket</button>
+                        <button onclick="hideCreateTicketForm()" style="background:#334155;color:#94a3b8;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ticketsList" class="content-card">
+                <div class="card-body" style="padding:0;">
+                    <div style="text-align:center;padding:40px;color:#64748b;">Loading tickets...</div>
+                </div>
+            </div>
+
+            <div id="ticketDetailView" style="display:none;" class="content-card">
+                <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2 class="card-title" id="ticketDetailSubject">Ticket</h2>
+                    <button onclick="backToTicketsList()" style="background:#334155;color:#94a3b8;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Back to List</button>
+                </div>
+                <div class="card-body">
+                    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                        <span id="ticketDetailCategory" style="background:#1e3a5f;color:#60a5fa;padding:4px 10px;border-radius:12px;font-size:12px;"></span>
+                        <span id="ticketDetailStatus" style="padding:4px 10px;border-radius:12px;font-size:12px;"></span>
+                        <span id="ticketDetailDate" style="color:#64748b;font-size:12px;padding:4px 0;"></span>
+                    </div>
+                    <div id="ticketMessages" style="margin-bottom:20px;max-height:500px;overflow-y:auto;"></div>
+                    <div id="ticketReplyBox" style="display:none;">
+                        <textarea id="ticketReplyMessage" rows="3" maxlength="5000" placeholder="Type your reply..." style="width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #334155;padding:10px;border-radius:8px;font-size:14px;resize:vertical;margin-bottom:10px;box-sizing:border-box;"></textarea>
+                        <button onclick="submitTicketReply()" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;">Send Reply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script>
@@ -6098,6 +6186,7 @@
                     renderPlans(plansData.plans || [], plansData.free_trial_days || 0);
                 }
                 
+                pollTicketUnread();
                 console.log(`Dashboard loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
             } catch (error) {
                 clearTimeout(timeout);
@@ -11417,6 +11506,8 @@
                 loadDailyDigest();
             } else if (sectionId === 'egsi') {
                 loadEgsiDashboard();
+            } else if (sectionId === 'tickets') {
+                loadUserTickets();
             }
         }
 
@@ -12085,6 +12176,189 @@
         } else if (urlParams.get('billing') === 'cancelled') {
             window.history.replaceState({}, document.title, '/users/account');
         }
+
+        let currentTicketId = null;
+
+        function showCreateTicketForm() {
+            document.getElementById('createTicketForm').style.display = 'block';
+            document.getElementById('ticketsList').style.display = 'none';
+            document.getElementById('ticketDetailView').style.display = 'none';
+        }
+
+        function hideCreateTicketForm() {
+            document.getElementById('createTicketForm').style.display = 'none';
+            document.getElementById('ticketsList').style.display = 'block';
+        }
+
+        function toggleOtherCategory() {
+            const cat = document.getElementById('newTicketCategory').value;
+            document.getElementById('otherCategoryField').style.display = cat === 'other' ? 'block' : 'none';
+        }
+
+        async function submitNewTicket() {
+            const category = document.getElementById('newTicketCategory').value;
+            const subject = document.getElementById('newTicketSubject').value.trim();
+            const message = document.getElementById('newTicketMessage').value.trim();
+            const otherCategory = document.getElementById('newTicketOtherCategory')?.value?.trim() || null;
+
+            if (!subject || subject.length < 3) { alert('Please enter a subject (at least 3 characters)'); return; }
+            if (!message || message.length < 10) { alert('Please enter a message (at least 10 characters)'); return; }
+
+            try {
+                const res = await fetch('/api/v1/tickets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionToken },
+                    body: JSON.stringify({ category, subject, message, other_category: category === 'other' ? otherCategory : null })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('newTicketSubject').value = '';
+                    document.getElementById('newTicketMessage').value = '';
+                    document.getElementById('newTicketOtherCategory').value = '';
+                    hideCreateTicketForm();
+                    loadUserTickets();
+                } else {
+                    alert(data.detail || 'Failed to create ticket');
+                }
+            } catch (e) { alert('Error creating ticket'); }
+        }
+
+        async function loadUserTickets() {
+            const statusFilter = document.getElementById('ticketFilterStatus')?.value || '';
+            const url = '/api/v1/tickets' + (statusFilter ? '?status=' + statusFilter : '');
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + sessionToken } });
+                const data = await res.json();
+                renderTicketsList(data.tickets || []);
+            } catch (e) {
+                document.getElementById('ticketsList').innerHTML = '<div class="card-body"><p style="color:#f87171;">Failed to load tickets</p></div>';
+            }
+        }
+
+        function renderTicketsList(tickets) {
+            const container = document.getElementById('ticketsList');
+            if (!tickets.length) {
+                container.innerHTML = '<div class="card-body" style="text-align:center;padding:40px;"><p style="color:#64748b;margin-bottom:12px;">No tickets yet</p><p style="color:#475569;font-size:13px;">Create a ticket to get help or share feedback</p></div>';
+                return;
+            }
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+
+            let html = '<div style="overflow-x:auto;">';
+            tickets.forEach(t => {
+                const sc = statusColors[t.status] || '#64748b';
+                const sl = statusLabels[t.status] || t.status;
+                const cl = t.category === 'other' && t.other_category ? t.other_category : (catLabels[t.category] || t.category);
+                const date = new Date(t.created_at).toLocaleDateString();
+                const unread = t.user_unread ? '<span style="width:8px;height:8px;background:#ef4444;border-radius:50%;display:inline-block;margin-right:8px;"></span>' : '';
+                html += '<div onclick="openTicketDetail(' + t.id + ')" style="padding:16px 20px;border-bottom:1px solid #1e293b;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background 0.2s;" onmouseover="this.style.background=\'#1e293b\'" onmouseout="this.style.background=\'transparent\'">';
+                html += unread;
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<div style="color:#e2e8f0;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t.subject + '</div>';
+                html += '<div style="color:#64748b;font-size:12px;margin-top:4px;">' + cl + ' &middot; ' + date + ' &middot; ' + t.message_count + ' messages</div>';
+                html += '</div>';
+                html += '<span style="background:' + sc + '20;color:' + sc + ';padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;">' + sl + '</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function openTicketDetail(ticketId) {
+            currentTicketId = ticketId;
+            document.getElementById('ticketsList').style.display = 'none';
+            document.getElementById('createTicketForm').style.display = 'none';
+            document.getElementById('ticketDetailView').style.display = 'block';
+
+            try {
+                const res = await fetch('/api/v1/tickets/' + ticketId, { headers: { 'Authorization': 'Bearer ' + sessionToken } });
+                const data = await res.json();
+                if (!data.ticket) { alert('Ticket not found'); backToTicketsList(); return; }
+                renderTicketDetail(data.ticket);
+                pollTicketUnread();
+            } catch (e) { alert('Error loading ticket'); backToTicketsList(); }
+        }
+
+        function renderTicketDetail(ticket) {
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+
+            document.getElementById('ticketDetailSubject').textContent = ticket.subject;
+            const catLabel = ticket.category === 'other' && ticket.other_category ? ticket.other_category : (catLabels[ticket.category] || ticket.category);
+            document.getElementById('ticketDetailCategory').textContent = catLabel;
+
+            const sc = statusColors[ticket.status] || '#64748b';
+            const statusEl = document.getElementById('ticketDetailStatus');
+            statusEl.textContent = statusLabels[ticket.status] || ticket.status;
+            statusEl.style.background = sc + '20';
+            statusEl.style.color = sc;
+
+            document.getElementById('ticketDetailDate').textContent = 'Created ' + new Date(ticket.created_at).toLocaleString();
+
+            let msgHtml = '';
+            (ticket.messages || []).forEach(m => {
+                const isAdmin = m.sender_type === 'admin';
+                const align = isAdmin ? 'flex-start' : 'flex-end';
+                const bg = isAdmin ? '#1e3a5f' : '#1e293b';
+                const border = isAdmin ? '1px solid #2563eb40' : '1px solid #33415540';
+                const label = isAdmin ? '<span style="color:#60a5fa;font-size:11px;font-weight:600;">Admin</span>' : '<span style="color:#94a3b8;font-size:11px;font-weight:600;">You</span>';
+                const time = new Date(m.created_at).toLocaleString();
+                msgHtml += '<div style="display:flex;justify-content:' + align + ';margin-bottom:12px;">';
+                msgHtml += '<div style="max-width:80%;background:' + bg + ';border:' + border + ';border-radius:12px;padding:12px 16px;">';
+                msgHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' + label + '<span style="color:#475569;font-size:10px;">' + time + '</span></div>';
+                msgHtml += '<div style="color:#e2e8f0;font-size:13px;line-height:1.6;white-space:pre-wrap;">' + m.message.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+                msgHtml += '</div></div>';
+            });
+            document.getElementById('ticketMessages').innerHTML = msgHtml;
+
+            const replyBox = document.getElementById('ticketReplyBox');
+            replyBox.style.display = ticket.status === 'closed' ? 'none' : 'block';
+
+            const msgContainer = document.getElementById('ticketMessages');
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        function backToTicketsList() {
+            document.getElementById('ticketDetailView').style.display = 'none';
+            document.getElementById('ticketsList').style.display = 'block';
+            currentTicketId = null;
+            loadUserTickets();
+        }
+
+        async function submitTicketReply() {
+            const message = document.getElementById('ticketReplyMessage').value.trim();
+            if (!message) { alert('Please enter a message'); return; }
+            try {
+                const res = await fetch('/api/v1/tickets/' + currentTicketId + '/reply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionToken },
+                    body: JSON.stringify({ message })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('ticketReplyMessage').value = '';
+                    openTicketDetail(currentTicketId);
+                } else { alert(data.detail || 'Failed to send reply'); }
+            } catch (e) { alert('Error sending reply'); }
+        }
+
+        async function pollTicketUnread() {
+            try {
+                const res = await fetch('/api/v1/tickets/unread', { headers: { 'Authorization': 'Bearer ' + sessionToken } });
+                const data = await res.json();
+                const badge = document.getElementById('ticketsBadge');
+                if (data.unread > 0) {
+                    badge.textContent = data.unread;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (e) {}
+        }
+
+        setInterval(pollTicketUnread, 30000);
     </script>
 
     <!-- Plan Upgrade/Downgrade Modal -->
