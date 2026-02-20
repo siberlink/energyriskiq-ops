@@ -6,8 +6,9 @@ from fastapi import APIRouter, Header, HTTPException
 from typing import Optional, List
 from pydantic import BaseModel
 
+from fastapi.responses import StreamingResponse
 from src.api.user_routes import verify_user_session
-from src.eriq.agent import ask_eriq
+from src.eriq.agent import ask_eriq, ask_eriq_stream
 from src.eriq.context import get_user_plan, get_plan_config, get_questions_used_today
 from src.eriq.knowledge_base import load_knowledge_base
 from src.eriq.tokens import (
@@ -84,6 +85,36 @@ def eriq_ask(body: EriqAskRequest, x_user_token: Optional[str] = Header(None)):
         logger.error(f"Failed to log ERIQ conversation: {e}")
 
     return result
+
+
+@router.post("/ask/stream")
+def eriq_ask_stream(body: EriqAskRequest, x_user_token: Optional[str] = Header(None)):
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+    question = body.question.strip()
+
+    if not question:
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
+    if len(question) > 2000:
+        raise HTTPException(status_code=400, detail="Question is too long (max 2000 characters)")
+
+    def generate():
+        yield from ask_eriq_stream(
+            user_id=user_id,
+            question=question,
+            conversation_history=body.conversation_history,
+            page_context=body.page_context,
+        )
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 
 @router.get("/status")

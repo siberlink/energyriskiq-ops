@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from typing import Optional
+from typing import Optional, Generator
 from openai import OpenAI
 
 from src.eriq.context import (
@@ -140,6 +140,37 @@ def _call_model(messages: list, max_tokens: int):
         return response
 
     raise RuntimeError("No OpenAI client available")
+
+
+def _call_model_stream(messages: list, max_tokens: int) -> Generator:
+    direct_client = _get_direct_client()
+    if direct_client:
+        try:
+            stream = direct_client.chat.completions.create(
+                model="gpt-5.1",
+                messages=messages,
+                max_completion_tokens=max_tokens,
+                stream=True,
+                stream_options={"include_usage": True},
+            )
+            logger.info("ERIQ streaming GPT-5.1 via direct OpenAI key")
+            return stream
+        except Exception as e:
+            logger.warning(f"Direct OpenAI GPT-5.1 streaming failed ({e}), falling back to proxy model")
+
+    proxy_client = _get_proxy_client()
+    if proxy_client:
+        stream = proxy_client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=messages,
+            max_tokens=max_tokens,
+            stream=True,
+            stream_options={"include_usage": True},
+        )
+        logger.info("ERIQ streaming gpt-4.1-mini via platform proxy")
+        return stream
+
+    raise RuntimeError("No OpenAI client available for ERIQ streaming")
 
 
 PAGE_CONTEXT_PROMPTS = {
@@ -290,6 +321,146 @@ def ask_eriq(user_id: int, question: str, conversation_history: Optional[list] =
             "questions_used": questions_used,
             "questions_limit": max_questions,
         }
+
+
+def _json_encode(obj: dict) -> str:
+    return json.dumps(obj, ensure_ascii=False)
+
+
+def ask_eriq_stream(user_id: int, question: str, conversation_history: Optional[list] = None, page_context: Optional[str] = None) -> Generator:
+    plan = get_user_plan(user_id)
+    config = get_plan_config(plan)
+
+    questions_used = get_questions_used_today(user_id)
+    max_questions = config["max_questions_per_day"]
+
+    if questions_used >= max_questions:
+        yield f"data: {_json_encode({'type': 'error', 'error': 'daily_limit', 'message': f'You have reached your daily limit of {max_questions} questions. Your quota resets at midnight UTC.', 'questions_used': questions_used, 'questions_limit': max_questions})}\n\n"
+        return
+
+    can_use, token_status = check_can_use(user_id, plan)
+    if not can_use:
+        yield f"data: {_json_encode({'type': 'error', 'error': 'token_limit', 'message': 'You have used all your ERIQ tokens for this month. Purchase additional tokens to continue using ERIQ.'})}\n\n"
+        return
+
+    intent, required_mode, confidence = classify_intent(question)
+
+    if intent == "disallowed":
+        disallowed_msg = "I appreciate your interest, but I'm not able to provide specific trade recommendations or investment advice. As a risk intelligence analyst, I can help you understand the current risk environment, explain index movements, and analyze scenarios — but the decision to act is always yours. How can I help you understand the risk landscape instead?"
+        yield f"data: {_json_encode({'type': 'chunk', 'content': disallowed_msg})}\n\n"
+        yield f"data: {_json_encode({'type': 'done', 'questions_used': questions_used + 1, 'questions_limit': max_questions, 'mode': 'explain', 'intent': 'disallowed'})}\n\n"
+        return
+
+    if not check_mode_access(required_mode, config["modes"]):
+        upgrade_msg = get_upgrade_message(required_mode, plan)
+        effective_mode = config["modes"][-1]
+    else:
+        upgrade_msg = None
+        effective_mode = required_mode
+
+    try:
+        ctx = build_context(user_id, plan, question)
+    except Exception as e:
+        logger.error(f"Failed to build context for user {user_id}: {e}")
+        ctx = {
+            "timestamp": "",
+            "plan": plan,
+            "indices": {},
+            "alerts": [],
+            "assets": {},
+            "regime": None,
+            "risk_tone": None,
+            "correlations": None,
+            "betas": None,
+            "data_quality": {"overall": "degraded", "issues": ["Context assembly failed"]},
+        }
+
+    relevant_docs = retrieve_relevant_docs(question, top_k=4)
+    knowledge_text = format_knowledge_for_prompt(relevant_docs)
+    context_text = format_context_for_prompt(ctx)
+
+    messages = _build_messages(
+        question=question,
+        plan=plan,
+        mode=effective_mode,
+        context_text=context_text,
+        knowledge_text=knowledge_text,
+        conversation_history=conversation_history,
+        page_context=page_context,
+    )
+
+    try:
+        stream = _call_model_stream(messages, config["max_response_tokens"])
+        full_response = []
+        stream_usage = None
+
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0:
+                delta = chunk.choices[0].delta
+                if delta and delta.content:
+                    text = delta.content
+                    full_response.append(text)
+                    yield f"data: {_json_encode({'type': 'chunk', 'content': text})}\n\n"
+            if hasattr(chunk, 'usage') and chunk.usage:
+                stream_usage = chunk.usage
+
+        answer = "".join(full_response).strip()
+        if not answer:
+            answer = "I wasn't able to generate a response for that question. Could you try rephrasing it?"
+            yield f"data: {_json_encode({'type': 'chunk', 'content': answer})}\n\n"
+
+        if upgrade_msg:
+            upgrade_text = f"\n\n---\n*{upgrade_msg}*"
+            answer += upgrade_text
+            yield f"data: {_json_encode({'type': 'chunk', 'content': upgrade_text})}\n\n"
+
+        tokens_used = 0
+        if stream_usage:
+            tokens_used = getattr(stream_usage, 'total_tokens', 0) or 0
+        if tokens_used == 0:
+            tokens_used = max(len(answer) // 4, 100)
+
+        try:
+            deduct_tokens(user_id, tokens_used)
+        except Exception as te:
+            logger.error(f"Token deduction failed for user {user_id}: {te}")
+
+        conversation_id = None
+        try:
+            conversation_id = _log_eriq_conversation(
+                user_id=user_id,
+                question=question,
+                response=answer,
+                intent=intent,
+                mode=effective_mode,
+                plan=plan,
+                tokens_used=tokens_used,
+                success=True,
+            )
+        except Exception as e:
+            logger.error(f"Failed to log ERIQ streaming conversation: {e}")
+
+        yield f"data: {_json_encode({'type': 'done', 'questions_used': questions_used + 1, 'questions_limit': max_questions, 'mode': effective_mode, 'intent': intent, 'data_quality': ctx.get('data_quality', {}).get('overall', 'unknown'), 'conversation_id': conversation_id})}\n\n"
+
+    except Exception as e:
+        logger.error(f"ERIQ streaming failed: {e}")
+        yield f"data: {_json_encode({'type': 'error', 'message': 'I am experiencing a temporary issue processing your question. Please try again in a moment.'})}\n\n"
+
+
+def _log_eriq_conversation(user_id: int, question: str, response: str, intent: str, mode: str, plan: str, tokens_used: int, success: bool):
+    from src.db.db import get_cursor
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO eriq_conversations (user_id, question, response, intent, mode, plan, tokens_used, success)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (user_id, question, response, intent, mode, plan, tokens_used, success))
+            row = cursor.fetchone()
+            return row["id"] if row else None
+    except Exception as e:
+        logger.error(f"Failed to log ERIQ conversation: {e}")
+        return None
 
 
 def _build_messages(question: str, plan: str, mode: str, context_text: str,
