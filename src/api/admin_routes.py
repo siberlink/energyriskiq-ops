@@ -29,7 +29,7 @@ ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH") or hashlib.sha256(
 ).hexdigest()
 ADMIN_PIN = os.environ.get("ADMIN_PIN", "342256")
 
-SESSION_DURATION = 60 * 60
+SESSION_DURATION = 24 * 60 * 60
 
 
 def _init_admin_sessions_table():

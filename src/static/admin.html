@@ -2187,6 +2187,10 @@
         async function loadFeedHealth() {
             try {
                 const res = await fetch('/internal/feeds/health', { headers: { 'X-Admin-Token': sessionToken } });
+                if (res.status === 401) {
+                    document.getElementById('feedsTableContainer').innerHTML = '<div style="padding:40px;text-align:center;"><p style="color:#f59e0b;margin-bottom:12px;">Session expired</p><button onclick="location.reload()" style="background:#3b82f6;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;">Re-login</button></div>';
+                    return;
+                }
                 if (!res.ok) throw new Error('Failed');
                 const data = await res.json();
                 feedHealthData = data.feeds || [];
