@@ -218,6 +218,24 @@
             color: rgba(255, 255, 255, 0.6) !important;
         }
 
+        .delivery-setup-badge {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: auto;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: deliveryPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes deliveryPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(245, 158, 11, 0.4); }
+            50% { opacity: 0.5; box-shadow: 0 0 12px rgba(239, 68, 68, 0.7); }
+        }
+
         .geri-upgrade-hint {
             font-size: 11px;
             color: rgba(255, 255, 255, 0.5);
@@ -4755,15 +4773,16 @@
         </div>
 
         <div class="sidebar-section">
-            <div class="sidebar-title">Settings</div>
+            <div class="sidebar-title">Delivery</div>
             <a class="nav-item" onclick="showSection('settings'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        <path d="M22 12h-6l-2 3h-4l-2-3H2"/>
+                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
                     </svg>
                 </span>
-                Settings
+                Daily Delivery
+                <span id="deliverySetupBadge" class="delivery-setup-badge" style="display:none;">Setup</span>
             </a>
         </div>
 
@@ -5658,11 +5677,11 @@
             </div>
         </div>
 
-        <!-- Settings Section -->
+        <!-- Daily Delivery Section -->
         <div class="section-content" id="section-settings">
             <div class="page-header">
-                <h1 class="page-title">Settings</h1>
-                <p class="page-subtitle">Manage your account settings</p>
+                <h1 class="page-title">Daily Delivery</h1>
+                <p class="page-subtitle">Manage your daily index & digest delivery preferences</p>
             </div>
 
             <div class="content-card">
@@ -12046,6 +12065,7 @@
             const hasTelegram = !!(currentUser && currentUser.telegram_chat_id);
             const plan = (currentUser && currentUser.plan) ? currentUser.plan : 'free';
             const isPaid = (plan !== 'free');
+            let anyEnabled = false;
             
             indices.forEach(idx => {
                 const p = prefs[idx] || { email: false, telegram: false };
@@ -12062,10 +12082,12 @@
                         }
                     } else {
                         emailCb.checked = p.email;
+                        if (p.email) anyEnabled = true;
                     }
                 }
                 if (tgCb) {
                     tgCb.checked = p.telegram;
+                    if (p.telegram) anyEnabled = true;
                 }
             });
             
@@ -12077,6 +12099,15 @@
             if (!isPaid) {
                 const emailNote = document.getElementById('emailPrefNote');
                 if (emailNote) emailNote.style.display = 'block';
+            }
+
+            updateDeliveryBadge(anyEnabled);
+        }
+
+        function updateDeliveryBadge(anyEnabled) {
+            const badge = document.getElementById('deliverySetupBadge');
+            if (badge) {
+                badge.style.display = anyEnabled ? 'none' : 'inline-block';
             }
         }
 
@@ -12116,6 +12147,9 @@
                     statusEl.textContent = 'Preferences saved';
                     statusEl.style.display = 'block';
                     setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+
+                    const anyOn = Object.values(body).some(v => v === true);
+                    updateDeliveryBadge(anyOn);
                 } catch (error) {
                     console.error('Error saving delivery preferences:', error);
                     errorEl.textContent = 'Failed to save preferences. Please try again.';
