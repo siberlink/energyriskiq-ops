@@ -81,6 +81,29 @@ jobs:
             echo "status=failed" >> $GITHUB_OUTPUT
           fi
 
+      - name: Capture LNG Price (JKM)
+        id: lng_price
+        if: always()
+        run: |
+          echo "Capturing JKM LNG price from OilPriceAPI..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/lng-price-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "LNG price capture successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::LNG price capture returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
       - name: Compute EGSI-M for yesterday
         id: egsi_m
         if: always()
@@ -165,6 +188,7 @@ jobs:
           echo "| Market Data | ${{ steps.market_data.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| GERI | ${{ steps.geri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EERI | ${{ steps.eeri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| LNG Price | ${{ steps.lng_price.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EGSI-M | ${{ steps.egsi_m.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EGSI-S | ${{ steps.egsi_s.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Delivery | ${{ steps.delivery.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
