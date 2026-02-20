@@ -465,7 +465,7 @@ def run_pro_delivery(
     
     from src.delivery.pro_delivery_worker import run_index_delivery
     
-    response, status_code = run_job_with_lock('index_delivery', run_index_delivery)
+    response, status_code = run_job_with_lock('pro_delivery', run_index_delivery)
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
@@ -483,7 +483,7 @@ def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
     
     from src.delivery.pro_delivery_worker import run_index_delivery
     
-    response, status_code = run_job_with_lock('index_delivery', run_index_delivery)
+    response, status_code = run_job_with_lock('pro_delivery', run_index_delivery)
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))

@@ -1,0 +1,154 @@
+
+1.	The architect's feedback is noted. The delivery gating point is actually working as intended - we send ONE consolidated message per channel per day containing all enabled indices. This is correct because:
+2.	Users don't want separate emails for each index - they want one daily briefing
+3.	The has_been_delivered_today prevents duplicates within the same day
+4.	Market Snapshot is always included as contextual data when any email is sent
+5.	These are design decisions, not bugs. Let me mark all tasks as completed:
+6.	The complete preference-aware delivery system is now implemented and running. Here's a summary of what was built:
+7.	EGSI Integration:
+•	New function to fetch latest EGSI data from the database
+•	Plan-tiered EGSI email template (Free gets value/band only, higher plans get trends, component scores, and AI analysis with increasing depth)
+•	Plan-tiered EGSI Telegram template with the same progressive disclosure
+8.	Preference-Aware Delivery:
+•	Bulk loads all user delivery preferences from user_delivery_preferences in one query (efficient)
+•	Each user's enabled indices (GERI, EERI, EGSI, Daily Digest) are respected per channel
+•	Free plan: Telegram only (email blocked regardless of preferences)
+•	Paid plans: Both Email and Telegram, filtered by individual index preferences
+•	Users with no preferences set receive nothing (opt-in model)
+•	AI digest only generated when at least one user needs it (saves API costs)
+9.	Migration Fix:
+•	Fixed the JSONB cast error that was preventing the Free plan Telegram enablement from running
+10.	The server is running cleanly with no errors. The delivery system is ready to run - when triggered, it will respect each user's individual checkbox settings for what indices they want on which channel.
+
+
+
+
+
+Step 1: Gather Data
+The system fetches the latest values for all indices:
+•	GERI (Global Energy Risk Index) — realtime for paid plans, delayed for Free
+•	EERI (Regional Escalation Risk Index)
+•	EGSI (Europe Gas Stress Index)
+•	Market Snapshots (Brent, TTF Gas, EU Storage)
+•	AI Digest — generated per plan tier (only if at least one user needs it)
+•	Step 2: Load All Users + Their Preferences
+•	Pulls all verified users with their plan (Free, Personal, Trader, Pro, Enterprise)
+•	Bulk-loads each user's delivery preferences from the database — which indices they want, on which channel
+•	Step 3: Per-User Decision Logic
+Check	What Happens
+User has no preferences set	Skipped entirely (opt-in model)
+User is on Free plan	Email is blocked regardless of settings. Only Telegram is allowed.
+User is on Paid plan	Both Email and Telegram are available, filtered by their individual index checkboxes
+Already delivered today?	Skipped to prevent duplicates
+	
+
+•	Step 4: Message Composition (Per Channel)
+•	For each user, the system builds a single consolidated message per channel containing only the indices they opted into:
+•	Email example (Trader plan, GERI + EGSI enabled): Gets one email with GERI section, EGSI section, Market Snapshot, and upgrade prompt. No EERI or Digest sections.
+•	Telegram example (Free plan, GERI + Daily Digest enabled): Gets one Telegram message with GERI and Digest sections only. No EERI or EGSI.
+•	Step 5: Content Depth by Plan Tier
+•	Each index section scales in detail based on the user's plan:
+Plan	Content Depth
+Free	Index value + band only
+Personal	+ 24h/7d trends + short AI interpretation
+Trader	+ component scores + longer interpretation
+Pro	+ full interpretation + all components
+Enterprise	Maximum detail across everything
+
+•	Step 6: Send + Record
+•	Emails sent via Brevo, Telegram via Bot API
+•	Each delivery is recorded in the database with status (sent/skipped/failed)
+•	One delivery record per channel per day prevents duplicate sends
+________________________________________
+•	In short: Data is fetched once, preferences are checked per user, one message per channel is composed with only the indices they want at the depth their plan allows, and delivery is recorded to prevent duplicates.
+
+
+
+1.	Who triggers it?
+2.	The delivery is triggered via an internal API endpoint on your server. It's not automatic on a timer — it gets called either:
+3.	Manually — by hitting the internal endpoint (e.g., from the admin dashboard or a direct API call)
+4.	By a scheduler/cron — if you set one up externally to call that endpoint on a daily schedule
+5.	Let me check exactly how this is wired up:
+6.	Now let me also check how the emails and Telegram messages are actually sent:
+7.	Now let me check how the underlying email sending actually works:
+8.	Here's the full picture:
+________________________________________
+9.	The Trigger
+10.	Delivery is triggered by calling one of two internal API endpoints:
+•	POST /internal/run/pro-delivery
+•	POST /internal/run/geri-delivery (same thing, kept for backward compatibility)
+11.	Both require a runner token in the header for security. This means only authorized systems can trigger a send — not random visitors.
+12.	Right now, there is no automatic scheduler built in. Someone or something has to call that endpoint. That could be:
+•	You manually from the admin dashboard or a tool like Postman
+•	An external cron service (e.g., cron-job.org, GitHub Actions, or a scheduled deployment) that hits the endpoint once daily
+________________________________________
+13.	How Emails Are Actually Sent
+1.	The delivery worker calls send_email_v2() in the channel adapters
+2.	That checks: Is email enabled? Is Brevo configured? Rate limit OK?
+3.	If all checks pass, it calls the underlying send_email() which sends via the Brevo API (your email service)
+4.	Returns success/failure, which gets recorded in the database
+________________________________________
+14.	How Telegram Messages Are Actually Sent
+1.	The delivery worker calls send_telegram_v2() in the channel adapters
+2.	That checks: Does the user have a chat ID? Is the Telegram bot token configured?
+3.	If all checks pass, it calls send_telegram() which sends via the Telegram Bot API using your bot token
+4.	Returns success/failure, recorded in the database
+________________________________________
+15.	Safety Mechanisms
+•	Advisory lock prevents two delivery runs from happening simultaneously
+•	Duplicate check — if a user already received a delivery today, they're skipped
+•	Rate limiting on both channels
+•	Runner token required to trigger — can't be called without authorization
+________________________________________
+16.	The gap: There's no built-in daily scheduler. Would you like me to add one — for example, a scheduled task that automatically triggers delivery at a specific time each day (say 7:00 AM UTC)?
+
+
+
+1.	There they are. Here's what exists:
+________________________________________
+2.	Two GitHub Actions workflows handle the trigger:
+3.	pro-delivery.yml — "Daily Index & Digest Delivery"
+•	Runs automatically every day at 07:00 UTC via cron schedule
+•	Can also be triggered manually from GitHub
+•	Calls POST /internal/run/pro-delivery on your live app
+•	Passes the runner token for authentication
+•	This is the main daily scheduler — it's what triggers the entire preference-aware delivery system
+4.	geri-delivery.yml — "GERI Delivery to Pro Users" (legacy)
+•	Manual trigger only (no cron schedule)
+•	Calls POST /internal/run/geri-delivery (which is just an alias for the same delivery function)
+•	This was the original workflow before the system was expanded — kept for backward compatibility
+________________________________________
+5.	So the full chain is:
+6.	GitHub Actions cron (7:00 AM UTC daily) → calls your live app's /internal/run/pro-delivery endpoint → delivery worker runs → checks each user's preferences → composes per-user messages → sends via Brevo (email) and Telegram Bot API → records delivery in database.
+7.	The scheduler exists and is already in place. No gap there.
+
+
+
+1.	Here's what I found:
+________________________________________
+2.	geri-daily.yml — "Daily Index Computation (GERI + EERI + EGSI)"
+3.	This workflow runs daily at cron: '10 1 * * *' (which is 01:10 UTC, or about 2:10 AM GMT+1), and it does these steps in order:
+4.	Capture Market Data (VIX + TTF)
+5.	Compute GERI
+6.	Compute EERI
+7.	Compute EGSI-M (Market)
+8.	Compute EGSI-S (System)
+9.	Summary
+10.	What's NOT in there:
+•	No Daily Digest generation (the AI digest is generated on-the-fly during delivery, not pre-computed)
+•	No delivery trigger step at the end
+________________________________________
+11.	Your idea would work well. Here's why:
+•	The Daily Digest doesn't need to be pre-built — it gets generated automatically during the delivery run (one per plan tier, cached so the AI call only happens once per plan)
+•	So the natural flow would be: compute all indices first, then trigger delivery as a final step
+•	Since this workflow already computes GERI + EERI + EGSI successfully, adding a final step to call /internal/run/pro-delivery would guarantee that all fresh data is ready before sending
+12.	The sequence would be:
+1.	Market Data capture
+2.	GERI compute
+3.	EERI compute
+4.	EGSI-M compute
+5.	EGSI-S compute
+6.	NEW: Trigger delivery (which reads the fresh indices, generates the AI digest on the fly, and sends based on user preferences)
+13.	This is actually better than the separate pro-delivery.yml workflow because it guarantees the data is computed before the send happens, rather than relying on two independent cron schedules hoping the timing lines up.
+14.	Want me to add that delivery step to geri-daily.yml?
+
