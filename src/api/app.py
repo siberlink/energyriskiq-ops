@@ -203,6 +203,10 @@ async def startup_event():
         from src.api.admin_routes import _init_admin_sessions_table
         _init_admin_sessions_table()
         logger.info("Database migrations completed")
+        app_url = os.environ.get("APP_URL", "")
+        if app_url and os.environ.get("TELEGRAM_BOT_TOKEN"):
+            from src.api.telegram_routes import setup_webhook
+            setup_webhook(app_url.rstrip("/"))
         if ENABLE_GERI:
             logger.info("GERI module is ENABLED")
         else:
