@@ -12590,18 +12590,65 @@
             border-radius: 12px;
             font-size: 14px;
             line-height: 1.7;
-            white-space: pre-wrap;
             word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .eriq-msg.assistant .eriq-msg-bubble {
             background: #0f172a;
             border: 1px solid #334155;
             color: #e2e8f0;
         }
+        .eriq-msg.assistant .eriq-msg-bubble p { margin: 0 0 12px 0; }
+        .eriq-msg.assistant .eriq-msg-bubble p:last-child { margin-bottom: 0; }
+        .eriq-msg.assistant .eriq-msg-bubble h2 { font-size: 17px; font-weight: 700; color: #f1f5f9; margin: 20px 0 8px; }
+        .eriq-msg.assistant .eriq-msg-bubble h2:first-child { margin-top: 0; }
+        .eriq-msg.assistant .eriq-msg-bubble h3 { font-size: 15px; font-weight: 700; color: #f1f5f9; margin: 16px 0 6px; }
+        .eriq-msg.assistant .eriq-msg-bubble h3:first-child { margin-top: 0; }
+        .eriq-msg.assistant .eriq-msg-bubble h4 { font-size: 14px; font-weight: 700; color: #e2e8f0; margin: 14px 0 6px; }
+        .eriq-msg.assistant .eriq-msg-bubble h4:first-child { margin-top: 0; }
+        .eriq-msg.assistant .eriq-msg-bubble ul, .eriq-msg.assistant .eriq-msg-bubble ol {
+            margin: 8px 0 12px 0; padding-left: 24px;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble li {
+            margin: 4px 0; padding-left: 4px; color: #cbd5e1;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble li::marker { color: #8b5cf6; }
+        .eriq-msg.assistant .eriq-msg-bubble strong { color: #f1f5f9; font-weight: 600; }
+        .eriq-msg.assistant .eriq-msg-bubble em { color: #cbd5e1; }
+        .eriq-msg.assistant .eriq-msg-bubble code {
+            background: #1e293b; border: 1px solid #334155; border-radius: 4px;
+            padding: 1px 6px; font-size: 13px; color: #a78bfa; font-family: 'SF Mono', Monaco, monospace;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble pre {
+            background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+            padding: 12px 16px; margin: 10px 0; overflow-x: auto; font-size: 13px;
+            line-height: 1.5; color: #e2e8f0;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble pre code {
+            background: none; border: none; padding: 0; color: inherit; font-size: inherit;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble hr {
+            border: none; border-top: 1px solid #334155; margin: 16px 0;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble table {
+            width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble th {
+            background: #1e293b; color: #f1f5f9; font-weight: 600; text-align: left;
+            padding: 8px 12px; border: 1px solid #334155;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble td {
+            padding: 6px 12px; border: 1px solid #334155; color: #cbd5e1;
+        }
+        .eriq-msg.assistant .eriq-msg-bubble blockquote {
+            border-left: 3px solid #8b5cf6; margin: 10px 0; padding: 4px 16px;
+            color: #94a3b8; font-style: italic;
+        }
         .eriq-msg.user .eriq-msg-bubble {
             background: rgba(59, 130, 246, 0.15);
             border: 1px solid rgba(59, 130, 246, 0.3);
             color: #e2e8f0;
+            white-space: pre-wrap;
         }
         .eriq-msg-meta {
             display: flex;
@@ -12867,10 +12914,34 @@
             font-size: 13px;
             line-height: 1.6;
             color: #cbd5e1;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble {
             background: #1e293b;
             border: 1px solid #334155;
+        }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble p { margin: 0 0 10px 0; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble p:last-child { margin-bottom: 0; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble h2,
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble h3,
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble h4 { color: #f1f5f9; font-weight: 700; margin: 12px 0 6px; font-size: 14px; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble h2:first-child,
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble h3:first-child,
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble h4:first-child { margin-top: 0; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble ul, .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble ol {
+            margin: 6px 0 10px 0; padding-left: 20px;
+        }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble li { margin: 3px 0; color: #cbd5e1; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble li::marker { color: #8b5cf6; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble strong { color: #f1f5f9; font-weight: 600; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble em { color: #cbd5e1; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble code {
+            background: #0f172a; border-radius: 3px; padding: 1px 5px; font-size: 12px; color: #a78bfa;
+        }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble hr { border: none; border-top: 1px solid #334155; margin: 12px 0; }
+        .eriq-ctx-msg.assistant .eriq-ctx-msg-bubble blockquote {
+            border-left: 3px solid #8b5cf6; margin: 8px 0; padding: 3px 12px; color: #94a3b8; font-style: italic;
         }
         .eriq-ctx-msg.user .eriq-ctx-msg-bubble {
             background: rgba(59, 130, 246, 0.15);
@@ -13681,22 +13752,121 @@
 
         function eriqFormatResponse(text) {
             if (!text) return '';
-            let html = text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
 
-            html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color: #f1f5f9;">$1</strong>');
-            html = html.replace(/\*(.+?)\*/g, '<em style="color: #cbd5e1;">$1</em>');
+            function esc(s) {
+                return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
 
-            html = html.replace(/^---$/gm, '<hr style="border: none; border-top: 1px solid #334155; margin: 12px 0;">');
+            function inlineFormat(s) {
+                s = esc(s);
+                s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+                s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+                return s;
+            }
 
-            html = html.replace(/^### (.+)$/gm, '<div style="font-weight: 700; color: #e2e8f0; margin: 12px 0 6px; font-size: 14px;">$1</div>');
-            html = html.replace(/^## (.+)$/gm, '<div style="font-weight: 700; color: #f1f5f9; margin: 14px 0 8px; font-size: 15px;">$1</div>');
+            var lines = text.split('\n');
+            var html = '';
+            var i = 0;
 
-            html = html.replace(/^- (.+)$/gm, '<div style="padding-left: 16px; position: relative; margin: 2px 0;"><span style="position: absolute; left: 4px; color: #8b5cf6;">&#8226;</span>$1</div>');
+            while (i < lines.length) {
+                var line = lines[i];
 
-            html = html.replace(/\n/g, '<br>');
+                if (line.match(/^```/)) {
+                    var codeLines = [];
+                    i++;
+                    while (i < lines.length && !lines[i].match(/^```/)) {
+                        codeLines.push(esc(lines[i]));
+                        i++;
+                    }
+                    i++;
+                    html += '<pre><code>' + codeLines.join('\n') + '</code></pre>';
+                    continue;
+                }
+
+                if (line.match(/^\|.+\|$/)) {
+                    var tableRows = [];
+                    while (i < lines.length && lines[i].match(/^\|/)) {
+                        if (!lines[i].match(/^\|[\s\-:|]+\|$/)) {
+                            tableRows.push(lines[i]);
+                        }
+                        i++;
+                    }
+                    if (tableRows.length > 0) {
+                        html += '<table>';
+                        tableRows.forEach(function(row, ri) {
+                            var cells = row.split('|').filter(function(c, ci, arr) { return ci > 0 && ci < arr.length - 1; });
+                            var tag = ri === 0 ? 'th' : 'td';
+                            html += '<tr>';
+                            cells.forEach(function(cell) {
+                                html += '<' + tag + '>' + inlineFormat(cell.trim()) + '</' + tag + '>';
+                            });
+                            html += '</tr>';
+                        });
+                        html += '</table>';
+                    }
+                    continue;
+                }
+
+                if (line.match(/^#{1,4} /)) {
+                    var hMatch = line.match(/^(#{1,4}) (.+)$/);
+                    if (hMatch) {
+                        var level = Math.min(hMatch[1].length, 4);
+                        var hTag = 'h' + (level + 1);
+                        html += '<' + hTag + '>' + inlineFormat(hMatch[2]) + '</' + hTag + '>';
+                        i++;
+                        continue;
+                    }
+                }
+
+                if (line.match(/^---+$/)) {
+                    html += '<hr>';
+                    i++;
+                    continue;
+                }
+
+                if (line.match(/^> /)) {
+                    var bqLines = [];
+                    while (i < lines.length && lines[i].match(/^> /)) {
+                        bqLines.push(inlineFormat(lines[i].replace(/^> /, '')));
+                        i++;
+                    }
+                    html += '<blockquote>' + bqLines.join('<br>') + '</blockquote>';
+                    continue;
+                }
+
+                if (line.match(/^\d+\. /)) {
+                    html += '<ol>';
+                    while (i < lines.length && lines[i].match(/^\d+\. /)) {
+                        html += '<li>' + inlineFormat(lines[i].replace(/^\d+\.\s+/, '')) + '</li>';
+                        i++;
+                    }
+                    html += '</ol>';
+                    continue;
+                }
+
+                if (line.match(/^[-*] /)) {
+                    html += '<ul>';
+                    while (i < lines.length && lines[i].match(/^[-*] /)) {
+                        html += '<li>' + inlineFormat(lines[i].replace(/^[-*]\s+/, '')) + '</li>';
+                        i++;
+                    }
+                    html += '</ul>';
+                    continue;
+                }
+
+                if (line.trim() === '') {
+                    i++;
+                    continue;
+                }
+
+                var paraLines = [];
+                while (i < lines.length && lines[i].trim() !== '' && !lines[i].match(/^(#{1,4} |[-*] |\d+\. |```|> |\|.+\||---+$)/)) {
+                    paraLines.push(inlineFormat(lines[i]));
+                    i++;
+                }
+                html += '<p>' + paraLines.join('<br>') + '</p>';
+            }
 
             return html;
         }
