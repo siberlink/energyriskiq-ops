@@ -198,8 +198,15 @@ async def startup_event():
         if ENABLE_ERIQ:
             run_eriq_migration()
             logger.info("ERIQ Expert Analyst module is ENABLED")
-        from src.tickets.db import run_tickets_migration
+        from src.tickets.db import run_tickets_migration, auto_close_stale_tickets, auto_archive_closed_tickets
         run_tickets_migration()
+        try:
+            closed = auto_close_stale_tickets()
+            archived = auto_archive_closed_tickets()
+            if closed or archived:
+                logger.info(f"Ticket maintenance: {closed} auto-closed, {archived} auto-archived")
+        except Exception as e:
+            logger.warning(f"Ticket auto-maintenance skipped: {e}")
         from src.api.admin_routes import _init_admin_sessions_table
         _init_admin_sessions_table()
         logger.info("Database migrations completed")

@@ -5889,6 +5889,7 @@
                     <option value="in_progress">In Progress</option>
                     <option value="resolved">Resolved</option>
                     <option value="closed">Closed</option>
+                    <option value="archived">Archived</option>
                 </select>
             </div>
 
@@ -5901,6 +5902,8 @@
                             <option value="support">Support</option>
                             <option value="billing">Billing</option>
                             <option value="feature_suggestion">Feature Suggestion</option>
+                            <option value="administration">Administration</option>
+                            <option value="sales">Sales</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
@@ -12241,9 +12244,9 @@
                 container.innerHTML = '<div class="card-body" style="text-align:center;padding:40px;"><p style="color:#64748b;margin-bottom:12px;">No tickets yet</p><p style="color:#475569;font-size:13px;">Create a ticket to get help or share feedback</p></div>';
                 return;
             }
-            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
-            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
-            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b', archived: '#475569' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed', archived: 'Archived' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', administration: 'Administration', sales: 'Sales', other: 'Other' };
 
             let html = '<div style="overflow-x:auto;">';
             tickets.forEach(t => {
@@ -12281,9 +12284,9 @@
         }
 
         function renderTicketDetail(ticket) {
-            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
-            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
-            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b', archived: '#475569' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed', archived: 'Archived' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', administration: 'Administration', sales: 'Sales', other: 'Other' };
 
             document.getElementById('ticketDetailSubject').textContent = ticket.subject;
             const catLabel = ticket.category === 'other' && ticket.other_category ? ticket.other_category : (catLabels[ticket.category] || ticket.category);
@@ -12314,7 +12317,7 @@
             document.getElementById('ticketMessages').innerHTML = msgHtml;
 
             const replyBox = document.getElementById('ticketReplyBox');
-            replyBox.style.display = ticket.status === 'closed' ? 'none' : 'block';
+            replyBox.style.display = (ticket.status === 'closed' || ticket.status === 'archived') ? 'none' : 'block';
 
             const msgContainer = document.getElementById('ticketMessages');
             msgContainer.scrollTop = msgContainer.scrollHeight;

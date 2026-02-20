@@ -242,8 +242,53 @@ def get_ticket_stats_admin() -> Dict:
                 COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress_count,
                 COUNT(*) FILTER (WHERE status = 'resolved') as resolved_count,
                 COUNT(*) FILTER (WHERE status = 'closed') as closed_count,
+                COUNT(*) FILTER (WHERE status = 'archived') as archived_count,
                 COUNT(*) FILTER (WHERE admin_unread = TRUE) as unread_count
             FROM tickets
         """)
         row = dict(cursor.fetchone())
     return row
+
+
+def auto_close_stale_tickets() -> int:
+    """Auto-close tickets where last message is from admin and user hasn't replied in 48h."""
+    with get_cursor() as cursor:
+        cursor.execute("""
+            UPDATE tickets SET status = 'closed', updated_at = NOW()
+            WHERE status IN ('open', 'in_progress')
+              AND id IN (
+                  SELECT t.id FROM tickets t
+                  JOIN LATERAL (
+                      SELECT sender_type, created_at
+                      FROM ticket_messages
+                      WHERE ticket_id = t.id
+                      ORDER BY created_at DESC
+                      LIMIT 1
+                  ) lm ON TRUE
+                  WHERE t.status IN ('open', 'in_progress')
+                    AND lm.sender_type = 'admin'
+                    AND lm.created_at < NOW() - INTERVAL '48 hours'
+              )
+            RETURNING id
+        """)
+        closed = cursor.fetchall()
+    count = len(closed)
+    if count > 0:
+        logger.info(f"Auto-closed {count} stale tickets (no user reply in 48h)")
+    return count
+
+
+def auto_archive_closed_tickets() -> int:
+    """Auto-archive tickets that have been closed for 72+ hours."""
+    with get_cursor() as cursor:
+        cursor.execute("""
+            UPDATE tickets SET status = 'archived', updated_at = NOW()
+            WHERE status = 'closed'
+              AND updated_at < NOW() - INTERVAL '72 hours'
+            RETURNING id
+        """)
+        archived = cursor.fetchall()
+    count = len(archived)
+    if count > 0:
+        logger.info(f"Auto-archived {count} tickets (closed for 72h+)")
+    return count

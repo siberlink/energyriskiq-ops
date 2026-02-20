@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/v1/tickets", tags=["tickets"])
 
 
 class CreateTicketRequest(BaseModel):
-    category: str = Field(..., pattern="^(support|billing|feature_suggestion|other)$")
+    category: str = Field(..., pattern="^(support|billing|feature_suggestion|administration|sales|other)$")
     subject: str = Field(..., min_length=3, max_length=200)
     message: str = Field(..., min_length=10, max_length=5000)
     other_category: Optional[str] = Field(None, max_length=100)
@@ -28,7 +28,7 @@ class TicketReplyRequest(BaseModel):
 
 
 class UpdateStatusRequest(BaseModel):
-    status: str = Field(..., pattern="^(open|in_progress|resolved|closed)$")
+    status: str = Field(..., pattern="^(open|in_progress|resolved|closed|archived)$")
 
 
 def _get_user_from_session(authorization: Optional[str]) -> dict:
@@ -99,8 +99,8 @@ def reply_to_ticket(
     ticket = get_ticket_detail(ticket_id, user_id=user['id'])
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
-    if ticket['status'] == 'closed':
-        raise HTTPException(status_code=400, detail="Cannot reply to a closed ticket")
+    if ticket['status'] in ('closed', 'archived'):
+        raise HTTPException(status_code=400, detail="Cannot reply to a closed or archived ticket")
     msg = add_ticket_message(
         ticket_id=ticket_id,
         sender_type='user',

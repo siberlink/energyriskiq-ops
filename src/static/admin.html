@@ -1756,12 +1756,15 @@
                         <option value="in_progress">In Progress</option>
                         <option value="resolved">Resolved</option>
                         <option value="closed">Closed</option>
+                        <option value="archived">Archived</option>
                     </select>
                     <select id="adminTicketFilterCategory" onchange="loadAdminTickets()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:8px 12px;border-radius:8px;font-size:13px;">
                         <option value="">All Categories</option>
                         <option value="support">Support</option>
                         <option value="billing">Billing</option>
                         <option value="feature_suggestion">Feature Suggestion</option>
+                        <option value="administration">Administration</option>
+                        <option value="sales">Sales</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
@@ -1781,6 +1784,7 @@
                                 <option value="in_progress">In Progress</option>
                                 <option value="resolved">Resolved</option>
                                 <option value="closed">Closed</option>
+                                <option value="archived">Archived</option>
                             </select>
                             <button onclick="backToAdminTicketsList()" style="background:#334155;color:#94a3b8;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Back</button>
                         </div>
@@ -3107,9 +3111,9 @@
                 container.innerHTML = '<div class="card-body" style="text-align:center;padding:40px;color:#64748b;">No tickets found</div>';
                 return;
             }
-            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
-            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
-            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b', archived: '#475569' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed', archived: 'Archived' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', administration: 'Administration', sales: 'Sales', other: 'Other' };
 
             let html = '<div style="overflow-x:auto;">';
             tickets.forEach(t => {
@@ -3147,9 +3151,9 @@
         }
 
         function renderAdminTicketDetail(ticket) {
-            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b' };
-            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed' };
-            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', other: 'Other' };
+            const statusColors = { open: '#3b82f6', in_progress: '#f59e0b', resolved: '#22c55e', closed: '#64748b', archived: '#475569' };
+            const statusLabels = { open: 'Open', in_progress: 'In Progress', resolved: 'Resolved', closed: 'Closed', archived: 'Archived' };
+            const catLabels = { support: 'Support', billing: 'Billing', feature_suggestion: 'Feature Suggestion', administration: 'Administration', sales: 'Sales', other: 'Other' };
 
             document.getElementById('adminTicketDetailSubject').textContent = ticket.subject;
             const catLabel = ticket.category === 'other' && ticket.other_category ? ticket.other_category : (catLabels[ticket.category] || ticket.category);
@@ -3182,7 +3186,7 @@
             document.getElementById('adminTicketMessages').innerHTML = msgHtml;
 
             const replyBox = document.getElementById('adminTicketReplyBox');
-            replyBox.style.display = ticket.status === 'closed' ? 'none' : 'block';
+            replyBox.style.display = (ticket.status === 'closed' || ticket.status === 'archived') ? 'none' : 'block';
 
             const msgContainer = document.getElementById('adminTicketMessages');
             msgContainer.scrollTop = msgContainer.scrollHeight;
