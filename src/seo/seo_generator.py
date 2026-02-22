@@ -14,7 +14,7 @@ from typing import Dict, List, Optional, Any
 from collections import Counter
 
 from openai import OpenAI
-from src.db.db import get_cursor, execute_query, execute_one
+from src.db.db import get_cursor, execute_query, execute_one, execute_production_query, execute_production_one, get_production_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +184,7 @@ def get_alerts_for_date(target_date: date) -> List[Dict]:
     ORDER BY severity DESC, created_at DESC
     """
     
-    results = execute_query(query, (start_dt, end_dt))
+    results = execute_production_query(query, (start_dt, end_dt))
     return results if results else []
 
 
@@ -713,7 +713,7 @@ def get_daily_page(target_date: date) -> Optional[Dict]:
     FROM seo_daily_pages
     WHERE page_date = %s
     """
-    result = execute_one(query, (target_date,))
+    result = execute_production_one(query, (target_date,))
     if result:
         page_json = result['page_json']
         if page_json:
@@ -744,7 +744,7 @@ def get_recent_daily_pages(limit: int = 30) -> List[Dict]:
     ORDER BY page_date DESC
     LIMIT %s
     """
-    results = execute_query(query, (limit,))
+    results = execute_production_query(query, (limit,))
     return results if results else []
 
 
@@ -762,7 +762,7 @@ def get_monthly_pages(year: int, month: int) -> List[Dict]:
     WHERE page_date >= %s AND page_date <= %s
     ORDER BY page_date DESC
     """
-    results = execute_query(query, (start_date, end_date))
+    results = execute_production_query(query, (start_date, end_date))
     return results if results else []
 
 
@@ -779,7 +779,7 @@ def get_available_months() -> List[Dict]:
     GROUP BY EXTRACT(YEAR FROM page_date), EXTRACT(MONTH FROM page_date)
     ORDER BY year DESC, month DESC
     """
-    results = execute_query(query)
+    results = execute_production_query(query)
     return results if results else []
 
 
@@ -1097,7 +1097,7 @@ def get_alerts_for_date_and_region(target_date: date, region_slug: str) -> List[
     """
     
     params = [start_dt, end_dt] + region_variants
-    results = execute_query(query, tuple(params))
+    results = execute_production_query(query, tuple(params))
     return results if results else []
 
 
@@ -1238,7 +1238,7 @@ def get_regional_daily_page(target_date: date, region_slug: str) -> Optional[Dic
     FROM seo_regional_daily_pages
     WHERE page_date = %s AND region_slug = %s
     """
-    result = execute_one(query, (target_date, region_slug))
+    result = execute_production_one(query, (target_date, region_slug))
     if result:
         page_json = result['page_json']
         if page_json:
@@ -1270,7 +1270,7 @@ def get_regional_available_dates(region_slug: str, limit: int = 90) -> List[Dict
     ORDER BY page_date DESC
     LIMIT %s
     """
-    results = execute_query(query, (region_slug, limit))
+    results = execute_production_query(query, (region_slug, limit))
     return results if results else []
 
 

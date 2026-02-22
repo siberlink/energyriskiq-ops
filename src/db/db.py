@@ -72,6 +72,22 @@ def get_production_connection():
         if conn:
             conn.close()
 
+@contextmanager
+def get_production_cursor(commit=False):
+    with get_production_connection() as conn:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        try:
+            yield cursor
+            if commit:
+                conn.commit()
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Production database error: {e}")
+            raise
+        finally:
+            cursor.close()
+
+
 def execute_production_query(query: str, params: tuple = None):
     with get_production_connection() as conn:
         cursor = conn.cursor(cursor_factory=RealDictCursor)

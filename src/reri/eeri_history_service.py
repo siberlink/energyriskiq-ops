@@ -7,7 +7,7 @@ import logging
 from datetime import date, datetime, timedelta
 from typing import Optional, List, Dict, Any
 
-from src.db.db import get_cursor, execute_query
+from src.db.db import get_cursor, execute_query, get_production_cursor
 from src.reri.types import EERI_INDEX_ID, RERIResult, EERIComponents, RiskBand, get_band
 import json
 
@@ -40,7 +40,7 @@ def get_all_eeri_dates(public_only: bool = False) -> List[str]:
         ORDER BY date DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID,))
             rows = cursor.fetchall()
         return [row['date'].isoformat() if hasattr(row['date'], 'isoformat') else str(row['date']) for row in rows]
@@ -73,7 +73,7 @@ def get_eeri_available_months(public_only: bool = False) -> List[Dict[str, Any]]
         ORDER BY year DESC, month DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID,))
             rows = cursor.fetchall()
         result = []
@@ -106,7 +106,7 @@ def get_eeri_by_date(target_date: date) -> Optional[Dict[str, Any]]:
         WHERE index_id = %s AND date = %s
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID, target_date))
             row = cursor.fetchone()
         
@@ -151,7 +151,7 @@ def get_latest_eeri_public() -> Optional[Dict[str, Any]]:
         LIMIT 1
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID,))
             row = cursor.fetchone()
         
@@ -201,7 +201,7 @@ def get_eeri_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
         LIMIT 1 OFFSET 1
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID,))
             row = cursor.fetchone()
         
@@ -247,7 +247,7 @@ def get_eeri_monthly_data(year: int, month: int) -> List[Dict[str, Any]]:
         ORDER BY date DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID, year, month))
             rows = cursor.fetchall()
         
@@ -285,7 +285,7 @@ def get_eeri_adjacent_dates(target_date: date) -> Dict[str, Optional[str]]:
         ORDER BY date ASC LIMIT 1
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(prev_query, (EERI_INDEX_ID, target_date))
             prev_row = cursor.fetchone()
             cursor.execute(next_query, (EERI_INDEX_ID, target_date))
@@ -320,7 +320,7 @@ def get_eeri_monthly_stats() -> Dict[str, Any]:
         WHERE index_id = %s
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID,))
             row = cursor.fetchone()
         

@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from typing import Optional, List, Dict, Any
 import json
 
-from src.db.db import get_cursor
+from src.db.db import get_cursor, get_production_cursor
 from src.reri.types import (
     AlertRecord,
     RERIResult,
@@ -261,7 +261,7 @@ def get_latest_reri(index_id: str) -> Optional[RERIResult]:
     """
     Get the latest RERI/EERI result for an index.
     """
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT 
                 index_id, region_id, date, value, band,
@@ -314,7 +314,7 @@ def get_reri_for_date(index_id: str, target_date: date) -> Optional[RERIResult]:
     """
     Get RERI/EERI result for a specific date.
     """
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT 
                 index_id, region_id, date, value, band,
@@ -353,7 +353,7 @@ def count_days_of_history(index_id: str) -> int:
     """
     Count how many days of history exist for an index.
     """
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT COUNT(DISTINCT date)
             FROM reri_indices_daily
@@ -373,7 +373,7 @@ def get_reri_history(
     """
     Get RERI/EERI history for a date range.
     """
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT 
                 index_id, region_id, date, value, band,
@@ -436,7 +436,7 @@ def get_canonical_regions() -> List[Dict[str, Any]]:
     """
     Fetch all canonical regions from database.
     """
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT region_id, region_name, region_type, aliases, core_assets, is_active
             FROM reri_canonical_regions

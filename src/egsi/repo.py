@@ -8,7 +8,7 @@ import json
 from datetime import date, datetime, timedelta
 from typing import Optional, List, Dict, Any
 
-from src.db.db import get_cursor
+from src.db.db import get_cursor, get_production_cursor
 from src.egsi.types import (
     EGSIMResult,
     EGSIMComponents,
@@ -159,7 +159,7 @@ def save_egsi_drivers(
 
 def get_egsi_m_for_date(index_date: date, region: str = 'Europe') -> Optional[Dict[str, Any]]:
     """Fetch EGSI-M result for a specific date."""
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT id, index_date, region, index_value, band,
                    trend_1d, trend_7d, components_json, explanation, computed_at
@@ -188,7 +188,7 @@ def get_egsi_m_for_date(index_date: date, region: str = 'Europe') -> Optional[Di
 
 def get_egsi_m_latest(region: str = 'Europe') -> Optional[Dict[str, Any]]:
     """Fetch most recent EGSI-M result."""
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT id, index_date, region, index_value, band,
                    trend_1d, trend_7d, components_json, explanation, computed_at
@@ -221,7 +221,7 @@ def get_egsi_m_delayed(delay_days: int = 1, region: str = 'Europe') -> Optional[
     """Fetch EGSI-M result with delay for public access."""
     target_date = date.today() - timedelta(days=delay_days)
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT id, index_date, region, index_value, band,
                    trend_1d, trend_7d, components_json, explanation, computed_at
@@ -255,7 +255,7 @@ def get_egsi_m_history(
     region: str = 'Europe'
 ) -> List[Dict[str, Any]]:
     """Fetch EGSI-M history for trend analysis."""
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute("""
             SELECT index_date, index_value, band, trend_1d, trend_7d
             FROM egsi_m_daily
@@ -380,7 +380,7 @@ def get_egsi_s_delayed(delay_days: int = 1, region: str = 'Europe') -> Optional[
     """Fetch EGSI-S result with delay for free/public access."""
     target_date = date.today() - timedelta(days=delay_days)
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT index_date, region, index_value, band, trend_1d, trend_7d,
                        components_json, explanation, data_sources, model_version, computed_at
@@ -416,7 +416,7 @@ def get_egsi_s_delayed(delay_days: int = 1, region: str = 'Europe') -> Optional[
 def get_egsi_s_for_date(target_date: date, region: str = 'Europe') -> Optional[Dict[str, Any]]:
     """Fetch EGSI-S for a specific date."""
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT index_date, region, index_value, band, trend_1d, trend_7d,
                        components_json, explanation, data_sources, model_version, computed_at
@@ -453,7 +453,7 @@ def get_egsi_s_for_date(target_date: date, region: str = 'Europe') -> Optional[D
 def get_egsi_s_latest(region: str = 'Europe') -> Optional[Dict[str, Any]]:
     """Get the latest EGSI-S result."""
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT index_date, region, index_value, band, trend_1d, trend_7d,
                        components_json, explanation, data_sources, model_version, computed_at
@@ -492,7 +492,7 @@ def get_egsi_s_latest(region: str = 'Europe') -> Optional[Dict[str, Any]]:
 def get_egsi_s_history(days: int = 30, region: str = 'Europe') -> List[Dict[str, Any]]:
     """Fetch EGSI-S history."""
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT index_date, index_value, band, trend_1d, trend_7d
                 FROM egsi_s_daily

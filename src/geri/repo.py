@@ -9,7 +9,7 @@ import json
 from datetime import date, datetime, timedelta
 from typing import List, Optional, Dict, Any
 
-from src.db.db import get_cursor, execute_one
+from src.db.db import get_cursor, execute_one, get_production_cursor, execute_production_one
 from src.geri.types import (
     AlertRecord,
     GERIResult,
@@ -116,7 +116,7 @@ def get_index_for_date(target_date: date) -> Optional[Dict[str, Any]]:
     WHERE index_id = %s AND date = %s
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID, target_date))
         row = cursor.fetchone()
         
@@ -137,7 +137,7 @@ def get_index_history(from_date: date, to_date: date) -> List[Dict[str, Any]]:
     """
     
     results = []
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID, from_date, to_date))
         rows = cursor.fetchall()
         for row in rows:
@@ -161,7 +161,7 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
     LIMIT 1
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:
@@ -188,7 +188,7 @@ def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
     LIMIT 1 OFFSET 1
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:

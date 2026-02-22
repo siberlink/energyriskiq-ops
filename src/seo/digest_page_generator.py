@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone, timedelta, date
 from typing import Dict, List, Optional
 
-from src.db.db import get_cursor, execute_query, execute_one
+from src.db.db import get_cursor, execute_query, execute_one, execute_production_query, execute_production_one, get_production_cursor
 from src.api.daily_digest_routes import (
     compute_asset_changes,
     determine_risk_tone,
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def get_alerts_for_date(target_date: date, limit: int = 20) -> List[Dict]:
     start = target_date - timedelta(days=1)
     end = target_date
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT id, alert_type, scope_region, scope_assets, severity, headline, body,
                category, confidence, created_at, classification
         FROM alert_events
@@ -44,7 +44,7 @@ def get_alerts_for_date(target_date: date, limit: int = 20) -> List[Dict]:
 
 
 def get_index_snapshot_for_date(index_id: str, target_date: date, days: int = 7) -> List[Dict]:
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT date, value, band, trend_1d, trend_7d, interpretation, components
         FROM intel_indices_daily
         WHERE index_id = %s AND date <= %s
@@ -55,7 +55,7 @@ def get_index_snapshot_for_date(index_id: str, target_date: date, days: int = 7)
 
 
 def get_eeri_snapshot_for_date(target_date: date, days: int = 2) -> List[Dict]:
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT date, value, band, trend_1d, trend_7d, interpretation, components, drivers
         FROM reri_indices_daily
         WHERE index_id = 'europe:eeri' AND date <= %s
@@ -66,7 +66,7 @@ def get_eeri_snapshot_for_date(target_date: date, days: int = 2) -> List[Dict]:
 
 
 def get_egsi_snapshot_for_date(target_date: date, days: int = 2) -> List[Dict]:
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT index_date as date, index_value as value, band, trend_1d, trend_7d, interpretation
         FROM egsi_m_daily
         WHERE index_date <= %s
@@ -77,23 +77,23 @@ def get_egsi_snapshot_for_date(target_date: date, days: int = 2) -> List[Dict]:
 
 
 def get_asset_snapshots_for_date(target_date: date, days: int = 7) -> Dict:
-    brent = execute_query(
+    brent = execute_production_query(
         "SELECT date, brent_price, brent_change_pct FROM oil_price_snapshots WHERE date <= %s ORDER BY date DESC LIMIT %s",
         (target_date, days)
     )
-    ttf = execute_query(
+    ttf = execute_production_query(
         "SELECT date, ttf_price FROM ttf_gas_snapshots WHERE date <= %s ORDER BY date DESC LIMIT %s",
         (target_date, days)
     )
-    vix = execute_query(
+    vix = execute_production_query(
         "SELECT date, vix_close FROM vix_snapshots WHERE date <= %s ORDER BY date DESC LIMIT %s",
         (target_date, days)
     )
-    eurusd = execute_query(
+    eurusd = execute_production_query(
         "SELECT date, rate FROM eurusd_snapshots WHERE date <= %s ORDER BY date DESC LIMIT %s",
         (target_date, days)
     )
-    storage = execute_query(
+    storage = execute_production_query(
         "SELECT date, eu_storage_percent, risk_band FROM gas_storage_snapshots WHERE date <= %s ORDER BY date DESC LIMIT %s",
         (target_date, days)
     )
@@ -216,7 +216,7 @@ def get_public_digest_page(target_date: date) -> Optional[Dict]:
     FROM public_digest_pages
     WHERE page_date = %s
     """
-    result = execute_one(query, (target_date,))
+    result = execute_production_one(query, (target_date,))
     if result:
         page_json = result['page_json']
         if page_json:
@@ -245,7 +245,7 @@ def get_recent_public_digest_pages(limit: int = 90) -> List[Dict]:
     ORDER BY page_date DESC
     LIMIT %s
     """
-    results = execute_query(query, (limit,))
+    results = execute_production_query(query, (limit,))
     return results if results else []
 
 
@@ -255,7 +255,7 @@ def get_public_digest_available_dates() -> List[str]:
     FROM public_digest_pages
     ORDER BY page_date DESC
     """
-    results = execute_query(query)
+    results = execute_production_query(query)
     if not results:
         return []
     dates = []

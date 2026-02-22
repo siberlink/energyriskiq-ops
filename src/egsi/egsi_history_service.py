@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from typing import Optional, List, Dict, Any
 import json
 
-from src.db.db import get_cursor
+from src.db.db import get_production_cursor
 from src.egsi.types import EGSI_M_INDEX_ID
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def get_all_egsi_m_dates() -> List[str]:
         ORDER BY index_date DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
         return [row['index_date'].isoformat() if hasattr(row['index_date'], 'isoformat') else str(row['index_date']) for row in rows]
@@ -50,7 +50,7 @@ def get_egsi_m_available_months() -> List[Dict[str, Any]]:
         ORDER BY year DESC, month DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
         result = []
@@ -83,7 +83,7 @@ def get_egsi_m_by_date(target_date: date) -> Optional[Dict[str, Any]]:
         WHERE index_date = %s
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (target_date,))
             row = cursor.fetchone()
         
@@ -116,7 +116,7 @@ def get_egsi_m_components_for_date(target_date: date) -> Dict[str, Any]:
         WHERE index_date = %s AND index_family = 'EGSI_M'
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (target_date,))
             rows = cursor.fetchall()
         
@@ -158,7 +158,7 @@ def get_egsi_m_drivers_for_date(target_date: date) -> List[Dict[str, Any]]:
         LIMIT 5
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (target_date,))
             rows = cursor.fetchall()
         
@@ -195,7 +195,7 @@ def get_egsi_m_monthly_data(year: int, month: int) -> List[Dict[str, Any]]:
         ORDER BY index_date DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (year, month))
             rows = cursor.fetchall()
         
@@ -233,7 +233,7 @@ def get_egsi_m_adjacent_dates(target_date: date) -> Dict[str, Optional[str]]:
     result = {'prev': None, 'next': None}
     
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(prev_query, (target_date,))
             row = cursor.fetchone()
             if row and row['prev_date']:
@@ -268,7 +268,7 @@ def get_egsi_m_monthly_stats() -> List[Dict[str, Any]]:
         ORDER BY year DESC, month DESC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
         
@@ -305,7 +305,7 @@ def get_egsi_m_delayed(delay_hours: int = 24) -> Optional[Dict[str, Any]]:
         LIMIT 1 OFFSET 1
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query)
             row = cursor.fetchone()
         
@@ -343,7 +343,7 @@ def get_latest_egsi_m_public() -> Optional[Dict[str, Any]]:
         LIMIT 1
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query)
             row = cursor.fetchone()
         

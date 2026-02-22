@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 
-from src.db.db import get_cursor
+from src.db.db import get_production_cursor
 from src.geri.types import INDEX_ID
 
 
@@ -120,7 +120,7 @@ def get_snapshot_by_date(snapshot_date: str) -> Optional[GERISnapshot]:
     LIMIT 1
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID, snapshot_date))
         row = cursor.fetchone()
         if row:
@@ -171,7 +171,7 @@ def list_snapshots(
     params.extend([limit, offset])
     
     snapshots = []
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, tuple(params))
         rows = cursor.fetchall()
         for row in rows:
@@ -202,7 +202,7 @@ def list_monthly(year: int, month: int) -> List[GERISnapshot]:
     """
     
     snapshots = []
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID, year, month))
         rows = cursor.fetchall()
         for row in rows:
@@ -227,7 +227,7 @@ def get_latest_snapshot() -> Optional[GERISnapshot]:
     LIMIT 1
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:
@@ -254,7 +254,7 @@ def get_latest_published_snapshot() -> Optional[GERISnapshot]:
     LIMIT 1
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID, yesterday))
         row = cursor.fetchone()
         if row:
@@ -290,7 +290,7 @@ def get_available_months(public_only: bool = False) -> List[Dict[str, Any]]:
     """
     
     results = []
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID,))
         rows = cursor.fetchall()
         for row in rows:
@@ -323,7 +323,7 @@ def get_monthly_stats(year: int, month: int) -> Optional[Dict[str, Any]]:
       AND EXTRACT(MONTH FROM date) = %s
     """
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID, year, month))
         row = cursor.fetchone()
         if row and row['snapshot_count'] > 0:
@@ -356,7 +356,7 @@ def get_adjacent_dates(current_date: str) -> Dict[str, Optional[str]]:
     
     result = {'prev': None, 'next': None}
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(prev_sql, (INDEX_ID, current_date))
         row = cursor.fetchone()
         if row:
@@ -405,7 +405,7 @@ def get_adjacent_months(year: int, month: int) -> Dict[str, Optional[Dict[str, i
     
     result = {'prev': None, 'next': None}
     
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(prev_sql, (INDEX_ID, year, year, month))
         row = cursor.fetchone()
         if row:
@@ -433,7 +433,7 @@ def get_all_snapshot_dates() -> List[str]:
     """
     
     dates = []
-    with get_cursor() as cursor:
+    with get_production_cursor() as cursor:
         cursor.execute(sql, (INDEX_ID,))
         rows = cursor.fetchall()
         for row in rows:

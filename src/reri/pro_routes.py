@@ -22,7 +22,7 @@ from src.reri.eeri_history_service import (
     get_eeri_available_months,
 )
 from src.reri.eeri_weekly_snapshot import get_weekly_snapshot_tiered
-from src.db.db import get_cursor
+from src.db.db import get_cursor, get_production_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -420,7 +420,7 @@ async def get_eeri_pro_history(
     """
     
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID, start_date, end_date))
             rows = cursor.fetchall()
         
@@ -470,7 +470,7 @@ async def get_eeri_pro_history(
             'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'eu_storage_percent'),
         }
         try:
-            with get_cursor() as cur2:
+            with get_production_cursor() as cur2:
                 for asset_id, (q, _col) in asset_queries.items():
                     cur2.execute(q, (start_date, end_date))
                     arows = cur2.fetchall()
@@ -525,7 +525,7 @@ async def get_regime_statistics():
     """
     
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID,))
             rows = cursor.fetchall()
         
@@ -777,7 +777,7 @@ def _compute_30d_correlations() -> Dict[str, Any]:
     }
 
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT date, value FROM reri_indices_daily
                 WHERE index_id = %s AND date >= %s AND date <= %s
@@ -791,7 +791,7 @@ def _compute_30d_correlations() -> Dict[str, Any]:
         correlations = []
         for asset_key, (query, display_name) in asset_queries.items():
             try:
-                with get_cursor() as cursor:
+                with get_production_cursor() as cursor:
                     cursor.execute(query, (start_date, end_date))
                     asset_rows = cursor.fetchall()
                 asset_by_date = {r['date']: float(r['value']) for r in asset_rows if r['value'] is not None}
@@ -847,7 +847,7 @@ def _compute_30d_correlations() -> Dict[str, Any]:
 def _detect_risk_shock() -> Optional[Dict[str, Any]]:
     """Detect rapid EERI acceleration (Δ ≥ +10 in 2 days)."""
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT date, value FROM reri_indices_daily
                 WHERE index_id = %s
@@ -884,7 +884,7 @@ def _detect_risk_shock() -> Optional[Dict[str, Any]]:
 def _compute_regime_persistence_from_data() -> Dict[str, Any]:
     """Compute regime persistence probability from actual historical data."""
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute("""
                 SELECT date, value, band FROM reri_indices_daily
                 WHERE index_id = %s
@@ -964,7 +964,7 @@ def _get_data_timestamps() -> Dict[str, Any]:
     }
 
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             for key, (query, params) in queries.items():
                 if params:
                     cursor.execute(query, params)
@@ -1007,7 +1007,7 @@ def _compute_asset_impact_ranking() -> List[Dict[str, Any]]:
 
     ranking = []
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             for asset_key, (query, display_name) in asset_queries.items():
                 cursor.execute(query, (start_date, end_date))
                 rows = cursor.fetchall()

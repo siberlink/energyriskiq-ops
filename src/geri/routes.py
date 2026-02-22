@@ -446,9 +446,9 @@ async def get_geri_market_overlays(
     """
     check_enabled()
     
-    from src.db.db import get_cursor
+    from src.db.db import get_production_cursor
     
-    with get_cursor() as cur:
+    with get_production_cursor() as cur:
         cur.execute("""
             SELECT MIN(date) as first_date, MAX(date) as last_date
             FROM intel_indices_daily
@@ -483,7 +483,7 @@ async def get_geri_market_overlays(
             detail="Invalid date format. Use YYYY-MM-DD."
         )
     
-    with get_cursor() as cur:
+    with get_production_cursor() as cur:
         cur.execute("""
             SELECT date, brent_price, wti_price
             FROM oil_price_snapshots

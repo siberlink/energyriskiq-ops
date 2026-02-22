@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, HTTPException, Path
 from typing import Optional
-from src.db.db import execute_query, execute_one
+from src.db.db import execute_query, execute_one, execute_production_query
 
 router = APIRouter(prefix="/risk", tags=["risk"])
 
@@ -12,7 +12,7 @@ def get_risk_regions():
     FROM risk_indices
     ORDER BY region, window_days, calculated_at DESC
     """
-    results = execute_query(query)
+    results = execute_production_query(query)
     
     regions = {}
     for row in results:
@@ -42,7 +42,7 @@ def get_region_history(
     ORDER BY calculated_at DESC
     LIMIT %s
     """
-    results = execute_query(query, (region, limit))
+    results = execute_production_query(query, (region, limit))
     
     if not results:
         raise HTTPException(status_code=404, detail=f"No data found for region: {region}")
@@ -66,7 +66,7 @@ def get_asset_risks():
     FROM asset_risk
     ORDER BY asset, region, window_days, calculated_at DESC
     """
-    results = execute_query(query)
+    results = execute_production_query(query)
     
     assets = {}
     for row in results:
@@ -97,7 +97,7 @@ def get_risk_summary(region: str = Query("Europe", description="Focus region")):
     ORDER BY calculated_at DESC
     LIMIT 2
     """
-    idx_results = execute_query(idx_query, (region,))
+    idx_results = execute_production_query(idx_query, (region,))
     
     risk_7d = None
     trend_7d = None
@@ -119,7 +119,7 @@ def get_risk_summary(region: str = Query("Europe", description="Focus region")):
     WHERE LOWER(region) = LOWER(%s) AND window_days = 7
     ORDER BY asset, calculated_at DESC
     """
-    asset_results = execute_query(asset_query, (region,))
+    asset_results = execute_production_query(asset_query, (region,))
     
     assets = {}
     for row in asset_results:
@@ -171,7 +171,7 @@ def get_risk_events(
     LIMIT %s
     """
     
-    results = execute_query(query, tuple(params))
+    results = execute_production_query(query, tuple(params))
     
     events = []
     for row in results:

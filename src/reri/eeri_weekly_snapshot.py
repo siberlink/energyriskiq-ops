@@ -9,7 +9,7 @@ import logging
 from datetime import date, datetime, timedelta
 from typing import Optional, Dict, Any, List, Tuple
 
-from src.db.db import get_cursor
+from src.db.db import get_cursor, get_production_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +218,7 @@ def _fetch_eeri_week(start: date, end: date) -> List[Dict[str, Any]]:
         ORDER BY date ASC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID, start.isoformat(), end.isoformat()))
             rows = cursor.fetchall()
         return [dict(r) for r in rows]
@@ -236,7 +236,7 @@ def _fetch_asset_week(table: str, date_col: str, value_col: str, start: date, en
         ORDER BY {date_col} ASC
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (start.isoformat(), end.isoformat()))
             rows = cursor.fetchall()
         return [dict(r) for r in rows]
@@ -550,7 +550,7 @@ def _get_component_attribution(week_start: date, week_end: date) -> List[Dict[st
         LIMIT 1
     """
     try:
-        with get_cursor() as cursor:
+        with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID, week_start.isoformat(), week_end.isoformat()))
             row = cursor.fetchone()
         if not row or not row.get('components'):

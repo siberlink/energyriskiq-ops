@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, date
 from fastapi import APIRouter, Header, HTTPException
 from typing import Optional
 
-from src.db.db import execute_query, execute_one
+from src.db.db import execute_query, execute_one, execute_production_query, execute_production_one
 from src.api.user_routes import verify_user_session
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def get_alerts(limit: int = 20, is_delayed: bool = False):
     else:
         start = date.today() - timedelta(days=1)
         end = date.today() + timedelta(days=1)
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT id, alert_type, scope_region, scope_assets, severity, headline, body,
                category, confidence, created_at, classification
         FROM alert_events
@@ -57,7 +57,7 @@ def get_alerts(limit: int = 20, is_delayed: bool = False):
 
 
 def get_index_snapshot(index_id: str, days: int = 2):
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT date, value, band, trend_1d, trend_7d, interpretation, components
         FROM intel_indices_daily
         WHERE index_id = %s
@@ -68,7 +68,7 @@ def get_index_snapshot(index_id: str, days: int = 2):
 
 
 def get_eeri_snapshot(days: int = 2):
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT date, value, band, trend_1d, trend_7d, interpretation, components, drivers
         FROM reri_indices_daily
         WHERE index_id = 'europe:eeri'
@@ -79,7 +79,7 @@ def get_eeri_snapshot(days: int = 2):
 
 
 def get_egsi_snapshot(days: int = 2):
-    rows = execute_query("""
+    rows = execute_production_query("""
         SELECT index_date as date, index_value as value, band, trend_1d, trend_7d, interpretation
         FROM egsi_m_daily
         ORDER BY index_date DESC
@@ -89,23 +89,23 @@ def get_egsi_snapshot(days: int = 2):
 
 
 def get_asset_snapshots(days: int = 7):
-    brent = execute_query(
+    brent = execute_production_query(
         "SELECT date, brent_price, brent_change_pct FROM oil_price_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    ttf = execute_query(
+    ttf = execute_production_query(
         "SELECT date, ttf_price FROM ttf_gas_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    vix = execute_query(
+    vix = execute_production_query(
         "SELECT date, vix_close FROM vix_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    eurusd = execute_query(
+    eurusd = execute_production_query(
         "SELECT date, rate FROM eurusd_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
-    storage = execute_query(
+    storage = execute_production_query(
         "SELECT date, eu_storage_percent, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
     )
