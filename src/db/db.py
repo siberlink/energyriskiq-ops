@@ -7,9 +7,9 @@ from contextlib import contextmanager
 logger = logging.getLogger(__name__)
 
 def get_database_url() -> str:
-    url = os.environ.get("DATABASE_URL")
+    url = os.environ.get("PRODUCTION_DATABASE_URL") or os.environ.get("DATABASE_URL")
     if not url:
-        raise ValueError("DATABASE_URL environment variable is not set")
+        raise ValueError("Neither PRODUCTION_DATABASE_URL nor DATABASE_URL environment variable is set")
     return url
 
 @contextmanager
