@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-from src.db.db import execute_query, execute_one
+from src.db.db import execute_query, execute_one, execute_production_one
 
 logger = logging.getLogger(__name__)
 
@@ -108,19 +108,92 @@ def _get_content_metrics() -> str:
 
 
 def _get_index_summary() -> str:
-    geri = execute_one("""
-        SELECT score, band, created_at FROM geri_snapshots ORDER BY created_at DESC LIMIT 1
+    geri = execute_production_one("""
+        SELECT date, value, band FROM intel_indices_daily
+        WHERE index_id = 'global:geo_energy_risk'
+        ORDER BY date DESC LIMIT 1
     """)
-    eeri = execute_one("""
-        SELECT score, band, snapshot_date FROM eeri_snapshots ORDER BY snapshot_date DESC LIMIT 1
+    geri_prev = execute_production_one("""
+        SELECT date, value, band FROM intel_indices_daily
+        WHERE index_id = 'global:geo_energy_risk'
+        ORDER BY date DESC LIMIT 1 OFFSET 1
     """)
 
-    lines = ["## Latest Index Values"]
+    eeri = execute_production_one("""
+        SELECT date, value, band FROM reri_indices_daily
+        WHERE index_id = 'europe:eeri'
+        ORDER BY date DESC LIMIT 1
+    """)
+    eeri_prev = execute_production_one("""
+        SELECT date, value, band FROM reri_indices_daily
+        WHERE index_id = 'europe:eeri'
+        ORDER BY date DESC LIMIT 1 OFFSET 1
+    """)
+
+    egsi_m = execute_production_one("""
+        SELECT index_date, index_value, band FROM egsi_m_daily
+        ORDER BY index_date DESC LIMIT 1
+    """)
+    egsi_m_prev = execute_production_one("""
+        SELECT index_date, index_value, band FROM egsi_m_daily
+        ORDER BY index_date DESC LIMIT 1 OFFSET 1
+    """)
+
+    egsi_s = execute_production_one("""
+        SELECT index_date, index_value, band FROM egsi_s_daily
+        ORDER BY index_date DESC LIMIT 1
+    """)
+    egsi_s_prev = execute_production_one("""
+        SELECT index_date, index_value, band FROM egsi_s_daily
+        ORDER BY index_date DESC LIMIT 1 OFFSET 1
+    """)
+
+    gas_storage = execute_production_one("""
+        SELECT date, eu_storage_percent, risk_score, risk_band
+        FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1
+    """)
+
+    lines = ["## LIVE INDEX VALUES (from production database — use these EXACT numbers, never approximate or invent)"]
     if geri:
-        lines.append(f"- GERI: {geri.get('score', 'N/A')} ({geri.get('band', 'N/A')})")
+        trend = ""
+        if geri_prev:
+            diff = float(geri.get('value', 0)) - float(geri_prev.get('value', 0))
+            trend = f", change: {diff:+.1f} from previous day"
+        lines.append(f"- GERI (Global Energy Risk Index): {geri.get('value', 'N/A')} | Band: {geri.get('band', 'N/A')} | Date: {geri.get('date', 'N/A')}{trend}")
+    else:
+        lines.append("- GERI: data unavailable")
+
     if eeri:
-        lines.append(f"- EERI: {eeri.get('score', 'N/A')} ({eeri.get('band', 'N/A')})")
-    return "\n".join(lines) if len(lines) > 1 else ""
+        trend = ""
+        if eeri_prev:
+            diff = float(eeri.get('value', 0)) - float(eeri_prev.get('value', 0))
+            trend = f", change: {diff:+.1f} from previous day"
+        lines.append(f"- EERI (European Escalation Risk Index): {eeri.get('value', 'N/A')} | Band: {eeri.get('band', 'N/A')} | Date: {eeri.get('date', 'N/A')}{trend}")
+    else:
+        lines.append("- EERI: data unavailable")
+
+    if egsi_m:
+        trend = ""
+        if egsi_m_prev:
+            diff = float(egsi_m.get('index_value', 0)) - float(egsi_m_prev.get('index_value', 0))
+            trend = f", change: {diff:+.2f} from previous day"
+        lines.append(f"- EGSI-M (Europe Gas Stress - Market): {egsi_m.get('index_value', 'N/A')} | Band: {egsi_m.get('band', 'N/A')} | Date: {egsi_m.get('index_date', 'N/A')}{trend}")
+    else:
+        lines.append("- EGSI-M: data unavailable")
+
+    if egsi_s:
+        trend = ""
+        if egsi_s_prev:
+            diff = float(egsi_s.get('index_value', 0)) - float(egsi_s_prev.get('index_value', 0))
+            trend = f", change: {diff:+.2f} from previous day"
+        lines.append(f"- EGSI-S (Europe Gas Stress - System): {egsi_s.get('index_value', 'N/A')} | Band: {egsi_s.get('band', 'N/A')} | Date: {egsi_s.get('index_date', 'N/A')}{trend}")
+    else:
+        lines.append("- EGSI-S: data unavailable")
+
+    if gas_storage:
+        lines.append(f"- EU Gas Storage: {gas_storage.get('eu_storage_percent', 'N/A')}% full | Risk: {gas_storage.get('risk_score', 'N/A')} ({gas_storage.get('risk_band', 'N/A')}) | Date: {gas_storage.get('date', 'N/A')}")
+
+    return "\n".join(lines)
 
 
 def _get_eriq_usage() -> str:
