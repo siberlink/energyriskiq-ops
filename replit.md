@@ -60,3 +60,11 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **VIX Data:** Yahoo Finance (yfinance), FRED
 - **FX Data:** Oanda (for EUR/USD)
 - **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv, yfinance.
+
+## Planned Future Upgrades
+
+### ELSA Intelligence Upgrade — Curated Product Knowledge Layer
+Rather than feeding the entire codebase into every ELSA conversation (which would be too expensive and dilute context), build a smarter middle ground:
+1. **App Capabilities Summary** — A structured document describing each page, what each plan tier actually gets, which features exist vs. are planned. This gives ELSA strategic context without the token cost of raw code.
+2. **Page/Route Inventory** — A simple list of all routes and what they do, so ELSA knows the full product surface.
+This approach makes ELSA significantly smarter about the product (feature suggestions, gap identification, better business advice) without the downsides of raw code access (context window limits, cost, diminishing returns).
