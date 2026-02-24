@@ -1054,7 +1054,7 @@ async def eeri_updates_page():
 @router.get("/eeri/methodology", response_class=HTMLResponse)
 async def eeri_methodology_page():
     """
-    EERI Methodology Page - SEO content explaining the index.
+    EERI Methodology Page - Comprehensive SEO content explaining the European Energy Risk Index.
     """
     html = f"""
     <!DOCTYPE html>
@@ -1063,25 +1063,288 @@ async def eeri_methodology_page():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>EERI Methodology - European Energy Risk Index | EnergyRiskIQ</title>
-        <meta name="description" content="Learn how the European Energy Risk Index (EERI) is calculated. Understand the methodology behind measuring geopolitical and supply-chain risks in European energy markets.">
+        <meta name="description" content="Complete methodology for the European Energy Risk Index (EERI). Understand the four-pillar architecture, risk bands, source intelligence, normalisation strategy, and interpretation framework behind Europe's leading energy risk indicator.">
         <link rel="canonical" href="{BASE_URL}/eeri/methodology">
-        
-        <meta property="og:title" content="EERI Methodology | EnergyRiskIQ">
-        <meta property="og:description" content="Methodology and calculation approach for the European Energy Risk Index (EERI).">
+
+        <meta property="og:title" content="EERI Methodology — European Energy Risk Index | EnergyRiskIQ">
+        <meta property="og:description" content="Full methodology for the European Energy Risk Index (EERI): four-pillar architecture, risk bands, computation cadence, interpretation framework, and model governance.">
         <meta property="og:url" content="{BASE_URL}/eeri/methodology">
-        
+        <meta property="og:type" content="article">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="EERI Methodology — European Energy Risk Index">
+        <meta name="twitter:description" content="How EnergyRiskIQ measures daily European energy disruption risk across geopolitical, supply, and market transmission forces.">
+
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
-            .methodology-content {{ line-height: 1.9; color: var(--text-secondary); }}
-            .methodology-content h3 {{ color: var(--text-primary); margin-top: 1.5rem; margin-bottom: 0.75rem; }}
-            .methodology-content p {{ margin-bottom: 1rem; }}
-            .methodology-content ul {{ margin-left: 1.5rem; margin-bottom: 1rem; }}
-            .methodology-content li {{ margin-bottom: 0.5rem; }}
-            .component-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0; }}
-            .component-card {{ background: var(--bg-light); padding: 1rem; border-radius: 8px; text-align: center; }}
-            .component-name {{ font-weight: 600; color: var(--text-primary); }}
-            .component-desc {{ font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem; }}
+            .meth-hero {{
+                text-align: center;
+                padding: 3rem 0 2rem;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 2.5rem;
+            }}
+            .meth-hero h1 {{
+                font-size: 2.25rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .meth-hero .subtitle {{
+                font-size: 1.1rem;
+                color: var(--text-secondary);
+                max-width: 640px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }}
+            .meth-hero .version-badge {{
+                display: inline-block;
+                margin-top: 1rem;
+                background: var(--bg-light);
+                border: 1px solid var(--border);
+                padding: 0.35rem 1rem;
+                border-radius: 2rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                font-weight: 500;
+            }}
+            .meth-section {{
+                margin-bottom: 3rem;
+            }}
+            .meth-section h2 {{
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.25rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 2px solid var(--primary);
+                display: inline-block;
+            }}
+            .meth-section .section-num {{
+                color: var(--primary);
+                font-weight: 800;
+                margin-right: 0.25rem;
+            }}
+            .meth-section h3 {{
+                font-size: 1.15rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 1.5rem 0 0.75rem;
+            }}
+            .meth-body {{
+                color: var(--text-secondary);
+                line-height: 1.85;
+                font-size: 0.975rem;
+            }}
+            .meth-body p {{
+                margin-bottom: 1rem;
+            }}
+            .meth-body ul {{
+                margin: 0.75rem 0 1rem 1.5rem;
+            }}
+            .meth-body li {{
+                margin-bottom: 0.6rem;
+            }}
+            .meth-body strong {{
+                color: var(--text-primary);
+            }}
+            .meth-blockquote {{
+                background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+                border-left: 4px solid var(--primary);
+                padding: 1.25rem 1.5rem;
+                border-radius: 0 8px 8px 0;
+                margin: 1.25rem 0;
+                font-size: 1.05rem;
+                color: var(--text-primary);
+                font-weight: 500;
+                font-style: italic;
+                line-height: 1.6;
+            }}
+            .meth-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.25rem 0;
+                font-size: 0.9rem;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+            }}
+            .meth-table thead th {{
+                background: var(--secondary);
+                color: #fff;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                font-weight: 600;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }}
+            .meth-table tbody td {{
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid var(--border);
+                color: var(--text-secondary);
+                line-height: 1.5;
+                vertical-align: top;
+            }}
+            .meth-table tbody tr:last-child td {{
+                border-bottom: none;
+            }}
+            .meth-table tbody tr:nth-child(even) {{
+                background: var(--bg-light);
+            }}
+            .meth-table .band-dot {{
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 6px;
+                vertical-align: middle;
+            }}
+            .pillar-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.25rem;
+                margin: 1.5rem 0;
+            }}
+            .pillar-card {{
+                background: var(--bg-white);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 1.5rem;
+                transition: box-shadow 0.2s ease;
+            }}
+            .pillar-card:hover {{
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            }}
+            .pillar-card .pillar-icon {{
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
+            }}
+            .pillar-card .pillar-name {{
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .pillar-card .pillar-subtitle {{
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--primary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.75rem;
+            }}
+            .pillar-card .pillar-desc {{
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+                line-height: 1.65;
+            }}
+            .pillar-card .pillar-measures {{
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border);
+            }}
+            .pillar-card .pillar-measures li {{
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-bottom: 0.4rem;
+                line-height: 1.5;
+            }}
+            .pillar-card .pillar-why {{
+                margin-top: 0.75rem;
+                font-size: 0.85rem;
+                color: var(--primary-dark);
+                font-weight: 500;
+                font-style: italic;
+                line-height: 1.5;
+            }}
+            .pillar-card.reserved {{
+                border-style: dashed;
+                opacity: 0.85;
+            }}
+            .tier-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1rem;
+                margin: 1.25rem 0;
+            }}
+            .tier-card {{
+                background: var(--bg-white);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1.25rem;
+            }}
+            .tier-card .tier-label {{
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--primary);
+                margin-bottom: 0.5rem;
+            }}
+            .tier-card .tier-title {{
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .tier-card ul {{
+                margin: 0 0 0 1.25rem;
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+            }}
+            .tier-card ul li {{
+                margin-bottom: 0.35rem;
+            }}
+            .meth-cta {{
+                background: linear-gradient(135deg, var(--secondary) 0%, #16213E 100%);
+                border-radius: 16px;
+                padding: 3rem 2rem;
+                text-align: center;
+                margin: 3rem 0 2rem;
+            }}
+            .meth-cta h3 {{
+                color: #fff;
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }}
+            .meth-cta p {{
+                color: #94a3b8;
+                margin-bottom: 1.5rem;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }}
+            .meth-cta .cta-button {{
+                display: inline-block;
+                padding: 0.85rem 2rem;
+                background: var(--primary);
+                color: #fff;
+                font-weight: 700;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 1rem;
+                transition: background 0.2s ease;
+            }}
+            .meth-cta .cta-button:hover {{
+                background: var(--primary-dark);
+            }}
+            .disclaimer {{
+                text-align: center;
+                padding: 1.5rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                font-style: italic;
+                line-height: 1.6;
+                border-top: 1px solid var(--border);
+                margin-top: 1rem;
+            }}
+            @media (max-width: 640px) {{
+                .meth-hero h1 {{ font-size: 1.6rem; }}
+                .pillar-grid {{ grid-template-columns: 1fr; }}
+                .tier-grid {{ grid-template-columns: 1fr; }}
+                .meth-table {{ font-size: 0.8rem; }}
+                .meth-table thead th, .meth-table tbody td {{ padding: 0.5rem 0.6rem; }}
+            }}
         </style>
     </head>
     <body>
@@ -1091,92 +1354,335 @@ async def eeri_methodology_page():
                 <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
-        
+
         <main class="container">
-            <div class="hero">
+
+            <div class="meth-hero">
                 <h1>EERI Methodology</h1>
-                <p class="subtitle">How the European Energy Risk Index is calculated</p>
+                <p class="subtitle">A comprehensive overview of how the European Energy Risk Index measures daily exposure to energy disruption risk across geopolitical, supply, and market transmission forces.</p>
+                <div class="version-badge">Model Version: v1 &nbsp;|&nbsp; Last Updated: February 2026</div>
             </div>
-            
-            <div class="section methodology-content">
-                <h2>Overview</h2>
-                <p>
-                    The European Energy Risk Index (EERI) is a composite daily indicator measuring systemic risk exposure in European energy markets. It synthesizes multiple signal sources into a single 0-100 score, enabling institutional users to quickly assess market conditions.
-                </p>
-                
-                <h3>Core Components</h3>
-                <p>EERI aggregates four primary risk signal categories:</p>
-                
-                <div class="component-grid">
-                    <div class="component-card">
-                        <div class="component-name">Regional Risk</div>
-                        <div class="component-desc">Base pressure from European-specific events</div>
+
+            <section class="meth-section">
+                <h2><span class="section-num">1.</span> What Is EERI?</h2>
+                <div class="meth-body">
+                    <p>The <strong>European Energy Risk Index (EERI)</strong> is a proprietary composite index that measures Europe's daily exposure to energy disruption risk arising from geopolitical, supply, and market transmission forces. It answers one critical question:</p>
+                    <div class="meth-blockquote">"How dangerous is the European energy environment today, and where is the stress coming from?"</div>
+                    <p>EERI is the first regional index in the EnergyRiskIQ platform, built on top of the Regional Escalation Risk Index (RERI) framework. Where GERI provides a global risk temperature, EERI zooms into Europe specifically — the region most acutely sensitive to gas supply disruption, pipeline dependency, and geopolitical spillover from neighbouring conflict zones.</p>
+                    <p>EERI is designed for energy traders, gas desk analysts, LNG procurement teams, European utility risk managers, freight planners, and institutional investors with European energy exposure. It translates complex, multi-source intelligence into an actionable daily signal that sits between raw news and formal market analysis.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">2.</span> Index Architecture</h2>
+                <div class="meth-body">
+                    <h3>Scoring Range</h3>
+                    <p>EERI produces a daily value on a <strong>0 to 100</strong> scale. A value of 0 represents a theoretical state of zero energy disruption risk for Europe, while 100 represents a theoretical state of maximum systemic energy crisis. The scale is normalised against a rolling historical baseline, ensuring the range remains calibrated to conditions actually observed in the European energy landscape.</p>
+
+                    <h3>Risk Bands</h3>
+                    <p>Each daily EERI value maps to one of five risk bands:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Risk Band</th><th>Range</th><th>Interpretation</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="band-dot" style="background:#22c55e;"></span><strong>LOW</strong></td><td>0 – 20</td><td>European energy environment is calm. No significant geopolitical or supply disruption signals are active. Standard operations can proceed without elevated monitoring.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#eab308;"></span><strong>MODERATE</strong></td><td>21 – 40</td><td>Background risk is present. Some supply concerns, regional tensions, or policy uncertainties exist, but systemic disruption is not indicated. Routine monitoring is appropriate.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#f97316;"></span><strong>ELEVATED</strong></td><td>41 – 60</td><td>Meaningful risk accumulation detected across European energy markets. Multiple stress vectors are contributing simultaneously. Active monitoring and hedging consideration are warranted.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#ef4444;"></span><strong>SEVERE</strong></td><td>61 – 80</td><td>Significant systemic stress affecting European energy security. Risk signals are converging across supply, transit, and market channels. Active hedging and contingency planning are strongly advised.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#991b1b;"></span><strong>CRITICAL</strong></td><td>81 – 100</td><td>Critical systemic stress. Risk signals have converged across all major channels. Historical precedent indicates imminent or active market disruption. Defensive positioning and emergency protocols are strongly indicated.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Trend Indicators</h3>
+                    <p>Each daily EERI reading includes two trend signals:</p>
+                    <ul>
+                        <li><strong>1-Day Trend</strong> — Change from the previous day's value, showing immediate momentum</li>
+                        <li><strong>7-Day Trend</strong> — Change from seven days prior, showing directional trajectory</li>
+                    </ul>
+                    <p>These trends are essential for distinguishing between an EERI of 70 that is rising sharply (escalation phase) and an EERI of 70 that is falling from a recent peak (stabilisation phase). The same number carries very different operational implications depending on its trajectory.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">3.</span> The Four Pillars</h2>
+                <div class="meth-body">
+                    <p>EERI is constructed from four distinct pillars, each capturing a different dimension of European energy risk. This multi-pillar architecture ensures the index reflects the full spectrum of forces that can disrupt European energy markets.</p>
+                </div>
+                <div class="pillar-grid">
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🏗️</div>
+                        <div class="pillar-subtitle">Pillar 1</div>
+                        <div class="pillar-name">Regional Risk Backbone</div>
+                        <div class="pillar-desc">The structural foundation of EERI. Measures the underlying severity, intensity, and acceleration of geopolitical and energy events directly affecting Europe.</div>
+                        <ul class="pillar-measures">
+                            <li><strong>Severity Pressure</strong> — Cumulative severity of high-impact events affecting Europe</li>
+                            <li><strong>High-Impact Concentration</strong> — Escalation stacking from simultaneous events</li>
+                            <li><strong>Asset Overlap</strong> — Number of asset classes simultaneously under stress</li>
+                            <li><strong>Escalation Velocity</strong> — Rate of change vs. recent historical average</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "How dangerous is the European geopolitical and energy environment right now?"</div>
                     </div>
-                    <div class="component-card">
-                        <div class="component-name">Thematic Pressure</div>
-                        <div class="component-desc">Weighted severity by event category</div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">📊</div>
+                        <div class="pillar-subtitle">Pillar 2</div>
+                        <div class="pillar-name">Theme Pressure</div>
+                        <div class="pillar-desc">Measures the nature and breadth of stress narratives dominating the European risk landscape — whether risk is concentrated in one narrative or spread across multiple themes simultaneously.</div>
+                        <ul class="pillar-measures">
+                            <li>Type of events driving risk (military, supply, sanctions, policy, logistics, diplomacy)</li>
+                            <li>Breadth of thematic coverage across stress categories</li>
+                            <li>Structural persistence of recurring narratives</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "What kind of crisis is this?" — critical for choosing the right hedging strategy.</div>
                     </div>
-                    <div class="component-card">
-                        <div class="component-name">Asset Transmission</div>
-                        <div class="component-desc">Cross-asset risk propagation signals</div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🔗</div>
+                        <div class="pillar-subtitle">Pillar 3</div>
+                        <div class="pillar-name">Asset Transmission</div>
+                        <div class="pillar-desc">Measures whether risk is actually propagating into European energy markets — bridging the gap between geopolitical headlines and financial reality.</div>
+                        <ul class="pillar-measures">
+                            <li>Number and breadth of energy asset classes showing stress</li>
+                            <li>Cross-asset transmission patterns (Gas, Oil, Freight, FX, Power, LNG)</li>
+                            <li>Alignment between risk events and market-observable stress</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Is this risk actually reaching markets?" — the bridge between headlines and money.</div>
                     </div>
-                    <div class="component-card">
-                        <div class="component-name">Contagion Risk</div>
-                        <div class="component-desc">Spillover from neighboring regions</div>
+                    <div class="pillar-card reserved">
+                        <div class="pillar-icon">🌍</div>
+                        <div class="pillar-subtitle">Pillar 4 — Reserved for v2</div>
+                        <div class="pillar-name">Contagion</div>
+                        <div class="pillar-desc">Will measure cross-regional spillover risk — the degree to which energy-relevant crises in neighbouring regions (Middle East, Black Sea / Caucasus) threaten to spread into Europe.</div>
+                        <ul class="pillar-measures">
+                            <li>Risk transmission from primary oil and LNG supply regions</li>
+                            <li>Pipeline and shipping route vulnerability from adjacent conflict zones</li>
+                            <li>Second-order effects from non-European disruptions</li>
+                        </ul>
+                        <div class="pillar-why">In v1, structurally present but set to zero. Will activate when mature regional indices are available.</div>
                     </div>
                 </div>
-                
-                <h3>Risk Bands</h3>
-                <p>The final index value maps to interpretable risk bands:</p>
-                <ul>
-                    <li><strong>0-20 (Low):</strong> Markets operating within normal parameters</li>
-                    <li><strong>21-40 (Moderate):</strong> Background tension, standard monitoring</li>
-                    <li><strong>41-60 (Elevated):</strong> Active risk management advised</li>
-                    <li><strong>61-80 (Severe):</strong> Significant disruption risk present</li>
-                    <li><strong>81-100 (Critical):</strong> Extreme systemic stress conditions</li>
-                </ul>
-                
-                <h3>Data Sources</h3>
-                <p>
-                    EERI draws from EnergyRiskIQ's proprietary alert stream, which monitors geopolitical events, supply-chain disruptions, and market signals across European and adjacent regions. Events are classified, scored for severity and confidence, and aggregated into the daily index.
-                </p>
-                
-                <h3>Update Schedule</h3>
-                <p>
-                    EERI is computed daily at 01:00 UTC, incorporating all alerts from the previous 24-hour period. Public access shows data with a 24-hour delay; real-time access is available to Pro subscribers.
-                </p>
-                
-                <h3>Use Cases</h3>
-                <ul>
-                    <li>Portfolio risk monitoring for energy sector exposure</li>
-                    <li>Trading desk situational awareness</li>
-                    <li>Policy research and analysis</li>
-                    <li>Supply chain risk management</li>
-                    <li>Benchmark for risk reporting</li>
-                </ul>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">4.</span> Source Intelligence</h2>
+                <div class="meth-body">
+                    <h3>Regional Focus</h3>
+                    <p>EERI ingests events classified as affecting Europe, the European Union, or European energy infrastructure. Classification uses both explicit geographic tagging and entity recognition — events mentioning European pipelines, terminals, storage facilities, or regulatory bodies are included even if tagged to a broader region.</p>
+
+                    <h3>Alert Types</h3>
+                    <p>EERI consumes three categories of structured alerts from the EnergyRiskIQ intelligence pipeline:</p>
+                    <ul>
+                        <li><strong>High-Impact Events</strong> — Individual events with significant severity representing direct geopolitical or energy shocks (military escalations, infrastructure incidents, sanctions, policy shifts)</li>
+                        <li><strong>Regional Risk Spikes</strong> — Synthesised alerts generated when a region's aggregate risk level rises meaningfully above its recent baseline, indicating clustering or escalation</li>
+                        <li><strong>Asset Risk Alerts</strong> — Asset-specific alerts triggered when individual energy commodities or infrastructure show stress linked to European risk events</li>
+                    </ul>
+
+                    <h3>Event Categories</h3>
+                    <p>Events are classified into thematic categories that determine their influence within the index:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Category</th><th>Disruption Profile</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>War / Military / Conflict</strong></td><td>Highest disruption potential — direct physical threat to energy infrastructure, supply routes, or producing regions</td></tr>
+                            <tr><td><strong>Supply Disruption</strong></td><td>High disruption potential — production outages, pipeline stoppages, facility shutdowns, force majeure events</td></tr>
+                            <tr><td><strong>Energy</strong></td><td>Significant — broad energy market developments with pricing or supply implications</td></tr>
+                            <tr><td><strong>Sanctions</strong></td><td>Significant — trade restrictions affecting energy flows, often with delayed but persistent effects</td></tr>
+                            <tr><td><strong>Political</strong></td><td>Moderate — government decisions, elections, or policy changes affecting energy policy</td></tr>
+                            <tr><td><strong>Diplomacy</strong></td><td>Lower immediate impact — negotiations, agreements, or de-escalation signals that may reduce future risk</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">5.</span> Normalisation Strategy</h2>
+                <div class="meth-body">
+                    <p>Raw risk metrics vary enormously depending on the global news cycle and event clustering. Without normalisation, the 0–100 scale would be meaningless — a quiet week could produce values near zero while a single crisis could push values far beyond 100.</p>
+                    <p>EERI uses a <strong>multi-phase normalisation</strong> approach that adapts as the index matures:</p>
+                    <ul>
+                        <li><strong>Bootstrap Phase</strong> — During the initial period with insufficient historical data, EERI uses conservative fallback caps for each component, preventing extreme values while the system accumulates operational history.</li>
+                        <li><strong>Rolling Baseline Phase</strong> — Once sufficient history has accumulated, EERI switches to a rolling baseline computed from recent component values. This dynamically adjusts the normalisation range using statistical percentiles of historical data.</li>
+                    </ul>
+                    <p>The rolling approach ensures the 0–100 scale remains meaningful as the risk environment evolves, prevents compression during prolonged calm or tension, properly reflects unusual conditions, and adapts to structural changes in the risk landscape over time.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">6.</span> Computation Cadence</h2>
+                <div class="meth-body">
+                    <h3>Daily Computation</h3>
+                    <p>EERI is computed once per day, producing a single authoritative daily value. The computation runs after all alerts for the previous day have been finalised, ensuring complete data coverage. Daily computation is triggered automatically at <strong>01:00 UTC</strong>.</p>
+
+                    <h3>Publication Tiers</h3>
+                    <div class="tier-grid">
+                        <div class="tier-card">
+                            <div class="tier-label">Paid Subscribers</div>
+                            <div class="tier-title">Real-time on computation</div>
+                            <ul>
+                                <li>Full EERI value, band, and trend</li>
+                                <li>Component breakdown and top drivers</li>
+                                <li>Asset stress panel</li>
+                                <li>AI-generated interpretation</li>
+                            </ul>
+                        </div>
+                        <div class="tier-card">
+                            <div class="tier-label">Free Users</div>
+                            <div class="tier-title">24-hour delay</div>
+                            <ul>
+                                <li>EERI value and band</li>
+                                <li>Limited context</li>
+                            </ul>
+                        </div>
+                        <div class="tier-card">
+                            <div class="tier-label">Public / SEO Pages</div>
+                            <div class="tier-title">24-hour delay</div>
+                            <ul>
+                                <li>EERI value and band</li>
+                                <li>Trend indicator</li>
+                                <li>Top 2–3 risk driver headlines</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">7.</span> Interpretation Framework</h2>
+                <div class="meth-body">
+                    <h3>EERI as a Regional Decision Layer</h3>
+                    <p>EERI is not a price forecast or trading signal. It is a regional risk context layer that tells professionals where European energy stress is concentrated and how it is evolving:</p>
+                    <ul>
+                        <li><strong>EERI rising</strong> means European energy risk inputs are increasing — it does not guarantee energy prices will rise</li>
+                        <li><strong>EERI falling</strong> means risk inputs are subsiding — it does not guarantee market calm</li>
+                        <li><strong>EERI in CRITICAL</strong> means the concentration and severity of risk signals matches historical periods associated with significant energy market disruption</li>
+                    </ul>
+
+                    <h3>Asset Stress Patterns</h3>
+                    <p>One of EERI's most valuable features is its ability to show which specific energy asset classes are absorbing geopolitical stress:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Asset</th><th>Role in European Energy Risk</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Gas</strong></td><td>Europe's primary vulnerability indicator. First responder in European energy crises — reacts fastest and most severely to supply disruption signals.</td></tr>
+                            <tr><td><strong>Oil</strong></td><td>Global benchmark reflecting broader supply concerns. Typically reacts when events have global implications such as Middle East spillover or sanctions on major producers.</td></tr>
+                            <tr><td><strong>Freight</strong></td><td>Physical logistics and shipping route stress. Where geopolitical risk becomes physical reality — often the earliest confirmation signal of systemic disruption.</td></tr>
+                            <tr><td><strong>FX (EUR/USD)</strong></td><td>European macro confidence indicator. Currency stress reflects capital positioning and investor confidence in European economic resilience.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Cross-Asset Patterns Professionals Watch</h3>
+                    <table class="meth-table">
+                        <thead><tr><th>Pattern</th><th>Interpretation</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Gas + Freight elevated</strong></td><td>Physical supply chain stress — disruptions are real, not theoretical</td></tr>
+                            <tr><td><strong>Oil + FX elevated</strong></td><td>Macro spillover — risk is affecting broader European economic outlook</td></tr>
+                            <tr><td><strong>All four asset classes elevated</strong></td><td>Systemic shock — risk has permeated the entire European energy ecosystem</td></tr>
+                            <tr><td><strong>Gas elevated, others calm</strong></td><td>Isolated supply concern — markets believe disruption is containable</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Regime Recognition</h3>
+                    <p>EERI's historical trajectory can be divided into recognisable risk regimes. Regime transitions are the most actionable signals in the index.</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Regime</th><th>Characteristics</th><th>Typical Duration</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Calm</strong></td><td>LOW/MODERATE bands, stable trend, minimal driver activity</td><td>Weeks to months</td></tr>
+                            <tr><td><strong>Escalation</strong></td><td>EERI rising, crossing MODERATE to ELEVATED, increasing driver count</td><td>Days to weeks</td></tr>
+                            <tr><td><strong>Crisis</strong></td><td>SEVERE/CRITICAL bands, multiple asset classes stressed, high driver concentration</td><td>Days to weeks</td></tr>
+                            <tr><td><strong>De-escalation</strong></td><td>EERI falling from CRITICAL/SEVERE, driver intensity decreasing</td><td>Days to weeks</td></tr>
+                            <tr><td><strong>Recovery</strong></td><td>Returning to LOW/MODERATE, normalisation of asset stress</td><td>Weeks</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">8.</span> Relationship to Other Indices</h2>
+                <div class="meth-body">
+                    <h3>EERI and GERI</h3>
+                    <p>GERI (Global Geo-Energy Risk Index) and EERI operate at different scales and serve different purposes:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Dimension</th><th>GERI</th><th>EERI</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Scope</strong></td><td>Global</td><td>European</td></tr>
+                            <tr><td><strong>Core Question</strong></td><td>"Is the world dangerous?"</td><td>"Is Europe's energy security threatened?"</td></tr>
+                            <tr><td><strong>Audience</strong></td><td>CIOs, strategists, allocators</td><td>Energy traders, gas desks, European risk managers</td></tr>
+                            <tr><td><strong>Decision Type</strong></td><td>Strategic portfolio allocation</td><td>Tactical hedging and procurement</td></tr>
+                            <tr><td><strong>Sensitivity</strong></td><td>Broad geopolitical environment</td><td>Europe-specific supply, transit, and market stress</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Reading Them Together</h3>
+                    <ul>
+                        <li><strong>GERI high + EERI high:</strong> Global risk is concentrated in or affecting Europe. Maximum concern for European energy exposure.</li>
+                        <li><strong>GERI high + EERI moderate:</strong> Global risk exists but Europe is buffered (strong storage, diversified supply, or risk concentrated elsewhere).</li>
+                        <li><strong>GERI moderate + EERI high:</strong> Europe-specific risk (internal policy, localised disruption, or transit issues) that hasn't reached global systemic levels.</li>
+                    </ul>
+
+                    <h3>Future Regional Indices</h3>
+                    <p>EERI is the first implementation of the RERI framework. The same architecture is designed to support future regional indices for the Middle East and Black Sea / Caucasus corridor. When operational, these will activate the EERI Contagion pillar for cross-regional spillover measurement.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">9.</span> What EERI Does Not Do</h2>
+                <div class="meth-body">
+                    <ul>
+                        <li><strong>EERI is not a gas price forecast.</strong> It measures the risk environment, not the price outcome.</li>
+                        <li><strong>EERI is not a trading signal.</strong> It provides risk context for decision-making, not buy/sell instructions.</li>
+                        <li><strong>EERI does not cover non-energy European risks.</strong> Banking crises, public health emergencies, or sovereign debt concerns are outside its scope unless they directly affect energy markets.</li>
+                        <li><strong>EERI is not intraday.</strong> It is a daily index. Events occurring during the day will be reflected in the following day's computation.</li>
+                        <li><strong>EERI does not measure European energy demand.</strong> It focuses on supply disruption risk and geopolitical stress, not seasonal consumption patterns or economic growth dynamics.</li>
+                        <li><strong>EERI is not a substitute for market analysis.</strong> It is a complementary intelligence layer designed to sit alongside traditional energy trading and risk management tools.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">10.</span> Model Governance</h2>
+                <div class="meth-body">
+                    <h3>Version Control</h3>
+                    <p>EERI operates under strict version control. The current production model is <strong>v1</strong>, with the Contagion pillar reserved for v2 activation. All historical data is tagged with its model version, ensuring full auditability and reproducibility.</p>
+
+                    <h3>Feature Flag</h3>
+                    <p>EERI computation is controlled by a feature flag, allowing the index to be activated or deactivated without code changes. This ensures operational safety during maintenance or if data quality issues are detected.</p>
+
+                    <h3>Planned Evolution</h3>
+                    <ul>
+                        <li><strong>v2 — Contagion Activation:</strong> Enable cross-regional spillover measurement from Middle East and Black Sea indices</li>
+                        <li><strong>Velocity Normalisation:</strong> Transition escalation velocity to rolling baseline normalisation once sufficient historical data has accumulated</li>
+                        <li><strong>Weekly Snapshot Intelligence:</strong> Structured weekly summary with plan-tiered depth, including cross-asset alignment analysis and scenario outlooks</li>
+                    </ul>
+
+                    <h3>Independence and Objectivity</h3>
+                    <p>EERI is computed algorithmically from structured intelligence inputs. There is no editorial override, manual adjustment, or subjective intervention in the daily index value. The methodology is fixed for each model version, with changes implemented only through formal version upgrades.</p>
+                </div>
+            </section>
+
+            <div class="meth-cta">
+                <h3>Unlock the Full Power of EERI</h3>
+                <p>Access real-time EERI values, component breakdowns, historical charts, asset stress panels, and AI-powered interpretations with EnergyRiskIQ Pro.</p>
+                <a href="/users" class="cta-button">Get FREE Access</a>
             </div>
-            
-            <div class="cta-section">
-                <h3>Access Full Analysis</h3>
-                <p>Get component-level breakdowns, historical data, and real-time updates with EnergyRiskIQ Pro.</p>
-                <a href="/users" class="cta-btn">Explore Pro Features</a>
+
+            <div class="disclaimer">
+                <p>EERI is a proprietary index of EnergyRiskIQ. This methodology document is provided for transparency and educational purposes. It does not constitute financial advice.</p>
+                <p>Model Version: v1 &nbsp;|&nbsp; Last Updated: February 2026</p>
             </div>
+
         </main>
-        
+
         <footer class="footer">
             <div class="container">
                 <p>&copy; 2026 EnergyRiskIQ</p>
                 <p style="margin-top: 0.5rem;">
-                    <a href="/eeri">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/geri">GERI</a>
+                    <a href="/eeri">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/geri">GERI</a> · <a href="/egsi">EGSI</a>
                 </p>
             </div>
         </footer>
     </body>
     </html>
     """
-    
+
     return HTMLResponse(content=html)
 
 
