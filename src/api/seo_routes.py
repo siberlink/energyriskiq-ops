@@ -2798,1701 +2798,631 @@ async def geri_updates_page():
     return HTMLResponse(content=html)
 
 
+
+
 @router.get("/geri/methodology", response_class=HTMLResponse)
 async def geri_methodology_page():
     """
-    GERI Methodology Page - Static page explaining the index construction.
+    GERI Methodology Page - Comprehensive SEO content explaining the Global Geo-Energy Risk Index.
     """
     track_page_view("geri_methodology", "/geri/methodology")
-    
+
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Global Energy Risk Index (GERI) — Methodology & Construction | EnergyRiskIQ</title>
-        <meta name="description" content="Learn how the Global Energy Risk Index (GERI) measures systemic geopolitical and supply risk in global energy markets through daily event analysis and structured risk signals.">
+        <title>GERI Methodology - Global Geo-Energy Risk Index | EnergyRiskIQ</title>
+        <meta name="description" content="Complete methodology for the Global Geo-Energy Risk Index (GERI). Understand the four-pillar architecture, regional weighting model, source intelligence, event processing pipeline, and interpretation framework behind the world's leading geo-energy risk indicator.">
         <link rel="canonical" href="{BASE_URL}/geri/methodology">
-        
-        <meta property="og:title" content="Global Energy Risk Index (GERI) — Methodology & Construction | EnergyRiskIQ">
-        <meta property="og:description" content="Learn how GERI measures systemic geopolitical and supply risk in global energy markets through daily event analysis.">
+
+        <meta property="og:title" content="GERI Methodology — Global Geo-Energy Risk Index | EnergyRiskIQ">
+        <meta property="og:description" content="Full methodology for the Global Geo-Energy Risk Index (GERI): four-pillar architecture, regional weighting, source intelligence, computation cadence, and interpretation framework.">
         <meta property="og:url" content="{BASE_URL}/geri/methodology">
         <meta property="og:type" content="article">
-        
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="GERI Methodology — Global Geo-Energy Risk Index">
+        <meta name="twitter:description" content="How EnergyRiskIQ measures daily global geopolitical and energy supply risk through structured intelligence and multi-pillar risk architecture.">
+
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         <style>
-            .methodology-hero {{
+            .meth-hero {{
                 text-align: center;
-                padding: 4rem 0 2rem;
-                max-width: 800px;
-                margin: 0 auto;
+                padding: 3rem 0 2rem;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 2.5rem;
             }}
-            .methodology-hero h1 {{
-                font-size: 2.5rem;
-                font-weight: 700;
-                color: #1a1a2e;
+            .meth-hero h1 {{
+                font-size: 2.25rem;
+                font-weight: 800;
+                color: var(--text-primary);
                 margin-bottom: 0.5rem;
-                line-height: 1.2;
             }}
-            .methodology-hero .subtitle {{
-                font-size: 1.5rem;
-                font-weight: 600;
-                color: #0066FF;
-                margin-bottom: 1.5rem;
-            }}
-            .methodology-hero h2 {{
-                font-size: 1.25rem;
-                font-weight: 400;
-                color: #64748b;
-                font-style: italic;
-                max-width: 700px;
+            .meth-hero .subtitle {{
+                font-size: 1.1rem;
+                color: var(--text-secondary);
+                max-width: 640px;
                 margin: 0 auto;
                 line-height: 1.6;
             }}
-            .methodology-content {{
-                max-width: 800px;
-                margin: 3rem auto;
-                padding: 0 1rem;
-            }}
-            .methodology-section {{
-                background: #ffffff;
-                border: 1px solid #e2e8f0;
-                border-radius: 1rem;
-                padding: 2rem;
-                margin-bottom: 2rem;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }}
-            .methodology-section h3 {{
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: #1a1a2e;
-                margin-bottom: 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-            }}
-            .methodology-section h3 .icon {{
-                width: 32px;
-                height: 32px;
-                background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1rem;
-            }}
-            .methodology-section p {{
-                color: #475569;
-                line-height: 1.8;
-                margin-bottom: 1rem;
-            }}
-            .methodology-section ul {{
-                color: #475569;
-                line-height: 1.8;
-                padding-left: 1.5rem;
-            }}
-            .methodology-section li {{
-                margin-bottom: 0.5rem;
-            }}
-            .section-icon {{
-                font-size: 1.25rem;
-                margin-right: 0.5rem;
-            }}
-            .feature-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1.5rem 0;
-            }}
-            .feature-list li {{
-                display: flex;
-                align-items: center;
-                padding: 0.75rem 1rem;
-                background: #f1f5f9;
-                border-radius: 0.5rem;
-                margin-bottom: 0.5rem;
-                font-weight: 500;
-                color: #334155;
-            }}
-            .list-icon {{
-                font-size: 1.25rem;
-                margin-right: 0.75rem;
-            }}
-            .simple-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-            }}
-            .simple-list li {{
-                background: #e0f2fe;
-                color: #0369a1;
-                padding: 0.5rem 1rem;
+            .meth-hero .version-badge {{
+                display: inline-block;
+                margin-top: 1rem;
+                background: var(--bg-light);
+                border: 1px solid var(--border);
+                padding: 0.35rem 1rem;
                 border-radius: 2rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
                 font-weight: 500;
-                font-size: 0.95rem;
             }}
-            .highlight-block {{
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                border-left: 4px solid #f59e0b;
-                border-radius: 0.5rem;
-                padding: 1.5rem;
-                margin: 1.5rem 0;
-                text-align: center;
+            .meth-section {{
+                margin-bottom: 3rem;
             }}
-            .highlight-text {{
-                font-size: 1.1rem;
-                color: #92400e;
-                line-height: 1.8;
-                margin: 0;
+            .meth-section h2 {{
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.25rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 2px solid var(--primary);
+                display: inline-block;
             }}
-            .highlight-text strong {{
-                color: #78350f;
-                font-size: 1.25rem;
+            .meth-section .section-num {{
+                color: var(--primary);
+                font-weight: 800;
+                margin-right: 0.25rem;
             }}
-            .quote-block {{
-                background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-                border-left: 4px solid #7c3aed;
-                border-radius: 0.5rem;
-                padding: 1.5rem 2rem;
-                margin: 1.5rem 0;
-            }}
-            .quote-block p {{
+            .meth-section h3 {{
                 font-size: 1.15rem;
-                font-style: italic;
-                color: #5b21b6;
-                margin: 0;
-                font-weight: 500;
-            }}
-            .risk-category {{
-                background: #f8fafc;
-                border: 1px solid #e2e8f0;
-                border-radius: 0.75rem;
-                padding: 1.25rem 1.5rem;
-                margin: 1rem 0;
-            }}
-            .risk-category h4 {{
-                font-size: 1.1rem;
                 font-weight: 600;
-                color: #1e293b;
-                margin: 0 0 0.75rem 0;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
+                color: var(--text-primary);
+                margin: 1.5rem 0 0.75rem;
             }}
-            .category-icon {{
-                font-size: 1.25rem;
+            .meth-body {{
+                color: var(--text-secondary);
+                line-height: 1.85;
+                font-size: 0.975rem;
             }}
-            .category-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 0;
-            }}
-            .category-list li {{
-                padding: 0.35rem 0 0.35rem 1.5rem;
-                position: relative;
-                color: #475569;
-                font-size: 0.95rem;
-            }}
-            .category-list li::before {{
-                content: "•";
-                position: absolute;
-                left: 0.5rem;
-                color: #94a3b8;
-            }}
-            .section-summary {{
-                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-                border-left: 4px solid #10b981;
-                border-radius: 0.5rem;
-                padding: 1.25rem 1.5rem;
-                margin-top: 1.5rem;
-                font-weight: 500;
-                color: #065f46;
-            }}
-            .warning-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-            }}
-            .warning-list li {{
-                background: #fee2e2;
-                color: #991b1b;
-                padding: 0.5rem 1rem;
-                border-radius: 2rem;
-                font-weight: 500;
-                font-size: 0.95rem;
-                display: flex;
-                align-items: center;
-                gap: 0.35rem;
-            }}
-            .warning-list li::before {{
-                content: "✕";
-                font-size: 0.8rem;
-                font-weight: 700;
-            }}
-            .definition-block {{
-                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-                border-left: 4px solid #2563eb;
-                border-radius: 0.5rem;
-                padding: 1.25rem 1.5rem;
-                margin: 1.5rem 0;
-            }}
-            .definition-block p {{
-                margin: 0;
-                color: #1e40af;
-            }}
-            .definition-block p:first-child {{
-                margin-bottom: 0.5rem;
-            }}
-            .emphasis-text {{
-                font-size: 1.1rem;
-                font-weight: 600;
-                color: #0f172a;
-                font-style: italic;
-                margin-top: 1rem;
-            }}
-            .layer-card {{
-                border-radius: 0.75rem;
-                padding: 1.5rem;
-                margin: 1.25rem 0;
-                border: 1px solid;
-            }}
-            .layer-1 {{
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%);
-                border-color: #f59e0b;
-            }}
-            .layer-2 {{
-                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%);
-                border-color: #3b82f6;
-            }}
-            .layer-3 {{
-                background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 50%);
-                border-color: #10b981;
-            }}
-            .layer-header {{
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
+            .meth-body p {{
                 margin-bottom: 1rem;
             }}
-            .layer-number {{
-                width: 2rem;
-                height: 2rem;
-                border-radius: 50%;
-                background: rgba(0,0,0,0.15);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 700;
-                font-size: 1rem;
-                color: #1e293b;
+            .meth-body ul {{
+                margin: 0.75rem 0 1rem 1.5rem;
             }}
-            .layer-header h4 {{
-                margin: 0;
-                font-size: 1.1rem;
-                font-weight: 600;
-                color: #1e293b;
+            .meth-body li {{
+                margin-bottom: 0.6rem;
             }}
-            .layer-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 0.75rem 0;
+            .meth-body strong {{
+                color: var(--text-primary);
             }}
-            .layer-list li {{
-                padding: 0.3rem 0 0.3rem 1.25rem;
-                position: relative;
-                color: #334155;
-                font-size: 0.95rem;
-            }}
-            .layer-list li::before {{
-                content: "→";
-                position: absolute;
-                left: 0;
-                color: #64748b;
-            }}
-            .layer-note {{
-                font-style: italic;
-                color: #64748b;
-                font-size: 0.9rem;
-                margin: 0.5rem 0;
-            }}
-            .layer-summary {{
-                font-weight: 600;
-                color: #0f172a;
-                margin-top: 0.75rem;
-                padding-top: 0.75rem;
-                border-top: 1px dashed rgba(0,0,0,0.2);
-            }}
-            .timestamp-concepts {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 1.5rem;
-                margin: 1.5rem 0;
-            }}
-            .timestamp-card {{
-                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-                border: 1px solid #0ea5e9;
-                border-radius: 0.75rem;
-                padding: 1.5rem;
-            }}
-            .timestamp-card h4 {{
-                color: #0369a1;
-                margin: 0 0 0.75rem 0;
-                font-size: 1.1rem;
-            }}
-            .timestamp-card p {{
-                margin: 0.5rem 0;
-                color: #334155;
-            }}
-            .timestamp-example {{
-                background: rgba(255,255,255,0.7);
-                border-radius: 0.5rem;
-                padding: 0.75rem;
-                margin: 1rem 0;
-                font-family: monospace;
-                font-size: 0.9rem;
-                color: #1e40af;
-            }}
-            .governance-box {{
-                background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
-                border: 1px solid #eab308;
-                border-radius: 0.75rem;
-                padding: 1.5rem;
-                margin: 1.5rem 0;
-            }}
-            .governance-box h4 {{
-                color: #a16207;
-                margin: 0 0 0.75rem 0;
-                font-size: 1.1rem;
-            }}
-            .governance-box p {{
-                color: #334155;
-                margin: 0.5rem 0;
-            }}
-            .governance-note {{
-                font-style: italic;
-                color: #92400e;
-                margin-top: 1rem;
-                padding-top: 0.75rem;
-                border-top: 1px dashed rgba(0,0,0,0.15);
-            }}
-            .why-matters-box {{
-                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-                border: 1px solid #22c55e;
-                border-radius: 0.75rem;
-                padding: 1.5rem;
-                margin: 1.5rem 0;
-            }}
-            .why-matters-box h4 {{
-                color: #15803d;
-                margin: 0 0 0.75rem 0;
-                font-size: 1.1rem;
-            }}
-            .why-matters-box p {{
-                color: #334155;
-                margin: 0.5rem 0;
-            }}
-            .simple-list.compact {{
-                margin: 0.5rem 0;
-                gap: 0.5rem;
-            }}
-            .simple-list.compact li {{
-                padding: 0.35rem 0.75rem;
-                font-size: 0.85rem;
-            }}
-            .aggregation-grid {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 0.75rem;
-                margin: 1rem 0;
-            }}
-            .aggregation-item {{
-                background: rgba(255,255,255,0.6);
-                border-radius: 0.5rem;
-                padding: 0.75rem;
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
-            }}
-            .agg-icon {{
-                font-size: 1.25rem;
-            }}
-            .agg-label {{
-                font-weight: 600;
-                color: #1e293b;
-                font-size: 0.9rem;
-            }}
-            .agg-detail {{
-                font-size: 0.8rem;
-                color: #64748b;
-            }}
-            .result-showcase {{
-                display: flex;
-                justify-content: center;
-                gap: 1.5rem;
+            .meth-blockquote {{
+                background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+                border-left: 4px solid var(--primary);
+                padding: 1.25rem 1.5rem;
+                border-radius: 0 8px 8px 0;
                 margin: 1.25rem 0;
-                flex-wrap: wrap;
+                font-size: 1.05rem;
+                color: var(--text-primary);
+                font-weight: 500;
+                font-style: italic;
+                line-height: 1.6;
             }}
-            .result-item {{
-                background: rgba(255,255,255,0.7);
-                border-radius: 0.5rem;
-                padding: 1rem 1.5rem;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 0.35rem;
-                min-width: 100px;
-            }}
-            .result-icon {{
-                font-size: 1.5rem;
-            }}
-            .result-text {{
-                font-weight: 600;
-                color: #1e293b;
-                font-size: 0.95rem;
-            }}
-            .risk-bands {{
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                margin: 1.5rem 0;
-            }}
-            .risk-band {{
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                padding: 1rem 1.25rem;
-                border-radius: 0.5rem;
-                border-left: 4px solid;
-            }}
-            .band-low {{
-                background: #ecfdf5;
-                border-color: #10b981;
-            }}
-            .band-moderate {{
-                background: #fefce8;
-                border-color: #eab308;
-            }}
-            .band-elevated {{
-                background: #fff7ed;
-                border-color: #f97316;
-            }}
-            .band-severe {{
-                background: #fef2f2;
-                border-color: #ef4444;
-            }}
-            .band-indicator {{
-                font-size: 1.5rem;
-                flex-shrink: 0;
-            }}
-            .band-content {{
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
-            }}
-            .band-label {{
-                font-weight: 700;
-                font-size: 1rem;
-                color: #1e293b;
-            }}
-            .band-desc {{
+            .meth-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.25rem 0;
                 font-size: 0.9rem;
-                color: #475569;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid var(--border);
             }}
-            .publish-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 0.5rem;
-            }}
-            .publish-list li {{
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.5rem 0.75rem;
-                background: #f1f5f9;
-                border-radius: 0.375rem;
-                font-size: 0.9rem;
-                color: #334155;
-            }}
-            .pub-icon {{
-                font-size: 1.1rem;
-            }}
-            .check-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-            }}
-            .check-list li {{
-                padding: 0.4rem 0 0.4rem 1.75rem;
-                position: relative;
-                color: #334155;
-                font-size: 0.95rem;
-            }}
-            .check-list li::before {{
-                content: "✓";
-                position: absolute;
-                left: 0.25rem;
-                color: #10b981;
-                font-weight: 700;
-            }}
-            .code-block {{
-                background: #1e293b;
-                border-radius: 0.5rem;
-                padding: 1rem 1.5rem;
-                margin: 1rem 0;
-                overflow-x: auto;
-            }}
-            .code-block code {{
-                color: #38bdf8;
-                font-family: 'Monaco', 'Consolas', monospace;
-                font-size: 1rem;
-            }}
-            .archive-benefits {{
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-                margin: 1rem 0;
-            }}
-            .benefit-item {{
-                background: #f0f9ff;
-                border: 1px solid #bae6fd;
-                border-radius: 0.5rem;
+            .meth-table thead th {{
+                background: var(--secondary);
+                color: #fff;
                 padding: 0.75rem 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                flex: 1;
-                min-width: 180px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
             }}
-            .benefit-icon {{
-                font-size: 1.25rem;
+            .meth-table tbody td {{
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid var(--border);
+                color: var(--text-secondary);
+                line-height: 1.5;
+                vertical-align: top;
             }}
-            .use-case-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 0.5rem;
+            .meth-table tbody tr:last-child td {{
+                border-bottom: none;
             }}
-            .use-case-list li {{
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.5rem 0.75rem;
-                background: #faf5ff;
-                border: 1px solid #e9d5ff;
-                border-radius: 0.375rem;
-                font-size: 0.9rem;
-                color: #6b21a8;
+            .meth-table tbody tr:nth-child(even) {{
+                background: var(--bg-light);
             }}
-            .use-icon {{
-                font-size: 1rem;
+            .meth-table .band-dot {{
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 6px;
+                vertical-align: middle;
             }}
-            .governance-grid {{
+            .pillar-grid {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 1rem;
+                gap: 1.25rem;
                 margin: 1.5rem 0;
             }}
-            .governance-card {{
-                border-radius: 0.75rem;
-                padding: 1.25rem;
-                border: 1px solid;
+            .pillar-card {{
+                background: var(--bg-white);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 1.5rem;
+                transition: box-shadow 0.2s ease;
             }}
-            .governance-card.integrity {{
-                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-                border-color: #10b981;
+            .pillar-card:hover {{
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             }}
-            .governance-card.stability {{
-                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-                border-color: #3b82f6;
+            .pillar-card .pillar-icon {{
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
             }}
-            .governance-card h4 {{
-                margin: 0 0 0.75rem 0;
-                font-size: 1.05rem;
+            .pillar-card .pillar-name {{
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .pillar-card .pillar-subtitle {{
+                font-size: 0.8rem;
                 font-weight: 600;
-                color: #1e293b;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
+                color: var(--primary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.75rem;
             }}
-            .gov-icon {{
-                font-size: 1.1rem;
-            }}
-            .gov-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 0;
-            }}
-            .gov-list li {{
-                padding: 0.3rem 0 0.3rem 1.25rem;
-                position: relative;
-                color: #334155;
+            .pillar-card .pillar-desc {{
                 font-size: 0.9rem;
+                color: var(--text-secondary);
+                line-height: 1.65;
             }}
-            .gov-list li::before {{
-                content: "•";
-                position: absolute;
-                left: 0.25rem;
-                color: #64748b;
+            .pillar-card .pillar-measures {{
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border);
             }}
-            .ensure-grid {{
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-                margin: 1rem 0;
-            }}
-            .ensure-item {{
-                background: #f0fdf4;
-                border: 1px solid #86efac;
-                border-radius: 2rem;
-                padding: 0.5rem 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.35rem;
-                font-weight: 500;
-                font-size: 0.9rem;
-                color: #166534;
-            }}
-            .ensure-icon {{
-                font-size: 0.9rem;
-            }}
-            .audience-grid {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 0.75rem;
-                margin: 1.5rem 0;
-            }}
-            .audience-item {{
-                background: #f8fafc;
-                border: 1px solid #e2e8f0;
-                border-radius: 0.5rem;
-                padding: 0.75rem 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-size: 0.95rem;
-                color: #334155;
-                transition: all 0.2s ease;
-            }}
-            .audience-item:hover {{
-                background: #f1f5f9;
-                border-color: #cbd5e1;
-            }}
-            .aud-icon {{
-                font-size: 1.1rem;
-            }}
-            .exposure-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-            }}
-            .exposure-list li {{
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                border: 1px solid #f59e0b;
-                border-radius: 0.5rem;
-                padding: 0.75rem 1.25rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 500;
-                color: #92400e;
-            }}
-            .exp-icon {{
-                font-size: 1.1rem;
-            }}
-            .final-section {{
-                border-top: 2px solid #e2e8f0;
-                padding-top: 2rem;
-                margin-top: 1rem;
-            }}
-            .trend-grid {{
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-                margin: 1.25rem 0;
-                justify-content: center;
-            }}
-            .trend-item {{
-                background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-                border: 1px solid #fca5a5;
-                border-radius: 0.5rem;
-                padding: 0.75rem 1.25rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 500;
-                color: #991b1b;
-            }}
-            .trend-icon {{
-                font-size: 1.1rem;
-            }}
-            .contrast-block {{
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 1.5rem;
-                margin: 2rem 0;
-                flex-wrap: wrap;
-            }}
-            .contrast-old, .contrast-new {{
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 1.25rem 1.5rem;
-                border-radius: 0.75rem;
-                text-align: center;
-                min-width: 180px;
-            }}
-            .contrast-old {{
-                background: #f1f5f9;
-                border: 1px solid #cbd5e1;
-            }}
-            .contrast-new {{
-                background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-                border: 2px solid #10b981;
-            }}
-            .contrast-label {{
+            .pillar-card .pillar-measures li {{
                 font-size: 0.85rem;
-                color: #64748b;
+                color: var(--text-secondary);
+                margin-bottom: 0.4rem;
+                line-height: 1.5;
+            }}
+            .pillar-card .pillar-why {{
+                margin-top: 0.75rem;
+                font-size: 0.85rem;
+                color: var(--primary-dark);
+                font-weight: 500;
+                font-style: italic;
+                line-height: 1.5;
+            }}
+            .tier-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1rem;
+                margin: 1.25rem 0;
+            }}
+            .tier-card {{
+                background: var(--bg-white);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1.25rem;
+            }}
+            .tier-card .tier-label {{
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--primary);
+                margin-bottom: 0.5rem;
+            }}
+            .tier-card .tier-title {{
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .tier-card ul {{
+                margin: 0 0 0 1.25rem;
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+            }}
+            .tier-card ul li {{
                 margin-bottom: 0.35rem;
             }}
-            .contrast-value {{
-                font-size: 1.1rem;
-                font-weight: 700;
-                color: #1e293b;
-            }}
-            .contrast-new .contrast-value {{
-                color: #065f46;
-            }}
-            .contrast-arrow {{
-                font-size: 1.75rem;
-                color: #10b981;
-                font-weight: 700;
-            }}
-            .mission-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 0.75rem;
-            }}
-            .mission-list li {{
-                background: #f0f9ff;
-                border: 1px solid #bae6fd;
-                border-radius: 0.5rem;
-                padding: 0.75rem 1rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-size: 0.95rem;
-                color: #0369a1;
-            }}
-            .mission-icon {{
-                font-size: 1.1rem;
-            }}
-            .closing-statement {{
-                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-                border-radius: 0.75rem;
-                padding: 1.5rem 2rem;
-                margin-top: 1.5rem;
+            .meth-cta {{
+                background: linear-gradient(135deg, var(--secondary) 0%, #16213E 100%);
+                border-radius: 16px;
+                padding: 3rem 2rem;
                 text-align: center;
+                margin: 3rem 0 2rem;
             }}
-            .closing-statement p {{
-                margin: 0;
-                color: #e2e8f0;
-                font-size: 1.1rem;
-                font-weight: 500;
+            .meth-cta h3 {{
+                color: #fff;
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
             }}
-            .disclaimer-section {{
-                background: #fffbeb;
-                border: 2px solid #f59e0b;
-                border-radius: 0.75rem;
-                padding: 1.5rem;
-                margin-top: 1.5rem;
+            .meth-cta p {{
+                color: #94a3b8;
+                margin-bottom: 1.5rem;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
             }}
-            .important-notice {{
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                background: #fef3c7;
-                border-radius: 0.5rem;
-                padding: 0.75rem 1rem;
-                margin-bottom: 1rem;
-            }}
-            .notice-icon {{
-                font-size: 1.25rem;
-            }}
-            .notice-text {{
-                font-weight: 600;
-                color: #92400e;
-                font-size: 0.95rem;
-            }}
-            .disclaimer-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 1rem 0;
-            }}
-            .disclaimer-list li {{
-                padding: 0.4rem 0;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                color: #991b1b;
-                font-size: 0.95rem;
-            }}
-            .dis-icon {{
-                color: #dc2626;
+            .meth-cta .cta-button {{
+                display: inline-block;
+                padding: 0.85rem 2rem;
+                background: var(--primary);
+                color: #fff;
                 font-weight: 700;
-                font-size: 0.9rem;
-            }}
-            .responsibility-list, .warranty-list {{
-                list-style: none;
-                padding-left: 0;
-                margin: 0.75rem 0 1rem 0;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-            }}
-            .responsibility-list li, .warranty-list li {{
-                background: #fef3c7;
-                border: 1px solid #fcd34d;
-                border-radius: 0.375rem;
-                padding: 0.4rem 0.75rem;
-                font-size: 0.9rem;
-                color: #92400e;
-            }}
-            .final-disclaimer {{
-                background: #fef2f2;
-                border: 1px solid #fca5a5;
-                border-radius: 0.5rem;
-                padding: 1rem 1.25rem;
-                margin-top: 1rem;
-                text-align: center;
-            }}
-            .final-disclaimer p {{
-                margin: 0;
-                color: #991b1b;
+                border-radius: 8px;
+                text-decoration: none;
                 font-size: 1rem;
+                transition: background 0.2s ease;
             }}
-            .methodology-nav {{
-                display: flex;
-                justify-content: center;
-                gap: 1rem;
-                margin: 3rem 0;
-                flex-wrap: wrap;
+            .meth-cta .cta-button:hover {{
+                background: var(--primary-dark);
             }}
-            .methodology-nav a {{
-                padding: 0.75rem 1.5rem;
-                border-radius: 0.5rem;
-                text-decoration: none;
-                font-weight: 500;
-                transition: all 0.2s ease;
+            .disclaimer {{
+                text-align: center;
+                padding: 1.5rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                font-style: italic;
+                line-height: 1.6;
+                border-top: 1px solid var(--border);
+                margin-top: 1rem;
             }}
-            .methodology-nav a.primary {{
-                background: #0066FF;
-                color: white;
-            }}
-            .methodology-nav a.primary:hover {{
-                background: #0052CC;
-            }}
-            .methodology-nav a.secondary {{
-                background: #e2e8f0;
-                color: #1a1a2e;
-            }}
-            .methodology-nav a.secondary:hover {{
-                background: #cbd5e1;
-            }}
-            .breadcrumbs {{
-                color: #64748b;
-                margin-bottom: 1rem;
-                font-size: 0.875rem;
-            }}
-            .breadcrumbs a {{
-                color: #0066FF;
-                text-decoration: none;
-            }}
-            .breadcrumbs a:hover {{
-                text-decoration: underline;
-            }}
-            @media (max-width: 768px) {{
-                .methodology-hero {{
-                    padding: 2rem 0 1rem;
-                }}
-                .methodology-hero h1 {{
-                    font-size: 1.5rem;
-                }}
-                .methodology-hero .subtitle {{
-                    font-size: 1.1rem;
-                }}
-                .methodology-hero h2 {{
-                    font-size: 0.95rem;
-                    padding: 0 0.5rem;
-                }}
-                .methodology-content {{
-                    padding: 0 0.5rem;
-                    margin: 2rem auto;
-                }}
-                .methodology-section {{
-                    padding: 1.25rem;
-                    border-radius: 0.75rem;
-                }}
-                .methodology-section h3 {{
-                    font-size: 1.1rem;
-                    flex-wrap: wrap;
-                }}
-                .methodology-section p {{
-                    font-size: 0.95rem;
-                    line-height: 1.7;
-                }}
-                .feature-list li {{
-                    padding: 0.6rem 0.75rem;
-                    font-size: 0.9rem;
-                }}
-                .list-icon {{
-                    font-size: 1.1rem;
-                    margin-right: 0.5rem;
-                }}
-                .methodology-nav {{
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.75rem;
-                    margin: 2rem 0;
-                }}
-                .methodology-nav a {{
-                    width: 100%;
-                    max-width: 280px;
-                    text-align: center;
-                }}
-                .breadcrumbs {{
-                    font-size: 0.8rem;
-                    padding: 0 0.5rem;
-                }}
-                .simple-list {{
-                    justify-content: center;
-                }}
-                .simple-list li {{
-                    font-size: 0.85rem;
-                    padding: 0.4rem 0.75rem;
-                }}
-                .highlight-block {{
-                    padding: 1rem;
-                }}
-                .highlight-text {{
-                    font-size: 1rem;
-                }}
-                .highlight-text strong {{
-                    font-size: 1.1rem;
-                }}
-                .quote-block {{
-                    padding: 1rem 1.25rem;
-                }}
-                .quote-block p {{
-                    font-size: 1rem;
-                }}
-                .risk-category {{
-                    padding: 1rem 1.25rem;
-                }}
-                .risk-category h4 {{
-                    font-size: 1rem;
-                }}
-                .category-list li {{
-                    font-size: 0.9rem;
-                }}
-                .section-summary {{
-                    padding: 1rem 1.25rem;
-                    font-size: 0.95rem;
-                }}
-                .warning-list {{
-                    justify-content: center;
-                }}
-                .warning-list li {{
-                    font-size: 0.85rem;
-                    padding: 0.4rem 0.75rem;
-                }}
-                .definition-block {{
-                    padding: 1rem 1.25rem;
-                }}
-                .emphasis-text {{
-                    font-size: 1rem;
-                }}
-                .layer-card {{
-                    padding: 1.25rem;
-                }}
-                .layer-header h4 {{
-                    font-size: 1rem;
-                }}
-                .layer-list li {{
-                    font-size: 0.9rem;
-                }}
-                .aggregation-grid {{
-                    grid-template-columns: 1fr;
-                }}
-                .result-showcase {{
-                    gap: 1rem;
-                }}
-                .result-item {{
-                    padding: 0.75rem 1rem;
-                    min-width: 80px;
-                }}
-                .risk-band {{
-                    padding: 0.75rem 1rem;
-                    gap: 0.75rem;
-                }}
-                .band-label {{
-                    font-size: 0.9rem;
-                }}
-                .band-desc {{
-                    font-size: 0.85rem;
-                }}
-                .publish-list {{
-                    grid-template-columns: 1fr;
-                }}
-                .archive-benefits {{
-                    flex-direction: column;
-                }}
-                .benefit-item {{
-                    min-width: auto;
-                }}
-                .use-case-list {{
-                    grid-template-columns: repeat(2, 1fr);
-                }}
-                .code-block {{
-                    padding: 0.75rem 1rem;
-                }}
-                .code-block code {{
-                    font-size: 0.9rem;
-                }}
-                .governance-grid {{
-                    grid-template-columns: 1fr;
-                }}
-                .governance-card {{
-                    padding: 1rem;
-                }}
-                .governance-card h4 {{
-                    font-size: 1rem;
-                }}
-                .ensure-grid {{
-                    justify-content: center;
-                }}
-                .ensure-item {{
-                    font-size: 0.85rem;
-                    padding: 0.4rem 0.75rem;
-                }}
-                .audience-grid {{
-                    grid-template-columns: repeat(2, 1fr);
-                }}
-                .audience-item {{
-                    font-size: 0.9rem;
-                    padding: 0.6rem 0.75rem;
-                }}
-                .exposure-list {{
-                    justify-content: center;
-                }}
-                .exposure-list li {{
-                    padding: 0.6rem 1rem;
-                    font-size: 0.9rem;
-                }}
-                .trend-grid {{
-                    gap: 0.5rem;
-                }}
-                .trend-item {{
-                    padding: 0.6rem 1rem;
-                    font-size: 0.9rem;
-                }}
-                .contrast-block {{
-                    gap: 1rem;
-                }}
-                .contrast-old, .contrast-new {{
-                    min-width: 150px;
-                    padding: 1rem;
-                }}
-                .contrast-arrow {{
-                    font-size: 1.25rem;
-                }}
-                .mission-list {{
-                    grid-template-columns: 1fr;
-                }}
-                .closing-statement {{
-                    padding: 1.25rem 1.5rem;
-                }}
-                .closing-statement p {{
-                    font-size: 1rem;
-                }}
-                .disclaimer-section {{
-                    padding: 1.25rem;
-                }}
-                .disclaimer-list li {{
-                    font-size: 0.9rem;
-                }}
-                .responsibility-list, .warranty-list {{
-                    gap: 0.4rem;
-                }}
-                .responsibility-list li, .warranty-list li {{
-                    font-size: 0.85rem;
-                    padding: 0.35rem 0.6rem;
-                }}
-                .final-disclaimer {{
-                    padding: 0.75rem 1rem;
-                }}
-                .final-disclaimer p {{
-                    font-size: 0.95rem;
-                }}
-            }}
-            @media (max-width: 480px) {{
-                .methodology-hero h1 {{
-                    font-size: 1.25rem;
-                }}
-                .methodology-hero .subtitle {{
-                    font-size: 1rem;
-                }}
-                .methodology-hero h2 {{
-                    font-size: 0.875rem;
-                }}
-                .methodology-section {{
-                    padding: 1rem;
-                }}
-                .methodology-section h3 {{
-                    font-size: 1rem;
-                }}
+            @media (max-width: 640px) {{
+                .meth-hero h1 {{ font-size: 1.6rem; }}
+                .pillar-grid {{ grid-template-columns: 1fr; }}
+                .tier-grid {{ grid-template-columns: 1fr; }}
+                .meth-table {{ font-size: 0.8rem; }}
+                .meth-table thead th, .meth-table tbody td {{ padding: 0.5rem 0.6rem; }}
             }}
         </style>
     </head>
     <body>
         {render_nav()}
-        <main style="background: #f8fafc; min-height: 100vh; padding-bottom: 4rem;">
-            <div class="container">
-                <div class="breadcrumbs">
-                    <a href="/geri">GERI</a> &raquo; Methodology
-                </div>
-                
-                <div class="methodology-hero">
-                    <h1>Global Energy Risk Index (GERI)</h1>
-                    <div class="subtitle">Methodology & Construction</div>
-                    <h2>"Measuring systemic risk in global energy markets — daily, transparent, and institutional-grade."</h2>
-                </div>
-                
-                <div class="methodology-nav">
-                    <a href="/geri" class="primary">View Current GERI</a>
-                    <a href="/geri/history" class="secondary">Browse History</a>
-                </div>
-                
-                <div class="methodology-content">
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🔹</span> Introduction — What is GERI?</h3>
-                        <p>The Global Energy Risk Index (GERI) is a daily indicator designed to measure the level of systemic risk affecting global energy markets.</p>
-                        <p>It captures how geopolitical tensions, supply disruptions, regulatory changes, and structural stresses influence the stability of:</p>
-                        <ul class="feature-list">
-                            <li><span class="list-icon">🛢️</span> Oil markets</li>
-                            <li><span class="list-icon">🔥</span> Natural gas markets</li>
-                            <li><span class="list-icon">⚡</span> Electricity systems</li>
-                            <li><span class="list-icon">🚢</span> Energy trade routes</li>
-                            <li><span class="list-icon">🔗</span> Energy-dependent supply chains</li>
-                        </ul>
-                        <p>GERI provides a single, interpretable number that reflects the current risk environment of the global energy system.</p>
-                        <p>It is published daily, archived permanently, and built for professionals who need to understand risk before it becomes price.</p>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🎯</span> Why GERI Exists — The Problem It Solves</h3>
-                        <p>Energy markets are no longer driven by fundamentals alone.</p>
-                        <p>They are increasingly shaped by:</p>
-                        <ul class="feature-list">
-                            <li><span class="list-icon">⚔️</span> Geopolitical conflicts</li>
-                            <li><span class="list-icon">🚫</span> Sanctions and trade restrictions</li>
-                            <li><span class="list-icon">🔧</span> Production outages</li>
-                            <li><span class="list-icon">🚢</span> Shipping disruptions</li>
-                            <li><span class="list-icon">📜</span> Regulatory interventions</li>
-                            <li><span class="list-icon">🏗️</span> Infrastructure fragility</li>
-                            <li><span class="list-icon">🌪️</span> Extreme weather</li>
-                        </ul>
-                        <div class="highlight-block">
-                            <p class="highlight-text">Prices react late.<br>Volatility reacts late.<br><strong>Risk builds early.</strong></p>
-                        </div>
-                        <p>Traditional indicators focus on:</p>
-                        <ul class="simple-list">
-                            <li>📈 Prices</li>
-                            <li>📊 Returns</li>
-                            <li>📉 Volatility</li>
-                        </ul>
-                        <p>They rarely capture the structural stress building inside the system.</p>
-                        <div class="quote-block">
-                            <p>"How risky is the global energy system today compared to normal?"</p>
-                        </div>
-                        <p>GERI was created to answer this question. By focusing on systemic risk rather than price, GERI provides early visibility into pressures that often emerge before markets move.</p>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🔍</span> What GERI Measures</h3>
-                        <p>GERI measures <strong>risk pressure</strong>, not performance.</p>
-                        <p>Specifically, it monitors:</p>
-                        
-                        <div class="risk-category">
-                            <h4><span class="category-icon">⚔️</span> Geopolitical Risk</h4>
-                            <ul class="category-list">
-                                <li>Conflicts in energy-producing regions</li>
-                                <li>International tensions</li>
-                                <li>Military escalations affecting supply routes</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="risk-category">
-                            <h4><span class="category-icon">🛢️</span> Production & Infrastructure Risk</h4>
-                            <ul class="category-list">
-                                <li>Outages and unplanned shutdowns</li>
-                                <li>Refinery and terminal disruptions</li>
-                                <li>Pipeline and grid incidents</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="risk-category">
-                            <h4><span class="category-icon">🚢</span> Transport & Logistics Risk</h4>
-                            <ul class="category-list">
-                                <li>Shipping bottlenecks</li>
-                                <li>Chokepoint disruptions</li>
-                                <li>Freight and port instability</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="risk-category">
-                            <h4><span class="category-icon">🏛️</span> Policy & Regulatory Risk</h4>
-                            <ul class="category-list">
-                                <li>Sanctions</li>
-                                <li>Export restrictions</li>
-                                <li>Regulatory interventions</li>
-                                <li>Strategic reserve actions</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="risk-category">
-                            <h4><span class="category-icon">🌪️</span> Environmental & Structural Risk</h4>
-                            <ul class="category-list">
-                                <li>Extreme weather events</li>
-                                <li>Climate-related infrastructure stress</li>
-                                <li>Long-term system fragility</li>
-                            </ul>
-                        </div>
-                        
-                        <p class="section-summary">GERI reflects how these forces combine to shape the structural stability of the global energy system.</p>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🚫</span> What GERI Does Not Measure</h3>
-                        <p>To avoid ambiguity:</p>
-                        <p><strong>GERI does not measure:</strong></p>
-                        <ul class="warning-list">
-                            <li>Prices</li>
-                            <li>Returns</li>
-                            <li>Forecasts</li>
-                            <li>Trading signals</li>
-                            <li>Market recommendations</li>
-                        </ul>
-                        <div class="definition-block">
-                            <p><strong>GERI is:</strong></p>
-                            <p>A systemic risk indicator designed to describe stress in the energy system — not to predict prices or guide trades.</p>
-                        </div>
-                        <p class="emphasis-text">This distinction is fundamental to its credibility.</p>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🧩</span> How GERI Is Constructed — Conceptual Architecture</h3>
-                        <p>GERI is built using a multi-layer analytical framework designed to transform complex global events into a structured daily risk indicator.</p>
-                        
-                        <div class="layer-card layer-1">
-                            <div class="layer-header">
-                                <span class="layer-number">1</span>
-                                <h4>Event Layer — What is happening in the world</h4>
-                            </div>
-                            <p>EnergyRiskIQ continuously monitors high-impact events related to:</p>
-                            <ul class="layer-list">
-                                <li>Geopolitics</li>
-                                <li>Energy production</li>
-                                <li>Transport and shipping</li>
-                                <li>Sanctions and trade</li>
-                                <li>Infrastructure incidents</li>
-                                <li>Regulatory and policy decisions</li>
-                            </ul>
-                            <p class="layer-note">Only events with material relevance to energy systems are included.</p>
-                            <p>Each event is classified by:</p>
-                            <ul class="simple-list compact">
-                                <li>📍 Region</li>
-                                <li>📂 Category</li>
-                                <li>⚠️ Severity</li>
-                                <li>🔗 Relevance</li>
-                            </ul>
-                            <p class="layer-summary">This layer captures <strong>what is happening</strong>.</p>
-                        </div>
-                        
-                        <div class="layer-card layer-2">
-                            <div class="layer-header">
-                                <span class="layer-number">2</span>
-                                <h4>Risk Signal Layer — What these events mean for risk</h4>
-                            </div>
-                            <p>Raw events are not yet risk. They are translated into structured risk signals, such as:</p>
-                            <ul class="layer-list">
-                                <li>Probability of supply disruption</li>
-                                <li>Escalation risk</li>
-                                <li>Transport vulnerability</li>
-                                <li>Regulatory instability</li>
-                                <li>Regional exposure</li>
-                            </ul>
-                            <p>Signals are aggregated across:</p>
-                            <div class="aggregation-grid">
-                                <div class="aggregation-item">
-                                    <span class="agg-icon">🌍</span>
-                                    <span class="agg-label">Regions</span>
-                                    <span class="agg-detail">Europe, Middle East, Asia, Americas, etc.</span>
-                                </div>
-                                <div class="aggregation-item">
-                                    <span class="agg-icon">📊</span>
-                                    <span class="agg-label">Asset Classes</span>
-                                    <span class="agg-detail">Oil, gas, power, freight, FX, etc.</span>
-                                </div>
-                                <div class="aggregation-item">
-                                    <span class="agg-icon">🔄</span>
-                                    <span class="agg-label">Systemic Channels</span>
-                                    <span class="agg-detail">Supply, policy, logistics, demand</span>
-                                </div>
-                            </div>
-                            <p class="layer-summary">This layer captures <strong>how events affect the system</strong>.</p>
-                        </div>
-                        
-                        <div class="layer-card layer-3">
-                            <div class="layer-header">
-                                <span class="layer-number">3</span>
-                                <h4>Index Layer — Converting risk into a single indicator</h4>
-                            </div>
-                            <p>Aggregated risk signals are then transformed into:</p>
-                            <ul class="layer-list">
-                                <li>A daily numerical index value (0–100 scale)</li>
-                                <li>A qualitative risk band</li>
-                                <li>Short-term and medium-term trend indicators</li>
-                            </ul>
-                            <div class="result-showcase">
-                                <div class="result-item">
-                                    <span class="result-icon">🔢</span>
-                                    <span class="result-text">One number</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-icon">🎚️</span>
-                                    <span class="result-text">One band</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-icon">📅</span>
-                                    <span class="result-text">One daily snapshot</span>
-                                </div>
-                            </div>
-                            <p class="layer-summary">Representing the overall stress level of the global energy system.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">📅</span> Index Date vs. Computation Timestamp</h3>
-                        <p>GERI is published as a daily reference index representing systemic risk conditions for a specific calendar day.</p>
-                        <p>For accuracy, completeness, and audit integrity, the index follows a <strong>two-step publication process</strong>:</p>
-                        
-                        <div class="timestamp-concepts">
-                            <div class="timestamp-card">
-                                <h4>Index Date (Publication Date)</h4>
-                                <p>The Index Date identifies the calendar day whose risk conditions are being measured.</p>
-                                <p class="timestamp-example"><strong>Example:</strong> GERI — January 21, 2026 represents systemic energy risk conditions observed throughout January 21, 2026.</p>
-                                <p>This date is the official historical reference used in:</p>
-                                <ul class="layer-list">
-                                    <li>Archive pages</li>
-                                    <li>Charts</li>
-                                    <li>Research</li>
-                                    <li>Licensing and reporting</li>
-                                </ul>
-                            </div>
-                            
-                            <div class="timestamp-card">
-                                <h4>Computed Date (Computation Timestamp)</h4>
-                                <p>The Computed Date records the exact timestamp when the index was calculated and published.</p>
-                                <p>Because GERI incorporates all alerts and signals generated during the full calendar day, the index is computed after the close of the observation period, typically in the early hours of the following day.</p>
-                                <p class="timestamp-example"><strong>Example:</strong><br/>Index Date: January 21, 2026<br/>Computed At: January 22, 2026, 06:10 UTC</p>
-                                <p>This ensures that:</p>
-                                <ul class="layer-list">
-                                    <li>All relevant events for the day are included</li>
-                                    <li>Late-day developments are captured</li>
-                                    <li>Daily snapshots are complete and reproducible</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="governance-box">
-                            <h4>Publication & Governance Principles</h4>
-                            <p>This methodology follows standard benchmark and index publication practices used by institutional data providers:</p>
-                            <ul class="layer-list">
-                                <li>Each index value reflects a full-day observation window</li>
-                                <li>Computation occurs after the day closes</li>
-                                <li>Each daily snapshot is: <strong>published once</strong>, <strong>immutable</strong>, <strong>auditable</strong>, and <strong>permanently archived</strong></li>
-                            </ul>
-                            <p class="governance-note">Once published, a GERI value is not revised or backfilled and represents the official historical record for that date.</p>
-                        </div>
-                        
-                        <div class="why-matters-box">
-                            <h4>Why This Matters</h4>
-                            <p>Separating the Index Date from the Computation Timestamp ensures:</p>
-                            <ul class="layer-list">
-                                <li>Full coverage of daily events and alerts</li>
-                                <li>Methodological consistency</li>
-                                <li>Stable historical time series</li>
-                                <li>Transparency for professional and institutional users</li>
-                            </ul>
-                            <p class="layer-summary">This approach guarantees that every published GERI value reflects a complete, final, and reproducible measure of systemic energy risk for the stated date.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">📊</span> How to Interpret GERI</h3>
-                        <p>GERI ranges from 0 to 100, divided into four qualitative bands:</p>
-                        
-                        <div class="risk-bands">
-                            <div class="risk-band band-low">
-                                <div class="band-indicator">🟢</div>
-                                <div class="band-content">
-                                    <span class="band-label">LOW</span>
-                                    <span class="band-desc">Stable energy environment with minimal systemic stress</span>
-                                </div>
-                            </div>
-                            <div class="risk-band band-moderate">
-                                <div class="band-indicator">🟡</div>
-                                <div class="band-content">
-                                    <span class="band-label">MODERATE</span>
-                                    <span class="band-desc">Normal structural risk typical of balanced markets</span>
-                                </div>
-                            </div>
-                            <div class="risk-band band-elevated">
-                                <div class="band-indicator">🟠</div>
-                                <div class="band-content">
-                                    <span class="band-label">ELEVATED</span>
-                                    <span class="band-desc">Rising geopolitical or supply stress with increasing fragility</span>
-                                </div>
-                            </div>
-                            <div class="risk-band band-severe">
-                                <div class="band-indicator">🔴</div>
-                                <div class="band-content">
-                                    <span class="band-label">SEVERE</span>
-                                    <span class="band-desc">Systemic disruption risk affecting multiple regions and assets</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <p>In addition to the level, GERI publishes:</p>
-                        <ul class="publish-list">
-                            <li><span class="pub-icon">📈</span> Daily change (1-day)</li>
-                            <li><span class="pub-icon">📉</span> Medium-term trend (7-day)</li>
-                            <li><span class="pub-icon">⚠️</span> Main risk drivers</li>
-                            <li><span class="pub-icon">🌍</span> Regions under pressure</li>
-                            <li><span class="pub-icon">🛢️</span> Assets likely affected</li>
-                        </ul>
-                        <p class="section-summary">This allows users to understand not only <strong>how risky</strong>, but also <strong>where</strong> and <strong>why</strong>.</p>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🕰️</span> Daily Publication & Permanent Historical Archive</h3>
-                        <p>GERI is:</p>
-                        <ul class="check-list">
-                            <li>Computed once per day</li>
-                            <li>Published at a fixed schedule</li>
-                            <li>Stored permanently</li>
-                            <li>Never rewritten after publication</li>
-                        </ul>
-                        
-                        <p>Each day becomes an official historical record, accessible at:</p>
-                        <div class="code-block">
-                            <code>/geri/YYYY-MM-DD</code>
-                        </div>
-                        
-                        <p>This creates:</p>
-                        <div class="archive-benefits">
-                            <div class="benefit-item">
-                                <span class="benefit-icon">📚</span>
-                                <span>A transparent time-series archive</span>
-                            </div>
-                            <div class="benefit-item">
-                                <span class="benefit-icon">🔄</span>
-                                <span>Reproducible history</span>
-                            </div>
-                            <div class="benefit-item">
-                                <span class="benefit-icon">🏛️</span>
-                                <span>Institutional accountability</span>
-                            </div>
-                        </div>
-                        
-                        <p>Every published value remains:</p>
-                        <ul class="simple-list">
-                            <li>🌐 Public</li>
-                            <li>♾️ Permanent</li>
-                            <li>🔒 Immutable</li>
-                        </ul>
-                        
-                        <p>This historical integrity is essential for:</p>
-                        <ul class="use-case-list">
-                            <li><span class="use-icon">🔬</span> Research</li>
-                            <li><span class="use-icon">📋</span> Audits</li>
-                            <li><span class="use-icon">📜</span> Licensing</li>
-                            <li><span class="use-icon">🏢</span> Institutional use</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🔐</span> Governance, Integrity & Methodology Stability</h3>
-                        <p>GERI follows strict governance principles:</p>
-                        
-                        <div class="governance-grid">
-                            <div class="governance-card integrity">
-                                <h4><span class="gov-icon">🧾</span> Integrity Principles</h4>
-                                <ul class="gov-list">
-                                    <li>Automated computation</li>
-                                    <li>Reproducible methodology</li>
-                                    <li>Immutable historical records</li>
-                                    <li>Auditable publication process</li>
-                                    <li>Versioned models</li>
-                                </ul>
-                            </div>
-                            <div class="governance-card stability">
-                                <h4><span class="gov-icon">🏛️</span> Stability Principles</h4>
-                                <ul class="gov-list">
-                                    <li>Consistent methodology over time</li>
-                                    <li>Controlled updates</li>
-                                    <li>Documented model versions</li>
-                                    <li>Transparent publication rules</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <p>These principles ensure:</p>
-                        <div class="ensure-grid">
-                            <div class="ensure-item"><span class="ensure-icon">✅</span> Reliability</div>
-                            <div class="ensure-item"><span class="ensure-icon">✅</span> Continuity</div>
-                            <div class="ensure-item"><span class="ensure-icon">✅</span> Regulatory compatibility</div>
-                            <div class="ensure-item"><span class="ensure-icon">✅</span> Long-term credibility</div>
-                        </div>
-                    </div>
-                    
-                    <div class="methodology-section">
-                        <h3><span class="section-icon">🏢</span> Who GERI Is Designed For</h3>
-                        <p>GERI is built for professionals exposed to energy risk, including:</p>
-                        
-                        <div class="audience-grid">
-                            <div class="audience-item"><span class="aud-icon">📈</span> Energy traders & analysts</div>
-                            <div class="audience-item"><span class="aud-icon">💹</span> Commodity desks</div>
-                            <div class="audience-item"><span class="aud-icon">⚡</span> Producers & utilities</div>
-                            <div class="audience-item"><span class="aud-icon">🚢</span> Shipping & logistics firms</div>
-                            <div class="audience-item"><span class="aud-icon">🔗</span> Supply-chain managers</div>
-                            <div class="audience-item"><span class="aud-icon">🛡️</span> Risk managers</div>
-                            <div class="audience-item"><span class="aud-icon">🏛️</span> Policymakers & regulators</div>
-                            <div class="audience-item"><span class="aud-icon">🔬</span> Institutional researchers</div>
-                        </div>
-                        
-                        <p>Any organization exposed to:</p>
-                        <ul class="exposure-list">
-                            <li><span class="exp-icon">⚡</span> Energy availability</li>
-                            <li><span class="exp-icon">💰</span> Energy prices</li>
-                            <li><span class="exp-icon">🌍</span> Geopolitical instability</li>
-                        </ul>
-                        
-                        <p class="section-summary">can use GERI as a <strong>systemic risk compass</strong>.</p>
-                    </div>
-                    
-                    <div class="methodology-section final-section">
-                        <h3><span class="section-icon">🌐</span> Why EnergyRiskIQ Created GERI</h3>
-                        <p>Energy systems are becoming:</p>
-                        
-                        <div class="trend-grid">
-                            <div class="trend-item"><span class="trend-icon">⚔️</span> More geopolitical</div>
-                            <div class="trend-item"><span class="trend-icon">🧩</span> More fragmented</div>
-                            <div class="trend-item"><span class="trend-icon">📜</span> More regulated</div>
-                            <div class="trend-item"><span class="trend-icon">⚠️</span> More fragile</div>
-                        </div>
-                        
-                        <div class="contrast-block">
-                            <div class="contrast-old">
-                                <span class="contrast-label">Traditional indicators focus on</span>
-                                <span class="contrast-value">what happened</span>
-                            </div>
-                            <div class="contrast-arrow">→</div>
-                            <div class="contrast-new">
-                                <span class="contrast-label">GERI focuses on</span>
-                                <span class="contrast-value">what is building</span>
-                            </div>
-                        </div>
-                        
-                        <p>Its mission is to provide:</p>
-                        <ul class="mission-list">
-                            <li><span class="mission-icon">🚨</span> Early warning signals</li>
-                            <li><span class="mission-icon">👁️</span> Systemic visibility</li>
-                            <li><span class="mission-icon">📊</span> Structured risk intelligence</li>
-                            <li><span class="mission-icon">📚</span> Historical accountability</li>
-                        </ul>
-                        
-                        <div class="closing-statement">
-                            <p>GERI is designed to support better decisions in increasingly complex energy markets.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="methodology-section disclaimer-section">
-                        <h3><span class="section-icon">⚠️</span> Transparency, Limitations & Disclaimer</h3>
-                        <div class="important-notice">
-                            <span class="notice-icon">ℹ️</span>
-                            <span class="notice-text">Important notice</span>
-                        </div>
-                        
-                        <p>GERI is provided for <strong>informational and analytical purposes only</strong>.</p>
-                        
-                        <p>It:</p>
-                        <ul class="disclaimer-list">
-                            <li><span class="dis-icon">✕</span> Does not constitute investment advice</li>
-                            <li><span class="dis-icon">✕</span> Does not constitute trading advice</li>
-                            <li><span class="dis-icon">✕</span> Does not constitute a forecast</li>
-                        </ul>
-                        
-                        <p>Users remain <strong>solely responsible</strong> for:</p>
-                        <ul class="responsibility-list">
-                            <li>Investment decisions</li>
-                            <li>Trading strategies</li>
-                            <li>Risk management actions</li>
-                        </ul>
-                        
-                        <p>EnergyRiskIQ makes no representations or warranties regarding:</p>
-                        <ul class="warranty-list">
-                            <li>Future performance</li>
-                            <li>Market outcomes</li>
-                            <li>Financial results</li>
-                        </ul>
-                        
-                        <div class="final-disclaimer">
-                            <p>GERI is a <strong>descriptive risk indicator</strong>, not a recommendation engine.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="methodology-nav">
-                    <a href="/geri" class="primary">View Current GERI</a>
-                    <a href="/geri/history" class="secondary">Browse History</a>
-                </div>
+
+        <main class="container">
+
+            <div class="meth-hero">
+                <h1>GERI Methodology</h1>
+                <p class="subtitle">A comprehensive overview of how the Global Geo-Energy Risk Index measures daily geopolitical and energy supply risk affecting global energy markets through structured intelligence and multi-pillar risk architecture.</p>
+                <div class="version-badge">Model Version: v1.1 &nbsp;|&nbsp; Last Updated: February 2026</div>
             </div>
+
+            <section class="meth-section">
+                <h2><span class="section-num">1.</span> What Is GERI?</h2>
+                <div class="meth-body">
+                    <p>The <strong>Global Geo-Energy Risk Index (GERI)</strong> is a proprietary composite index that measures the overall level of geopolitical and energy supply risk affecting global energy markets on any given day. It distills a complex, multi-source intelligence pipeline into a single, interpretable daily value that answers one question:</p>
+                    <div class="meth-blockquote">"How dangerous is the global geopolitical and energy environment today?"</div>
+                    <p>GERI functions as a macro-level risk thermometer — analogous to the VIX for financial volatility, but purpose-built for geopolitical and energy risk. It is designed for macro traders, risk committees, asset allocators, strategists, and energy professionals who need a reliable, quantitative signal to inform portfolio decisions, hedging strategies, and risk exposure management.</p>
+                    <p>In a world where pipeline politics, military escalations, sanctions regimes, and supply chain disruptions can move energy prices faster than fundamentals, GERI provides the structured risk context that sits between raw news and formal market analysis — enabling professionals to act on intelligence rather than react to headlines.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">2.</span> Index Architecture</h2>
+                <div class="meth-body">
+                    <h3>Scoring Range</h3>
+                    <p>GERI produces a daily integer value on a <strong>0 to 100</strong> scale. A value of 0 represents a theoretical state of zero geopolitical or energy risk, while 100 represents a theoretical state of maximum systemic crisis. The scale is calibrated so that moderate, everyday risk environments cluster in the 30–50 range, while sustained readings above 75 indicate historically unusual stress.</p>
+
+                    <h3>Risk Bands</h3>
+                    <p>Each daily GERI value maps to one of five risk bands, providing an immediate qualitative interpretation:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Risk Band</th><th>Range</th><th>Interpretation</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="band-dot" style="background:#22c55e;"></span><strong>LOW</strong></td><td>0 – 20</td><td>Benign geopolitical environment. Energy supply risks are minimal. Markets are operating under normal conditions with no significant escalation signals.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#eab308;"></span><strong>MODERATE</strong></td><td>21 – 40</td><td>Background risk is present but manageable. Some regional tensions or supply concerns exist, but systemic contagion is not indicated. Standard monitoring posture.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#f97316;"></span><strong>ELEVATED</strong></td><td>41 – 60</td><td>Meaningful risk accumulation detected. Multiple regions or risk vectors are contributing to a heightened threat environment. Active monitoring and hedging consideration warranted.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#ef4444;"></span><strong>SEVERE</strong></td><td>61 – 80</td><td>Severe disruption pressure across multiple regions. Risk signals are converging with high probability of market dislocation. Active hedging and contingency planning strongly advised.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#991b1b;"></span><strong>CRITICAL</strong></td><td>81 – 100</td><td>Critical systemic stress. Risk signals have converged across regions and asset classes. Historical precedent indicates imminent or active market disruption and supply chain compromise. Defensive positioning and emergency protocols indicated.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Trend Indicators</h3>
+                    <p>Each daily GERI reading is accompanied by two trend signals:</p>
+                    <ul>
+                        <li><strong>1-Day Trend</strong> — Change from the previous day's value, indicating immediate momentum</li>
+                        <li><strong>7-Day Trend</strong> — Change from the value seven days prior, indicating directional trajectory</li>
+                    </ul>
+                    <p>These trends provide critical context: a GERI value of 60 that has risen 15 points in a week carries a very different implication than a GERI of 60 that has fallen 10 points over the same period. The same number tells a very different story depending on its trajectory.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">3.</span> The Four Pillars</h2>
+                <div class="meth-body">
+                    <p>GERI is constructed from four distinct risk pillars, each capturing a different dimension of the global risk landscape. This multi-pillar architecture ensures the index is not dominated by any single event type and provides a balanced view of systemic conditions.</p>
+                </div>
+                <div class="pillar-grid">
+                    <div class="pillar-card">
+                        <div class="pillar-icon">⚡</div>
+                        <div class="pillar-subtitle">Pillar 1</div>
+                        <div class="pillar-name">High-Impact Events</div>
+                        <div class="pillar-desc">The dominant pillar and primary driver of GERI movements. Captures events with the potential to cause significant, immediate disruption to global energy supply or pricing.</div>
+                        <ul class="pillar-measures">
+                            <li>Major geopolitical escalations (military conflicts, sanctions, diplomatic crises)</li>
+                            <li>Critical infrastructure incidents (pipeline disruptions, refinery outages, port closures)</li>
+                            <li>Supply shock events (production cuts, export bans, force majeure declarations)</li>
+                            <li>Policy shifts with systemic implications (regulatory changes, trade restrictions)</li>
+                        </ul>
+                        <div class="pillar-why">Single high-severity events are the strongest predictors of near-term energy market dislocation.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">📈</div>
+                        <div class="pillar-subtitle">Pillar 2</div>
+                        <div class="pillar-name">Regional Risk Spikes</div>
+                        <div class="pillar-desc">Detects concentrated risk build-up within specific geographic regions, even when individual events may not reach the high-impact threshold.</div>
+                        <ul class="pillar-measures">
+                            <li>Clusters of moderate-severity events in a single region</li>
+                            <li>Accelerating event frequency within a region (escalation velocity)</li>
+                            <li>Regional risk scores that deviate significantly from recent baselines</li>
+                        </ul>
+                        <div class="pillar-why">Energy supply disruptions are typically preceded by a period of regional risk accumulation — rising tensions, increasing event frequency, and building pressure.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🛡️</div>
+                        <div class="pillar-subtitle">Pillar 3</div>
+                        <div class="pillar-name">Asset Risk</div>
+                        <div class="pillar-desc">Captures risk signals emanating from direct asset-level stress — specific infrastructure, commodities, or supply chain elements under threat.</div>
+                        <ul class="pillar-measures">
+                            <li>Threats to specific energy assets (pipelines, terminals, shipping lanes)</li>
+                            <li>Commodity-specific supply/demand imbalances flagged by intelligence</li>
+                            <li>Critical infrastructure vulnerability alerts</li>
+                        </ul>
+                        <div class="pillar-why">Some risks are best understood at the asset level — a targeted attack on a key LNG terminal may not register as a major geopolitical event but has profound supply implications.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🌍</div>
+                        <div class="pillar-subtitle">Pillar 4</div>
+                        <div class="pillar-name">Region Concentration</div>
+                        <div class="pillar-desc">Measures the geographic diversity (or lack thereof) of the current risk environment, penalising concentrated risk by adding to the GERI score when geographic diversity is low.</div>
+                        <ul class="pillar-measures">
+                            <li>How concentrated risk is in a single region versus distributed globally</li>
+                            <li>The dominance of any single region in the total risk picture</li>
+                            <li>Geographic breadth of simultaneous risk signals</li>
+                        </ul>
+                        <div class="pillar-why">Concentrated risk implies higher disruption probability because a single escalation can trigger cascading effects. Distributed risk implies a more resilient but broadly stressed environment.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">4.</span> Regional Weighting Model (v1.1)</h2>
+                <div class="meth-body">
+                    <h3>Philosophy</h3>
+                    <p>Not all geopolitical events carry equal weight for global energy markets. A military escalation in the Strait of Hormuz has fundamentally different implications for energy pricing than an equivalent escalation in a region with no energy infrastructure. The Regional Weighting Model ensures that GERI reflects this reality by applying pre-aggregation multipliers based on the region-cluster from which the event originates.</p>
+
+                    <h3>Region Clusters</h3>
+                    <p>GERI groups the world into seven region clusters, each reflecting its structural importance to global energy markets:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Region Cluster</th><th>Rationale</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Middle East</strong></td><td>Controls approximately 30%% of global oil production, key chokepoints (Strait of Hormuz), and is the primary source of swing production capacity. Geopolitical instability here directly impacts global crude benchmarks.</td></tr>
+                            <tr><td><strong>Russia / Black Sea</strong></td><td>Major global oil and gas exporter, critical pipeline infrastructure to Europe, historically the single largest source of European gas supply. Sanctions, conflicts, and transit disruptions have outsized effects on European energy security.</td></tr>
+                            <tr><td><strong>China</strong></td><td>The world's largest energy importer and a decisive demand-side force. Chinese economic activity, stockpiling behaviour, and trade policy directly influence LNG, crude oil, and commodity pricing globally.</td></tr>
+                            <tr><td><strong>United States</strong></td><td>The world's largest oil and gas producer, a major LNG exporter, and the issuer of most energy-relevant sanctions. US policy, production shifts, and strategic reserve actions have global pricing implications.</td></tr>
+                            <tr><td><strong>Europe Internal</strong></td><td>A major consuming region with limited domestic production. European regulatory decisions, storage policy, and demand patterns affect TTF gas pricing and broader energy security dynamics.</td></tr>
+                            <tr><td><strong>LNG Exporters</strong></td><td>A dedicated cluster for Qatar, Australia, and Norway — the three largest LNG exporters outside the US. Disruptions to any major LNG export facility can rapidly tighten global gas markets.</td></tr>
+                            <tr><td><strong>Emerging Supply Regions</strong></td><td>Covers North Africa, South America, and other developing energy supply regions. While individually less influential, emerging supply disruptions can exacerbate tight market conditions during periods of elevated stress.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Classification Logic</h3>
+                    <p>Events are classified into region clusters through a hierarchical process. Keyword overrides ensure that events mentioning specific entities (e.g., Gazprom, Nord Stream, Kremlin for Russia; Qatar, Gorgon, Hammerfest for LNG Exporters) are classified correctly regardless of their generic geographic tagging. Events not caught by keyword overrides are mapped to their cluster based on their tagged region. Global or unattributed events receive a neutral weight, ensuring they contribute to the index without distortion.</p>
+
+                    <h3>Scale Preservation</h3>
+                    <p>The regional multipliers are scaled so that their average equals 1.0. This means the Regional Weighting Model reshapes the distribution of risk across regions without inflating or deflating the overall index level. A period with identical events occurring in every region simultaneously would produce the same GERI as a model without regional weighting.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">5.</span> Source Intelligence Architecture</h2>
+                <div class="meth-body">
+                    <h3>Source Philosophy</h3>
+                    <p>GERI's signal quality depends directly on the quality, credibility, and diversity of its intelligence sources. The platform follows a strict curation philosophy: institutional sources first, trade and industry sources second, regional sources third — and no noise sources. General news aggregators, opinion blogs, social media, and financial spam feeds are excluded by design.</p>
+
+                    <h3>Source Credibility Tiers</h3>
+                    <p>Each source is assigned a credibility tier that influences its contribution weight:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Tier</th><th>Description</th><th>Examples</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Tier 0</strong></td><td>Primary institutional data</td><td>EIA, OPEC, government agencies</td></tr>
+                            <tr><td><strong>Tier 1</strong></td><td>Professional market intelligence</td><td>Reuters, ICIS, Platts</td></tr>
+                            <tr><td><strong>Tier 2</strong></td><td>Specialist trade publications</td><td>FreightWaves, Rigzone, Maritime Executive</td></tr>
+                            <tr><td><strong>Tier 3</strong></td><td>Quality regional/general sources</td><td>Al Jazeera, Xinhua, EU Commission</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Signal Domain Balance</h3>
+                    <p>The source portfolio is designed to cover six core signal domains, ensuring comprehensive coverage of all forces that influence energy risk:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Signal Domain</th><th>What It Captures</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Supply</strong></td><td>Production disruptions, capacity changes, reserves</td></tr>
+                            <tr><td><strong>Transit</strong></td><td>Shipping routes, pipeline flows, chokepoint security</td></tr>
+                            <tr><td><strong>Geopolitics</strong></td><td>Military conflicts, sanctions, diplomatic escalations</td></tr>
+                            <tr><td><strong>Demand</strong></td><td>Consumption shifts, economic indicators, stockpiling</td></tr>
+                            <tr><td><strong>Policy</strong></td><td>Regulatory changes, trade restrictions, energy policy</td></tr>
+                            <tr><td><strong>Infrastructure</strong></td><td>Facility construction, maintenance, technical failures</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">6.</span> Event Processing Pipeline</h2>
+                <div class="meth-body">
+                    <h3>Ingestion</h3>
+                    <p>Events are ingested continuously from curated RSS feeds across the source portfolio. Each event undergoes:</p>
+                    <ul>
+                        <li><strong>Deduplication</strong> — Identical or near-identical events from multiple sources are consolidated</li>
+                        <li><strong>Classification</strong> — Events are categorised by type (geopolitical, energy, supply chain, market, environmental) using keyword-based classification</li>
+                        <li><strong>Region Tagging</strong> — Events are assigned to geographic regions based on content analysis</li>
+                    </ul>
+
+                    <h3>AI Enrichment</h3>
+                    <p>Classified events are enriched using AI analysis to produce structured intelligence:</p>
+                    <ul>
+                        <li><strong>Impact Assessment</strong> — Structured evaluation of the event's potential effect on energy markets</li>
+                        <li><strong>Severity Scoring</strong> — Quantitative severity assignment on a standardised scale</li>
+                        <li><strong>Asset Linkage</strong> — Identification of specific energy assets, commodities, or infrastructure affected</li>
+                        <li><strong>Contextual Summary</strong> — Concise narrative explaining why the event matters for energy risk</li>
+                    </ul>
+
+                    <h3>Alert Generation</h3>
+                    <p>Enriched events that meet minimum severity and relevance thresholds are converted into structured alerts that feed directly into the GERI computation engine. Three alert types are generated:</p>
+                    <ul>
+                        <li><strong>HIGH_IMPACT_EVENT</strong> — Individual events with significant severity representing direct geopolitical or energy shocks</li>
+                        <li><strong>REGIONAL_RISK_SPIKE</strong> — Regional risk accumulation alerts triggered when a region's aggregate score exceeds its recent baseline</li>
+                        <li><strong>ASSET_RISK_ALERT</strong> — Asset-specific alerts triggered when individual infrastructure or commodity risk exceeds thresholds</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">7.</span> Computation Cadence</h2>
+                <div class="meth-body">
+                    <h3>Daily Computation</h3>
+                    <p>GERI is computed once per day, producing a single authoritative daily value. The computation window considers alerts generated within the trailing 24-hour period, ensuring the index reflects the most current intelligence.</p>
+
+                    <h3>Publication Schedule</h3>
+                    <div class="tier-grid">
+                        <div class="tier-card">
+                            <div class="tier-label">Paid Subscribers</div>
+                            <div class="tier-title">Real-time on computation</div>
+                            <ul>
+                                <li>Full GERI value, band, and trend</li>
+                                <li>Component breakdown and top drivers</li>
+                                <li>AI-generated interpretation</li>
+                                <li>Cross-asset context and historical comparison</li>
+                            </ul>
+                        </div>
+                        <div class="tier-card">
+                            <div class="tier-label">Free Users</div>
+                            <div class="tier-title">24-hour delay</div>
+                            <ul>
+                                <li>GERI value and band</li>
+                                <li>Limited historical context</li>
+                            </ul>
+                        </div>
+                        <div class="tier-card">
+                            <div class="tier-label">Public / SEO Pages</div>
+                            <div class="tier-title">24-hour delay</div>
+                            <ul>
+                                <li>GERI value and band</li>
+                                <li>Top-level trend indicator</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3>Historical Baseline</h3>
+                    <p>The index maintains a rolling historical baseline for normalisation purposes. This baseline tracks the minimum and maximum observed values for each pillar over a rolling window, ensuring that the 0–100 scale remains calibrated to the range of conditions actually observed in the data. This prevents the index from clustering at one end of the scale during prolonged periods of high or low risk.</p>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">8.</span> Interpretation Framework</h2>
+                <div class="meth-body">
+                    <h3>GERI as Risk Thermometer</h3>
+                    <p>GERI is not an asset price prediction tool. It is a risk context layer that answers: "What is the current state of the geopolitical and energy risk environment?" The distinction is critical:</p>
+                    <ul>
+                        <li><strong>GERI rising</strong> means risk inputs are increasing — it does not guarantee asset prices will move in any specific direction</li>
+                        <li><strong>GERI falling</strong> means risk inputs are subsiding — it does not guarantee market calm</li>
+                        <li><strong>The relationship between GERI and asset prices</strong> is mediated by market positioning, liquidity, storage buffers, and participant expectations</li>
+                    </ul>
+
+                    <h3>Cross-Asset Context</h3>
+                    <p>GERI is designed to be read alongside energy market data for maximum insight:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Cross-Reference</th><th>What It Reveals</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>GERI vs Brent Crude</strong></td><td>Whether supply disruption fear is priced into oil markets</td></tr>
+                            <tr><td><strong>GERI vs TTF Gas</strong></td><td>European vulnerability to geopolitical gas risk</td></tr>
+                            <tr><td><strong>GERI vs VIX</strong></td><td>Whether energy/geopolitical risk is spilling into broader financial markets</td></tr>
+                            <tr><td><strong>GERI vs EUR/USD</strong></td><td>European macro vulnerability to energy shocks</td></tr>
+                            <tr><td><strong>GERI vs EU Gas Storage</strong></td><td>Whether Europe's physical buffer is adequate for the current risk level</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Regime Recognition</h3>
+                    <p>GERI's historical trajectory can be divided into recognisable regimes. Regime transitions are the most actionable signals in the index:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Regime</th><th>Characteristics</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Risk Accumulation</strong></td><td>GERI rising gradually, assets react slowly. Risk is building but markets are discounting. Early warning phase.</td></tr>
+                            <tr><td><strong>Shock</strong></td><td>GERI spikes sharply, assets overshoot. A high-impact event has materialised. Maximum volatility phase.</td></tr>
+                            <tr><td><strong>Stabilisation</strong></td><td>GERI begins to fall, but assets remain volatile. Markets are repricing and uncertainty is still elevated.</td></tr>
+                            <tr><td><strong>Recovery</strong></td><td>GERI returns to low/moderate bands, assets normalise. Risk has dissipated and markets have found equilibrium.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">9.</span> What GERI Does Not Do</h2>
+                <div class="meth-body">
+                    <p>For transparency and proper use, it is important to understand the boundaries of the index:</p>
+                    <ul>
+                        <li><strong>GERI is not a trading signal.</strong> It is a risk context layer, not a buy/sell indicator.</li>
+                        <li><strong>GERI does not predict asset prices.</strong> It measures risk inputs, not market outcomes.</li>
+                        <li><strong>GERI does not cover all risk types.</strong> It focuses on geopolitical and energy supply risk. It does not measure financial systemic risk, credit risk, or natural disaster risk except insofar as they affect energy markets.</li>
+                        <li><strong>GERI is not real-time intraday.</strong> It is a daily index. Intraday events will be reflected in the following day's computation.</li>
+                        <li><strong>GERI is not a substitute for fundamental analysis.</strong> It is a complementary intelligence layer designed to sit alongside traditional energy market analysis.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="meth-section">
+                <h2><span class="section-num">10.</span> Model Governance and Evolution</h2>
+                <div class="meth-body">
+                    <h3>Version Control</h3>
+                    <p>GERI operates under strict version control. The current production model is <strong>v1.1</strong>, which introduced the Regional Weighting Model. All historical data is tagged with its computation model version, ensuring full reproducibility and auditability.</p>
+
+                    <h3>Planned Enhancements</h3>
+                    <ul>
+                        <li><strong>Source Weighting Calibration</strong> — An adaptive system that will calibrate individual source weights based on measured contribution to predictive power, uniqueness, timeliness, and false-positive control</li>
+                        <li><strong>Semantic Deduplication</strong> — Moving beyond title-based deduplication to AI-powered semantic clustering, reducing noise from multiple sources reporting the same underlying event</li>
+                        <li><strong>Temporal Event Detection</strong> — Distinguishing between developing events and resolved events, preventing stale intelligence from inflating the index</li>
+                    </ul>
+
+                    <h3>Independence and Objectivity</h3>
+                    <p>GERI is computed algorithmically from structured intelligence inputs. There is no editorial override, manual adjustment, or subjective intervention in the daily index value. The methodology is fixed for each model version, and changes are implemented only through formal version upgrades with documented rationale.</p>
+                </div>
+            </section>
+
+            <div class="meth-cta">
+                <h3>Access Full GERI Intelligence</h3>
+                <p>Get real-time GERI values, component breakdowns, historical charts, cross-asset context, and AI-powered interpretations with EnergyRiskIQ.</p>
+                <a href="/users" class="cta-button">Get FREE Access</a>
+            </div>
+
+            <div class="disclaimer">
+                <p>Global Geo-Energy Risk Index (GERI) is a proprietary index of EnergyRiskIQ. This methodology document is provided for transparency and educational purposes. It does not constitute financial advice.</p>
+                <p>Model Version: v1.1 &nbsp;|&nbsp; Last Updated: February 2026</p>
+            </div>
+
         </main>
         {render_footer()}
     </body>
     </html>
     """
-    
+
     return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
 
 
