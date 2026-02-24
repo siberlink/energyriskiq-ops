@@ -673,7 +673,7 @@ async def egsi_updates_page():
 @router.get("/egsi/methodology", response_class=HTMLResponse)
 async def egsi_methodology_page():
     """
-    EGSI Methodology Page - SEO content explaining the gas stress index.
+    EGSI Methodology Page - Comprehensive SEO content explaining the Europe Gas Stress Index.
     """
     html = f"""
     <!DOCTYPE html>
@@ -682,134 +682,830 @@ async def egsi_methodology_page():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>EGSI Methodology - Europe Gas Stress Index | EnergyRiskIQ</title>
-        <meta name="description" content="Learn how the Europe Gas Stress Index (EGSI) is calculated. Understand the methodology behind measuring gas market transmission stress.">
+        <meta name="description" content="Complete methodology for the Europe Gas Stress Index (EGSI). Understand the dual-layer architecture (EGSI-M and EGSI-S), risk bands, pillar design, data sources, normalisation strategy, and interpretation framework behind Europe's leading gas stress indicator.">
         <link rel="canonical" href="{BASE_URL}/egsi/methodology">
-        <link rel="icon" type="image/png" href="/static/favicon.png">
-        
-        <meta property="og:title" content="EGSI Methodology | EnergyRiskIQ">
-        <meta property="og:description" content="Methodology behind the Europe Gas Stress Index calculation.">
+
+        <meta property="og:title" content="EGSI Methodology — Europe Gas Stress Index | EnergyRiskIQ">
+        <meta property="og:description" content="Full methodology for the Europe Gas Stress Index (EGSI): dual-layer architecture, nine pillars, risk bands, computation cadence, interpretation framework, and model governance.">
         <meta property="og:url" content="{BASE_URL}/egsi/methodology">
-        
+        <meta property="og:type" content="article">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="EGSI Methodology — Europe Gas Stress Index">
+        <meta name="twitter:description" content="How EnergyRiskIQ measures daily European gas system stress across market transmission and structural fragility dimensions.">
+
+        <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
+        <style>
+            .meth-hero {{
+                text-align: center;
+                padding: 3rem 0 2rem;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 2.5rem;
+            }}
+            .meth-hero h1 {{
+                font-size: 2.25rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .meth-hero .subtitle {{
+                font-size: 1.1rem;
+                color: var(--text-secondary);
+                max-width: 640px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }}
+            .meth-hero .version-badge {{
+                display: inline-block;
+                margin-top: 1rem;
+                background: var(--bg-light);
+                border: 1px solid var(--border);
+                padding: 0.35rem 1rem;
+                border-radius: 2rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                font-weight: 500;
+            }}
+            .meth-section {{
+                margin-bottom: 3rem;
+            }}
+            .meth-section h2 {{
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.25rem;
+                padding-bottom: 0.75rem;
+                border-bottom: 2px solid var(--primary);
+                display: inline-block;
+            }}
+            .meth-section .section-num {{
+                color: var(--primary);
+                font-weight: 800;
+                margin-right: 0.25rem;
+            }}
+            .meth-section h3 {{
+                font-size: 1.15rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 1.5rem 0 0.75rem;
+            }}
+            .meth-body {{
+                color: var(--text-secondary);
+                line-height: 1.85;
+                font-size: 0.975rem;
+            }}
+            .meth-body p {{
+                margin-bottom: 1rem;
+            }}
+            .meth-body ul {{
+                margin: 0.75rem 0 1rem 1.5rem;
+            }}
+            .meth-body li {{
+                margin-bottom: 0.6rem;
+            }}
+            .meth-body strong {{
+                color: var(--text-primary);
+            }}
+            .meth-blockquote {{
+                background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+                border-left: 4px solid var(--primary);
+                padding: 1.25rem 1.5rem;
+                border-radius: 0 8px 8px 0;
+                margin: 1.25rem 0;
+                font-size: 1.05rem;
+                color: var(--text-primary);
+                font-weight: 500;
+                font-style: italic;
+                line-height: 1.6;
+            }}
+            .meth-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.25rem 0;
+                font-size: 0.9rem;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid var(--border);
+            }}
+            .meth-table thead th {{
+                background: var(--secondary);
+                color: #fff;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                font-weight: 600;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }}
+            .meth-table tbody td {{
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid var(--border);
+                color: var(--text-secondary);
+                line-height: 1.5;
+                vertical-align: top;
+            }}
+            .meth-table tbody tr:last-child td {{
+                border-bottom: none;
+            }}
+            .meth-table tbody tr:nth-child(even) {{
+                background: var(--bg-light);
+            }}
+            .meth-table .band-dot {{
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 6px;
+                vertical-align: middle;
+            }}
+            .pillar-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.25rem;
+                margin: 1.5rem 0;
+            }}
+            .pillar-card {{
+                background: var(--bg-white);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 1.5rem;
+                transition: box-shadow 0.2s ease;
+            }}
+            .pillar-card:hover {{
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            }}
+            .pillar-card .pillar-icon {{
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
+            }}
+            .pillar-card .pillar-name {{
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .pillar-card .pillar-subtitle {{
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--primary);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.75rem;
+            }}
+            .pillar-card .pillar-desc {{
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+                line-height: 1.65;
+            }}
+            .pillar-card .pillar-measures {{
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border);
+            }}
+            .pillar-card .pillar-measures li {{
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-bottom: 0.4rem;
+                line-height: 1.5;
+            }}
+            .pillar-card .pillar-why {{
+                margin-top: 0.75rem;
+                font-size: 0.85rem;
+                color: var(--primary-dark);
+                font-weight: 500;
+                font-style: italic;
+                line-height: 1.5;
+            }}
+            .tier-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1rem;
+                margin: 1.25rem 0;
+            }}
+            .tier-card {{
+                background: var(--bg-white);
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                padding: 1.25rem;
+            }}
+            .tier-card .tier-label {{
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--primary);
+                margin-bottom: 0.5rem;
+            }}
+            .tier-card .tier-title {{
+                font-weight: 600;
+                color: var(--text-primary);
+                margin-bottom: 0.5rem;
+            }}
+            .tier-card ul {{
+                margin: 0 0 0 1.25rem;
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+            }}
+            .tier-card ul li {{
+                margin-bottom: 0.35rem;
+            }}
+            .meth-cta {{
+                background: linear-gradient(135deg, var(--secondary) 0%, #16213E 100%);
+                border-radius: 16px;
+                padding: 3rem 2rem;
+                text-align: center;
+                margin: 3rem 0 2rem;
+            }}
+            .meth-cta h3 {{
+                color: #fff;
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }}
+            .meth-cta p {{
+                color: #94a3b8;
+                margin-bottom: 1.5rem;
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }}
+            .meth-cta .cta-button {{
+                display: inline-block;
+                padding: 0.85rem 2rem;
+                background: var(--primary);
+                color: #fff;
+                font-weight: 700;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 1rem;
+                transition: background 0.2s ease;
+            }}
+            .meth-cta .cta-button:hover {{
+                background: var(--primary-dark);
+            }}
+            .disclaimer {{
+                text-align: center;
+                padding: 1.5rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                font-style: italic;
+                line-height: 1.6;
+                border-top: 1px solid var(--border);
+                margin-top: 1rem;
+            }}
+            .dual-layer-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            @media (max-width: 640px) {{
+                .meth-hero h1 {{ font-size: 1.6rem; }}
+                .pillar-grid {{ grid-template-columns: 1fr; }}
+                .tier-grid {{ grid-template-columns: 1fr; }}
+                .dual-layer-grid {{ grid-template-columns: 1fr; }}
+                .meth-table {{ font-size: 0.8rem; }}
+                .meth-table thead th, .meth-table tbody td {{ padding: 0.5rem 0.6rem; }}
+            }}
+        </style>
     </head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
+                <a href="/alerts">Alerts</a>
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
-                <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
-        
-        <main>
-            <div class="container">
-                <div class="breadcrumb">
-                    <a href="/egsi">EGSI</a> &gt; Methodology
-                </div>
-                
-                <div class="index-section" style="margin: 40px 0; background: white; border: 1px solid var(--border);">
-                    <h1 style="margin-bottom: 30px; color: var(--text-primary);">EGSI Methodology</h1>
-                
-                <h2 style="margin-top: 30px;">Overview</h2>
-                <p>The Europe Gas Stress Index (EGSI-M) measures market transmission stress signals across European gas infrastructure. It combines regional risk assessments, theme-specific alert pressure, asset-level transmission, and infrastructure chokepoint monitoring.</p>
-                
-                <h2 style="margin-top: 30px;">Formula Components</h2>
-                <p>EGSI-M is calculated using four weighted components:</p>
-                
-                <table style="margin: 20px 0;">
-                    <tr>
-                        <th>Component</th>
-                        <th>Weight</th>
-                        <th>Description</th>
-                    </tr>
-                    <tr>
-                        <td>RERI_EU (Regional Risk)</td>
-                        <td>35%</td>
-                        <td>European regional escalation risk from EERI</td>
-                    </tr>
-                    <tr>
-                        <td>Theme Pressure</td>
-                        <td>35%</td>
-                        <td>Gas-specific alert themes (supply disruption, pipeline issues, transit disputes)</td>
-                    </tr>
-                    <tr>
-                        <td>Asset Transmission</td>
-                        <td>20%</td>
-                        <td>Risk transmission through gas infrastructure assets</td>
-                    </tr>
-                    <tr>
-                        <td>Chokepoint Factor</td>
-                        <td>10%</td>
-                        <td>High-signal infrastructure chokepoint monitoring</td>
-                    </tr>
-                </table>
-                
-                <h2 style="margin-top: 30px;">Chokepoints v1</h2>
-                <p>The index monitors 10 high-signal European gas infrastructure entities:</p>
-                <ul style="margin: 15px 0; padding-left: 30px;">
-                    <li>Ukraine Transit (Sudzha, Urengoy)</li>
-                    <li>TurkStream / Blue Stream</li>
-                    <li>Nord Stream</li>
-                    <li>Norway Pipelines (Langeled, Europipe)</li>
-                    <li>Gate LNG Terminal (Rotterdam)</li>
-                    <li>Zeebrugge LNG (Fluxys)</li>
-                    <li>Dunkerque LNG</li>
-                    <li>Montoir LNG (Elengy)</li>
-                    <li>Swinoujscie LNG (Poland)</li>
-                    <li>Revithoussa LNG (Greece)</li>
-                </ul>
-                
-                <h2 style="margin-top: 30px;">Risk Bands</h2>
-                <table style="margin: 20px 0;">
-                    <tr>
-                        <th>Band</th>
-                        <th>Range</th>
-                        <th>Interpretation</th>
-                    </tr>
-                    <tr>
-                        <td style="color: #22c55e; font-weight: 600;">LOW</td>
-                        <td>0-20</td>
-                        <td>Minimal gas market stress</td>
-                    </tr>
-                    <tr>
-                        <td style="color: #3b82f6; font-weight: 600;">NORMAL</td>
-                        <td>21-40</td>
-                        <td>Baseline market conditions</td>
-                    </tr>
-                    <tr>
-                        <td style="color: #f97316; font-weight: 600;">ELEVATED</td>
-                        <td>41-60</td>
-                        <td>Heightened stress, monitor closely</td>
-                    </tr>
-                    <tr>
-                        <td style="color: #ef4444; font-weight: 600;">HIGH</td>
-                        <td>61-80</td>
-                        <td>Significant stress, supply concerns</td>
-                    </tr>
-                    <tr>
-                        <td style="color: #dc2626; font-weight: 600;">CRITICAL</td>
-                        <td>81-100</td>
-                        <td>Severe stress, immediate impact</td>
-                    </tr>
-                </table>
-                
-                <h2 style="margin-top: 30px;">Update Schedule</h2>
-                <p>EGSI is computed daily alongside GERI and EERI indices. Public data is displayed with a 24-hour delay. Pro subscribers receive real-time access.</p>
-                
-                <div class="index-links" style="margin-top: 2rem;">
-                    <a href="/egsi">&larr; Back to EGSI</a>
-                    <a href="/egsi/history">View History &rarr;</a>
-                </div>
-                </div>
+
+        <main class="container">
+
+            <div class="meth-hero">
+                <h1>EGSI Methodology</h1>
+                <p class="subtitle">A comprehensive overview of how the Europe Gas Stress Index measures daily stress, fragility, and disruption exposure across the European natural gas system through its dual-layer architecture.</p>
+                <div class="version-badge">Model Version: EGSI-M v1, EGSI-S v1 &nbsp;|&nbsp; Last Updated: February 2026</div>
             </div>
+
+            <!-- Section 1: What Is EGSI? -->
+            <section class="meth-section">
+                <h2><span class="section-num">1.</span> What Is EGSI?</h2>
+                <div class="meth-body">
+                    <p>The <strong>Europe Gas Stress Index (EGSI)</strong> is a proprietary dual-layer index system that measures the stress, fragility, and disruption exposure of the European natural gas system. It answers two critical questions simultaneously:</p>
+                    <div class="meth-blockquote">"How violently is risk transmitting through European gas markets right now?"</div>
+                    <div class="meth-blockquote">"How structurally fragile is Europe's gas system today?"</div>
+                    <p>EGSI is unique in the EnergyRiskIQ platform because it operates as two complementary indices &mdash; <strong>EGSI-M (Market/Transmission)</strong> and <strong>EGSI-S (System)</strong> &mdash; each measuring a different dimension of gas stress. Together, they provide the most complete picture available of European gas vulnerability.</p>
+                    <p>EGSI is designed for gas traders, LNG procurement teams, utility risk managers, energy desk analysts, infrastructure operators, policymakers, and hedge funds with European gas exposure. It translates complex multi-source intelligence &mdash; spanning geopolitical events, infrastructure chokepoints, physical storage data, market pricing, and policy signals &mdash; into an actionable daily stress reading.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: The Two Layers -->
+            <section class="meth-section">
+                <h2><span class="section-num">2.</span> The Two Layers: EGSI-M and EGSI-S</h2>
+                <div class="meth-body">
+                    <h3>Why Two Indices?</h3>
+                    <p>European gas stress manifests in two fundamentally different ways:</p>
+                    <ul>
+                        <li><strong>Market transmission stress</strong> &mdash; How violently geopolitical and supply risk is flowing through gas markets today. This is reactive, fast-moving, and driven by the alert stream.</li>
+                        <li><strong>System structural stress</strong> &mdash; How fragile the underlying physical gas infrastructure is. This is slower-moving, driven by storage levels, refill rates, price volatility, and policy conditions.</li>
+                    </ul>
+                    <p>A single index cannot capture both dimensions without compromising clarity. EGSI solves this by providing both readings simultaneously.</p>
+                </div>
+                <div class="dual-layer-grid">
+                    <div class="pillar-card">
+                        <div class="pillar-icon">⚡</div>
+                        <div class="pillar-subtitle">EGSI-M</div>
+                        <div class="pillar-name">Market / Transmission</div>
+                        <div class="pillar-desc">Measures how intensely geopolitical and supply risk is transmitting through European gas markets on any given day. Reactive, event-driven, fast-moving &mdash; responds to the daily intelligence stream.</div>
+                        <div class="pillar-why">Analogy: If the European gas system were a building, EGSI-M measures how hard the building is shaking right now.</div>
+                        <ul class="pillar-measures">
+                            <li><strong>Primary audience:</strong> Gas traders, commodity desks, short-term risk managers</li>
+                        </ul>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🏗️</div>
+                        <div class="pillar-subtitle">EGSI-S</div>
+                        <div class="pillar-name">System Stress</div>
+                        <div class="pillar-desc">Measures how structurally fragile the European gas system is &mdash; its physical readiness, storage adequacy, price stability, and policy environment. Structural, data-driven, slower-moving.</div>
+                        <div class="pillar-why">Analogy: If the European gas system were a building, EGSI-S measures how structurally sound the building is &mdash; regardless of whether it is currently shaking.</div>
+                        <ul class="pillar-measures">
+                            <li><strong>Primary audience:</strong> Utilities, LNG procurement teams, policymakers, infrastructure operators, institutional risk committees</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="meth-body">
+                    <h3>Reading EGSI-M and EGSI-S Together</h3>
+                    <p>The dual reading is one of EGSI's most powerful features &mdash; it separates headline noise from structural reality:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>EGSI-M</th><th>EGSI-S</th><th>Interpretation</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Low</strong></td><td><strong>Low</strong></td><td>Gas system is calm and structurally sound. Normal operations. Minimal risk.</td></tr>
+                            <tr><td><strong>High</strong></td><td><strong>Low</strong></td><td>Market is reacting to headlines, but the physical system is resilient. Likely a transient shock &mdash; watch for escalation but system buffers are intact.</td></tr>
+                            <tr><td><strong>Low</strong></td><td><strong>High</strong></td><td>No immediate headlines, but the physical system is under structural strain. Storage may be depleting, refill rates lagging, or prices volatile. This is the quiet danger &mdash; the building is weakening even though it is not shaking.</td></tr>
+                            <tr><td><strong>High</strong></td><td><strong>High</strong></td><td>Maximum concern. Active market transmission stress AND structural fragility. The system is both shaking and weakened. Historically associated with crisis conditions. Defensive positioning and contingency planning strongly indicated.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 3: Scoring Range -->
+            <section class="meth-section">
+                <h2><span class="section-num">3.</span> Scoring Range</h2>
+                <div class="meth-body">
+                    <p>Both EGSI-M and EGSI-S produce daily values on a <strong>0 to 100</strong> scale:</p>
+                    <ul>
+                        <li><strong>0</strong> represents a theoretical state of zero gas stress</li>
+                        <li><strong>100</strong> represents a theoretical state of maximum systemic gas crisis</li>
+                    </ul>
+                    <p>The scale is calibrated so that normal operating conditions cluster in the lower ranges, while readings above 60 indicate historically unusual stress requiring active attention.</p>
+                </div>
+            </section>
+
+            <!-- Section 4: Risk Bands -->
+            <section class="meth-section">
+                <h2><span class="section-num">4.</span> Risk Bands</h2>
+                <div class="meth-body">
+                    <p>EGSI uses a five-band classification system specifically designed for gas stress measurement. The band labels are intentionally distinct from GERI and EERI to reflect the different nature of gas system risk:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Risk Band</th><th>Range</th><th>Interpretation</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="band-dot" style="background:#22c55e;"></span><strong>LOW</strong></td><td>0 &ndash; 20</td><td>Minimal gas stress. The European gas system is operating under normal conditions with no significant supply, storage, or market disruption signals. Standard monitoring posture.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#3b82f6;"></span><strong>NORMAL</strong></td><td>21 &ndash; 40</td><td>Baseline market conditions. Some background stress may be present &mdash; routine maintenance, seasonal patterns, or minor supply variations &mdash; but nothing warrants elevated concern. Normal operational awareness.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#f59e0b;"></span><strong>ELEVATED</strong></td><td>41 &ndash; 60</td><td>Heightened stress detected across the gas system. Multiple stress vectors are contributing simultaneously. Active monitoring is warranted. Gas, freight, or power markets may be showing early sensitivity.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#ef4444;"></span><strong>HIGH</strong></td><td>61 &ndash; 80</td><td>Significant stress affecting the European gas system. Risk signals are converging across supply, storage, transit, and market channels. Active hedging and contingency planning are strongly advised.</td></tr>
+                            <tr><td><span class="band-dot" style="background:#991b1b;"></span><strong>CRITICAL</strong></td><td>81 &ndash; 100</td><td>Severe systemic stress. The European gas system is under extreme pressure across multiple dimensions. Emergency protocols, defensive positioning, and immediate contingency activation are strongly indicated.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Why EGSI Uses Different Band Labels</h3>
+                    <p>GERI and EERI use a five-band system with SEVERE as the fourth band. EGSI intentionally uses HIGH instead of SEVERE because gas system stress has a different operational character:</p>
+                    <ul>
+                        <li>Gas stress is more directly tied to physical infrastructure and commodity flows than geopolitical risk</li>
+                        <li>The language of &ldquo;HIGH stress&rdquo; is more natural for physical systems, industrial operations, and commodity markets</li>
+                        <li>It aligns with how gas traders, utilities, and procurement teams naturally describe system conditions</li>
+                    </ul>
+
+                    <h3>Trend Indicators</h3>
+                    <p>Each daily EGSI reading includes two trend signals:</p>
+                    <ul>
+                        <li><strong>1-Day Trend</strong> &mdash; Change from the previous day's value, showing immediate momentum</li>
+                        <li><strong>7-Day Trend</strong> &mdash; Change from seven days prior, showing directional trajectory</li>
+                    </ul>
+                    <p>These trends are critical for distinguishing between an EGSI of 55 that is rising sharply (stress is building) and an EGSI of 55 that is falling from a recent peak (stress is subsiding). The same number carries very different operational implications.</p>
+                </div>
+            </section>
+
+            <!-- Section 5: EGSI-M Architecture -->
+            <section class="meth-section">
+                <h2><span class="section-num">5.</span> EGSI-M Architecture: The Four Pillars</h2>
+                <div class="meth-body">
+                    <p>EGSI-M is constructed from four distinct pillars, each capturing a different dimension of how risk transmits through European gas markets.</p>
+                </div>
+                <div class="pillar-grid">
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🛡️</div>
+                        <div class="pillar-subtitle">Pillar 1</div>
+                        <div class="pillar-name">Regional Escalation Backbone</div>
+                        <div class="pillar-desc">The structural foundation of EGSI-M. Measures the underlying severity and intensity of geopolitical and energy events directly affecting Europe's gas system.</div>
+                        <ul class="pillar-measures">
+                            <li>Cumulative impact of high-severity events affecting European energy security</li>
+                            <li>Escalation patterns &mdash; rising event frequency, increasing severity, and building pressure</li>
+                            <li>Overall temperature of the European geopolitical risk environment as it relates to gas</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "How dangerous is the European geopolitical environment for gas right now?"</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">📊</div>
+                        <div class="pillar-subtitle">Pillar 2</div>
+                        <div class="pillar-name">Theme Pressure</div>
+                        <div class="pillar-desc">Measures the nature, breadth, and intensity of gas-specific stress narratives in the intelligence stream &mdash; whether stress is concentrated in one narrative or spread across multiple themes.</div>
+                        <ul class="pillar-measures">
+                            <li>Supply disruptions, pipeline issues, transit disputes, LNG congestion</li>
+                            <li>Storage concerns, maintenance outages, policy interventions</li>
+                            <li>Persistence of stress themes &mdash; repeated events signal deep structural pressure</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "What kind of gas stress is this?" &mdash; critical for calibrating the right response.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">📡</div>
+                        <div class="pillar-subtitle">Pillar 3</div>
+                        <div class="pillar-name">Asset Transmission</div>
+                        <div class="pillar-desc">Measures whether gas stress is actually propagating into energy markets &mdash; bridging the gap between intelligence signals and financial reality.</div>
+                        <ul class="pillar-measures">
+                            <li>Number and breadth of energy asset classes showing stress linked to gas events</li>
+                            <li>Cross-asset transmission &mdash; whether stress is spreading to oil, freight, FX, and power</li>
+                            <li>Strength of connection between intelligence signals and market-observable stress</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Is this stress real or theoretical?" &mdash; where headlines become money.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🎯</div>
+                        <div class="pillar-subtitle">Pillar 4</div>
+                        <div class="pillar-name">Chokepoint Factor</div>
+                        <div class="pillar-desc">Captures risk signals emanating from specific European gas infrastructure chokepoints &mdash; high-value, low-redundancy nodes where disruption has outsized consequences.</div>
+                        <ul class="pillar-measures">
+                            <li>Direct mentions of monitored chokepoint entities in the intelligence stream</li>
+                            <li>Severity and frequency of alerts referencing specific infrastructure</li>
+                            <li>Concentration of risk around critical gas transit and import facilities</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Is risk clustering around infrastructure single points of failure?"</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 6: EGSI-S Architecture -->
+            <section class="meth-section">
+                <h2><span class="section-num">6.</span> EGSI-S Architecture: The Five Pillars</h2>
+                <div class="meth-body">
+                    <p>EGSI-S is constructed from five distinct pillars measuring the physical, market, and policy dimensions of European gas system fragility.</p>
+                </div>
+                <div class="pillar-grid">
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🚚</div>
+                        <div class="pillar-subtitle">Pillar 1</div>
+                        <div class="pillar-name">Supply Pressure</div>
+                        <div class="pillar-desc">Measures how fragile European gas supply is &mdash; the physical availability and reliability of gas flowing into the system.</div>
+                        <ul class="pillar-measures">
+                            <li>LNG terminal outages, maintenance events, and capacity constraints</li>
+                            <li>Pipeline disruptions, compressor outages, and flow reductions</li>
+                            <li>Force majeure events and export restrictions</li>
+                            <li>Alignment between current supply capacity and seasonal demand requirements</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Can Europe get the gas it needs?"</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">🌊</div>
+                        <div class="pillar-subtitle">Pillar 2</div>
+                        <div class="pillar-name">Transit Stress</div>
+                        <div class="pillar-desc">Measures the physical flow dynamics of the European gas system &mdash; how gas is moving through the network and whether injection or withdrawal patterns indicate stress.</div>
+                        <ul class="pillar-measures">
+                            <li>Injection rates during refill season vs expected targets</li>
+                            <li>Withdrawal rates during heating season vs sustainable depletion trajectories</li>
+                            <li>Transit corridor disruptions and rerouting pressures</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Are flow dynamics normal?" &mdash; detects emerging problems before they become headlines.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">📦</div>
+                        <div class="pillar-subtitle">Pillar 3</div>
+                        <div class="pillar-name">Storage Stress</div>
+                        <div class="pillar-desc">Measures the adequacy and trajectory of European gas storage &mdash; the physical buffer that determines Europe's resilience to supply shocks and demand surges.</div>
+                        <ul class="pillar-measures">
+                            <li>Current EU gas storage level as percentage of total capacity</li>
+                            <li>Deviation from seasonal storage norms</li>
+                            <li>Refill velocity and winter deviation risk</li>
+                            <li><strong>Data source:</strong> GIE AGSI+ (Aggregated Gas Storage Inventory)</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Is Europe's insurance policy against supply disruption adequate?"</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">💹</div>
+                        <div class="pillar-subtitle">Pillar 4</div>
+                        <div class="pillar-name">Market Stress</div>
+                        <div class="pillar-desc">Measures financial market stress in European gas &mdash; the degree to which gas pricing and trading conditions indicate systemic concern.</div>
+                        <ul class="pillar-measures">
+                            <li>TTF spot price movements and volatility</li>
+                            <li>Magnitude of daily price changes relative to historical norms</li>
+                            <li>Price shock events &mdash; sudden, outsized moves indicating market dislocation</li>
+                            <li><strong>Data source:</strong> OilPriceAPI (TTF gas benchmark pricing)</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Are markets signalling systemic concern?" &mdash; often an early warning signal.</div>
+                    </div>
+                    <div class="pillar-card">
+                        <div class="pillar-icon">⚖️</div>
+                        <div class="pillar-subtitle">Pillar 5</div>
+                        <div class="pillar-name">Policy Risk</div>
+                        <div class="pillar-desc">Measures the degree to which government and regulatory interventions signal systemic concern about European gas security.</div>
+                        <ul class="pillar-measures">
+                            <li>Emergency policy declarations and market intervention announcements</li>
+                            <li>Price cap discussions, rationing proposals, and demand curtailment measures</li>
+                            <li>Regulatory changes affecting gas storage mandates and market rules</li>
+                            <li>Subsidy programmes, emergency procurement, and strategic reserve actions</li>
+                        </ul>
+                        <div class="pillar-why">Answers: "Do authorities believe conditions warrant extraordinary action?"</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 7: Normalisation Strategy -->
+            <section class="meth-section">
+                <h2><span class="section-num">7.</span> Normalisation Strategy</h2>
+                <div class="meth-body">
+                    <p>Raw stress metrics vary enormously depending on the global news cycle, seasonal patterns, and market conditions. Without normalisation, the 0&ndash;100 scale would be meaningless. Both EGSI-M and EGSI-S use adaptive normalisation that evolves as the indices mature.</p>
+
+                    <h3>Bootstrap Phase</h3>
+                    <p>During the initial period when insufficient historical data exists, both indices use conservative cap-based fallback values for each component. These caps are set based on reasonable assumptions about the range of observable conditions, preventing extreme values while the system accumulates operational history.</p>
+
+                    <h3>Rolling Baseline Phase</h3>
+                    <p>Once sufficient history has accumulated, both indices transition to percentile-based normalisation using rolling historical baselines. This approach:</p>
+                    <ul>
+                        <li>Keeps the 0&ndash;100 scale meaningful as conditions evolve</li>
+                        <li>Prevents prolonged periods of high or low stress from permanently compressing the scale</li>
+                        <li>Adapts to structural changes in the risk landscape over time</li>
+                        <li>Ensures new periods of unusual calm or stress are properly reflected</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 8: Data Sources -->
+            <section class="meth-section">
+                <h2><span class="section-num">8.</span> Data Sources</h2>
+                <div class="meth-body">
+                    <h3>Structured Data Sources</h3>
+                    <table class="meth-table">
+                        <thead><tr><th>Source</th><th>Data Provided</th><th>Used By</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>GIE AGSI+</strong></td><td>EU gas storage levels, injection/withdrawal rates, capacity data across 18 Member States</td><td>EGSI-S (Storage pillar)</td></tr>
+                            <tr><td><strong>OilPriceAPI</strong></td><td>TTF spot/near-month gas prices, historical pricing</td><td>EGSI-S (Market pillar)</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Intelligence Signal Sources</h3>
+                    <p>Both EGSI-M and EGSI-S consume structured alerts from the EnergyRiskIQ intelligence pipeline:</p>
+                    <ul>
+                        <li><strong>High-Impact Events</strong> &mdash; Major geopolitical escalations, infrastructure incidents, supply shocks</li>
+                        <li><strong>Regional Risk Spikes</strong> &mdash; Clustering of events indicating regional escalation</li>
+                        <li><strong>Asset Risk Alerts</strong> &mdash; Asset-specific stress signals, including gas storage alerts generated by the EGSI storage monitoring system</li>
+                    </ul>
+                    <p>These alerts are ingested from a curated portfolio of institutional, trade, and regional intelligence sources spanning Reuters, ICIS, EU Commission feeds, maritime intelligence, and specialised energy publications.</p>
+                </div>
+            </section>
+
+            <!-- Section 9: Computation Cadence -->
+            <section class="meth-section">
+                <h2><span class="section-num">9.</span> Computation Cadence</h2>
+                <div class="meth-body">
+                    <h3>Daily Computation</h3>
+                    <p>Both EGSI-M and EGSI-S are computed daily, producing authoritative daily values. Computation runs after the day's intelligence has been processed and structured data has been updated.</p>
+
+                    <h3>Scheduled Execution</h3>
+                    <ul>
+                        <li><strong>EGSI-M</strong> runs alongside GERI and EERI computation, after alert delivery</li>
+                        <li><strong>EGSI-S</strong> runs on a higher-frequency schedule to incorporate the latest structured data as it becomes available</li>
+                    </ul>
+
+                    <h3>Publication Schedule</h3>
+                    <table class="meth-table">
+                        <thead><tr><th>Audience</th><th>Timing</th><th>Content</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Paid subscribers</strong></td><td>Real-time on computation</td><td>Full EGSI-M and EGSI-S values, bands, trends, component breakdown, top drivers, chokepoint watch, and AI interpretation</td></tr>
+                            <tr><td><strong>Free users</strong></td><td>24-hour delay</td><td>EGSI value and band with limited context</td></tr>
+                            <tr><td><strong>Public / SEO pages</strong></td><td>24-hour delay</td><td>EGSI value, band, trend indicator, and top driver headlines</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 10: Chokepoint Monitoring -->
+            <section class="meth-section">
+                <h2><span class="section-num">10.</span> Chokepoint Monitoring</h2>
+                <div class="meth-body">
+                    <h3>Philosophy</h3>
+                    <p>The European gas system has identifiable critical nodes &mdash; infrastructure where disruption has consequences far beyond the facility itself. These chokepoints represent low-redundancy, high-throughput points in the gas supply network. EGSI maintains a monitored chokepoint registry that feeds directly into the EGSI-M Chokepoint Factor pillar.</p>
+
+                    <h3>Monitored Infrastructure</h3>
+                    <p>EGSI tracks ten key European gas infrastructure chokepoints across three categories:</p>
+
+                    <h3>Transit Corridors</h3>
+                    <ul>
+                        <li>Ukraine Transit System (Sudzha entry, Urengoy-Pomary-Uzhgorod pipeline)</li>
+                        <li>TurkStream / Blue Stream (southern corridor)</li>
+                        <li>Nord Stream infrastructure (northern corridor, currently compromised)</li>
+                    </ul>
+
+                    <h3>Pipeline Systems</h3>
+                    <ul>
+                        <li>Norway export pipelines (Langeled, Europipe, Troll infrastructure, Equinor network)</li>
+                    </ul>
+
+                    <h3>LNG Import Terminals</h3>
+                    <ul>
+                        <li>Gate Terminal (Rotterdam, Netherlands)</li>
+                        <li>Zeebrugge LNG (Fluxys, Belgium)</li>
+                        <li>Dunkerque LNG (France)</li>
+                        <li>Montoir-de-Bretagne LNG (Elengy, France)</li>
+                        <li>Swinoujscie LNG (Poland)</li>
+                        <li>Revithoussa LNG (Greece)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 11: Integration with Index Ecosystem -->
+            <section class="meth-section">
+                <h2><span class="section-num">11.</span> Integration with the EnergyRiskIQ Index Ecosystem</h2>
+                <div class="meth-body">
+                    <h3>Position in the Index Stack</h3>
+                    <p>EGSI occupies the asset/system layer in EnergyRiskIQ's multi-level risk architecture:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Level</th><th>Index</th><th>Scope</th><th>Question Answered</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Macro</strong></td><td>GERI</td><td>Global</td><td>"Is the world dangerous for energy markets?"</td></tr>
+                            <tr><td><strong>Regional</strong></td><td>EERI</td><td>European</td><td>"Is Europe's energy security threatened?"</td></tr>
+                            <tr><td><strong>Asset / System</strong></td><td>EGSI</td><td>European Gas</td><td>"How close is Europe to a gas shock?"</td></tr>
+                        </tbody>
+                    </table>
+                    <p>This creates a complete risk stack: <strong>Macro &rarr; Regional &rarr; Asset System</strong>.</p>
+
+                    <h3>Reading Alongside GERI</h3>
+                    <p>GERI measures global geopolitical and energy risk. EGSI measures European gas-specific stress. Reading them together reveals whether global risk is concentrated in gas, or whether gas stress is a regional phenomenon disconnected from global conditions.</p>
+
+                    <h3>Reading Alongside EERI</h3>
+                    <p>EGSI feeds directly into EERI through the Asset Transmission component. When EGSI detects elevated gas stress, these signals contribute to EERI's composite reading. However, EGSI provides far more granular gas-specific intelligence than EERI alone.</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Pattern</th><th>Interpretation</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>EERI high + EGSI high</strong></td><td>European energy stress is gas-led. Gas is the primary vulnerability vector.</td></tr>
+                            <tr><td><strong>EERI high + EGSI moderate</strong></td><td>European stress is driven by non-gas factors (oil, geopolitics, broader energy policy). Gas system is relatively insulated.</td></tr>
+                            <tr><td><strong>EERI moderate + EGSI high</strong></td><td>Gas-specific stress that hasn't yet reached broader European energy risk thresholds. A sectoral warning &mdash; critical for gas professionals, less urgent for broader energy risk managers.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section 12: Interpretation Framework -->
+            <section class="meth-section">
+                <h2><span class="section-num">12.</span> Interpretation Framework</h2>
+                <div class="meth-body">
+                    <h3>EGSI as Operational Intelligence</h3>
+                    <p>EGSI is not a gas price forecast or trading signal. It is an operational stress intelligence layer that tells professionals where European gas system stress is concentrated, how it is evolving, and what dimensions are driving it:</p>
+                    <ul>
+                        <li><strong>EGSI rising</strong> means gas system stress inputs are increasing &mdash; it does not guarantee gas prices will rise</li>
+                        <li><strong>EGSI falling</strong> means stress inputs are subsiding &mdash; it does not guarantee market calm</li>
+                        <li><strong>EGSI in CRITICAL</strong> means the concentration and severity of stress signals matches historical periods associated with significant gas market disruption</li>
+                        <li>The relationship between EGSI and gas prices is mediated by storage buffers, LNG availability, demand conditions, weather forecasts, and market positioning</li>
+                    </ul>
+
+                    <h3>Component Dominance &mdash; EGSI-M</h3>
+                    <p>For paid subscribers, EGSI provides visibility into which pillars are driving the current reading:</p>
+                    <ul>
+                        <li><strong>Regional Escalation dominant:</strong> Geopolitical forces are the primary driver. The risk environment around Europe is deteriorating.</li>
+                        <li><strong>Theme Pressure dominant:</strong> Gas-specific narratives are intensifying. Multiple stress themes are compounding.</li>
+                        <li><strong>Asset Transmission dominant:</strong> Markets are actively pricing gas stress. This is the confirmation phase.</li>
+                        <li><strong>Chokepoint Factor dominant:</strong> Risk is concentrated around specific infrastructure. High-consequence disruption probability is elevated.</li>
+                    </ul>
+
+                    <h3>Component Dominance &mdash; EGSI-S</h3>
+                    <ul>
+                        <li><strong>Supply Pressure dominant:</strong> Physical supply fragility is the primary concern. Outages, maintenance, or capacity constraints are driving stress.</li>
+                        <li><strong>Transit Stress dominant:</strong> Flow dynamics are abnormal. Injection or withdrawal rates deviate significantly from expectations.</li>
+                        <li><strong>Storage dominant:</strong> Storage levels are the primary vulnerability. The physical buffer is inadequate for current risk conditions.</li>
+                        <li><strong>Market Stress dominant:</strong> Price volatility and trading conditions indicate systemic concern.</li>
+                        <li><strong>Policy Risk dominant:</strong> Government interventions signal that authorities view conditions as beyond normal market management.</li>
+                    </ul>
+
+                    <h3>Regime Recognition</h3>
+                    <p>EGSI's historical trajectory can be divided into recognisable stress regimes:</p>
+                    <table class="meth-table">
+                        <thead><tr><th>Regime</th><th>Characteristics</th><th>Typical Duration</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Calm</strong></td><td>EGSI in LOW/NORMAL bands, stable trends, minimal driver activity. System operating well within safe parameters.</td><td>Weeks to months</td></tr>
+                            <tr><td><strong>Stress Build-Up</strong></td><td>EGSI rising, crossing from NORMAL to ELEVATED. Storage may be lagging, supply concerns emerging, or market volatility increasing.</td><td>Days to weeks</td></tr>
+                            <tr><td><strong>Active Stress</strong></td><td>EGSI in HIGH/CRITICAL range. Multiple pillars contributing. Markets volatile, storage under pressure, or supply disruptions active.</td><td>Days to weeks</td></tr>
+                            <tr><td><strong>De-escalation</strong></td><td>EGSI falling from HIGH/CRITICAL. Stress drivers subsiding, storage improving, or supply normalising. Caution still warranted.</td><td>Days to weeks</td></tr>
+                            <tr><td><strong>Recovery</strong></td><td>EGSI returning to LOW/NORMAL. System buffers rebuilding, market conditions normalising.</td><td>Weeks</td></tr>
+                        </tbody>
+                    </table>
+                    <p>Regime transitions are the most actionable signals. The shift from Calm to Stress Build-Up is the early warning. The shift from Stress Build-Up to Active Stress is the confirmation. The shift from Active Stress to De-escalation is the turning point.</p>
+                </div>
+            </section>
+
+            <!-- Section 13: Seasonal Context -->
+            <section class="meth-section">
+                <h2><span class="section-num">13.</span> Seasonal Context</h2>
+                <div class="meth-body">
+                    <p>European gas stress is inherently seasonal, and EGSI accounts for this in several ways.</p>
+
+                    <h3>Storage Seasonality</h3>
+                    <p>Gas storage follows a predictable annual cycle: drawdown during winter heating season (November through March), refill during injection season (April through October). EGSI-S measures storage relative to seasonal norms &mdash; not absolute levels &mdash; ensuring that a storage level of 50% in March (normal) is treated differently from 50% in September (concerning).</p>
+
+                    <h3>Seasonal Benchmarks</h3>
+                    <table class="meth-table">
+                        <thead><tr><th>Period</th><th>Expected Storage</th><th>Significance</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>November 1</strong></td><td>90%</td><td>EU regulatory mandate for winter readiness</td></tr>
+                            <tr><td><strong>Mid-winter (January)</strong></td><td>~65%</td><td>Normal mid-winter drawdown level</td></tr>
+                            <tr><td><strong>Seasonal low (March)</strong></td><td>~40%</td><td>Expected post-winter minimum</td></tr>
+                            <tr><td><strong>February 1</strong></td><td>45%</td><td>Winter security floor target</td></tr>
+                            <tr><td><strong>Peak refill (August)</strong></td><td>~82%</td><td>Pre-autumn acceleration target</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Winter Risk Amplification</h3>
+                    <p>During winter months (November through March), all gas stress signals carry amplified significance because:</p>
+                    <ul>
+                        <li>Demand is at its highest (heating load)</li>
+                        <li>Storage is being depleted rather than replenished</li>
+                        <li>Supply disruptions cannot be compensated by accelerated injection</li>
+                        <li>The consequences of miscalculation are immediate and severe</li>
+                    </ul>
+                    <p>EGSI-S incorporates this seasonal amplification directly into its stress calculations.</p>
+                </div>
+            </section>
+
+            <!-- Section 14: What EGSI Does Not Do -->
+            <section class="meth-section">
+                <h2><span class="section-num">14.</span> What EGSI Does Not Do</h2>
+                <div class="meth-body">
+                    <p>For transparency and proper use, it is important to understand the boundaries of the index:</p>
+                    <ul>
+                        <li><strong>EGSI is not a gas price forecast.</strong> It measures the stress environment, not the price outcome.</li>
+                        <li><strong>EGSI is not a trading signal.</strong> It provides stress context for decision-making, not buy/sell instructions.</li>
+                        <li><strong>EGSI does not cover non-gas European energy risks.</strong> It focuses specifically on the natural gas system.</li>
+                        <li><strong>EGSI is not intraday.</strong> It is a daily index. Events occurring during the day will be reflected in subsequent computations.</li>
+                        <li><strong>EGSI does not model weather directly.</strong> It captures weather impact through downstream effects on storage deviation, withdrawal rates, and market volatility.</li>
+                        <li><strong>EGSI does not replace fundamental gas market analysis.</strong> It is a complementary intelligence layer designed to sit alongside traditional gas trading and procurement tools.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Section 15: Model Governance -->
+            <section class="meth-section">
+                <h2><span class="section-num">15.</span> Model Governance and Evolution</h2>
+                <div class="meth-body">
+                    <h3>Version Control</h3>
+                    <p>EGSI operates under strict version control. The current production models are <strong>EGSI-M v1</strong> and <strong>EGSI-S v1</strong>. All historical data is tagged with its model version, ensuring full auditability and reproducibility.</p>
+
+                    <h3>Feature Flag</h3>
+                    <p>EGSI computation is controlled by a feature flag (<strong>ENABLE_EGSI</strong>), allowing both indices to be activated or deactivated without code changes. This ensures operational safety during maintenance or if data quality issues are detected.</p>
+
+                    <h3>Planned Evolution</h3>
+                    <ul>
+                        <li><strong>EGSI-S v2 &mdash; Enhanced Pillar Architecture:</strong> Expansion of supply and transit pillars with additional structured data sources, including pipeline flow data and LNG terminal utilisation rates</li>
+                        <li><strong>Country-Level Decomposition:</strong> Sub-national storage and stress analysis for major consuming countries (Germany, Italy, France, Netherlands)</li>
+                        <li><strong>Weather Integration:</strong> Direct weather forecast anomaly data to enhance winter deviation risk modelling</li>
+                        <li><strong>Cross-Index Contagion:</strong> When EERI activates its Contagion pillar (v2), EGSI will receive cross-regional spillover signals from Middle East and Black Sea gas-relevant developments</li>
+                    </ul>
+
+                    <h3>Independence and Objectivity</h3>
+                    <p>EGSI is computed algorithmically from structured data inputs and intelligence signals. There is no editorial override, manual adjustment, or subjective intervention in the daily index values. The methodology is fixed for each model version, with changes implemented only through formal version upgrades with documented rationale.</p>
+                </div>
+            </section>
+
+            <!-- CTA -->
+            <div class="meth-cta">
+                <h3>Access Full Gas Intelligence</h3>
+                <p>Get real-time EGSI-M and EGSI-S readings, component breakdowns, chokepoint monitoring, and AI-powered interpretation delivered daily.</p>
+                <a href="/users" class="cta-button">Get FREE Access</a>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                Europe Gas Stress Index (EGSI) is a proprietary index of EnergyRiskIQ. This methodology document is provided for transparency and educational purposes. It does not constitute financial advice.
+            </div>
+
         </main>
-        
+
         <footer class="footer">
             <div class="container">
-                <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
+                <p>&copy; {datetime.now().year} EnergyRiskIQ. All rights reserved.</p>
+                <p style="margin-top: 0.5rem;">
+                    <a href="/egsi">EGSI</a> &middot;
+                    <a href="/egsi/history">EGSI History</a> &middot;
+                    <a href="/geri">GERI</a> &middot;
+                    <a href="/eeri">EERI</a>
+                </p>
             </div>
         </footer>
     </body>
