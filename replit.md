@@ -45,6 +45,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **Email:** emil.siberlink@gmail.com
 - **Password:** Regen@3010
 - **PIN:** 221967
+- **Testing approach:** Always test on Production DB. User tests in production.
 
 ## External Dependencies
 

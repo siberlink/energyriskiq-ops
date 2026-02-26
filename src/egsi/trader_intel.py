@@ -417,19 +417,19 @@ def compute_storage_seasonal() -> Dict[str, Any]:
     if not storage:
         return {'current': [], 'seasonal_avg': [], 'message': 'No storage data available'}
 
-    current = [{'date': _safe_date(r['date']), 'value': round(_to_float(r['eu_storage_percent']) * 100, 1) if r.get('eu_storage_percent') else None} for r in storage]
-    seasonal = [{'date': _safe_date(r['date']), 'value': round(_to_float(r['seasonal_norm']) * 100, 1) if r.get('seasonal_norm') else None} for r in storage]
+    current = [{'date': _safe_date(r['date']), 'value': round(_to_float(r['eu_storage_percent']), 1) if r.get('eu_storage_percent') else None} for r in storage]
+    seasonal = [{'date': _safe_date(r['date']), 'value': round(_to_float(r['seasonal_norm']), 1) if r.get('seasonal_norm') else None} for r in storage]
 
     latest = storage[-1] if storage else None
     deficit = None
     if latest and latest.get('eu_storage_percent') and latest.get('seasonal_norm'):
-        deficit = round((_to_float(latest['seasonal_norm']) - _to_float(latest['eu_storage_percent'])) * 100, 1)
+        deficit = round(_to_float(latest['seasonal_norm']) - _to_float(latest['eu_storage_percent']), 1)
 
     return {
         'current': current,
         'seasonal_avg': seasonal,
-        'latest_pct': round(_to_float(latest['eu_storage_percent']) * 100, 1) if latest and latest.get('eu_storage_percent') else None,
-        'seasonal_norm_pct': round(_to_float(latest['seasonal_norm']) * 100, 1) if latest and latest.get('seasonal_norm') else None,
+        'latest_pct': round(_to_float(latest['eu_storage_percent']), 1) if latest and latest.get('eu_storage_percent') else None,
+        'seasonal_norm_pct': round(_to_float(latest['seasonal_norm']), 1) if latest and latest.get('seasonal_norm') else None,
         'deficit': deficit,
     }
 
