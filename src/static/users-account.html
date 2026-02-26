@@ -8671,7 +8671,7 @@
             'CRITICAL': '#ef4444'
         };
 
-        function renderEeriAllPlansCard(data, isRealtime) {
+        function renderEeriAllPlansCard(data) {
             const valueEl = document.getElementById('eeriAllPlansValue');
             const bandEl = document.getElementById('eeriAllPlansBand');
             const trendIconEl = document.getElementById('eeriAllPlansTrendIcon');
@@ -8680,13 +8680,14 @@
             const interpEl = document.getElementById('eeriAllPlansInterp');
             const badgeEl = document.getElementById('eeriAllPlansBadge');
 
+            const isDelayed = data.is_delayed;
             if (badgeEl) {
-                if (isRealtime) {
-                    badgeEl.textContent = 'REAL-TIME';
-                    badgeEl.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
-                } else {
+                if (isDelayed) {
                     badgeEl.textContent = '24H DELAYED';
                     badgeEl.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+                } else {
+                    badgeEl.textContent = 'REAL-TIME';
+                    badgeEl.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
                 }
             }
 
@@ -8708,14 +8709,13 @@
             if (metaEl && data.date) {
                 const d = new Date(data.date + 'T00:00:00');
                 const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                metaEl.textContent = dateStr + (isRealtime ? '' : ' (24h delayed)');
+                metaEl.textContent = dateStr + (isDelayed ? ' (24h delayed)' : '');
             }
 
             if (interpEl) {
                 const interp = data.interpretation;
                 if (interp && interp.length > 10) {
-                    const truncated = interp.length > 350 ? interp.substring(0, 350) + '...' : interp;
-                    interpEl.innerHTML = truncated;
+                    interpEl.innerHTML = interp;
                 } else {
                     interpEl.innerHTML = '<span class="interp-placeholder">AI interpretation not yet available for this date.</span>';
                 }
@@ -8773,7 +8773,7 @@
             try {
                 const fetchPromises = [
                     fetch(`/api/v1/eeri-pro/weekly-snapshot?plan=${plan}`),
-                    fetch('/api/v1/indices/eeri/public')
+                    fetch(`/api/v1/eeri-pro/card?plan=${plan}`)
                 ];
                 
                 if (isTraderTier) {
@@ -8792,13 +8792,13 @@
                 
                 const results = await Promise.all(fetchPromises);
                 const snapshotData = await results[0].json();
-                const publicEeriData = await results[1].json();
+                const cardData = await results[1].json();
                 
                 if (loadingEl) loadingEl.style.display = 'none';
                 if (dashboardEl) dashboardEl.style.display = 'flex';
                 
-                if (publicEeriData.success !== false && (publicEeriData.value || publicEeriData.value === 0)) {
-                    renderEeriAllPlansCard(publicEeriData, false);
+                if (cardData.success && cardData.data) {
+                    renderEeriAllPlansCard(cardData.data);
                 }
                 
                 if (snapshotData.success && snapshotData.data) {
@@ -8826,7 +8826,6 @@
                     const regimeData = await results[resultIdx + 2].json();
                     
                     if (realtimeData.success && realtimeData.data) {
-                        renderEeriAllPlansCard(realtimeData.data, true);
                         renderEeriMainDisplay(realtimeData.data);
                         renderEeriComponents(realtimeData.data.component_breakdown);
                         renderEeriAssetStress(realtimeData.data.asset_stress);
