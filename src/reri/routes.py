@@ -58,9 +58,12 @@ async def get_eeri_public():
         'success': True,
         'value': result.get('value', 0),
         'band': result.get('band', 'LOW'),
+        'trend_1d': result.get('trend_1d', 0),
         'trend_7d': result.get('trend_7d', 0),
         'date': result.get('date'),
         'computed_at': result.get('computed_at'),
+        'interpretation': result.get('interpretation', ''),
+        'is_delayed': True,
     }
 
 
