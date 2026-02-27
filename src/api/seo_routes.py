@@ -2237,7 +2237,22 @@ async def geri_page(request: Request):
         </style>
     </head>
     <body>
-        {render_digest_nav()}
+        <nav class="nav">
+            <div class="nav-inner">
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                    EnergyRiskIQ
+                </a>
+                <div class="nav-links">
+                    <a href="/geri">GERI</a>
+                    <a href="/eeri">EERI</a>
+                    <a href="/egsi">EGSI</a>
+                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                </div>
+            </div>
+        </nav>
         <main>
             <div class="container">
                 <div class="breadcrumbs">
