@@ -2224,15 +2224,72 @@ async def geri_page(request: Request):
                 font-size: 1.25rem;
                 margin-bottom: 0.5rem;
             }}
+            .mobile-menu-btn {{
+                display: none;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.5rem;
+                color: #f1f5f9;
+            }}
+            .mobile-menu-btn span {{
+                display: block;
+                width: 22px;
+                height: 2px;
+                background: #f1f5f9;
+                margin: 5px 0;
+                border-radius: 2px;
+                transition: all 0.3s;
+            }}
             @media (max-width: 768px) {{
                 .weekly-card {{ grid-template-columns: 1fr; }}
                 .weekly-detail-row {{ grid-template-columns: 1fr; }}
                 .weekly-dates {{ margin-left: 0; width: 100%; margin-top: 0.5rem; }}
+                .mobile-menu-btn {{ display: block; }}
+                .nav-links {{
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #1e293b;
+                    border-top: 1px solid #334155;
+                    flex-direction: column;
+                    padding: 1rem;
+                    gap: 0;
+                    z-index: 200;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                }}
+                .nav-links.open {{ display: flex; }}
+                .nav-links a {{
+                    padding: 0.75rem 1rem;
+                    border-bottom: 1px solid #334155;
+                    width: 100%;
+                    text-align: left;
+                }}
+                .nav-links a:last-child {{ border-bottom: none; }}
+                .nav-links .cta-btn-nav {{
+                    margin-top: 0.5rem;
+                    text-align: center;
+                }}
+                .nav {{ position: relative; }}
+                .weekly-snapshot-section {{ padding: 1rem; }}
+                .weekly-chart {{ height: 110px; }}
+                .weekly-header {{ flex-direction: column; align-items: flex-start; gap: 0.25rem; }}
+                .geri-hero h1 {{ font-size: 1.35rem; }}
+                .geri-hero {{ padding: 1.5rem 0 0.75rem 0; }}
+                .container {{ padding: 0 0.75rem; }}
             }}
             @media (max-width: 600px) {{
                 .geri-simplified-drivers {{ flex-direction: column; align-items: center; }}
                 .geri-simplified-driver-card {{ max-width: 100%; width: 100%; }}
-                .nav-links {{ gap: 0.75rem; }}
+                .weekly-bar-elevation {{ font-size: 0.5rem; }}
+                .weekly-bar {{ max-width: 16px; }}
+                .weekly-stats {{ flex-direction: column; gap: 0.25rem; text-align: center; }}
+            }}
+            @media (max-width: 400px) {{
+                .weekly-chart {{ height: 90px; gap: 0.15rem; }}
+                .weekly-bar-label {{ font-size: 0.6rem; }}
             }}
         </style>
     </head>
@@ -2243,6 +2300,9 @@ async def geri_page(request: Request):
                     <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
                     EnergyRiskIQ
                 </a>
+                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
                 <div class="nav-links">
                     <a href="/geri">GERI</a>
                     <a href="/eeri">EERI</a>
@@ -4159,6 +4219,23 @@ def get_digest_dark_styles() -> str:
             padding: 0 1rem;
         }
         .footer-links { display: flex; gap: 1.5rem; }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: #f1f5f9;
+        }
+        .mobile-menu-btn span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #f1f5f9;
+            margin: 5px 0;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
         @media (max-width: 768px) {
             .digest-header-bar {
                 flex-direction: column;
@@ -4170,7 +4247,34 @@ def get_digest_dark_styles() -> str:
             .digest-asset-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #1e293b;
+                border-top: 1px solid #334155;
+                flex-direction: column;
+                padding: 1rem;
+                gap: 0;
+                z-index: 200;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a {
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid #334155;
+                width: 100%;
+                text-align: left;
+            }
+            .nav-links a:last-child { border-bottom: none; }
+            .nav-links .cta-btn-nav {
+                margin-top: 0.5rem;
+                text-align: center;
+            }
+            .nav { position: relative; }
             .footer-inner { flex-direction: column; text-align: center; }
         }
     </style>
@@ -4188,6 +4292,9 @@ def render_digest_nav() -> str:
                 <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
                 EnergyRiskIQ
             </a>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/geri">GERI</a>

@@ -468,12 +468,20 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
                 .ws-tend-conf {{ font-size: 0.75rem; font-weight: 600; text-align: center; padding: 2px 8px; border-radius: 4px; }}
                 .ws-conf-medium {{ background: #fef3c7; color: #92400e; }}
                 .ws-conf-low {{ background: #f1f5f9; color: #64748b; }}
+                @media (max-width: 768px) {{
+                    .ws-charts-row {{ grid-template-columns: 1fr 1fr; }}
+                    .ws-mini-chart {{ height: 150px; }}
+                    .ws-mini-chart-wrap {{ height: 100px; }}
+                    .ws-panel {{ padding: 1rem; }}
+                }}
                 @media (max-width: 640px) {{
                     .ws-asset-row {{ grid-template-columns: 1fr; gap: 0.25rem; }}
                     .ws-asset-context {{ padding-left: 0; }}
                     .ws-overview-grid {{ grid-template-columns: 1fr; }}
                     .ws-tend-row {{ grid-template-columns: 1fr; gap: 0.25rem; }}
-                    .ws-charts-row {{ grid-template-columns: 1fr 1fr; }}
+                    .ws-charts-row {{ grid-template-columns: 1fr; }}
+                    .ws-mini-chart {{ height: 180px; }}
+                    .ws-mini-chart-wrap {{ height: 130px; }}
                 }}
             </style>
 
@@ -585,6 +593,9 @@ async def eeri_public_page(request: Request):
         <body>
             <nav class="nav"><div class="nav-inner">
                 <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
+                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
                 <div class="nav-links">
                     <a href="/geri">GERI</a>
                     <a href="/eeri">EERI</a>
@@ -1005,15 +1016,67 @@ async def eeri_public_page(request: Request):
                 border-color: rgba(239, 68, 68, 0.3) !important;
                 color: #fca5a5 !important;
             }}
+            .mobile-menu-btn {{
+                display: none;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.5rem;
+                color: #f1f5f9;
+            }}
+            .mobile-menu-btn span {{
+                display: block;
+                width: 22px;
+                height: 2px;
+                background: #f1f5f9;
+                margin: 5px 0;
+                border-radius: 2px;
+                transition: all 0.3s;
+            }}
+            @media (max-width: 768px) {{
+                .mobile-menu-btn {{ display: block; }}
+                .nav-links {{
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #1e293b;
+                    border-top: 1px solid #334155;
+                    flex-direction: column;
+                    padding: 1rem;
+                    gap: 0;
+                    z-index: 200;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                }}
+                .nav-links.open {{ display: flex; }}
+                .nav-links a {{
+                    padding: 0.75rem 1rem;
+                    border-bottom: 1px solid #334155;
+                    width: 100%;
+                    text-align: left;
+                }}
+                .nav-links a:last-child {{ border-bottom: none; }}
+                .nav-links .cta-btn-nav {{
+                    margin-top: 0.5rem;
+                    text-align: center;
+                }}
+                .nav {{ position: relative; }}
+                .index-sections {{ grid-template-columns: 1fr; }}
+                .eeri-hero h1 {{ font-size: 1.35rem; }}
+                .container {{ padding: 0 0.75rem; }}
+            }}
             @media (max-width: 600px) {{
                 .index-sections {{ grid-template-columns: 1fr; }}
-                .nav-links {{ gap: 0.75rem; }}
             }}
         </style>
     </head>
     <body>
         <nav class="nav"><div class="nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
+            <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
             <div class="nav-links">
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
