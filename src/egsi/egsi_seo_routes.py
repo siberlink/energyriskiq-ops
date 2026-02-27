@@ -1,7 +1,7 @@
 """
 EGSI SEO Routes
 
-Public-facing SEO-optimized pages for the Europe Gas Stress Index (EGSI-M).
+Public-facing SEO-optimized pages for the Europe Gas Stress Index (EGSI-M & EGSI-S).
 Mounted at /egsi for search engine visibility.
 """
 import os
@@ -21,7 +21,9 @@ from src.egsi.egsi_history_service import (
     get_egsi_m_adjacent_dates,
     get_egsi_m_monthly_stats,
 )
+from src.egsi.repo import get_egsi_s_delayed
 from src.egsi.interpretation import generate_egsi_interpretation
+from src.api.seo_routes import get_digest_dark_styles, render_digest_footer
 
 router = APIRouter(tags=["egsi-seo"])
 
@@ -217,20 +219,15 @@ def format_trend(trend_7d) -> tuple:
 async def egsi_public_page(request: Request):
     """
     EGSI Main Public Page - SEO anchor page for Europe Gas Stress Index.
-    
-    Shows 24h delayed EGSI-M with:
-    - Today's level, band, trend
-    - Interpretation
-    - Top drivers
-    - Chokepoint watch
-    - Risk band visualization
+    Shows 24h delayed EGSI-M and EGSI-S with charts.
     """
-    egsi = get_egsi_m_delayed(delay_hours=24)
-    
-    if not egsi:
-        egsi = get_latest_egsi_m_public()
-    
-    if not egsi:
+    egsi_m = get_egsi_m_delayed(delay_hours=24)
+    if not egsi_m:
+        egsi_m = get_latest_egsi_m_public()
+
+    egsi_s = get_egsi_s_delayed(delay_days=1)
+
+    if not egsi_m and not egsi_s:
         no_data_html = f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -241,221 +238,747 @@ async def egsi_public_page(request: Request):
             <meta name="description" content="Track Europe's gas market stress levels with EGSI. Monitor supply disruptions, pipeline issues, and infrastructure chokepoints.">
             <link rel="canonical" href="{BASE_URL}/egsi">
             <link rel="icon" type="image/png" href="/static/favicon.png">
-            {get_common_styles()}
+            {get_digest_dark_styles()}
         </head>
         <body>
-            <nav class="nav"><div class="container nav-inner">
-                <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <nav class="nav"><div class="nav-inner">
+                <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
+                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
                 <div class="nav-links">
                     <a href="/geri">GERI</a>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
-                    <a href="/alerts">Alerts</a>
-                    <a href="/users" class="cta-nav">Get FREE Access</a>
+                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
                 </div>
             </div></nav>
             <main>
                 <div class="container">
-                    <div class="index-hero">
-                        <h1>Europe Gas Stress Index (EGSI)</h1>
-                        <p>A daily composite measure of gas market transmission stress across European infrastructure.</p>
+                    <div class="breadcrumbs"><a href="/">Home</a> / Europe Gas Stress Index</div>
+                    <div style="text-align: center; padding: 2rem 0;">
+                        <h1 style="font-size: 1.75rem; color: #f1f5f9; margin-bottom: 0.5rem;">Europe Gas Stress Index (EGSI)</h1>
+                        <p style="color: #94a3b8;">A daily composite measure of gas market stress across European infrastructure.</p>
                     </div>
-                    <div class="index-metric-card">
-                        <p style="color: #9ca3af;">EGSI data is being computed. Check back shortly.</p>
-                        <p style="margin-top: 1rem;"><a href="/users" class="cta-button primary">Sign up for alerts</a></p>
+                    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 2rem; text-align: center; max-width: 500px; margin: 2rem auto;">
+                        <h2 style="color: #f1f5f9; font-size: 1.25rem; margin-bottom: 0.5rem;">EGSI Data Coming Soon</h2>
+                        <p style="color: #94a3b8;">The Europe Gas Stress Index is being computed. Check back shortly.</p>
                     </div>
                 </div>
             </main>
-            <footer class="footer">
-                <div class="container">
-                    <p>&copy; {datetime.now().year} EnergyRiskIQ. <a href="/egsi/methodology">Methodology</a> | <a href="/egsi/history">History</a></p>
-                </div>
-            </footer>
+            {render_digest_footer()}
         </body>
         </html>
         """
         return HTMLResponse(content=no_data_html)
-    
-    value = egsi.get('value', 0)
-    band = egsi.get('band', 'LOW')
-    trend_7d = egsi.get('trend_7d')
-    date_str = egsi.get('date', 'N/A')
-    drivers = egsi.get('drivers', [])[:5]
-    components = egsi.get('components', {})
-    
-    # Use stored interpretation (unique per day), fallback to generation only if missing
-    interpretation = egsi.get('explanation') or egsi.get('interpretation')
-    if not interpretation:
-        interpretation = generate_egsi_interpretation(
-            value=value,
-            band=band,
-            drivers=drivers,
-            components=components,
-            index_date=date_str,
-            index_type="EGSI-M"
+
+    # --- EGSI-M data ---
+    m_value = egsi_m.get('value', 0) if egsi_m else None
+    m_band = egsi_m.get('band', 'LOW') if egsi_m else None
+    m_trend_7d = egsi_m.get('trend_7d') if egsi_m else None
+    m_date_str = egsi_m.get('date', 'N/A') if egsi_m else 'N/A'
+    m_drivers = egsi_m.get('drivers', [])[:5] if egsi_m else []
+    m_components = egsi_m.get('components', {}) if egsi_m else {}
+    m_interpretation = (egsi_m.get('explanation') or egsi_m.get('interpretation') or '') if egsi_m else ''
+    if egsi_m and not m_interpretation:
+        m_interpretation = generate_egsi_interpretation(
+            value=m_value, band=m_band, drivers=m_drivers,
+            components=m_components, index_date=m_date_str, index_type="EGSI-M"
         )
-    
-    band_color = get_band_color(band)
-    trend_label, trend_sign, trend_color = format_trend(trend_7d)
-    
-    drivers_html = ""
-    for driver in drivers:
-        drivers_html += f"""
-        <div class="card">
-            <h3>{driver.get('name', 'Unknown')}</h3>
-            <p>Type: {driver.get('type', 'N/A')}</p>
-            <p>Contribution: {driver.get('contribution', 0):.1f}%</p>
-        </div>
-        """
-    if not drivers_html:
-        drivers_html = '<div class="card"><p>No significant drivers detected.</p></div>'
-    
-    chokepoints = components.get('chokepoint_factor', {}).get('hits', []) if isinstance(components, dict) else []
-    chokepoints_html = ""
-    for cp in chokepoints[:3]:
-        chokepoints_html += f'<li>{cp}</li>'
-    if not chokepoints_html:
-        chokepoints_html = '<li>No active chokepoint alerts</li>'
-    
-    trend_display = ""
-    if trend_7d is not None:
-        trend_sign = "+" if trend_7d > 0 else ""
-        trend_display = f'<div class="index-trend" style="color: {trend_color};">7-Day Trend: {trend_label} ({trend_sign}{trend_7d:.0f})</div>'
-    
+
+    # --- EGSI-S data ---
+    s_value = egsi_s.get('value', 0) if egsi_s else None
+    s_band = egsi_s.get('band', 'LOW') if egsi_s else None
+    s_trend_7d = egsi_s.get('trend_7d') if egsi_s else None
+    s_date_str = egsi_s.get('date', 'N/A') if egsi_s else 'N/A'
+    s_interpretation = (egsi_s.get('explanation') or '') if egsi_s else ''
+    if egsi_s and not s_interpretation:
+        s_components = egsi_s.get('components', {})
+        s_interpretation = generate_egsi_interpretation(
+            value=s_value, band=s_band, drivers=[],
+            components=s_components, index_date=s_date_str, index_type="EGSI-S"
+        )
+
+    def _build_card(label, icon, value, band, trend_7d, date_str, computed_at, subtitle):
+        if value is None:
+            return f'''
+            <div class="egsi-metric-card">
+                <div class="egsi-card-header"><span>{icon}</span><span class="egsi-card-title">{label}</span></div>
+                <p style="color: #94a3b8; margin: 1rem 0;">Data not yet available</p>
+            </div>'''
+        ca_str = str(computed_at)
+        if len(ca_str) > 19:
+            ca_str = ca_str[:19].replace('T', ', ') + ' UTC'
+        bc = get_band_color(band)
+        tl, ts, tc = format_trend(trend_7d)
+        trend_html = ''
+        if trend_7d is not None:
+            sign = '+' if trend_7d > 0 else ''
+            trend_html = f'<div class="egsi-trend" style="color: {tc};">7-Day Trend: {tl} ({sign}{trend_7d:.0f})</div>'
+        return f'''
+        <div class="egsi-metric-card">
+            <div class="egsi-card-header"><span>{icon}</span><span class="egsi-card-title">{label}</span></div>
+            <div class="egsi-card-subtitle">{subtitle}</div>
+            <div class="egsi-card-value" style="color: {bc};">{value:.0f} / 100 ({band})</div>
+            <div class="egsi-card-scale">0 = minimal stress · 100 = extreme stress</div>
+            {trend_html}
+            <div class="egsi-card-meta">
+                <span>Index Date: <strong>{date_str}</strong></span>
+                <span>Computed: <strong>{ca_str}</strong></span>
+            </div>
+            <div class="egsi-delay-badge">24h Delayed (Free Plan)</div>
+        </div>'''
+
+    m_card = _build_card(
+        "EGSI-M · Market Stress", "⚡",
+        m_value, m_band, m_trend_7d, m_date_str,
+        egsi_m.get('computed_at', m_date_str) if egsi_m else 'N/A',
+        "Transmission & infrastructure stress signals"
+    )
+    s_card = _build_card(
+        "EGSI-S · System Stress", "🔋",
+        s_value, s_band, s_trend_7d, s_date_str,
+        egsi_s.get('computed_at', s_date_str) if egsi_s else 'N/A',
+        "Storage, pricing & supply conditions"
+    )
+
+    # Drivers section (from EGSI-M)
     drivers_list_html = ""
-    for driver in drivers:
+    for driver in m_drivers:
         driver_name = driver.get('name', 'Unknown')
         driver_type = driver.get('type', 'N/A')
         contribution = driver.get('contribution', 0)
-        drivers_list_html += f'<li><span class="driver-tag">{driver_type}</span><br>{driver_name} ({contribution:.1f}% contribution)</li>'
+        drivers_list_html += f'<li><span class="driver-tag">{driver_type}</span> {driver_name} ({contribution:.1f}%)</li>'
     if not drivers_list_html:
         drivers_list_html = '<li>No significant drivers detected</li>'
-    
+
+    chokepoints = m_components.get('chokepoint_factor', {}).get('hits', []) if isinstance(m_components, dict) else []
     chokepoints_list_html = ""
     for cp in chokepoints[:5]:
         chokepoints_list_html += f'<li>{cp}</li>'
     if not chokepoints_list_html:
         chokepoints_list_html = '<li>No active chokepoint alerts</li>'
-    
-    delay_badge = '<div class="index-delay-badge">24h delayed • Real-time access with subscription</div>'
-    
+
+    # Interpretation
+    interp_html = ""
+    if m_interpretation:
+        interp_html += f'<div class="egsi-interp-card"><div class="egsi-interp-header"><span>🧠</span><h3>EGSI-M Interpretation</h3></div><div class="egsi-interp-body"><p>{m_interpretation.replace(chr(10)+chr(10), "</p><p>")}</p></div></div>'
+    if s_interpretation:
+        interp_html += f'<div class="egsi-interp-card"><div class="egsi-interp-header"><span>📊</span><h3>EGSI-S Interpretation</h3></div><div class="egsi-interp-body"><p>{s_interpretation.replace(chr(10)+chr(10), "</p><p>")}</p></div></div>'
+
+    meta_value = m_value if m_value is not None else (s_value or 0)
+    meta_band = m_band or s_band or 'LOW'
+    meta_interp = m_interpretation or s_interpretation or ''
+    m_value_display = f"{m_value:.0f}" if m_value is not None else "N/A"
+    m_band_display = m_band or 'N/A'
+
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Europe Gas Stress Index (EGSI) - {band} at {value:.0f} | EnergyRiskIQ</title>
-        <meta name="description" content="EGSI at {value:.0f} ({band}). {interpretation[:150]}">
+        <title>Europe Gas Stress Index (EGSI) - {meta_band} at {meta_value:.0f} | EnergyRiskIQ</title>
+        <meta name="description" content="EGSI-M at {m_value_display} ({m_band_display}). Track European gas market and system stress.">
         <link rel="canonical" href="{BASE_URL}/egsi">
         <link rel="icon" type="image/png" href="/static/favicon.png">
-        
+
         <meta property="og:title" content="Europe Gas Stress Index (EGSI) | EnergyRiskIQ">
-        <meta property="og:description" content="EGSI at {value:.0f} ({band}). Track European gas market stress in real-time.">
+        <meta property="og:description" content="EGSI at {meta_value:.0f} ({meta_band}). Track European gas market stress in real-time.">
         <meta property="og:type" content="website">
         <meta property="og:url" content="{BASE_URL}/egsi">
-        
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="EGSI at {value:.0f} ({band})">
-        <meta name="twitter:description" content="{interpretation[:200]}">
-        
+
         <script type="application/ld+json">
         {{
             "@context": "https://schema.org",
             "@type": "Dataset",
             "name": "Europe Gas Stress Index (EGSI)",
-            "description": "Daily index measuring gas market stress signals across European infrastructure",
+            "description": "Daily index measuring gas market and system stress across European infrastructure",
             "url": "{BASE_URL}/egsi",
-            "creator": {{
-                "@type": "Organization",
-                "name": "EnergyRiskIQ"
-            }},
-            "dateModified": "{date_str}",
-            "variableMeasured": {{
-                "@type": "PropertyValue",
-                "name": "EGSI Value",
-                "value": {value:.1f},
-                "unitText": "index points (0-100)"
-            }}
+            "creator": {{"@type": "Organization", "name": "EnergyRiskIQ"}},
+            "dateModified": "{m_date_str}"
         }}
         </script>
-        
-        {get_common_styles()}
+
+        {get_digest_dark_styles()}
+        <style>
+            .egsi-hero {{
+                text-align: center;
+                padding: 2rem 0 1rem 0;
+            }}
+            .egsi-hero h1 {{
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
+                color: #f1f5f9;
+            }}
+            .egsi-hero p {{
+                color: #94a3b8;
+                max-width: 600px;
+                margin: 0 auto;
+            }}
+            .egsi-hero .methodology-link {{
+                margin-top: 0.75rem;
+            }}
+            .egsi-hero .methodology-link a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.95rem;
+            }}
+            .egsi-hero .methodology-link a:hover {{
+                color: #93c5fd;
+                text-decoration: underline;
+            }}
+            .egsi-cards-row {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .egsi-metric-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: center;
+            }}
+            .egsi-card-header {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                margin-bottom: 0.25rem;
+                font-size: 1.1rem;
+            }}
+            .egsi-card-title {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+            }}
+            .egsi-card-subtitle {{
+                font-size: 0.8rem;
+                color: #94a3b8;
+                margin-bottom: 0.75rem;
+            }}
+            .egsi-card-value {{
+                font-size: 2rem;
+                font-weight: 700;
+                margin: 0.5rem 0;
+            }}
+            .egsi-card-scale {{
+                font-size: 0.75rem;
+                color: #64748b;
+                margin-bottom: 0.5rem;
+            }}
+            .egsi-trend {{
+                font-size: 0.9rem;
+                font-weight: 500;
+                margin-bottom: 0.5rem;
+            }}
+            .egsi-card-meta {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.2rem;
+                font-size: 0.8rem;
+                color: #64748b;
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid #334155;
+            }}
+            .egsi-card-meta strong {{
+                color: #cbd5e1;
+            }}
+            .egsi-delay-badge {{
+                display: inline-block;
+                background: rgba(251, 191, 36, 0.15);
+                border: 1px solid rgba(251, 191, 36, 0.3);
+                color: #fbbf24;
+                padding: 4px 12px;
+                border-radius: 16px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin-top: 0.75rem;
+            }}
+            .egsi-sections {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .egsi-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem;
+            }}
+            .egsi-section h2 {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #60a5fa;
+                margin-bottom: 0.75rem;
+            }}
+            .egsi-list {{
+                list-style: disc;
+                padding-left: 1.25rem;
+                color: #d1d5db;
+                margin: 0;
+            }}
+            .egsi-list li {{
+                margin-bottom: 0.5rem;
+                line-height: 1.4;
+                font-size: 0.9rem;
+                overflow-wrap: break-word;
+            }}
+            .driver-tag {{
+                color: #4ecdc4;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }}
+            .source-attribution {{
+                font-size: 0.8rem;
+                color: #64748b;
+                margin-top: 0.75rem;
+                font-style: italic;
+            }}
+            .source-attribution a {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .source-attribution a:hover {{
+                text-decoration: underline;
+            }}
+            .egsi-interp-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                margin-bottom: 1.25rem;
+                overflow: hidden;
+            }}
+            .egsi-interp-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 1rem 1.25rem;
+                border-bottom: 1px solid #334155;
+            }}
+            .egsi-interp-header h3 {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0;
+            }}
+            .egsi-interp-body {{
+                padding: 1.25rem;
+            }}
+            .egsi-interp-body p {{
+                color: #cbd5e1;
+                font-size: 0.9rem;
+                line-height: 1.6;
+                margin: 0 0 0.75rem 0;
+                overflow-wrap: break-word;
+            }}
+            .egsi-interp-body p:last-child {{
+                margin-bottom: 0;
+            }}
+            .egsi-chart-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem;
+                margin-bottom: 1.25rem;
+            }}
+            .egsi-chart-section h3 {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin-bottom: 1rem;
+            }}
+            .egsi-chart-row {{
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.25rem;
+                margin-bottom: 1.25rem;
+            }}
+            .egsi-chart-box {{
+                background: rgba(15, 23, 42, 0.5);
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1rem;
+            }}
+            .egsi-chart-box h4 {{
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #94a3b8;
+                margin-bottom: 0.75rem;
+                text-align: center;
+            }}
+            .egsi-chart-box canvas {{
+                width: 100% !important;
+                max-height: 200px;
+            }}
+            .egsi-cta {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: center;
+                margin: 1.25rem 0;
+            }}
+            .egsi-cta h3 {{
+                color: #60a5fa;
+                margin-bottom: 0.5rem;
+                font-size: 1.1rem;
+            }}
+            .egsi-cta p {{
+                color: #94a3b8;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+            }}
+            .cta-button {{
+                display: inline-block;
+                padding: 0.6rem 1.25rem;
+                border-radius: 6px;
+                font-weight: 600;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }}
+            .cta-button.primary {{
+                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                color: white;
+            }}
+            .cta-button.primary:hover {{
+                opacity: 0.9;
+            }}
+            .egsi-links {{
+                text-align: center;
+                margin: 1.5rem 0;
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+            }}
+            .egsi-links a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.9rem;
+                font-weight: 500;
+            }}
+            .egsi-links a:hover {{
+                text-decoration: underline;
+            }}
+            .breadcrumbs {{
+                padding: 1rem 0 0.5rem 0;
+                font-size: 0.85rem;
+                color: #64748b;
+            }}
+            .breadcrumbs a {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .breadcrumbs a:hover {{
+                text-decoration: underline;
+            }}
+            .mobile-menu-btn {{
+                display: none;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0.5rem;
+                color: #f1f5f9;
+            }}
+            .mobile-menu-btn span {{
+                display: block;
+                width: 22px;
+                height: 2px;
+                background: #f1f5f9;
+                margin: 5px 0;
+                border-radius: 2px;
+                transition: all 0.3s;
+            }}
+            @media (max-width: 768px) {{
+                .mobile-menu-btn {{ display: block; }}
+                .nav-links {{
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #1e293b;
+                    border-top: 1px solid #334155;
+                    flex-direction: column;
+                    padding: 1rem;
+                    gap: 0;
+                    z-index: 200;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                }}
+                .nav-links.open {{ display: flex; }}
+                .nav-links a {{
+                    padding: 0.75rem 1rem;
+                    border-bottom: 1px solid #334155;
+                    width: 100%;
+                    text-align: left;
+                }}
+                .nav-links a:last-child {{ border-bottom: none; }}
+                .nav-links .cta-btn-nav {{
+                    margin-top: 0.5rem;
+                    text-align: center;
+                }}
+                .nav {{ position: relative; }}
+                .egsi-cards-row {{ grid-template-columns: 1fr; }}
+                .egsi-sections {{ grid-template-columns: 1fr; }}
+                .egsi-chart-row {{ grid-template-columns: 1fr; }}
+                .egsi-hero h1 {{ font-size: 1.35rem; }}
+                .egsi-card-value {{ font-size: 1.5rem; }}
+                .container {{ padding: 0 0.75rem; }}
+            }}
+        </style>
     </head>
     <body>
-        <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
-            <div class="nav-links">
-                <a href="/geri">GERI</a>
-                <a href="/eeri">EERI</a>
-                <a href="/egsi">EGSI</a>
-                <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+        <nav class="nav">
+            <div class="nav-inner">
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                    EnergyRiskIQ
+                </a>
+                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="nav-links">
+                    <a href="/geri">GERI</a>
+                    <a href="/eeri">EERI</a>
+                    <a href="/egsi">EGSI</a>
+                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                </div>
             </div>
-        </div></nav>
-        
+        </nav>
         <main>
             <div class="container">
-                <div class="index-hero">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / Europe Gas Stress Index
+                </div>
+                <div class="egsi-hero">
                     <h1>Europe Gas Stress Index (EGSI)</h1>
-                    <p>A daily composite measure of gas market transmission stress across European infrastructure.</p>
-                    <p class="methodology-link"><a href="/egsi/methodology">(EGSI Methodology & Construction)</a></p>
+                    <p>A daily composite measure of gas market and system stress across European infrastructure.</p>
+                    <p class="methodology-link"><a href="/egsi/methodology">(EGSI Methodology &amp; Construction)</a></p>
                 </div>
-                
-                <div class="index-metric-card">
-                    <div class="index-header">
-                        <span class="index-icon">🔥</span>
-                        <span class="index-title">Europe Gas Stress Index:</span>
-                    </div>
-                    <div class="index-value" style="color: {band_color};">{value:.0f} / 100 ({band})</div>
-                    <div class="index-scale-ref">0 = minimal stress · 100 = extreme market stress</div>
-                    {trend_display}
-                    <div class="index-date">Date Computed: {egsi.get('computed_at', date_str)}</div>
+
+                <div class="egsi-cards-row">
+                    {m_card}
+                    {s_card}
                 </div>
-                
-                <div class="index-sections">
-                    <div class="index-section">
-                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
-                        <ul class="index-list">{drivers_list_html}</ul>
-                        <p class="source-attribution" style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem; font-style: italic;">(Based on recent EnergyRiskIQ alerts) <a href="/alerts" style="color: #2563eb;">View alerts &rarr;</a></p>
+
+                <div class="egsi-sections">
+                    <div class="egsi-section">
+                        <h2>Primary Risk Drivers:</h2>
+                        <ul class="egsi-list">{drivers_list_html}</ul>
+                        <p class="source-attribution">(Based on recent EnergyRiskIQ alerts) <a href="/alerts">View alerts &rarr;</a></p>
                     </div>
-                    
-                    <div class="index-section">
-                        <h2 class="section-header-blue">Chokepoint Watch:</h2>
-                        <ul class="index-list">{chokepoints_list_html}</ul>
+                    <div class="egsi-section">
+                        <h2>Chokepoint Watch:</h2>
+                        <ul class="egsi-list">{chokepoints_list_html}</ul>
                     </div>
                 </div>
-                
-                <div class="index-interpretation">
-                    <p>{interpretation.replace(chr(10)+chr(10), '</p><p>')}</p>
+
+                {interp_html}
+
+                <div class="egsi-chart-section">
+                    <h3>📈 EGSI-M History</h3>
+                    <div class="egsi-chart-row">
+                        <div class="egsi-chart-box">
+                            <h4>Last 7 Days</h4>
+                            <canvas id="egsiM7"></canvas>
+                        </div>
+                        <div class="egsi-chart-box">
+                            <h4>Last 30 Days</h4>
+                            <canvas id="egsiM30"></canvas>
+                        </div>
+                    </div>
                 </div>
-                
-                {delay_badge}
-                
-                <div class="index-cta">
+
+                <div class="egsi-chart-section">
+                    <h3>📈 EGSI-S History</h3>
+                    <div class="egsi-chart-row">
+                        <div class="egsi-chart-box">
+                            <h4>Last 7 Days</h4>
+                            <canvas id="egsiS7"></canvas>
+                        </div>
+                        <div class="egsi-chart-box">
+                            <h4>Last 30 Days</h4>
+                            <canvas id="egsiS30"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="egsi-chart-section">
+                    <h3>📊 EGSI-M vs EGSI-S (30 Days)</h3>
+                    <div class="egsi-chart-box" style="max-width: 100%;">
+                        <canvas id="egsiCompare"></canvas>
+                    </div>
+                </div>
+
+                <div class="egsi-cta">
                     <h3>Get Real-time Access</h3>
                     <p>Unlock instant EGSI updates with a Pro subscription.</p>
                     <a href="/users" class="cta-button primary">Unlock Real-time EGSI</a>
                 </div>
-                
-                <div class="index-links">
-                    <a href="/egsi/history">EGSI History</a>
+
+                <div class="egsi-links">
+                    <a href="/egsi/history">View History</a>
                     <a href="/egsi/methodology">Methodology</a>
                 </div>
             </div>
         </main>
-        
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; {datetime.now().year} EnergyRiskIQ. All rights reserved.</p>
-                <p style="margin-top: 0.5rem;">
-                    <a href="/egsi/history">EGSI History</a> · 
-                    <a href="/egsi/methodology">Methodology</a> · 
-                    <a href="/eeri">EERI</a> · 
-                    <a href="/geri">GERI</a>
-                </p>
-            </div>
-        </footer>
+        {render_digest_footer()}
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script>
+        (async function() {{
+            const chartDefaults = {{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {{
+                    legend: {{ display: false }},
+                    tooltip: {{
+                        backgroundColor: '#1e293b',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#cbd5e1',
+                        padding: 10,
+                        cornerRadius: 8,
+                    }}
+                }},
+                scales: {{
+                    x: {{
+                        ticks: {{ color: '#64748b', maxRotation: 45, font: {{ size: 10 }} }},
+                        grid: {{ color: 'rgba(51, 65, 85, 0.3)' }}
+                    }},
+                    y: {{
+                        min: 0, max: 100,
+                        ticks: {{ color: '#64748b', font: {{ size: 10 }} }},
+                        grid: {{ color: 'rgba(51, 65, 85, 0.3)' }}
+                    }}
+                }}
+            }};
+
+            function bandColor(val) {{
+                if (val >= 80) return '#dc2626';
+                if (val >= 60) return '#ef4444';
+                if (val >= 40) return '#f97316';
+                if (val >= 20) return '#3b82f6';
+                return '#22c55e';
+            }}
+
+            function buildLineChart(canvasId, labels, data, color) {{
+                const ctx = document.getElementById(canvasId);
+                if (!ctx) return;
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: labels,
+                        datasets: [{{
+                            data: data,
+                            borderColor: color,
+                            backgroundColor: color + '20',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: color,
+                            fill: true,
+                            tension: 0.3
+                        }}]
+                    }},
+                    options: chartDefaults
+                }});
+            }}
+
+            // Fetch EGSI-M history
+            let mData = [];
+            try {{
+                const resp = await fetch('/api/v1/indices/egsi-m/history?days=30');
+                if (resp.ok) {{
+                    const result = await resp.json();
+                    mData = (result.data || []).sort((a, b) => a.date.localeCompare(b.date));
+                }}
+            }} catch(e) {{}}
+
+            // Fetch EGSI-S history
+            let sData = [];
+            try {{
+                const resp = await fetch('/api/v1/indices/egsi-s/history?days=30');
+                if (resp.ok) {{
+                    const result = await resp.json();
+                    sData = (result.data || []).sort((a, b) => a.date.localeCompare(b.date));
+                }}
+            }} catch(e) {{}}
+
+            // EGSI-M charts
+            if (mData.length > 0) {{
+                const m7 = mData.slice(-7);
+                const m30 = mData;
+                buildLineChart('egsiM7', m7.map(d => d.date.slice(5)), m7.map(d => d.value), '#3b82f6');
+                buildLineChart('egsiM30', m30.map(d => d.date.slice(5)), m30.map(d => d.value), '#3b82f6');
+            }}
+
+            // EGSI-S charts
+            if (sData.length > 0) {{
+                const s7 = sData.slice(-7);
+                const s30 = sData;
+                buildLineChart('egsiS7', s7.map(d => d.date.slice(5)), s7.map(d => d.value), '#22c55e');
+                buildLineChart('egsiS30', s30.map(d => d.date.slice(5)), s30.map(d => d.value), '#22c55e');
+            }}
+
+            // Combined chart
+            if (mData.length > 0 || sData.length > 0) {{
+                const allDates = [...new Set([...mData.map(d => d.date), ...sData.map(d => d.date)])].sort();
+                const mMap = Object.fromEntries(mData.map(d => [d.date, d.value]));
+                const sMap = Object.fromEntries(sData.map(d => [d.date, d.value]));
+                const ctx = document.getElementById('egsiCompare');
+                if (ctx) {{
+                    new Chart(ctx, {{
+                        type: 'line',
+                        data: {{
+                            labels: allDates.map(d => d.slice(5)),
+                            datasets: [
+                                {{
+                                    label: 'EGSI-M',
+                                    data: allDates.map(d => mMap[d] ?? null),
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: '#3b82f620',
+                                    borderWidth: 2,
+                                    pointRadius: 2,
+                                    tension: 0.3,
+                                    spanGaps: true
+                                }},
+                                {{
+                                    label: 'EGSI-S',
+                                    data: allDates.map(d => sMap[d] ?? null),
+                                    borderColor: '#22c55e',
+                                    backgroundColor: '#22c55e20',
+                                    borderWidth: 2,
+                                    pointRadius: 2,
+                                    tension: 0.3,
+                                    spanGaps: true
+                                }}
+                            ]
+                        }},
+                        options: {{
+                            ...chartDefaults,
+                            plugins: {{
+                                ...chartDefaults.plugins,
+                                legend: {{
+                                    display: true,
+                                    labels: {{ color: '#94a3b8', font: {{ size: 11 }} }}
+                                }}
+                            }}
+                        }}
+                    }});
+                }}
+            }}
+        }})();
+        </script>
     </body>
     </html>
     """
