@@ -476,7 +476,7 @@ def get_common_styles() -> str:
             flex-wrap: wrap;
             gap: 1rem;
         }
-        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
         .disclaimer {
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -2026,6 +2026,9 @@ async def geri_page(request: Request):
                 border: 1px solid #334155;
                 border-radius: 12px;
                 padding: 1.5rem;
+                overflow: hidden;
+                box-sizing: border-box;
+                max-width: 100%;
             }}
             .weekly-header {{
                 display: flex;
@@ -2050,11 +2053,14 @@ async def geri_page(request: Request):
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 1.5rem;
+                overflow: hidden;
             }}
             .weekly-chart-container {{
                 background: rgba(15, 23, 42, 0.5);
                 border-radius: 10px;
                 padding: 1rem;
+                min-width: 0;
+                overflow: hidden;
             }}
             .weekly-chart-header {{
                 display: flex;
@@ -2089,6 +2095,9 @@ async def geri_page(request: Request):
                 margin-bottom: 0.5rem;
                 white-space: nowrap;
                 transform-origin: center bottom;
+                max-width: 50px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }}
             .weekly-bar {{
                 width: 100%;
@@ -2112,7 +2121,7 @@ async def geri_page(request: Request):
                 color: #94a3b8;
             }}
             .weekly-stats strong {{ color: #d1d5db; }}
-            .weekly-details {{ display: flex; flex-direction: column; gap: 0.75rem; }}
+            .weekly-details {{ display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; overflow: hidden; }}
             .weekly-detail-section h3 {{
                 font-size: 0.8rem;
                 font-weight: 600;
@@ -2129,6 +2138,8 @@ async def geri_page(request: Request):
                 color: #e2e8f0;
                 padding: 0.2rem 0;
                 border-bottom: 1px solid rgba(107, 114, 128, 0.2);
+                overflow-wrap: break-word;
+                word-break: break-word;
             }}
             .weekly-drivers li:last-child {{ border-bottom: none; }}
             .driver-num {{ color: #60a5fa; font-weight: 600; margin-right: 0.5rem; }}
@@ -2162,6 +2173,8 @@ async def geri_page(request: Request):
                 font-size: 0.85rem;
                 color: #cbd5e1;
                 line-height: 1.5;
+                overflow-wrap: break-word;
+                word-break: break-word;
             }}
             .geri-cta {{
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -2279,17 +2292,27 @@ async def geri_page(request: Request):
                 .geri-hero h1 {{ font-size: 1.35rem; }}
                 .geri-hero {{ padding: 1.5rem 0 0.75rem 0; }}
                 .container {{ padding: 0 0.75rem; }}
+                .weekly-interpretation {{ padding: 0.5rem; }}
+                .weekly-interpretation p {{ font-size: 0.8rem; }}
+                .weekly-drivers li {{ font-size: 0.8rem; }}
+                .weekly-chart-container {{ padding: 0.75rem; }}
             }}
             @media (max-width: 600px) {{
                 .geri-simplified-drivers {{ flex-direction: column; align-items: center; }}
                 .geri-simplified-driver-card {{ max-width: 100%; width: 100%; }}
-                .weekly-bar-elevation {{ font-size: 0.5rem; }}
-                .weekly-bar {{ max-width: 16px; }}
+                .weekly-bar-elevation {{ font-size: 0.45rem; max-width: 35px; }}
+                .weekly-bar {{ max-width: 14px; }}
                 .weekly-stats {{ flex-direction: column; gap: 0.25rem; text-align: center; }}
+                .weekly-detail-row {{ grid-template-columns: 1fr; }}
+                .weekly-snapshot-section {{ padding: 0.75rem; }}
             }}
             @media (max-width: 400px) {{
-                .weekly-chart {{ height: 90px; gap: 0.15rem; }}
-                .weekly-bar-label {{ font-size: 0.6rem; }}
+                .weekly-chart {{ height: 90px; gap: 0.1rem; }}
+                .weekly-bar-label {{ font-size: 0.55rem; }}
+                .weekly-bar-elevation {{ display: none; }}
+                .weekly-snapshot-section {{ padding: 0.5rem; }}
+                .weekly-chart-container {{ padding: 0.5rem; }}
+                .region-tag, .asset-tag {{ font-size: 0.65rem; padding: 0.2rem 0.4rem; }}
             }}
         </style>
     </head>
@@ -3874,6 +3897,7 @@ def get_digest_dark_styles() -> str:
             background: #0f172a;
             color: #e2e8f0;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         .container { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
         .nav {
@@ -4218,7 +4242,7 @@ def get_digest_dark_styles() -> str:
             margin: 0 auto;
             padding: 0 1rem;
         }
-        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
         .mobile-menu-btn {
             display: none;
             background: none;
