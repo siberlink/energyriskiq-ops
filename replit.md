@@ -14,7 +14,7 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - Marketing landing pages, user authentication flows, and an admin portal are included.
 - User-facing dashboards provide event queries, risk summaries, and alert history.
 - Admin UI allows management of plan settings.
-- Public-facing SEO-optimized pages for indices like EERI and EGSI, including methodology and historical data.
+- Public-facing SEO-optimized pages for indices like GERI, EERI and EGSI, including methodology and historical data. GERI public page uses digest-style dark theme (get_digest_dark_styles, render_digest_nav, render_digest_footer) with full 2-paragraph AI interpretation.
 
 **Technical Implementations:**
 - **Event Ingestion:** RSS feeds are fetched and categorized using keyword classification.

@@ -1637,61 +1637,80 @@ async def geri_page(request: Request):
                 top_regions=geri.top_regions[:3] if geri.top_regions else [],
                 index_date=geri.computed_at
             )
-        interp_words = interpretation.split()
-        interp_preview = ' '.join(interp_words[:30])
-        interp_has_more = len(interp_words) > 30
+        interp_paragraphs = [p.strip() for p in interpretation.split('\n') if p.strip()]
+        if len(interp_paragraphs) > 2:
+            interp_paragraphs = interp_paragraphs[:2]
+        elif len(interp_paragraphs) == 1:
+            words = interp_paragraphs[0].split()
+            if len(words) > 60:
+                mid = len(words) // 2
+                interp_paragraphs = [' '.join(words[:mid]), ' '.join(words[mid:])]
+        interp_html = ''.join(f'<p>{p}</p>' for p in interp_paragraphs)
         
-        delay_badge = '<div class="geri-delay-badge">24h delayed • Real-time access with subscription</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time data</div>'
+        delay_badge = '<div class="geri-delay-badge">24h Delayed (Free Plan)</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time Data</div>'
         
         geri_content = f"""
         <div class="geri-metric-card">
             <div class="geri-header">
-                <span class="geri-flame">🔥</span>
-                <span class="geri-title">Global Energy Risk Index:</span>
+                <span class="geri-flame">&#x1F525;</span>
+                <span class="geri-title">Global Energy Risk Index</span>
             </div>
-            <div class="geri-value" style="font-size: 1.5rem; font-weight: bold; color: {band_color}; margin: 0.5rem 0;">{geri.value} / 100 ({geri.band})</div>
-            <div class="geri-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
-            <div class="geri-date">Date Computed: {geri.computed_at}</div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: {band_color}; margin: 0.5rem 0; line-height: 1;">{geri.value}<span style="font-size: 1rem; color: #64748b;"> / 100</span></div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: {band_color}; margin-bottom: 0.25rem;">{geri.band}</div>
+            <div class="geri-scale-ref">0 = minimal risk &middot; 100 = extreme systemic stress</div>
+            {trend_display}
+            <div class="geri-date">Computed: {geri.computed_at}</div>
             {delay_badge}
-        </div>
-
-        <div class="geri-chart-section">
-            <h3 style="color: #e2e8f0; margin-bottom: 12px;">GERI History <span style="color:#9ca3af;">(14 days)</span></h3>
-            <div style="position:relative; height:220px; background:#0f172a; border:1px solid #334155; border-radius:0.75rem; padding:16px;">
-                <canvas id="geriPublicChart"></canvas>
-            </div>
-            <p style="font-size:0.75rem; color:#6b7280; margin-top:8px; text-align:center;">Brent Oil overlay shown by default</p>
         </div>
 
         <div class="geri-simplified-drivers">
             <div class="geri-simplified-driver-card">
-                <div class="driver-icon-pub">⚔️</div>
+                <div class="driver-icon-pub">&#x2694;&#xFE0F;</div>
                 <div class="driver-label-pub">Geopolitical Risk</div>
                 <div class="driver-level-pub {geo_cls}">{geo_text}</div>
             </div>
             <div class="geri-simplified-driver-card">
-                <div class="driver-icon-pub">⛽</div>
+                <div class="driver-icon-pub">&#x26FD;</div>
                 <div class="driver-label-pub">Energy Supply</div>
                 <div class="driver-level-pub {ene_cls}">{ene_text}</div>
             </div>
             <div class="geri-simplified-driver-card">
-                <div class="driver-icon-pub">📊</div>
+                <div class="driver-icon-pub">&#x1F4CA;</div>
                 <div class="driver-label-pub">Market Stress</div>
                 <div class="driver-level-pub {mkt_cls}">{mkt_text}</div>
             </div>
         </div>
 
-        <div class="geri-interpretation-preview-pub">
-            <div style="color:#60a5fa; font-weight:600; margin-bottom:8px;">GERI Interpretation</div>
-            <p style="color:#d1d5db; font-style:italic;">"{interp_preview}{'...' if interp_has_more else ''}"</p>
+        <div class="geri-interp-card">
+            <div class="geri-interp-card-header">
+                <span style="font-size: 16px;">&#x1F9E0;</span>
+                <h3>GERI Interpretation</h3>
+            </div>
+            <div class="geri-interp-card-body">
+                {interp_html}
+            </div>
+        </div>
+
+        <div class="geri-chart-section">
+            <div class="digest-card">
+                <div class="digest-card-header">
+                    <span class="digest-section-icon">&#x1F4C8;</span>
+                    <h3>GERI History (14 days)</h3>
+                </div>
+                <div style="padding: 16px;">
+                    <div style="position:relative; height:220px;">
+                        <canvas id="geriPublicChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="geri-public-note">
+        <div class="geri-note-card">
             <div class="note-header">
-                <span class="note-icon">📢</span>
-                <span class="note-label">Please Note:</span>
+                <span style="font-size: 1.1rem;">&#x1F4E2;</span>
+                <span class="note-label">Please Note</span>
             </div>
-            <p class="note-content">This is the public <strong>24h delayed</strong> index. To see the <strong>Real-Time GERI</strong> including Charts, Momentum, History, Energy Assets and more... <a href="/users" class="note-cta">create your account today</a> and get started.</p>
+            <p class="note-content">This is the public <strong>24h delayed</strong> index. To see the <strong>Real-Time GERI</strong> including Charts, Momentum, History, Energy Assets and more &mdash; <a href="/users" class="note-cta">create your account today</a> and get started.</p>
             <p class="note-tagline">GERI will tell you whether the world is actually becoming more dangerous — or just noisier!</p>
         </div>
         """
@@ -1815,20 +1834,22 @@ async def geri_page(request: Request):
         <meta property="og:type" content="website">
         
         <link rel="icon" type="image/png" href="/static/favicon.png">
-        {get_common_styles()}
+        {get_digest_dark_styles()}
         <style>
             .geri-hero {{
                 text-align: center;
-                padding: 2rem 0;
+                padding: 2rem 0 1rem 0;
             }}
             .geri-hero h1 {{
-                font-size: 2rem;
+                font-size: 1.75rem;
                 margin-bottom: 0.5rem;
+                color: #f1f5f9;
             }}
             .geri-hero p {{
-                color: #9ca3af;
+                color: #94a3b8;
                 max-width: 600px;
                 margin: 0 auto;
+                font-size: 0.95rem;
             }}
             .geri-hero .methodology-link {{
                 margin-top: 0.75rem;
@@ -1836,8 +1857,7 @@ async def geri_page(request: Request):
             .geri-hero .methodology-link a {{
                 color: #60a5fa;
                 text-decoration: none;
-                font-size: 0.95rem;
-                transition: color 0.2s;
+                font-size: 0.9rem;
             }}
             .geri-hero .methodology-link a:hover {{
                 color: #93c5fd;
@@ -1846,219 +1866,209 @@ async def geri_page(request: Request):
             .geri-metric-card {{
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border: 1px solid #334155;
-                border-radius: 1rem;
-                padding: 2rem;
+                border-radius: 12px;
+                padding: 1.5rem 2rem;
                 text-align: center;
-                max-width: 400px;
-                margin: 2rem auto;
-                position: relative;
-            }}
-            .geri-badge {{
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                padding: 0.25rem 0.75rem;
-                border-radius: 9999px;
-                font-size: 0.75rem;
-                font-weight: 600;
-                text-transform: uppercase;
-            }}
-            .geri-badge.delayed {{
-                background: #374151;
-                color: #9ca3af;
-            }}
-            .geri-badge.realtime {{
-                background: #22c55e;
-                color: #052e16;
-            }}
-            .geri-value {{
-                font-size: 4rem;
-                font-weight: 700;
-                line-height: 1;
-            }}
-            .geri-band {{
-                font-size: 1.25rem;
-                font-weight: 600;
-                margin-top: 0.5rem;
-            }}
-            .geri-date {{
-                color: #6b7280;
-                font-size: 0.875rem;
-                margin-top: 1rem;
-            }}
-            .geri-sections {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 1.5rem;
-                margin: 2rem 0;
-            }}
-            .geri-section {{
-                background: #1e293b;
-                border: 1px solid #334155;
-                border-radius: 0.75rem;
-                padding: 1.5rem;
-            }}
-            .geri-section h2 {{
-                font-size: 1.125rem;
-                margin-bottom: 1rem;
-                color: #f8fafc;
-            }}
-            .geri-list {{
-                list-style: disc;
-                padding-left: 1.25rem;
-                color: #d1d5db;
-            }}
-            .geri-list li {{
-                margin-bottom: 0.75rem;
-                line-height: 1.4;
-            }}
-            .driver-tag {{
-                color: #4ecdc4;
-                font-size: 0.8rem;
-                font-weight: 500;
+                max-width: 420px;
+                margin: 1.5rem auto;
             }}
             .geri-header {{
                 display: flex;
                 align-items: center;
-                gap: 0.75rem;
+                gap: 0.5rem;
+                justify-content: center;
                 margin-bottom: 0.5rem;
             }}
-            .geri-flame {{
-                font-size: 1.5rem;
-            }}
+            .geri-flame {{ font-size: 1.25rem; }}
             .geri-title {{
-                font-size: 1.25rem;
+                font-size: 1rem;
                 font-weight: 600;
-                color: #f8fafc;
+                color: #f1f5f9;
             }}
             .geri-scale-ref {{
+                font-size: 0.75rem;
+                color: #64748b;
+                margin-bottom: 0.5rem;
+            }}
+            .geri-date {{
+                color: #64748b;
                 font-size: 0.8rem;
-                color: #9ca3af;
-                margin-bottom: 0.75rem;
+                margin-top: 0.75rem;
             }}
             .geri-trend {{
-                font-size: 0.95rem;
+                font-size: 0.9rem;
                 margin-bottom: 0.5rem;
-                color: #f8fafc;
             }}
-            .section-header-blue {{
-                color: #60a5fa !important;
-                font-size: 1rem;
-                margin-bottom: 0.75rem;
+            .geri-delay-badge {{
+                background: rgba(251, 191, 36, 0.12);
+                border: 1px solid rgba(251, 191, 36, 0.3);
+                color: #fbbf24;
+                border-radius: 20px;
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                margin-top: 0.75rem;
+                display: inline-block;
             }}
-            .region-label {{
-                color: #9ca3af;
-                font-size: 0.85rem;
+            .geri-realtime-badge {{
+                background: rgba(34, 197, 94, 0.12);
+                border: 1px solid rgba(34, 197, 94, 0.3);
+                color: #4ade80;
+                border-radius: 20px;
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                margin-top: 0.75rem;
+                display: inline-block;
             }}
-            .geri-interpretation {{ 
-                color: #1f2937; 
-                font-size: 1.05rem; 
-                margin: 1.5rem 0 2rem 0; 
-                line-height: 1.7; 
-                background: rgba(96, 165, 250, 0.05);
-                border-left: 3px solid #3b82f6;
-                padding: 1.5rem;
-                border-radius: 0 8px 8px 0;
+            .geri-simplified-drivers {{
+                display: flex;
+                gap: 12px;
+                margin: 1.25rem 0;
+                justify-content: center;
             }}
-            .geri-interpretation p {{ margin: 0 0 1rem 0; }}
-            .geri-interpretation p:last-child {{ margin-bottom: 0; }}
-            .geri-public-note {{
-                background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-                border: 1px solid #f59e0b;
+            .geri-simplified-driver-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1rem 0.75rem;
+                text-align: center;
+                flex: 1;
+                max-width: 160px;
+            }}
+            .driver-icon-pub {{ font-size: 1.25rem; margin-bottom: 0.4rem; }}
+            .driver-label-pub {{ color: #e2e8f0; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; }}
+            .driver-level-pub {{ font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; display: inline-block; }}
+            .driver-level-pub.level-high {{ color: #fca5a5; background: rgba(239,68,68,0.15); }}
+            .driver-level-pub.level-medium {{ color: #fcd34d; background: rgba(234,179,8,0.15); }}
+            .driver-level-pub.level-low {{ color: #86efac; background: rgba(34,197,94,0.15); }}
+            .geri-chart-section {{
+                margin: 1.25rem 0;
+            }}
+            .geri-interp-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
                 border-radius: 12px;
-                padding: 1.25rem 1.5rem;
-                margin: 1.5rem 0;
+                margin: 1.25rem 0;
+                overflow: hidden;
             }}
-            .geri-public-note .note-header {{
+            .geri-interp-card-header {{
+                padding: 14px 20px;
+                border-bottom: 1px solid #334155;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }}
+            .geri-interp-card-header h3 {{
+                font-size: 15px;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0;
+            }}
+            .geri-interp-card-body {{
+                padding: 16px 20px;
+            }}
+            .geri-interp-card-body p {{
+                color: #cbd5e1;
+                font-size: 0.92rem;
+                line-height: 1.65;
+                margin: 0 0 0.75rem 0;
+            }}
+            .geri-interp-card-body p:last-child {{
+                margin-bottom: 0;
+            }}
+            .geri-note-card {{
+                background: rgba(251, 191, 36, 0.08);
+                border: 1px solid rgba(251, 191, 36, 0.2);
+                border-radius: 12px;
+                padding: 1.25rem;
+                margin: 1.25rem 0;
+            }}
+            .geri-note-card .note-header {{
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
                 margin-bottom: 0.75rem;
             }}
-            .geri-public-note .note-icon {{
-                font-size: 1.25rem;
-            }}
-            .geri-public-note .note-label {{
+            .geri-note-card .note-label {{
                 font-weight: 700;
-                color: #92400e;
-                font-size: 1rem;
+                color: #fbbf24;
+                font-size: 0.9rem;
             }}
-            .geri-public-note .note-content {{
-                color: #78350f;
-                font-size: 0.95rem;
+            .geri-note-card .note-content {{
+                color: #cbd5e1;
+                font-size: 0.9rem;
                 line-height: 1.6;
-                margin: 0 0 0.75rem 0;
+                margin: 0 0 0.5rem 0;
             }}
-            .geri-public-note .note-content strong {{
-                color: #92400e;
+            .geri-note-card .note-content strong {{
+                color: #fbbf24;
             }}
-            .geri-public-note .note-cta {{
-                color: #0066FF;
+            .geri-note-card .note-cta {{
+                color: #60a5fa;
                 font-weight: 600;
                 text-decoration: underline;
             }}
-            .geri-public-note .note-cta:hover {{
-                color: #0052CC;
+            .geri-note-card .note-cta:hover {{
+                color: #93c5fd;
             }}
-            .geri-public-note .note-tagline {{
-                color: #92400e;
-                font-size: 0.9rem;
+            .geri-note-card .note-tagline {{
+                color: #94a3b8;
+                font-size: 0.85rem;
                 font-style: italic;
                 margin: 0;
                 padding-top: 0.5rem;
-                border-top: 1px solid rgba(146, 64, 14, 0.2);
+                border-top: 1px solid rgba(251, 191, 36, 0.15);
             }}
-            
-            /* Weekly Snapshot Styles */
             .weekly-snapshot-section {{
-                margin: 2.5rem 0;
-                padding: 2rem;
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                border-radius: 16px;
-                border: 1px solid rgba(96, 165, 250, 0.2);
+                margin: 1.5rem 0;
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.5rem;
             }}
             .weekly-header {{
                 display: flex;
                 align-items: center;
                 gap: 0.75rem;
-                margin-bottom: 1.5rem;
+                margin-bottom: 1.25rem;
                 flex-wrap: wrap;
             }}
-            .weekly-icon {{ font-size: 1.5rem; }}
+            .weekly-icon {{ font-size: 1.25rem; }}
             .weekly-header h2 {{
-                font-size: 1.25rem;
+                font-size: 1.1rem;
                 font-weight: 600;
-                color: #f8fafc;
+                color: #f1f5f9;
                 margin: 0;
             }}
             .weekly-dates {{
-                font-size: 0.9rem;
-                color: #9ca3af;
+                font-size: 0.85rem;
+                color: #94a3b8;
                 margin-left: auto;
             }}
             .weekly-card {{
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 2rem;
+                gap: 1.5rem;
             }}
             .weekly-chart-container {{
                 background: rgba(15, 23, 42, 0.5);
-                border-radius: 12px;
-                padding: 1.25rem;
+                border-radius: 10px;
+                padding: 1rem;
             }}
             .weekly-chart-header {{
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 1rem;
+                margin-bottom: 0.75rem;
             }}
-            .chart-label {{ color: #9ca3af; font-size: 0.85rem; }}
-            .chart-elevation {{ font-weight: 600; font-size: 0.9rem; }}
+            .chart-label {{ color: #94a3b8; font-size: 0.8rem; }}
+            .chart-elevation {{ font-weight: 600; font-size: 0.85rem; }}
             .weekly-chart {{
                 display: flex;
                 align-items: flex-end;
                 justify-content: space-around;
-                height: 160px;
+                height: 140px;
                 gap: 0.25rem;
                 padding: 0.5rem 0;
             }}
@@ -2072,43 +2082,42 @@ async def geri_page(request: Request):
             }}
             .weekly-bar-elevation {{
                 transform: rotate(-30deg);
-                font-size: 0.6rem;
+                font-size: 0.55rem;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 0.3px;
-                margin-bottom: 0.75rem;
+                margin-bottom: 0.5rem;
                 white-space: nowrap;
                 transform-origin: center bottom;
             }}
             .weekly-bar {{
                 width: 100%;
-                max-width: 24px;
-                border-radius: 4px 4px 0 0;
-                transition: all 0.2s ease;
-                min-height: 10px;
+                max-width: 20px;
+                border-radius: 3px 3px 0 0;
+                min-height: 8px;
             }}
             .weekly-bar-label {{
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 font-weight: 600;
                 color: #d1d5db;
-                margin-top: 0.35rem;
+                margin-top: 0.3rem;
             }}
             .weekly-stats {{
                 display: flex;
                 justify-content: space-between;
-                margin-top: 1rem;
-                padding-top: 0.75rem;
+                margin-top: 0.75rem;
+                padding-top: 0.5rem;
                 border-top: 1px solid rgba(107, 114, 128, 0.3);
-                font-size: 0.8rem;
-                color: #9ca3af;
+                font-size: 0.75rem;
+                color: #94a3b8;
             }}
             .weekly-stats strong {{ color: #d1d5db; }}
-            .weekly-details {{ display: flex; flex-direction: column; gap: 1rem; }}
+            .weekly-details {{ display: flex; flex-direction: column; gap: 0.75rem; }}
             .weekly-detail-section h3 {{
-                font-size: 0.85rem;
+                font-size: 0.8rem;
                 font-weight: 600;
                 color: #60a5fa;
-                margin: 0 0 0.5rem 0;
+                margin: 0 0 0.4rem 0;
             }}
             .weekly-drivers {{
                 list-style: none;
@@ -2116,9 +2125,9 @@ async def geri_page(request: Request):
                 margin: 0;
             }}
             .weekly-drivers li {{
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 color: #e2e8f0;
-                padding: 0.25rem 0;
+                padding: 0.2rem 0;
                 border-bottom: 1px solid rgba(107, 114, 128, 0.2);
             }}
             .weekly-drivers li:last-child {{ border-bottom: none; }}
@@ -2126,201 +2135,118 @@ async def geri_page(request: Request):
             .weekly-detail-row {{
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 1rem;
+                gap: 0.75rem;
             }}
-            .weekly-detail-section.half {{ }}
             .weekly-tags {{
                 display: flex;
                 flex-wrap: wrap;
-                gap: 0.5rem;
+                gap: 0.4rem;
             }}
             .region-tag, .asset-tag {{
-                background: rgba(96, 165, 250, 0.15);
+                background: rgba(96, 165, 250, 0.12);
                 color: #60a5fa;
-                padding: 0.35rem 0.75rem;
+                padding: 0.25rem 0.6rem;
                 border-radius: 6px;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
                 font-weight: 500;
             }}
             .weekly-interpretation {{
-                margin-top: 0.5rem;
-                padding: 0.75rem;
+                margin-top: 0.4rem;
+                padding: 0.6rem;
                 background: rgba(96, 165, 250, 0.05);
                 border-left: 3px solid #3b82f6;
                 border-radius: 0 8px 8px 0;
             }}
             .weekly-interpretation p {{
                 margin: 0;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 color: #cbd5e1;
                 line-height: 1.5;
+            }}
+            .geri-cta {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: center;
+                margin: 1.25rem 0;
+            }}
+            .geri-cta h3 {{
+                color: #60a5fa;
+                margin-bottom: 0.5rem;
+                font-size: 1.1rem;
+            }}
+            .geri-cta p {{
+                color: #94a3b8;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+            }}
+            .cta-button {{
+                display: inline-block;
+                padding: 0.6rem 1.25rem;
+                border-radius: 6px;
+                font-weight: 600;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }}
+            .cta-button.primary {{
+                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                color: white;
+            }}
+            .cta-button.primary:hover {{
+                opacity: 0.9;
+            }}
+            .geri-links {{
+                text-align: center;
+                margin: 1.5rem 0;
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+            }}
+            .geri-links a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.9rem;
+                font-weight: 500;
+            }}
+            .geri-links a:hover {{
+                text-decoration: underline;
+                color: #93c5fd;
+            }}
+            .geri-unavailable {{
+                text-align: center;
+                padding: 3rem 1rem;
+                color: #94a3b8;
+            }}
+            .geri-unavailable h2 {{
+                color: #f1f5f9;
+                font-size: 1.25rem;
+                margin-bottom: 0.5rem;
             }}
             @media (max-width: 768px) {{
                 .weekly-card {{ grid-template-columns: 1fr; }}
                 .weekly-detail-row {{ grid-template-columns: 1fr; }}
                 .weekly-dates {{ margin-left: 0; width: 100%; margin-top: 0.5rem; }}
             }}
-            
-            .geri-delay-badge {{
-                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-                border: 1px solid #3b82f6;
-                border-radius: 2rem;
-                padding: 0.5rem 1.5rem;
-                text-align: center;
-                color: #60a5fa;
-                font-size: 0.9rem;
-                margin-top: 1rem;
-            }}
-            .geri-realtime-badge {{
-                background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
-                border: 1px solid #22c55e;
-                border-radius: 2rem;
-                padding: 0.5rem 1.5rem;
-                text-align: center;
-                color: #4ade80;
-                font-size: 0.9rem;
-                margin-top: 1rem;
-            }}
-            .regions-list {{
-                list-style: disc;
-            }}
-            .source-attribution {{
-                font-size: 0.8rem;
-                color: #9ca3af;
-                margin-top: 0.75rem;
-                font-style: italic;
-            }}
-            .source-attribution a {{
-                color: #60a5fa;
-                text-decoration: none;
-            }}
-            .source-attribution a:hover {{
-                text-decoration: underline;
-            }}
-            .data-sources-section {{
-                margin-top: 2rem;
-                padding-top: 1.5rem;
-                border-top: 1px solid #334155;
-            }}
-            .data-sources-section h4 {{
-                font-size: 0.875rem;
-                font-weight: 600;
-                color: #9ca3af;
-                margin-bottom: 0.5rem;
-            }}
-            .data-sources-section p {{
-                font-size: 0.875rem;
-                color: #d1d5db;
-            }}
-            .data-sources-section a {{
-                color: #60a5fa;
-                text-decoration: none;
-            }}
-            .data-sources-section a:hover {{
-                text-decoration: underline;
-            }}
-            .index-history-nav {{
-                text-align: center;
-                margin-top: 2rem;
-            }}
-            .index-history-nav .back-link {{
-                color: #60a5fa;
-                text-decoration: none;
-            }}
-            .index-history-nav .back-link:hover {{
-                text-decoration: underline;
-            }}
-            .geri-cta {{
-                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-                border: 1px solid #3b82f6;
-                border-radius: 1rem;
-                padding: 2rem;
-                text-align: center;
-                margin: 2rem 0;
-            }}
-            .geri-cta h3 {{
-                color: #60a5fa;
-                margin-bottom: 0.5rem;
-            }}
-            .geri-cta p {{
-                color: #9ca3af;
-                margin-bottom: 1.5rem;
-            }}
-            .cta-button {{
-                display: inline-block;
-                padding: 0.75rem 1.5rem;
-                border-radius: 0.5rem;
-                font-weight: 600;
-                text-decoration: none;
-                margin: 0.25rem;
-            }}
-            .cta-button.primary {{
-                background: #3b82f6;
-                color: white;
-            }}
-            .cta-button.secondary {{
-                background: transparent;
-                border: 1px solid #6b7280;
-                color: #d1d5db;
-            }}
-            .geri-links {{
-                text-align: center;
-                margin: 2rem 0;
-            }}
-            .geri-links a {{
-                color: #60a5fa;
-                margin: 0 1rem;
-            }}
-            .geri-unavailable {{
-                text-align: center;
-                padding: 3rem;
-                color: #9ca3af;
-            }}
-            .geri-simplified-drivers {{
-                display: flex;
-                gap: 1rem;
-                margin: 1.5rem 0;
-                justify-content: center;
-            }}
-            .geri-simplified-driver-card {{
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-                border: 1px solid #334155;
-                border-radius: 12px;
-                padding: 1.25rem 1rem;
-                text-align: center;
-                flex: 1;
-                max-width: 180px;
-            }}
-            .driver-icon-pub {{ font-size: 1.5rem; margin-bottom: 0.5rem; }}
-            .driver-label-pub {{ color: #e2e8f0; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }}
-            .driver-level-pub {{ font-size: 0.9rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 6px; display: inline-block; }}
-            .driver-level-pub.level-high {{ color: #fca5a5; background: rgba(239,68,68,0.15); }}
-            .driver-level-pub.level-medium {{ color: #fcd34d; background: rgba(234,179,8,0.15); }}
-            .driver-level-pub.level-low {{ color: #86efac; background: rgba(34,197,94,0.15); }}
-            .geri-interpretation-preview-pub {{
-                background: rgba(96, 165, 250, 0.05);
-                border-left: 3px solid #3b82f6;
-                border-radius: 0 8px 8px 0;
-                padding: 1.25rem;
-                margin: 1.5rem 0;
-            }}
-            .geri-chart-section {{
-                margin: 1.5rem 0;
-            }}
             @media (max-width: 600px) {{
                 .geri-simplified-drivers {{ flex-direction: column; align-items: center; }}
                 .geri-simplified-driver-card {{ max-width: 100%; width: 100%; }}
+                .nav-links {{ gap: 0.75rem; }}
             }}
         </style>
     </head>
     <body>
-        {render_nav()}
+        {render_digest_nav()}
         <main>
             <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / Global Energy Risk Index
+                </div>
                 <div class="geri-hero">
                     <h1>Global Energy Risk Index (GERI)</h1>
                     <p>A daily composite measure of energy market risk, computed from alert severity, regional concentration, and asset exposure.</p>
-                    <p class="methodology-link"><a href="/geri/methodology">(GERI Methodology & Construction)</a></p>
+                    <p class="methodology-link"><a href="/geri/methodology">(GERI Methodology &amp; Construction)</a></p>
                 </div>
                 
                 {geri_content}
@@ -2336,7 +2262,7 @@ async def geri_page(request: Request):
                 </div>
             </div>
         </main>
-        {render_footer()}
+        {render_digest_footer()}
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
         <script>
         (async function() {{
@@ -4249,6 +4175,7 @@ def render_digest_nav() -> str:
             </a>
             <div class="nav-links">
                 <a href="/">Home</a>
+                <a href="/geri">GERI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
