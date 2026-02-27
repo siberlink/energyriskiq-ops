@@ -19,6 +19,7 @@ from fastapi.responses import HTMLResponse
 import json as json_module
 
 from src.reri.interpretation import generate_eeri_interpretation
+from src.api.seo_routes import get_digest_dark_styles, render_digest_footer
 from src.reri.eeri_history_service import (
     get_latest_eeri_public,
     get_eeri_delayed,
@@ -579,32 +580,35 @@ async def eeri_public_page(request: Request):
             <meta name="description" content="The European Energy Risk Index (EERI) measures systemic geopolitical, supply-chain, and market disruption risks affecting European energy markets.">
             <link rel="canonical" href="{BASE_URL}/eeri">
             <link rel="icon" type="image/png" href="/static/favicon.png">
-            {get_common_styles()}
+            {get_digest_dark_styles()}
         </head>
         <body>
-            <nav class="nav"><div class="container nav-inner">
-                <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+            <nav class="nav"><div class="nav-inner">
+                <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
                 <div class="nav-links">
                     <a href="/geri">GERI</a>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
-                    <a href="/alerts">Alerts</a>
-                    <a href="/users" class="cta-nav">Get FREE Access</a>
+                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
                 </div>
             </div></nav>
             <main>
                 <div class="container">
-                    <div class="index-hero">
-                        <h1>European Energy Risk Index (EERI)</h1>
-                        <p>A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
+                    <div class="breadcrumbs">
+                        <a href="/">Home</a> / European Energy Risk Index
                     </div>
-                    <div class="index-metric-card">
-                        <p style="color: #9ca3af;">EERI data is being computed. Check back shortly.</p>
-                        <p style="margin-top: 1rem;"><a href="/users" class="cta-button primary">Sign up for alerts</a></p>
+                    <h1 style="font-size: 1.75rem; color: #f1f5f9; text-align: center; margin-bottom: 0.5rem;">European Energy Risk Index (EERI)</h1>
+                    <p style="color: #94a3b8; text-align: center; margin-bottom: 2rem;">A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
+                    <div style="text-align: center; padding: 3rem 1rem; color: #94a3b8;">
+                        <h2 style="color: #f1f5f9; font-size: 1.25rem; margin-bottom: 0.5rem;">EERI Data Coming Soon</h2>
+                        <p>EERI data is being computed. Check back shortly.</p>
+                        <p style="margin-top: 1rem;"><a href="/users" class="cta-btn-nav" style="display: inline-block; padding: 12px 32px; font-size: 16px;">Sign up for alerts</a></p>
                     </div>
                 </div>
             </main>
-            <footer class="footer"><div class="container">&copy; 2026 EnergyRiskIQ</div></footer>
+            {render_digest_footer()}
         </body>
         </html>
         """
@@ -709,26 +713,326 @@ async def eeri_public_page(request: Request):
         <meta property="og:type" content="website">
         
         <link rel="icon" type="image/png" href="/static/favicon.png">
-        {get_common_styles()}
+        {get_digest_dark_styles()}
+        <style>
+            .eeri-hero {{
+                text-align: center;
+                padding: 2rem 0 1rem 0;
+            }}
+            .eeri-hero h1 {{
+                font-size: 1.75rem;
+                margin-bottom: 0.5rem;
+                color: #f1f5f9;
+            }}
+            .eeri-hero p {{
+                color: #94a3b8;
+                max-width: 600px;
+                margin: 0 auto;
+                font-size: 0.95rem;
+            }}
+            .eeri-hero .methodology-link {{
+                margin-top: 0.75rem;
+            }}
+            .eeri-hero .methodology-link a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }}
+            .eeri-hero .methodology-link a:hover {{
+                color: #93c5fd;
+                text-decoration: underline;
+            }}
+            .index-metric-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.5rem 2rem;
+                text-align: center;
+                max-width: 420px;
+                margin: 1.5rem auto;
+            }}
+            .index-header {{
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }}
+            .index-icon {{ font-size: 1.25rem; }}
+            .index-title {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+            }}
+            .index-value {{
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin: 0.5rem 0;
+            }}
+            .index-scale-ref {{
+                font-size: 0.75rem;
+                color: #64748b;
+                margin-bottom: 0.5rem;
+            }}
+            .index-trend {{
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+            }}
+            .index-meta {{
+                margin-top: 0.75rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid #334155;
+            }}
+            .index-meta-row {{
+                display: flex;
+                justify-content: space-between;
+                padding: 0.25rem 0;
+                font-size: 0.85rem;
+            }}
+            .meta-label {{ color: #64748b; }}
+            .meta-value {{ color: #e2e8f0; font-weight: 500; }}
+            .index-delay-badge {{
+                background: rgba(251, 191, 36, 0.12);
+                border: 1px solid rgba(251, 191, 36, 0.3);
+                color: #fbbf24;
+                border-radius: 20px;
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                text-align: center;
+                margin: 1.25rem 0;
+            }}
+            .index-sections {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1rem;
+                margin: 1.25rem 0;
+            }}
+            .index-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem;
+            }}
+            .section-header-blue {{
+                color: #60a5fa !important;
+                font-size: 0.95rem;
+                margin-bottom: 0.75rem;
+                font-weight: 600;
+            }}
+            .index-list {{
+                list-style: disc;
+                padding-left: 1.25rem;
+                color: #cbd5e1;
+            }}
+            .index-list li {{
+                margin-bottom: 0.6rem;
+                line-height: 1.4;
+                font-size: 0.9rem;
+            }}
+            .driver-headline {{ color: #e2e8f0; }}
+            .region-label {{
+                color: #64748b;
+                font-size: 0.8rem;
+            }}
+            .regions-list {{ list-style: disc; padding-left: 1.25rem; color: #cbd5e1; }}
+            .regions-list li {{ margin-bottom: 0.5rem; font-size: 0.9rem; }}
+            .assets-grid {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }}
+            .asset-tag {{
+                background: rgba(96, 165, 250, 0.12);
+                color: #60a5fa;
+                padding: 0.3rem 0.75rem;
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            }}
+            .risk-bands-section {{
+                margin: 1.25rem 0;
+            }}
+            .risk-bands-container {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+            }}
+            .risk-band-row {{
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.4rem 0.75rem;
+                border-radius: 6px;
+                font-size: 0.85rem;
+            }}
+            .risk-band-row.active {{
+                background: rgba(96, 165, 250, 0.1);
+                border: 1px solid rgba(96, 165, 250, 0.3);
+            }}
+            .band-range {{ color: #64748b; font-size: 0.8rem; min-width: 40px; }}
+            .band-indicator {{
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+            }}
+            .band-indicator.low {{ background: #22c55e; }}
+            .band-indicator.moderate {{ background: #eab308; }}
+            .band-indicator.elevated {{ background: #f97316; }}
+            .band-indicator.severe {{ background: #ef4444; }}
+            .band-indicator.critical {{ background: #dc2626; }}
+            .band-name {{ color: #e2e8f0; }}
+            .current-position {{
+                margin-top: 0.75rem;
+                font-size: 0.85rem;
+                color: #94a3b8;
+                text-align: center;
+            }}
+            .index-interpretation {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem;
+                margin: 1.25rem 0;
+            }}
+            .index-interpretation p {{
+                color: #cbd5e1;
+                font-size: 0.92rem;
+                line-height: 1.65;
+                margin: 0 0 0.75rem 0;
+            }}
+            .index-interpretation p:last-child {{ margin-bottom: 0; }}
+            .index-cta {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: center;
+                margin: 1.25rem 0;
+            }}
+            .index-cta h3 {{
+                color: #60a5fa;
+                margin-bottom: 0.5rem;
+                font-size: 1.1rem;
+            }}
+            .index-cta p {{
+                color: #94a3b8;
+                margin-bottom: 1rem;
+                font-size: 0.9rem;
+            }}
+            .cta-button {{
+                display: inline-block;
+                padding: 0.6rem 1.25rem;
+                border-radius: 6px;
+                font-weight: 600;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }}
+            .cta-button.primary {{
+                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                color: white;
+            }}
+            .cta-button.primary:hover {{ opacity: 0.9; }}
+            .index-links {{
+                text-align: center;
+                margin: 1.5rem 0;
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+            }}
+            .index-links a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.9rem;
+                font-weight: 500;
+            }}
+            .index-links a:hover {{
+                text-decoration: underline;
+                color: #93c5fd;
+            }}
+            .source-attribution {{
+                font-size: 0.8rem;
+                color: #64748b;
+                margin-top: 0.75rem;
+                font-style: italic;
+            }}
+            .source-attribution a {{
+                color: #60a5fa;
+                text-decoration: none;
+            }}
+            .source-attribution a:hover {{ text-decoration: underline; }}
+            :root {{
+                --text-primary: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+                --bg-white: #1e293b;
+                --bg-light: #0f172a;
+            }}
+            .ws-panel {{
+                background: #1e293b !important;
+                border-color: #334155 !important;
+            }}
+            .ws-hist-box {{
+                background: #1e293b !important;
+                border-color: #334155 !important;
+            }}
+            .ws-mini-chart {{
+                background: #1e293b !important;
+                border-color: #334155 !important;
+            }}
+            .ws-regime-bar-track {{
+                background: #334155 !important;
+            }}
+            .ws-asset-row {{
+                border-bottom-color: #334155 !important;
+            }}
+            .ws-tend-row {{
+                border-bottom-color: #334155 !important;
+            }}
+            .ws-div-confirming {{
+                background: rgba(34, 197, 94, 0.1) !important;
+                border-color: rgba(34, 197, 94, 0.3) !important;
+                color: #4ade80 !important;
+            }}
+            .ws-div-mixed {{
+                background: rgba(234, 179, 8, 0.1) !important;
+                border-color: rgba(234, 179, 8, 0.3) !important;
+                color: #fbbf24 !important;
+            }}
+            .ws-div-diverging {{
+                background: rgba(239, 68, 68, 0.1) !important;
+                border-color: rgba(239, 68, 68, 0.3) !important;
+                color: #fca5a5 !important;
+            }}
+            @media (max-width: 600px) {{
+                .index-sections {{ grid-template-columns: 1fr; }}
+                .nav-links {{ gap: 0.75rem; }}
+            }}
+        </style>
     </head>
     <body>
-        <nav class="nav"><div class="container nav-inner">
-            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
+        <nav class="nav"><div class="nav-inner">
+            <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/geri">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
-                <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+                <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                <a href="/users" class="cta-btn-nav">Get FREE Access</a>
             </div>
         </div></nav>
         
         <main>
             <div class="container">
-                <div class="index-hero">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / European Energy Risk Index
+                </div>
+                <div class="eeri-hero">
                     <h1>European Energy Risk Index (EERI)</h1>
                     <p>A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
-                    <p class="methodology-link"><a href="/eeri/methodology">(EERI Methodology & Construction)</a></p>
+                    <p class="methodology-link"><a href="/eeri/methodology">(EERI Methodology &amp; Construction)</a></p>
                 </div>
                 
                 <div class="index-metric-card">
@@ -825,17 +1129,7 @@ async def eeri_public_page(request: Request):
             </div>
         </main>
         
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; 2026 EnergyRiskIQ. All rights reserved.</p>
-                <p style="margin-top: 0.5rem;">
-                    <a href="/eeri/history">EERI History</a> · 
-                    <a href="/eeri/methodology">Methodology</a> · 
-                    <a href="/geri">GERI</a> · 
-                    <a href="/alerts">Alerts</a>
-                </p>
-            </div>
-        </footer>
+        {render_digest_footer()}
     </body>
     </html>
     """
