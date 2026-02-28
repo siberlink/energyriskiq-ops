@@ -1797,7 +1797,7 @@
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
                             <div>
                                 <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Category</label>
-                                <select id="adminBlogCategory" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;"></select>
+                                <select id="adminBlogCategory" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#1e293b;color:#e2e8f0;font-size:14px;-webkit-appearance:none;appearance:none;background-image:url('data:image/svg+xml;utf8,<svg fill=&quot;%2394a3b8&quot; viewBox=&quot;0 0 20 20&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z&quot;/></svg>');background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px;"></select>
                             </div>
                             <div>
                                 <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Tags</label>
@@ -3612,6 +3612,8 @@
                             var opt = document.createElement('option');
                             opt.value = c.name;
                             opt.textContent = c.name;
+                            opt.style.background = '#1e293b';
+                            opt.style.color = '#e2e8f0';
                             sel.appendChild(opt);
                         });
                     }
