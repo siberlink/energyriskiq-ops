@@ -6135,7 +6135,7 @@
             const allFeatures = {
                 'free': [
                     s('GERI — Global Energy Risk', 'pf-geri'),
-                    '24h delayed GERI score & band',
+                    'Current GERI score & band',
                     '14-day Brent price chart',
                     '3 simplified driver categories',
                     s('EERI — European Energy Risk', 'pf-eeri'),
@@ -6143,10 +6143,10 @@
                     'Cross-asset direction table',
                     'Basic market interpretation',
                     s('EGSI — Gas Stress', 'pf-egsi'),
-                    'Public delayed EGSI-M & EGSI-S',
+                    'Current EGSI-M & EGSI-S',
                     'Basic storage level display',
                     s('Daily Digest', 'pf-digest'),
-                    'Executive snapshot (24h delayed)',
+                    'Executive snapshot',
                     '2 top alerts summary',
                     'GERI direction indicator'
                 ],
@@ -6370,10 +6370,7 @@
         async function loadGeriSnapshot() {
             const body = document.getElementById('snapshotGeriBody');
             try {
-                const plan = currentUser?.plan || 'free';
-                const endpoint = (plan === 'free') ? '/api/v1/indices/geri/public' : '/api/v1/indices/geri/latest';
-                const headers = (plan === 'free') ? {} : { 'X-User-Token': sessionToken };
-                const resp = await fetch(endpoint, { headers });
+                const resp = await fetch('/api/v1/indices/geri/latest', { headers: { 'X-User-Token': sessionToken } });
                 const json = await resp.json();
                 const d = json.data || json;
                 if (!d || (!d.value && d.value !== 0)) {
@@ -6394,7 +6391,7 @@
                 body.innerHTML = '<div class="snapshot-card-value">' + val + '</div>' +
                     '<span class="snapshot-card-band ' + bandCls + '">' + band + '</span>' +
                     trendHtml +
-                    '<div class="snapshot-card-meta">' + dateStr + (plan === 'free' ? ' (24h delayed)' : '') + '</div>';
+                    '<div class="snapshot-card-meta">' + dateStr + '</div>';
             } catch (e) {
                 console.error('GERI snapshot error:', e);
                 body.innerHTML = '<div class="snapshot-card-detail">Unable to load</div>';
@@ -6404,7 +6401,7 @@
         async function loadEeriSnapshot() {
             const body = document.getElementById('snapshotEeriBody');
             try {
-                const resp = await fetch('/api/v1/indices/eeri/public');
+                const resp = await fetch('/api/v1/indices/eeri/latest', { headers: { 'X-User-Token': sessionToken } });
                 const json = await resp.json();
                 const d = json.data || json;
                 if (!d || (!d.value && d.value !== 0)) {
@@ -6617,7 +6614,7 @@
                 showEventMarkers: false,
                 showMomentumPanel: false,
                 showInterpretation: true,
-                useDelayedData: true,
+                useDelayedData: false,
                 showRealtimeBadge: false
             },
             personal: {
@@ -6899,7 +6896,7 @@
                 html += '<div class="ws-plan-card-price">€9.95 / month</div>';
                 html += '<div class="ws-plan-card-tagline">Real-time GERI data with asset overlays, trend indicators, and 90 days of risk history for active monitoring.</div>';
                 html += '<ul class="ws-plan-card-features">';
-                html += '<li>Real-time GERI data (no 24h delay)</li>';
+                html += '<li>90-day GERI history with trend analysis</li>';
                 html += '<li>90-day history with 7d / 30d / 90d ranges</li>';
                 html += '<li>5 asset overlays (Brent, TTF, VIX, EUR/USD, Storage)</li>';
                 html += '<li>Driver region & severity breakdown</li>';
@@ -8773,7 +8770,7 @@
             try {
                 const fetchPromises = [
                     fetch(`/api/v1/eeri-pro/weekly-snapshot?plan=${plan}`),
-                    fetch(`/api/v1/eeri-pro/card?plan=${plan}`)
+                    fetch(`/api/v1/eeri-pro/card?plan=${plan === 'free' ? 'personal' : plan}`)
                 ];
                 
                 if (isTraderTier) {
@@ -10766,7 +10763,8 @@
             const badge = document.getElementById('egsiHeaderBadge');
             if (badge) badge.textContent = config.label.toUpperCase();
             try {
-                const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=' + plan + '&history_days=' + config.historyDays, { headers: { 'X-User-Token': sessionToken } });
+                const egsiPlanParam = plan === 'free' ? 'personal' : plan;
+                const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=' + egsiPlanParam + '&history_days=' + config.historyDays, { headers: { 'X-User-Token': sessionToken } });
                 const json = await resp.json();
                 if (!json.success) {
                     document.getElementById('egsiLoading').innerHTML = '<p style="color:#94a3b8;">No EGSI data available yet. Data will appear once the index engine runs.</p>';
@@ -11049,8 +11047,7 @@
         async function loadEgsiSnapshot() {
             const body = document.getElementById('snapshotEgsiBody');
             try {
-                const plan = currentUser?.plan || 'free';
-                const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=' + plan + '&history_days=1', { headers: { 'X-User-Token': sessionToken } });
+                const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=personal&history_days=1', { headers: { 'X-User-Token': sessionToken } });
                 const json = await resp.json();
                 if (!json.success || !json.egsi_m) { body.innerHTML = '<div class="snapshot-card-detail">No EGSI data available yet</div>'; return; }
                 const m = json.egsi_m;
@@ -11065,8 +11062,7 @@
                     trendHtml = '<div class="snapshot-card-trend ' + cls + '">' + arrow + ' ' + (t > 0 ? '+' : '') + t.toFixed(1) + ' (1d)</div>';
                 }
                 const dateStr = m.date ? egsiFormatDate(m.date) : '';
-                const delayTag = m.is_delayed ? ' (24h delayed)' : '';
-                body.innerHTML = '<div class="snapshot-card-value">' + val + '</div><span class="snapshot-card-band ' + bandCls + '">' + band + '</span>' + trendHtml + '<div class="snapshot-card-meta">' + dateStr + delayTag + '</div>';
+                body.innerHTML = '<div class="snapshot-card-value">' + val + '</div><span class="snapshot-card-band ' + bandCls + '">' + band + '</span>' + trendHtml + '<div class="snapshot-card-meta">' + dateStr + '</div>';
             } catch (e) {
                 console.error('EGSI snapshot error:', e);
                 body.innerHTML = '<div class="snapshot-card-detail">Unable to load</div>';
