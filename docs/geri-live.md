@@ -183,6 +183,32 @@ When GERI Live recomputes, all dashboard components update together in a single 
 - **Alert storms:** Debounce prevents excessive recomputation (60s minimum interval)
 - **SSE disconnection:** Client auto-reconnects with exponential backoff
 
+## Future Intelligence Enhancements
+
+### Quick Wins (Low Effort, High Impact) — IMPLEMENTED
+
+- **Velocity Indicator:** Shows how fast GERI is moving (e.g., "+3 pts/hr"). Calculated from the intraday timeline by comparing the current value against the value from ~1 hour ago. Color-coded: red for rising, green for falling, grey for stable. Backend: `_compute_velocity()` in `live.py`. Frontend: `#geriLiveVelocityVal` in the quick insights strip.
+
+- **Band Proximity Warning:** Alerts users when GERI is within 5 points of a band threshold (e.g., "4 pts from ELEVATED"). Band thresholds: LOW 0-20, MODERATE 21-40, ELEVATED 41-60, SEVERE 61-80, CRITICAL 81-100. Only visible when proximity condition is met; hidden otherwise. Pulsing amber animation for urgency. Backend: `_compute_band_proximity()` in `live.py`. Frontend: `#geriLiveBandProx` (conditionally shown).
+
+- **Peak/Low of the Day:** Shows today's highest and lowest GERI values with timestamps (e.g., "34 @ 14:30"). Derived from the full intraday timeline. Displayed in the quick insights strip alongside velocity. Backend: `_compute_peak_low()` in `live.py`. Frontend: `#geriLivePeakVal`, `#geriLiveLowVal`.
+
+### Medium Effort
+
+- **Alert Heatmap by Hour:** A small grid showing alert density by hour of the day. Uses `alert_events.created_at` grouped by hour (0-23 UTC). Helps users see when activity spiked. Could be a simple row of colored cells (cool to hot).
+
+- **Driver Category Breakdown:** A mini donut chart showing what's driving GERI by alert category (e.g., 45% geopolitical, 30% supply disruption, 25% market stress). Uses the existing `classification.category` field from alert_events. Built with Chart.js doughnut chart.
+
+- **Cross-Index Snapshot:** Shows current EERI and EGSI values alongside GERI Live for a quick multi-index view. Pulls the latest values from `intel_indices_daily` for EERI and EGSI. Helps users see if risk is concentrated in one area or broad-based.
+
+### Premium Feel (Higher Effort)
+
+- **Historical Comparison Overlay:** "Today vs. yesterday" or "Today vs. last Monday" on the sparkline chart. Overlays a second line on the intraday Chart.js sparkline using data from the `geri_live` table for the comparison day. Lets users visually compare how the day is unfolding relative to a reference day.
+
+- **Scenario Projection:** Based on current trajectory, shows where GERI might land by end of day. Uses simple linear regression or weighted projection from intraday data points. Displays a "projected close" value with confidence range. Adds a dashed projected line on the sparkline.
+
+- **Alert Severity Distribution:** A stacked bar showing how many HIGH, MEDIUM, LOW severity alerts make up today's score. Grouped from `alert_events.classification.severity`. Useful context for whether the score is driven by one major event or many smaller ones.
+
 ## File Inventory
 
 | File | Purpose |

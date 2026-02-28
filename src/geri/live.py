@@ -152,6 +152,91 @@ def _should_debounce() -> bool:
     return elapsed < DEBOUNCE_SECONDS
 
 
+BAND_THRESHOLDS = [
+    (0, 20, 'LOW'),
+    (21, 40, 'MODERATE'),
+    (41, 60, 'ELEVATED'),
+    (61, 80, 'SEVERE'),
+    (81, 100, 'CRITICAL'),
+]
+
+
+def _compute_velocity(timeline: List[Dict[str, Any]], current_value: int) -> Optional[Dict[str, Any]]:
+    if not timeline or len(timeline) < 2:
+        return None
+    now = datetime.now(timezone.utc)
+    one_hour_ago = now - timedelta(hours=1)
+    closest = None
+    for point in timeline:
+        t = point.get('time') or point.get('computed_at')
+        if isinstance(t, str):
+            try:
+                pt = datetime.fromisoformat(t.replace('Z', '+00:00'))
+            except Exception:
+                continue
+        elif hasattr(t, 'isoformat'):
+            pt = t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+        else:
+            continue
+        if pt <= one_hour_ago:
+            closest = point
+    if closest is None:
+        closest = timeline[0]
+    old_value = closest.get('value', current_value)
+    delta = current_value - old_value
+    return {
+        'delta': delta,
+        'label': f"+{delta} pts/hr" if delta > 0 else f"{delta} pts/hr" if delta < 0 else "Stable",
+        'direction': 'up' if delta > 0 else 'down' if delta < 0 else 'flat',
+    }
+
+
+def _compute_band_proximity(value: int) -> Optional[Dict[str, Any]]:
+    for low, high, band_name in BAND_THRESHOLDS:
+        if low <= value <= high:
+            dist_to_upper = high - value + 1
+            dist_to_lower = value - low + 1
+            result = {}
+            idx = BAND_THRESHOLDS.index((low, high, band_name))
+            if idx < len(BAND_THRESHOLDS) - 1 and dist_to_upper <= 5:
+                next_band = BAND_THRESHOLDS[idx + 1][2]
+                result = {
+                    'points_away': dist_to_upper,
+                    'target_band': next_band,
+                    'direction': 'up',
+                    'label': f"{dist_to_upper} pts from {next_band}",
+                }
+            elif idx > 0 and dist_to_lower <= 5:
+                prev_band = BAND_THRESHOLDS[idx - 1][2]
+                result = {
+                    'points_away': dist_to_lower,
+                    'target_band': prev_band,
+                    'direction': 'down',
+                    'label': f"{dist_to_lower} pts from {prev_band}",
+                }
+            return result if result else None
+    return None
+
+
+def _compute_peak_low(timeline: List[Dict[str, Any]], current_value: int) -> Dict[str, Any]:
+    if not timeline:
+        return {'peak': current_value, 'peak_time': None, 'low': current_value, 'low_time': None}
+    peak_val = current_value
+    peak_time = None
+    low_val = current_value
+    low_time = None
+    for point in timeline:
+        v = point.get('value', 0)
+        t = point.get('time') or point.get('computed_at')
+        if v >= peak_val:
+            peak_val = v
+            peak_time = t
+        if v <= low_val:
+            low_val = v
+            low_time = t
+    return {'peak': peak_val, 'peak_time': peak_time, 'low': low_val, 'low_time': low_time}
+
+
 def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     if not force and _should_debounce():
         logger.debug("GERI Live: debounced (< 60s since last compute)")
@@ -242,6 +327,11 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
 
     now_str = datetime.now(timezone.utc).isoformat()
 
+    timeline = get_live_geri_timeline()
+    velocity = _compute_velocity(timeline, value)
+    band_proximity = _compute_band_proximity(value)
+    peak_low = _compute_peak_low(timeline, value)
+
     result = {
         'value': value,
         'band': band.value,
@@ -256,6 +346,9 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
         'computed_at': now_str,
         'yesterday_value': yesterday_val,
         'no_alerts_today': False,
+        'velocity': velocity,
+        'band_proximity': band_proximity,
+        'peak_low': peak_low,
     }
 
     _store_live_result(result)

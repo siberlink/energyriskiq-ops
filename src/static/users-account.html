@@ -4964,6 +4964,52 @@
             color: #475569;
         }
 
+        .geri-live-quick-insights {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .geri-live-insight-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+        .geri-live-insight-icon {
+            font-size: 14px;
+        }
+        .geri-live-insight-label {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .geri-live-insight-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .geri-live-insight-value.velocity-up { color: #ef4444; }
+        .geri-live-insight-value.velocity-down { color: #22c55e; }
+        .geri-live-insight-value.velocity-flat { color: #64748b; }
+        .geri-live-band-warning {
+            color: #f59e0b;
+            animation: geriLivePulseNav 2s ease-in-out infinite;
+        }
+        .geri-live-peak-time {
+            font-size: 10px;
+            color: #475569;
+            margin-left: 4px;
+        }
+
         .geri-live-interpretation-card {
             margin-top: 20px;
         }
@@ -5914,6 +5960,29 @@
                             </div>
                             <div class="geri-live-updated" id="geriLiveUpdated">
                                 Updated <span id="geriLiveUpdatedAgo">--</span>
+                            </div>
+                        </div>
+
+                        <div class="geri-live-quick-insights" id="geriLiveQuickInsights" style="display:none;">
+                            <div class="geri-live-insight-item" id="geriLiveVelocity">
+                                <span class="geri-live-insight-icon">🚀</span>
+                                <span class="geri-live-insight-label">Velocity</span>
+                                <span class="geri-live-insight-value" id="geriLiveVelocityVal">--</span>
+                            </div>
+                            <div class="geri-live-insight-item" id="geriLiveBandProx" style="display:none;">
+                                <span class="geri-live-insight-icon">⚠️</span>
+                                <span class="geri-live-insight-label">Band Alert</span>
+                                <span class="geri-live-insight-value geri-live-band-warning" id="geriLiveBandProxVal">--</span>
+                            </div>
+                            <div class="geri-live-insight-item">
+                                <span class="geri-live-insight-icon">📈</span>
+                                <span class="geri-live-insight-label">Day High</span>
+                                <span class="geri-live-insight-value" id="geriLivePeakVal">--</span>
+                            </div>
+                            <div class="geri-live-insight-item">
+                                <span class="geri-live-insight-icon">📉</span>
+                                <span class="geri-live-insight-label">Day Low</span>
+                                <span class="geri-live-insight-value" id="geriLiveLowVal">--</span>
                             </div>
                         </div>
 
@@ -13298,6 +13367,8 @@
             document.getElementById('geriLiveTodayVal').textContent = newVal;
             document.getElementById('geriLiveYesterdayCompare').style.display = 'flex';
 
+            updateGeriLiveQuickInsights(data);
+
             if (data.interpretation) {
                 var interpCard = document.getElementById('geriLiveInterpCard');
                 interpCard.style.display = 'block';
@@ -13444,6 +13515,50 @@
 
             var countEl = document.getElementById('geriLiveChartCount');
             if (countEl) countEl.textContent = geriLiveChart.data.labels.length + ' data points';
+        }
+
+        function updateGeriLiveQuickInsights(data) {
+            var container = document.getElementById('geriLiveQuickInsights');
+            container.style.display = 'flex';
+
+            var velEl = document.getElementById('geriLiveVelocityVal');
+            if (data.velocity) {
+                velEl.textContent = data.velocity.label;
+                velEl.className = 'geri-live-insight-value velocity-' + data.velocity.direction;
+            } else {
+                velEl.textContent = 'Stable';
+                velEl.className = 'geri-live-insight-value velocity-flat';
+            }
+
+            var bandProxContainer = document.getElementById('geriLiveBandProx');
+            var bandProxVal = document.getElementById('geriLiveBandProxVal');
+            if (data.band_proximity) {
+                bandProxContainer.style.display = 'flex';
+                bandProxVal.textContent = data.band_proximity.label;
+            } else {
+                bandProxContainer.style.display = 'none';
+            }
+
+            var peakEl = document.getElementById('geriLivePeakVal');
+            var lowEl = document.getElementById('geriLiveLowVal');
+            if (data.peak_low) {
+                var peakTime = '';
+                if (data.peak_low.peak_time) {
+                    var pt = new Date(data.peak_low.peak_time);
+                    if (!isNaN(pt.getTime())) peakTime = ' @ ' + pt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                }
+                peakEl.textContent = data.peak_low.peak + peakTime;
+
+                var lowTime = '';
+                if (data.peak_low.low_time) {
+                    var lt = new Date(data.peak_low.low_time);
+                    if (!isNaN(lt.getTime())) lowTime = ' @ ' + lt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                }
+                lowEl.textContent = data.peak_low.low + lowTime;
+            } else {
+                peakEl.textContent = data.value || '--';
+                lowEl.textContent = data.value || '--';
+            }
         }
 
         function renderGeriLiveDrivers(drivers) {

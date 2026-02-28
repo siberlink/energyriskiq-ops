@@ -98,13 +98,17 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
             }
         })
 
-    from src.geri.live import _get_yesterday_geri_value
+    from src.geri.live import _get_yesterday_geri_value, _compute_velocity, _compute_band_proximity, _compute_peak_low
     yesterday_val = _get_yesterday_geri_value()
+    value = latest['value']
+    velocity = latest.get('velocity') or _compute_velocity(timeline, value)
+    band_proximity = latest.get('band_proximity') or _compute_band_proximity(value)
+    peak_low = latest.get('peak_low') or _compute_peak_low(timeline, value)
 
     return JSONResponse(content={
         'success': True,
         'data': {
-            'value': latest['value'],
+            'value': value,
             'band': latest['band'],
             'trend_vs_yesterday': latest.get('trend_vs_yesterday'),
             'alert_count': latest.get('alert_count', 0),
@@ -115,6 +119,9 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
             'computed_at': latest.get('computed_at'),
             'timeline': timeline,
             'yesterday_value': yesterday_val,
+            'velocity': velocity,
+            'band_proximity': band_proximity,
+            'peak_low': peak_low,
         }
     })
 
@@ -148,8 +155,12 @@ async def live_stream(token: Optional[str] = Query(None)):
         try:
             latest = get_latest_live_geri()
             if latest:
-                from src.geri.live import _get_yesterday_geri_value
+                from src.geri.live import _get_yesterday_geri_value, _compute_velocity, _compute_band_proximity, _compute_peak_low
                 latest['yesterday_value'] = _get_yesterday_geri_value()
+                tl = get_live_geri_timeline()
+                latest['velocity'] = latest.get('velocity') or _compute_velocity(tl, latest['value'])
+                latest['band_proximity'] = latest.get('band_proximity') or _compute_band_proximity(latest['value'])
+                latest['peak_low'] = latest.get('peak_low') or _compute_peak_low(tl, latest['value'])
                 yield f"data: {json.dumps({'type': 'initial', **latest})}\n\n"
 
             last_heartbeat = time.time()
