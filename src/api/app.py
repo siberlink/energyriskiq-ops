@@ -39,6 +39,7 @@ from src.api.eriq_routes import router as eriq_router
 from src.elsa.routes import router as elsa_router
 from src.api.signals_routes import router as signals_router
 from src.tickets.routes import router as tickets_router
+from src.blog.routes import router as blog_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -181,6 +182,7 @@ app.include_router(elsa_router)
 logger.info("ELSA Marketing Bot module enabled - routes registered")
 
 app.include_router(tickets_router)
+app.include_router(blog_router)
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")
@@ -202,6 +204,8 @@ async def startup_event():
             logger.info("ERIQ Expert Analyst module is ENABLED")
         from src.tickets.db import run_tickets_migration, auto_close_stale_tickets, auto_archive_closed_tickets
         run_tickets_migration()
+        from src.blog.db import run_blog_migrations
+        run_blog_migrations()
         try:
             closed = auto_close_stale_tickets()
             archived = auto_archive_closed_tickets()
