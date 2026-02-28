@@ -49,6 +49,11 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **PIN:** 221967
 - **Testing approach:** Always test on Production DB. User tests in production.
 
+### Admin Dashboard (`/admin`)
+- **User:** emicon
+- **Password:** Regen@3010
+- **PIN:** 342256
+
 ## External Dependencies
 
 - **Database:** PostgreSQL
