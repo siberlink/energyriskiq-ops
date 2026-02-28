@@ -1861,7 +1861,7 @@
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
                             <div>
                                 <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Name</label>
-                                <input type="text" id="blogCatName" placeholder="e.g. Energy Markets" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                                <input type="text" id="blogCatName" placeholder="e.g. Energy Markets" oninput="autoGenCatSlug()" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
                             </div>
                             <div>
                                 <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Slug</label>
@@ -3814,6 +3814,14 @@
             } catch(e) {
                 document.getElementById('adminBlogCatList').innerHTML = '<div style="color:#f87171;padding:20px;">Failed to load categories</div>';
             }
+        }
+
+        function autoGenCatSlug() {
+            var editId = document.getElementById('blogCatEditId').value;
+            if (editId) return;
+            var name = document.getElementById('blogCatName').value;
+            var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            document.getElementById('blogCatSlug').value = slug;
         }
 
         function showCategoryForm(editId) {
