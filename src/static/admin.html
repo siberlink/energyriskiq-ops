@@ -1810,7 +1810,25 @@
                         </div>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Content (Markdown)</label>
-                            <textarea id="adminBlogContent" rows="12" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;font-family:monospace;resize:vertical;line-height:1.6;"></textarea>
+                            <div style="display:flex;flex-wrap:wrap;gap:2px;padding:6px 8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-bottom:none;border-radius:8px 8px 0 0;">
+                                <button type="button" onclick="mdInsert('bold')" title="Bold" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">B</button>
+                                <button type="button" onclick="mdInsert('italic')" title="Italic" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-style:italic;cursor:pointer;line-height:1;">I</button>
+                                <button type="button" onclick="mdInsert('underline')" title="Underline" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;text-decoration:underline;cursor:pointer;line-height:1;">U</button>
+                                <span style="width:1px;background:rgba(255,255,255,0.1);margin:2px 4px;"></span>
+                                <button type="button" onclick="mdInsert('h1')" title="Heading 1" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">H1</button>
+                                <button type="button" onclick="mdInsert('h2')" title="Heading 2" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">H2</button>
+                                <button type="button" onclick="mdInsert('h3')" title="Heading 3" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">H3</button>
+                                <span style="width:1px;background:rgba(255,255,255,0.1);margin:2px 4px;"></span>
+                                <button type="button" onclick="mdInsert('ul')" title="Bullet List" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#8226; List</button>
+                                <button type="button" onclick="mdInsert('ol')" title="Numbered List" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">1. List</button>
+                                <button type="button" onclick="mdInsert('indent')" title="Indent" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#8677; Indent</button>
+                                <span style="width:1px;background:rgba(255,255,255,0.1);margin:2px 4px;"></span>
+                                <button type="button" onclick="mdInsert('link')" title="Link" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#128279;</button>
+                                <button type="button" onclick="mdInsert('quote')" title="Blockquote" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#10077;</button>
+                                <button type="button" onclick="mdInsert('code')" title="Code Block" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-family:monospace;cursor:pointer;line-height:1;">&lt;/&gt;</button>
+                                <button type="button" onclick="mdInsert('hr')" title="Horizontal Rule" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#8213;</button>
+                            </div>
+                            <textarea id="adminBlogContent" rows="12" style="width:100%;padding:10px 14px;border-radius:0 0 8px 8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;font-family:monospace;resize:vertical;line-height:1.6;"></textarea>
                         </div>
                         <div style="display:flex;gap:10px;">
                             <button onclick="adminCreateBlogPost()" style="padding:10px 24px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Publish Article</button>
@@ -3599,6 +3617,119 @@
                     }
                 }
             } catch(e) {}
+        }
+
+        function mdInsert(type) {
+            var ta = document.getElementById('adminBlogContent');
+            var start = ta.selectionStart;
+            var end = ta.selectionEnd;
+            var text = ta.value;
+            var sel = text.substring(start, end);
+            var before = text.substring(0, start);
+            var after = text.substring(end);
+            var insert = '';
+            var cursorOffset = 0;
+
+            var lineStart = before.lastIndexOf('\n') + 1;
+            var currentLine = before.substring(lineStart);
+
+            switch(type) {
+                case 'bold':
+                    insert = '**' + (sel || 'bold text') + '**';
+                    cursorOffset = sel ? insert.length : 2;
+                    break;
+                case 'italic':
+                    insert = '*' + (sel || 'italic text') + '*';
+                    cursorOffset = sel ? insert.length : 1;
+                    break;
+                case 'underline':
+                    insert = '<u>' + (sel || 'underlined text') + '</u>';
+                    cursorOffset = sel ? insert.length : 3;
+                    break;
+                case 'h1':
+                    if (currentLine.length === 0 || start === lineStart) {
+                        insert = '# ' + (sel || 'Heading 1');
+                    } else {
+                        insert = '\n# ' + (sel || 'Heading 1');
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'h2':
+                    if (currentLine.length === 0 || start === lineStart) {
+                        insert = '## ' + (sel || 'Heading 2');
+                    } else {
+                        insert = '\n## ' + (sel || 'Heading 2');
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'h3':
+                    if (currentLine.length === 0 || start === lineStart) {
+                        insert = '### ' + (sel || 'Heading 3');
+                    } else {
+                        insert = '\n### ' + (sel || 'Heading 3');
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'ul':
+                    if (sel) {
+                        insert = sel.split('\n').map(function(l) { return '- ' + l; }).join('\n');
+                    } else {
+                        insert = (currentLine.length === 0 || start === lineStart) ? '- ' : '\n- ';
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'ol':
+                    if (sel) {
+                        var lines = sel.split('\n');
+                        insert = lines.map(function(l, i) { return (i+1) + '. ' + l; }).join('\n');
+                    } else {
+                        insert = (currentLine.length === 0 || start === lineStart) ? '1. ' : '\n1. ';
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'indent':
+                    if (sel) {
+                        insert = sel.split('\n').map(function(l) { return '    ' + l; }).join('\n');
+                    } else {
+                        insert = '    ';
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'link':
+                    if (sel) {
+                        insert = '[' + sel + '](url)';
+                        cursorOffset = insert.length - 4;
+                    } else {
+                        insert = '[link text](url)';
+                        cursorOffset = 1;
+                    }
+                    break;
+                case 'quote':
+                    if (sel) {
+                        insert = sel.split('\n').map(function(l) { return '> ' + l; }).join('\n');
+                    } else {
+                        insert = (currentLine.length === 0 || start === lineStart) ? '> ' : '\n> ';
+                    }
+                    cursorOffset = insert.length;
+                    break;
+                case 'code':
+                    if (sel) {
+                        insert = '```\n' + sel + '\n```';
+                    } else {
+                        insert = '```\ncode here\n```';
+                        cursorOffset = 4;
+                    }
+                    break;
+                case 'hr':
+                    insert = (currentLine.length === 0 || start === lineStart) ? '---\n' : '\n---\n';
+                    cursorOffset = insert.length;
+                    break;
+            }
+
+            ta.value = before + insert + after;
+            var newPos = start + cursorOffset;
+            ta.selectionStart = ta.selectionEnd = newPos;
+            ta.focus();
         }
 
         function showBlogWriteForm() {
