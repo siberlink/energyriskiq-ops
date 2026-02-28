@@ -1335,20 +1335,22 @@ async def admin_blog_create_post(request: Request, x_admin_token: Optional[str] 
         tags = (body.get('tags') or '').strip()
         cover_image = (body.get('cover_image') or '').strip()
 
-        if not title or not content:
-            return JSONResponse({"success": False, "error": "Title and content are required"})
+        status = (body.get('status') or 'published').strip()
+        if status not in ('published', 'draft'):
+            status = 'published'
+
+        if not title:
+            return JSONResponse({"success": False, "error": "Title is required"})
+        if status == 'published' and not content:
+            return JSONResponse({"success": False, "error": "Content is required to publish"})
 
         slug = _slugify(title)
         existing = blog_db.get_post_by_slug(slug)
         if existing:
             slug = slug + '-' + secrets.token_hex(3)
 
-        if not excerpt:
+        if not excerpt and content:
             excerpt = content[:200].rsplit(' ', 1)[0] + '...' if len(content) > 200 else content
-
-        status = (body.get('status') or 'published').strip()
-        if status not in ('published', 'draft'):
-            status = 'published'
 
         post = blog_db.create_post(
             title=title, slug=slug, excerpt=excerpt, content=content,
@@ -1360,6 +1362,51 @@ async def admin_blog_create_post(request: Request, x_admin_token: Optional[str] 
     except Exception as e:
         logger.error(f"Admin blog create error: {e}")
         return JSONResponse({"success": False, "error": "Failed to create post"})
+
+
+@router.put("/api/blog/admin/posts/{post_id}")
+async def admin_blog_update_post(post_id: int, request: Request, x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        existing_post = blog_db.get_post_by_id(post_id)
+        if not existing_post:
+            return JSONResponse({"success": False, "error": "Post not found"})
+
+        body = await request.json()
+        title = (body.get('title') or '').strip()
+        content = (body.get('content') or '').strip()
+        excerpt = (body.get('excerpt') or '').strip()
+        category = (body.get('category') or 'General').strip()
+        tags = (body.get('tags') or '').strip()
+        cover_image = (body.get('cover_image') or '').strip()
+        status = (body.get('status') or '').strip()
+        if status not in ('published', 'draft'):
+            status = existing_post.get('status', 'draft')
+
+        if not title:
+            return JSONResponse({"success": False, "error": "Title is required"})
+        if status == 'published' and not content:
+            return JSONResponse({"success": False, "error": "Content is required to publish"})
+
+        if title == existing_post.get('title', ''):
+            slug = existing_post.get('slug', _slugify(title))
+        else:
+            slug = _slugify(title)
+            slug_check = blog_db.get_post_by_slug(slug)
+            if slug_check and slug_check['id'] != post_id:
+                slug = slug + '-' + secrets.token_hex(3)
+
+        if not excerpt and content:
+            excerpt = content[:200].rsplit(' ', 1)[0] + '...' if len(content) > 200 else content
+
+        post = blog_db.update_post(post_id, title, slug, excerpt, content, cover_image, category, tags)
+        if post:
+            post = blog_db.update_post_status(post_id, status)
+        return JSONResponse({"success": True, "post_id": post['id'] if post else post_id})
+    except Exception as e:
+        logger.error(f"Admin blog update error: {e}")
+        return JSONResponse({"success": False, "error": "Failed to update post"})
 
 
 @router.put("/api/blog/admin/posts/{post_id}/status")
