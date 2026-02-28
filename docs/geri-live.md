@@ -161,6 +161,20 @@ Located in `src/static/users-account.html`, section `section-geri-live`.
 - 1024px breakpoint: Single column layout, sidebar becomes 2-column grid below main content
 - 640px breakpoint: Smaller value font, stacked meta row, single-column sidebar
 
+## Update Frequency
+
+GERI Live recomputes with a 60-second debounce. After a computation, it will not recompute again for at least 60 seconds even if new alerts arrive. Outside of that cooldown, a recomputation is triggered when the alerts engine calls the `/compute` endpoint after processing new alerts. In practice, the update frequency depends on how often new alerts are being processed — it could update every minute during active news periods, or stay static during quiet periods. The displayed value always reflects the most recent computation based on all alerts processed that day.
+
+## What Updates When GERI Live Refreshes
+
+When GERI Live recomputes, all dashboard components update together in a single SSE broadcast:
+
+- **GERI Value & Band:** The main score and risk band are recalculated from all alerts processed today.
+- **Top Drivers:** The top 5 events driving the current GERI value are refreshed.
+- **Affected Regions:** The regions with the highest risk concentration are recalculated.
+- **Intraday Timeline:** A new data point is added to the sparkline chart showing how GERI evolved throughout the day.
+- **AI Analysis:** The interpretation checks whether it needs to regenerate. It updates when the GERI value shifts by 2 or more points, or when the risk band changes (e.g., LOW to MODERATE). If the change is not significant enough, it carries forward the previous analysis.
+
 ## Edge Cases
 
 - **No alerts today:** Shows yesterday's GERI value with `no_alerts_today: true` flag
