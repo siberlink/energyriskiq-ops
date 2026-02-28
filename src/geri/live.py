@@ -130,7 +130,15 @@ def _get_yesterday_geri_value() -> Optional[int]:
         "SELECT value FROM intel_indices_daily WHERE index_id = %s ORDER BY date DESC LIMIT 1",
         (INDEX_ID,)
     )
-    return int(row2['value']) if row2 else None
+    if row2:
+        return int(row2['value'])
+    yesterday_start = datetime.combine(yesterday, datetime.min.time())
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    row3 = execute_one(
+        "SELECT value FROM geri_live WHERE computed_at >= %s AND computed_at < %s ORDER BY id DESC LIMIT 1",
+        (yesterday_start, today_start)
+    )
+    return int(row3['value']) if row3 else None
 
 
 def _should_debounce() -> bool:

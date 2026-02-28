@@ -4965,7 +4965,7 @@
         }
 
         .geri-live-interpretation-card {
-            grid-column: 1 / -1;
+            margin-top: 20px;
         }
         .geri-live-interp-header {
             display: flex;
@@ -5931,21 +5931,6 @@
                     </div>
                 </div>
 
-                <div class="geri-live-interpretation-card" id="geriLiveInterpCard" style="display:none;">
-                    <div class="geri-live-interp-header">
-                        <span class="geri-live-interp-icon">🧠</span>
-                        <span>AI Analysis</span>
-                        <span class="geri-live-interp-time" id="geriLiveInterpTime"></span>
-                    </div>
-                    <div class="geri-live-interp-body" id="geriLiveInterpBody">
-                        <p class="geri-live-interp-text" id="geriLiveInterpText"></p>
-                    </div>
-                    <div class="geri-live-interp-updating" id="geriLiveInterpUpdating" style="display:none;">
-                        <div class="spinner-small"></div>
-                        <span>Interpretation updating...</span>
-                    </div>
-                </div>
-
                 <div class="geri-live-chart-card">
                     <div class="geri-live-chart-header">
                         <span>Intraday Timeline</span>
@@ -5977,6 +5962,21 @@
                             <p class="geri-live-empty">No activity yet</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="geri-live-interpretation-card" id="geriLiveInterpCard" style="display:none;">
+                <div class="geri-live-interp-header">
+                    <span class="geri-live-interp-icon">🧠</span>
+                    <span>AI Analysis</span>
+                    <span class="geri-live-interp-time" id="geriLiveInterpTime"></span>
+                </div>
+                <div class="geri-live-interp-body" id="geriLiveInterpBody">
+                    <p class="geri-live-interp-text" id="geriLiveInterpText"></p>
+                </div>
+                <div class="geri-live-interp-updating" id="geriLiveInterpUpdating" style="display:none;">
+                    <div class="spinner-small"></div>
+                    <span>Interpretation updating...</span>
                 </div>
             </div>
         </div>
@@ -13294,11 +13294,9 @@
             startGeriLiveTimer();
 
             var yesterdayVal = data.yesterday_value;
-            if (yesterdayVal !== null && yesterdayVal !== undefined) {
-                document.getElementById('geriLiveYesterdayVal').textContent = yesterdayVal;
-                document.getElementById('geriLiveTodayVal').textContent = newVal;
-                document.getElementById('geriLiveYesterdayCompare').style.display = 'flex';
-            }
+            document.getElementById('geriLiveYesterdayVal').textContent = (yesterdayVal !== null && yesterdayVal !== undefined) ? yesterdayVal : 'N/A';
+            document.getElementById('geriLiveTodayVal').textContent = newVal;
+            document.getElementById('geriLiveYesterdayCompare').style.display = 'flex';
 
             if (data.interpretation) {
                 var interpCard = document.getElementById('geriLiveInterpCard');
