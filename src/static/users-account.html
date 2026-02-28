@@ -5077,6 +5077,242 @@
         .geri-live-pro-icon-procurement { background: rgba(245,158,11,0.15); }
         .geri-live-pro-icon-insurance { background: rgba(14,165,233,0.15); }
 
+        .trader-intel-loading {
+            display: flex; align-items: center; gap: 8px; padding: 16px 0;
+            color: #64748b; font-size: 12px;
+        }
+        .trader-intel-section {
+            margin-bottom: 20px;
+        }
+        .trader-intel-section:last-child {
+            margin-bottom: 0;
+        }
+        .trader-intel-section-header {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; font-weight: 600; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 1px solid rgba(148,163,184,0.1);
+        }
+        .trader-intel-section-header span.ti-icon {
+            font-size: 15px;
+        }
+        .ti-signal-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px; margin-bottom: 12px;
+        }
+        .ti-signal-card {
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 8px;
+            padding: 12px; text-align: center;
+        }
+        .ti-signal-commodity {
+            font-size: 11px; color: #64748b; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px;
+        }
+        .ti-signal-price {
+            font-size: 18px; font-weight: 700; color: #e2e8f0;
+        }
+        .ti-signal-change {
+            font-size: 12px; font-weight: 600; margin-top: 2px;
+        }
+        .ti-signal-change.positive { color: #22c55e; }
+        .ti-signal-change.negative { color: #ef4444; }
+        .ti-signal-change.neutral { color: #64748b; }
+        .ti-signal-unit {
+            font-size: 10px; color: #475569; margin-top: 2px;
+        }
+        .ti-divergence-banner {
+            background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px; padding: 10px 14px; margin-top: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .ti-divergence-banner.high {
+            background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3);
+        }
+        .ti-divergence-icon {
+            font-size: 16px; flex-shrink: 0;
+        }
+        .ti-divergence-text {
+            font-size: 12px; color: #f59e0b; line-height: 1.4;
+        }
+        .ti-divergence-banner.high .ti-divergence-text {
+            color: #f87171;
+        }
+        .ti-correlation-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 8px; font-size: 11px; color: #64748b;
+        }
+        .ti-correlation-badge {
+            background: #0f172a; border: 1px solid #1e293b;
+            border-radius: 4px; padding: 2px 8px; font-size: 11px;
+            font-weight: 600;
+        }
+        .ti-correlation-badge.strong { color: #22c55e; border-color: rgba(34,197,94,0.3); }
+        .ti-correlation-badge.moderate { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+        .ti-correlation-badge.weak { color: #64748b; }
+        .ti-heatmap-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        .ti-heatmap-cell {
+            background: #0f172a; border-radius: 8px; padding: 12px;
+            position: relative; overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+        .ti-heatmap-bar {
+            position: absolute; bottom: 0; left: 0; height: 3px;
+            border-radius: 0 0 8px 8px; transition: width 0.5s ease;
+        }
+        .ti-heatmap-label {
+            font-size: 12px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px;
+        }
+        .ti-heatmap-meta {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 11px; color: #64748b;
+        }
+        .ti-heatmap-intensity {
+            font-weight: 700; font-size: 14px;
+        }
+        .ti-heatmap-intensity.critical { color: #ef4444; }
+        .ti-heatmap-intensity.high { color: #f59e0b; }
+        .ti-heatmap-intensity.moderate { color: #3b82f6; }
+        .ti-heatmap-intensity.low { color: #22c55e; }
+        .ti-heatmap-intensity.none { color: #334155; }
+        .ti-heatmap-regions {
+            font-size: 10px; color: #475569; margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ti-alert-list {
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .ti-alert-item {
+            background: #0f172a; border-radius: 8px; padding: 12px 14px;
+            border-left: 3px solid #475569;
+        }
+        .ti-alert-item.critical { border-left-color: #ef4444; }
+        .ti-alert-item.warning { border-left-color: #f59e0b; }
+        .ti-alert-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .ti-alert-title {
+            font-size: 12px; font-weight: 600; color: #e2e8f0;
+        }
+        .ti-alert-severity-badge {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;
+        }
+        .ti-alert-severity-badge.critical {
+            background: rgba(239,68,68,0.2); color: #f87171;
+        }
+        .ti-alert-severity-badge.warning {
+            background: rgba(245,158,11,0.2); color: #fbbf24;
+        }
+        .ti-alert-message {
+            font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 4px;
+        }
+        .ti-alert-action {
+            font-size: 11px; color: #3b82f6; font-style: italic;
+        }
+        .ti-alert-empty {
+            text-align: center; padding: 16px; color: #22c55e; font-size: 12px;
+        }
+        .ti-session-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        .ti-session-card {
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 8px;
+            padding: 12px; position: relative;
+        }
+        .ti-session-card.active {
+            border-color: rgba(34,197,94,0.4);
+            box-shadow: 0 0 8px rgba(34,197,94,0.1);
+        }
+        .ti-session-active-badge {
+            position: absolute; top: 8px; right: 8px;
+            font-size: 8px; font-weight: 700; text-transform: uppercase;
+            background: rgba(34,197,94,0.2); color: #22c55e;
+            padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;
+        }
+        .ti-session-name {
+            font-size: 12px; font-weight: 600; margin-bottom: 2px;
+        }
+        .ti-session-time {
+            font-size: 10px; color: #475569; margin-bottom: 8px;
+        }
+        .ti-session-metrics {
+            display: flex; gap: 12px; font-size: 11px;
+        }
+        .ti-session-metric-label {
+            color: #64748b; font-size: 10px;
+        }
+        .ti-session-metric-value {
+            font-weight: 600; color: #e2e8f0; font-size: 13px;
+        }
+        .ti-session-delta { font-weight: 600; font-size: 12px; }
+        .ti-session-delta.up { color: #ef4444; }
+        .ti-session-delta.down { color: #22c55e; }
+        .ti-session-delta.flat { color: #64748b; }
+        .ti-session-headline {
+            margin-top: 6px; font-size: 10px; color: #94a3b8;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ti-feed-list {
+            max-height: 320px; overflow-y: auto; display: flex;
+            flex-direction: column; gap: 6px;
+        }
+        .ti-feed-list::-webkit-scrollbar { width: 4px; }
+        .ti-feed-list::-webkit-scrollbar-track { background: transparent; }
+        .ti-feed-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+        .ti-feed-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: #0f172a; border-radius: 8px; padding: 10px 12px;
+            border: 1px solid #1e293b;
+        }
+        .ti-feed-time {
+            font-size: 11px; font-weight: 600; color: #64748b;
+            min-width: 38px; flex-shrink: 0; padding-top: 1px;
+        }
+        .ti-feed-content {
+            flex: 1; min-width: 0;
+        }
+        .ti-feed-headline {
+            font-size: 12px; color: #e2e8f0; line-height: 1.4; margin-bottom: 4px;
+        }
+        .ti-feed-meta {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .ti-feed-severity {
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            padding: 1px 5px; border-radius: 3px; letter-spacing: 0.3px;
+        }
+        .ti-feed-severity.sev-5 { background: rgba(239,68,68,0.2); color: #f87171; }
+        .ti-feed-severity.sev-4 { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        .ti-feed-region {
+            font-size: 10px; color: #64748b;
+        }
+        .ti-feed-assets {
+            display: flex; gap: 4px;
+        }
+        .ti-feed-asset-tag {
+            font-size: 9px; background: rgba(59,130,246,0.15); color: #60a5fa;
+            padding: 1px 5px; border-radius: 3px; font-weight: 600;
+        }
+        .ti-feed-impact {
+            margin-left: auto; font-size: 12px; font-weight: 700; flex-shrink: 0;
+        }
+        .ti-feed-impact.up { color: #ef4444; }
+        .ti-feed-impact.down { color: #22c55e; }
+        .ti-feed-impact.neutral { color: #64748b; }
+        .ti-feed-empty {
+            text-align: center; padding: 20px; color: #475569; font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .ti-signal-grid { grid-template-columns: 1fr 1fr; }
+            .ti-heatmap-grid { grid-template-columns: 1fr; }
+            .ti-session-grid { grid-template-columns: 1fr; }
+        }
+
         .geri-live-interpretation-card {
             margin-top: 20px;
         }
@@ -6129,7 +6365,51 @@
                             </div>
                         </div>
                         <div class="geri-live-pro-card-body" id="geriLiveProTraderBody">
-                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                            <div class="trader-intel-loading" id="traderIntelLoading">
+                                <div class="spinner-small"></div>
+                                <span>Loading trader intelligence...</span>
+                            </div>
+                            <div id="traderIntelContent" style="display:none;">
+
+                                <div class="trader-intel-section" id="tiPriceRisk">
+                                    <div class="trader-intel-section-header">
+                                        <span class="ti-icon">📈</span> Price-Risk Correlation Signal
+                                    </div>
+                                    <div class="ti-signal-grid" id="tiSignalGrid"></div>
+                                    <div id="tiDivergenceBanner"></div>
+                                    <div id="tiCorrelationRow"></div>
+                                </div>
+
+                                <div class="trader-intel-section" id="tiHeatmap">
+                                    <div class="trader-intel-section-header">
+                                        <span class="ti-icon">🗺️</span> Trading Risk Heatmap
+                                    </div>
+                                    <div class="ti-heatmap-grid" id="tiHeatmapGrid"></div>
+                                </div>
+
+                                <div class="trader-intel-section" id="tiPositionAlerts">
+                                    <div class="trader-intel-section-header">
+                                        <span class="ti-icon">⚠️</span> Position Risk Alerts
+                                    </div>
+                                    <div class="ti-alert-list" id="tiAlertList"></div>
+                                </div>
+
+                                <div class="trader-intel-section" id="tiRiskWindows">
+                                    <div class="trader-intel-section-header">
+                                        <span class="ti-icon">🕐</span> Intraday Risk Windows
+                                    </div>
+                                    <div class="ti-session-grid" id="tiSessionGrid"></div>
+                                </div>
+
+                                <div class="trader-intel-section" id="tiFlashFeed">
+                                    <div class="trader-intel-section-header">
+                                        <span class="ti-icon">⚡</span> Flash Headline Feed
+                                        <span id="tiFlashCount" style="margin-left:auto;font-size:11px;color:#64748b;font-weight:400;text-transform:none;letter-spacing:0;"></span>
+                                    </div>
+                                    <div class="ti-feed-list" id="tiFeedList"></div>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
 
@@ -12462,6 +12742,7 @@
                 loadUserTickets();
             } else if (sectionId === 'geri-live') {
                 loadGeriLive();
+                loadTraderIntel();
             }
         }
 
@@ -13813,6 +14094,357 @@
             while (el.children.length > 20) {
                 el.removeChild(el.lastChild);
             }
+        }
+
+        var traderIntelLoaded = false;
+
+        async function loadTraderIntel() {
+            if (traderIntelLoaded) return;
+            var loadingEl = document.getElementById('traderIntelLoading');
+            var contentEl = document.getElementById('traderIntelContent');
+            if (!loadingEl || !contentEl) return;
+
+            loadingEl.style.display = 'flex';
+            contentEl.style.display = 'none';
+
+            try {
+                var token = sessionToken || '';
+                var resp = await fetch('/api/v1/indices/geri/live/trader-intel', {
+                    headers: { 'X-User-Token': token }
+                });
+                if (!resp.ok) throw new Error('Failed to load trader intel');
+                var json = await resp.json();
+                if (json.success && json.data) {
+                    renderPriceRiskCorrelation(json.data.price_risk_correlation);
+                    renderTradingRiskHeatmap(json.data.trading_risk_heatmap);
+                    renderPositionRiskAlerts(json.data.position_risk_alerts);
+                    renderIntradayRiskWindows(json.data.intraday_risk_windows);
+                    renderFlashHeadlineFeed(json.data.flash_headline_feed);
+                    loadingEl.style.display = 'none';
+                    contentEl.style.display = 'block';
+                    traderIntelLoaded = true;
+                }
+            } catch (e) {
+                console.error('Trader intel load error:', e);
+                loadingEl.innerHTML = '<span style="color:#f87171;">Failed to load trader intelligence</span>';
+            }
+        }
+
+        function _esc(text) {
+            var d = document.createElement('div');
+            d.textContent = text || '';
+            return d.innerHTML;
+        }
+
+        function renderPriceRiskCorrelation(data) {
+            var grid = document.getElementById('tiSignalGrid');
+            var divBanner = document.getElementById('tiDivergenceBanner');
+            var corrRow = document.getElementById('tiCorrelationRow');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            var signals = data.signals || [];
+            if (signals.length === 0) {
+                grid.innerHTML = '<div style="color:#475569;font-size:12px;padding:8px;">No price data available</div>';
+            }
+            signals.forEach(function(s) {
+                var chgClass = s.change_pct > 0 ? 'positive' : (s.change_pct < 0 ? 'negative' : 'neutral');
+                var chgPrefix = s.change_pct > 0 ? '+' : '';
+                var card = document.createElement('div');
+                card.className = 'ti-signal-card';
+                card.style.borderTop = '2px solid ' + s.color;
+                var commDiv = document.createElement('div');
+                commDiv.className = 'ti-signal-commodity';
+                commDiv.textContent = s.commodity;
+                var priceDiv = document.createElement('div');
+                priceDiv.className = 'ti-signal-price';
+                priceDiv.textContent = s.price.toFixed(2);
+                var chgDiv = document.createElement('div');
+                chgDiv.className = 'ti-signal-change ' + chgClass;
+                chgDiv.textContent = chgPrefix + s.change_pct.toFixed(2) + '%';
+                var unitDiv = document.createElement('div');
+                unitDiv.className = 'ti-signal-unit';
+                unitDiv.textContent = s.unit;
+                card.appendChild(commDiv);
+                card.appendChild(priceDiv);
+                card.appendChild(chgDiv);
+                card.appendChild(unitDiv);
+                grid.appendChild(card);
+            });
+
+            divBanner.innerHTML = '';
+            if (data.divergence) {
+                var sev = data.divergence.severity || 'medium';
+                var banner = document.createElement('div');
+                banner.className = 'ti-divergence-banner' + (sev === 'high' ? ' high' : '');
+                var icon = document.createElement('span');
+                icon.className = 'ti-divergence-icon';
+                icon.textContent = sev === 'high' ? '\u26A0\uFE0F' : '\u2139\uFE0F';
+                var txt = document.createElement('span');
+                txt.className = 'ti-divergence-text';
+                txt.textContent = data.divergence.message;
+                banner.appendChild(icon);
+                banner.appendChild(txt);
+                divBanner.appendChild(banner);
+            }
+
+            corrRow.innerHTML = '';
+            if (data.correlation_7d) {
+                var c = data.correlation_7d;
+                var row = document.createElement('div');
+                row.className = 'ti-correlation-row';
+                var lbl = document.createElement('span');
+                lbl.textContent = c.days + '-day GERI-Brent correlation:';
+                var badge = document.createElement('span');
+                badge.className = 'ti-correlation-badge ' + c.strength.toLowerCase();
+                badge.textContent = c.label;
+                row.appendChild(lbl);
+                row.appendChild(badge);
+                corrRow.appendChild(row);
+            }
+        }
+
+        function renderTradingRiskHeatmap(data) {
+            var grid = document.getElementById('tiHeatmapGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            var hm = data.heatmap || [];
+            hm.forEach(function(item) {
+                var cell = document.createElement('div');
+                cell.className = 'ti-heatmap-cell';
+
+                var label = document.createElement('div');
+                label.className = 'ti-heatmap-label';
+                label.textContent = item.label;
+
+                var meta = document.createElement('div');
+                meta.className = 'ti-heatmap-meta';
+                var intensity = document.createElement('span');
+                intensity.className = 'ti-heatmap-intensity ' + item.risk_level;
+                intensity.textContent = item.risk_intensity + '%';
+                var alerts = document.createElement('span');
+                alerts.textContent = item.alert_count + ' alert' + (item.alert_count !== 1 ? 's' : '');
+                meta.appendChild(intensity);
+                meta.appendChild(alerts);
+
+                var bar = document.createElement('div');
+                bar.className = 'ti-heatmap-bar';
+                bar.style.width = item.risk_intensity + '%';
+                var barColors = {critical:'#ef4444',high:'#f59e0b',moderate:'#3b82f6',low:'#22c55e',none:'#1e293b'};
+                bar.style.background = barColors[item.risk_level] || '#1e293b';
+
+                cell.appendChild(label);
+                cell.appendChild(meta);
+                if (item.regions && item.regions.length > 0) {
+                    var regionsDiv = document.createElement('div');
+                    regionsDiv.className = 'ti-heatmap-regions';
+                    regionsDiv.textContent = item.regions.join(', ');
+                    cell.appendChild(regionsDiv);
+                }
+                cell.appendChild(bar);
+                grid.appendChild(cell);
+            });
+        }
+
+        function renderPositionRiskAlerts(data) {
+            var list = document.getElementById('tiAlertList');
+            if (!list) return;
+            list.innerHTML = '';
+            var alertItems = data.alerts || [];
+            if (alertItems.length === 0) {
+                var empty = document.createElement('div');
+                empty.className = 'ti-alert-empty';
+                empty.textContent = '\u2705 No active position risk alerts — all clear';
+                list.appendChild(empty);
+                return;
+            }
+            alertItems.forEach(function(a) {
+                var item = document.createElement('div');
+                item.className = 'ti-alert-item ' + a.severity;
+
+                var header = document.createElement('div');
+                header.className = 'ti-alert-header';
+                var title = document.createElement('span');
+                title.className = 'ti-alert-title';
+                title.textContent = a.title;
+                var badge = document.createElement('span');
+                badge.className = 'ti-alert-severity-badge ' + a.severity;
+                badge.textContent = a.severity.toUpperCase();
+                header.appendChild(title);
+                header.appendChild(badge);
+
+                var msg = document.createElement('div');
+                msg.className = 'ti-alert-message';
+                msg.textContent = a.message;
+
+                var action = document.createElement('div');
+                action.className = 'ti-alert-action';
+                action.textContent = '\u2192 ' + a.action;
+
+                item.appendChild(header);
+                item.appendChild(msg);
+                item.appendChild(action);
+                list.appendChild(item);
+            });
+        }
+
+        function renderIntradayRiskWindows(data) {
+            var grid = document.getElementById('tiSessionGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            var sessions = data.sessions || [];
+            sessions.forEach(function(s) {
+                var card = document.createElement('div');
+                card.className = 'ti-session-card' + (s.is_active ? ' active' : '');
+                card.style.borderTop = '2px solid ' + s.color;
+
+                if (s.is_active) {
+                    var activeBadge = document.createElement('div');
+                    activeBadge.className = 'ti-session-active-badge';
+                    activeBadge.textContent = 'LIVE';
+                    card.appendChild(activeBadge);
+                }
+
+                var name = document.createElement('div');
+                name.className = 'ti-session-name';
+                name.style.color = s.color;
+                name.textContent = s.name;
+
+                var time = document.createElement('div');
+                time.className = 'ti-session-time';
+                time.textContent = s.time_label;
+
+                var metrics = document.createElement('div');
+                metrics.className = 'ti-session-metrics';
+
+                var geriMetric = document.createElement('div');
+                var geriLabel = document.createElement('div');
+                geriLabel.className = 'ti-session-metric-label';
+                geriLabel.textContent = 'GERI Avg';
+                var geriValue = document.createElement('div');
+                geriValue.className = 'ti-session-metric-value';
+                geriValue.textContent = s.geri_avg !== null ? s.geri_avg : '—';
+                geriMetric.appendChild(geriLabel);
+                geriMetric.appendChild(geriValue);
+
+                var alertsMetric = document.createElement('div');
+                var alertsLabel = document.createElement('div');
+                alertsLabel.className = 'ti-session-metric-label';
+                alertsLabel.textContent = 'Alerts';
+                var alertsValue = document.createElement('div');
+                alertsValue.className = 'ti-session-metric-value';
+                alertsValue.textContent = s.alert_count;
+                alertsMetric.appendChild(alertsLabel);
+                alertsMetric.appendChild(alertsValue);
+
+                var deltaMetric = document.createElement('div');
+                var deltaLabel = document.createElement('div');
+                deltaLabel.className = 'ti-session-metric-label';
+                deltaLabel.textContent = '\u0394 GERI';
+                var deltaValue = document.createElement('div');
+                deltaValue.className = 'ti-session-delta ' + s.direction;
+                if (s.geri_delta !== null) {
+                    deltaValue.textContent = (s.geri_delta > 0 ? '+' : '') + s.geri_delta;
+                } else {
+                    deltaValue.textContent = '—';
+                    deltaValue.className = 'ti-session-delta flat';
+                }
+                deltaMetric.appendChild(deltaLabel);
+                deltaMetric.appendChild(deltaValue);
+
+                metrics.appendChild(geriMetric);
+                metrics.appendChild(alertsMetric);
+                metrics.appendChild(deltaMetric);
+
+                card.appendChild(name);
+                card.appendChild(time);
+                card.appendChild(metrics);
+
+                if (s.top_headline) {
+                    var headline = document.createElement('div');
+                    headline.className = 'ti-session-headline';
+                    headline.textContent = s.top_headline;
+                    card.appendChild(headline);
+                }
+
+                grid.appendChild(card);
+            });
+        }
+
+        function renderFlashHeadlineFeed(data) {
+            var list = document.getElementById('tiFeedList');
+            var countEl = document.getElementById('tiFlashCount');
+            if (!list) return;
+            list.innerHTML = '';
+
+            var feed = data.feed || [];
+            if (countEl) {
+                countEl.textContent = feed.length > 0 ? feed.length + ' high-severity alerts today' : '';
+            }
+
+            if (feed.length === 0) {
+                var empty = document.createElement('div');
+                empty.className = 'ti-feed-empty';
+                empty.textContent = 'No high-severity alerts yet today';
+                list.appendChild(empty);
+                return;
+            }
+
+            feed.forEach(function(f) {
+                var item = document.createElement('div');
+                item.className = 'ti-feed-item';
+
+                var time = document.createElement('div');
+                time.className = 'ti-feed-time';
+                time.textContent = f.time;
+
+                var content = document.createElement('div');
+                content.className = 'ti-feed-content';
+
+                var headline = document.createElement('div');
+                headline.className = 'ti-feed-headline';
+                headline.textContent = f.headline;
+
+                var meta = document.createElement('div');
+                meta.className = 'ti-feed-meta';
+
+                var sevBadge = document.createElement('span');
+                sevBadge.className = 'ti-feed-severity sev-' + f.severity;
+                sevBadge.textContent = f.severity_label;
+
+                var region = document.createElement('span');
+                region.className = 'ti-feed-region';
+                region.textContent = f.region;
+
+                meta.appendChild(sevBadge);
+                meta.appendChild(region);
+
+                if (f.assets_affected && f.assets_affected.length > 0) {
+                    var assetsDiv = document.createElement('div');
+                    assetsDiv.className = 'ti-feed-assets';
+                    f.assets_affected.forEach(function(a) {
+                        var tag = document.createElement('span');
+                        tag.className = 'ti-feed-asset-tag';
+                        tag.textContent = a;
+                        assetsDiv.appendChild(tag);
+                    });
+                    meta.appendChild(assetsDiv);
+                }
+
+                content.appendChild(headline);
+                content.appendChild(meta);
+                item.appendChild(time);
+                item.appendChild(content);
+
+                if (f.impact) {
+                    var impact = document.createElement('div');
+                    impact.className = 'ti-feed-impact ' + f.impact.direction;
+                    impact.textContent = f.impact.label;
+                    item.appendChild(impact);
+                }
+
+                list.appendChild(item);
+            });
         }
     </script>
 

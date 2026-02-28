@@ -126,6 +126,33 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
     })
 
 
+@router.get("/trader-intel")
+async def get_trader_intel(x_user_token: Optional[str] = Header(None)):
+    if not x_user_token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_info = _get_user_plan(x_user_token)
+    _verify_plan(user_info['plan'])
+
+    latest = get_latest_live_geri()
+    value = latest['value'] if latest else 0
+    band = latest['band'] if latest else 'LOW'
+    top_drivers = latest.get('top_drivers', []) if latest else []
+
+    from src.geri.live import _compute_velocity, _compute_band_proximity
+    timeline = get_live_geri_timeline()
+    velocity = _compute_velocity(timeline, value) if latest else None
+    band_proximity = _compute_band_proximity(value) if latest else None
+
+    from src.geri.live_trader_intel import get_full_trader_intelligence
+    data = get_full_trader_intelligence(
+        geri_value=value, geri_band=band,
+        velocity=velocity, band_proximity=band_proximity,
+        top_drivers=top_drivers,
+    )
+    return JSONResponse(content={'success': True, 'data': data})
+
+
 @router.get("/timeline")
 async def get_timeline(x_user_token: Optional[str] = Header(None)):
     if not x_user_token:
