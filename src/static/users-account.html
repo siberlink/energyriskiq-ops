@@ -5010,6 +5010,77 @@
             margin-left: 4px;
         }
 
+        .geri-live-pro-sections {
+            margin-top: 28px;
+        }
+        .geri-live-pro-sections-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .geri-live-pro-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .geri-live-pro-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.3s ease;
+        }
+        .geri-live-pro-card:hover {
+            border-color: #475569;
+        }
+        .geri-live-pro-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .geri-live-pro-card-icon {
+            font-size: 22px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .geri-live-pro-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .geri-live-pro-card-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .geri-live-pro-card-body {
+            min-height: 60px;
+        }
+        .geri-live-pro-card-placeholder {
+            font-size: 12px;
+            color: #475569;
+            font-style: italic;
+        }
+        .geri-live-pro-icon-trader { background: rgba(59,130,246,0.15); }
+        .geri-live-pro-icon-risk { background: rgba(239,68,68,0.15); }
+        .geri-live-pro-icon-hedge { background: rgba(168,85,247,0.15); }
+        .geri-live-pro-icon-analyst { background: rgba(34,197,94,0.15); }
+        .geri-live-pro-icon-procurement { background: rgba(245,158,11,0.15); }
+        .geri-live-pro-icon-insurance { background: rgba(14,165,233,0.15); }
+
+        @media (max-width: 1024px) {
+            .geri-live-pro-grid { grid-template-columns: 1fr; }
+        }
+
         .geri-live-interpretation-card {
             margin-top: 20px;
         }
@@ -6046,6 +6117,91 @@
                 <div class="geri-live-interp-updating" id="geriLiveInterpUpdating" style="display:none;">
                     <div class="spinner-small"></div>
                     <span>Interpretation updating...</span>
+                </div>
+            </div>
+
+            <div class="geri-live-pro-sections" id="geriLiveProSections">
+                <div class="geri-live-pro-sections-title">Professional Intelligence Modules</div>
+                <div class="geri-live-pro-grid">
+
+                    <div class="geri-live-pro-card" id="geriLiveProTrader">
+                        <div class="geri-live-pro-card-header">
+                            <div class="geri-live-pro-card-icon geri-live-pro-icon-trader">📊</div>
+                            <div>
+                                <div class="geri-live-pro-card-title">Energy Commodity Traders</div>
+                                <div class="geri-live-pro-card-subtitle">Intraday risk overlay for trading decisions</div>
+                            </div>
+                        </div>
+                        <div class="geri-live-pro-card-body" id="geriLiveProTraderBody">
+                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                        </div>
+                    </div>
+
+                    <div class="geri-live-pro-card" id="geriLiveProRisk">
+                        <div class="geri-live-pro-card-header">
+                            <div class="geri-live-pro-card-icon geri-live-pro-icon-risk">🛡️</div>
+                            <div>
+                                <div class="geri-live-pro-card-title">Energy Risk Managers</div>
+                                <div class="geri-live-pro-card-subtitle">Supply disruption monitoring & early warning</div>
+                            </div>
+                        </div>
+                        <div class="geri-live-pro-card-body" id="geriLiveProRiskBody">
+                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                        </div>
+                    </div>
+
+                    <div class="geri-live-pro-card" id="geriLiveProHedge">
+                        <div class="geri-live-pro-card-header">
+                            <div class="geri-live-pro-card-icon geri-live-pro-icon-hedge">💎</div>
+                            <div>
+                                <div class="geri-live-pro-card-title">Hedge Fund & Asset Managers</div>
+                                <div class="geri-live-pro-card-subtitle">Portfolio exposure signals & geopolitical alpha</div>
+                            </div>
+                        </div>
+                        <div class="geri-live-pro-card-body" id="geriLiveProHedgeBody">
+                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                        </div>
+                    </div>
+
+                    <div class="geri-live-pro-card" id="geriLiveProAnalyst">
+                        <div class="geri-live-pro-card-header">
+                            <div class="geri-live-pro-card-icon geri-live-pro-icon-analyst">📝</div>
+                            <div>
+                                <div class="geri-live-pro-card-title">Commodity Analysts & Strategists</div>
+                                <div class="geri-live-pro-card-subtitle">Flash reports & client briefing intelligence</div>
+                            </div>
+                        </div>
+                        <div class="geri-live-pro-card-body" id="geriLiveProAnalystBody">
+                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                        </div>
+                    </div>
+
+                    <div class="geri-live-pro-card" id="geriLiveProProcurement">
+                        <div class="geri-live-pro-card-header">
+                            <div class="geri-live-pro-card-icon geri-live-pro-icon-procurement">🏭</div>
+                            <div>
+                                <div class="geri-live-pro-card-title">Corporate Energy Procurement</div>
+                                <div class="geri-live-pro-card-subtitle">Purchase timing & contract risk windows</div>
+                            </div>
+                        </div>
+                        <div class="geri-live-pro-card-body" id="geriLiveProProcurementBody">
+                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                        </div>
+                    </div>
+
+                    <div class="geri-live-pro-card" id="geriLiveProInsurance">
+                        <div class="geri-live-pro-card-header">
+                            <div class="geri-live-pro-card-icon geri-live-pro-icon-insurance">🏛️</div>
+                            <div>
+                                <div class="geri-live-pro-card-title">Insurance & Reinsurance Underwriters</div>
+                                <div class="geri-live-pro-card-subtitle">Infrastructure risk pricing & exposure monitoring</div>
+                            </div>
+                        </div>
+                        <div class="geri-live-pro-card-body" id="geriLiveProInsuranceBody">
+                            <p class="geri-live-pro-card-placeholder">Features coming soon</p>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
