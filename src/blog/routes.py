@@ -2,10 +2,12 @@ import logging
 import bcrypt
 import secrets
 import re
+import os
+import uuid
 import unicodedata
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Request, Header, Query
+from fastapi import APIRouter, Request, Header, Query, UploadFile, File
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from src.blog import db as blog_db
@@ -1344,11 +1346,15 @@ async def admin_blog_create_post(request: Request, x_admin_token: Optional[str] 
         if not excerpt:
             excerpt = content[:200].rsplit(' ', 1)[0] + '...' if len(content) > 200 else content
 
+        status = (body.get('status') or 'published').strip()
+        if status not in ('published', 'draft'):
+            status = 'published'
+
         post = blog_db.create_post(
             title=title, slug=slug, excerpt=excerpt, content=content,
             cover_image=cover_image, category=category, tags=tags,
             author_id=None, author_name='EnergyRiskIQ',
-            author_type='admin', status='published'
+            author_type='admin', status=status
         )
         return JSONResponse({"success": True, "post_id": post['id']})
     except Exception as e:
@@ -1524,3 +1530,77 @@ async def admin_blog_delete_user(user_id: int, x_admin_token: Optional[str] = He
     except Exception as e:
         logger.error(f"Admin delete blog user error: {e}")
         return JSONResponse({"success": False, "error": str(e)})
+
+
+BLOG_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "src", "static", "uploads", "blog")
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+MAX_IMAGE_SIZE = 1_572_864
+MAX_IMAGES_PER_HOUR = 15
+
+IMAGE_MAGIC_BYTES = {
+    b'\xff\xd8\xff': 'jpg',
+    b'\x89PNG': 'png',
+    b'GIF87a': 'gif',
+    b'GIF89a': 'gif',
+    b'RIFF': 'webp',
+}
+
+_upload_tracker = {}
+
+
+def _check_upload_rate():
+    import time
+    now = time.time()
+    key = 'admin'
+    if key not in _upload_tracker:
+        _upload_tracker[key] = []
+    _upload_tracker[key] = [t for t in _upload_tracker[key] if now - t < 3600]
+    if len(_upload_tracker[key]) >= MAX_IMAGES_PER_HOUR:
+        return False
+    _upload_tracker[key].append(now)
+    return True
+
+
+def _validate_image_magic(data: bytes) -> bool:
+    for magic, _ in IMAGE_MAGIC_BYTES.items():
+        if data[:len(magic)] == magic:
+            return True
+    return False
+
+
+@router.post("/api/blog/admin/upload-image")
+async def admin_blog_upload_image(
+    file: UploadFile = File(...),
+    x_admin_token: Optional[str] = Header(None),
+):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        if not _check_upload_rate():
+            return JSONResponse({"success": False, "error": "Upload rate limit reached (max 15 images per hour)"})
+
+        if file.content_type not in ALLOWED_IMAGE_TYPES:
+            return JSONResponse({"success": False, "error": "Only JPEG, PNG, GIF, and WebP images are allowed"})
+
+        contents = await file.read()
+        if len(contents) > MAX_IMAGE_SIZE:
+            return JSONResponse({"success": False, "error": "Image size must be under 1.5 MB"})
+
+        if not _validate_image_magic(contents):
+            return JSONResponse({"success": False, "error": "File does not appear to be a valid image"})
+
+        ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'jpg'
+        if ext not in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+            ext = 'jpg'
+        filename = f"{uuid.uuid4().hex[:12]}.{ext}"
+
+        os.makedirs(BLOG_UPLOAD_DIR, exist_ok=True)
+        filepath = os.path.join(BLOG_UPLOAD_DIR, filename)
+        with open(filepath, 'wb') as f:
+            f.write(contents)
+
+        url = f"/static/uploads/blog/{filename}"
+        return JSONResponse({"success": True, "url": url, "filename": filename})
+    except Exception as e:
+        logger.error(f"Blog image upload error: {e}")
+        return JSONResponse({"success": False, "error": "Upload failed"})

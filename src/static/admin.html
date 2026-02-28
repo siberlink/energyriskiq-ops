@@ -1834,11 +1834,35 @@
                                 <button type="button" onclick="mdInsert('quote')" title="Blockquote" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#10077;</button>
                                 <button type="button" onclick="mdInsert('code')" title="Code Block" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-family:monospace;cursor:pointer;line-height:1;">&lt;/&gt;</button>
                                 <button type="button" onclick="mdInsert('hr')" title="Horizontal Rule" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#8213;</button>
+                                <span style="width:1px;background:rgba(255,255,255,0.1);margin:2px 4px;"></span>
+                                <button type="button" onclick="openBlogImageUpload()" title="Insert Image" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#128247;</button>
+                                <button type="button" onclick="toggleEmojiPicker()" title="Insert Emoji" id="emojiPickerBtn" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;cursor:pointer;line-height:1;">&#128522;</button>
+                            </div>
+                            <div id="emojiPickerPanel" style="display:none;padding:8px;background:rgba(15,23,42,0.98);border:1px solid rgba(255,255,255,0.12);border-radius:0 0 0 0;max-height:180px;overflow-y:auto;">
+                                <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;" id="emojiCategoryTabs"></div>
+                                <div style="display:flex;flex-wrap:wrap;gap:2px;" id="emojiGrid"></div>
                             </div>
                             <textarea id="adminBlogContent" rows="12" style="width:100%;padding:10px 14px;border-radius:0 0 8px 8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;font-family:monospace;resize:vertical;line-height:1.6;"></textarea>
                         </div>
-                        <div style="display:flex;gap:10px;">
-                            <button onclick="adminCreateBlogPost()" style="padding:10px 24px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Publish Article</button>
+                        <div id="blogImageUploadSection" style="display:none;margin-bottom:14px;padding:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <span style="font-size:13px;color:#94a3b8;font-weight:500;">Upload Image</span>
+                                <span style="font-size:11px;color:#64748b;" id="blogImageCountLabel">0 / 3 images</span>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                                <label style="padding:8px 16px;border-radius:8px;border:1px dashed rgba(59,130,246,0.4);background:rgba(59,130,246,0.06);color:#60a5fa;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                                    📁 Choose File
+                                    <input type="file" id="blogImageFileInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="handleBlogImageSelect(this)" />
+                                </label>
+                                <span style="font-size:11px;color:#64748b;">Max 1.5 MB · JPEG, PNG, GIF, WebP</span>
+                                <button type="button" onclick="closeBlogImageUpload()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:12px;cursor:pointer;">Close</button>
+                            </div>
+                            <div id="blogImageUploadStatus" style="font-size:12px;margin-bottom:8px;display:none;"></div>
+                            <div id="blogUploadedImagesList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                        </div>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <button onclick="adminCreateBlogPost('published')" style="padding:10px 24px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Publish Article</button>
+                            <button onclick="adminCreateBlogPost('draft')" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.08);color:#60a5fa;font-size:14px;font-weight:500;cursor:pointer;">Save Draft</button>
                             <button onclick="hideBlogWriteForm()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:14px;cursor:pointer;">Cancel</button>
                         </div>
                         <div id="adminBlogWriteError" style="color:#f87171;font-size:13px;margin-top:8px;"></div>
@@ -3638,6 +3662,148 @@
             } catch(e) {}
         }
 
+        var _blogUploadedImages = [];
+
+        function openBlogImageUpload() {
+            var section = document.getElementById('blogImageUploadSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function closeBlogImageUpload() {
+            document.getElementById('blogImageUploadSection').style.display = 'none';
+        }
+
+        async function handleBlogImageSelect(input) {
+            if (!input.files || !input.files[0]) return;
+            var file = input.files[0];
+
+            if (_blogUploadedImages.length >= 3) {
+                showImageUploadStatus('Maximum 3 images per article', true);
+                input.value = '';
+                return;
+            }
+            if (file.size > 1572864) {
+                showImageUploadStatus('Image must be under 1.5 MB (this file is ' + (file.size / 1048576).toFixed(1) + ' MB)', true);
+                input.value = '';
+                return;
+            }
+            if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) {
+                showImageUploadStatus('Only JPEG, PNG, GIF, and WebP allowed', true);
+                input.value = '';
+                return;
+            }
+
+            showImageUploadStatus('Uploading...', false);
+            var formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                var resp = await fetch('/api/blog/admin/upload-image', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Token': sessionToken },
+                    body: formData
+                });
+                var data = await resp.json();
+                if (data.success) {
+                    _blogUploadedImages.push({ url: data.url, filename: data.filename });
+                    renderUploadedImages();
+                    showImageUploadStatus('Uploaded! Click "Insert" to add to article.', false);
+                } else {
+                    showImageUploadStatus(data.error || 'Upload failed', true);
+                }
+            } catch(e) {
+                showImageUploadStatus('Upload failed — connection error', true);
+            }
+            input.value = '';
+        }
+
+        function showImageUploadStatus(msg, isError) {
+            var el = document.getElementById('blogImageUploadStatus');
+            el.style.display = 'block';
+            el.style.color = isError ? '#f87171' : '#34d399';
+            el.textContent = msg;
+            if (!isError) setTimeout(function() { el.style.display = 'none'; }, 3000);
+        }
+
+        function renderUploadedImages() {
+            var container = document.getElementById('blogUploadedImagesList');
+            document.getElementById('blogImageCountLabel').textContent = _blogUploadedImages.length + ' / 3 images';
+            var html = '';
+            _blogUploadedImages.forEach(function(img, idx) {
+                html += '<div style="position:relative;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;width:120px;">';
+                html += '<img src="' + img.url + '" style="width:120px;height:80px;object-fit:cover;display:block;" />';
+                html += '<div style="display:flex;gap:2px;padding:4px;">';
+                html += '<button type="button" onclick="insertBlogImage(' + idx + ')" style="flex:1;padding:3px;border:none;border-radius:4px;background:rgba(59,130,246,0.2);color:#60a5fa;font-size:10px;cursor:pointer;">Insert</button>';
+                html += '<button type="button" onclick="removeBlogImage(' + idx + ')" style="padding:3px 6px;border:none;border-radius:4px;background:rgba(239,68,68,0.2);color:#f87171;font-size:10px;cursor:pointer;">✕</button>';
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function insertBlogImage(idx) {
+            var img = _blogUploadedImages[idx];
+            if (!img) return;
+            var ta = document.getElementById('adminBlogContent');
+            var pos = ta.selectionStart;
+            var text = ta.value;
+            var insert = '\n![image](' + img.url + ')\n';
+            ta.value = text.substring(0, pos) + insert + text.substring(pos);
+            ta.focus();
+            ta.selectionStart = ta.selectionEnd = pos + insert.length;
+        }
+
+        function removeBlogImage(idx) {
+            _blogUploadedImages.splice(idx, 1);
+            renderUploadedImages();
+        }
+
+        var _emojiData = {
+            'Smileys': ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','😐','😑','😶','😏','😒','🙄','😬','😮‍💨','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','🤯','🤠','🥳','🥸','😎','🤓','🧐','😕','😟','🙁','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],
+            'Gestures': ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🫀','🫁','🦷','🦴','👀','👁️','👅','👄'],
+            'Objects': ['💼','📁','📂','📅','📆','📈','📉','📊','📋','📌','📍','📎','📏','📐','✂️','🗃️','🗄️','🗑️','🔒','🔓','🔑','🗝️','🔨','⛏️','⚒️','🛠️','🗡️','⚔️','🔫','🛡️','🔧','🔩','⚙️','🧲','⚖️','🔗','⛓️','💡','🔦','🕯️','💰','💵','💶','💷','💴','💸','💳','🧾','💹','📧','📨','📩','📤','📥','📦','📫','📬','📭','📮','🗳️','✏️','✒️','🖊️','🖋️','📝','📰','🗞️','📚','📖','🏷️','🔖','🔬','🔭','📡'],
+            'Energy': ['⚡','🔥','💧','🌊','☀️','🌤️','⛅','🌥️','☁️','🌧️','⛈️','🌩️','🌨️','❄️','☃️','⛄','🌬️','💨','🌪️','🌈','🌫️','🛢️','⛽','🏭','🔋','🔌','💎','🪨','⛏️','🧊','🌋','🏔️','⛰️','🗻','🌍','🌎','🌏','🗺️','🧭','🏗️','🚢','✈️','🚁','🛩️','🚂','🚀','🛸','⚓','🪖','⚠️','🚨','🔴','🟠','🟡','🟢','🔵','🟣','⬛','⬜','◼️','◻️','🏴','🏳️','🚩'],
+            'Symbols': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉️','☸️','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','✅','☑️','✔️','❌','❎','➕','➖','➗','✖️','♾️','‼️','⁉️','❓','❔','❕','❗','〰️','💲','⚕️','♻️','⚜️','🔱','📛','🔰','⭕','✳️','❇️','🔶','🔷','🔸','🔹','🔺','🔻','💠','🔘','🏁','🚩','🎌','🏴'],
+            'Flags': ['🇺🇸','🇬🇧','🇪🇺','🇩🇪','🇫🇷','🇮🇹','🇪🇸','🇳🇱','🇧🇪','🇨🇭','🇦🇹','🇵🇱','🇳🇴','🇸🇪','🇩🇰','🇫🇮','🇷🇺','🇺🇦','🇹🇷','🇸🇦','🇦🇪','🇶🇦','🇮🇷','🇮🇶','🇰🇼','🇴🇲','🇧🇭','🇯🇴','🇱🇧','🇮🇱','🇪🇬','🇱🇾','🇩🇿','🇳🇬','🇦🇴','🇿🇦','🇨🇳','🇯🇵','🇰🇷','🇮🇳','🇮🇩','🇲🇾','🇸🇬','🇦🇺','🇧🇷','🇲🇽','🇨🇦','🇦🇷','🇻🇪','🇨🇴']
+        };
+        var _emojiCurrentCat = 'Smileys';
+
+        function toggleEmojiPicker() {
+            var panel = document.getElementById('emojiPickerPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                renderEmojiPicker();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function renderEmojiPicker() {
+            var tabsEl = document.getElementById('emojiCategoryTabs');
+            var gridEl = document.getElementById('emojiGrid');
+            var cats = Object.keys(_emojiData);
+            var tabsHtml = '';
+            cats.forEach(function(cat) {
+                var active = cat === _emojiCurrentCat;
+                tabsHtml += '<button type="button" onclick="_emojiCurrentCat=\'' + cat + '\';renderEmojiPicker();" style="padding:3px 8px;border:none;border-radius:4px;font-size:11px;cursor:pointer;' + (active ? 'background:rgba(59,130,246,0.2);color:#60a5fa;font-weight:600;' : 'background:rgba(255,255,255,0.04);color:#94a3b8;') + '">' + cat + '</button>';
+            });
+            tabsEl.innerHTML = tabsHtml;
+            var emojis = _emojiData[_emojiCurrentCat] || [];
+            var gridHtml = '';
+            emojis.forEach(function(em) {
+                gridHtml += '<button type="button" onclick="insertEmoji(\'' + em + '\')" style="padding:4px;border:none;background:none;font-size:20px;cursor:pointer;border-radius:4px;line-height:1;" title="' + em + '">' + em + '</button>';
+            });
+            gridEl.innerHTML = gridHtml;
+        }
+
+        function insertEmoji(emoji) {
+            var ta = document.getElementById('adminBlogContent');
+            var pos = ta.selectionStart;
+            var text = ta.value;
+            ta.value = text.substring(0, pos) + emoji + text.substring(pos);
+            ta.focus();
+            ta.selectionStart = ta.selectionEnd = pos + emoji.length;
+        }
+
         function autoGenArticleSlug() {
             var title = document.getElementById('adminBlogTitle').value;
             var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -3746,6 +3912,10 @@
             html = html.replace(/&lt;u&gt;(.+?)&lt;\/u&gt;/g, '<u>$1</u>');
             html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;">');
             html = html.replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #3b82f6;padding-left:14px;color:#94a3b8;margin:12px 0;">$1</blockquote>');
+            html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(m, alt, src) {
+                if (/^(https?:\/\/|\/)/.test(src)) return '<div style="margin:16px 0;text-align:center;"><img src="' + src + '" alt="' + alt + '" style="max-width:100%;border-radius:8px;border:1px solid rgba(255,255,255,0.08);" /></div>';
+                return m;
+            });
             html = html.replace(/\[(.+?)\]\((.+?)\)/g, function(m, text, url) {
                 if (/^(https?:\/\/|\/|#)/.test(url)) return '<a href="' + url + '" style="color:#60a5fa;text-decoration:underline;" target="_blank" rel="noopener">' + text + '</a>';
                 return text;
@@ -3887,9 +4057,15 @@
             document.getElementById('adminBlogWriteError').textContent = '';
             document.getElementById('adminBlogSlugRow').style.display = 'none';
             document.getElementById('adminBlogSlugPreview').textContent = '';
+            document.getElementById('blogImageUploadSection').style.display = 'none';
+            document.getElementById('blogUploadedImagesList').innerHTML = '';
+            document.getElementById('blogImageCountLabel').textContent = '0 / 3 images';
+            document.getElementById('emojiPickerPanel').style.display = 'none';
+            _blogUploadedImages = [];
         }
 
-        async function adminCreateBlogPost() {
+        async function adminCreateBlogPost(status) {
+            status = status || 'published';
             var title = document.getElementById('adminBlogTitle').value.trim();
             var content = document.getElementById('adminBlogContent').value.trim();
             var excerpt = document.getElementById('adminBlogExcerpt').value.trim();
@@ -3897,8 +4073,12 @@
             var tags = document.getElementById('adminBlogTags').value.trim();
             var cover = document.getElementById('adminBlogCover').value.trim();
 
-            if (!title || !content) {
-                document.getElementById('adminBlogWriteError').textContent = 'Title and content are required';
+            if (!title) {
+                document.getElementById('adminBlogWriteError').textContent = 'Title is required';
+                return;
+            }
+            if (status === 'published' && !content) {
+                document.getElementById('adminBlogWriteError').textContent = 'Content is required to publish';
                 return;
             }
 
@@ -3906,7 +4086,7 @@
                 var resp = await fetch('/api/blog/admin/posts', {
                     method: 'POST',
                     headers: {'Content-Type':'application/json', 'X-Admin-Token': sessionToken},
-                    body: JSON.stringify({title:title, content:content, excerpt:excerpt, category:category, tags:tags, cover_image:cover})
+                    body: JSON.stringify({title:title, content:content, excerpt:excerpt, category:category, tags:tags, cover_image:cover, status:status})
                 });
                 var data = await resp.json();
                 if (data.success) {
