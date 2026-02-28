@@ -279,11 +279,33 @@ Blog users are completely separate from EnergyRiskIQ platform users:
 - Different session storage (`blog_sessions` vs `sessions`)
 - No cross-referencing between the two user systems
 
+## Theme System
+
+The blog supports two visual themes — Dark and Light — with Dark as the default.
+
+### How It Works
+- **CSS Custom Properties:** All colors are defined as CSS variables on `:root` (dark theme) and overridden under `[data-theme="light"]` (light theme). This covers backgrounds, text, borders, cards, inputs, modals, and all other UI surfaces.
+- **Toggle Button:** A moon/sun icon button in the navigation bar (class `blog-theme-toggle`, id `blogThemeBtn`). Moon icon for dark mode, sun icon for light mode.
+- **Persistence:** The user's preference is stored in `localStorage` under the key `blog_theme` (values: `"dark"` or `"light"`). On page load, a blocking `<script>` in `<head>` reads this value and applies `data-theme="light"` to `<html>` before the page renders, preventing any flash of wrong theme.
+- **Smooth Transitions:** `background` and `color` properties include `transition: 0.3s` for a smooth visual switch.
+
+### Dark Theme (Default)
+- Background: `#0f172a` (deep navy, matching GERI and EERI public pages)
+- Nav: `rgba(15,23,42,0.95)` with backdrop blur
+- Cards: `rgba(255,255,255,0.03)` with subtle borders
+- Text: Light greys and whites (`#e2e8f0`, `#f1f5f9`, `#94a3b8`)
+
+### Light Theme
+- Background: `#f8fafc` (off-white)
+- Nav: `rgba(255,255,255,0.95)` with backdrop blur
+- Cards: `#ffffff` with subtle grey borders
+- Text: Dark greys and blacks (`#1e293b`, `#0f172a`, `#475569`)
+
 ## UI Components
 
 ### Blog Home (`/blog`)
 
-- **Navigation bar:** EnergyRiskIQ Blog logo, Articles link, EnergyRiskIQ link, Sign In button (or user badge when authenticated)
+- **Navigation bar:** EnergyRiskIQ Blog logo, Articles link, EnergyRiskIQ link, Sign In button (or user badge when authenticated), theme toggle button
 - **Hero section:** "Energy Intelligence Blog" title and subtitle
 - **Category filters:** Pill buttons showing All plus each published category
 - **Search bar:** Full-text search across article titles and excerpts
