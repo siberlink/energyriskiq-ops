@@ -13708,6 +13708,7 @@
                             addGeriLiveTimelinePoint(data);
                             if (data.type === 'update') {
                                 addGeriLiveActivity(data);
+                                refreshTraderIntel();
                             }
                         }
                     } catch (e) {
@@ -14097,6 +14098,7 @@
         }
 
         var traderIntelLoaded = false;
+        var traderIntelRefreshing = false;
 
         async function loadTraderIntel() {
             if (traderIntelLoaded) return;
@@ -14127,6 +14129,30 @@
             } catch (e) {
                 console.error('Trader intel load error:', e);
                 loadingEl.innerHTML = '<span style="color:#f87171;">Failed to load trader intelligence</span>';
+            }
+        }
+
+        async function refreshTraderIntel() {
+            if (traderIntelRefreshing) return;
+            traderIntelRefreshing = true;
+            try {
+                var token = sessionToken || '';
+                var resp = await fetch('/api/v1/indices/geri/live/trader-intel', {
+                    headers: { 'X-User-Token': token }
+                });
+                if (!resp.ok) return;
+                var json = await resp.json();
+                if (json.success && json.data) {
+                    renderPriceRiskCorrelation(json.data.price_risk_correlation);
+                    renderTradingRiskHeatmap(json.data.trading_risk_heatmap);
+                    renderPositionRiskAlerts(json.data.position_risk_alerts);
+                    renderIntradayRiskWindows(json.data.intraday_risk_windows);
+                    renderFlashHeadlineFeed(json.data.flash_headline_feed);
+                }
+            } catch (e) {
+                console.error('Trader intel refresh error:', e);
+            } finally {
+                traderIntelRefreshing = false;
             }
         }
 
