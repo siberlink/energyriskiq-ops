@@ -682,7 +682,7 @@ def _render_category_links(categories, active_slug=None):
         name = _esc(cat.get('name', ''))
         count = cat.get('post_count', 0)
         count_badge = f' <span class="blog-cat-link-count">{count}</span>' if count > 0 else ''
-        links += f'<a href="/blog/category/{slug}" class="blog-cat-link{is_active}">'
+        links += f'<a href="/blog/{slug}" class="blog-cat-link{is_active}">'
         links += f'<span class="blog-cat-link-dot" style="background:{color};"></span>{name}{count_badge}</a>'
     return links
 
@@ -793,67 +793,6 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
     return HTMLResponse(_blog_page("Blog", body, request))
 
 
-@router.get("/blog/category/{cat_slug}", response_class=HTMLResponse)
-async def blog_category_page(cat_slug: str, request: Request, page: int = Query(1, ge=1)):
-    blog_db.refresh_category_post_counts()
-    category = blog_db.get_blog_category_by_slug(cat_slug)
-    if not category:
-        return HTMLResponse(_blog_page("Category Not Found", """
-        <div class="blog-container blog-empty">
-            <div class="blog-empty-icon">&#x1f50d;</div>
-            <h3>Category not found</h3>
-            <p><a href="/blog">Back to all articles</a></p>
-        </div>
-        """, request), status_code=404)
-
-    cat_name = category['name']
-    cat_desc = category.get('description', '')
-    cat_color = category.get('color', '#3b82f6')
-    posts, total = blog_db.get_published_posts(page=page, per_page=9, category=cat_name)
-    total_pages = max(1, (total + 8) // 9)
-    all_categories = blog_db.get_blog_categories()
-
-    category_links = _render_category_links(all_categories, active_slug=cat_slug)
-    cards = _render_blog_cards(posts)
-
-    if not cards:
-        cards = f"""
-        <div class="blog-empty" style="grid-column:1/-1;">
-            <div class="blog-empty-icon">&#x1f4dd;</div>
-            <h3>No articles in {_esc(cat_name)}</h3>
-            <p>Check back soon or <a href="/blog">browse all articles</a>.</p>
-        </div>
-        """
-
-    pagination = _render_pagination(page, total_pages, base_url=f"/blog/category/{cat_slug}")
-
-    body = f"""
-    <div class="blog-container">
-        <div class="blog-hero">
-            <div class="blog-cat-hero-badge" style="background:{_esc(cat_color)}22;color:{_esc(cat_color)};border:1px solid {_esc(cat_color)}44;">
-                {_esc(cat_name)}
-            </div>
-            <h1>{_esc(cat_name)}</h1>
-            <p>{_esc(cat_desc) if cat_desc else f'Articles about {_esc(cat_name).lower()}'}</p>
-        </div>
-        <div class="blog-cat-links-row">
-            {category_links}
-        </div>
-        <div class="blog-grid">
-            {cards}
-        </div>
-        {pagination}
-    </div>
-    <script>
-        function goPage(p) {{
-            var url = new URL(location.href);
-            url.searchParams.set('page', p);
-            location.href = url.toString();
-        }}
-    </script>
-    """
-
-    return HTMLResponse(_blog_page(f"{cat_name} - Blog", body, request))
 
 
 @router.get("/blog/write", response_class=HTMLResponse)
