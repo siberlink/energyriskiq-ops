@@ -216,7 +216,7 @@ def _blog_base_styles():
 
         .blog-nav { background: var(--blog-nav-bg); border-bottom: 1px solid var(--blog-nav-border); padding: 0 24px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); transition: background 0.3s, border-color 0.3s; }
         .blog-nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
-        .blog-logo { font-size: 18px; font-weight: 700; color: var(--blog-text-primary); display: flex; align-items: center; gap: 10px; }
+        .blog-logo { font-size: 18px; font-weight: 700; color: var(--blog-text-primary); display: flex; align-items: center; gap: 10px; white-space: nowrap; }
         .blog-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
         .blog-nav-links { display: flex; align-items: center; gap: 8px; }
         .blog-nav-links a, .blog-nav-links button { padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--blog-text-secondary); transition: all 0.2s; }
@@ -225,6 +225,16 @@ def _blog_base_styles():
         .blog-nav-btn-primary:hover { opacity: 0.9 !important; }
         .blog-user-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; background: var(--blog-badge-user-bg); font-size: 13px; color: var(--blog-text-secondary); }
         .blog-user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: #fff; }
+
+        .blog-hamburger { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border: none; background: none; cursor: pointer; padding: 0; z-index: 110; }
+        .blog-hamburger-icon { display: flex; flex-direction: column; gap: 5px; width: 22px; }
+        .blog-hamburger-icon span { display: block; height: 2px; background: var(--blog-text-secondary); border-radius: 2px; transition: all 0.3s; }
+        .blog-hamburger.active .blog-hamburger-icon span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .blog-hamburger.active .blog-hamburger-icon span:nth-child(2) { opacity: 0; }
+        .blog-hamburger.active .blog-hamburger-icon span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        .blog-mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+        .blog-mobile-overlay.active { display: block; }
 
         .blog-theme-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--blog-filter-border); background: var(--blog-theme-toggle-bg); color: var(--blog-theme-toggle-color); font-size: 14px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; font-weight: 500; font-family: inherit; }
         .blog-theme-toggle:hover { background: var(--blog-theme-toggle-hover); color: var(--blog-text-primary); border-color: #3b82f6; }
@@ -362,15 +372,55 @@ def _blog_base_styles():
         .blog-guest-name-input:focus { border-color: #3b82f6; }
 
         @media (max-width: 768px) {
+            .blog-hamburger { display: flex; }
+            .blog-nav { padding: 0 16px; }
+            .blog-nav-inner { height: 56px; }
+            .blog-nav-links { position: fixed; top: 0; right: -280px; width: 280px; height: 100vh; background: var(--blog-nav-bg); backdrop-filter: blur(20px); flex-direction: column; align-items: stretch; gap: 0; padding: 72px 16px 24px; z-index: 105; transition: right 0.3s ease; border-left: 1px solid var(--blog-nav-border); overflow-y: auto; }
+            .blog-nav-links.open { right: 0; }
+            .blog-nav-links a, .blog-nav-links button { padding: 14px 16px; font-size: 15px; border-radius: 10px; text-align: left; width: 100%; }
+            .blog-nav-btn-primary { margin-top: 8px; text-align: center !important; border-radius: 10px !important; padding: 14px 16px !important; }
+            .blog-user-badge { margin-bottom: 8px; padding: 12px 16px; border-radius: 10px; }
+            .blog-theme-toggle { margin-top: 8px; height: 44px; padding: 0 16px; font-size: 14px; border-radius: 10px; justify-content: center; width: 100%; }
+            .blog-theme-toggle-icon { font-size: 16px; }
+
+            .blog-hero { padding: 40px 0 24px; }
             .blog-hero h1 { font-size: 28px; }
             .blog-hero p { font-size: 15px; }
-            .blog-grid { grid-template-columns: 1fr; }
-            .blog-article h1 { font-size: 26px; }
+            .blog-container { padding: 24px 16px; }
+            .blog-grid { grid-template-columns: 1fr; gap: 20px; }
+            .blog-card-body { padding: 20px; }
+            .blog-filters { gap: 8px; margin-bottom: 24px; }
+            .blog-filter-btn { padding: 6px 14px; font-size: 12px; }
+            .blog-search { min-width: 100%; padding: 10px 14px; font-size: 14px; }
+            .blog-pagination { gap: 6px; margin-top: 32px; }
+            .blog-page-btn { padding: 8px 12px; font-size: 13px; }
+
+            .blog-article { padding: 24px 16px; }
+            .blog-article h1 { font-size: 24px; }
+            .blog-article-meta { gap: 10px; font-size: 13px; }
+            .blog-article-content { font-size: 16px; line-height: 1.8; }
+            .blog-article-cover { border-radius: 12px; }
+            .blog-article-tags { gap: 6px; }
+
+            .blog-comments { padding: 0 16px 40px; }
+            .blog-comment-form textarea { min-height: 80px; padding: 12px; }
+
+            .blog-write-page { padding: 24px 16px; }
+            .blog-write-page h1 { font-size: 22px; }
             .blog-write-form-row { grid-template-columns: 1fr; }
-            .blog-nav-links { gap: 4px; }
-            .blog-nav-links a, .blog-nav-links button { padding: 6px 10px; font-size: 13px; }
-            .blog-theme-toggle { height: 32px; padding: 0 10px; font-size: 12px; }
-            .blog-theme-toggle-icon { font-size: 14px; }
+            .blog-write-form-group textarea { min-height: 300px; }
+            .blog-write-actions { flex-direction: column; }
+            .blog-write-btn { width: 100%; text-align: center; }
+
+            .blog-my-posts { padding: 24px 16px; }
+            .blog-my-posts h1 { font-size: 22px; }
+            .blog-my-post-item { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+
+            .blog-modal { padding: 28px 24px; width: 95%; }
+            .blog-modal h2 { font-size: 20px; }
+
+            .blog-footer { padding: 24px 16px; }
+            .blog-logo { font-size: 16px; }
         }
     </style>
     <script>
@@ -402,18 +452,22 @@ def _blog_nav_html(user=None):
         """
 
     return f"""
+    <div class="blog-mobile-overlay" id="blogMobileOverlay" onclick="closeBlogMenu()"></div>
     <nav class="blog-nav">
         <div class="blog-nav-inner">
             <a href="/blog" class="blog-logo">
                 <img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="border-radius:8px;" />
                 EnergyRiskIQ
             </a>
-            <div class="blog-nav-links">
-                <a href="/blog">Articles</a>
-                <a href="/">EnergyRiskIQ</a>
+            <div class="blog-nav-links" id="blogNavLinks">
+                <a href="/blog" onclick="closeBlogMenu()">Articles</a>
+                <a href="/" onclick="closeBlogMenu()">EnergyRiskIQ</a>
                 {user_section}
                 <button class="blog-theme-toggle" onclick="toggleBlogTheme()" id="blogThemeBtn" title="Toggle theme"><span class="blog-theme-toggle-icon" id="blogThemeIcon">&#9790;</span><span id="blogThemeLabel">Light</span></button>
             </div>
+            <button class="blog-hamburger" id="blogHamburger" onclick="toggleBlogMenu()" aria-label="Menu">
+                <div class="blog-hamburger-icon"><span></span><span></span><span></span></div>
+            </button>
         </div>
     </nav>
     """
@@ -531,6 +585,25 @@ def _blog_scripts():
                 }
             }
         });
+
+        function toggleBlogMenu() {
+            var nav = document.getElementById('blogNavLinks');
+            var hamburger = document.getElementById('blogHamburger');
+            var overlay = document.getElementById('blogMobileOverlay');
+            if (nav) nav.classList.toggle('open');
+            if (hamburger) hamburger.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+            document.body.style.overflow = nav && nav.classList.contains('open') ? 'hidden' : '';
+        }
+        function closeBlogMenu() {
+            var nav = document.getElementById('blogNavLinks');
+            var hamburger = document.getElementById('blogHamburger');
+            var overlay = document.getElementById('blogMobileOverlay');
+            if (nav) nav.classList.remove('open');
+            if (hamburger) hamburger.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
 
         function toggleBlogTheme() {
             var html = document.documentElement;
