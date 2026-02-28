@@ -1742,93 +1742,151 @@
             <div class="section-content" id="section-blog">
                 <div class="page-header">
                     <h1 class="page-title">Blog Management</h1>
-                    <p class="page-subtitle">Create, review, and manage blog articles</p>
+                    <p class="page-subtitle">Create, review, and manage blog articles, categories, and users</p>
                 </div>
 
-                <div class="stats-grid" id="blogStatsGrid">
-                    <div class="stat-card">
-                        <div class="stat-label">Published</div>
-                        <div class="stat-value" id="blogStatPublished">--</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Pending Review</div>
-                        <div class="stat-value" id="blogStatPending" style="color:#fbbf24;">--</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Rejected</div>
-                        <div class="stat-value" id="blogStatRejected">--</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Total</div>
-                        <div class="stat-value" id="blogStatTotal">--</div>
-                    </div>
+                <div style="display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <button onclick="showBlogTab('articles')" id="blogTabArticles" class="admin-blog-tab active" style="padding:12px 24px;border:none;background:none;color:#60a5fa;font-size:14px;font-weight:600;cursor:pointer;border-bottom:2px solid #3b82f6;margin-bottom:-1px;transition:all 0.2s;">Articles</button>
+                    <button onclick="showBlogTab('categories')" id="blogTabCategories" class="admin-blog-tab" style="padding:12px 24px;border:none;background:none;color:#64748b;font-size:14px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;">Categories</button>
+                    <button onclick="showBlogTab('users')" id="blogTabUsers" class="admin-blog-tab" style="padding:12px 24px;border:none;background:none;color:#64748b;font-size:14px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;">Users</button>
+                    <a href="/blog" target="_blank" style="margin-left:auto;color:#60a5fa;font-size:14px;display:flex;align-items:center;padding:0 12px;">View Blog &rarr;</a>
                 </div>
 
-                <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
-                    <button onclick="showBlogWriteForm()" style="padding:10px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">+ New Article</button>
-                    <select id="adminBlogStatusFilter" onchange="loadAdminBlogPosts()" style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;">
-                        <option value="all">All Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="published">Published</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="draft">Draft</option>
-                    </select>
-                    <a href="/blog" target="_blank" style="margin-left:auto;color:#60a5fa;font-size:14px;">View Blog &rarr;</a>
-                </div>
-
-                <div id="adminBlogWriteForm" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;margin-bottom:24px;">
-                    <h3 style="color:#f1f5f9;margin-bottom:16px;font-size:18px;">Create New Article</h3>
-                    <div style="margin-bottom:14px;">
-                        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Title</label>
-                        <input type="text" id="adminBlogTitle" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
-                    </div>
-                    <div style="margin-bottom:14px;">
-                        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Excerpt</label>
-                        <input type="text" id="adminBlogExcerpt" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-                        <div>
-                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Category</label>
-                            <select id="adminBlogCategory" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;">
-                                <option>Energy Markets</option>
-                                <option>Geopolitics</option>
-                                <option>Risk Management</option>
-                                <option>Oil & Gas</option>
-                                <option>Renewables</option>
-                                <option>Climate & ESG</option>
-                                <option>Trading Strategies</option>
-                                <option>Industry Analysis</option>
-                                <option>General</option>
-                            </select>
+                <!-- Articles Tab -->
+                <div id="blogPanelArticles">
+                    <div class="stats-grid" id="blogStatsGrid">
+                        <div class="stat-card">
+                            <div class="stat-label">Published</div>
+                            <div class="stat-value" id="blogStatPublished">--</div>
                         </div>
-                        <div>
-                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Tags</label>
-                            <input type="text" id="adminBlogTags" placeholder="comma separated" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                        <div class="stat-card">
+                            <div class="stat-label">Pending Review</div>
+                            <div class="stat-value" id="blogStatPending" style="color:#fbbf24;">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Rejected</div>
+                            <div class="stat-value" id="blogStatRejected">--</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value" id="blogStatTotal">--</div>
                         </div>
                     </div>
-                    <div style="margin-bottom:14px;">
-                        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Cover Image URL (optional)</label>
-                        <input type="text" id="adminBlogCover" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+
+                    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+                        <button onclick="showBlogWriteForm()" style="padding:10px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">+ New Article</button>
+                        <select id="adminBlogStatusFilter" onchange="loadAdminBlogPosts()" style="padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="published">Published</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="draft">Draft</option>
+                        </select>
                     </div>
-                    <div style="margin-bottom:14px;">
-                        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Content (Markdown)</label>
-                        <textarea id="adminBlogContent" rows="12" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;font-family:monospace;resize:vertical;line-height:1.6;"></textarea>
+
+                    <div id="adminBlogWriteForm" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;margin-bottom:24px;">
+                        <h3 style="color:#f1f5f9;margin-bottom:16px;font-size:18px;">Create New Article</h3>
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Title</label>
+                            <input type="text" id="adminBlogTitle" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Excerpt</label>
+                            <input type="text" id="adminBlogExcerpt" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Category</label>
+                                <select id="adminBlogCategory" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;"></select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Tags</label>
+                                <input type="text" id="adminBlogTags" placeholder="comma separated" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            </div>
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Cover Image URL (optional)</label>
+                            <input type="text" id="adminBlogCover" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Content (Markdown)</label>
+                            <textarea id="adminBlogContent" rows="12" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;font-family:monospace;resize:vertical;line-height:1.6;"></textarea>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button onclick="adminCreateBlogPost()" style="padding:10px 24px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Publish Article</button>
+                            <button onclick="hideBlogWriteForm()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:14px;cursor:pointer;">Cancel</button>
+                        </div>
+                        <div id="adminBlogWriteError" style="color:#f87171;font-size:13px;margin-top:8px;"></div>
                     </div>
-                    <div style="display:flex;gap:10px;">
-                        <button onclick="adminCreateBlogPost()" style="padding:10px 24px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">Publish Article</button>
-                        <button onclick="hideBlogWriteForm()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:14px;cursor:pointer;">Cancel</button>
+
+                    <div id="adminBlogPostsList"></div>
+
+                    <div id="adminBlogPostDetail" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <button onclick="closeAdminBlogDetail()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:13px;cursor:pointer;">&larr; Back</button>
+                            <div style="display:flex;gap:8px;" id="adminBlogDetailActions"></div>
+                        </div>
+                        <div id="adminBlogDetailContent"></div>
                     </div>
-                    <div id="adminBlogWriteError" style="color:#f87171;font-size:13px;margin-top:8px;"></div>
                 </div>
 
-                <div id="adminBlogPostsList"></div>
-
-                <div id="adminBlogPostDetail" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                        <button onclick="closeAdminBlogDetail()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:13px;cursor:pointer;">&larr; Back</button>
-                        <div style="display:flex;gap:8px;" id="adminBlogDetailActions"></div>
+                <!-- Categories Tab -->
+                <div id="blogPanelCategories" style="display:none;">
+                    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+                        <button onclick="showCategoryForm()" style="padding:10px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;">+ New Category</button>
+                        <span id="blogCatCount" style="color:#64748b;font-size:13px;"></span>
                     </div>
-                    <div id="adminBlogDetailContent"></div>
+
+                    <div id="adminBlogCatForm" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;margin-bottom:24px;">
+                        <h3 style="color:#f1f5f9;margin-bottom:16px;font-size:18px;" id="blogCatFormTitle">New Category</h3>
+                        <input type="hidden" id="blogCatEditId" value="" />
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Name</label>
+                                <input type="text" id="blogCatName" placeholder="e.g. Energy Markets" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Slug</label>
+                                <input type="text" id="blogCatSlug" placeholder="auto-generated from name" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            </div>
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Description</label>
+                            <input type="text" id="blogCatDesc" placeholder="Brief description of this category" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Color</label>
+                                <input type="color" id="blogCatColor" value="#3b82f6" style="width:100%;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);cursor:pointer;padding:4px;" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Sort Order</label>
+                                <input type="number" id="blogCatSort" value="0" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Status</label>
+                                <select id="blogCatActive" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;">
+                                    <option value="true">Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:10px;">
+                            <button onclick="saveBlogCategory()" style="padding:10px 24px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;" id="blogCatSaveBtn">Create Category</button>
+                            <button onclick="hideCategoryForm()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:14px;cursor:pointer;">Cancel</button>
+                        </div>
+                        <div id="blogCatFormError" style="color:#f87171;font-size:13px;margin-top:8px;"></div>
+                    </div>
+
+                    <div id="adminBlogCatList"></div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="blogPanelUsers" style="display:none;">
+                    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+                        <span id="blogUserCount" style="color:#64748b;font-size:13px;"></span>
+                    </div>
+                    <div id="adminBlogUserList"></div>
                 </div>
             </div>
 
@@ -3509,7 +3567,42 @@
             } catch(e) {}
         }
 
+        function showBlogTab(tab) {
+            ['articles','categories','users'].forEach(function(t) {
+                var panel = document.getElementById('blogPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+                var btn = document.getElementById('blogTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+                if (btn) {
+                    btn.style.color = (t === tab) ? '#60a5fa' : '#64748b';
+                    btn.style.fontWeight = (t === tab) ? '600' : '500';
+                    btn.style.borderBottomColor = (t === tab) ? '#3b82f6' : 'transparent';
+                }
+            });
+            if (tab === 'categories') loadAdminBlogCategories();
+            if (tab === 'users') loadAdminBlogUsers();
+        }
+
+        async function loadAdminBlogCategoryOptions() {
+            try {
+                var resp = await fetch('/api/blog/admin/categories', {headers:{'X-Admin-Token': adminToken}});
+                var data = await resp.json();
+                if (data.success && data.categories) {
+                    var sel = document.getElementById('adminBlogCategory');
+                    if (sel) {
+                        sel.innerHTML = '';
+                        data.categories.filter(function(c) { return c.is_active; }).forEach(function(c) {
+                            var opt = document.createElement('option');
+                            opt.value = c.name;
+                            opt.textContent = c.name;
+                            sel.appendChild(opt);
+                        });
+                    }
+                }
+            } catch(e) {}
+        }
+
         function showBlogWriteForm() {
+            loadAdminBlogCategoryOptions();
             document.getElementById('adminBlogWriteForm').style.display = 'block';
         }
 
@@ -3553,6 +3646,183 @@
             } catch(e) {
                 document.getElementById('adminBlogWriteError').textContent = 'Connection error';
             }
+        }
+
+        async function loadAdminBlogCategories() {
+            try {
+                var resp = await fetch('/api/blog/admin/categories', {headers:{'X-Admin-Token': adminToken}});
+                var data = await resp.json();
+                var container = document.getElementById('adminBlogCatList');
+                if (!data.success || !data.categories || data.categories.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#475569;">No categories found</div>';
+                    document.getElementById('blogCatCount').textContent = '';
+                    return;
+                }
+                document.getElementById('blogCatCount').textContent = data.categories.length + ' categories';
+                var html = '';
+                data.categories.forEach(function(c) {
+                    var statusBadge = c.is_active
+                        ? '<span style="color:#34d399;font-size:11px;font-weight:600;">ACTIVE</span>'
+                        : '<span style="color:#f87171;font-size:11px;font-weight:600;">INACTIVE</span>';
+                    html += '<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;margin-bottom:8px;">';
+                    html += '<span style="width:14px;height:14px;border-radius:50%;background:' + escapeHtml(c.color) + ';flex-shrink:0;"></span>';
+                    html += '<div style="flex:1;min-width:0;">';
+                    html += '<div style="font-weight:600;color:#e2e8f0;font-size:14px;">' + escapeHtml(c.name) + '</div>';
+                    html += '<div style="font-size:12px;color:#475569;margin-top:2px;">/blog/category/' + escapeHtml(c.slug) + ' &middot; ' + (c.post_count || 0) + ' posts &middot; Order: ' + c.sort_order + '</div>';
+                    if (c.description) html += '<div style="font-size:12px;color:#64748b;margin-top:2px;">' + escapeHtml(c.description) + '</div>';
+                    html += '</div>';
+                    html += statusBadge;
+                    html += '<button onclick="editBlogCategory(' + c.id + ')" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:12px;cursor:pointer;">Edit</button>';
+                    html += '<button onclick="deleteBlogCategory(' + c.id + ',\'' + escapeHtml(c.name) + '\')" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);color:#f87171;font-size:12px;cursor:pointer;">Delete</button>';
+                    html += '</div>';
+                });
+                container.innerHTML = html;
+                window._blogCats = data.categories;
+            } catch(e) {
+                document.getElementById('adminBlogCatList').innerHTML = '<div style="color:#f87171;padding:20px;">Failed to load categories</div>';
+            }
+        }
+
+        function showCategoryForm(editId) {
+            document.getElementById('adminBlogCatForm').style.display = 'block';
+            if (!editId) {
+                document.getElementById('blogCatFormTitle').textContent = 'New Category';
+                document.getElementById('blogCatSaveBtn').textContent = 'Create Category';
+                document.getElementById('blogCatEditId').value = '';
+                document.getElementById('blogCatName').value = '';
+                document.getElementById('blogCatSlug').value = '';
+                document.getElementById('blogCatDesc').value = '';
+                document.getElementById('blogCatColor').value = '#3b82f6';
+                document.getElementById('blogCatSort').value = '0';
+                document.getElementById('blogCatActive').value = 'true';
+            }
+            document.getElementById('blogCatFormError').textContent = '';
+        }
+
+        function hideCategoryForm() {
+            document.getElementById('adminBlogCatForm').style.display = 'none';
+        }
+
+        function editBlogCategory(catId) {
+            var cat = (window._blogCats || []).find(function(c) { return c.id === catId; });
+            if (!cat) return;
+            showCategoryForm(catId);
+            document.getElementById('blogCatFormTitle').textContent = 'Edit Category';
+            document.getElementById('blogCatSaveBtn').textContent = 'Save Changes';
+            document.getElementById('blogCatEditId').value = catId;
+            document.getElementById('blogCatName').value = cat.name;
+            document.getElementById('blogCatSlug').value = cat.slug;
+            document.getElementById('blogCatDesc').value = cat.description || '';
+            document.getElementById('blogCatColor').value = cat.color || '#3b82f6';
+            document.getElementById('blogCatSort').value = cat.sort_order || 0;
+            document.getElementById('blogCatActive').value = cat.is_active ? 'true' : 'false';
+        }
+
+        async function saveBlogCategory() {
+            var editId = document.getElementById('blogCatEditId').value;
+            var name = document.getElementById('blogCatName').value.trim();
+            var slug = document.getElementById('blogCatSlug').value.trim();
+            var desc = document.getElementById('blogCatDesc').value.trim();
+            var color = document.getElementById('blogCatColor').value;
+            var sort = parseInt(document.getElementById('blogCatSort').value) || 0;
+            var active = document.getElementById('blogCatActive').value === 'true';
+            if (!name) {
+                document.getElementById('blogCatFormError').textContent = 'Name is required';
+                return;
+            }
+            try {
+                var url = editId ? '/api/blog/admin/categories/' + editId : '/api/blog/admin/categories';
+                var method = editId ? 'PUT' : 'POST';
+                var resp = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type':'application/json', 'X-Admin-Token': adminToken},
+                    body: JSON.stringify({name:name, slug:slug, description:desc, color:color, sort_order:sort, is_active:active})
+                });
+                var data = await resp.json();
+                if (data.success) {
+                    hideCategoryForm();
+                    loadAdminBlogCategories();
+                    showToast(editId ? 'Category updated' : 'Category created', 'success');
+                } else {
+                    document.getElementById('blogCatFormError').textContent = data.error || 'Failed';
+                }
+            } catch(e) {
+                document.getElementById('blogCatFormError').textContent = 'Connection error';
+            }
+        }
+
+        async function deleteBlogCategory(catId, catName) {
+            if (!confirm('Delete category "' + catName + '"? Posts using this category will keep their current category label.')) return;
+            try {
+                await fetch('/api/blog/admin/categories/' + catId, {
+                    method: 'DELETE',
+                    headers: {'X-Admin-Token': adminToken}
+                });
+                loadAdminBlogCategories();
+                showToast('Category deleted', 'success');
+            } catch(e) {}
+        }
+
+        async function loadAdminBlogUsers() {
+            try {
+                var resp = await fetch('/api/blog/admin/users', {headers:{'X-Admin-Token': adminToken}});
+                var data = await resp.json();
+                var container = document.getElementById('adminBlogUserList');
+                if (!data.success || !data.users || data.users.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:#475569;">No registered blog users</div>';
+                    document.getElementById('blogUserCount').textContent = '';
+                    return;
+                }
+                document.getElementById('blogUserCount').textContent = data.users.length + ' registered users';
+                var html = '';
+                data.users.forEach(function(u) {
+                    var date = u.created_at ? new Date(u.created_at).toLocaleDateString() : '';
+                    var initial = (u.display_name || 'U')[0].toUpperCase();
+                    var statusBadge = u.is_active
+                        ? '<span style="color:#34d399;font-size:11px;font-weight:600;">ACTIVE</span>'
+                        : '<span style="color:#f87171;font-size:11px;font-weight:600;">SUSPENDED</span>';
+                    var toggleBtn = u.is_active
+                        ? '<button onclick="toggleBlogUser(' + u.id + ',false)" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#f59e0b;font-size:12px;cursor:pointer;">Suspend</button>'
+                        : '<button onclick="toggleBlogUser(' + u.id + ',true)" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(16,185,129,0.2);background:rgba(16,185,129,0.08);color:#34d399;font-size:12px;cursor:pointer;">Activate</button>';
+                    html += '<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;margin-bottom:8px;">';
+                    html += '<div style="width:36px;height:36px;border-radius:50%;background:' + escapeHtml(u.avatar_color || '#3b82f6') + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:14px;flex-shrink:0;">' + escapeHtml(initial) + '</div>';
+                    html += '<div style="flex:1;min-width:0;">';
+                    html += '<div style="font-weight:600;color:#e2e8f0;font-size:14px;">' + escapeHtml(u.display_name) + '</div>';
+                    html += '<div style="font-size:12px;color:#475569;margin-top:2px;">' + escapeHtml(u.email) + ' &middot; Joined ' + date + ' &middot; ' + (u.post_count || 0) + ' posts &middot; ' + (u.comment_count || 0) + ' comments</div>';
+                    html += '</div>';
+                    html += statusBadge;
+                    html += toggleBtn;
+                    html += '<button onclick="deleteBlogUser(' + u.id + ',\'' + escapeHtml(u.display_name) + '\')" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);color:#f87171;font-size:12px;cursor:pointer;">Delete</button>';
+                    html += '</div>';
+                });
+                container.innerHTML = html;
+            } catch(e) {
+                document.getElementById('adminBlogUserList').innerHTML = '<div style="color:#f87171;padding:20px;">Failed to load users</div>';
+            }
+        }
+
+        async function toggleBlogUser(userId, activate) {
+            try {
+                await fetch('/api/blog/admin/users/' + userId + '/status', {
+                    method: 'PUT',
+                    headers: {'Content-Type':'application/json', 'X-Admin-Token': adminToken},
+                    body: JSON.stringify({is_active: activate})
+                });
+                loadAdminBlogUsers();
+                showToast(activate ? 'User activated' : 'User suspended', 'success');
+            } catch(e) {}
+        }
+
+        async function deleteBlogUser(userId, name) {
+            if (!confirm('Delete blog user "' + name + '"? This will also remove their sessions. Their posts and comments will be preserved.')) return;
+            try {
+                await fetch('/api/blog/admin/users/' + userId, {
+                    method: 'DELETE',
+                    headers: {'X-Admin-Token': adminToken}
+                });
+                loadAdminBlogUsers();
+                showToast('User deleted', 'success');
+            } catch(e) {}
         }
 
         checkSession();

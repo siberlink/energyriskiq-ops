@@ -252,6 +252,16 @@ def _blog_base_styles():
         .blog-search:focus { border-color: #3b82f6; }
         .blog-search::placeholder { color: var(--blog-search-placeholder); }
 
+        .blog-search-bar { margin-bottom: 16px; }
+        .blog-cat-links-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; align-items: center; }
+        .blog-cat-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--blog-text-secondary); background: var(--blog-filter-bg); border: 1px solid var(--blog-filter-border); transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .blog-cat-link:hover { border-color: #3b82f6; color: var(--blog-text-primary); background: rgba(59,130,246,0.08); }
+        .blog-cat-link.active { background: rgba(59,130,246,0.15); border-color: #3b82f6; color: #60a5fa; }
+        .blog-cat-link-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .blog-cat-link-count { font-size: 11px; background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 10px; color: var(--blog-text-muted); }
+        [data-theme="light"] .blog-cat-link-count { background: rgba(0,0,0,0.06); }
+        .blog-cat-hero-badge { display: inline-block; padding: 6px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
+
         .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 28px; }
         .blog-card { background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); border-radius: 16px; overflow: hidden; transition: all 0.3s; cursor: pointer; }
         .blog-card:hover { border-color: var(--blog-card-hover-border); transform: translateY(-4px); box-shadow: var(--blog-card-hover-shadow); }
@@ -392,6 +402,9 @@ def _blog_base_styles():
             .blog-filters { gap: 8px; margin-bottom: 24px; }
             .blog-filter-btn { padding: 6px 14px; font-size: 12px; }
             .blog-search { min-width: 100%; padding: 10px 14px; font-size: 14px; }
+            .blog-cat-links-row { gap: 6px; margin-bottom: 20px; }
+            .blog-cat-link { padding: 5px 10px; font-size: 12px; }
+            .blog-cat-hero-badge { font-size: 11px; padding: 4px 14px; }
             .blog-pagination { gap: 6px; margin-top: 32px; }
             .blog-page-btn { padding: 8px 12px; font-size: 13px; }
 
@@ -659,17 +672,22 @@ def _blog_page(title, body_html, request: Request):
 </html>"""
 
 
-@router.get("/blog", response_class=HTMLResponse)
-async def blog_home(request: Request, page: int = Query(1, ge=1), category: str = Query(None), search: str = Query(None)):
-    posts, total = blog_db.get_published_posts(page=page, per_page=9, category=category, search=search)
-    categories = blog_db.get_blog_categories()
-    total_pages = max(1, (total + 8) // 9)
-
-    cat_buttons = '<button class="blog-filter-btn' + (' active' if not category or category == 'all' else '') + '" onclick="filterBlog(\'all\')">All</button>'
+def _render_category_links(categories, active_slug=None):
+    links = f'<a href="/blog" class="blog-cat-link{" active" if not active_slug else ""}">'
+    links += '<span class="blog-cat-link-dot" style="background:#94a3b8;"></span>All</a>'
     for cat in categories:
-        active = ' active' if category == cat else ''
-        cat_buttons += f'<button class="blog-filter-btn{active}" onclick="filterBlog(\'{_esc(cat)}\')">{_esc(cat)}</button>'
+        is_active = ' active' if active_slug == cat.get('slug') else ''
+        color = _esc(cat.get('color', '#3b82f6'))
+        slug = _esc(cat.get('slug', ''))
+        name = _esc(cat.get('name', ''))
+        count = cat.get('post_count', 0)
+        count_badge = f' <span class="blog-cat-link-count">{count}</span>' if count > 0 else ''
+        links += f'<a href="/blog/category/{slug}" class="blog-cat-link{is_active}">'
+        links += f'<span class="blog-cat-link-dot" style="background:{color};"></span>{name}{count_badge}</a>'
+    return links
 
+
+def _render_blog_cards(posts):
     cards = ""
     for p in posts:
         cover = ""
@@ -679,7 +697,6 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
             cover = '<div class="blog-card-cover-placeholder">&#x1f4f0;</div>'
 
         author_initial = (p.get('author_name') or 'A')[0].upper()
-        tags_list = [t.strip() for t in (p.get('tags') or '').split(',') if t.strip()]
 
         cards += f"""
         <article class="blog-card" onclick="location.href='/blog/{_esc(p['slug'])}'">
@@ -701,6 +718,35 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
             </div>
         </article>
         """
+    return cards
+
+
+def _render_pagination(page, total_pages, base_url="/blog"):
+    if total_pages <= 1:
+        return ""
+    pagination = '<div class="blog-pagination">'
+    if page > 1:
+        pagination += f'<button class="blog-page-btn" onclick="goPage({page - 1})">&larr; Previous</button>'
+    for pg in range(1, total_pages + 1):
+        if pg == page:
+            pagination += f'<button class="blog-page-btn active">{pg}</button>'
+        elif abs(pg - page) < 3 or pg == 1 or pg == total_pages:
+            pagination += f'<button class="blog-page-btn" onclick="goPage({pg})">{pg}</button>'
+    if page < total_pages:
+        pagination += f'<button class="blog-page-btn" onclick="goPage({page + 1})">Next &rarr;</button>'
+    pagination += '</div>'
+    return pagination
+
+
+@router.get("/blog", response_class=HTMLResponse)
+async def blog_home(request: Request, page: int = Query(1, ge=1), category: str = Query(None), search: str = Query(None)):
+    blog_db.refresh_category_post_counts()
+    posts, total = blog_db.get_published_posts(page=page, per_page=9, category=category, search=search)
+    categories = blog_db.get_blog_categories()
+    total_pages = max(1, (total + 8) // 9)
+
+    category_links = _render_category_links(categories)
+    cards = _render_blog_cards(posts)
 
     if not cards:
         cards = """
@@ -712,19 +758,7 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
         """
 
     search_val = _esc(search) if search else ''
-    pagination = ""
-    if total_pages > 1:
-        pagination = '<div class="blog-pagination">'
-        if page > 1:
-            pagination += f'<button class="blog-page-btn" onclick="goPage({page - 1})">&larr; Previous</button>'
-        for pg in range(1, total_pages + 1):
-            if pg == page:
-                pagination += f'<button class="blog-page-btn active">{pg}</button>'
-            elif abs(pg - page) < 3 or pg == 1 or pg == total_pages:
-                pagination += f'<button class="blog-page-btn" onclick="goPage({pg})">{pg}</button>'
-        if page < total_pages:
-            pagination += f'<button class="blog-page-btn" onclick="goPage({page + 1})">Next &rarr;</button>'
-        pagination += '</div>'
+    pagination = _render_pagination(page, total_pages)
 
     body = f"""
     <div class="blog-container">
@@ -732,9 +766,11 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
             <h1>Energy Intelligence Blog</h1>
             <p>Expert analysis, educational articles, and insights on geopolitical energy risk</p>
         </div>
-        <div class="blog-filters">
-            {cat_buttons}
+        <div class="blog-search-bar">
             <input class="blog-search" type="text" placeholder="Search articles..." value="{search_val}" onkeydown="if(event.key==='Enter')searchBlog(this.value)" />
+        </div>
+        <div class="blog-cat-links-row">
+            {category_links}
         </div>
         <div class="blog-grid">
             {cards}
@@ -742,10 +778,6 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
         {pagination}
     </div>
     <script>
-        function filterBlog(cat) {{
-            var url = '/blog?category=' + encodeURIComponent(cat);
-            location.href = url;
-        }}
         function searchBlog(q) {{
             var url = '/blog?search=' + encodeURIComponent(q);
             location.href = url;
@@ -761,6 +793,69 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
     return HTMLResponse(_blog_page("Blog", body, request))
 
 
+@router.get("/blog/category/{cat_slug}", response_class=HTMLResponse)
+async def blog_category_page(cat_slug: str, request: Request, page: int = Query(1, ge=1)):
+    blog_db.refresh_category_post_counts()
+    category = blog_db.get_blog_category_by_slug(cat_slug)
+    if not category:
+        return HTMLResponse(_blog_page("Category Not Found", """
+        <div class="blog-container blog-empty">
+            <div class="blog-empty-icon">&#x1f50d;</div>
+            <h3>Category not found</h3>
+            <p><a href="/blog">Back to all articles</a></p>
+        </div>
+        """, request), status_code=404)
+
+    cat_name = category['name']
+    cat_desc = category.get('description', '')
+    cat_color = category.get('color', '#3b82f6')
+    posts, total = blog_db.get_published_posts(page=page, per_page=9, category=cat_name)
+    total_pages = max(1, (total + 8) // 9)
+    all_categories = blog_db.get_blog_categories()
+
+    category_links = _render_category_links(all_categories, active_slug=cat_slug)
+    cards = _render_blog_cards(posts)
+
+    if not cards:
+        cards = f"""
+        <div class="blog-empty" style="grid-column:1/-1;">
+            <div class="blog-empty-icon">&#x1f4dd;</div>
+            <h3>No articles in {_esc(cat_name)}</h3>
+            <p>Check back soon or <a href="/blog">browse all articles</a>.</p>
+        </div>
+        """
+
+    pagination = _render_pagination(page, total_pages, base_url=f"/blog/category/{cat_slug}")
+
+    body = f"""
+    <div class="blog-container">
+        <div class="blog-hero">
+            <div class="blog-cat-hero-badge" style="background:{_esc(cat_color)}22;color:{_esc(cat_color)};border:1px solid {_esc(cat_color)}44;">
+                {_esc(cat_name)}
+            </div>
+            <h1>{_esc(cat_name)}</h1>
+            <p>{_esc(cat_desc) if cat_desc else f'Articles about {_esc(cat_name).lower()}'}</p>
+        </div>
+        <div class="blog-cat-links-row">
+            {category_links}
+        </div>
+        <div class="blog-grid">
+            {cards}
+        </div>
+        {pagination}
+    </div>
+    <script>
+        function goPage(p) {{
+            var url = new URL(location.href);
+            url.searchParams.set('page', p);
+            location.href = url.toString();
+        }}
+    </script>
+    """
+
+    return HTMLResponse(_blog_page(f"{cat_name} - Blog", body, request))
+
+
 @router.get("/blog/write", response_class=HTMLResponse)
 async def blog_write_page(request: Request):
     user = _get_blog_user(request)
@@ -772,6 +867,9 @@ async def blog_write_page(request: Request):
             <p>You need a blog account to submit articles. <a href="#" onclick="openBlogAuth(); return false;">Sign in or create an account</a>.</p>
         </div>
         """, request))
+
+    categories = blog_db.get_blog_category_names()
+    cat_options = ''.join(f'<option>{_esc(c)}</option>' for c in categories) if categories else '<option>General</option>'
 
     body = f"""
     <div class="blog-write-page">
@@ -789,15 +887,7 @@ async def blog_write_page(request: Request):
             <div class="blog-write-form-group">
                 <label>Category</label>
                 <select id="writeCategory">
-                    <option>Energy Markets</option>
-                    <option>Geopolitics</option>
-                    <option>Risk Management</option>
-                    <option>Oil & Gas</option>
-                    <option>Renewables</option>
-                    <option>Climate & ESG</option>
-                    <option>Trading Strategies</option>
-                    <option>Industry Analysis</option>
-                    <option>General</option>
+                    {cat_options}
                 </select>
             </div>
             <div class="blog-write-form-group">
@@ -1284,3 +1374,130 @@ async def admin_blog_get_post(post_id: int, request: Request, x_admin_token: Opt
         if isinstance(v, datetime):
             post_dict[k] = v.isoformat()
     return JSONResponse({"success": True, "post": post_dict})
+
+
+@router.get("/api/blog/categories")
+async def public_blog_categories():
+    cats = blog_db.get_blog_categories()
+    result = []
+    for c in cats:
+        d = dict(c)
+        for k, v in d.items():
+            if isinstance(v, datetime):
+                d[k] = v.isoformat()
+        result.append(d)
+    return JSONResponse({"success": True, "categories": result})
+
+
+@router.get("/api/blog/admin/categories")
+async def admin_blog_list_categories(x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    blog_db.refresh_category_post_counts()
+    cats = blog_db.get_all_blog_categories_admin()
+    result = []
+    for c in cats:
+        d = dict(c)
+        for k, v in d.items():
+            if isinstance(v, datetime):
+                d[k] = v.isoformat()
+        result.append(d)
+    return JSONResponse({"success": True, "categories": result})
+
+
+@router.post("/api/blog/admin/categories")
+async def admin_blog_create_category(request: Request, x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        body = await request.json()
+        name = (body.get('name') or '').strip()
+        slug = (body.get('slug') or '').strip()
+        description = (body.get('description') or '').strip()
+        color = (body.get('color') or '#3b82f6').strip()
+        sort_order = int(body.get('sort_order', 0))
+        if not name:
+            return JSONResponse({"success": False, "error": "Name is required"})
+        if not slug:
+            slug = _slugify(name)
+        cat = blog_db.create_blog_category(name, slug, description, color, sort_order)
+        return JSONResponse({"success": True, "category_id": cat['id']})
+    except Exception as e:
+        logger.error(f"Admin create category error: {e}")
+        return JSONResponse({"success": False, "error": str(e)})
+
+
+@router.put("/api/blog/admin/categories/{cat_id}")
+async def admin_blog_update_category(cat_id: int, request: Request, x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        body = await request.json()
+        name = (body.get('name') or '').strip()
+        slug = (body.get('slug') or '').strip()
+        description = (body.get('description') or '').strip()
+        color = (body.get('color') or '#3b82f6').strip()
+        sort_order = int(body.get('sort_order', 0))
+        is_active = body.get('is_active', True)
+        if not name:
+            return JSONResponse({"success": False, "error": "Name is required"})
+        if not slug:
+            slug = _slugify(name)
+        cat = blog_db.update_blog_category(cat_id, name, slug, description, color, sort_order, is_active)
+        return JSONResponse({"success": True, "category_id": cat['id'] if cat else None})
+    except Exception as e:
+        logger.error(f"Admin update category error: {e}")
+        return JSONResponse({"success": False, "error": str(e)})
+
+
+@router.delete("/api/blog/admin/categories/{cat_id}")
+async def admin_blog_delete_category(cat_id: int, x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        blog_db.delete_blog_category(cat_id)
+        return JSONResponse({"success": True})
+    except Exception as e:
+        logger.error(f"Admin delete category error: {e}")
+        return JSONResponse({"success": False, "error": str(e)})
+
+
+@router.get("/api/blog/admin/users")
+async def admin_blog_list_users(x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    users = blog_db.get_all_blog_users_admin()
+    result = []
+    for u in users:
+        d = dict(u)
+        for k, v in d.items():
+            if isinstance(v, datetime):
+                d[k] = v.isoformat()
+        result.append(d)
+    return JSONResponse({"success": True, "users": result})
+
+
+@router.put("/api/blog/admin/users/{user_id}/status")
+async def admin_blog_update_user_status(user_id: int, request: Request, x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        body = await request.json()
+        is_active = body.get('is_active', True)
+        user = blog_db.update_blog_user_status(user_id, is_active)
+        return JSONResponse({"success": True, "user_id": user['id'] if user else None})
+    except Exception as e:
+        logger.error(f"Admin update blog user error: {e}")
+        return JSONResponse({"success": False, "error": str(e)})
+
+
+@router.delete("/api/blog/admin/users/{user_id}")
+async def admin_blog_delete_user(user_id: int, x_admin_token: Optional[str] = Header(None)):
+    from src.api.admin_routes import verify_admin_token
+    verify_admin_token(x_admin_token)
+    try:
+        blog_db.delete_blog_user(user_id)
+        return JSONResponse({"success": True})
+    except Exception as e:
+        logger.error(f"Admin delete blog user error: {e}")
+        return JSONResponse({"success": False, "error": str(e)})

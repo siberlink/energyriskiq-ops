@@ -3,6 +3,21 @@ from src.db.db import execute_query, execute_one, get_cursor
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_BLOG_CATEGORIES = [
+    ('Energy Markets', 'energy-markets', 'Analysis of global energy commodity markets, pricing trends, and supply-demand dynamics', '#3b82f6', 1),
+    ('Geopolitics', 'geopolitics', 'Geopolitical developments affecting energy security and trade flows', '#ef4444', 2),
+    ('Risk Management', 'risk-management', 'Strategies and frameworks for managing energy market risk', '#8b5cf6', 3),
+    ('Oil & Gas', 'oil-gas', 'Upstream, midstream, and downstream oil and gas industry coverage', '#f59e0b', 4),
+    ('Renewables', 'renewables', 'Renewable energy developments, policy, and market integration', '#10b981', 5),
+    ('Climate & ESG', 'climate-esg', 'Climate policy, ESG frameworks, and energy transition analysis', '#06b6d4', 6),
+    ('Trading Strategies', 'trading-strategies', 'Energy trading methodologies, hedging, and market positioning', '#ec4899', 7),
+    ('Industry Analysis', 'industry-analysis', 'Deep dives into energy industry segments and corporate strategy', '#f97316', 8),
+    ('Regulation & Policy', 'regulation-policy', 'Energy regulation, sanctions, and government policy analysis', '#6366f1', 9),
+    ('LNG & Natural Gas', 'lng-natural-gas', 'LNG markets, natural gas infrastructure, and pricing dynamics', '#14b8a6', 10),
+    ('Nuclear Energy', 'nuclear-energy', 'Nuclear power developments, policy, and market outlook', '#a855f7', 11),
+    ('General', 'general', 'General energy intelligence and cross-cutting topics', '#64748b', 12),
+]
+
 
 def run_blog_migrations():
     try:
@@ -56,15 +71,47 @@ def run_blog_migrations():
                     created_at TIMESTAMP DEFAULT NOW()
                 );
 
+                CREATE TABLE IF NOT EXISTS blog_categories (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL UNIQUE,
+                    slug VARCHAR(120) NOT NULL UNIQUE,
+                    description TEXT DEFAULT '',
+                    color VARCHAR(7) DEFAULT '#3b82f6',
+                    sort_order INTEGER DEFAULT 0,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    post_count INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_blog_posts_slug ON blog_posts(slug);
                 CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON blog_posts(status);
                 CREATE INDEX IF NOT EXISTS idx_blog_posts_created ON blog_posts(created_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_blog_comments_post ON blog_comments(post_id);
                 CREATE INDEX IF NOT EXISTS idx_blog_users_email ON blog_users(email);
+                CREATE INDEX IF NOT EXISTS idx_blog_categories_slug ON blog_categories(slug);
+                CREATE INDEX IF NOT EXISTS idx_blog_categories_sort ON blog_categories(sort_order);
             """)
+        _seed_default_categories()
         logger.info("Blog migrations completed")
     except Exception as e:
         logger.error(f"Blog migration error: {e}")
+
+
+def _seed_default_categories():
+    existing = execute_one("SELECT COUNT(*) as cnt FROM blog_categories")
+    if existing and existing['cnt'] > 0:
+        return
+    try:
+        with get_cursor() as cur:
+            for name, slug, description, color, sort_order in DEFAULT_BLOG_CATEGORIES:
+                cur.execute(
+                    """INSERT INTO blog_categories (name, slug, description, color, sort_order)
+                       VALUES (%s, %s, %s, %s, %s) ON CONFLICT (name) DO NOTHING""",
+                    (name, slug, description, color, sort_order)
+                )
+        logger.info(f"Seeded {len(DEFAULT_BLOG_CATEGORIES)} default blog categories")
+    except Exception as e:
+        logger.error(f"Blog category seed error: {e}")
 
 
 def get_published_posts(page=1, per_page=10, category=None, search=None):
@@ -194,9 +241,81 @@ def create_blog_user(display_name, email, password_hash):
 
 def get_blog_categories():
     rows = execute_query(
-        "SELECT DISTINCT category FROM blog_posts WHERE status='published' ORDER BY category", fetch=True
+        "SELECT id, name, slug, description, color, sort_order, is_active, post_count FROM blog_categories WHERE is_active = TRUE ORDER BY sort_order, name",
+        fetch=True
     ) or []
-    return [r['category'] for r in rows]
+    return rows
+
+
+def get_blog_category_names():
+    rows = get_blog_categories()
+    return [r['name'] for r in rows]
+
+
+def get_blog_category_by_slug(slug):
+    return execute_one(
+        "SELECT * FROM blog_categories WHERE slug = %s AND is_active = TRUE", (slug,)
+    )
+
+
+def get_all_blog_categories_admin():
+    return execute_query(
+        "SELECT * FROM blog_categories ORDER BY sort_order, name", fetch=True
+    ) or []
+
+
+def create_blog_category(name, slug, description='', color='#3b82f6', sort_order=0):
+    return execute_one(
+        """INSERT INTO blog_categories (name, slug, description, color, sort_order)
+           VALUES (%s, %s, %s, %s, %s) RETURNING *""",
+        (name, slug, description, color, sort_order)
+    )
+
+
+def update_blog_category(cat_id, name, slug, description, color, sort_order, is_active):
+    return execute_one(
+        """UPDATE blog_categories SET name=%s, slug=%s, description=%s, color=%s, sort_order=%s, is_active=%s
+           WHERE id=%s RETURNING *""",
+        (name, slug, description, color, sort_order, is_active, cat_id)
+    )
+
+
+def delete_blog_category(cat_id):
+    execute_query("DELETE FROM blog_categories WHERE id=%s", (cat_id,), fetch=False)
+
+
+def refresh_category_post_counts():
+    try:
+        execute_query("""
+            UPDATE blog_categories bc SET post_count = (
+                SELECT COUNT(*) FROM blog_posts bp
+                WHERE bp.category = bc.name AND bp.status = 'published'
+            )
+        """, fetch=False)
+    except Exception as e:
+        logger.error(f"Category post count refresh error: {e}")
+
+
+def get_all_blog_users_admin():
+    return execute_query(
+        """SELECT id, display_name, email, avatar_color, bio, is_active, created_at,
+                  (SELECT COUNT(*) FROM blog_posts WHERE author_id = blog_users.id) as post_count,
+                  (SELECT COUNT(*) FROM blog_comments WHERE user_id = blog_users.id) as comment_count
+           FROM blog_users ORDER BY created_at DESC""",
+        fetch=True
+    ) or []
+
+
+def update_blog_user_status(user_id, is_active):
+    return execute_one(
+        "UPDATE blog_users SET is_active=%s WHERE id=%s RETURNING *",
+        (is_active, user_id)
+    )
+
+
+def delete_blog_user(user_id):
+    execute_query("DELETE FROM blog_sessions WHERE user_id=%s", (user_id,), fetch=False)
+    execute_query("DELETE FROM blog_users WHERE id=%s", (user_id,), fetch=False)
 
 
 def get_blog_stats():
