@@ -79,6 +79,8 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
             timeline = get_live_geri_timeline()
 
     if not latest:
+        from src.geri.live import _get_yesterday_geri_value
+        yd_val = _get_yesterday_geri_value()
         return JSONResponse(content={
             'success': True,
             'data': {
@@ -92,6 +94,7 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
                 'computed_at': None,
                 'timeline': [],
                 'no_data': True,
+                'yesterday_value': yd_val,
             }
         })
 

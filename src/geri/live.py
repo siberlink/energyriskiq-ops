@@ -119,26 +119,24 @@ def _get_today_alerts() -> List[AlertRecord]:
 
 
 def _get_yesterday_geri_value() -> Optional[int]:
-    yesterday = date.today() - timedelta(days=1)
     row = execute_one(
-        "SELECT value FROM intel_indices_daily WHERE index_id = %s AND date = %s",
-        (INDEX_ID, yesterday)
+        "SELECT value, date, index_id FROM intel_indices_daily ORDER BY date DESC LIMIT 1"
     )
     if row:
+        logger.info(f"Yesterday GERI from intel_indices_daily (date={row.get('date')}, index_id={row.get('index_id')}): {row['value']}")
         return int(row['value'])
-    row2 = execute_one(
-        "SELECT value FROM intel_indices_daily WHERE index_id = %s ORDER BY date DESC LIMIT 1",
-        (INDEX_ID,)
-    )
-    if row2:
-        return int(row2['value'])
+    yesterday = date.today() - timedelta(days=1)
     yesterday_start = datetime.combine(yesterday, datetime.min.time())
     today_start = datetime.combine(date.today(), datetime.min.time())
-    row3 = execute_one(
+    row2 = execute_one(
         "SELECT value FROM geri_live WHERE computed_at >= %s AND computed_at < %s ORDER BY id DESC LIMIT 1",
         (yesterday_start, today_start)
     )
-    return int(row3['value']) if row3 else None
+    if row2:
+        logger.info(f"Yesterday GERI from geri_live table: {row2['value']}")
+        return int(row2['value'])
+    logger.warning("No yesterday GERI found in any source")
+    return None
 
 
 def _should_debounce() -> bool:
