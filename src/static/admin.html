@@ -1805,7 +1805,7 @@
                             </div>
                             <div>
                                 <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Tags</label>
-                                <input type="text" id="adminBlogTags" placeholder="comma separated" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                                <input type="text" id="adminBlogTags" placeholder="comma separated" oninput="this.dataset.manual='true'" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
                             </div>
                         </div>
                         <div style="margin-bottom:14px;">
@@ -3746,7 +3746,10 @@
             html = html.replace(/&lt;u&gt;(.+?)&lt;\/u&gt;/g, '<u>$1</u>');
             html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;">');
             html = html.replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #3b82f6;padding-left:14px;color:#94a3b8;margin:12px 0;">$1</blockquote>');
-            html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="color:#60a5fa;text-decoration:underline;">$1</a>');
+            html = html.replace(/\[(.+?)\]\((.+?)\)/g, function(m, text, url) {
+                if (/^(https?:\/\/|\/|#)/.test(url)) return '<a href="' + url + '" style="color:#60a5fa;text-decoration:underline;" target="_blank" rel="noopener">' + text + '</a>';
+                return text;
+            });
             html = html.replace(/```\n?([\s\S]*?)```/g, '<pre style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;overflow-x:auto;font-family:monospace;font-size:13px;margin:12px 0;"><code>$1</code></pre>');
             html = html.replace(/^(\d+)\. (.+)$/gm, '<div style="padding-left:20px;margin:4px 0;"><span style="color:#64748b;margin-right:6px;">$1.</span>$2</div>');
             html = html.replace(/^- (.+)$/gm, '<div style="padding-left:20px;margin:4px 0;"><span style="color:#64748b;margin-right:6px;">&bull;</span>$1</div>');
@@ -3879,8 +3882,11 @@
             document.getElementById('adminBlogExcerpt').value = '';
             document.getElementById('adminBlogContent').value = '';
             document.getElementById('adminBlogTags').value = '';
+            document.getElementById('adminBlogTags').dataset.manual = 'false';
             document.getElementById('adminBlogCover').value = '';
             document.getElementById('adminBlogWriteError').textContent = '';
+            document.getElementById('adminBlogSlugRow').style.display = 'none';
+            document.getElementById('adminBlogSlugPreview').textContent = '';
         }
 
         async function adminCreateBlogPost() {
