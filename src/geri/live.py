@@ -202,7 +202,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     for r in (components.top_regions or [])[:5]:
         top_regions.append({
             'region': r.get('region', 'Unknown'),
-            'total_risk': r.get('total_risk', 0),
+            'total_risk': r.get('risk_total', r.get('total_risk', 0)),
         })
 
     last_alert_id = alerts[-1].id if alerts else None
