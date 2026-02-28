@@ -26,6 +26,7 @@ from src.billing.billing_routes import router as billing_router
 from src.db.migrations import run_migrations, run_seo_tables_migration, run_sources_migration, run_geri_migration, run_pro_delivery_migration, run_fix_skipped_alerts, run_signal_quality_migration, _recalculate_stale_bands, run_eriq_migration, run_lng_price_migration, run_stripe_mode_migration
 from src.geri import ENABLE_GERI
 from src.geri.routes import router as geri_router
+from src.geri.live_routes import router as geri_live_router
 from src.reri import ENABLE_EERI
 from src.reri.routes import router as eeri_router
 from src.reri.seo_routes import router as eeri_seo_router
@@ -158,7 +159,8 @@ app.include_router(signals_router)
 
 if ENABLE_GERI:
     app.include_router(geri_router)
-    logger.info("GERI module enabled - routes registered")
+    app.include_router(geri_live_router)
+    logger.info("GERI module enabled - routes registered (including Live endpoints)")
 
 if ENABLE_EERI:
     app.include_router(eeri_router)
@@ -215,7 +217,9 @@ async def startup_event():
             from src.api.telegram_routes import setup_webhook
             setup_webhook(app_url.rstrip("/"))
         if ENABLE_GERI:
-            logger.info("GERI module is ENABLED")
+            from src.geri.live import run_geri_live_migration
+            run_geri_live_migration()
+            logger.info("GERI module is ENABLED (including Live)")
         else:
             logger.info("GERI module is DISABLED (set ENABLE_GERI=true to enable)")
     except Exception as e:

@@ -1,0 +1,187 @@
+# GERI Live — Real-time Global Energy Risk Index
+
+## Overview
+
+GERI Live provides a real-time, intraday view of the Global Energy Risk Index that updates as news events and alerts are processed throughout the day. Unlike the official daily GERI (computed once per day and stored in `intel_indices_daily`), GERI Live recalculates continuously, giving Pro and Enterprise users an up-to-the-minute risk reading.
+
+## Plan Gating
+
+- **Available to:** Pro and Enterprise subscription tiers only
+- **Nav visibility:** The "GERI Live" sidebar item is hidden for Free, Personal, and Trader plans
+- **API enforcement:** Both REST and SSE endpoints verify plan via `user_plans.plan`
+
+## Architecture
+
+### Compute Pipeline
+
+```
+alert_events (today, UTC) → compute_components() → normalize_components() → calculate_geri_value()
+                                                                                  ↓
+                                                              geri_live table (INSERT per computation)
+                                                                                  ↓
+                                                              SSE broadcast → connected clients
+```
+
+1. **Data Source:** All `alert_events` created since midnight UTC today
+2. **Component Computation:** Same `compute_components()` from `src/geri/compute.py` (regional weighting model, severity scoring)
+3. **Normalization:** Uses 90-day historical baseline from `get_historical_baseline()`
+4. **Final Value:** Weighted combination (high_impact 40%, regional_spike 25%, asset_risk 20%, region_concentration 15%)
+5. **Band Assignment:** 0-20 LOW, 21-40 MODERATE, 41-60 ELEVATED, 61-80 SEVERE, 81-100 CRITICAL
+6. **Trend:** Compared against yesterday's official daily GERI from `intel_indices_daily`
+
+### Debounce
+
+Recomputations are throttled to a minimum 60-second interval. If `compute_live_geri()` is called within 60 seconds of the last computation, it returns the cached latest value instead of recomputing.
+
+### AI Interpretation
+
+The interpretation is regenerated when:
+- GERI value changes by ≥ 2 points
+- Risk band changes (e.g., MODERATE → ELEVATED)
+- No interpretation exists yet
+
+Uses OpenAI gpt-4.1-mini with a prompt optimized for intraday analysis (1-2 paragraphs, present tense, references specific drivers and regions). Falls back to a template-based interpretation if OpenAI is unavailable.
+
+## Database Schema
+
+### `geri_live` table
+
+```sql
+CREATE TABLE geri_live (
+    id SERIAL PRIMARY KEY,
+    value INTEGER NOT NULL DEFAULT 0,
+    band VARCHAR(20) NOT NULL DEFAULT 'LOW',
+    trend_vs_yesterday NUMERIC(5,1),
+    components JSONB DEFAULT '{}',
+    interpretation TEXT DEFAULT '',
+    alert_count INTEGER DEFAULT 0,
+    last_alert_id INTEGER,
+    top_drivers JSONB DEFAULT '[]',
+    top_regions JSONB DEFAULT '[]',
+    computed_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+Each computation inserts a new row, preserving the full intraday timeline. This enables the sparkline chart showing how GERI evolved throughout the day.
+
+## API Endpoints
+
+### REST: Get Latest Live GERI
+
+```
+GET /api/v1/indices/geri/live/latest
+Headers: X-User-Token: <session_token>
+```
+
+Returns the latest computed live GERI value plus the full intraday timeline:
+
+```json
+{
+  "success": true,
+  "data": {
+    "value": 34,
+    "band": "MODERATE",
+    "trend_vs_yesterday": 2,
+    "alert_count": 23,
+    "top_drivers": [...],
+    "top_regions": [...],
+    "components": {...},
+    "interpretation": "...",
+    "computed_at": "2026-02-28T13:00:00Z",
+    "timeline": [
+      {"value": 30, "band": "MODERATE", "alert_count": 5, "time": "..."},
+      {"value": 34, "band": "MODERATE", "alert_count": 23, "time": "..."}
+    ]
+  }
+}
+```
+
+### REST: Get Timeline Only
+
+```
+GET /api/v1/indices/geri/live/timeline
+Headers: X-User-Token: <session_token>
+```
+
+### SSE: Live Stream
+
+```
+GET /api/v1/indices/geri/live/stream?token=<session_token>
+```
+
+Server-Sent Events stream. Token passed as query parameter (EventSource API cannot set headers).
+
+Event types:
+- `initial`: Sent on connection with current state
+- `update`: Sent when GERI is recomputed
+- `heartbeat`: Sent every 30 seconds to keep connection alive
+
+### Internal: Trigger Recomputation
+
+```
+POST /api/v1/indices/geri/live/compute
+```
+
+Called by the alerts engine after processing new alerts. Triggers recomputation and broadcasts to SSE clients.
+
+## SSE Broadcast Mechanism
+
+- Each connected client gets an `asyncio.Queue` (max 50 items)
+- Global list of active client queues protected by `asyncio.Lock`
+- `broadcast_live_update(data)` pushes to all queues; dead/full queues are removed
+- Heartbeat every 30 seconds to detect disconnected clients
+- Client-side auto-reconnect with exponential backoff (1s → 30s max)
+
+## UI Components
+
+Located in `src/static/users-account.html`, section `section-geri-live`.
+
+### Layout
+- **Main card:** Large GERI value (72px font), band badge, trend arrow
+- **Yesterday comparison:** Side-by-side yesterday vs today live values
+- **AI Interpretation card:** Dynamically updated interpretation with fade-in animation
+- **Intraday Timeline:** Chart.js line chart showing all data points for today
+- **Sidebar:**
+  - Top Drivers: Top 5 events driving the current GERI value
+  - Affected Regions: Regions with highest risk concentration
+  - Activity Feed: Chronological log of GERI updates (max 20 items)
+
+### Connection Status Bar
+- Green dot + "Connected" — SSE stream active
+- Yellow dot + "Reconnecting..." — Connection lost, retrying
+- Red dot + "Disconnected" — Connection failed
+
+### Animations
+- Pulsing red LIVE badge (CSS keyframes)
+- Value count-up/down animation (requestAnimationFrame, cubic easing)
+- Interpretation fade-in on update
+- Band color transitions
+
+### Responsive Design
+- 1024px breakpoint: Single column layout, sidebar becomes 2-column grid below main content
+- 640px breakpoint: Smaller value font, stacked meta row, single-column sidebar
+
+## Edge Cases
+
+- **No alerts today:** Shows yesterday's GERI value with `no_alerts_today: true` flag
+- **No yesterday value:** Falls back to most recent `intel_indices_daily` entry
+- **Midnight UTC reset:** Timeline resets, showing only post-midnight data
+- **Alert storms:** Debounce prevents excessive recomputation (60s minimum interval)
+- **SSE disconnection:** Client auto-reconnects with exponential backoff
+
+## File Inventory
+
+| File | Purpose |
+|------|---------|
+| `src/geri/live.py` | Compute engine, DB operations, SSE broadcast, AI interpretation |
+| `src/geri/live_routes.py` | FastAPI REST + SSE endpoints, plan gating |
+| `src/api/app.py` | Router registration, migration call |
+| `src/static/users-account.html` | Frontend: CSS, HTML section, JavaScript |
+
+## How to Trigger a Live Recomputation
+
+```bash
+curl -X POST http://localhost:5000/api/v1/indices/geri/live/compute
+```
+
+This is intended to be called by the alerts engine after processing new alerts. The debounce mechanism ensures it won't recompute more than once per 60 seconds.
