@@ -125,11 +125,11 @@ def _blog_base_styles():
     <style>
         :root {
             --blog-bg: #0f172a;
-            --blog-text: #e2e8f0;
-            --blog-text-primary: #f1f5f9;
-            --blog-text-secondary: #94a3b8;
-            --blog-text-muted: #64748b;
-            --blog-text-faint: #475569;
+            --blog-text: #f1f5f9;
+            --blog-text-primary: #ffffff;
+            --blog-text-secondary: #cbd5e1;
+            --blog-text-muted: #94a3b8;
+            --blog-text-faint: #64748b;
             --blog-nav-bg: rgba(15,23,42,0.95);
             --blog-nav-border: rgba(255,255,255,0.06);
             --blog-card-bg: rgba(255,255,255,0.03);
@@ -139,13 +139,13 @@ def _blog_base_styles():
             --blog-card-cover-bg: linear-gradient(135deg, #1e293b, #0f172a);
             --blog-input-bg: rgba(255,255,255,0.04);
             --blog-input-border: rgba(255,255,255,0.1);
-            --blog-input-text: #e2e8f0;
+            --blog-input-text: #f1f5f9;
             --blog-hero-gradient: linear-gradient(135deg, #f1f5f9, #94a3b8);
             --blog-link: #60a5fa;
             --blog-link-hover: #93bbfc;
             --blog-modal-bg: #1e293b;
             --blog-modal-overlay: rgba(0,0,0,0.7);
-            --blog-content-text: #cbd5e1;
+            --blog-content-text: #e2e8f0;
             --blog-content-code-bg: rgba(59,130,246,0.1);
             --blog-content-code-color: #93bbfc;
             --blog-content-strong: #f1f5f9;
@@ -168,11 +168,11 @@ def _blog_base_styles():
 
         [data-theme="light"] {
             --blog-bg: #f8fafc;
-            --blog-text: #1e293b;
-            --blog-text-primary: #0f172a;
-            --blog-text-secondary: #475569;
-            --blog-text-muted: #64748b;
-            --blog-text-faint: #94a3b8;
+            --blog-text: #0f172a;
+            --blog-text-primary: #020617;
+            --blog-text-secondary: #334155;
+            --blog-text-muted: #475569;
+            --blog-text-faint: #64748b;
             --blog-nav-bg: rgba(255,255,255,0.95);
             --blog-nav-border: rgba(0,0,0,0.08);
             --blog-card-bg: #ffffff;
@@ -188,7 +188,7 @@ def _blog_base_styles():
             --blog-link-hover: #1d4ed8;
             --blog-modal-bg: #ffffff;
             --blog-modal-overlay: rgba(0,0,0,0.4);
-            --blog-content-text: #334155;
+            --blog-content-text: #1e293b;
             --blog-content-code-bg: rgba(59,130,246,0.08);
             --blog-content-code-color: #2563eb;
             --blog-content-strong: #0f172a;
@@ -226,8 +226,9 @@ def _blog_base_styles():
         .blog-user-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; background: var(--blog-badge-user-bg); font-size: 13px; color: var(--blog-text-secondary); }
         .blog-user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: #fff; }
 
-        .blog-theme-toggle { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; border: none; background: var(--blog-theme-toggle-bg); color: var(--blog-theme-toggle-color); font-size: 18px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
-        .blog-theme-toggle:hover { background: var(--blog-theme-toggle-hover); color: var(--blog-text-primary); }
+        .blog-theme-toggle { display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--blog-filter-border); background: var(--blog-theme-toggle-bg); color: var(--blog-theme-toggle-color); font-size: 14px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; font-weight: 500; font-family: inherit; }
+        .blog-theme-toggle:hover { background: var(--blog-theme-toggle-hover); color: var(--blog-text-primary); border-color: #3b82f6; }
+        .blog-theme-toggle-icon { font-size: 16px; line-height: 1; }
 
         .blog-container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
         .blog-hero { text-align: center; padding: 60px 0 40px; }
@@ -368,7 +369,8 @@ def _blog_base_styles():
             .blog-write-form-row { grid-template-columns: 1fr; }
             .blog-nav-links { gap: 4px; }
             .blog-nav-links a, .blog-nav-links button { padding: 6px 10px; font-size: 13px; }
-            .blog-theme-toggle { width: 34px; height: 34px; font-size: 16px; }
+            .blog-theme-toggle { height: 32px; padding: 0 10px; font-size: 12px; }
+            .blog-theme-toggle-icon { font-size: 14px; }
         }
     </style>
     <script>
@@ -403,14 +405,14 @@ def _blog_nav_html(user=None):
     <nav class="blog-nav">
         <div class="blog-nav-inner">
             <a href="/blog" class="blog-logo">
-                <div class="blog-logo-icon">E</div>
-                EnergyRiskIQ Blog
+                <img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="border-radius:8px;" />
+                EnergyRiskIQ
             </a>
             <div class="blog-nav-links">
                 <a href="/blog">Articles</a>
                 <a href="/">EnergyRiskIQ</a>
                 {user_section}
-                <button class="blog-theme-toggle" onclick="toggleBlogTheme()" id="blogThemeBtn" title="Toggle theme">&#9790;</button>
+                <button class="blog-theme-toggle" onclick="toggleBlogTheme()" id="blogThemeBtn" title="Toggle theme"><span class="blog-theme-toggle-icon" id="blogThemeIcon">&#9790;</span><span id="blogThemeLabel">Light</span></button>
             </div>
         </div>
     </nav>
@@ -533,21 +535,28 @@ def _blog_scripts():
         function toggleBlogTheme() {
             var html = document.documentElement;
             var current = html.getAttribute('data-theme');
-            var btn = document.getElementById('blogThemeBtn');
+            var icon = document.getElementById('blogThemeIcon');
+            var label = document.getElementById('blogThemeLabel');
             if (current === 'light') {
                 html.removeAttribute('data-theme');
                 localStorage.setItem('blog_theme', 'dark');
-                if (btn) btn.innerHTML = '&#9790;';
+                if (icon) icon.innerHTML = '\u263E';
+                if (label) label.textContent = 'Light';
             } else {
                 html.setAttribute('data-theme', 'light');
                 localStorage.setItem('blog_theme', 'light');
-                if (btn) btn.innerHTML = '&#9728;';
+                if (icon) icon.innerHTML = '\u2600';
+                if (label) label.textContent = 'Dark';
             }
         }
         (function() {
             var saved = localStorage.getItem('blog_theme');
-            var btn = document.getElementById('blogThemeBtn');
-            if (saved === 'light' && btn) btn.innerHTML = '&#9728;';
+            var icon = document.getElementById('blogThemeIcon');
+            var label = document.getElementById('blogThemeLabel');
+            if (saved === 'light') {
+                if (icon) icon.innerHTML = '\u2600';
+                if (label) label.textContent = 'Dark';
+            }
         })();
     </script>
     """
