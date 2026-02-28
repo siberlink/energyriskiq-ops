@@ -148,6 +148,8 @@ async def live_stream(token: Optional[str] = Query(None)):
         try:
             latest = get_latest_live_geri()
             if latest:
+                from src.geri.live import _get_yesterday_geri_value
+                latest['yesterday_value'] = _get_yesterday_geri_value()
                 yield f"data: {json.dumps({'type': 'initial', **latest})}\n\n"
 
             last_heartbeat = time.time()
