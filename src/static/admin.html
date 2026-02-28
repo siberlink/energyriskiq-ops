@@ -1788,11 +1788,15 @@
                         <h3 style="color:#f1f5f9;margin-bottom:16px;font-size:18px;">Create New Article</h3>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Title</label>
-                            <input type="text" id="adminBlogTitle" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            <input type="text" id="adminBlogTitle" oninput="autoGenArticleSlug()" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            <div id="adminBlogSlugRow" style="margin-top:5px;display:none;align-items:center;gap:6px;">
+                                <span style="font-size:12px;color:#64748b;">Slug:</span>
+                                <span id="adminBlogSlugPreview" style="font-size:12px;color:#60a5fa;font-family:monospace;"></span>
+                            </div>
                         </div>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Excerpt</label>
-                            <input type="text" id="adminBlogExcerpt" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            <textarea id="adminBlogExcerpt" rows="3" oninput="autoGenArticleTags()" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;resize:vertical;line-height:1.5;font-family:inherit;"></textarea>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
                             <div>
@@ -1809,7 +1813,10 @@
                             <input type="text" id="adminBlogCover" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
                         </div>
                         <div style="margin-bottom:14px;">
-                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Content (Markdown)</label>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                <label style="font-size:13px;color:#94a3b8;">Content (Markdown)</label>
+                                <button type="button" onclick="previewArticle()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.1);color:#60a5fa;font-size:12px;font-weight:500;cursor:pointer;">Preview</button>
+                            </div>
                             <div style="display:flex;flex-wrap:wrap;gap:2px;padding:6px 8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-bottom:none;border-radius:8px 8px 0 0;">
                                 <button type="button" onclick="mdInsert('bold')" title="Bold" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">B</button>
                                 <button type="button" onclick="mdInsert('italic')" title="Italic" style="padding:5px 10px;border:none;border-radius:5px;background:rgba(255,255,255,0.06);color:#94a3b8;font-size:13px;font-style:italic;cursor:pointer;line-height:1;">I</button>
@@ -1835,6 +1842,16 @@
                             <button onclick="hideBlogWriteForm()" style="padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:14px;cursor:pointer;">Cancel</button>
                         </div>
                         <div id="adminBlogWriteError" style="color:#f87171;font-size:13px;margin-top:8px;"></div>
+                    </div>
+
+                    <div id="articlePreviewModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;overflow-y:auto;">
+                        <div style="max-width:800px;margin:40px auto;background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;position:relative;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:16px;">
+                                <h3 style="color:#f1f5f9;font-size:18px;margin:0;">Article Preview</h3>
+                                <button onclick="closePreviewModal()" style="padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:13px;cursor:pointer;">Close</button>
+                            </div>
+                            <div id="articlePreviewBody" style="color:#e2e8f0;font-size:15px;line-height:1.8;"></div>
+                        </div>
                     </div>
 
                     <div id="adminBlogPostsList"></div>
@@ -3619,6 +3636,123 @@
                     }
                 }
             } catch(e) {}
+        }
+
+        function autoGenArticleSlug() {
+            var title = document.getElementById('adminBlogTitle').value;
+            var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            var row = document.getElementById('adminBlogSlugRow');
+            var preview = document.getElementById('adminBlogSlugPreview');
+            if (slug) {
+                row.style.display = 'flex';
+                preview.textContent = slug;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+
+        var _tagDebounce = null;
+        function autoGenArticleTags() {
+            clearTimeout(_tagDebounce);
+            _tagDebounce = setTimeout(function() {
+                var excerpt = document.getElementById('adminBlogExcerpt').value.trim();
+                if (excerpt.length < 20) return;
+                var tagsField = document.getElementById('adminBlogTags');
+                if (tagsField.value.trim() && tagsField.dataset.manual === 'true') return;
+
+                var words = excerpt.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/);
+                var stopwords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','shall','may','might','can','this','that','these','those','it','its','how','what','when','where','which','who','whom','why','not','no','so','if','then','than','too','very','just','about','above','after','before','between','into','through','during','over','under','again','further','more','most','other','some','such','only','own','same','also','as','up','out','all','each','every','both','few','many','much','any','here','there','because','while','until']);
+                var freq = {};
+                words.forEach(function(w) {
+                    if (w.length > 3 && !stopwords.has(w)) {
+                        freq[w] = (freq[w] || 0) + 1;
+                    }
+                });
+                var bigrams = [];
+                for (var i = 0; i < words.length - 1; i++) {
+                    if (words[i].length > 2 && words[i+1].length > 2 && !stopwords.has(words[i]) && !stopwords.has(words[i+1])) {
+                        var bi = words[i] + ' ' + words[i+1];
+                        bigrams.push(bi);
+                    }
+                }
+                var biFreq = {};
+                bigrams.forEach(function(b) { biFreq[b] = (biFreq[b] || 0) + 1; });
+
+                var candidates = [];
+                Object.keys(biFreq).forEach(function(b) { candidates.push({t: b, s: biFreq[b] * 3}); });
+                Object.keys(freq).forEach(function(w) { candidates.push({t: w, s: freq[w]}); });
+                candidates.sort(function(a, b) { return b.s - a.s; });
+
+                var seen = new Set();
+                var tags = [];
+                candidates.forEach(function(c) {
+                    if (tags.length >= 5) return;
+                    var parts = c.t.split(' ');
+                    if (parts.every(function(p) { return !seen.has(p); })) {
+                        tags.push(c.t);
+                        parts.forEach(function(p) { seen.add(p); });
+                    }
+                });
+
+                if (tags.length > 0) {
+                    tagsField.value = tags.join(', ');
+                    tagsField.dataset.manual = 'false';
+                }
+            }, 500);
+        }
+
+        function previewArticle() {
+            var title = document.getElementById('adminBlogTitle').value.trim() || 'Untitled Article';
+            var excerpt = document.getElementById('adminBlogExcerpt').value.trim();
+            var content = document.getElementById('adminBlogContent').value;
+            var category = document.getElementById('adminBlogCategory').value || 'General';
+            var tags = document.getElementById('adminBlogTags').value;
+
+            var rendered = renderMarkdownPreview(content);
+
+            var tagsHtml = '';
+            if (tags) {
+                var tagList = tags.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+                tagsHtml = '<div style="margin-top:24px;display:flex;gap:6px;flex-wrap:wrap;">' +
+                    tagList.map(function(t) { return '<span style="padding:4px 10px;border-radius:12px;background:rgba(59,130,246,0.12);color:#60a5fa;font-size:12px;">' + escapeHtml(t) + '</span>'; }).join('') +
+                    '</div>';
+            }
+
+            var html = '<div style="margin-bottom:12px;">' +
+                '<span style="display:inline-block;padding:4px 12px;border-radius:12px;background:rgba(139,92,246,0.15);color:#a78bfa;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">' + escapeHtml(category) + '</span>' +
+                '</div>' +
+                '<h1 style="color:#f1f5f9;font-size:28px;font-weight:700;margin-bottom:12px;line-height:1.3;">' + escapeHtml(title) + '</h1>' +
+                (excerpt ? '<p style="color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:24px;border-left:3px solid #3b82f6;padding-left:14px;">' + escapeHtml(excerpt) + '</p>' : '') +
+                '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;">' +
+                '<div style="color:#e2e8f0;font-size:15px;line-height:1.8;">' + rendered + '</div>' +
+                tagsHtml;
+
+            document.getElementById('articlePreviewBody').innerHTML = html;
+            document.getElementById('articlePreviewModal').style.display = 'block';
+        }
+
+        function closePreviewModal() {
+            document.getElementById('articlePreviewModal').style.display = 'none';
+        }
+
+        function renderMarkdownPreview(md) {
+            if (!md) return '<p style="color:#64748b;">No content yet...</p>';
+            var html = escapeHtml(md);
+            html = html.replace(/^### (.+)$/gm, '<h3 style="color:#f1f5f9;font-size:18px;font-weight:600;margin:20px 0 8px;">$1</h3>');
+            html = html.replace(/^## (.+)$/gm, '<h2 style="color:#f1f5f9;font-size:22px;font-weight:700;margin:24px 0 10px;">$1</h2>');
+            html = html.replace(/^# (.+)$/gm, '<h1 style="color:#f1f5f9;font-size:26px;font-weight:700;margin:28px 0 12px;">$1</h1>');
+            html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            html = html.replace(/&lt;u&gt;(.+?)&lt;\/u&gt;/g, '<u>$1</u>');
+            html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:20px 0;">');
+            html = html.replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #3b82f6;padding-left:14px;color:#94a3b8;margin:12px 0;">$1</blockquote>');
+            html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="color:#60a5fa;text-decoration:underline;">$1</a>');
+            html = html.replace(/```\n?([\s\S]*?)```/g, '<pre style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;overflow-x:auto;font-family:monospace;font-size:13px;margin:12px 0;"><code>$1</code></pre>');
+            html = html.replace(/^(\d+)\. (.+)$/gm, '<div style="padding-left:20px;margin:4px 0;"><span style="color:#64748b;margin-right:6px;">$1.</span>$2</div>');
+            html = html.replace(/^- (.+)$/gm, '<div style="padding-left:20px;margin:4px 0;"><span style="color:#64748b;margin-right:6px;">&bull;</span>$1</div>');
+            html = html.replace(/\n\n/g, '</p><p style="margin:12px 0;">');
+            html = '<p style="margin:12px 0;">' + html + '</p>';
+            return html;
         }
 
         function mdInsert(type) {
