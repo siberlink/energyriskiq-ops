@@ -252,8 +252,9 @@ def _blog_base_styles():
         .blog-search:focus { border-color: #3b82f6; }
         .blog-search::placeholder { color: var(--blog-search-placeholder); }
 
-        .blog-search-bar { margin-bottom: 16px; }
-        .blog-cat-links-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; align-items: center; }
+        .blog-search-bar { margin-bottom: 16px; display: flex; justify-content: center; }
+        .blog-search { min-width: 400px; max-width: 600px; width: 100%; }
+        .blog-cat-links-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; align-items: center; justify-content: center; }
         .blog-cat-link { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--blog-text-secondary); background: var(--blog-filter-bg); border: 1px solid var(--blog-filter-border); transition: all 0.2s; text-decoration: none; white-space: nowrap; }
         .blog-cat-link:hover { border-color: #3b82f6; color: var(--blog-text-primary); background: rgba(59,130,246,0.08); }
         .blog-cat-link.active { background: rgba(59,130,246,0.15); border-color: #3b82f6; color: #60a5fa; }
@@ -401,7 +402,7 @@ def _blog_base_styles():
             .blog-card-body { padding: 20px; }
             .blog-filters { gap: 8px; margin-bottom: 24px; }
             .blog-filter-btn { padding: 6px 14px; font-size: 12px; }
-            .blog-search { min-width: 100%; padding: 10px 14px; font-size: 14px; }
+            .blog-search { min-width: 100%; max-width: 100%; padding: 10px 14px; font-size: 14px; }
             .blog-cat-links-row { gap: 6px; margin-bottom: 20px; }
             .blog-cat-link { padding: 5px 10px; font-size: 12px; }
             .blog-cat-hero-badge { font-size: 11px; padding: 4px 14px; }
