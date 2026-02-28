@@ -73,7 +73,35 @@ GET /api/v1/indices/geri/live/latest
 Headers: X-User-Token: <session_token>
 ```
 
-Returns the latest computed live GERI value plus the full intraday timeline.
+Returns the latest computed live GERI value plus the full intraday timeline:
+
+```json
+{
+  "success": true,
+  "data": {
+    "value": 34,
+    "band": "MODERATE",
+    "trend_vs_yesterday": 2,
+    "alert_count": 23,
+    "top_drivers": [...],
+    "top_regions": [...],
+    "components": {...},
+    "interpretation": "...",
+    "computed_at": "2026-02-28T13:00:00Z",
+    "timeline": [
+      {"value": 30, "band": "MODERATE", "alert_count": 5, "time": "..."},
+      {"value": 34, "band": "MODERATE", "alert_count": 23, "time": "..."}
+    ]
+  }
+}
+```
+
+### REST: Get Timeline Only
+
+```
+GET /api/v1/indices/geri/live/timeline
+Headers: X-User-Token: <session_token>
+```
 
 ### SSE: Live Stream
 
@@ -118,10 +146,70 @@ Located in `src/static/users-account.html`, section `section-geri-live`.
   - Affected Regions: Regions with highest risk concentration
   - Activity Feed: Chronological log of GERI updates (max 20 items)
 
-### Quick Insights Strip
-- **Velocity Indicator:** Shows how fast GERI is moving (e.g., "+3 pts/hr"). Color-coded: red for rising, green for falling, grey for stable.
-- **Band Proximity Warning:** Alerts users when GERI is within 5 points of a band threshold (e.g., "4 pts from ELEVATED"). Pulsing amber animation for urgency.
-- **Peak/Low of the Day:** Shows today's highest and lowest GERI values with timestamps (e.g., "34 @ 14:30").
+### Connection Status Bar
+- Green dot + "Connected" — SSE stream active
+- Yellow dot + "Reconnecting..." — Connection lost, retrying
+- Red dot + "Disconnected" — Connection failed
+
+### Animations
+- Pulsing red LIVE badge (CSS keyframes)
+- Value count-up/down animation (requestAnimationFrame, cubic easing)
+- Interpretation fade-in on update
+- Band color transitions
+
+### Responsive Design
+- 1024px breakpoint: Single column layout, sidebar becomes 2-column grid below main content
+- 640px breakpoint: Smaller value font, stacked meta row, single-column sidebar
+
+## Update Frequency
+
+GERI Live recomputes with a 60-second debounce. After a computation, it will not recompute again for at least 60 seconds even if new alerts arrive. Outside of that cooldown, a recomputation is triggered when the alerts engine calls the `/compute` endpoint after processing new alerts. In practice, the update frequency depends on how often new alerts are being processed — it could update every minute during active news periods, or stay static during quiet periods. The displayed value always reflects the most recent computation based on all alerts processed that day.
+
+## What Updates When GERI Live Refreshes
+
+When GERI Live recomputes, all dashboard components update together in a single SSE broadcast:
+
+- **GERI Value & Band:** The main score and risk band are recalculated from all alerts processed today.
+- **Top Drivers:** The top 5 events driving the current GERI value are refreshed.
+- **Affected Regions:** The regions with the highest risk concentration are recalculated.
+- **Intraday Timeline:** A new data point is added to the sparkline chart showing how GERI evolved throughout the day.
+- **AI Analysis:** The interpretation checks whether it needs to regenerate. It updates when the GERI value shifts by 2 or more points, or when the risk band changes (e.g., LOW to MODERATE). If the change is not significant enough, it carries forward the previous analysis.
+
+## Edge Cases
+
+- **No alerts today:** Shows yesterday's GERI value with `no_alerts_today: true` flag
+- **No yesterday value:** Falls back to most recent `intel_indices_daily` entry
+- **Midnight UTC reset:** Timeline resets, showing only post-midnight data
+- **Alert storms:** Debounce prevents excessive recomputation (60s minimum interval)
+- **SSE disconnection:** Client auto-reconnects with exponential backoff
+
+## Target Users
+
+GERI Live is designed for professionals who need to react quickly to shifting geopolitical energy risk throughout the trading day. The following profiles represent the primary audiences for this feature.
+
+### Energy Commodity Traders
+
+Oil, gas, and LNG traders who need real-time risk context to inform intraday trading decisions. A sudden GERI spike from a pipeline disruption or sanctions announcement directly affects their positions. They rely on the velocity indicator to sense momentum shifts, the band proximity warning for threshold alerts before a band change, and the intraday timeline to see how risk has evolved during the session. GERI Live gives them a geopolitical overlay to pair with price action, helping them decide when to enter, exit, or hedge positions.
+
+### Energy Risk Managers
+
+Professionals at utilities, refineries, and energy companies who monitor exposure to supply disruptions. They need early warning when risk is escalating toward a new band so they can activate contingency plans or adjust hedging strategies. The day high/low and band proximity warning are especially valuable — they reveal whether risk is trending toward a level that triggers internal risk protocols. GERI Live serves as a continuous monitoring dashboard that complements their existing risk management systems.
+
+### Hedge Fund & Asset Managers
+
+Portfolio managers with energy sector exposure who use geopolitical risk as a signal for position sizing or hedging decisions. They watch GERI Live alongside their trading screens to understand whether a price move is driven by fundamentals or geopolitical escalation. The affected regions breakdown helps them assess which parts of their portfolio are most exposed. Cross-referencing GERI velocity with commodity price movements can reveal mispricings or early signals before the broader market reacts.
+
+### Commodity Analysts & Strategists
+
+Research professionals at banks, brokerages, or advisory firms who need to brief clients quickly when the risk landscape shifts during the day. The AI interpretation gives them a ready-made narrative, while the top drivers list identifies the specific events behind a GERI move. The day high/low and timeline provide the data points they need for intraday research notes. GERI Live turns hours of manual monitoring into a single dashboard they can reference when writing flash reports.
+
+### Corporate Energy Procurement
+
+Large industrial buyers of energy (manufacturing plants, airlines, data centers) who need to time purchases and understand when geopolitical risk might drive price spikes. They use GERI Live to identify windows of lower risk for making spot purchases or locking in forward contracts. The trend vs. yesterday comparison helps them contextualize whether today's risk level is elevated relative to recent history, informing buy/wait decisions on large energy contracts.
+
+### Insurance & Reinsurance Underwriters
+
+Professionals pricing energy infrastructure risk (pipelines, refineries, shipping routes, offshore platforms) who need to monitor escalation patterns in real time. When GERI moves toward ELEVATED or SEVERE, it signals increased probability of claims on energy infrastructure policies. The affected regions breakdown shows them where risk is concentrating geographically, helping them assess exposure in their book. GERI Live provides the real-time signal layer that complements their actuarial models.
 
 ## Professional Intelligence Modules
 
@@ -187,28 +275,31 @@ The following cards show "Features coming soon" and have container IDs ready for
 - **Corporate Energy Procurement** (`geriLiveProProcurementBody`)
 - **Insurance & Reinsurance Underwriters** (`geriLiveProInsuranceBody`)
 
-## Update Frequency
+## Future Intelligence Enhancements
 
-GERI Live recomputes with a 60-second debounce. After a computation, it will not recompute again for at least 60 seconds even if new alerts arrive. Outside of that cooldown, a recomputation is triggered when the alerts engine calls the `/compute` endpoint after processing new alerts. In practice, the update frequency depends on how often new alerts are being processed — it could update every minute during active news periods, or stay static during quiet periods. The displayed value always reflects the most recent computation based on all alerts processed that day.
+### Quick Wins (Low Effort, High Impact) — IMPLEMENTED
 
-## What Updates When GERI Live Refreshes
+- **Velocity Indicator:** Shows how fast GERI is moving (e.g., "+3 pts/hr"). Calculated from the intraday timeline by comparing the current value against the value from ~1 hour ago. Color-coded: red for rising, green for falling, grey for stable. Backend: `_compute_velocity()` in `live.py`. Frontend: `#geriLiveVelocityVal` in the quick insights strip.
 
-When GERI Live recomputes, all dashboard components update together in a single SSE broadcast:
+- **Band Proximity Warning:** Alerts users when GERI is within 5 points of a band threshold (e.g., "4 pts from ELEVATED"). Band thresholds: LOW 0-20, MODERATE 21-40, ELEVATED 41-60, SEVERE 61-80, CRITICAL 81-100. Only visible when proximity condition is met; hidden otherwise. Pulsing amber animation for urgency. Backend: `_compute_band_proximity()` in `live.py`. Frontend: `#geriLiveBandProx` (conditionally shown).
 
-- **GERI Value & Band:** The main score and risk band are recalculated from all alerts processed today.
-- **Top Drivers:** The top 5 events driving the current GERI value are refreshed.
-- **Affected Regions:** The regions with the highest risk concentration are recalculated.
-- **Intraday Timeline:** A new data point is added to the sparkline chart showing how GERI evolved throughout the day.
-- **AI Analysis:** The interpretation checks whether it needs to regenerate. It updates when the GERI value shifts by 2 or more points, or when the risk band changes (e.g., LOW to MODERATE). If the change is not significant enough, it carries forward the previous analysis.
-- **Trader Intelligence:** All 5 trader features (Price-Risk Correlation, Heatmap, Position Alerts, Risk Windows, Flash Feed) automatically re-fetch and re-render on every SSE update.
+- **Peak/Low of the Day:** Shows today's highest and lowest GERI values with timestamps (e.g., "34 @ 14:30"). Derived from the full intraday timeline. Displayed in the quick insights strip alongside velocity. Backend: `_compute_peak_low()` in `live.py`. Frontend: `#geriLivePeakVal`, `#geriLiveLowVal`.
 
-## Edge Cases
+### Medium Effort
 
-- **No alerts today:** Shows yesterday's GERI value with `no_alerts_today: true` flag
-- **No yesterday value:** Falls back to most recent `intel_indices_daily` entry
-- **Midnight UTC reset:** Timeline resets, showing only post-midnight data
-- **Alert storms:** Debounce prevents excessive recomputation (60s minimum interval)
-- **SSE disconnection:** Client auto-reconnects with exponential backoff
+- **Alert Heatmap by Hour:** A small grid showing alert density by hour of the day. Uses `alert_events.created_at` grouped by hour (0-23 UTC). Helps users see when activity spiked. Could be a simple row of colored cells (cool to hot).
+
+- **Driver Category Breakdown:** A mini donut chart showing what's driving GERI by alert category (e.g., 45% geopolitical, 30% supply disruption, 25% market stress). Uses the existing `classification.category` field from alert_events. Built with Chart.js doughnut chart.
+
+- **Cross-Index Snapshot:** Shows current EERI and EGSI values alongside GERI Live for a quick multi-index view. Pulls the latest values from `intel_indices_daily` for EERI and EGSI. Helps users see if risk is concentrated in one area or broad-based.
+
+### Premium Feel (Higher Effort)
+
+- **Historical Comparison Overlay:** "Today vs. yesterday" or "Today vs. last Monday" on the sparkline chart. Overlays a second line on the intraday Chart.js sparkline using data from the `geri_live` table for the comparison day. Lets users visually compare how the day is unfolding relative to a reference day.
+
+- **Scenario Projection:** Based on current trajectory, shows where GERI might land by end of day. Uses simple linear regression or weighted projection from intraday data points. Displays a "projected close" value with confidence range. Adds a dashed projected line on the sparkline.
+
+- **Alert Severity Distribution:** A stacked bar showing how many HIGH, MEDIUM, LOW severity alerts make up today's score. Grouped from `alert_events.classification.severity`. Useful context for whether the score is driven by one major event or many smaller ones.
 
 ## File Inventory
 
@@ -219,3 +310,11 @@ When GERI Live recomputes, all dashboard components update together in a single 
 | `src/geri/live_trader_intel.py` | Trader Intelligence Module: 5 professional features |
 | `src/api/app.py` | Router registration, migration call |
 | `src/static/users-account.html` | Frontend: CSS, HTML section, JavaScript |
+
+## How to Trigger a Live Recomputation
+
+```bash
+curl -X POST http://localhost:5000/api/v1/indices/geri/live/compute
+```
+
+This is intended to be called by the alerts engine after processing new alerts. The debounce mechanism ensures it won't recompute more than once per 60 seconds.
