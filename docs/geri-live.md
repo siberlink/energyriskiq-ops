@@ -211,6 +211,70 @@ Large industrial buyers of energy (manufacturing plants, airlines, data centers)
 
 Professionals pricing energy infrastructure risk (pipelines, refineries, shipping routes, offshore platforms) who need to monitor escalation patterns in real time. When GERI moves toward ELEVATED or SEVERE, it signals increased probability of claims on energy infrastructure policies. The affected regions breakdown shows them where risk is concentrating geographically, helping them assess exposure in their book. GERI Live provides the real-time signal layer that complements their actuarial models.
 
+## Professional Intelligence Modules
+
+The GERI Live dashboard includes 6 professional profile cards, each designed to house profile-specific intelligence features. These appear below the AI Analysis section in a single-column layout.
+
+### Energy Commodity Trader Module — IMPLEMENTED
+
+Backend: `src/geri/live_trader_intel.py`
+API: `GET /api/v1/indices/geri/live/trader-intel` (requires `X-User-Token`, Pro/Enterprise only)
+Live Refresh: All 5 features automatically re-fetch and re-render on every SSE GERI update.
+
+#### 1. Price-Risk Correlation Signal
+Shows latest prices for Brent Crude, WTI Crude, TTF Gas, and VIX with day-over-day percentage changes. Detects divergence between GERI risk trajectory and price direction — flags when risk is rising but prices are flat (market hasn't priced in risk) or when risk and prices move in opposite directions (potential trading opportunity). Includes a 7-day Pearson correlation between GERI and Brent, displayed as a strength badge (Strong/Moderate/Weak).
+
+Data sources: `oil_price_snapshots`, `ttf_gas_snapshots`, `vix_snapshots`, `geri_live` (daily aggregation).
+
+#### 2. Trading Risk Heatmap
+Four-cell grid showing risk intensity (0-100%) for Oil, Natural Gas, Freight/Shipping, and Power/Electricity. Intensity is computed from today's alert events — combines average severity with alert count for each commodity. Alerts are mapped to commodities via `scope_assets` array and headline keyword matching. Color-coded severity bars with regional attribution. Risk levels: critical (>75%), high (>50%), moderate (>25%), low (>0%), none (0%).
+
+Data sources: `alert_events` (today, severity ≥1, types: HIGH_IMPACT_EVENT, REGIONAL_RISK_SPIKE, ASSET_RISK_SPIKE).
+
+#### 3. Position Risk Alerts
+Actionable warnings for traders, sorted by severity (critical first). Alert types:
+- **Band Proximity:** Warning when GERI is ≤5 points from escalating to the next band (e.g., "3 pts from SEVERE"). Critical if ≤2 pts.
+- **Velocity:** Warning when GERI is moving ≥3 pts/hr. Critical if ≥5 pts/hr.
+- **Commodity Exposure:** Flags when top GERI drivers are oil-related or gas-related (severity ≥4). Shows driver count, max severity, and top headline.
+- **Overall Risk:** Warning when GERI is in ELEVATED/SEVERE/CRITICAL band.
+
+Each alert includes a title, message, and actionable recommendation (e.g., "Consider stop-loss tightening").
+
+Data sources: Live GERI value/band, velocity, band proximity, top drivers.
+
+#### 4. Intraday Risk Windows
+Four trading session cards mapped to market hours:
+- Asia (01:00–08:00 UTC)
+- London (08:00–14:00 UTC)
+- New York (14:00–21:00 UTC)
+- After Hours (21:00–01:00 UTC, wraps midnight)
+
+Each session shows: GERI average, GERI delta (start→end), alert count, max severity, risk level, and the top headline from that session. The currently active session has a green "LIVE" badge and highlighted border. Session boundaries use proper UTC datetime comparison to prevent cross-day data mixing.
+
+Data sources: `geri_live` (intraday timeline), `alert_events` (today).
+
+#### 5. Flash Headline Feed
+Scrollable feed of the 20 most recent severity ≥4 alerts from today. Each entry shows:
+- Timestamp (HH:MM UTC)
+- Headline text
+- Severity badge (CRITICAL red / HIGH amber)
+- Region label
+- Asset tags (Oil, Gas, Freight — derived from headline keyword matching)
+- GERI impact indicator (delta between timeline points before/after the alert, via binary search)
+
+Impact lookup uses `_bisect_timeline()` for O(log n) performance.
+
+Data sources: `alert_events` (severity ≥4, today), `geri_live` (timeline for impact calculation).
+
+### Remaining Profile Cards — Placeholder
+
+The following cards show "Features coming soon" and have container IDs ready for future implementation:
+- **Energy Risk Managers** (`geriLiveProRiskBody`)
+- **Hedge Fund & Asset Managers** (`geriLiveProHedgeBody`)
+- **Commodity Analysts & Strategists** (`geriLiveProAnalystBody`)
+- **Corporate Energy Procurement** (`geriLiveProProcurementBody`)
+- **Insurance & Reinsurance Underwriters** (`geriLiveProInsuranceBody`)
+
 ## Future Intelligence Enhancements
 
 ### Quick Wins (Low Effort, High Impact) — IMPLEMENTED
@@ -242,7 +306,8 @@ Professionals pricing energy infrastructure risk (pipelines, refineries, shippin
 | File | Purpose |
 |------|---------|
 | `src/geri/live.py` | Compute engine, DB operations, SSE broadcast, AI interpretation |
-| `src/geri/live_routes.py` | FastAPI REST + SSE endpoints, plan gating |
+| `src/geri/live_routes.py` | FastAPI REST + SSE endpoints, plan gating, trader-intel route |
+| `src/geri/live_trader_intel.py` | Trader Intelligence Module: 5 professional features |
 | `src/api/app.py` | Router registration, migration call |
 | `src/static/users-account.html` | Frontend: CSS, HTML section, JavaScript |
 
