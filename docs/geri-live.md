@@ -183,6 +183,34 @@ When GERI Live recomputes, all dashboard components update together in a single 
 - **Alert storms:** Debounce prevents excessive recomputation (60s minimum interval)
 - **SSE disconnection:** Client auto-reconnects with exponential backoff
 
+## Target Users
+
+GERI Live is designed for professionals who need to react quickly to shifting geopolitical energy risk throughout the trading day. The following profiles represent the primary audiences for this feature.
+
+### Energy Commodity Traders
+
+Oil, gas, and LNG traders who need real-time risk context to inform intraday trading decisions. A sudden GERI spike from a pipeline disruption or sanctions announcement directly affects their positions. They rely on the velocity indicator to sense momentum shifts, the band proximity warning for threshold alerts before a band change, and the intraday timeline to see how risk has evolved during the session. GERI Live gives them a geopolitical overlay to pair with price action, helping them decide when to enter, exit, or hedge positions.
+
+### Energy Risk Managers
+
+Professionals at utilities, refineries, and energy companies who monitor exposure to supply disruptions. They need early warning when risk is escalating toward a new band so they can activate contingency plans or adjust hedging strategies. The day high/low and band proximity warning are especially valuable — they reveal whether risk is trending toward a level that triggers internal risk protocols. GERI Live serves as a continuous monitoring dashboard that complements their existing risk management systems.
+
+### Hedge Fund & Asset Managers
+
+Portfolio managers with energy sector exposure who use geopolitical risk as a signal for position sizing or hedging decisions. They watch GERI Live alongside their trading screens to understand whether a price move is driven by fundamentals or geopolitical escalation. The affected regions breakdown helps them assess which parts of their portfolio are most exposed. Cross-referencing GERI velocity with commodity price movements can reveal mispricings or early signals before the broader market reacts.
+
+### Commodity Analysts & Strategists
+
+Research professionals at banks, brokerages, or advisory firms who need to brief clients quickly when the risk landscape shifts during the day. The AI interpretation gives them a ready-made narrative, while the top drivers list identifies the specific events behind a GERI move. The day high/low and timeline provide the data points they need for intraday research notes. GERI Live turns hours of manual monitoring into a single dashboard they can reference when writing flash reports.
+
+### Corporate Energy Procurement
+
+Large industrial buyers of energy (manufacturing plants, airlines, data centers) who need to time purchases and understand when geopolitical risk might drive price spikes. They use GERI Live to identify windows of lower risk for making spot purchases or locking in forward contracts. The trend vs. yesterday comparison helps them contextualize whether today's risk level is elevated relative to recent history, informing buy/wait decisions on large energy contracts.
+
+### Insurance & Reinsurance Underwriters
+
+Professionals pricing energy infrastructure risk (pipelines, refineries, shipping routes, offshore platforms) who need to monitor escalation patterns in real time. When GERI moves toward ELEVATED or SEVERE, it signals increased probability of claims on energy infrastructure policies. The affected regions breakdown shows them where risk is concentrating geographically, helping them assess exposure in their book. GERI Live provides the real-time signal layer that complements their actuarial models.
+
 ## Future Intelligence Enhancements
 
 ### Quick Wins (Low Effort, High Impact) — IMPLEMENTED
