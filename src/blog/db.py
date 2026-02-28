@@ -258,6 +258,11 @@ def get_blog_category_by_slug(slug):
     )
 
 
+def get_category_slug_map():
+    rows = get_blog_categories()
+    return {r['name']: r['slug'] for r in rows}
+
+
 def get_all_blog_categories_admin():
     return execute_query(
         "SELECT * FROM blog_categories ORDER BY sort_order, name", fetch=True

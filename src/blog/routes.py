@@ -687,7 +687,17 @@ def _render_category_links(categories, active_slug=None):
     return links
 
 
-def _render_blog_cards(posts):
+def _get_cat_slug_for_post(post, cat_slug_map=None):
+    cat_name = post.get('category', 'General')
+    if cat_slug_map and cat_name in cat_slug_map:
+        return cat_slug_map[cat_name]
+    import re
+    return re.sub(r'[^a-z0-9]+', '-', cat_name.lower()).strip('-') or 'general'
+
+
+def _render_blog_cards(posts, cat_slug_map=None):
+    if cat_slug_map is None:
+        cat_slug_map = blog_db.get_category_slug_map()
     cards = ""
     for p in posts:
         cover = ""
@@ -697,9 +707,10 @@ def _render_blog_cards(posts):
             cover = '<div class="blog-card-cover-placeholder">&#x1f4f0;</div>'
 
         author_initial = (p.get('author_name') or 'A')[0].upper()
+        c_slug = _get_cat_slug_for_post(p, cat_slug_map)
 
         cards += f"""
-        <article class="blog-card" onclick="location.href='/blog/{_esc(p['slug'])}'">
+        <article class="blog-card" onclick="location.href='/blog/{_esc(c_slug)}/{_esc(p['slug'])}'">
             <div class="blog-card-cover">{cover}</div>
             <div class="blog-card-body">
                 <span class="blog-card-category">{_esc(p.get('category','General'))}</span>
@@ -942,9 +953,9 @@ async def blog_my_posts_page(request: Request):
     return HTMLResponse(_blog_page("My Posts", body, request))
 
 
-@router.get("/blog/{slug}", response_class=HTMLResponse)
-async def blog_article_page(slug: str, request: Request):
-    post = blog_db.get_post_by_slug(slug)
+@router.get("/blog/{cat_slug}/{article_slug}", response_class=HTMLResponse)
+async def blog_article_page(cat_slug: str, article_slug: str, request: Request):
+    post = blog_db.get_post_by_slug(article_slug)
     if not post:
         return HTMLResponse(_blog_page("Not Found", """
         <div class="blog-container blog-empty">
@@ -953,6 +964,12 @@ async def blog_article_page(slug: str, request: Request):
             <p><a href="/blog">Back to all articles</a></p>
         </div>
         """, request), status_code=404)
+
+    cat_slug_map = blog_db.get_category_slug_map()
+    expected_cat_slug = _get_cat_slug_for_post(post, cat_slug_map)
+    if cat_slug != expected_cat_slug:
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url=f"/blog/{expected_cat_slug}/{article_slug}", status_code=301)
 
     blog_db.increment_view_count(post['id'])
     comments = blog_db.get_comments_for_post(post['id'])
@@ -1012,10 +1029,13 @@ async def blog_article_page(slug: str, request: Request):
         </div>
         """
 
+    back_url = f"/blog/{_esc(cat_slug)}"
+    cat_display = _esc(post.get('category', 'General'))
+
     body = f"""
     <article class="blog-article">
-        <a href="/blog" class="blog-article-back">&larr; Back to articles</a>
-        <span class="blog-article-category">{_esc(post.get('category','General'))}</span>
+        <a href="{back_url}" class="blog-article-back">&larr; Back to {cat_display}</a>
+        <a href="{back_url}" class="blog-article-category" style="text-decoration:none;">{cat_display}</a>
         <h1>{_esc(post['title'])}</h1>
         <div class="blog-article-meta">
             <div class="blog-article-author-card">
@@ -1077,6 +1097,69 @@ async def blog_article_page(slug: str, request: Request):
     """
 
     return HTMLResponse(_blog_page(post['title'], body, request))
+
+
+@router.get("/blog/{cat_slug}", response_class=HTMLResponse)
+async def blog_category_page(cat_slug: str, request: Request, page: int = Query(1, ge=1)):
+    blog_db.refresh_category_post_counts()
+    category = blog_db.get_blog_category_by_slug(cat_slug)
+    if not category:
+        return HTMLResponse(_blog_page("Category Not Found", """
+        <div class="blog-container blog-empty">
+            <div class="blog-empty-icon">&#x1f50d;</div>
+            <h3>Category not found</h3>
+            <p><a href="/blog">Back to all articles</a></p>
+        </div>
+        """, request), status_code=404)
+
+    cat_name = category['name']
+    cat_desc = category.get('description', '')
+    cat_color = category.get('color', '#3b82f6')
+    posts, total = blog_db.get_published_posts(page=page, per_page=9, category=cat_name)
+    total_pages = max(1, (total + 8) // 9)
+    all_categories = blog_db.get_blog_categories()
+
+    category_links = _render_category_links(all_categories, active_slug=cat_slug)
+    cards = _render_blog_cards(posts)
+
+    if not cards:
+        cards = f"""
+        <div class="blog-empty" style="grid-column:1/-1;">
+            <div class="blog-empty-icon">&#x1f4dd;</div>
+            <h3>No articles in {_esc(cat_name)}</h3>
+            <p>Check back soon or <a href="/blog">browse all articles</a>.</p>
+        </div>
+        """
+
+    pagination = _render_pagination(page, total_pages, base_url=f"/blog/{cat_slug}")
+
+    body = f"""
+    <div class="blog-container">
+        <div class="blog-hero">
+            <div class="blog-cat-hero-badge" style="background:{_esc(cat_color)}22;color:{_esc(cat_color)};border:1px solid {_esc(cat_color)}44;">
+                {_esc(cat_name)}
+            </div>
+            <h1>{_esc(cat_name)}</h1>
+            <p>{_esc(cat_desc) if cat_desc else f'Articles about {_esc(cat_name).lower()}'}</p>
+        </div>
+        <div class="blog-cat-links-row">
+            {category_links}
+        </div>
+        <div class="blog-grid">
+            {cards}
+        </div>
+        {pagination}
+    </div>
+    <script>
+        function goPage(p) {{
+            var url = new URL(location.href);
+            url.searchParams.set('page', p);
+            location.href = url.toString();
+        }}
+    </script>
+    """
+
+    return HTMLResponse(_blog_page(f"{cat_name} - Blog", body, request))
 
 
 # ===== API ENDPOINTS =====
