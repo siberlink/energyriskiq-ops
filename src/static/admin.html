@@ -3680,7 +3680,7 @@
             if (!input.files || !input.files[0]) return;
             var file = input.files[0];
 
-            if (_blogUploadedImages.length >= 3) {
+            if (_replacingImageIdx === null && _blogUploadedImages.length >= 3) {
                 showImageUploadStatus('Maximum 3 images per article', true);
                 input.value = '';
                 return;
@@ -3708,9 +3708,18 @@
                 });
                 var data = await resp.json();
                 if (data.success) {
-                    _blogUploadedImages.push({ url: data.url, filename: data.filename });
+                    if (_replacingImageIdx !== null && _replacingImageIdx < _blogUploadedImages.length) {
+                        var oldImg = _blogUploadedImages[_replacingImageIdx];
+                        var ta = document.getElementById('adminBlogContent');
+                        ta.value = ta.value.split('![image](' + oldImg.url + ')').join('![image](' + data.url + ')');
+                        _blogUploadedImages[_replacingImageIdx] = { url: data.url, filename: data.filename };
+                        _replacingImageIdx = null;
+                        showImageUploadStatus('Image replaced successfully!', false);
+                    } else {
+                        _blogUploadedImages.push({ url: data.url, filename: data.filename });
+                        showImageUploadStatus('Uploaded! Click "Insert" to add to article.', false);
+                    }
                     renderUploadedImages();
-                    showImageUploadStatus('Uploaded! Click "Insert" to add to article.', false);
                 } else {
                     showImageUploadStatus(data.error || 'Upload failed', true);
                 }
@@ -3733,10 +3742,19 @@
             document.getElementById('blogImageCountLabel').textContent = _blogUploadedImages.length + ' / 3 images';
             var html = '';
             _blogUploadedImages.forEach(function(img, idx) {
-                html += '<div style="position:relative;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;width:120px;">';
-                html += '<img src="' + img.url + '" style="width:120px;height:80px;object-fit:cover;display:block;" />';
+                html += '<div style="position:relative;border:1px solid ' + (img._broken ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.1)') + ';border-radius:8px;overflow:hidden;width:120px;">';
+                if (img._broken) {
+                    html += '<div style="width:120px;height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(239,68,68,0.08);color:#f87171;font-size:10px;text-align:center;padding:4px;">';
+                    html += '<span style="font-size:20px;">⚠️</span><span>Missing file</span><span style="font-size:9px;color:#94a3b8;word-break:break-all;">' + img.filename + '</span></div>';
+                } else {
+                    html += '<img src="' + img.url + '" style="width:120px;height:80px;object-fit:cover;display:block;" onerror="this.parentElement.querySelector(\'.blog-img-broken\')&&(this.style.display=\'none\')" />';
+                }
                 html += '<div style="display:flex;gap:2px;padding:4px;">';
-                html += '<button type="button" onclick="insertBlogImage(' + idx + ')" style="flex:1;padding:3px;border:none;border-radius:4px;background:rgba(59,130,246,0.2);color:#60a5fa;font-size:10px;cursor:pointer;">Insert</button>';
+                if (!img._broken) {
+                    html += '<button type="button" onclick="insertBlogImage(' + idx + ')" style="flex:1;padding:3px;border:none;border-radius:4px;background:rgba(59,130,246,0.2);color:#60a5fa;font-size:10px;cursor:pointer;">Insert</button>';
+                } else {
+                    html += '<button type="button" onclick="replaceBlogImage(' + idx + ')" style="flex:1;padding:3px;border:none;border-radius:4px;background:rgba(251,191,36,0.2);color:#fbbf24;font-size:10px;cursor:pointer;">Re-upload</button>';
+                }
                 html += '<button type="button" onclick="removeBlogImage(' + idx + ')" style="padding:3px 6px;border:none;border-radius:4px;background:rgba(239,68,68,0.2);color:#f87171;font-size:10px;cursor:pointer;">✕</button>';
                 html += '</div></div>';
             });
@@ -3755,9 +3773,27 @@
             ta.selectionStart = ta.selectionEnd = pos + insert.length;
         }
 
+        var _replacingImageIdx = null;
+
         function removeBlogImage(idx) {
+            var img = _blogUploadedImages[idx];
+            if (img) {
+                var ta = document.getElementById('adminBlogContent');
+                var pattern = '![image](' + img.url + ')';
+                ta.value = ta.value.split(pattern).join('');
+                var pattern2 = '\n\n\n';
+                while (ta.value.indexOf(pattern2) !== -1) {
+                    ta.value = ta.value.split(pattern2).join('\n\n');
+                }
+            }
             _blogUploadedImages.splice(idx, 1);
             renderUploadedImages();
+        }
+
+        function replaceBlogImage(idx) {
+            _replacingImageIdx = idx;
+            var fileInput = document.getElementById('blogImageFileInput');
+            fileInput.click();
         }
 
         var _emojiData = {
@@ -4112,16 +4148,22 @@
                     autoGenArticleSlug();
                 }
 
-                var imgMatches = (p.content || '').match(/!\[.*?\]\((\/static\/uploads\/blog\/[^)]+)\)/g);
+                var imgMatches = (p.content || '').match(/!\[.*?\]\((\/(?:static\/uploads\/blog|blog\/uploads)\/[^)]+)\)/g);
+                _blogUploadedImages = [];
                 if (imgMatches) {
-                    _blogUploadedImages = [];
                     imgMatches.forEach(function(m) {
                         var urlMatch = m.match(/\(([^)]+)\)/);
                         if (urlMatch) {
                             _blogUploadedImages.push({url: urlMatch[1], filename: urlMatch[1].split('/').pop()});
                         }
                     });
+                    document.getElementById('blogImageUploadSection').style.display = 'block';
                     renderUploadedImages();
+                    _blogUploadedImages.forEach(function(img) {
+                        var testImg = new Image();
+                        testImg.onerror = function() { img._broken = true; renderUploadedImages(); };
+                        testImg.src = img.url;
+                    });
                 }
 
                 document.getElementById('adminBlogWriteForm').style.display = 'block';

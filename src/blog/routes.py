@@ -1579,7 +1579,7 @@ async def admin_blog_delete_user(user_id: int, x_admin_token: Optional[str] = He
         return JSONResponse({"success": False, "error": str(e)})
 
 
-BLOG_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "src", "static", "uploads", "blog")
+BLOG_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "blog", "uploads")
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 MAX_IMAGE_SIZE = 1_572_864
 MAX_IMAGES_PER_HOUR = 15
@@ -1646,7 +1646,7 @@ async def admin_blog_upload_image(
         with open(filepath, 'wb') as f:
             f.write(contents)
 
-        url = f"/static/uploads/blog/{filename}"
+        url = f"/blog/uploads/{filename}"
         return JSONResponse({"success": True, "url": url, "filename": filename})
     except Exception as e:
         logger.error(f"Blog image upload error: {e}")
