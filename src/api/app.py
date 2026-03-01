@@ -83,10 +83,6 @@ STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-BLOG_UPLOADS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "blog", "uploads")
-os.makedirs(BLOG_UPLOADS_DIR, exist_ok=True)
-app.mount("/blog/uploads", StaticFiles(directory=BLOG_UPLOADS_DIR), name="blog_uploads")
-
 @app.get("/", include_in_schema=False)
 async def landing_page():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"), media_type="text/html")

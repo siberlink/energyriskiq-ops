@@ -90,6 +90,15 @@ def run_blog_migrations():
                 CREATE INDEX IF NOT EXISTS idx_blog_users_email ON blog_users(email);
                 CREATE INDEX IF NOT EXISTS idx_blog_categories_slug ON blog_categories(slug);
                 CREATE INDEX IF NOT EXISTS idx_blog_categories_sort ON blog_categories(sort_order);
+
+                CREATE TABLE IF NOT EXISTS blog_images (
+                    id SERIAL PRIMARY KEY,
+                    filename VARCHAR(255) NOT NULL UNIQUE,
+                    content_type VARCHAR(50) NOT NULL DEFAULT 'image/png',
+                    image_data BYTEA NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_blog_images_filename ON blog_images(filename);
             """)
         _seed_default_categories()
         logger.info("Blog migrations completed")

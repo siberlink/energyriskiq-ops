@@ -759,6 +759,25 @@ def _render_pagination(page, total_pages, base_url="/blog"):
     return pagination
 
 
+@router.get("/blog/uploads/{filename}")
+async def serve_blog_image(filename: str):
+    try:
+        row = blog_db.execute_one(
+            "SELECT image_data, content_type FROM blog_images WHERE filename = %s", (filename,)
+        )
+        if not row:
+            return JSONResponse({"error": "Image not found"}, status_code=404)
+        from fastapi.responses import Response
+        return Response(
+            content=bytes(row['image_data']),
+            media_type=row['content_type'],
+            headers={"Cache-Control": "public, max-age=31536000, immutable"}
+        )
+    except Exception as e:
+        logger.error(f"Blog image serve error: {e}")
+        return JSONResponse({"error": "Image not found"}, status_code=404)
+
+
 @router.get("/blog", response_class=HTMLResponse)
 async def blog_home(request: Request, page: int = Query(1, ge=1), category: str = Query(None), search: str = Query(None)):
     blog_db.refresh_category_post_counts()
@@ -1586,7 +1605,6 @@ async def admin_blog_delete_user(user_id: int, x_admin_token: Optional[str] = He
         return JSONResponse({"success": False, "error": str(e)})
 
 
-BLOG_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "blog", "uploads")
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 MAX_IMAGE_SIZE = 1_572_864
 MAX_IMAGES_PER_HOUR = 15
@@ -1597,6 +1615,11 @@ IMAGE_MAGIC_BYTES = {
     b'GIF87a': 'gif',
     b'GIF89a': 'gif',
     b'RIFF': 'webp',
+}
+
+CONTENT_TYPE_MAP = {
+    'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+    'png': 'image/png', 'gif': 'image/gif', 'webp': 'image/webp'
 }
 
 _upload_tracker = {}
@@ -1620,6 +1643,8 @@ def _validate_image_magic(data: bytes) -> bool:
         if data[:len(magic)] == magic:
             return True
     return False
+
+
 
 
 @router.post("/api/blog/admin/upload-image")
@@ -1647,11 +1672,12 @@ async def admin_blog_upload_image(
         if ext not in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
             ext = 'jpg'
         filename = f"{uuid.uuid4().hex[:12]}.{ext}"
+        content_type = CONTENT_TYPE_MAP.get(ext, 'image/png')
 
-        os.makedirs(BLOG_UPLOAD_DIR, exist_ok=True)
-        filepath = os.path.join(BLOG_UPLOAD_DIR, filename)
-        with open(filepath, 'wb') as f:
-            f.write(contents)
+        blog_db.execute_one(
+            "INSERT INTO blog_images (filename, content_type, image_data) VALUES (%s, %s, %s) RETURNING id",
+            (filename, content_type, contents)
+        )
 
         url = f"/blog/uploads/{filename}"
         return JSONResponse({"success": True, "url": url, "filename": filename})
