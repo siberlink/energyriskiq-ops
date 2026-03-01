@@ -96,6 +96,13 @@ def _render_markdown_basic(text):
     text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
     text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
     text = re.sub(r'`(.+?)`', r'<code>\1</code>', text)
+    def _safe_image(m):
+        alt = m.group(1)
+        url = m.group(2)
+        if url.lower().startswith(('http://', 'https://', '/')):
+            return f'<img src="{url}" alt="{alt}" style="max-width:100%;height:auto;border-radius:8px;margin:12px 0;" loading="lazy" />'
+        return alt
+    text = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', _safe_image, text)
     def _safe_link(m):
         label = m.group(1)
         url = m.group(2)
@@ -109,7 +116,7 @@ def _render_markdown_basic(text):
         p = p.strip()
         if not p:
             continue
-        if p.startswith('<h') or p.startswith('<ul') or p.startswith('<ol'):
+        if p.startswith('<h') or p.startswith('<ul') or p.startswith('<ol') or p.startswith('<img'):
             result.append(p)
         else:
             lines = p.split('\n')
