@@ -24,6 +24,7 @@ from src.geri.types import (
     VALID_ALERT_TYPES,
     get_band,
     INDEX_ID,
+    GERI_WEIGHTS,
 )
 from src.geri.compute import compute_components
 from src.geri.normalize import (
@@ -61,6 +62,12 @@ def run_geri_live_migration():
             CREATE INDEX IF NOT EXISTS idx_geri_live_computed_at 
             ON geri_live(computed_at DESC)
         """)
+        try:
+            cursor.execute("""
+                ALTER TABLE geri_live ADD COLUMN IF NOT EXISTS value_raw NUMERIC(6,2) DEFAULT 0.0
+            """)
+        except Exception as e:
+            logger.warning("Could not add value_raw column (may already exist): %s", e)
     logger.info("geri_live table migration complete")
 
 
@@ -140,8 +147,10 @@ def _get_yesterday_geri_value() -> Optional[int]:
 
 
 def _should_debounce() -> bool:
+    today_start = datetime.combine(date.today(), datetime.min.time())
     row = execute_one(
-        "SELECT computed_at FROM geri_live ORDER BY id DESC LIMIT 1"
+        "SELECT computed_at FROM geri_live WHERE computed_at >= %s ORDER BY id DESC LIMIT 1",
+        (today_start,)
     )
     if not row:
         return False
@@ -247,9 +256,11 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
 
     if alert_count == 0:
         yesterday_val = _get_yesterday_geri_value()
+        v = yesterday_val or 0
         result = {
-            'value': yesterday_val or 0,
-            'band': get_band(yesterday_val or 0).value,
+            'value': v,
+            'value_raw': float(v),
+            'band': get_band(v).value,
             'trend_vs_yesterday': 0,
             'alert_count': 0,
             'top_drivers': [],
@@ -268,6 +279,13 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     baseline = get_historical_baseline(today)
     components = normalize_components(components, baseline)
     value = calculate_geri_value(components)
+    value_raw = round(
+        GERI_WEIGHTS['high_impact'] * components.norm_high_impact +
+        GERI_WEIGHTS['regional_spike'] * components.norm_regional_spike +
+        GERI_WEIGHTS['asset_risk'] * components.norm_asset_risk +
+        GERI_WEIGHTS['region_concentration'] * components.norm_region_concentration,
+        2
+    )
     band = get_band(value)
 
     yesterday_val = _get_yesterday_geri_value()
@@ -334,6 +352,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
 
     result = {
         'value': value,
+        'value_raw': value_raw,
         'band': band.value,
         'trend_vs_yesterday': trend,
         'alert_count': alert_count,
@@ -359,11 +378,12 @@ def _store_live_result(result: Dict[str, Any]):
     with get_cursor(commit=True) as cursor:
         cursor.execute("""
             INSERT INTO geri_live 
-                (value, band, trend_vs_yesterday, components, interpretation,
+                (value, value_raw, band, trend_vs_yesterday, components, interpretation,
                  alert_count, last_alert_id, top_drivers, top_regions, computed_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
         """, (
             result['value'],
+            result.get('value_raw', float(result['value'])),
             result['band'],
             result.get('trend_vs_yesterday'),
             json.dumps(result.get('components', {})),
@@ -378,7 +398,7 @@ def _store_live_result(result: Dict[str, Any]):
 def get_latest_live_geri() -> Optional[Dict[str, Any]]:
     today_start = datetime.combine(date.today(), datetime.min.time())
     row = execute_one("""
-        SELECT id, value, band, trend_vs_yesterday, components, interpretation,
+        SELECT id, value, value_raw, band, trend_vs_yesterday, components, interpretation,
                alert_count, last_alert_id, top_drivers, top_regions, computed_at
         FROM geri_live
         WHERE computed_at >= %s
@@ -394,7 +414,7 @@ def get_latest_live_geri() -> Optional[Dict[str, Any]]:
 def get_live_geri_timeline() -> List[Dict[str, Any]]:
     today_start = datetime.combine(date.today(), datetime.min.time())
     rows = execute_query("""
-        SELECT id, value, band, alert_count, computed_at
+        SELECT id, value, value_raw, band, alert_count, computed_at
         FROM geri_live
         WHERE computed_at >= %s
         ORDER BY computed_at ASC
@@ -405,8 +425,11 @@ def get_live_geri_timeline() -> List[Dict[str, Any]]:
         ca = row['computed_at']
         if hasattr(ca, 'isoformat'):
             ca = ca.isoformat()
+        val = int(row['value'])
+        val_raw = float(row['value_raw']) if row.get('value_raw') is not None else float(val)
         timeline.append({
-            'value': int(row['value']),
+            'value': val,
+            'value_raw': val_raw,
             'band': row['band'],
             'alert_count': row['alert_count'],
             'time': ca,
@@ -440,9 +463,13 @@ def _row_to_dict(row) -> Dict[str, Any]:
     if hasattr(ca, 'isoformat'):
         ca = ca.isoformat()
 
+    val = int(row['value'])
+    val_raw = float(row['value_raw']) if row.get('value_raw') is not None else float(val)
+
     return {
         'id': row['id'],
-        'value': int(row['value']),
+        'value': val,
+        'value_raw': val_raw,
         'band': row['band'],
         'trend_vs_yesterday': float(row['trend_vs_yesterday']) if row.get('trend_vs_yesterday') is not None else None,
         'components': components,
@@ -577,3 +604,26 @@ async def broadcast_live_update(data: Dict[str, Any]):
                 dead.append(q)
         for q in dead:
             _live_clients.remove(q)
+
+
+PERIODIC_RECOMPUTE_INTERVAL = 300
+
+async def periodic_geri_live_recompute():
+    logger.info("GERI Live: periodic recomputation task started (every %ds)", PERIODIC_RECOMPUTE_INTERVAL)
+    while True:
+        await asyncio.sleep(PERIODIC_RECOMPUTE_INTERVAL)
+        try:
+            result = compute_live_geri(force=True)
+            if result:
+                logger.info(
+                    "GERI Live periodic recompute: value=%s (raw=%.2f), band=%s, alerts=%d",
+                    result['value'], result.get('value_raw', 0), result['band'], result.get('alert_count', 0)
+                )
+                await broadcast_live_update({
+                    'type': 'update',
+                    **result,
+                })
+            else:
+                logger.debug("GERI Live periodic recompute: no result (no change)")
+        except Exception as e:
+            logger.error("GERI Live periodic recompute error: %s", e)

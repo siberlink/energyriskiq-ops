@@ -13867,7 +13867,7 @@
                 var d = new Date(p.time);
                 return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
             });
-            var values = timeline.map(function(p) { return p.value; });
+            var values = timeline.map(function(p) { return p.value_raw != null ? p.value_raw : p.value; });
 
             var ctx = document.getElementById('geriLiveSparkline').getContext('2d');
             if (geriLiveChart) geriLiveChart.destroy();
@@ -13933,7 +13933,7 @@
             var label = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
             geriLiveChart.data.labels.push(label);
-            geriLiveChart.data.datasets[0].data.push(data.value);
+            geriLiveChart.data.datasets[0].data.push(data.value_raw != null ? data.value_raw : data.value);
 
             if (geriLiveChart.data.labels.length > 100) {
                 geriLiveChart.data.labels.shift();

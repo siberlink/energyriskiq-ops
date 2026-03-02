@@ -50,6 +50,7 @@ Uses OpenAI gpt-4.1-mini with a prompt optimized for intraday analysis (1-2 para
 CREATE TABLE geri_live (
     id SERIAL PRIMARY KEY,
     value INTEGER NOT NULL DEFAULT 0,
+    value_raw NUMERIC(6,2) DEFAULT 0.0,
     band VARCHAR(20) NOT NULL DEFAULT 'LOW',
     trend_vs_yesterday NUMERIC(5,1),
     components JSONB DEFAULT '{}',
@@ -61,6 +62,9 @@ CREATE TABLE geri_live (
     computed_at TIMESTAMP DEFAULT NOW()
 );
 ```
+
+- `value` is the rounded integer GERI score (0-100), used for display and band assignment.
+- `value_raw` is the precise NUMERIC(6,2) weighted sum before rounding. This preserves fractional changes (e.g., 33.72 → 33.85) that would otherwise be invisible with integer-only storage. The timeline and API both expose `value_raw` so sparkline charts can show subtle intraday movements.
 
 Each computation inserts a new row, preserving the full intraday timeline. This enables the sparkline chart showing how GERI evolved throughout the day.
 
@@ -163,7 +167,15 @@ Located in `src/static/users-account.html`, section `section-geri-live`.
 
 ## Update Frequency
 
-GERI Live recomputes with a 60-second debounce. After a computation, it will not recompute again for at least 60 seconds even if new alerts arrive. Outside of that cooldown, a recomputation is triggered when the alerts engine calls the `/compute` endpoint after processing new alerts. In practice, the update frequency depends on how often new alerts are being processed — it could update every minute during active news periods, or stay static during quiet periods. The displayed value always reflects the most recent computation based on all alerts processed that day.
+GERI Live recomputes through three complementary mechanisms:
+
+1. **On-demand via `/latest` endpoint:** Every time a user loads the GERI Live dashboard, the `/latest` endpoint calls `compute_live_geri(force=False)`, which will recompute if the debounce window (60 seconds) has elapsed. This ensures users always see a recent value without requiring manual triggers.
+
+2. **Periodic background recomputation:** An `asyncio` background task (`periodic_geri_live_recompute()`) runs every 5 minutes (300 seconds), calling `compute_live_geri(force=True)` and broadcasting results to all connected SSE clients. This ensures the timeline accumulates regular datapoints throughout the day, even during quiet periods with no new alerts or user activity.
+
+3. **Alert-triggered via `/compute` endpoint:** The alerts engine calls `POST /compute` after processing new alerts. This is debounce-protected (60-second minimum interval).
+
+The debounce prevents excessive recomputation during alert storms. In practice, the timeline will have at minimum one datapoint every 5 minutes from the periodic task, plus additional points when users access the dashboard or new alerts arrive.
 
 ## What Updates When GERI Live Refreshes
 
@@ -313,8 +325,13 @@ The following cards show "Features coming soon" and have container IDs ready for
 
 ## How to Trigger a Live Recomputation
 
+Three ways GERI Live recomputes:
+
+1. **Automatic (periodic):** The background task runs every 5 minutes — no action needed.
+2. **On user access:** Hitting `GET /api/v1/indices/geri/live/latest` triggers a soft recompute (debounce-protected).
+3. **Manual / alerts engine:**
 ```bash
 curl -X POST http://localhost:5000/api/v1/indices/geri/live/compute
 ```
 
-This is intended to be called by the alerts engine after processing new alerts. The debounce mechanism ensures it won't recompute more than once per 60 seconds.
+The debounce mechanism ensures it won't recompute more than once per 60 seconds (except for `force=True` calls from the periodic task).

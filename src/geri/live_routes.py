@@ -69,14 +69,9 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
     user_info = _get_user_plan(x_user_token)
     _verify_plan(user_info['plan'])
 
-    latest = get_latest_live_geri()
+    result = compute_live_geri(force=False)
+    latest = result if result else get_latest_live_geri()
     timeline = get_live_geri_timeline()
-
-    if not latest:
-        result = compute_live_geri(force=True)
-        if result:
-            latest = result
-            timeline = get_live_geri_timeline()
 
     if not latest:
         from src.geri.live import _get_yesterday_geri_value
@@ -109,6 +104,7 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
         'success': True,
         'data': {
             'value': value,
+            'value_raw': latest.get('value_raw', float(value)),
             'band': latest['band'],
             'trend_vs_yesterday': latest.get('trend_vs_yesterday'),
             'alert_count': latest.get('alert_count', 0),
@@ -224,6 +220,7 @@ async def trigger_compute(x_admin_token: Optional[str] = Header(None)):
         if result:
             broadcast_data = {
                 'value': result['value'],
+                'value_raw': result.get('value_raw', float(result['value'])),
                 'band': result['band'],
                 'trend_vs_yesterday': result.get('trend_vs_yesterday'),
                 'alert_count': result.get('alert_count', 0),

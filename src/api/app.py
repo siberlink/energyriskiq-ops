@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -221,9 +222,10 @@ async def startup_event():
             from src.api.telegram_routes import setup_webhook
             setup_webhook(app_url.rstrip("/"))
         if ENABLE_GERI:
-            from src.geri.live import run_geri_live_migration
+            from src.geri.live import run_geri_live_migration, periodic_geri_live_recompute
             run_geri_live_migration()
-            logger.info("GERI module is ENABLED (including Live)")
+            asyncio.create_task(periodic_geri_live_recompute())
+            logger.info("GERI module is ENABLED (including Live + periodic recompute)")
         else:
             logger.info("GERI module is DISABLED (set ENABLE_GERI=true to enable)")
     except Exception as e:
