@@ -72,7 +72,7 @@ def run_geri_live_migration():
 
 
 def _get_today_alerts() -> List[AlertRecord]:
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.utcnow()
     start_of_day = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
 
     sql = """
@@ -133,8 +133,8 @@ def _get_yesterday_geri_value() -> Optional[int]:
         logger.info(f"Yesterday GERI from intel_indices_daily (date={row.get('date')}, index_id={row.get('index_id')}): {row['value']}")
         return int(row['value'])
     yesterday = date.today() - timedelta(days=1)
-    yesterday_start = datetime.combine(yesterday, datetime.min.time(), tzinfo=timezone.utc)
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    yesterday_start = datetime.combine(yesterday, datetime.min.time())
+    today_start = datetime.combine(date.today(), datetime.min.time())
     row2 = execute_one(
         "SELECT value FROM geri_live WHERE computed_at >= %s AND computed_at < %s ORDER BY id DESC LIMIT 1",
         (yesterday_start, today_start)
@@ -147,7 +147,7 @@ def _get_yesterday_geri_value() -> Optional[int]:
 
 
 def _should_debounce() -> bool:
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(date.today(), datetime.min.time())
     row = execute_one(
         "SELECT computed_at FROM geri_live WHERE computed_at >= %s ORDER BY id DESC LIMIT 1",
         (today_start,)
@@ -155,9 +155,7 @@ def _should_debounce() -> bool:
     if not row:
         return False
     last_computed = row['computed_at']
-    if last_computed.tzinfo is None:
-        last_computed = last_computed.replace(tzinfo=timezone.utc)
-    elapsed = (datetime.now(timezone.utc) - last_computed).total_seconds()
+    elapsed = (datetime.utcnow() - last_computed).total_seconds()
     return elapsed < DEBOUNCE_SECONDS
 
 
@@ -173,7 +171,7 @@ BAND_THRESHOLDS = [
 def _compute_velocity(timeline: List[Dict[str, Any]], current_value: int) -> Optional[Dict[str, Any]]:
     if not timeline or len(timeline) < 2:
         return None
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     one_hour_ago = now - timedelta(hours=1)
     closest = None
     for point in timeline:
@@ -181,10 +179,12 @@ def _compute_velocity(timeline: List[Dict[str, Any]], current_value: int) -> Opt
         if isinstance(t, str):
             try:
                 pt = datetime.fromisoformat(t.replace('Z', '+00:00'))
+                if pt.tzinfo is not None:
+                    pt = pt.replace(tzinfo=None)
             except Exception:
                 continue
         elif hasattr(t, 'isoformat'):
-            pt = t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+            pt = t if t.tzinfo is None else t.replace(tzinfo=None)
         else:
             continue
         if pt <= one_hour_ago:
@@ -267,7 +267,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
             'top_regions': [],
             'components': {},
             'interpretation': '',
-            'computed_at': datetime.now(timezone.utc).isoformat(),
+            'computed_at': datetime.utcnow().isoformat(),
             'no_alerts_today': True,
         }
         _store_live_result(result)
@@ -343,7 +343,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
         except Exception as e:
             logger.error(f"GERI Live interpretation error: {e}")
 
-    now_str = datetime.now(timezone.utc).isoformat()
+    now_str = datetime.utcnow().isoformat()
 
     timeline = get_live_geri_timeline()
     velocity = _compute_velocity(timeline, value)
@@ -433,7 +433,7 @@ def _store_live_result(result: Dict[str, Any]):
 
 
 def get_latest_live_geri() -> Optional[Dict[str, Any]]:
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(date.today(), datetime.min.time())
     has_raw = _check_value_raw()
     cols = "id, value, value_raw, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at" if has_raw else "id, value, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at"
     row = execute_one(f"""
@@ -450,7 +450,7 @@ def get_latest_live_geri() -> Optional[Dict[str, Any]]:
 
 
 def get_live_geri_timeline() -> List[Dict[str, Any]]:
-    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(date.today(), datetime.min.time())
     has_raw = _check_value_raw()
     cols = "id, value, value_raw, band, alert_count, computed_at" if has_raw else "id, value, band, alert_count, computed_at"
     rows = execute_query(f"""
@@ -560,7 +560,7 @@ def generate_live_interpretation(
         drivers_text = "\n".join(driver_lines) if driver_lines else "No significant drivers detected yet today"
         regions_text = ", ".join(top_regions[:3]) if top_regions else "global markets"
 
-        now_utc = datetime.now(timezone.utc).strftime('%H:%M UTC')
+        now_utc = datetime.utcnow().strftime('%H:%M UTC')
 
         prompt = f"""You are a senior energy market analyst providing a real-time intraday risk assessment. Write a concise 1-2 paragraph interpretation of the current GERI Live index.
 
@@ -601,7 +601,7 @@ REQUIREMENTS:
 
 def _fallback_live_interpretation(value: int, band: str, top_regions: List[str], alert_count: int) -> str:
     regions_text = ", ".join(top_regions[:3]) if top_regions else "global energy markets"
-    now_utc = datetime.now(timezone.utc).strftime('%H:%M UTC')
+    now_utc = datetime.utcnow().strftime('%H:%M UTC')
 
     if value <= 20:
         tone = "Energy markets are currently stable with minimal risk signals detected"

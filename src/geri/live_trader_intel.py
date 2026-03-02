@@ -192,7 +192,7 @@ def _compute_7d_correlation(oil_rows, geri_daily):
 
 
 def get_trading_risk_heatmap() -> Dict[str, Any]:
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     rows = execute_query("""
         SELECT id, scope_assets, scope_region, severity, category, headline, alert_type, created_at
         FROM alert_events
@@ -261,7 +261,7 @@ def get_trading_risk_heatmap() -> Dict[str, Any]:
             'regions': sorted(list(cfg['regions']))[:5],
         })
     heatmap.sort(key=lambda x: x['risk_intensity'], reverse=True)
-    return {'heatmap': heatmap, 'total_alerts': len(rows), 'as_of': datetime.now(timezone.utc).strftime('%H:%M UTC')}
+    return {'heatmap': heatmap, 'total_alerts': len(rows), 'as_of': datetime.utcnow().strftime('%H:%M UTC')}
 
 
 def get_position_risk_alerts(geri_value: int, geri_band: str,
@@ -353,8 +353,8 @@ def _naive(dt):
 
 
 def get_intraday_risk_windows() -> Dict[str, Any]:
-    now_utc = datetime.now(timezone.utc)
-    today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+    now_utc = datetime.utcnow()
+    today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
 
     timeline_rows = execute_query("""
         SELECT value, band, alert_count, computed_at
@@ -433,7 +433,7 @@ def _bisect_timeline(timeline_times, target_time):
 
 
 def get_flash_headline_feed() -> Dict[str, Any]:
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
 
     rows = execute_query("""
         SELECT id, alert_type, severity, scope_region, scope_assets,
@@ -497,7 +497,7 @@ def get_flash_headline_feed() -> Dict[str, Any]:
     return {
         'feed': feed,
         'total_high_severity': len(feed),
-        'as_of': datetime.now(timezone.utc).strftime('%H:%M UTC'),
+        'as_of': datetime.utcnow().strftime('%H:%M UTC'),
     }
 
 
