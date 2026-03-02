@@ -374,32 +374,70 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     return result
 
 
+def _has_value_raw_column() -> bool:
+    try:
+        row = execute_one(
+            "SELECT column_name FROM information_schema.columns WHERE table_name='geri_live' AND column_name='value_raw'"
+        )
+        return row is not None
+    except Exception:
+        return False
+
+_value_raw_available = None
+
+def _check_value_raw() -> bool:
+    global _value_raw_available
+    if _value_raw_available is None:
+        _value_raw_available = _has_value_raw_column()
+    return _value_raw_available
+
+
 def _store_live_result(result: Dict[str, Any]):
+    has_raw = _check_value_raw()
     with get_cursor(commit=True) as cursor:
-        cursor.execute("""
-            INSERT INTO geri_live 
-                (value, value_raw, band, trend_vs_yesterday, components, interpretation,
-                 alert_count, last_alert_id, top_drivers, top_regions, computed_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-        """, (
-            result['value'],
-            result.get('value_raw', float(result['value'])),
-            result['band'],
-            result.get('trend_vs_yesterday'),
-            json.dumps(result.get('components', {})),
-            result.get('interpretation', ''),
-            result.get('alert_count', 0),
-            result.get('last_alert_id'),
-            json.dumps(result.get('top_drivers', [])),
-            json.dumps(result.get('top_regions', [])),
-        ))
+        if has_raw:
+            cursor.execute("""
+                INSERT INTO geri_live 
+                    (value, value_raw, band, trend_vs_yesterday, components, interpretation,
+                     alert_count, last_alert_id, top_drivers, top_regions, computed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            """, (
+                result['value'],
+                result.get('value_raw', float(result['value'])),
+                result['band'],
+                result.get('trend_vs_yesterday'),
+                json.dumps(result.get('components', {})),
+                result.get('interpretation', ''),
+                result.get('alert_count', 0),
+                result.get('last_alert_id'),
+                json.dumps(result.get('top_drivers', [])),
+                json.dumps(result.get('top_regions', [])),
+            ))
+        else:
+            cursor.execute("""
+                INSERT INTO geri_live 
+                    (value, band, trend_vs_yesterday, components, interpretation,
+                     alert_count, last_alert_id, top_drivers, top_regions, computed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            """, (
+                result['value'],
+                result['band'],
+                result.get('trend_vs_yesterday'),
+                json.dumps(result.get('components', {})),
+                result.get('interpretation', ''),
+                result.get('alert_count', 0),
+                result.get('last_alert_id'),
+                json.dumps(result.get('top_drivers', [])),
+                json.dumps(result.get('top_regions', [])),
+            ))
 
 
 def get_latest_live_geri() -> Optional[Dict[str, Any]]:
     today_start = datetime.combine(date.today(), datetime.min.time())
-    row = execute_one("""
-        SELECT id, value, value_raw, band, trend_vs_yesterday, components, interpretation,
-               alert_count, last_alert_id, top_drivers, top_regions, computed_at
+    has_raw = _check_value_raw()
+    cols = "id, value, value_raw, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at" if has_raw else "id, value, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at"
+    row = execute_one(f"""
+        SELECT {cols}
         FROM geri_live
         WHERE computed_at >= %s
         ORDER BY id DESC LIMIT 1
@@ -413,8 +451,10 @@ def get_latest_live_geri() -> Optional[Dict[str, Any]]:
 
 def get_live_geri_timeline() -> List[Dict[str, Any]]:
     today_start = datetime.combine(date.today(), datetime.min.time())
-    rows = execute_query("""
-        SELECT id, value, value_raw, band, alert_count, computed_at
+    has_raw = _check_value_raw()
+    cols = "id, value, value_raw, band, alert_count, computed_at" if has_raw else "id, value, band, alert_count, computed_at"
+    rows = execute_query(f"""
+        SELECT {cols}
         FROM geri_live
         WHERE computed_at >= %s
         ORDER BY computed_at ASC

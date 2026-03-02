@@ -69,7 +69,11 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
     user_info = _get_user_plan(x_user_token)
     _verify_plan(user_info['plan'])
 
-    result = compute_live_geri(force=False)
+    try:
+        result = compute_live_geri(force=False)
+    except Exception as e:
+        logger.error(f"GERI Live compute failed in /latest: {e}")
+        result = None
     latest = result if result else get_latest_live_geri()
     timeline = get_live_geri_timeline()
 
@@ -176,15 +180,19 @@ async def live_stream(token: Optional[str] = Query(None)):
 
     async def event_generator():
         try:
-            latest = get_latest_live_geri()
-            if latest:
-                from src.geri.live import _get_yesterday_geri_value, _compute_velocity, _compute_band_proximity, _compute_peak_low
-                latest['yesterday_value'] = _get_yesterday_geri_value()
-                tl = get_live_geri_timeline()
-                latest['velocity'] = latest.get('velocity') or _compute_velocity(tl, latest['value'])
-                latest['band_proximity'] = latest.get('band_proximity') or _compute_band_proximity(latest['value'])
-                latest['peak_low'] = latest.get('peak_low') or _compute_peak_low(tl, latest['value'])
-                yield f"data: {json.dumps({'type': 'initial', **latest})}\n\n"
+            try:
+                latest = get_latest_live_geri()
+                if latest:
+                    from src.geri.live import _get_yesterday_geri_value, _compute_velocity, _compute_band_proximity, _compute_peak_low
+                    latest['yesterday_value'] = _get_yesterday_geri_value()
+                    tl = get_live_geri_timeline()
+                    latest['velocity'] = latest.get('velocity') or _compute_velocity(tl, latest['value'])
+                    latest['band_proximity'] = latest.get('band_proximity') or _compute_band_proximity(latest['value'])
+                    latest['peak_low'] = latest.get('peak_low') or _compute_peak_low(tl, latest['value'])
+                    yield f"data: {json.dumps({'type': 'initial', **latest})}\n\n"
+            except Exception as e:
+                logger.error(f"GERI Live SSE initial data error: {e}")
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Failed to load initial data'})}\n\n"
 
             last_heartbeat = time.time()
             while True:
