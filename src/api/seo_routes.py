@@ -12,7 +12,7 @@ Serves SEO-optimized pages:
 import os
 import json
 from datetime import datetime, date, timedelta, timezone
-from typing import Optional
+from typing import Optional, List
 from calendar import month_name
 
 from fastapi import APIRouter, Request, HTTPException
@@ -28,6 +28,10 @@ from src.seo.seo_generator import (
     get_monthly_pages,
     get_available_months,
     generate_sitemap_entries,
+    generate_sitemap_core_entries,
+    generate_sitemap_alerts_entries,
+    generate_sitemap_indices_entries,
+    generate_sitemap_digest_entries,
     get_yesterday_date,
     generate_daily_page_model,
     get_regional_daily_page,
@@ -1426,32 +1430,88 @@ Allow: /
 Crawl-delay: 5
 
 # Sitemap location
-Sitemap: {BASE_URL}/sitemap.xml
+Sitemap: {BASE_URL}/sitemap-index.xml
 """
     return PlainTextResponse(content=robots_content, headers={"Cache-Control": "public, max-age=86400"})
 
 
-@router.get("/sitemap.xml", response_class=Response)
-async def sitemap_xml():
-    """Generate XML sitemap with lastmod dates."""
-    entries = generate_sitemap_entries()
-    
+def _render_urlset_xml(entries: List[dict]) -> str:
     xml_entries = ""
     for e in entries:
         lastmod_tag = f"\n        <lastmod>{e['lastmod']}</lastmod>" if e.get('lastmod') else ""
+        priority_tag = f"\n        <priority>{e['priority']}</priority>" if e.get('priority') else ""
+        changefreq_tag = f"\n        <changefreq>{e['changefreq']}</changefreq>" if e.get('changefreq') else ""
         xml_entries += f"""
     <url>
-        <loc>{BASE_URL}{e['loc']}</loc>{lastmod_tag}
-        <priority>{e['priority']}</priority>
-        <changefreq>{e['changefreq']}</changefreq>
+        <loc>{BASE_URL}{e['loc']}</loc>{lastmod_tag}{priority_tag}{changefreq_tag}
     </url>"""
-    
-    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {xml_entries}
 </urlset>"""
-    
-    return Response(content=xml, media_type="application/xml")
+
+
+@router.get("/sitemap-index.xml", response_class=Response)
+async def sitemap_index_xml():
+    """Sitemap index file linking to individual sitemaps."""
+    from datetime import date as _date
+    today = _date.today().isoformat()
+
+    sitemaps = [
+        ('sitemap-core.xml', today),
+        ('sitemap-alerts.xml', today),
+        ('sitemap-indices.xml', today),
+        ('sitemap-digest.xml', today),
+    ]
+
+    sitemap_entries = ""
+    for name, lastmod in sitemaps:
+        sitemap_entries += f"""
+    <sitemap>
+        <loc>{BASE_URL}/{name}</loc>
+        <lastmod>{lastmod}</lastmod>
+    </sitemap>"""
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{sitemap_entries}
+</sitemapindex>"""
+    return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/sitemap-core.xml", response_class=Response)
+async def sitemap_core_xml():
+    """Core authority pages sitemap (~10-30 URLs)."""
+    entries = generate_sitemap_core_entries()
+    return Response(content=_render_urlset_xml(entries), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/sitemap-alerts.xml", response_class=Response)
+async def sitemap_alerts_xml():
+    """Daily alert pages sitemap (last 60 days + monthly archives)."""
+    entries = generate_sitemap_alerts_entries(limit=60)
+    return Response(content=_render_urlset_xml(entries), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/sitemap-indices.xml", response_class=Response)
+async def sitemap_indices_xml():
+    """Index snapshot pages sitemap (GERI/EERI/EGSI, last 60 days + monthly archives)."""
+    entries = generate_sitemap_indices_entries(limit=60)
+    return Response(content=_render_urlset_xml(entries), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/sitemap-digest.xml", response_class=Response)
+async def sitemap_digest_xml():
+    """Daily digest pages sitemap (last 60 days)."""
+    entries = generate_sitemap_digest_entries(limit=60)
+    return Response(content=_render_urlset_xml(entries), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@router.get("/sitemap.xml", response_class=Response)
+async def sitemap_xml_redirect():
+    """Legacy sitemap.xml redirects to sitemap-index.xml."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/sitemap-index.xml", status_code=301)
 
 
 @router.get("/sitemap.html", response_class=HTMLResponse)

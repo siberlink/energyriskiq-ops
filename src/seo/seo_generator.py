@@ -783,223 +783,71 @@ def get_available_months() -> List[Dict]:
     return results if results else []
 
 
-def generate_sitemap_entries() -> List[Dict]:
-    """Generate sitemap entries for all SEO pages with lastmod dates."""
-    from datetime import date
-    entries = []
-    
-    today = date.today().isoformat()
-    
-    entries.append({
-        'loc': '/',
-        'priority': '1.0',
-        'changefreq': 'daily',
-        'lastmod': today
-    })
-    
-    entries.append({
-        'loc': '/alerts',
-        'priority': '0.9',
-        'changefreq': 'daily',
-        'lastmod': today
-    })
-    
+def _date_to_str(d) -> str:
+    if isinstance(d, str):
+        return d[:10]
+    if hasattr(d, 'isoformat'):
+        return d.isoformat()
+    return str(d)[:10]
+
+
+def generate_sitemap_core_entries() -> List[Dict]:
+    """Core authority pages only (~10-30 URLs). High-value, stable pages."""
+    from datetime import date as _date
+    today = _date.today().isoformat()
     static_lastmod = '2025-01-15'
-    
-    entries.append({
-        'loc': '/privacy',
-        'priority': '0.4',
-        'changefreq': 'monthly',
-        'lastmod': static_lastmod
-    })
-    
-    entries.append({
-        'loc': '/terms',
-        'priority': '0.4',
-        'changefreq': 'monthly',
-        'lastmod': static_lastmod
-    })
-    
-    entries.append({
-        'loc': '/disclaimer',
-        'priority': '0.4',
-        'changefreq': 'monthly',
-        'lastmod': static_lastmod
-    })
-    
-    entries.append({
-        'loc': '/marketing/samples',
-        'priority': '0.5',
-        'changefreq': 'monthly',
-        'lastmod': static_lastmod
-    })
-    
-    entries.append({
-        'loc': '/geri',
-        'priority': '0.9',
-        'changefreq': 'daily',
-        'lastmod': today
-    })
-    
-    entries.append({
-        'loc': '/geri/methodology',
-        'priority': '0.8',
-        'changefreq': 'monthly',
-        'lastmod': today
-    })
-    
-    entries.append({
-        'loc': '/why-geri',
-        'priority': '0.8',
-        'changefreq': 'weekly',
-        'lastmod': today
-    })
-    
+
+    entries = [
+        {'loc': '/', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/alerts', 'priority': '0.7', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/geri', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/geri/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
+        {'loc': '/why-geri', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
+        {'loc': '/eeri', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/eeri/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
+        {'loc': '/egsi', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/egsi/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
+        {'loc': '/daily-geo-energy-intelligence-digest', 'priority': '0.7', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/daily-geo-energy-intelligence-digest/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/blog', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/users', 'priority': '0.6', 'changefreq': 'monthly', 'lastmod': today},
+        {'loc': '/privacy', 'priority': '0.3', 'changefreq': 'yearly', 'lastmod': static_lastmod},
+        {'loc': '/terms', 'priority': '0.3', 'changefreq': 'yearly', 'lastmod': static_lastmod},
+        {'loc': '/disclaimer', 'priority': '0.3', 'changefreq': 'yearly', 'lastmod': static_lastmod},
+    ]
+
     try:
-        from src.geri.geri_history_service import get_all_snapshot_dates, get_available_months as get_geri_months
-        
+        from src.geri.geri_history_service import get_all_snapshot_dates
         geri_dates = get_all_snapshot_dates()
-        geri_months = get_geri_months()
-        
-        latest_geri_date = geri_dates[0] if geri_dates else today
-        entries.append({
-            'loc': '/geri/history',
-            'priority': '0.8',
-            'changefreq': 'daily',
-            'lastmod': latest_geri_date
-        })
-        
-        for m in geri_months:
-            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
-            entries.append({
-                'loc': f"/geri/{m['year']}/{m['month']:02d}",
-                'priority': '0.7',
-                'changefreq': 'weekly',
-                'lastmod': max_date if isinstance(max_date, str) else max_date
-            })
-        
-        for geri_date in geri_dates:
-            entries.append({
-                'loc': f"/geri/{geri_date}",
-                'priority': '0.8',
-                'changefreq': 'never',
-                'lastmod': geri_date
-            })
+        if geri_dates:
+            entries.append({'loc': '/geri/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': _date_to_str(geri_dates[0])})
     except Exception:
         pass
-    
+
     try:
-        from src.reri.eeri_history_service import get_all_eeri_dates, get_eeri_available_months
-        
-        entries.append({
-            'loc': '/eeri',
-            'priority': '0.9',
-            'changefreq': 'daily',
-            'lastmod': today
-        })
-        
-        entries.append({
-            'loc': '/eeri/methodology',
-            'priority': '0.8',
-            'changefreq': 'monthly',
-            'lastmod': today
-        })
-        
+        from src.reri.eeri_history_service import get_all_eeri_dates
         eeri_dates = get_all_eeri_dates()
-        eeri_months = get_eeri_available_months()
-        
-        latest_eeri_date = eeri_dates[0] if eeri_dates else today
-        entries.append({
-            'loc': '/eeri/history',
-            'priority': '0.8',
-            'changefreq': 'daily',
-            'lastmod': latest_eeri_date
-        })
-        
-        for m in eeri_months:
-            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
-            entries.append({
-                'loc': f"/eeri/{m['year']}/{m['month']:02d}",
-                'priority': '0.7',
-                'changefreq': 'weekly',
-                'lastmod': max_date if isinstance(max_date, str) else max_date
-            })
-        
-        for eeri_date in eeri_dates:
-            entries.append({
-                'loc': f"/eeri/{eeri_date}",
-                'priority': '0.8',
-                'changefreq': 'never',
-                'lastmod': eeri_date
-            })
+        if eeri_dates:
+            entries.append({'loc': '/eeri/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': _date_to_str(eeri_dates[0])})
     except Exception:
         pass
-    
+
     try:
-        from src.egsi.egsi_history_service import get_all_egsi_m_dates, get_egsi_m_available_months
-        
-        entries.append({
-            'loc': '/egsi',
-            'priority': '0.9',
-            'changefreq': 'daily',
-            'lastmod': today
-        })
-        
-        entries.append({
-            'loc': '/egsi/methodology',
-            'priority': '0.8',
-            'changefreq': 'monthly',
-            'lastmod': today
-        })
-        
+        from src.egsi.egsi_history_service import get_all_egsi_m_dates
         egsi_dates = get_all_egsi_m_dates()
-        egsi_months = get_egsi_m_available_months()
-        
-        latest_egsi_date = egsi_dates[0] if egsi_dates else today
-        entries.append({
-            'loc': '/egsi/history',
-            'priority': '0.8',
-            'changefreq': 'daily',
-            'lastmod': latest_egsi_date
-        })
-        
-        for m in egsi_months:
-            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
-            entries.append({
-                'loc': f"/egsi/{m['year']}/{m['month']:02d}",
-                'priority': '0.7',
-                'changefreq': 'weekly',
-                'lastmod': max_date if isinstance(max_date, str) else max_date
-            })
-        
-        for egsi_date in egsi_dates:
-            entries.append({
-                'loc': f"/egsi/{egsi_date}",
-                'priority': '0.8',
-                'changefreq': 'never',
-                'lastmod': egsi_date
-            })
+        if egsi_dates:
+            entries.append({'loc': '/egsi/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': _date_to_str(egsi_dates[0])})
     except Exception:
         pass
-    
-    months = get_available_months()
-    for m in months:
-        max_date = m.get('max_date')
-        if max_date:
-            if isinstance(max_date, str):
-                lastmod = max_date[:10]
-            else:
-                lastmod = max_date.isoformat() if hasattr(max_date, 'isoformat') else str(max_date)[:10]
-        else:
-            lastmod = f"{m['year']}-{m['month']:02d}-01"
-        entries.append({
-            'loc': f"/alerts/{m['year']}/{m['month']:02d}",
-            'priority': '0.7',
-            'changefreq': 'weekly',
-            'lastmod': lastmod
-        })
-    
-    pages = get_recent_daily_pages(limit=90)
+
+    return entries
+
+
+def generate_sitemap_alerts_entries(limit: int = 60) -> List[Dict]:
+    """Daily alert pages - last N days only. No changefreq/priority (omitted for daily pages)."""
+    entries = []
+
+    pages = get_recent_daily_pages(limit=limit)
     for p in pages:
         page_date = p['page_date']
         if isinstance(page_date, str):
@@ -1010,39 +858,84 @@ def generate_sitemap_entries() -> List[Dict]:
             lastmod = page_date.isoformat()
         entries.append({
             'loc': f"/alerts/daily/{page_date_obj.isoformat()}",
-            'priority': '0.8',
-            'changefreq': 'never',
             'lastmod': lastmod
         })
 
-    entries.append({
-        'loc': '/daily-geo-energy-intelligence-digest',
-        'priority': '0.9',
-        'changefreq': 'daily',
-        'lastmod': today
-    })
+    months = get_available_months()
+    for m in months[:12]:
+        max_date = m.get('max_date')
+        lastmod = _date_to_str(max_date) if max_date else f"{m['year']}-{m['month']:02d}-01"
+        entries.append({
+            'loc': f"/alerts/{m['year']}/{m['month']:02d}",
+            'lastmod': lastmod
+        })
 
-    entries.append({
-        'loc': '/daily-geo-energy-intelligence-digest/history',
-        'priority': '0.8',
-        'changefreq': 'daily',
-        'lastmod': today
-    })
+    return entries
+
+
+def generate_sitemap_indices_entries(limit: int = 60) -> List[Dict]:
+    """Index daily snapshot pages (GERI/EERI/EGSI) - last N days total across all indices."""
+    daily_entries = []
+    monthly_entries = []
 
     try:
-        from src.seo.digest_page_generator import get_public_digest_available_dates
-        digest_dates = get_public_digest_available_dates()
-        for dd in digest_dates:
-            entries.append({
-                'loc': f"/daily-geo-energy-intelligence-digest/{dd}",
-                'priority': '0.8',
-                'changefreq': 'never',
-                'lastmod': dd
-            })
+        from src.geri.geri_history_service import get_all_snapshot_dates, get_available_months as get_geri_months
+        geri_dates = get_all_snapshot_dates()
+        for geri_date in geri_dates:
+            daily_entries.append({'loc': f"/geri/{_date_to_str(geri_date)}", 'lastmod': _date_to_str(geri_date)})
+        for m in get_geri_months()[:6]:
+            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
+            monthly_entries.append({'loc': f"/geri/{m['year']}/{m['month']:02d}", 'lastmod': _date_to_str(max_date)})
     except Exception:
         pass
 
+    try:
+        from src.reri.eeri_history_service import get_all_eeri_dates, get_eeri_available_months
+        eeri_dates = get_all_eeri_dates()
+        for eeri_date in eeri_dates:
+            daily_entries.append({'loc': f"/eeri/{_date_to_str(eeri_date)}", 'lastmod': _date_to_str(eeri_date)})
+        for m in get_eeri_available_months()[:6]:
+            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
+            monthly_entries.append({'loc': f"/eeri/{m['year']}/{m['month']:02d}", 'lastmod': _date_to_str(max_date)})
+    except Exception:
+        pass
+
+    try:
+        from src.egsi.egsi_history_service import get_all_egsi_m_dates, get_egsi_m_available_months
+        egsi_dates = get_all_egsi_m_dates()
+        for egsi_date in egsi_dates:
+            daily_entries.append({'loc': f"/egsi/{_date_to_str(egsi_date)}", 'lastmod': _date_to_str(egsi_date)})
+        for m in get_egsi_m_available_months()[:6]:
+            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
+            monthly_entries.append({'loc': f"/egsi/{m['year']}/{m['month']:02d}", 'lastmod': _date_to_str(max_date)})
+    except Exception:
+        pass
+
+    daily_entries.sort(key=lambda e: e['lastmod'], reverse=True)
+    return daily_entries[:limit] + monthly_entries
+
+
+def generate_sitemap_digest_entries(limit: int = 60) -> List[Dict]:
+    """Daily digest pages - last N days only."""
+    entries = []
+    try:
+        from src.seo.digest_page_generator import get_public_digest_available_dates
+        digest_dates = get_public_digest_available_dates()
+        for dd in digest_dates[:limit]:
+            entries.append({'loc': f"/daily-geo-energy-intelligence-digest/{dd}", 'lastmod': _date_to_str(dd)})
+    except Exception:
+        pass
     return entries
+
+
+def generate_sitemap_entries() -> List[Dict]:
+    """Legacy: Generate all sitemap entries combined (used by HTML sitemap)."""
+    all_entries = []
+    all_entries.extend(generate_sitemap_core_entries())
+    all_entries.extend(generate_sitemap_alerts_entries())
+    all_entries.extend(generate_sitemap_indices_entries())
+    all_entries.extend(generate_sitemap_digest_entries())
+    return all_entries
 
 
 # =============================================================================
