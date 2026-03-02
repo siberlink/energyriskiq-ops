@@ -133,8 +133,8 @@ def _get_yesterday_geri_value() -> Optional[int]:
         logger.info(f"Yesterday GERI from intel_indices_daily (date={row.get('date')}, index_id={row.get('index_id')}): {row['value']}")
         return int(row['value'])
     yesterday = date.today() - timedelta(days=1)
-    yesterday_start = datetime.combine(yesterday, datetime.min.time())
-    today_start = datetime.combine(date.today(), datetime.min.time())
+    yesterday_start = datetime.combine(yesterday, datetime.min.time(), tzinfo=timezone.utc)
+    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
     row2 = execute_one(
         "SELECT value FROM geri_live WHERE computed_at >= %s AND computed_at < %s ORDER BY id DESC LIMIT 1",
         (yesterday_start, today_start)
@@ -147,7 +147,7 @@ def _get_yesterday_geri_value() -> Optional[int]:
 
 
 def _should_debounce() -> bool:
-    today_start = datetime.combine(date.today(), datetime.min.time())
+    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
     row = execute_one(
         "SELECT computed_at FROM geri_live WHERE computed_at >= %s ORDER BY id DESC LIMIT 1",
         (today_start,)
@@ -433,7 +433,7 @@ def _store_live_result(result: Dict[str, Any]):
 
 
 def get_latest_live_geri() -> Optional[Dict[str, Any]]:
-    today_start = datetime.combine(date.today(), datetime.min.time())
+    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
     has_raw = _check_value_raw()
     cols = "id, value, value_raw, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at" if has_raw else "id, value, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at"
     row = execute_one(f"""
@@ -450,7 +450,7 @@ def get_latest_live_geri() -> Optional[Dict[str, Any]]:
 
 
 def get_live_geri_timeline() -> List[Dict[str, Any]]:
-    today_start = datetime.combine(date.today(), datetime.min.time())
+    today_start = datetime.combine(date.today(), datetime.min.time(), tzinfo=timezone.utc)
     has_raw = _check_value_raw()
     cols = "id, value, value_raw, band, alert_count, computed_at" if has_raw else "id, value, band, alert_count, computed_at"
     rows = execute_query(f"""
