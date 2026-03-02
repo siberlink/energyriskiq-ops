@@ -826,7 +826,8 @@ def run_gas_storage_capture(
     validate_runner_token(x_runner_token)
     
     from datetime import date, timedelta
-    from src.scripts.backfill_snapshots import fetch_gas_storage_for_date, compute_gas_metrics, save_gas_storage_snapshot, get_db_connection
+    from src.scripts.backfill_snapshots import fetch_gas_storage_for_date, compute_gas_metrics, save_gas_storage_snapshot
+    from src.db.db import get_connection
     
     if target_date:
         try:
@@ -849,8 +850,7 @@ def run_gas_storage_capture(
         
         metrics = compute_gas_metrics(gas_data, capture_date.month)
         
-        conn = get_db_connection()
-        try:
+        with get_connection() as conn:
             if save_gas_storage_snapshot(conn, date_str, metrics):
                 return {
                     "status": "success",
@@ -865,8 +865,6 @@ def run_gas_storage_capture(
                     "date": date_str,
                     "message": "Failed to save gas storage snapshot"
                 }
-        finally:
-            conn.close()
     
     response, status_code = run_job_with_lock('gas_storage_capture', gas_storage_job)
     

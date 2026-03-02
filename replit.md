@@ -69,6 +69,15 @@ EnergyRiskIQ is built with a modular architecture, separating concerns into dist
 - **FX Data:** Oanda (for EUR/USD)
 - **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv, yfinance.
 
+## Market Data Snapshot Pipeline
+- **Snapshot Tables:** `oil_price_snapshots` (Brent/WTI), `ttf_gas_snapshots` (TTF EUR/MWh), `lng_price_snapshots` (JKM LNG), `vix_snapshots` (VIX OHLC), `eurusd_snapshots` (EUR/USD), `gas_storage_snapshots` (EU gas storage %). `freight_snapshots` is intentionally disabled (requires paid Baltic Exchange subscription).
+- **Scheduling:** All captures are triggered by GitHub Actions workflows calling the deployed app's internal API endpoints (not by in-app schedulers):
+  - `geri-daily.yml` (daily 01:10 UTC) → `/internal/run/market-data` (VIX + TTF + EUR/USD), `/internal/run/lng-price-capture`
+  - `alerts_engine_v2.yml` (every 10 min) → `/internal/run/gas-storage-capture`, `/internal/run/oil-price-capture`
+- **DB Connection:** All capture code uses `src.db.db` functions (which prefer `PRODUCTION_DATABASE_URL` over `DATABASE_URL`). The `backfill_snapshots.py:get_db_connection()` also follows this pattern.
+- **Idempotency:** All capture functions check for existing data before inserting (ON CONFLICT DO UPDATE or skip).
+- **Backfill Functions:** `backfill_ttf_history()`, `backfill_eurusd_range()`, `backfill_vix_from_fred()`, `/internal/run/backfill-snapshots` endpoint.
+
 ## Planned Future Upgrades
 
 ### ELSA Intelligence Upgrade — Curated Product Knowledge Layer

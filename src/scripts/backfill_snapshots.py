@@ -37,11 +37,11 @@ SEASONAL_NORMS = {
 
 
 def get_db_connection():
-    """Get database connection."""
+    """Get database connection using the app's unified DB URL resolution."""
     import psycopg2
-    database_url = os.environ.get("DATABASE_URL")
+    database_url = os.environ.get("PRODUCTION_DATABASE_URL") or os.environ.get("DATABASE_URL")
     if not database_url:
-        raise ValueError("DATABASE_URL not set")
+        raise ValueError("Neither PRODUCTION_DATABASE_URL nor DATABASE_URL is set")
     return psycopg2.connect(database_url)
 
 
