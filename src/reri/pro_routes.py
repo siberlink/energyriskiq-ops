@@ -335,27 +335,12 @@ async def get_eeri_card(plan: str = Query("free")):
     """
     check_enabled()
     
-    is_free = plan == 'free'
-    result = get_eeri_delayed() if is_free else get_latest_eeri_public()
+    result = get_latest_eeri_public()
     
     if not result:
         return {'success': False, 'data': None}
     
     interp = result.get('interpretation', '') or ''
-    
-    interp_limits = {
-        'free': 180,
-        'personal': 180,
-        'trader': 500,
-        'pro': 500,
-        'enterprise': 0,
-    }
-    limit = interp_limits.get(plan, 180)
-    if limit > 0 and len(interp) > limit:
-        cut = interp.rfind(' ', 0, limit)
-        if cut < limit * 0.5:
-            cut = limit
-        interp = interp[:cut] + '...'
     
     return {
         'success': True,
@@ -368,7 +353,7 @@ async def get_eeri_card(plan: str = Query("free")):
             'date': result.get('date'),
             'computed_at': result.get('computed_at'),
             'interpretation': interp,
-            'is_delayed': is_free,
+            'is_delayed': False,
         },
     }
 

@@ -3102,6 +3102,13 @@
             color: #cbd5e1;
             font-size: 14px;
             line-height: 1.7;
+            white-space: pre-line;
+        }
+        .eeri-interpretation-text p {
+            margin: 0 0 14px 0;
+        }
+        .eeri-interpretation-text p:last-child {
+            margin-bottom: 0;
         }
         .eeri-interpretation-text .interp-placeholder {
             color: #64748b;
@@ -9626,7 +9633,17 @@
             if (interpEl) {
                 const interp = data.interpretation;
                 if (interp && interp.length > 10) {
-                    interpEl.innerHTML = interp;
+                    let formatted = interp;
+                    if (!formatted.includes('<p>') && !formatted.includes('<br')) {
+                        const sentences = formatted.split(/(?<=[.!?])\s+/);
+                        const chunkSize = Math.ceil(sentences.length / Math.max(2, Math.ceil(sentences.length / 4)));
+                        const paragraphs = [];
+                        for (let i = 0; i < sentences.length; i += chunkSize) {
+                            paragraphs.push('<p>' + sentences.slice(i, i + chunkSize).join(' ') + '</p>');
+                        }
+                        formatted = paragraphs.join('');
+                    }
+                    interpEl.innerHTML = formatted;
                 } else {
                     interpEl.innerHTML = '<span class="interp-placeholder">AI interpretation not yet available for this date.</span>';
                 }
@@ -9684,7 +9701,8 @@
             try {
                 const fetchPromises = [
                     fetch(`/api/v1/eeri-pro/weekly-snapshot?plan=${plan}`),
-                    fetch(`/api/v1/eeri-pro/card?plan=${plan === 'free' ? 'personal' : plan}`)
+                    fetch(`/api/v1/eeri-pro/card?plan=${plan}`),
+                    fetch('/api/v1/eeri-pro/component-breakdown')
                 ];
                 
                 if (isTraderTier) {
@@ -9704,12 +9722,17 @@
                 const results = await Promise.all(fetchPromises);
                 const snapshotData = await results[0].json();
                 const cardData = await results[1].json();
+                const componentData = await results[2].json();
                 
                 if (loadingEl) loadingEl.style.display = 'none';
                 if (dashboardEl) dashboardEl.style.display = 'flex';
                 
                 if (cardData.success && cardData.data) {
                     renderEeriAllPlansCard(cardData.data);
+                }
+                
+                if (componentData.success && componentData.data) {
+                    renderEeriComponents(componentData.data);
                 }
                 
                 if (snapshotData.success && snapshotData.data) {
@@ -9721,7 +9744,7 @@
                     }
                 }
                 
-                let resultIdx = 2;
+                let resultIdx = 3;
                 
                 if (isTraderTier) {
                     const traderData = await results[resultIdx].json();
@@ -9738,7 +9761,9 @@
                     
                     if (realtimeData.success && realtimeData.data) {
                         renderEeriMainDisplay(realtimeData.data);
-                        renderEeriComponents(realtimeData.data.component_breakdown);
+                        if (realtimeData.data.component_breakdown) {
+                            renderEeriComponents(realtimeData.data.component_breakdown);
+                        }
                         renderEeriAssetStress(realtimeData.data.asset_stress);
                         renderEeriTopDrivers(realtimeData.data.top_drivers);
                     }
