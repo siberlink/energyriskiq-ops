@@ -84,9 +84,9 @@ def run_preflight(log_json: bool = False) -> Dict:
         'errors': [],
     }
     
-    database_url = os.environ.get('DATABASE_URL')
+    database_url = os.environ.get('PRODUCTION_DATABASE_URL') or os.environ.get('DATABASE_URL')
     if not database_url:
-        result['errors'].append("DATABASE_URL environment variable is not set")
+        result['errors'].append("Neither PRODUCTION_DATABASE_URL nor DATABASE_URL environment variable is set")
         return result
     
     try:
@@ -200,9 +200,9 @@ def run_health_check(log_json: bool = False) -> Dict:
 
 def validate_environment() -> bool:
     """Validate required environment variables and database connection."""
-    database_url = os.environ.get('DATABASE_URL')
+    database_url = os.environ.get('PRODUCTION_DATABASE_URL') or os.environ.get('DATABASE_URL')
     if not database_url:
-        logger.error("DATABASE_URL environment variable is not set")
+        logger.error("Neither PRODUCTION_DATABASE_URL nor DATABASE_URL environment variable is set")
         return False
     
     try:

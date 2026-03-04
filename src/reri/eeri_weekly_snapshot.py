@@ -358,13 +358,13 @@ def _get_divergence_status(cross_asset: List[Dict[str, Any]]) -> Tuple[str, str]
 
 
 def _get_latest_eeri_data_week() -> Tuple[date, date, list]:
-    """Find the latest available EERI data spanning at least 3 days."""
+    """Find the latest available 7-day window of EERI data with at least 3 days."""
     query = """
         SELECT date, value, band, trend_7d
         FROM reri_indices_daily
         WHERE index_id = %s AND value > 0
         ORDER BY date DESC
-        LIMIT 30
+        LIMIT 7
     """
     try:
         with get_production_cursor() as cursor:

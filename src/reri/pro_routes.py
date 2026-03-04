@@ -784,6 +784,7 @@ REACTION_LAG_MAP = {
     'vix': {'asset': 'VIX', 'lag': 'Same day', 'note': 'Instantaneous risk-sentiment transmission'},
     'eurusd': {'asset': 'EUR/USD', 'lag': '2–3 days', 'note': 'FX adjusts via macro channel with delay'},
     'storage': {'asset': 'EU Gas Storage', 'lag': 'Structural', 'note': 'Physical flow adjustment, not traded'},
+    'lng': {'asset': 'LNG (JKM)', 'lag': '2–4 days', 'note': 'Global cargo rerouting responds to European demand signals'},
 }
 
 KEY_DATES_CALENDAR = [
@@ -823,6 +824,7 @@ def _compute_30d_correlations() -> Dict[str, Any]:
         'vix': ("SELECT date, vix_close AS value FROM vix_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'VIX'),
         'eurusd': ("SELECT date, rate AS value FROM eurusd_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EUR/USD'),
         'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EU Storage'),
+        'lng': ("SELECT date, jkm_price AS value FROM lng_price_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'LNG (JKM)'),
     }
 
     try:
@@ -1010,6 +1012,7 @@ def _get_data_timestamps() -> Dict[str, Any]:
         'vix': ("SELECT date FROM vix_snapshots ORDER BY date DESC LIMIT 1", None),
         'eurusd': ("SELECT date FROM eurusd_snapshots ORDER BY date DESC LIMIT 1", None),
         'storage': ("SELECT date FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1", None),
+        'lng': ("SELECT date FROM lng_price_snapshots ORDER BY date DESC LIMIT 1", None),
     }
 
     try:
@@ -1052,6 +1055,7 @@ def _compute_asset_impact_ranking() -> List[Dict[str, Any]]:
         'vix': ("SELECT date, vix_close AS value FROM vix_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'VIX'),
         'eurusd': ("SELECT date, rate AS value FROM eurusd_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EUR/USD'),
         'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'EU Storage'),
+        'lng': ("SELECT date, jkm_price AS value FROM lng_price_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'LNG (JKM)'),
     }
 
     ranking = []
