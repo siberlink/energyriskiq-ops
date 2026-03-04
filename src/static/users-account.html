@@ -1325,6 +1325,12 @@
             border-left: 4px solid #60a5fa;
             padding-left: 20px;
         }
+        .interpretation-modal-body p {
+            margin: 0 0 16px 0;
+        }
+        .interpretation-modal-body p:last-child {
+            margin-bottom: 0;
+        }
 
         /* GERI Charts Section */
         .geri-charts-section {
@@ -15928,7 +15934,17 @@
             const modal = document.getElementById('interpretationModal');
             const body = document.getElementById('interpretationModalBody');
             if (modal && body && window.fullGeriInterpretation) {
-                body.innerHTML = '"' + window.fullGeriInterpretation + '"';
+                let text = window.fullGeriInterpretation;
+                if (!text.includes('<p>') && !text.includes('<br')) {
+                    const sentences = text.split(/(?<=[.!?])\s+/);
+                    const chunkSize = Math.ceil(sentences.length / Math.max(2, Math.ceil(sentences.length / 4)));
+                    const paragraphs = [];
+                    for (let i = 0; i < sentences.length; i += chunkSize) {
+                        paragraphs.push('<p>' + sentences.slice(i, i + chunkSize).join(' ') + '</p>');
+                    }
+                    text = paragraphs.join('');
+                }
+                body.innerHTML = text;
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
