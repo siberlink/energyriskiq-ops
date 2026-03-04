@@ -3083,121 +3083,29 @@
             }
         }
 
-        .eeri-allplans-card {
+        .eeri-interpretation-card {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border: 1px solid #334155;
             border-radius: 16px;
             padding: 28px;
             margin-bottom: 20px;
-            display: flex;
-            gap: 28px;
-            align-items: stretch;
         }
-        .eeri-allplans-value-side {
-            flex: 0 0 200px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .eeri-allplans-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .eeri-allplans-label {
-            color: #64748b;
-            font-size: 13px;
+        .eeri-interpretation-title {
+            color: #94a3b8;
+            font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 14px;
         }
-        .eeri-delayed-badge {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .eeri-allplans-number {
-            font-size: 64px;
-            font-weight: 700;
-            line-height: 1;
-            background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .eeri-allplans-band {
-            display: block;
-            font-size: 16px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 6px;
-        }
-        .eeri-allplans-trend {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .eeri-allplans-trend-icon {
-            font-size: 18px;
-        }
-        .eeri-allplans-trend-text {
-            color: #94a3b8;
-            font-size: 13px;
-        }
-        .eeri-allplans-meta {
-            color: #64748b;
-            font-size: 11px;
-            margin-top: 8px;
-        }
-        .eeri-allplans-interp-side {
-            flex: 1;
-            border-left: 1px solid #334155;
-            padding-left: 28px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .eeri-allplans-interp-title {
-            color: #94a3b8;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-        .eeri-allplans-interp-text {
+        .eeri-interpretation-text {
             color: #cbd5e1;
             font-size: 14px;
             line-height: 1.7;
         }
-        .eeri-allplans-interp-text .interp-placeholder {
+        .eeri-interpretation-text .interp-placeholder {
             color: #64748b;
             font-style: italic;
-        }
-        @media (max-width: 700px) {
-            .eeri-allplans-card {
-                flex-direction: column;
-                gap: 20px;
-            }
-            .eeri-allplans-value-side {
-                flex: none;
-            }
-            .eeri-allplans-interp-side {
-                border-left: none;
-                border-top: 1px solid #334155;
-                padding-left: 0;
-                padding-top: 20px;
-            }
         }
 
         /* EERI Value Card */
@@ -3226,6 +3134,16 @@
 
         .eeri-realtime-badge {
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .eeri-delayed-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
             font-size: 10px;
             font-weight: 700;
@@ -6520,38 +6438,13 @@
                 <!-- Pro Dashboard Content -->
                 <div class="eeri-pro-dashboard" id="eeriProDashboard" style="display: none;">
 
-                    <!-- EERI Value Card (ALL plans) -->
-                    <div class="eeri-allplans-card" id="eeriAllPlansCard">
-                        <div class="eeri-allplans-value-side">
-                            <div class="eeri-allplans-header">
-                                <span class="eeri-allplans-label">EERI</span>
-                                <span id="eeriAllPlansBadge" class="eeri-delayed-badge">24H DELAYED</span>
-                            </div>
-                            <div>
-                                <span class="eeri-allplans-number" id="eeriAllPlansValue">--</span>
-                                <span class="eeri-allplans-band" id="eeriAllPlansBand">--</span>
-                            </div>
-                            <div class="eeri-allplans-trend">
-                                <span class="eeri-allplans-trend-icon" id="eeriAllPlansTrendIcon"></span>
-                                <span class="eeri-allplans-trend-text" id="eeriAllPlansTrendText"></span>
-                            </div>
-                            <div class="eeri-allplans-meta" id="eeriAllPlansMeta">--</div>
-                        </div>
-                        <div class="eeri-allplans-interp-side">
-                            <div class="eeri-allplans-interp-title">AI Interpretation</div>
-                            <div class="eeri-allplans-interp-text" id="eeriAllPlansInterp">
-                                <span class="interp-placeholder">Loading interpretation...</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Main Index Display Row (Pro/Enterprise only) -->
-                    <div class="eeri-main-row eeri-pro-only eeri-hidden">
+                    <!-- Main Index Display Row -->
+                    <div class="eeri-main-row" id="eeriMainRow">
                         <!-- EERI Value Card -->
                         <div class="eeri-value-card">
                             <div class="eeri-value-header">
                                 <span class="eeri-value-label">EERI</span>
-                                <span class="eeri-realtime-badge">REAL-TIME</span>
+                                <span id="eeriValueBadge" class="eeri-realtime-badge">REAL-TIME</span>
                             </div>
                             <div class="eeri-value-display">
                                 <span class="eeri-value-number" id="eeriValue">--</span>
@@ -6576,6 +6469,14 @@
                             <div class="eeri-components-legend" id="eeriComponentsLegend">
                                 <!-- Legend items rendered by JS -->
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- EERI Interpretation -->
+                    <div class="eeri-interpretation-card" id="eeriInterpretationCard">
+                        <div class="eeri-interpretation-title">EERI Interpretation</div>
+                        <div class="eeri-interpretation-text" id="eeriInterpretationText">
+                            <span class="interp-placeholder">Loading interpretation...</span>
                         </div>
                     </div>
 
@@ -9680,21 +9581,23 @@
         };
 
         function renderEeriAllPlansCard(data) {
-            const valueEl = document.getElementById('eeriAllPlansValue');
-            const bandEl = document.getElementById('eeriAllPlansBand');
-            const trendIconEl = document.getElementById('eeriAllPlansTrendIcon');
-            const trendTextEl = document.getElementById('eeriAllPlansTrendText');
-            const metaEl = document.getElementById('eeriAllPlansMeta');
-            const interpEl = document.getElementById('eeriAllPlansInterp');
-            const badgeEl = document.getElementById('eeriAllPlansBadge');
+            const valueEl = document.getElementById('eeriValue');
+            const bandEl = document.getElementById('eeriBandLabel');
+            const trendIconEl = document.getElementById('eeriTrendIcon');
+            const trendTextEl = document.getElementById('eeriTrendText');
+            const metaEl = document.getElementById('eeriComputedAt');
+            const interpEl = document.getElementById('eeriInterpretationText');
+            const badgeEl = document.getElementById('eeriValueBadge');
 
             const isDelayed = data.is_delayed;
             if (badgeEl) {
                 if (isDelayed) {
                     badgeEl.textContent = '24H DELAYED';
+                    badgeEl.className = 'eeri-delayed-badge';
                     badgeEl.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
                 } else {
                     badgeEl.textContent = 'REAL-TIME';
+                    badgeEl.className = 'eeri-realtime-badge';
                     badgeEl.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
                 }
             }
