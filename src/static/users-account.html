@@ -6612,6 +6612,9 @@
                                 <button class="eeri-asset-btn" data-asset="storage" style="--asset-color: #06b6d4;">
                                     <span class="eeri-asset-dot" style="background: #06b6d4;"></span>EU Storage
                                 </button>
+                                <button class="eeri-asset-btn" data-asset="lng" style="--asset-color: #d946ef;">
+                                    <span class="eeri-asset-dot" style="background: #d946ef;"></span>LNG (JKM)
+                                </button>
                             </div>
                         </div>
                         <p class="eeri-asset-subtitle" id="eeriAssetSubtitle" style="display:none;">Prices carried forward on non-trading days.</p>
@@ -10719,6 +10722,7 @@
             vix: { label: 'VIX', color: '#ef4444', unit: '', suffix: '' },
             eurusd: { label: 'EUR/USD', color: '#3b82f6', unit: '', suffix: '' },
             storage: { label: 'EU Storage', color: '#06b6d4', unit: '', suffix: '%' },
+            lng: { label: 'LNG (JKM)', color: '#d946ef', unit: '$', suffix: '/MMBtu' },
         };
 
         function computeMovingAverage(arr, window) {
@@ -10802,6 +10806,7 @@
                 vix: { min: 10, max: 50 },
                 eurusd: { min: 1.00, max: 1.30 },
                 storage: { min: 0, max: 100 },
+                lng: { min: 5, max: 30 },
             };
 
             function eeriNormalizeToScale(value, assetId) {

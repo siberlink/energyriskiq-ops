@@ -516,6 +516,7 @@ async def get_eeri_pro_history(
             'vix': ("SELECT date, vix_close AS value FROM vix_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'vix_close'),
             'eurusd': ("SELECT date, rate AS value FROM eurusd_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'rate'),
             'storage': ("SELECT date, eu_storage_percent AS value FROM gas_storage_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'eu_storage_percent'),
+            'lng': ("SELECT date, jkm_price AS value FROM lng_price_snapshots WHERE date >= %s AND date <= %s ORDER BY date ASC", 'jkm_price'),
         }
         try:
             with get_production_cursor() as cur2:
