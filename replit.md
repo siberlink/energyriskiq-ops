@@ -1,87 +1,55 @@
 # EnergyRiskIQ - Event Ingestion & Risk Intelligence Pipeline
 
 ## Overview
-EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scoring pipeline for energy risk intelligence. It aims to provide a comprehensive risk intelligence platform with a global alerts factory for fanout delivery, offering a complete risk intelligence platform for market advantage and a daily AI-powered briefing.
+EnergyRiskIQ is an event ingestion, classification, AI analysis, and risk scoring pipeline designed for energy risk intelligence. Its primary purpose is to deliver a comprehensive risk intelligence platform with a global alerts factory, providing market advantage and daily AI-powered briefings. The project aims to establish a leading platform for energy market insights.
 
 ## User Preferences
 The user prefers clear, concise communication. They value an iterative development approach, with a focus on delivering functional components incrementally. They prefer to be consulted before any major architectural changes or significant code refactoring. Detailed explanations of complex features are appreciated, especially regarding AI models and risk scoring logic.
 
 ## System Architecture
 
-EnergyRiskIQ is built with a modular architecture, separating concerns into distinct services for ingestion, AI processing, risk scoring, and alerting.
+EnergyRiskIQ employs a modular architecture, separating concerns into distinct services for ingestion, AI processing, risk scoring, and alerting.
 
 **UI/UX Decisions:**
-- Marketing landing pages, user authentication flows, and an admin portal are included.
+- The system includes marketing landing pages, user authentication flows, and an admin portal.
 - User-facing dashboards provide event queries, risk summaries, and alert history.
-- Admin UI allows management of plan settings.
-- Public-facing SEO-optimized pages for indices like GERI, EERI and EGSI, including methodology and historical data. GERI, EERI, and EGSI public pages use digest-style dark theme (get_digest_dark_styles, render_digest_footer) with full 2-paragraph AI interpretation. Nav: GERI, EERI, EGSI, Digest, History, Get FREE Access. EGSI page shows both EGSI-M (Market Stress) and EGSI-S (System Stress) cards with 24h delay, plus 5 Chart.js charts (7-day and 30-day for each index, plus 30-day comparison).
+- Public-facing SEO-optimized pages for indices like GERI, EERI, and EGSI feature methodology and historical data, utilizing a digest-style dark theme and AI interpretations.
 
 **Technical Implementations:**
-- **Event Ingestion:** RSS feeds are fetched and categorized using keyword classification.
-- **AI Processing:** Utilizes OpenAI (gpt-4.1-mini) for event enrichment, summarization, impact analysis, and detailed daily index interpretations.
-- **Risk Scoring:** A dedicated engine computes quantitative risk scores for events, regions, and assets, including trend analysis. This includes Global Energy Risk Index (GERI v1.1 with Regional Weighting Model), Regional Escalation Risk Index (RERI/EERI), and Europe Gas Stress Index (EGSI-M, EGSI-S). The GERI Regional Weighting Model applies pre-aggregation multipliers based on region-cluster influence.
-- **GERI Live:** Real-time intraday GERI index for Pro/Enterprise users. Three recomputation triggers: (1) periodic background task every 5 minutes (`periodic_geri_live_recompute()` in `live.py`, started as `asyncio.create_task` in `app.py`), (2) on-demand via `/latest` endpoint (debounce-protected, 60s), (3) alert-triggered via `POST /compute`. DB: `geri_live` table with `value` (INTEGER) and `value_raw` (NUMERIC(6,2)) for fractional precision. Backend: `src/geri/live.py` (engine) + `src/geri/live_routes.py` (REST/SSE). Frontend: `section-geri-live` in users-account.html with sparkline, drivers, regions, activity feed. SSE streaming via `asyncio.Queue` per client. AI interpretation regenerates on ≥2pt change or band change. Quick Insights strip: velocity indicator (pts/hr momentum), band proximity warning (within 5pts of threshold), day high/low with timestamps. Professional Intelligence Modules: 6 profile cards (Traders, Risk Managers, Hedge Fund, Analysts, Procurement, Insurance). Energy Commodity Trader module (`src/geri/live_trader_intel.py`) has 5 live features: (1) Price-Risk Correlation Signal (Brent/WTI/TTF/VIX prices + GERI divergence detection + 7-day correlation), (2) Trading Risk Heatmap (Oil/Gas/Freight/Power risk intensity from today's alerts), (3) Position Risk Alerts (band proximity, velocity, commodity-specific exposure warnings with actions), (4) Intraday Risk Windows (Asia/London/NY/After Hours sessions with GERI avg/delta/alert counts), (5) Flash Headline Feed (severity ≥4 alerts with GERI impact and asset tags). API: `GET /api/v1/indices/geri/live/trader-intel`. Docs: `docs/geri-live.md`.
-- **Alerting & Delivery:** A global alerts factory generates `alert_events`. Index & Digest delivery sends daily GERI + EERI + EGSI + AI Digest to all plan tiers via email and Telegram, with plan-tiered content depth. User delivery preferences are configurable.
-- **User & Plan Management:** Handles user signup, verification, password/PIN setup, and assigns subscription tiers based on `plan_settings`.
+- **Event Ingestion:** RSS feeds are fetched and categorized.
+- **AI Processing:** Utilizes OpenAI for event enrichment, summarization, impact analysis, and detailed daily index interpretations.
+- **Risk Scoring:** A dedicated engine computes quantitative risk scores for events, regions, and assets, including trend analysis for indices such as Global Energy Risk Index (GERI), Regional Escalation Risk Index (RERI/EERI), and Europe Gas Stress Index (EGSI-M, EGSI-S). GERI Live provides real-time intraday index values using an anchor-based continuity model.
+- **Alerting & Delivery:** A global alerts factory generates `alert_events`, and a digest system delivers daily index summaries via email and Telegram, with plan-tiered content depth.
+- **User & Plan Management:** Handles user lifecycle and assigns subscription tiers.
 - **API:** A FastAPI application serves as the primary interface.
-- **SEO Growth System:** Generates SEO-optimized daily alert pages and rich meta-data. Sitemap architecture uses a sitemap index (`/sitemap-index.xml`) linking to separate sitemaps: `sitemap-core.xml` (authority pages, ~20 URLs, priority 0.6-0.8), `sitemap-alerts.xml` (last 60 daily alert pages, no priority/changefreq), `sitemap-indices.xml` (GERI/EERI/EGSI snapshots, last 60), `sitemap-digest.xml` (last 60 digest pages). Legacy `/sitemap.xml` 301-redirects to index. `robots.txt` points to `sitemap-index.xml`.
+- **SEO Growth System:** Generates SEO-optimized daily alert pages and manages sitemap architecture.
 - **Billing & Subscription:** Integrates with Stripe for subscription management.
-- **Plan-Tiered Dashboards:** Progressive intelligence depth across 5 subscription tiers for GERI, EERI, and EGSI dashboards. Each upgraded plan inherits all previous plan features plus unique tier-specific capabilities (proper feature cascading). EGSI example: Trader gets 9 base modules (momentum, divergence, drivers, radar, scenarios, regime history, asset overlay, storage seasonal, analog finder). Pro adds rolling correlations, component decomposition, regime transition probability. Enterprise adds cross-index contagion/spillover analysis.
-- **Daily Geo-Energy Intelligence Digest:** AI-powered daily briefing on the user dashboard with plan-tiered features, generated using OpenAI gpt-4.1-mini.
-- **ERIQ Expert Analyst:** An AI-powered interpretation intelligence bot using GPT-5.1 (with gpt-4.1-mini fallback) and RAG from a knowledge base. Accessible from the dedicated ERIQ section and as contextual widgets on GERI, EERI, and EGSI dashboard pages. Context-aware: passes `page_context` (geri/eeri/egsi) to the AI so responses focus on the index the user is viewing. Includes Product Analytics & Feedback Layer, Context Assembly Layer (CAL) for plan-gated database snapshots, and per-page conversation history.
-- **ERIQ Token Economy:** Manages plan-based monthly token allowances and purchased token balances, resetting on Stripe subscription payment events.
-- **ELSA Marketing Bot:** An AI-powered marketing and business intelligence advisor (GPT-5.1 with gpt-4.1-mini fallback) for the admin dashboard. Provides strategic advice on marketing, SEO, content strategy, user growth, and revenue optimization. Has full access to production database metrics, all documentation (/docs, /ERIQ), and conversation history organized by topics. Located in `src/elsa/` with agent, knowledge_base, context, and routes modules. Database tables: `elsa_topics`, `elsa_conversations`. Features: SSE streaming responses (word-by-word like ChatGPT), cross-topic memory (pulls insights from ALL past topics into every conversation), and image upload/interpretation (vision API for analyzing screenshots, charts, competitor pages). Image generation via DALL-E 3 with platform-specific presets (LinkedIn post/banner/cover, Facebook post/cover, X/Twitter post/header, custom square/landscape/portrait/wide banner), quality (standard/HD) and style (vivid/natural) options, download capability.
-- **Ticketing System:** Encapsulated support ticket module in `src/tickets/` (db.py, routes.py). Database tables: `tickets`, `ticket_messages`. User-side UI in users-account.html with create/list/detail views, category filtering (Support, Billing, Feature Suggestion, Other), and 30-second unread polling. Admin-side UI in admin.html with stats dashboard, status/category filters, ticket list with unread indicators, detail view with message thread, reply, and status management. Admin auth uses shared `X-Admin-Token` via `verify_admin_token`. Both sides have live unread badge notifications.
-- **Blog:** Public educational blog at `/blog` with separate blog user system (`blog_users` table, cookie-based auth). Blog users can register, sign in, write articles (submitted as `pending`), and comment. Visitors can also comment as guests. Admin manages articles from `/admin` (Blog section): create/publish directly or save as draft, approve/reject user submissions, delete posts. Admin article editor features: auto-slug from title, textarea excerpt with auto-tag generation, markdown toolbar (bold/italic/underline/headings/lists/links/quotes/code/HR), image upload (max 3 per article, 1.5MB limit, JPEG/PNG/GIF/WebP with magic-byte validation, server-side rate limiting), emoji picker (6 categories: Smileys, Gestures, Objects, Energy, Symbols, Flags), and live markdown preview modal. Image uploads stored in PostgreSQL `blog_images` table (BYTEA), served via `/blog/uploads/{filename}` route with aggressive caching. Database tables: `blog_posts` (with slug, status workflow, categories, tags, Markdown content), `blog_comments`, `blog_users`. Module: `src/blog/` (db.py, routes.py). Server-rendered HTML pages with dark/light theme toggle (CSS custom properties, localStorage persistence, dark default matching GERI/EERI public page background #0f172a), responsive design. Markdown rendering for article content. Blog routing: `/blog/{cat_slug}/{article_slug}` for articles, `/blog/{cat_slug}` for categories.
+- **Plan-Tiered Dashboards:** Provides progressive intelligence depth across five subscription tiers for GERI, EERI, and EGSI, ensuring feature cascading.
+- **Daily Geo-Energy Intelligence Digest:** An AI-powered daily briefing on the user dashboard with plan-tiered features.
+- **ERIQ Expert Analyst:** An AI-powered interpretation intelligence bot with context-awareness and RAG from a knowledge base, accessible on dashboards.
+- **ERIQ Token Economy:** Manages plan-based monthly token allowances and purchased token balances.
+- **ELSA Marketing Bot:** An AI-powered marketing and business intelligence advisor for the admin dashboard, providing strategic advice, accessing production database metrics, and offering image generation via DALL-E 3.
+- **Ticketing System:** A support ticket module with user and admin interfaces, live unread notifications, and category filtering.
+- **Blog:** A public educational blog with user registration, article submission (pending approval), commenting, and admin management. Features include a markdown editor with image uploads and a live preview.
 
 **System Design Choices:**
-- **Database:** PostgreSQL is used for persistence. Single production database architecture: `get_database_url()` in `src/db/db.py` always prefers `PRODUCTION_DATABASE_URL` over `DATABASE_URL`. This means ALL queries everywhere — `get_cursor`, `execute_query`, `execute_one`, and all production variants — always connect to the production database. In Replit's deployed environment, `DATABASE_URL` automatically points to the production database. No development-only database queries exist. The `alerts/runner.py` env checks also use the production-first resolution pattern.
+- **Database:** PostgreSQL is used for persistence, with a single production database architecture.
 - **Background Workers:** Ingestion, AI, Risk, and Alerts components are designed as separate, orchestratable workers.
 - **Concurrency:** FastAPI with uvicorn for asynchronous API operations.
 - **Alerting Production Safety:** Employs advisory locks, unique constraints, and robust retry/backoff mechanisms.
-- **Digest System:** Consolidates multiple alert deliveries into periodic summary messages.
 - **Production Hardening:** Includes preflight checks, health checks, user allowlisting, and circuit breakers.
 - **Observability:** Tracks engine runs and provides internal API endpoints for monitoring.
-
-## Test Credentials
-- **Email:** emil.siberlink@gmail.com
-- **Password:** Regen@3010
-- **PIN:** 221967
-- **Testing approach:** Always test on Production DB. User tests in production.
-
-### Admin Dashboard (`/admin`)
-- **User:** emicon
-- **Password:** Regen@3010
-- **PIN:** 342256
 
 ## External Dependencies
 
 - **Database:** PostgreSQL
 - **AI:** OpenAI (gpt-4.1-mini, GPT-5.1)
-- **Payment Processing:** Stripe (Live mode)
+- **Payment Processing:** Stripe
 - **Email Service:** Brevo
 - **Messaging Service:** Telegram Bot API
-- **SMS Service:** Twilio (optional)
+- **SMS Service:** Twilio
 - **Gas Storage Data:** AGSI+ (GIE API)
-- **Gas Price Data:** OilPriceAPI (for TTF natural gas)
-- **Oil Price Data:** OilPriceAPI (for Brent/WTI crude oil)
+- **Gas Price Data:** OilPriceAPI
+- **Oil Price Data:** OilPriceAPI
 - **VIX Data:** Yahoo Finance (yfinance), FRED
-- **FX Data:** Oanda (for EUR/USD)
-- **Python Libraries:** FastAPI, uvicorn, feedparser, psycopg2-binary, openai, stripe, requests, python-dotenv, yfinance.
-
-## Market Data Snapshot Pipeline
-- **Snapshot Tables:** `oil_price_snapshots` (Brent/WTI), `ttf_gas_snapshots` (TTF EUR/MWh), `lng_price_snapshots` (JKM LNG), `vix_snapshots` (VIX OHLC), `eurusd_snapshots` (EUR/USD), `gas_storage_snapshots` (EU gas storage %). `freight_snapshots` is intentionally disabled (requires paid Baltic Exchange subscription).
-- **Scheduling:** All captures are triggered by GitHub Actions workflows calling the deployed app's internal API endpoints (not by in-app schedulers):
-  - `geri-daily.yml` (daily 01:10 UTC) → `/internal/run/market-data` (VIX + TTF + EUR/USD), `/internal/run/lng-price-capture`
-  - `alerts_engine_v2.yml` (every 10 min) → `/internal/run/gas-storage-capture`, `/internal/run/oil-price-capture`
-- **DB Connection:** All capture code uses `src.db.db` functions (which prefer `PRODUCTION_DATABASE_URL` over `DATABASE_URL`). The `backfill_snapshots.py:get_db_connection()` also follows this pattern.
-- **Idempotency:** All capture functions check for existing data before inserting (ON CONFLICT DO UPDATE or skip).
-- **Backfill Functions:** `backfill_ttf_history()`, `backfill_eurusd_range()`, `backfill_vix_from_fred()`, `/internal/run/backfill-snapshots` endpoint.
-
-## Planned Future Upgrades
-
-### ELSA Intelligence Upgrade — Curated Product Knowledge Layer
-Rather than feeding the entire codebase into every ELSA conversation (which would be too expensive and dilute context), build a smarter middle ground:
-1. **App Capabilities Summary** — A structured document describing each page, what each plan tier actually gets, which features exist vs. are planned. This gives ELSA strategic context without the token cost of raw code.
-2. **Page/Route Inventory** — A simple list of all routes and what they do, so ELSA knows the full product surface.
-This approach makes ELSA significantly smarter about the product (feature suggestions, gap identification, better business advice) without the downsides of raw code access (context window limits, cost, diminishing returns).
+- **FX Data:** Oanda

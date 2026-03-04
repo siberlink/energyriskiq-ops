@@ -78,12 +78,12 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
     timeline = get_live_geri_timeline()
 
     if not latest:
-        from src.geri.live import _get_yesterday_geri_value
-        yd_val = _get_yesterday_geri_value()
+        from src.geri.live import _get_anchor_value
+        anchor = _get_anchor_value()
         return JSONResponse(content={
             'success': True,
             'data': {
-                'value': 0,
+                'value': anchor['value'],
                 'band': 'LOW',
                 'trend_vs_yesterday': None,
                 'alert_count': 0,
@@ -93,12 +93,14 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
                 'computed_at': None,
                 'timeline': [],
                 'no_data': True,
-                'yesterday_value': yd_val,
+                'yesterday_value': anchor['value'],
+                'anchor_value': anchor['value'],
+                'anchor_source': anchor['source'],
             }
         })
 
-    from src.geri.live import _get_yesterday_geri_value, _compute_velocity, _compute_band_proximity, _compute_peak_low
-    yesterday_val = _get_yesterday_geri_value()
+    from src.geri.live import _get_previous_close, _compute_velocity, _compute_band_proximity, _compute_peak_low
+    yesterday_val = _get_previous_close()
     value = latest['value']
     velocity = latest.get('velocity') or _compute_velocity(timeline, value)
     band_proximity = latest.get('band_proximity') or _compute_band_proximity(value)
@@ -119,6 +121,10 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
             'computed_at': latest.get('computed_at'),
             'timeline': timeline,
             'yesterday_value': yesterday_val,
+            'anchor_value': latest.get('anchor_value'),
+            'anchor_source': latest.get('anchor_source'),
+            'signal_weight': latest.get('signal_weight'),
+            'today_signal': latest.get('today_signal'),
             'velocity': velocity,
             'band_proximity': band_proximity,
             'peak_low': peak_low,

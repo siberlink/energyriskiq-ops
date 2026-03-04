@@ -12,22 +12,34 @@ GERI Live provides a real-time, intraday view of the Global Energy Risk Index th
 
 ## Architecture
 
-### Compute Pipeline
+### Compute Pipeline — Anchor-Based Continuity Model
 
 ```
-alert_events (today, UTC) → compute_components() → normalize_components() → calculate_geri_value()
-                                                                                  ↓
-                                                              geri_live table (INSERT per computation)
-                                                                                  ↓
-                                                              SSE broadcast → connected clients
+                    ┌─────────────────┐
+                    │  Anchor Value   │  (previous day's GERI Daily close)
+                    └────────┬────────┘
+                             │
+                             ▼
+anchor × (1 - weight) + today_signal × weight = GERI Live (blended)
+                             ▲
+                    ┌────────┴────────┐
+                    │  Today Signal   │  (computed from today's alerts)
+                    └─────────────────┘
+                             │
+              alert_events (today, UTC) → compute_components()
+                  → normalize_components() → calculate_geri_value()
+                             ↓
+              geri_live table (INSERT per computation)
+                             ↓
+              SSE broadcast → connected clients
 ```
 
-1. **Data Source:** All `alert_events` created since midnight UTC today
-2. **Component Computation:** Same `compute_components()` from `src/geri/compute.py` (regional weighting model, severity scoring)
-3. **Normalization:** Uses 90-day historical baseline from `get_historical_baseline()`
-4. **Final Value:** Weighted combination (high_impact 40%, regional_spike 25%, asset_risk 20%, region_concentration 15%)
+1. **Anchor Value:** The previous day's closing GERI from `intel_indices_daily`. Priority: today's daily GERI (if already computed after ~01:30 UTC) → latest daily GERI → last `geri_live` entry from yesterday → neutral midpoint (50).
+2. **Today Signal:** Computed from today's `alert_events` using `compute_components()` → `normalize_components()` → `calculate_geri_value()`.
+3. **Blending:** `blended = anchor × (1 - signal_weight) + today_signal × signal_weight`. The signal weight ramps up as alerts accumulate using an exponential curve (0 alerts → 0.0, 100 alerts → 0.64, 150+ → ~0.85 max).
+4. **Daily GERI Absorption:** When GERI Daily is computed (~01:15-01:30 UTC) and saved to `intel_indices_daily` for today's date, GERI Live adopts it as the definitive anchor with weight 0 on the signal (i.e., the daily value takes full precedence).
 5. **Band Assignment:** 0-20 LOW, 21-40 MODERATE, 41-60 ELEVATED, 61-80 SEVERE, 81-100 CRITICAL
-6. **Trend:** Compared against yesterday's official daily GERI from `intel_indices_daily`
+6. **Trend:** Compared against the anchor (previous day's GERI Daily)
 
 ### Debounce
 

@@ -1,20 +1,28 @@
 """
 GERI Live — Real-time GERI Index Computation Engine
 
-Computes an intraday GERI value as alerts are processed, storing results
-in the `geri_live` table. The daily GERI (intel_indices_daily) remains
-the official published value; geri_live is a real-time preview for
-Pro and Enterprise users.
+Computes an intraday GERI value anchored to the previous day's close,
+adjusted by today's incoming alerts. Stores results in the `geri_live`
+table. The daily GERI (intel_indices_daily) remains the official
+published value; geri_live is a real-time preview for Pro/Enterprise users.
 
 Architecture:
-  alert_events (today) → compute_components → normalize → geri_live table
+  anchor (previous close) + today's alerts → blended GERI Live value
   ↓
   SSE broadcast → connected Pro/Enterprise clients
+
+Continuity Model:
+  - At 00:00 UTC, GERI Live starts at the previous day's closing value
+  - As today's alerts accumulate, the "today signal" weight increases
+  - When GERI Daily is computed (~01:15-01:30 UTC), it becomes the anchor
+  - Formula: blended = anchor * (1 - signal_weight) + today_signal * signal_weight
+  - signal_weight ramps from 0.0 (0 alerts) to ~0.85 (150+ alerts)
 """
 
 import logging
 import json
 import asyncio
+import math
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List
 
@@ -36,6 +44,9 @@ from src.geri.repo import get_historical_baseline
 logger = logging.getLogger(__name__)
 
 DEBOUNCE_SECONDS = 60
+
+TYPICAL_DAILY_ALERTS = 120
+SIGNAL_WEIGHT_MAX = 0.85
 
 _live_clients: List[asyncio.Queue] = []
 _live_clients_lock = asyncio.Lock()
@@ -68,6 +79,12 @@ def run_geri_live_migration():
             """)
         except Exception as e:
             logger.warning("Could not add value_raw column (may already exist): %s", e)
+        try:
+            cursor.execute("""
+                ALTER TABLE geri_live ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'
+            """)
+        except Exception as e:
+            logger.warning("Could not add metadata column (may already exist): %s", e)
     logger.info("geri_live table migration complete")
 
 
@@ -125,25 +142,106 @@ def _get_today_alerts() -> List[AlertRecord]:
     return alerts
 
 
-def _get_yesterday_geri_value() -> Optional[int]:
-    row = execute_one(
-        "SELECT value, date, index_id FROM intel_indices_daily ORDER BY date DESC LIMIT 1"
+def _get_anchor_value() -> Dict[str, Any]:
+    """
+    Get the anchor value for GERI Live continuity.
+    
+    Priority:
+      1. Today's GERI Daily (if already computed, e.g. after 01:30 UTC)
+      2. Latest GERI Daily (yesterday's official close)
+      3. Last geri_live entry from yesterday (if daily hasn't been computed yet)
+      4. Fallback to 50 (neutral midpoint)
+    
+    Returns dict with 'value', 'source', and 'date'.
+    """
+    today = date.today()
+    
+    today_daily = execute_one(
+        "SELECT value, date FROM intel_indices_daily WHERE index_id = %s AND date = %s",
+        (INDEX_ID, today)
     )
-    if row:
-        logger.info(f"Yesterday GERI from intel_indices_daily (date={row.get('date')}, index_id={row.get('index_id')}): {row['value']}")
-        return int(row['value'])
-    yesterday = date.today() - timedelta(days=1)
+    if today_daily:
+        val = int(today_daily['value'])
+        logger.info(f"GERI Live anchor: today's daily GERI = {val} (date={today})")
+        return {'value': val, 'source': 'daily_today', 'date': today.isoformat()}
+
+    latest_daily = execute_one(
+        "SELECT value, date FROM intel_indices_daily WHERE index_id = %s ORDER BY date DESC LIMIT 1",
+        (INDEX_ID,)
+    )
+    if latest_daily:
+        val = int(latest_daily['value'])
+        d = latest_daily['date']
+        logger.info(f"GERI Live anchor: latest daily GERI = {val} (date={d})")
+        return {'value': val, 'source': 'daily_previous', 'date': d.isoformat() if hasattr(d, 'isoformat') else str(d)}
+
+    yesterday = today - timedelta(days=1)
     yesterday_start = datetime.combine(yesterday, datetime.min.time())
-    today_start = datetime.combine(date.today(), datetime.min.time())
-    row2 = execute_one(
+    today_start = datetime.combine(today, datetime.min.time())
+    last_live = execute_one(
         "SELECT value FROM geri_live WHERE computed_at >= %s AND computed_at < %s ORDER BY id DESC LIMIT 1",
         (yesterday_start, today_start)
     )
-    if row2:
-        logger.info(f"Yesterday GERI from geri_live table: {row2['value']}")
-        return int(row2['value'])
-    logger.warning("No yesterday GERI found in any source")
+    if last_live:
+        val = int(last_live['value'])
+        logger.info(f"GERI Live anchor: yesterday's last live = {val}")
+        return {'value': val, 'source': 'live_yesterday', 'date': yesterday.isoformat()}
+
+    logger.warning("No anchor found, using neutral midpoint 50")
+    return {'value': 50, 'source': 'default', 'date': today.isoformat()}
+
+
+def _compute_signal_weight(alert_count: int) -> float:
+    """
+    Compute how much weight to give today's alert-based signal vs the anchor.
+    
+    Uses a logarithmic curve so the weight ramps up quickly with the first
+    alerts, then flattens — reflecting diminishing marginal information.
+    
+    Examples:
+      0 alerts  → 0.00 (pure anchor)
+      5 alerts  → 0.22
+      10 alerts → 0.33
+      25 alerts → 0.47
+      50 alerts → 0.57
+      100 alerts → 0.67
+      150 alerts → 0.73
+      200+ alerts → approaches 0.85 max
+    """
+    if alert_count <= 0:
+        return 0.0
+    weight = SIGNAL_WEIGHT_MAX * (1 - math.exp(-alert_count / (TYPICAL_DAILY_ALERTS * 0.6)))
+    return min(weight, SIGNAL_WEIGHT_MAX)
+
+
+def _get_previous_close() -> Optional[int]:
+    """
+    Get the previous official GERI Daily close for trend calculation.
+    This always returns YESTERDAY's value, never today's daily.
+    Used for "Previous Close" display and trend_vs_yesterday.
+    """
+    latest_daily = execute_one(
+        "SELECT value, date FROM intel_indices_daily WHERE index_id = %s ORDER BY date DESC LIMIT 1",
+        (INDEX_ID,)
+    )
+    if latest_daily:
+        return int(latest_daily['value'])
+
+    yesterday = date.today() - timedelta(days=1)
+    yesterday_start = datetime.combine(yesterday, datetime.min.time())
+    today_start = datetime.combine(date.today(), datetime.min.time())
+    last_live = execute_one(
+        "SELECT value FROM geri_live WHERE computed_at >= %s AND computed_at < %s ORDER BY id DESC LIMIT 1",
+        (yesterday_start, today_start)
+    )
+    if last_live:
+        return int(last_live['value'])
     return None
+
+
+def _get_yesterday_geri_value() -> Optional[int]:
+    """Get yesterday's GERI value for trend calculation (alias for previous close)."""
+    return _get_previous_close()
 
 
 def _should_debounce() -> bool:
@@ -251,16 +349,17 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
         logger.debug("GERI Live: debounced (< 60s since last compute)")
         return get_latest_live_geri()
 
+    anchor = _get_anchor_value()
+    anchor_val = anchor['value']
+
     alerts = _get_today_alerts()
     alert_count = len(alerts)
 
     if alert_count == 0:
-        yesterday_val = _get_yesterday_geri_value()
-        v = yesterday_val or 0
         result = {
-            'value': v,
-            'value_raw': float(v),
-            'band': get_band(v).value,
+            'value': anchor_val,
+            'value_raw': float(anchor_val),
+            'band': get_band(anchor_val).value,
             'trend_vs_yesterday': 0,
             'alert_count': 0,
             'top_drivers': [],
@@ -269,6 +368,9 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
             'interpretation': '',
             'computed_at': datetime.utcnow().isoformat(),
             'no_alerts_today': True,
+            'anchor_value': anchor_val,
+            'anchor_source': anchor['source'],
+            'signal_weight': 0.0,
         }
         _store_live_result(result)
         return result
@@ -278,18 +380,39 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     today = date.today()
     baseline = get_historical_baseline(today)
     components = normalize_components(components, baseline)
-    value = calculate_geri_value(components)
-    value_raw = round(
+    today_signal = calculate_geri_value(components)
+    today_signal_raw = round(
         GERI_WEIGHTS['high_impact'] * components.norm_high_impact +
         GERI_WEIGHTS['regional_spike'] * components.norm_regional_spike +
         GERI_WEIGHTS['asset_risk'] * components.norm_asset_risk +
         GERI_WEIGHTS['region_concentration'] * components.norm_region_concentration,
         2
     )
-    band = get_band(value)
+
+    signal_weight = _compute_signal_weight(alert_count)
+
+    if anchor['source'] == 'daily_today':
+        blended_raw = float(anchor_val)
+        blended = anchor_val
+        signal_weight = 0.0
+        logger.info(
+            "GERI Live: using today's daily GERI as definitive value = %d", anchor_val
+        )
+    else:
+        blended_raw = round(
+            anchor_val * (1 - signal_weight) + today_signal_raw * signal_weight,
+            2
+        )
+        blended = max(0, min(100, round(blended_raw)))
+        logger.info(
+            "GERI Live: anchor=%d, today_signal=%d (raw=%.2f), weight=%.3f → blended=%d (raw=%.2f), alerts=%d",
+            anchor_val, today_signal, today_signal_raw, signal_weight, blended, blended_raw, alert_count
+        )
+
+    band = get_band(blended)
 
     yesterday_val = _get_yesterday_geri_value()
-    trend = value - yesterday_val if yesterday_val is not None else None
+    trend = blended - yesterday_val if yesterday_val is not None else None
 
     top_drivers = []
     for d in (components.top_drivers or [])[:5]:
@@ -328,10 +451,10 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
 
     interp = last_interp
     interp_updated = False
-    if should_regenerate_interpretation(value, last_value, band.value, last_band):
+    if should_regenerate_interpretation(blended, last_value, band.value, last_band):
         try:
             new_interp = generate_live_interpretation(
-                value=value,
+                value=blended,
                 band=band.value,
                 top_drivers=top_drivers,
                 top_regions=[r['region'] for r in top_regions],
@@ -346,13 +469,13 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     now_str = datetime.utcnow().isoformat()
 
     timeline = get_live_geri_timeline()
-    velocity = _compute_velocity(timeline, value)
-    band_proximity = _compute_band_proximity(value)
-    peak_low = _compute_peak_low(timeline, value)
+    velocity = _compute_velocity(timeline, blended)
+    band_proximity = _compute_band_proximity(blended)
+    peak_low = _compute_peak_low(timeline, blended)
 
     result = {
-        'value': value,
-        'value_raw': value_raw,
+        'value': blended,
+        'value_raw': blended_raw,
         'band': band.value,
         'trend_vs_yesterday': trend,
         'alert_count': alert_count,
@@ -365,6 +488,11 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
         'computed_at': now_str,
         'yesterday_value': yesterday_val,
         'no_alerts_today': False,
+        'anchor_value': anchor_val,
+        'anchor_source': anchor['source'],
+        'signal_weight': round(signal_weight, 3),
+        'today_signal': today_signal,
+        'today_signal_raw': today_signal_raw,
         'velocity': velocity,
         'band_proximity': band_proximity,
         'peak_low': peak_low,
@@ -394,13 +522,20 @@ def _check_value_raw() -> bool:
 
 def _store_live_result(result: Dict[str, Any]):
     has_raw = _check_value_raw()
+    metadata = json.dumps({
+        'anchor_value': result.get('anchor_value'),
+        'anchor_source': result.get('anchor_source'),
+        'signal_weight': result.get('signal_weight'),
+        'today_signal': result.get('today_signal'),
+        'today_signal_raw': result.get('today_signal_raw'),
+    })
     with get_cursor(commit=True) as cursor:
         if has_raw:
             cursor.execute("""
                 INSERT INTO geri_live 
                     (value, value_raw, band, trend_vs_yesterday, components, interpretation,
-                     alert_count, last_alert_id, top_drivers, top_regions, computed_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                     alert_count, last_alert_id, top_drivers, top_regions, metadata, computed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
             """, (
                 result['value'],
                 result.get('value_raw', float(result['value'])),
@@ -412,13 +547,14 @@ def _store_live_result(result: Dict[str, Any]):
                 result.get('last_alert_id'),
                 json.dumps(result.get('top_drivers', [])),
                 json.dumps(result.get('top_regions', [])),
+                metadata,
             ))
         else:
             cursor.execute("""
                 INSERT INTO geri_live 
                     (value, band, trend_vs_yesterday, components, interpretation,
-                     alert_count, last_alert_id, top_drivers, top_regions, computed_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                     alert_count, last_alert_id, top_drivers, top_regions, metadata, computed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
             """, (
                 result['value'],
                 result['band'],
@@ -429,13 +565,14 @@ def _store_live_result(result: Dict[str, Any]):
                 result.get('last_alert_id'),
                 json.dumps(result.get('top_drivers', [])),
                 json.dumps(result.get('top_regions', [])),
+                metadata,
             ))
 
 
 def get_latest_live_geri() -> Optional[Dict[str, Any]]:
     today_start = datetime.combine(date.today(), datetime.min.time())
     has_raw = _check_value_raw()
-    cols = "id, value, value_raw, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at" if has_raw else "id, value, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, computed_at"
+    cols = "id, value, value_raw, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, metadata, computed_at" if has_raw else "id, value, band, trend_vs_yesterday, components, interpretation, alert_count, last_alert_id, top_drivers, top_regions, metadata, computed_at"
     row = execute_one(f"""
         SELECT {cols}
         FROM geri_live
@@ -499,6 +636,15 @@ def _row_to_dict(row) -> Dict[str, Any]:
         except Exception:
             top_regions = []
 
+    metadata = row.get('metadata', {})
+    if isinstance(metadata, str):
+        try:
+            metadata = json.loads(metadata)
+        except Exception:
+            metadata = {}
+    if metadata is None:
+        metadata = {}
+
     ca = row['computed_at']
     if hasattr(ca, 'isoformat'):
         ca = ca.isoformat()
@@ -519,6 +665,10 @@ def _row_to_dict(row) -> Dict[str, Any]:
         'top_drivers': top_drivers,
         'top_regions': top_regions,
         'computed_at': ca,
+        'anchor_value': metadata.get('anchor_value'),
+        'anchor_source': metadata.get('anchor_source'),
+        'signal_weight': metadata.get('signal_weight'),
+        'today_signal': metadata.get('today_signal'),
     }
 
 
@@ -580,7 +730,8 @@ REQUIREMENTS:
 4. Keep it to 1-2 tight paragraphs (100-150 words total)
 5. Write as a human expert, not a template
 6. Do NOT use phrases like "in conclusion" or "overall"
-7. Use present tense — this is a live reading"""
+7. Use present tense — this is a live reading
+8. Do NOT mention anchoring, blending, or technical computation details"""
 
         response = client.chat.completions.create(
             model="gpt-4.1-mini",

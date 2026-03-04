@@ -6222,7 +6222,7 @@
 
                         <div class="geri-live-yesterday-compare" id="geriLiveYesterdayCompare">
                             <div class="geri-live-compare-item">
-                                <span class="geri-live-compare-label">Yesterday's GERI</span>
+                                <span class="geri-live-compare-label">Previous Close</span>
                                 <span class="geri-live-compare-value" id="geriLiveYesterdayVal">--</span>
                             </div>
                             <div class="geri-live-compare-arrow">→</div>
@@ -13728,8 +13728,8 @@
             geriLiveLastUpdated = new Date();
             startGeriLiveTimer();
 
-            var yesterdayVal = data.yesterday_value;
-            document.getElementById('geriLiveYesterdayVal').textContent = (yesterdayVal !== null && yesterdayVal !== undefined) ? yesterdayVal : 'N/A';
+            var anchorVal = data.anchor_value !== undefined && data.anchor_value !== null ? data.anchor_value : data.yesterday_value;
+            document.getElementById('geriLiveYesterdayVal').textContent = (anchorVal !== null && anchorVal !== undefined) ? anchorVal : 'N/A';
             document.getElementById('geriLiveTodayVal').textContent = newVal;
             document.getElementById('geriLiveYesterdayCompare').style.display = 'flex';
 
