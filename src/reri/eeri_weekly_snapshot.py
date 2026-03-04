@@ -31,6 +31,7 @@ CONDITIONAL_TENDENCIES = {
             {'asset': 'VIX', 'tendency': '60-70% elevated levels', 'confidence': 'High', 'condition': 'Critical + Rising'},
             {'asset': 'EUR/USD', 'tendency': '60-70% weaker EUR', 'confidence': 'Medium', 'condition': 'Critical + Rising'},
             {'asset': 'EU Gas Storage', 'tendency': '60-70% accelerated draws', 'confidence': 'High', 'condition': 'Critical + Rising'},
+            {'asset': 'LNG (JKM)', 'tendency': '65-75% upward pressure from cargo diversion', 'confidence': 'High', 'condition': 'Critical + Rising'},
         ],
         'stable': [
             {'asset': 'TTF Gas', 'tendency': '55-65% continued volatility', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
@@ -38,6 +39,7 @@ CONDITIONAL_TENDENCIES = {
             {'asset': 'VIX', 'tendency': '55-65% elevated', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
             {'asset': 'EUR/USD', 'tendency': '55-65% weaker EUR', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
             {'asset': 'EU Gas Storage', 'tendency': '55-65% seasonal draws', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
+            {'asset': 'LNG (JKM)', 'tendency': '55-65% elevated spot prices', 'confidence': 'Medium', 'condition': 'Critical + Stable'},
         ],
         'falling': [
             {'asset': 'TTF Gas', 'tendency': '50-60% normalizing', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
@@ -45,6 +47,7 @@ CONDITIONAL_TENDENCIES = {
             {'asset': 'VIX', 'tendency': '50-60% normalizing', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
             {'asset': 'EUR/USD', 'tendency': '50-60% stabilizing', 'confidence': 'Low', 'condition': 'Critical + Falling'},
             {'asset': 'EU Gas Storage', 'tendency': '50-60% seasonal norms', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
+            {'asset': 'LNG (JKM)', 'tendency': '50-60% normalizing', 'confidence': 'Medium', 'condition': 'Critical + Falling'},
         ],
     },
     'SEVERE': {
@@ -54,6 +57,7 @@ CONDITIONAL_TENDENCIES = {
             {'asset': 'VIX', 'tendency': '55-65% elevated levels', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
             {'asset': 'EUR/USD', 'tendency': '55-65% weaker EUR', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
             {'asset': 'EU Gas Storage', 'tendency': '55-65% accelerated draws', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
+            {'asset': 'LNG (JKM)', 'tendency': '55-65% elevated spot prices', 'confidence': 'Medium', 'condition': 'Severe + Rising'},
         ],
         'stable': [
             {'asset': 'TTF Gas', 'tendency': '50-60% elevated volatility', 'confidence': 'Medium', 'condition': 'Severe + Stable'},
@@ -61,6 +65,7 @@ CONDITIONAL_TENDENCIES = {
             {'asset': 'VIX', 'tendency': '50-60% elevated', 'confidence': 'Medium', 'condition': 'Severe + Stable'},
             {'asset': 'EUR/USD', 'tendency': '50-60% weaker EUR', 'confidence': 'Low', 'condition': 'Severe + Stable'},
             {'asset': 'EU Gas Storage', 'tendency': '50-60% seasonal draws', 'confidence': 'Medium', 'condition': 'Severe + Stable'},
+            {'asset': 'LNG (JKM)', 'tendency': '50-60% moderate spot pressure', 'confidence': 'Low', 'condition': 'Severe + Stable'},
         ],
         'falling': [
             {'asset': 'TTF Gas', 'tendency': '45-55% normalizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
@@ -68,6 +73,7 @@ CONDITIONAL_TENDENCIES = {
             {'asset': 'VIX', 'tendency': '45-55% normalizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
             {'asset': 'EUR/USD', 'tendency': '45-55% stabilizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
             {'asset': 'EU Gas Storage', 'tendency': '50-60% seasonal norms', 'confidence': 'Medium', 'condition': 'Severe + Falling'},
+            {'asset': 'LNG (JKM)', 'tendency': '45-55% normalizing', 'confidence': 'Low', 'condition': 'Severe + Falling'},
         ],
     },
 }
@@ -160,6 +166,7 @@ TENDENCIES = {
         {'asset': 'VIX', 'tendency': '55–65% probability of elevated levels', 'confidence': 'Medium'},
         {'asset': 'EUR/USD', 'tendency': '55–65% probability of weaker EUR', 'confidence': 'Medium'},
         {'asset': 'EU Gas Storage', 'tendency': '55–65% probability of accelerated draws', 'confidence': 'Medium'},
+        {'asset': 'LNG (JKM)', 'tendency': '60–70% probability of upward pressure from cargo competition', 'confidence': 'Medium'},
     ],
     'SEVERE': [
         {'asset': 'TTF Gas', 'tendency': '55–65% probability of elevated volatility', 'confidence': 'Medium'},
@@ -167,6 +174,7 @@ TENDENCIES = {
         {'asset': 'VIX', 'tendency': '50–60% probability of elevated levels', 'confidence': 'Medium'},
         {'asset': 'EUR/USD', 'tendency': '50–60% probability of weaker EUR', 'confidence': 'Low'},
         {'asset': 'EU Gas Storage', 'tendency': '50–60% probability of seasonal draws', 'confidence': 'Medium'},
+        {'asset': 'LNG (JKM)', 'tendency': '55–65% probability of elevated spot prices', 'confidence': 'Medium'},
     ],
     'ELEVATED': [
         {'asset': 'TTF Gas', 'tendency': '50–60% probability of moderate volatility', 'confidence': 'Medium'},
@@ -174,6 +182,7 @@ TENDENCIES = {
         {'asset': 'VIX', 'tendency': '45–55% normalizing tendency', 'confidence': 'Low'},
         {'asset': 'EUR/USD', 'tendency': '50–55% stable', 'confidence': 'Low'},
         {'asset': 'EU Gas Storage', 'tendency': '50–60% seasonal norms', 'confidence': 'Medium'},
+        {'asset': 'LNG (JKM)', 'tendency': '50–60% moderate price sensitivity', 'confidence': 'Low'},
     ],
     'MODERATE': [
         {'asset': 'TTF Gas', 'tendency': '40–50% stable', 'confidence': 'Low'},
@@ -181,6 +190,7 @@ TENDENCIES = {
         {'asset': 'VIX', 'tendency': '40–50% stable', 'confidence': 'Low'},
         {'asset': 'EUR/USD', 'tendency': '45–55% stable', 'confidence': 'Low'},
         {'asset': 'EU Gas Storage', 'tendency': '50–60% seasonal norms', 'confidence': 'Medium'},
+        {'asset': 'LNG (JKM)', 'tendency': '45–55% stable', 'confidence': 'Low'},
     ],
     'LOW': [
         {'asset': 'TTF Gas', 'tendency': '40–50% stable', 'confidence': 'Low'},
@@ -188,6 +198,7 @@ TENDENCIES = {
         {'asset': 'VIX', 'tendency': '40–50% stable', 'confidence': 'Low'},
         {'asset': 'EUR/USD', 'tendency': '45–55% stable', 'confidence': 'Low'},
         {'asset': 'EU Gas Storage', 'tendency': '50–60% seasonal norms', 'confidence': 'Medium'},
+        {'asset': 'LNG (JKM)', 'tendency': '45–55% stable', 'confidence': 'Low'},
     ],
 }
 
@@ -314,6 +325,11 @@ ASSET_CONTEXT_TEMPLATES = {
         'neutral': 'Storage levels followed seasonal norms.',
         'diverging': 'Storage levels held steady despite elevated risk signals.',
     },
+    'lng': {
+        'confirming': 'LNG spot prices rose alongside European energy risk, reflecting global competition for cargoes.',
+        'neutral': 'LNG markets showed limited reaction to European risk conditions.',
+        'diverging': 'LNG prices eased despite elevated European energy risk, suggesting adequate global supply.',
+    },
 }
 
 
@@ -341,10 +357,36 @@ def _get_divergence_status(cross_asset: List[Dict[str, Any]]) -> Tuple[str, str]
     return status, narrative
 
 
+def _get_latest_eeri_data_week() -> Tuple[date, date, list]:
+    """Find the latest available EERI data spanning at least 3 days."""
+    query = """
+        SELECT date, value, band, trend_7d
+        FROM reri_indices_daily
+        WHERE index_id = %s AND value > 0
+        ORDER BY date DESC
+        LIMIT 30
+    """
+    try:
+        with get_production_cursor() as cursor:
+            cursor.execute(query, (EERI_INDEX_ID,))
+            rows = cursor.fetchall()
+        if len(rows) < 3:
+            return None, None, []
+        rows = list(reversed([dict(r) for r in rows]))
+        data_start = rows[0]['date']
+        data_end = rows[-1]['date']
+        return data_start, data_end, rows
+    except Exception as e:
+        logger.error(f"Error fetching latest EERI data: {e}")
+        return None, None, []
+
+
 def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
     """
     Compute the full EERI Weekly Snapshot for the public /eeri page.
     Returns None if insufficient data.
+    Uses the latest available EERI data window, ensuring asset queries
+    use the exact same date range for consistency.
     """
     week_start, week_end = _get_last_complete_week()
 
@@ -353,9 +395,13 @@ def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
     if len(eeri_data) < 3:
         week_start, week_end = _get_current_partial_week()
         eeri_data = _fetch_eeri_week(week_start, week_end)
-        if len(eeri_data) < 3:
+
+    if len(eeri_data) < 3:
+        week_start, week_end, eeri_data = _get_latest_eeri_data_week()
+        if not eeri_data or len(eeri_data) < 3:
             logger.info("Insufficient EERI data for weekly snapshot")
             return None
+        logger.info(f"Weekly snapshot using latest available EERI data: {week_start} to {week_end}")
 
     eeri_values = [int(r['value']) for r in eeri_data]
     eeri_bands = [r['band'] for r in eeri_data]
@@ -412,6 +458,7 @@ def get_weekly_snapshot() -> Optional[Dict[str, Any]]:
         ('vix', 'VIX', 'vix_snapshots', 'date', 'vix_close'),
         ('eurusd', 'EUR/USD', 'eurusd_snapshots', 'date', 'rate'),
         ('storage', 'EU Gas Storage', 'gas_storage_snapshots', 'date', 'eu_storage_percent'),
+        ('lng', 'LNG (JKM)', 'lng_price_snapshots', 'date', 'jkm_price'),
     ]
 
     cross_asset = []
@@ -671,6 +718,7 @@ def get_weekly_snapshot_tiered(plan: str = 'free') -> Optional[Dict[str, Any]]:
             ('vix', 'VIX', 'vix_snapshots', 'date', 'vix_close'),
             ('eurusd', 'EUR/USD', 'eurusd_snapshots', 'date', 'rate'),
             ('storage', 'EU Gas Storage', 'gas_storage_snapshots', 'date', 'eu_storage_percent'),
+            ('lng', 'LNG (JKM)', 'lng_price_snapshots', 'date', 'jkm_price'),
         ]
 
         eeri_data = _fetch_eeri_week(week_start, week_end)
