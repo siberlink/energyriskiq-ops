@@ -459,6 +459,18 @@ async def get_eeri_pro_history(
         with get_production_cursor() as cursor:
             cursor.execute(query, (EERI_INDEX_ID, start_date, end_date))
             rows = cursor.fetchall()
+            
+            if not rows:
+                cursor.execute("""
+                    SELECT date, value, band, trend_1d, trend_7d, components, computed_at
+                    FROM reri_indices_daily
+                    WHERE index_id = %s
+                    ORDER BY date ASC
+                """, (EERI_INDEX_ID,))
+                rows = cursor.fetchall()
+                if rows:
+                    start_date = rows[0]['date']
+                    end_date = rows[-1]['date']
         
         data = []
         values = []
