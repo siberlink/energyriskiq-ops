@@ -34,6 +34,7 @@ LOCK_IDS = {
     'calculate_oil_changes': 5003,
     'backfill_eurusd': 5004,
     'geri_compute': 6001,
+    'intraday_price_capture': 6002,
 }
 
 
