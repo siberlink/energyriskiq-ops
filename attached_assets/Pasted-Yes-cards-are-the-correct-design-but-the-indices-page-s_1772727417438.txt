@@ -1,0 +1,147 @@
+Yes — cards are the correct design, but the /indices page should contain more than just cards.
+
+Think of /indices as both:
+
+1️⃣ Navigation hub
+2️⃣ SEO authority page
+
+Here is the ideal structure.
+
+Ideal Structure for /indices
+1️⃣ Hero Section (very important for SEO)
+
+Title (H1)
+
+Energy Risk Indices
+
+Short explanation (2–3 lines):
+
+EnergyRiskIQ indices translate complex geopolitical, supply chain, and policy developments into measurable risk signals.
+Each index aggregates thousands of events and market indicators to quantify escalation risk in global and regional energy systems.
+
+This helps Google understand the topic of the page.
+
+2️⃣ Index Cards (Primary Navigation)
+
+Yes — each index should be a card.
+
+Example layout (3 cards):
+
+Global Energy Risk Index (GERI)
+
+Measures escalation risk across global energy markets including oil, LNG logistics, and geopolitical tensions.
+
+→ View Index
+
+European Energy Risk Index (EERI)
+
+Tracks escalation risk specific to Europe’s energy system including gas flows, storage stress, sanctions, and infrastructure risk.
+
+→ View Index
+
+Europe Gas Stress Index (EGSI)
+
+Quantifies stress in the European gas market using storage levels, LNG flows, weather risk, and supply disruptions.
+
+→ View Index
+
+Design recommendation
+
+Cards should include:
+
+Index name
+
+Abbreviation
+
+1–2 sentence description
+
+Small chart preview (optional but powerful)
+
+CTA button
+
+Example CTA:
+
+View Index →
+3️⃣ “How EnergyRiskIQ Indices Work” Section
+
+This is extremely valuable for SEO.
+
+Example:
+
+How EnergyRiskIQ Risk Indices Work
+
+EnergyRiskIQ indices transform complex energy market signals into structured daily indicators.
+
+Each index is built from three components:
+
+• Geopolitical Events
+Conflicts, sanctions, policy shifts and infrastructure incidents.
+
+• Market Signals
+Price volatility, freight disruptions, and derivative market stress.
+
+• Structural Indicators
+Storage levels, supply flows, seasonal demand pressure and logistics capacity.
+
+These signals are normalized into a 0–100 risk scale, where higher values indicate elevated escalation risk compared to normal market conditions.
+
+4️⃣ Link to the Dashboard
+
+CTA section:
+
+Monitor Energy Risk in Real Time
+
+Professional dashboards provide live charts, correlation analysis and escalation signals.
+
+👉 View the EnergyRiskIQ Dashboard
+
+5️⃣ Optional: Latest Index Readings (very powerful)
+
+Example small table:
+
+Index	Latest	Change
+GERI	63	↑
+EERI	71	↑
+EGSI	54	↓
+
+This makes the page feel alive and increases SEO crawl frequency.
+
+Why this page is important
+
+Your /indices page becomes a topical authority node for:
+
+energy risk index
+
+energy risk indicators
+
+geopolitical energy risk
+
+gas market stress indicators
+
+Google loves hub pages like this.
+
+One important UX rule
+
+The cards should be above the fold.
+
+Visitors should immediately see:
+
+GERI
+EERI
+EGSI
+
+No scrolling required.
+
+One more important tip (very few people do this)
+
+Each card title should be an H2 tag linking to the index page.
+
+Example:
+
+<h2>
+<a href="/indices/global-energy-risk-index">
+Global Energy Risk Index (GERI)
+</a>
+</h2>
+
+This passes strong internal SEO authority.

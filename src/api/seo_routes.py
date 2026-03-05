@@ -4392,6 +4392,487 @@ def render_digest_nav() -> str:
     """
 
 
+def _get_indices_latest_values() -> dict:
+    from datetime import datetime, timedelta
+    result = {"geri": None, "eeri": None, "egsi": None}
+    yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute("""
+                SELECT value, band, date FROM intel_indices_daily
+                WHERE index_id = 'global:geo_energy_risk' AND date <= %s
+                ORDER BY date DESC LIMIT 1
+            """, (yesterday,))
+            row = cursor.fetchone()
+            if row:
+                result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"])}
+            else:
+                cursor.execute("""
+                    SELECT value, band, computed_at::date as date FROM geri_live
+                    WHERE computed_at::date <= %s AND value > 0
+                    ORDER BY computed_at DESC LIMIT 1
+                """, (yesterday,))
+                row = cursor.fetchone()
+                if row:
+                    result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"])}
+    except Exception:
+        pass
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute("""
+                SELECT value, band, date FROM reri_indices_daily
+                WHERE index_id = 'europe:eeri' AND date <= %s
+                ORDER BY date DESC LIMIT 1
+            """, (yesterday,))
+            row = cursor.fetchone()
+            if row:
+                result["eeri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"])}
+    except Exception:
+        pass
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute("""
+                SELECT index_value as value, band, index_date as date FROM egsi_m_daily
+                WHERE region = 'Europe' AND index_date <= %s
+                ORDER BY index_date DESC LIMIT 1
+            """, (yesterday,))
+            row = cursor.fetchone()
+            if row:
+                raw = float(row["value"])
+                display_val = int(raw) if raw == int(raw) else round(raw, 1)
+                result["egsi"] = {"value": display_val, "band": row["band"], "date": str(row["date"])}
+    except Exception:
+        pass
+    return result
+
+
+@router.get("/indices", response_class=HTMLResponse)
+async def indices_hub_page(request: Request):
+    await apply_anti_scraping(request)
+    track_page_view("indices", "/indices")
+
+    data = _get_indices_latest_values()
+
+    band_colors = {
+        'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316',
+        'SEVERE': '#ef4444', 'CRITICAL': '#dc2626'
+    }
+
+    def _render_index_card(idx_key, title, abbrev, description, href, icon, data_entry):
+        if data_entry:
+            val = data_entry["value"]
+            band = data_entry["band"]
+            b_color = band_colors.get(band, '#6b7280')
+            date_str = data_entry["date"]
+            value_html = f'''
+                <div class="idx-card-value" style="color: {b_color};">{val}<span class="idx-card-max"> / 100</span></div>
+                <div class="idx-card-band" style="color: {b_color};">{band}</div>
+                <div class="idx-card-date">{date_str} &middot; 24h Delayed</div>
+            '''
+        else:
+            value_html = '<div class="idx-card-no-data">Awaiting data</div>'
+
+        return f'''
+        <div class="idx-card">
+            <div class="idx-card-icon">{icon}</div>
+            <h2><a href="{href}">{title} ({abbrev})</a></h2>
+            <p class="idx-card-desc">{description}</p>
+            {value_html}
+            <a href="{href}" class="idx-card-cta">View Index &rarr;</a>
+        </div>
+        '''
+
+    cards_html = _render_index_card(
+        "geri", "Global Energy Risk Index", "GERI",
+        "Measures escalation risk across global energy markets including oil, LNG logistics, and geopolitical tensions.",
+        "/geri", "&#x1F525;", data.get("geri")
+    ) + _render_index_card(
+        "eeri", "European Energy Risk Index", "EERI",
+        "Tracks escalation risk specific to Europe's energy system including gas flows, storage stress, sanctions, and infrastructure risk.",
+        "/eeri", "&#x26A1;", data.get("eeri")
+    ) + _render_index_card(
+        "egsi", "Europe Gas Stress Index", "EGSI",
+        "Quantifies stress in the European gas market using storage levels, LNG flows, weather risk, and supply disruptions.",
+        "/egsi", "&#x1F4A8;", data.get("egsi")
+    )
+
+    readings_rows = ""
+    for label, abbrev, entry in [("Global Energy Risk Index", "GERI", data.get("geri")),
+                                  ("European Energy Risk Index", "EERI", data.get("eeri")),
+                                  ("Europe Gas Stress Index", "EGSI", data.get("egsi"))]:
+        if entry:
+            b_color = band_colors.get(entry["band"], '#6b7280')
+            readings_rows += f'''
+            <tr>
+                <td><strong>{abbrev}</strong></td>
+                <td style="color: {b_color}; font-weight: 700;">{entry["value"]}</td>
+                <td style="color: {b_color};">{entry["band"]}</td>
+                <td style="color: #64748b; font-size: 0.85rem;">{entry["date"]}</td>
+            </tr>'''
+        else:
+            readings_rows += f'''
+            <tr>
+                <td><strong>{abbrev}</strong></td>
+                <td style="color: #475569;">—</td>
+                <td style="color: #475569;">—</td>
+                <td style="color: #64748b; font-size: 0.85rem;">—</td>
+            </tr>'''
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Energy Risk Indices | EnergyRiskIQ</title>
+        <meta name="description" content="EnergyRiskIQ indices translate complex geopolitical, supply chain, and policy developments into measurable risk signals. Track GERI, EERI, and EGSI.">
+        <link rel="canonical" href="{BASE_URL}/indices">
+
+        <meta property="og:title" content="Energy Risk Indices | EnergyRiskIQ">
+        <meta property="og:description" content="Track energy risk with GERI, EERI, and EGSI indices. Daily updates on geopolitical risk, European energy stress, and gas market conditions.">
+        <meta property="og:url" content="{BASE_URL}/indices">
+        <meta property="og:type" content="website">
+
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        {get_digest_dark_styles()}
+        <style>
+            .container {{ max-width: 1000px; }}
+
+            .indices-hero {{
+                text-align: center;
+                padding: 2.5rem 0 1.5rem 0;
+            }}
+            .indices-hero h1 {{
+                font-size: 2rem;
+                margin-bottom: 0.75rem;
+                color: #f1f5f9;
+                font-weight: 800;
+            }}
+            .indices-hero p {{
+                color: #94a3b8;
+                max-width: 680px;
+                margin: 0 auto 0.5rem auto;
+                font-size: 1rem;
+                line-height: 1.7;
+            }}
+
+            .idx-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.25rem;
+                margin: 1.5rem 0 2.5rem 0;
+            }}
+            .idx-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 14px;
+                padding: 1.75rem 1.5rem;
+                text-align: center;
+                transition: border-color 0.2s, transform 0.2s;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }}
+            .idx-card:hover {{
+                border-color: #60a5fa;
+                transform: translateY(-3px);
+            }}
+            .idx-card-icon {{
+                font-size: 2rem;
+                margin-bottom: 0.75rem;
+            }}
+            .idx-card h2 {{
+                font-size: 1.05rem;
+                margin: 0 0 0.5rem 0;
+                line-height: 1.4;
+            }}
+            .idx-card h2 a {{
+                color: #f1f5f9;
+                text-decoration: none;
+            }}
+            .idx-card h2 a:hover {{
+                color: #60a5fa;
+                text-decoration: underline;
+            }}
+            .idx-card-desc {{
+                color: #94a3b8;
+                font-size: 0.875rem;
+                line-height: 1.6;
+                margin-bottom: 1rem;
+                flex-grow: 1;
+            }}
+            .idx-card-value {{
+                font-size: 2.25rem;
+                font-weight: 700;
+                line-height: 1;
+                margin-bottom: 0.25rem;
+            }}
+            .idx-card-max {{
+                font-size: 0.85rem;
+                color: #64748b;
+            }}
+            .idx-card-band {{
+                font-size: 0.95rem;
+                font-weight: 600;
+                margin-bottom: 0.25rem;
+            }}
+            .idx-card-date {{
+                font-size: 0.75rem;
+                color: #64748b;
+                margin-bottom: 1rem;
+            }}
+            .idx-card-no-data {{
+                color: #475569;
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+                padding: 0.75rem 0;
+            }}
+            .idx-card-cta {{
+                display: inline-block;
+                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                color: white;
+                padding: 0.5rem 1.25rem;
+                border-radius: 8px;
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.85rem;
+                transition: opacity 0.2s;
+            }}
+            .idx-card-cta:hover {{ opacity: 0.85; }}
+
+            .idx-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 14px;
+                padding: 2rem 2.5rem;
+                margin-bottom: 2rem;
+            }}
+            .idx-section h2 {{
+                font-size: 1.35rem;
+                color: #f1f5f9;
+                margin: 0 0 1rem 0;
+                font-weight: 700;
+            }}
+            .idx-section p {{
+                color: #94a3b8;
+                font-size: 0.95rem;
+                line-height: 1.7;
+                margin-bottom: 0.75rem;
+            }}
+            .idx-section p:last-child {{ margin-bottom: 0; }}
+
+            .idx-components {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+                margin-top: 1.25rem;
+            }}
+            .idx-component {{
+                background: rgba(15, 23, 42, 0.6);
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1.25rem;
+            }}
+            .idx-component-icon {{
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }}
+            .idx-component h3 {{
+                font-size: 0.95rem;
+                color: #e2e8f0;
+                margin: 0 0 0.5rem 0;
+                font-weight: 600;
+            }}
+            .idx-component p {{
+                color: #94a3b8;
+                font-size: 0.825rem;
+                line-height: 1.55;
+                margin: 0;
+            }}
+
+            .idx-readings {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 1rem;
+            }}
+            .idx-readings th {{
+                text-align: left;
+                color: #64748b;
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                padding: 0.5rem 0.75rem;
+                border-bottom: 1px solid #334155;
+            }}
+            .idx-readings td {{
+                padding: 0.65rem 0.75rem;
+                color: #e2e8f0;
+                font-size: 0.9rem;
+                border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            }}
+
+            .idx-cta-section {{
+                text-align: center;
+                padding: 2.5rem 2rem;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 14px;
+                margin-bottom: 2rem;
+            }}
+            .idx-cta-section h2 {{
+                font-size: 1.35rem;
+                color: #f1f5f9;
+                margin: 0 0 0.5rem 0;
+            }}
+            .idx-cta-section p {{
+                color: #94a3b8;
+                max-width: 520px;
+                margin: 0 auto 1.25rem auto;
+                font-size: 0.95rem;
+            }}
+            .idx-cta-btn {{
+                display: inline-block;
+                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                color: white;
+                padding: 0.75rem 2rem;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: 700;
+                font-size: 1rem;
+                transition: opacity 0.2s;
+            }}
+            .idx-cta-btn:hover {{ opacity: 0.85; }}
+
+            .idx-delayed-note {{
+                text-align: center;
+                color: #64748b;
+                font-size: 0.8rem;
+                margin-bottom: 2rem;
+            }}
+            .idx-delayed-note span {{
+                background: rgba(251, 191, 36, 0.12);
+                border: 1px solid rgba(251, 191, 36, 0.3);
+                color: #fbbf24;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }}
+
+            @media (max-width: 768px) {{
+                .idx-grid {{
+                    grid-template-columns: 1fr;
+                    gap: 1rem;
+                }}
+                .idx-components {{
+                    grid-template-columns: 1fr;
+                }}
+                .idx-section {{
+                    padding: 1.25rem 1rem;
+                }}
+                .indices-hero h1 {{
+                    font-size: 1.5rem;
+                }}
+                .idx-card-value {{
+                    font-size: 1.75rem;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <nav class="nav">
+            <div class="container nav-inner">
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                    EnergyRiskIQ
+                </a>
+                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="nav-links">
+                    <a href="/geri">GERI</a>
+                    <a href="/eeri">EERI</a>
+                    <a href="/egsi">EGSI</a>
+                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                </div>
+            </div>
+        </nav>
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / Energy Risk Indices
+                </div>
+
+                <div class="indices-hero">
+                    <h1>Energy Risk Indices</h1>
+                    <p>EnergyRiskIQ indices translate complex geopolitical, supply chain, and policy developments into measurable risk signals.</p>
+                    <p>Each index aggregates thousands of events and market indicators to quantify escalation risk in global and regional energy systems.</p>
+                </div>
+
+                <div class="idx-delayed-note"><span>&#x1F551; All public values are 24h delayed</span></div>
+
+                <div class="idx-grid">
+                    {cards_html}
+                </div>
+
+                <div class="idx-section">
+                    <h2>Latest Index Readings</h2>
+                    <table class="idx-readings">
+                        <thead>
+                            <tr>
+                                <th>Index</th>
+                                <th>Value</th>
+                                <th>Band</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {readings_rows}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="idx-section">
+                    <h2>How EnergyRiskIQ Risk Indices Work</h2>
+                    <p>EnergyRiskIQ indices transform complex energy market signals into structured daily indicators.</p>
+                    <p>Each index is built from three core components:</p>
+                    <div class="idx-components">
+                        <div class="idx-component">
+                            <div class="idx-component-icon">&#x2694;&#xFE0F;</div>
+                            <h3>Geopolitical Events</h3>
+                            <p>Conflicts, sanctions, policy shifts and infrastructure incidents that disrupt energy supply chains.</p>
+                        </div>
+                        <div class="idx-component">
+                            <div class="idx-component-icon">&#x1F4CA;</div>
+                            <h3>Market Signals</h3>
+                            <p>Price volatility, freight disruptions, and derivative market stress indicators.</p>
+                        </div>
+                        <div class="idx-component">
+                            <div class="idx-component-icon">&#x26FD;</div>
+                            <h3>Structural Indicators</h3>
+                            <p>Storage levels, supply flows, seasonal demand pressure and logistics capacity constraints.</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 1.25rem;">These signals are normalized into a 0&ndash;100 risk scale, where higher values indicate elevated escalation risk compared to normal market conditions.</p>
+                </div>
+
+                <div class="idx-cta-section">
+                    <h2>Monitor Energy Risk in Real Time</h2>
+                    <p>Professional dashboards provide live charts, correlation analysis, and escalation signals across all indices.</p>
+                    <a href="/users" class="idx-cta-btn">View the EnergyRiskIQ Dashboard</a>
+                </div>
+            </div>
+        </main>
+        {render_digest_footer()}
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+
+
 def render_digest_footer() -> str:
     return """
     <footer>
