@@ -1,0 +1,186 @@
+1️⃣ Add a “Most Popular” Anchor Plan (Conversion Anchor)
+
+Right now your plans are visually equal.
+
+But most SaaS products guide users toward one plan.
+
+For EnergyRiskIQ, that should be:
+
+Trader – €29
+
+Why:
+
+serious users choose it
+
+price is psychologically comfortable
+
+it contains strong features
+
+What to change
+
+Highlight the Trader plan.
+
+Example:
+
+Trader
+⭐ MOST POPULAR
+Best for traders & analysts
+
+UI changes:
+
+slightly larger card
+
+brighter border
+
+badge above title
+
+Example layout:
+
+Free | Personal | ⭐ Trader | Pro | Enterprise
+Why this works
+
+People experience decision paralysis with many options.
+
+The “Most Popular” tag tells them:
+
+“This is what people like you choose.”
+
+This alone can increase conversions 20–40%.
+
+2️⃣ Add Value Comparison (Perceived Gain)
+
+Right now users see features, but they don’t immediately understand the value they gain by upgrading.
+
+Example improvement:
+
+Under each plan show a clear outcome.
+
+Current
+
+2 simultaneous chart overlays
+
+Improved
+
+Compare energy risk with oil & gas prices in real time
+
+Another example:
+
+Current
+
+Volatility expectation commentary
+
+Improved
+
+See when energy markets are likely to become volatile
+Why this works
+
+People do not buy features.
+
+They buy outcomes.
+
+So instead of:
+
+4 simultaneous chart overlays
+
+Say:
+
+Analyze risk across multiple energy markets simultaneously
+
+Small wording changes → higher perceived value.
+
+3️⃣ Introduce “Loss Aversion” in the Free Plan
+
+Right now the free plan simply lists features.
+
+But behavioral psychology shows people convert more when they feel they are missing something valuable.
+
+Add a section like:
+
+Free plan limitations
+
+Example:
+
+Free Plan Limitations
+
+• No historical risk analysis
+• No volatility forecasting
+• No cross-market overlays
+• No advanced scenario modelling
+
+Then add a line:
+
+Upgrade to unlock the full EnergyRiskIQ intelligence engine.
+Why this works
+
+Humans react more strongly to loss than gain.
+
+So instead of thinking:
+
+“Should I upgrade?”
+
+They start thinking:
+
+“What am I missing?”
+
+This increases upgrade rates significantly.
+
+Bonus Improvement (Very Powerful)
+
+Add a short credibility line above pricing.
+
+Example:
+
+Used by energy analysts, traders, and researchers
+to monitor geopolitical energy risk.
+
+or
+
+Independent energy risk intelligence for professionals.
+
+This builds trust before pricing.
+
+What Your Conversion Funnel Could Become
+
+With these tweaks:
+
+Step	Conversion
+Visitor → Free signup	3–6%
+Free → Paid upgrade	5–10%
+
+Instead of:
+
+0.5% conversion
+
+you may reach:
+
+1–1.5%
+
+Which doubles revenue potential.
+
+Example:
+
+Traffic	Paid Users
+20k visitors	100 users (old)
+20k visitors	200 users (improved)
+
+Revenue:
+
+€6k–€8k/month
+
+instead of €3k.
+
+One More Observation About Your Page
+
+Your design is very good for an analytics platform:
+
+dark theme → professional
+
+clear feature hierarchy
+
+strong plan ladder
+
+But it still lacks one thing:
+
+a clear emotional trigger for upgrading.
+
+The three tweaks above create that trigger.

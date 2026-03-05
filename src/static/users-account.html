@@ -2100,6 +2100,110 @@
             border-radius: 4px;
         }
 
+        .plan-card.popular {
+            border: 2px solid #f59e0b;
+            transform: scale(1.03);
+            box-shadow: 0 0 24px rgba(245, 158, 11, 0.15), 0 4px 16px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+
+        .plan-card.popular:hover {
+            transform: scale(1.05);
+        }
+
+        .plan-popular-badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0f172a;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .plan-outcome {
+            color: #94a3b8;
+            font-size: 12px;
+            font-style: italic;
+            line-height: 1.5;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            border-left: 3px solid #334155;
+        }
+
+        .plan-card.popular .plan-outcome {
+            border-left-color: #f59e0b;
+        }
+
+        .plan-limitations {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 8px;
+        }
+
+        .plan-limitations-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #f87171;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .plan-limitations ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .plan-limitations ul li {
+            color: #94a3b8;
+            font-size: 12px;
+            padding: 3px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .plan-limitations ul li::before {
+            content: '\2715';
+            position: absolute;
+            left: 0;
+            color: #ef4444;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .plan-limitations-cta {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .plans-credibility {
+            text-align: center;
+            padding: 16px 0 24px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .plans-credibility strong {
+            color: #94a3b8;
+        }
+
         .plan-name {
             font-size: 20px;
             font-weight: 700;
@@ -6095,6 +6199,10 @@
                 <p class="page-subtitle">Choose the plan that fits your needs</p>
             </div>
 
+            <div class="plans-credibility">
+                Independent energy risk intelligence for <strong>analysts, traders, and researchers</strong> monitoring geopolitical energy risk.
+            </div>
+
             <div class="plans-grid" id="plansGrid">
                 <div class="loading">
                     <div class="spinner"></div>
@@ -7051,6 +7159,22 @@
             'enterprise': 'Strategic Infrastructure'
         };
 
+        const planOutcomes = {
+            'free': '',
+            'personal': 'Track energy risk trends and receive daily intelligence summaries across all major indices.',
+            'trader': 'Identify when energy markets are likely to become volatile and act on risk signals before the crowd.',
+            'pro': 'Analyze risk across multiple energy markets simultaneously with AI-powered scenario forecasting.',
+            'enterprise': 'Full institutional-grade risk infrastructure with team workspace, custom alerts, and API access.'
+        };
+
+        const freePlanLimitations = [
+            'No historical risk analysis',
+            'No volatility forecasting',
+            'No cross-market overlays',
+            'No real-time risk streaming',
+            'No AI-powered analysis'
+        ];
+
         function getPlanCardFeatures(planCode) {
             const s = (label, cls) => `<li class="pf-section ${cls}">${label}</li>`;
             const inc = (prevPlan) => `<li class="pf-includes">All features in ${prevPlan} Plan</li>`;
@@ -7096,18 +7220,18 @@
                 'trader': [
                     inc('Personal'),
                     s('GERI — Global Energy Risk', 'pf-geri'),
-                    'Full GERI history access',
-                    '2 simultaneous chart overlays',
-                    'Smoothing (Raw / 3D MA / 7D MA)',
+                    'Complete historical risk analysis',
+                    'Compare energy risk with oil & gas prices in real time',
+                    'Detect trend shifts with smoothing & moving averages',
                     'Regime markers & momentum panel',
                     s('EERI — European Energy Risk', 'pf-eeri'),
-                    'Reaction speed analysis',
-                    'Risk acceleration tracking',
+                    'See how fast European risk is accelerating',
+                    'Spot historical patterns that predict market moves',
                     'Conditional historical tendencies',
-                    'Volatility expectation commentary',
+                    'See when energy markets are likely to become volatile',
                     s('EGSI — Gas Stress', 'pf-egsi'),
-                    'EGSI component decomposition',
-                    'Winter stress probability',
+                    'Decompose gas stress into actionable components',
+                    'Winter stress probability forecasting',
                     'Storage vs 5-year avg comparison',
                     s('Daily Digest', 'pf-digest'),
                     'Regime classification',
@@ -7117,17 +7241,17 @@
                 'pro': [
                     inc('Trader'),
                     s('GERI — Global Energy Risk', 'pf-geri'),
-                    '4 simultaneous chart overlays',
-                    'AI narrative & commentary',
-                    'Regime persistence probability',
+                    'Analyze risk across 4 markets simultaneously',
+                    'AI-generated risk narrative & commentary',
+                    'Predict how long the current risk regime will last',
                     s('EERI — European Energy Risk', 'pf-eeri'),
-                    'Component attribution summary',
-                    'Analog weeks identification',
-                    'Scenario outlook (Esc / Stab / De-esc)',
+                    'Understand what is driving European energy risk',
+                    'Find weeks in history that match current conditions',
+                    'Scenario outlook (Escalation / Stabilisation / De-escalation)',
                     'Real-time EERI + asset stress panel',
                     'Daily AI-generated risk summary',
                     s('EGSI — Gas Stress', 'pf-egsi'),
-                    'EGSI forward scenario modelling',
+                    'Model forward gas stress scenarios',
                     'Injection/withdrawal rate analysis',
                     'Cross-commodity stress signals',
                     s('Daily Digest', 'pf-digest'),
@@ -13031,6 +13155,7 @@
                 const isUpgrade = planIndex > currentPlanIndex;
                 const isDowngrade = planIndex < currentPlanIndex && plan.plan_code !== 'free';
                 const isFree = plan.plan_code === 'free';
+                const isPopular = plan.plan_code === 'trader';
                 
                 let btnClass = 'plan-btn';
                 let btnText = '';
@@ -13053,15 +13178,46 @@
                 }
                 
                 const features = getPlanCardFeatures(plan.plan_code);
+                const outcome = planOutcomes[plan.plan_code] || '';
+
+                let popularBadge = '';
+                if (isPopular && !isCurrent) {
+                    popularBadge = '<div class="plan-popular-badge">Most Popular</div>';
+                }
+
+                let outcomeHtml = '';
+                if (outcome) {
+                    outcomeHtml = `<div class="plan-outcome">${outcome}</div>`;
+                }
+
+                let limitationsHtml = '';
+                if (isFree) {
+                    limitationsHtml = `
+                        <div class="plan-limitations">
+                            <div class="plan-limitations-title">Free Plan Limitations</div>
+                            <ul>
+                                ${freePlanLimitations.map(l => `<li>${l}</li>`).join('')}
+                            </ul>
+                            <div class="plan-limitations-cta">Upgrade to unlock the full EnergyRiskIQ intelligence engine.</div>
+                        </div>
+                    `;
+                }
+
+                let cardClasses = 'plan-card';
+                if (isCurrent) cardClasses += ' current';
+                if (isPopular && !isCurrent) cardClasses += ' popular';
                 
                 return `
-                    <div class="plan-card ${isCurrent ? 'current' : ''}">
+                    <div class="${cardClasses}">
+                        ${popularBadge}
                         <div class="plan-name">${plan.display_name}</div>
                         <div class="plan-tagline">${planTaglines[plan.plan_code] || ''}</div>
                         <div class="plan-price">${plan.price > 0 ? '€' + plan.price.toFixed(2) : 'Free'}<span>${plan.price > 0 ? '/mo' : ''}</span></div>
+                        ${outcomeHtml}
                         <ul class="plan-features">
                             ${renderPlanFeaturesList(features)}
                         </ul>
+                        ${limitationsHtml}
                         <button class="${btnClass}" 
                                 ${btnDisabled}
                                 onclick="openPlanModal('${plan.plan_code}', '${plan.display_name}', ${plan.price}, '${isUpgrade ? 'upgrade' : 'downgrade'}')">
