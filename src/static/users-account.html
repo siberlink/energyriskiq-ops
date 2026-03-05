@@ -13044,6 +13044,10 @@
                 if (endDate <= now) {
                     banner.style.display = 'none';
                     document.body.classList.remove('has-trial-banner');
+                    cachedFreeTrialDays = 0;
+                    cachedBannerEnabled = false;
+                    rerenderPlanButtons();
+                    autoDisableExpiredBanner();
                     return;
                 }
             }
@@ -13099,9 +13103,14 @@
                 if (diff <= 0) {
                     cdEl.textContent = '00 days : 00 hours : 00 min : 00 seconds';
                     clearInterval(trialCountdownInterval);
+                    trialCountdownInterval = null;
                     const banner = document.getElementById('trialBanner');
                     if (banner) banner.style.display = 'none';
                     document.body.classList.remove('has-trial-banner');
+                    cachedFreeTrialDays = 0;
+                    cachedBannerEnabled = false;
+                    rerenderPlanButtons();
+                    autoDisableExpiredBanner();
                     return;
                 }
                 const d = Math.floor(diff / 86400000);
@@ -13136,11 +13145,39 @@
             if (ub && (currentUser?.plan || 'free') === 'free') ub.style.display = 'flex';
         }
 
+        function rerenderPlanButtons() {
+            const grid = document.getElementById('plansGrid');
+            if (!grid) return;
+            const buttons = grid.querySelectorAll('.plan-btn.upgrade');
+            buttons.forEach(function(btn) {
+                const match = btn.textContent.match(/Try (.+) FREE for \d+ Days/);
+                if (match) {
+                    btn.textContent = 'Upgrade to ' + match[1];
+                }
+            });
+        }
+
+        let bannerAutoDisableSent = false;
+        function autoDisableExpiredBanner() {
+            if (bannerAutoDisableSent) return;
+            bannerAutoDisableSent = true;
+            fetch('/billing/plans').catch(function() {});
+        }
+
         function renderPlans(plans, freeTrialDays) {
             const grid = document.getElementById('plansGrid');
             if (!grid) return;
             
             if (freeTrialDays !== undefined) cachedFreeTrialDays = freeTrialDays;
+
+            if (cachedBannerCountdownEnd && cachedBannerCountdownEnd !== '') {
+                const endDate = new Date(cachedBannerCountdownEnd);
+                if (endDate <= new Date()) {
+                    cachedFreeTrialDays = 0;
+                    cachedBannerEnabled = false;
+                }
+            }
+
             showTrialBanner(cachedFreeTrialDays);
             
             const planOrder = ['free', 'personal', 'trader', 'pro', 'enterprise'];

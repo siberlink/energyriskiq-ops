@@ -216,6 +216,7 @@ def set_free_trial_days(days: int) -> bool:
 
 def get_banner_settings() -> dict:
     import hashlib
+    from datetime import datetime
     try:
         with get_cursor(commit=False) as cursor:
             cursor.execute("SELECT value FROM app_settings WHERE key = 'banner_enabled'")
@@ -225,6 +226,17 @@ def get_banner_settings() -> dict:
             cursor.execute("SELECT value FROM app_settings WHERE key = 'banner_countdown_end'")
             row2 = cursor.fetchone()
             countdown_end = row2["value"] if row2 else None
+
+            if enabled and countdown_end and countdown_end != '':
+                try:
+                    end_str = countdown_end.replace('Z', '+00:00')
+                    end_dt = datetime.fromisoformat(end_str).replace(tzinfo=None)
+                    if end_dt <= datetime.utcnow():
+                        enabled = False
+                        set_banner_settings(False, 0)
+                        logger.info("Banner auto-disabled: countdown expired")
+                except Exception as e:
+                    logger.warning(f"Could not parse banner countdown end '{countdown_end}': {e}")
 
             version_str = f"{enabled}|{countdown_end or ''}"
             banner_version = hashlib.md5(version_str.encode()).hexdigest()[:10]
