@@ -809,6 +809,34 @@ def run_lng_price_capture(
     return response
 
 
+@router.post("/run/intraday-price-capture")
+def run_intraday_price_capture(
+    x_runner_token: Optional[str] = Header(None)
+):
+    """
+    Capture hourly intraday prices for Brent, WTI, and Natural Gas (US).
+
+    Called every ~10 minutes by alerts_engine_v2 workflow.
+    Stores one row per commodity per hour in intraday_* tables.
+    Old data (before today) is automatically cleaned up.
+    """
+    validate_runner_token(x_runner_token)
+
+    from src.ingest.intraday_prices import capture_intraday_prices
+
+    def intraday_job():
+        return capture_intraday_prices()
+
+    response, status_code = run_job_with_lock('intraday_price_capture', intraday_job)
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+
+    return response
+
+
 @router.post("/run/gas-storage-capture")
 def run_gas_storage_capture(
     target_date: Optional[str] = None,

@@ -221,6 +221,8 @@ async def startup_event():
         if app_url and os.environ.get("TELEGRAM_BOT_TOKEN"):
             from src.api.telegram_routes import setup_webhook
             setup_webhook(app_url.rstrip("/"))
+        from src.ingest.intraday_prices import run_intraday_migration
+        run_intraday_migration()
         if ENABLE_GERI:
             from src.geri.live import run_geri_live_migration, periodic_geri_live_recompute
             run_geri_live_migration()

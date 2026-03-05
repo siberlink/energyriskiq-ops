@@ -341,6 +341,35 @@ jobs:
           APP_URL: ${{ secrets.APP_URL }}
           INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
 
+      - name: Intraday Price Capture
+        id: intraday_prices
+        if: always() && steps.run_alerts.outputs.exit_code == '0'
+        run: |
+          echo "Capturing intraday prices (Brent/WTI/NatGas US)..."
+
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/intraday-price-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          echo "$body" > intraday_prices_output.txt
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::warning::Intraday price capture returned HTTP $http_code (non-blocking)"
+            echo "intraday_prices_status=failed" >> $GITHUB_OUTPUT
+          else
+            echo "Intraday price capture completed successfully"
+            echo "intraday_prices_status=success" >> $GITHUB_OUTPUT
+          fi
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
       - name: Health Check
         id: health
         if: always() && steps.preflight.outputs.preflight_passed != 'false'
@@ -363,6 +392,7 @@ jobs:
             egsi_compute_output.txt
             egsi_s_compute_output.txt
             oil_price_output.txt
+            intraday_prices_output.txt
           retention-days: 7
 
       - name: Summary
@@ -385,6 +415,7 @@ jobs:
           echo "| **EGSI-M Compute** | ${{ steps.egsi_compute.outputs.egsi_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **EGSI-S Compute** | ${{ steps.egsi_s_compute.outputs.egsi_s_compute_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| **Oil Price Capture** | ${{ steps.oil_price.outputs.oil_price_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Intraday Prices** | ${{ steps.intraday_prices.outputs.intraday_prices_status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f preflight_output.txt ]; then
@@ -439,6 +470,14 @@ jobs:
             echo "### Oil Price Capture Output" >> $GITHUB_STEP_SUMMARY
             echo '```json' >> $GITHUB_STEP_SUMMARY
             cat oil_price_output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f intraday_prices_output.txt ]; then
+            echo "### Intraday Prices Output" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat intraday_prices_output.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
