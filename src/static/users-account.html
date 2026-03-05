@@ -7561,9 +7561,9 @@
             if (elSettingsPlan) elSettingsPlan.textContent = planDisplay;
 
             const ub = document.getElementById('upgradeBanner');
-            if (plan === 'free' && cachedFreeTrialDays <= 0) {
+            if (plan === 'free' && (!cachedBannerEnabled || cachedFreeTrialDays <= 0)) {
                 if (ub) ub.style.display = 'flex';
-            } else if (plan === 'free' && cachedFreeTrialDays > 0) {
+            } else if (plan === 'free' && cachedBannerEnabled && cachedFreeTrialDays > 0) {
                 if (ub) ub.style.display = 'none';
             }
             
@@ -13204,7 +13204,7 @@
                     btnDisabled = 'disabled';
                 } else if (isUpgrade) {
                     btnClass += ' upgrade';
-                    if (cachedFreeTrialDays > 0) {
+                    if (cachedFreeTrialDays > 0 && cachedBannerEnabled) {
                         btnText = `Try ${plan.display_name} FREE for ${cachedFreeTrialDays} Days`;
                     } else {
                         btnText = `Upgrade to ${plan.display_name}`;

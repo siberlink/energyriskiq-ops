@@ -2825,6 +2825,14 @@
                     if (diff <= 0) {
                         cdLive.textContent = '00 days : 00 hours : 00 min : 00 seconds';
                         clearInterval(bannerCountdownInterval);
+                        dot.style.background = '#ef4444';
+                        statusText.textContent = 'Banner EXPIRED — countdown ended';
+                        statusText.style.color = '#ef4444';
+                        toggle.checked = false;
+                        track.style.background = '#475569';
+                        thumb.style.left = '2px';
+                        label.textContent = 'OFF';
+                        label.style.color = '#94a3b8';
                         return;
                     }
                     const d = Math.floor(diff / 86400000);
