@@ -4401,11 +4401,12 @@ def _get_indices_latest_values() -> dict:
             cursor.execute("""
                 SELECT value, band, date FROM intel_indices_daily
                 WHERE index_id = 'global:geo_energy_risk' AND date <= %s
-                ORDER BY date DESC LIMIT 1
+                ORDER BY date DESC LIMIT 2
             """, (yesterday,))
-            row = cursor.fetchone()
-            if row:
-                result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"])}
+            rows = cursor.fetchall()
+            if rows:
+                change = (rows[0]["value"] - rows[1]["value"]) if len(rows) > 1 else None
+                result["geri"] = {"value": rows[0]["value"], "band": rows[0]["band"], "date": str(rows[0]["date"]), "change": change}
             else:
                 cursor.execute("""
                     SELECT value, band, computed_at::date as date FROM geri_live
@@ -4414,7 +4415,7 @@ def _get_indices_latest_values() -> dict:
                 """, (yesterday,))
                 row = cursor.fetchone()
                 if row:
-                    result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"])}
+                    result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"]), "change": None}
     except Exception:
         pass
     try:
@@ -4422,11 +4423,12 @@ def _get_indices_latest_values() -> dict:
             cursor.execute("""
                 SELECT value, band, date FROM reri_indices_daily
                 WHERE index_id = 'europe:eeri' AND date <= %s
-                ORDER BY date DESC LIMIT 1
+                ORDER BY date DESC LIMIT 2
             """, (yesterday,))
-            row = cursor.fetchone()
-            if row:
-                result["eeri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"])}
+            rows = cursor.fetchall()
+            if rows:
+                change = (rows[0]["value"] - rows[1]["value"]) if len(rows) > 1 else None
+                result["eeri"] = {"value": rows[0]["value"], "band": rows[0]["band"], "date": str(rows[0]["date"]), "change": change}
     except Exception:
         pass
     try:
@@ -4434,13 +4436,15 @@ def _get_indices_latest_values() -> dict:
             cursor.execute("""
                 SELECT index_value as value, band, index_date as date FROM egsi_m_daily
                 WHERE region = 'Europe' AND index_date <= %s
-                ORDER BY index_date DESC LIMIT 1
+                ORDER BY index_date DESC LIMIT 2
             """, (yesterday,))
-            row = cursor.fetchone()
-            if row:
-                raw = float(row["value"])
+            rows = cursor.fetchall()
+            if rows:
+                raw = float(rows[0]["value"])
                 display_val = int(raw) if raw == int(raw) else round(raw, 1)
-                result["egsi"] = {"value": display_val, "band": row["band"], "date": str(row["date"])}
+                prev_raw = float(rows[1]["value"]) if len(rows) > 1 else None
+                change = round(raw - prev_raw, 1) if prev_raw is not None else None
+                result["egsi"] = {"value": display_val, "band": rows[0]["band"], "date": str(rows[0]["date"]), "change": change}
     except Exception:
         pass
     return result
@@ -4458,15 +4462,26 @@ async def indices_hub_page(request: Request):
         'SEVERE': '#ef4444', 'CRITICAL': '#dc2626'
     }
 
-    def _render_index_card(idx_key, title, abbrev, description, href, icon, data_entry):
+    def _format_change(change):
+        if change is None:
+            return '<span style="color: #475569;">—</span>'
+        c = int(change) if change == int(change) else round(change, 1)
+        if c > 0:
+            return f'<span style="color: #ef4444; font-weight: 600;">&uarr;{c}</span>'
+        elif c < 0:
+            return f'<span style="color: #22c55e; font-weight: 600;">&darr;{abs(c)}</span>'
+        return '<span style="color: #64748b;">&#x2192;0</span>'
+
+    def _render_index_card(idx_key, title, abbrev, description, seo_line, href, icon, data_entry):
         if data_entry:
             val = data_entry["value"]
             band = data_entry["band"]
             b_color = band_colors.get(band, '#6b7280')
             date_str = data_entry["date"]
+            change_html = _format_change(data_entry.get("change"))
             value_html = f'''
                 <div class="idx-card-value" style="color: {b_color};">{val}<span class="idx-card-max"> / 100</span></div>
-                <div class="idx-card-band" style="color: {b_color};">{band}</div>
+                <div class="idx-card-band" style="color: {b_color};">{band} {change_html}</div>
                 <div class="idx-card-date">{date_str} &middot; 24h Delayed</div>
             '''
         else:
@@ -4477,6 +4492,7 @@ async def indices_hub_page(request: Request):
             <div class="idx-card-icon">{icon}</div>
             <h2><a href="{href}">{title} ({abbrev})</a></h2>
             <p class="idx-card-desc">{description}</p>
+            <p class="idx-card-seo">{seo_line}</p>
             {value_html}
             <a href="{href}" class="idx-card-cta">View Index &rarr;</a>
         </div>
@@ -4485,14 +4501,17 @@ async def indices_hub_page(request: Request):
     cards_html = _render_index_card(
         "geri", "Global Energy Risk Index", "GERI",
         "Measures escalation risk across global energy markets including oil, LNG logistics, and geopolitical tensions.",
+        "The Global Energy Risk Index measures escalation risk across global oil, LNG, and geopolitical energy systems.",
         "/geri", "&#x1F525;", data.get("geri")
     ) + _render_index_card(
         "eeri", "European Energy Risk Index", "EERI",
         "Tracks escalation risk specific to Europe's energy system including gas flows, storage stress, sanctions, and infrastructure risk.",
+        "The European Energy Risk Index tracks gas flows, sanctions impact, and infrastructure risk across European energy markets.",
         "/eeri", "&#x26A1;", data.get("eeri")
     ) + _render_index_card(
         "egsi", "Europe Gas Stress Index", "EGSI",
         "Quantifies stress in the European gas market using storage levels, LNG flows, weather risk, and supply disruptions.",
+        "The Europe Gas Stress Index quantifies gas market stress using storage, LNG flows, and supply disruption signals.",
         "/egsi", "&#x1F4A8;", data.get("egsi")
     )
 
@@ -4502,10 +4521,12 @@ async def indices_hub_page(request: Request):
                                   ("Europe Gas Stress Index", "EGSI", data.get("egsi"))]:
         if entry:
             b_color = band_colors.get(entry["band"], '#6b7280')
+            change_html = _format_change(entry.get("change"))
             readings_rows += f'''
             <tr>
                 <td><strong>{abbrev}</strong></td>
                 <td style="color: {b_color}; font-weight: 700;">{entry["value"]}</td>
+                <td>{change_html}</td>
                 <td style="color: {b_color};">{entry["band"]}</td>
                 <td style="color: #64748b; font-size: 0.85rem;">{entry["date"]}</td>
             </tr>'''
@@ -4513,6 +4534,7 @@ async def indices_hub_page(request: Request):
             readings_rows += f'''
             <tr>
                 <td><strong>{abbrev}</strong></td>
+                <td style="color: #475569;">—</td>
                 <td style="color: #475569;">—</td>
                 <td style="color: #475569;">—</td>
                 <td style="color: #64748b; font-size: 0.85rem;">—</td>
@@ -4524,11 +4546,11 @@ async def indices_hub_page(request: Request):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Energy Risk Indices | EnergyRiskIQ</title>
-        <meta name="description" content="EnergyRiskIQ indices translate complex geopolitical, supply chain, and policy developments into measurable risk signals. Track GERI, EERI, and EGSI.">
+        <title>Energy Risk Indices for Global Energy Markets | EnergyRiskIQ</title>
+        <meta name="description" content="EnergyRiskIQ energy risk indices translate geopolitical events, supply chain disruptions, and policy developments into measurable energy risk signals. Track GERI, EERI, and EGSI.">
         <link rel="canonical" href="{BASE_URL}/indices">
 
-        <meta property="og:title" content="Energy Risk Indices | EnergyRiskIQ">
+        <meta property="og:title" content="Energy Risk Indices for Global Energy Markets | EnergyRiskIQ">
         <meta property="og:description" content="Track energy risk with GERI, EERI, and EGSI indices. Daily updates on geopolitical risk, European energy stress, and gas market conditions.">
         <meta property="og:url" content="{BASE_URL}/indices">
         <meta property="og:type" content="website">
@@ -4620,6 +4642,13 @@ async def indices_hub_page(request: Request):
                 font-size: 0.75rem;
                 color: #64748b;
                 margin-bottom: 1rem;
+            }}
+            .idx-card-seo {{
+                color: #64748b;
+                font-size: 0.775rem;
+                line-height: 1.5;
+                margin-bottom: 0.75rem;
+                font-style: italic;
             }}
             .idx-card-no-data {{
                 color: #475569;
@@ -4760,6 +4789,33 @@ async def indices_hub_page(request: Request):
                 font-weight: 600;
             }}
 
+            .idx-analysis-links {{
+                list-style: none;
+                padding: 0;
+                margin: 1rem 0 0 0;
+            }}
+            .idx-analysis-links li {{
+                padding: 0.5rem 0;
+                border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            }}
+            .idx-analysis-links li:last-child {{ border-bottom: none; }}
+            .idx-analysis-links a {{
+                color: #60a5fa;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }}
+            .idx-analysis-links a:hover {{
+                color: #93c5fd;
+                text-decoration: underline;
+            }}
+            .idx-scale-note {{
+                color: #94a3b8;
+                font-size: 0.9rem;
+                text-align: center;
+                margin-bottom: 0.5rem;
+                line-height: 1.6;
+            }}
+
             @media (max-width: 768px) {{
                 .idx-grid {{
                     grid-template-columns: 1fr;
@@ -4807,10 +4863,12 @@ async def indices_hub_page(request: Request):
                 </div>
 
                 <div class="indices-hero">
-                    <h1>Energy Risk Indices</h1>
-                    <p>EnergyRiskIQ indices translate complex geopolitical, supply chain, and policy developments into measurable risk signals.</p>
+                    <h1>Energy Risk Indices for Global Energy Markets</h1>
+                    <p>EnergyRiskIQ indices translate geopolitical events, supply chain disruptions, and policy developments into measurable energy risk signals.</p>
                     <p>Each index aggregates thousands of events and market indicators to quantify escalation risk in global and regional energy systems.</p>
                 </div>
+
+                <p class="idx-scale-note">All indices use a 0&ndash;100 escalation scale, where higher values indicate abnormal energy system stress compared to typical market conditions.</p>
 
                 <div class="idx-delayed-note"><span>&#x1F551; All public values are 24h delayed</span></div>
 
@@ -4825,6 +4883,7 @@ async def indices_hub_page(request: Request):
                             <tr>
                                 <th>Index</th>
                                 <th>Value</th>
+                                <th>Change</th>
                                 <th>Band</th>
                                 <th>Date</th>
                             </tr>
@@ -4836,7 +4895,7 @@ async def indices_hub_page(request: Request):
                 </div>
 
                 <div class="idx-section">
-                    <h2>How EnergyRiskIQ Risk Indices Work</h2>
+                    <h2>Methodology Overview: How EnergyRiskIQ Risk Indices Work</h2>
                     <p>EnergyRiskIQ indices transform complex energy market signals into structured daily indicators.</p>
                     <p>Each index is built from three core components:</p>
                     <div class="idx-components">
@@ -4857,6 +4916,19 @@ async def indices_hub_page(request: Request):
                         </div>
                     </div>
                     <p style="margin-top: 1.25rem;">These signals are normalized into a 0&ndash;100 risk scale, where higher values indicate elevated escalation risk compared to normal market conditions.</p>
+                </div>
+
+                <div class="idx-section">
+                    <h2>Latest Energy Risk Analysis</h2>
+                    <p>Explore our latest intelligence and analysis on energy market risk.</p>
+                    <ul class="idx-analysis-links">
+                        <li><a href="/daily-geo-energy-intelligence-digest">Daily Geo-Energy Intelligence Digest</a></li>
+                        <li><a href="/geri/methodology">GERI Methodology &amp; Construction</a></li>
+                        <li><a href="/eeri/methodology">EERI Methodology &amp; Construction</a></li>
+                        <li><a href="/egsi/methodology">EGSI Methodology &amp; Construction</a></li>
+                        <li><a href="/alerts">Latest Energy Risk Alerts</a></li>
+                        <li><a href="/blog">Energy Risk Blog &amp; Analysis</a></li>
+                    </ul>
                 </div>
 
                 <div class="idx-cta-section">
@@ -4880,6 +4952,7 @@ def render_digest_footer() -> str:
             <div>&copy; 2026 EnergyRiskIQ. All rights reserved.</div>
             <div class="footer-links">
                 <a href="/">Home</a>
+                <a href="/indices">Indices</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/sitemap.html">Sitemap</a>

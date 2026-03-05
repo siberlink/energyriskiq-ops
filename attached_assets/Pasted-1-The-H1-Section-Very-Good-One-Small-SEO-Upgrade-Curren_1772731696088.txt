@@ -1,0 +1,210 @@
+1️⃣ The H1 Section (Very Good — One Small SEO Upgrade)
+
+Current:
+
+Energy Risk Indices
+EnergyRiskIQ indices translate complex geopolitical, supply chain, and policy developments into measurable risk signals.
+
+This is good, but you can slightly strengthen SEO.
+
+Suggested tweak:
+
+Energy Risk Indices for Global Energy Markets
+
+Then text:
+
+EnergyRiskIQ indices translate geopolitical events, supply chain disruptions, and policy developments into measurable energy risk signals.
+
+This improves ranking potential for:
+
+energy risk index
+
+energy risk indicators
+
+global energy risk
+
+Small change, but meaningful.
+
+2️⃣ Add One Sentence About the Scale (Important)
+
+You explain it lower on the page, but Google prefers early clarity.
+
+Add one sentence under the intro:
+
+Example:
+
+All indices use a 0–100 escalation scale, where higher values indicate abnormal energy system stress compared to typical market conditions.
+
+This helps both SEO and reader understanding.
+
+3️⃣ Your Cards Are Excellent (One Small Improvement)
+
+Cards are very clean:
+
+✔ Index name
+✔ Abbreviation
+✔ Description
+✔ Value
+✔ Band
+✔ Date
+✔ CTA
+
+One improvement:
+
+Make the index name clickable (not just the button).
+
+Example:
+
+Global Energy Risk Index (GERI)
+
+should link to:
+
+/indices/global-energy-risk-index
+
+This improves internal SEO link weight.
+
+Google values text links more than buttons.
+
+4️⃣ Add a Small Chart Preview (Optional but Powerful)
+
+Inside each card add a tiny sparkline chart (last 30 days).
+
+Example visual:
+
+GERI
+56
+
+▁▂▃▂▄▅▆▆▇▆▅▆
+
+Benefits:
+
+• Increases time on page
+• Makes the page feel live data driven
+• Makes cards more professional / Bloomberg style
+
+Not mandatory, but very powerful later.
+
+5️⃣ Latest Index Readings Table (Very Good)
+
+This section is excellent for SEO because:
+
+✔ It updates daily
+✔ Google sees fresh content signals
+
+Two improvements:
+
+Add small column: Change
+
+Example:
+
+Index	Value	Change	Band	Date
+GERI	56	↑2	Elevated	Mar 4
+EERI	63	↑5	Severe	Mar 4
+EGSI	53.1	↓1	Elevated	Mar 4
+
+Google loves numerical updates.
+
+6️⃣ The “How Indices Work” Section (Very Strong)
+
+This is excellent authority content.
+
+One improvement:
+
+Add an H2 above it:
+
+Methodology Overview
+
+Google likes clear structural headers.
+
+Example structure:
+
+H1 Energy Risk Indices
+H2 Global Energy Risk Index
+H2 European Energy Risk Index
+H2 Europe Gas Stress Index
+H2 Methodology Overview
+7️⃣ Add One Internal Link Section (Very Powerful)
+
+Right before the CTA add:
+
+Latest Energy Risk Analysis
+
+Example:
+
+Latest Analysis
+
+• Why European Gas Risk Is Rising Again
+• LNG Logistics Disruptions Explained
+• What High EERI Levels Mean for Gas Prices
+
+Link these to:
+
+/digest
+/articles
+
+This builds SEO topical clusters.
+
+8️⃣ The CTA Is Perfect
+
+Your CTA:
+
+Monitor Energy Risk in Real Time
+View the EnergyRiskIQ Dashboard
+
+This is exactly correct.
+
+Do NOT change it.
+
+Perfect funnel logic:
+
+Public data → curiosity → dashboard.
+
+9️⃣ Footer Improvement (Very Important)
+
+Your footer currently has:
+
+Home
+Alerts
+Digest
+Sitemap
+Privacy
+Terms
+
+Add:
+
+Indices
+
+Pointing to:
+
+/indices
+
+This increases site-wide internal authority.
+
+🔟 One Small SEO Trick (Most Platforms Miss This)
+
+Under each card description add a small keyword phrase.
+
+Example:
+
+GERI card:
+
+The Global Energy Risk Index measures escalation risk across global oil, LNG, and geopolitical energy systems.
+
+Google then connects:
+
+energy risk index
+global energy risk
+energy escalation risk
+Overall Evaluation
+Category	Score
+Design	9 / 10
+Structure	9 / 10
+SEO readiness	8 / 10
+Authority positioning	9 / 10
+Conversion funnel	9 / 10
+
+Overall:
+
+9 / 10 page
+
+Very strong foundation.
