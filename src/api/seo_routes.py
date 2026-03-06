@@ -4396,17 +4396,20 @@ def _get_indices_latest_values() -> dict:
     from datetime import datetime, timedelta
     result = {"geri": None, "eeri": None, "egsi": None}
     yesterday = (datetime.utcnow() - timedelta(days=1)).date()
+    day30 = (datetime.utcnow() - timedelta(days=31)).date()
     try:
         with get_cursor(commit=False) as cursor:
             cursor.execute("""
                 SELECT value, band, date FROM intel_indices_daily
-                WHERE index_id = 'global:geo_energy_risk' AND date <= %s
-                ORDER BY date DESC LIMIT 2
-            """, (yesterday,))
+                WHERE index_id = 'global:geo_energy_risk' AND date <= %s AND date >= %s
+                ORDER BY date ASC
+            """, (yesterday, day30))
             rows = cursor.fetchall()
             if rows:
-                change = (rows[0]["value"] - rows[1]["value"]) if len(rows) > 1 else None
-                result["geri"] = {"value": rows[0]["value"], "band": rows[0]["band"], "date": str(rows[0]["date"]), "change": change}
+                latest = rows[-1]
+                change = (rows[-1]["value"] - rows[-2]["value"]) if len(rows) > 1 else None
+                sparkline = [r["value"] for r in rows]
+                result["geri"] = {"value": latest["value"], "band": latest["band"], "date": str(latest["date"]), "change": change, "sparkline": sparkline}
             else:
                 cursor.execute("""
                     SELECT value, band, computed_at::date as date FROM geri_live
@@ -4415,36 +4418,40 @@ def _get_indices_latest_values() -> dict:
                 """, (yesterday,))
                 row = cursor.fetchone()
                 if row:
-                    result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"]), "change": None}
+                    result["geri"] = {"value": row["value"], "band": row["band"], "date": str(row["date"]), "change": None, "sparkline": []}
     except Exception:
         pass
     try:
         with get_cursor(commit=False) as cursor:
             cursor.execute("""
                 SELECT value, band, date FROM reri_indices_daily
-                WHERE index_id = 'europe:eeri' AND date <= %s
-                ORDER BY date DESC LIMIT 2
-            """, (yesterday,))
+                WHERE index_id = 'europe:eeri' AND date <= %s AND date >= %s
+                ORDER BY date ASC
+            """, (yesterday, day30))
             rows = cursor.fetchall()
             if rows:
-                change = (rows[0]["value"] - rows[1]["value"]) if len(rows) > 1 else None
-                result["eeri"] = {"value": rows[0]["value"], "band": rows[0]["band"], "date": str(rows[0]["date"]), "change": change}
+                latest = rows[-1]
+                change = (rows[-1]["value"] - rows[-2]["value"]) if len(rows) > 1 else None
+                sparkline = [r["value"] for r in rows]
+                result["eeri"] = {"value": latest["value"], "band": latest["band"], "date": str(latest["date"]), "change": change, "sparkline": sparkline}
     except Exception:
         pass
     try:
         with get_cursor(commit=False) as cursor:
             cursor.execute("""
                 SELECT index_value as value, band, index_date as date FROM egsi_m_daily
-                WHERE region = 'Europe' AND index_date <= %s
-                ORDER BY index_date DESC LIMIT 2
-            """, (yesterday,))
+                WHERE region = 'Europe' AND index_date <= %s AND index_date >= %s
+                ORDER BY index_date ASC
+            """, (yesterday, day30))
             rows = cursor.fetchall()
             if rows:
-                raw = float(rows[0]["value"])
+                latest = rows[-1]
+                raw = float(latest["value"])
                 display_val = int(raw) if raw == int(raw) else round(raw, 1)
-                prev_raw = float(rows[1]["value"]) if len(rows) > 1 else None
+                prev_raw = float(rows[-2]["value"]) if len(rows) > 1 else None
                 change = round(raw - prev_raw, 1) if prev_raw is not None else None
-                result["egsi"] = {"value": display_val, "band": rows[0]["band"], "date": str(rows[0]["date"]), "change": change}
+                sparkline = [float(r["value"]) for r in rows]
+                result["egsi"] = {"value": display_val, "band": latest["band"], "date": str(latest["date"]), "change": change, "sparkline": sparkline}
     except Exception:
         pass
     return result
@@ -4472,6 +4479,32 @@ async def indices_hub_page(request: Request):
             return f'<span style="color: #22c55e; font-weight: 600;">&darr;{abs(c)}</span>'
         return '<span style="color: #64748b;">&#x2192;0</span>'
 
+    def _render_sparkline_svg(values, color, width=200, height=40):
+        if not values or len(values) < 2:
+            return ''
+        mn = min(values)
+        mx = max(values)
+        rng = mx - mn if mx != mn else 1
+        pad = 2
+        usable_h = height - pad * 2
+        usable_w = width - pad * 2
+        step = usable_w / (len(values) - 1)
+        points = []
+        for i, v in enumerate(values):
+            x = round(pad + i * step, 1)
+            y = round(pad + usable_h - ((v - mn) / rng) * usable_h, 1)
+            points.append(f"{x},{y}")
+        polyline = " ".join(points)
+        fill_points = f"{pad},{height - pad} " + polyline + f" {round(pad + (len(values)-1)*step, 1)},{height - pad}"
+        return f'''<div class="idx-sparkline">
+            <svg viewBox="0 0 {width} {height}" preserveAspectRatio="none" width="100%" height="{height}">
+                <polyline points="{fill_points}" fill="{color}" fill-opacity="0.1" stroke="none"/>
+                <polyline points="{polyline}" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="{points[-1].split(',')[0]}" cy="{points[-1].split(',')[1]}" r="2.5" fill="{color}"/>
+            </svg>
+            <div class="idx-sparkline-label">30-day trend</div>
+        </div>'''
+
     def _render_index_card(idx_key, title, abbrev, description, seo_line, href, icon, data_entry):
         if data_entry:
             val = data_entry["value"]
@@ -4479,9 +4512,11 @@ async def indices_hub_page(request: Request):
             b_color = band_colors.get(band, '#6b7280')
             date_str = data_entry["date"]
             change_html = _format_change(data_entry.get("change"))
+            sparkline_html = _render_sparkline_svg(data_entry.get("sparkline", []), b_color)
             value_html = f'''
                 <div class="idx-card-value" style="color: {b_color};">{val}<span class="idx-card-max"> / 100</span></div>
                 <div class="idx-card-band" style="color: {b_color};">{band} {change_html}</div>
+                {sparkline_html}
                 <div class="idx-card-date">{date_str} &middot; 24h Delayed</div>
             '''
         else:
@@ -4649,6 +4684,20 @@ async def indices_hub_page(request: Request):
                 line-height: 1.5;
                 margin-bottom: 0.75rem;
                 font-style: italic;
+            }}
+            .idx-sparkline {{
+                width: 100%;
+                margin: 0.5rem 0;
+                padding: 0 0.5rem;
+            }}
+            .idx-sparkline svg {{
+                display: block;
+            }}
+            .idx-sparkline-label {{
+                font-size: 0.65rem;
+                color: #475569;
+                text-align: center;
+                margin-top: 0.15rem;
             }}
             .idx-card-no-data {{
                 color: #475569;
