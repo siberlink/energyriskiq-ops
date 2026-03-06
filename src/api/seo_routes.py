@@ -4822,20 +4822,79 @@ async def indices_hub_page(request: Request):
             }}
             .idx-cta-btn:hover {{ opacity: 0.85; }}
 
-            .idx-delayed-note {{
-                text-align: center;
-                color: #64748b;
-                font-size: 0.8rem;
-                margin-bottom: 2rem;
+            .idx-bands-visual {{
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid rgba(255,255,255,0.06);
             }}
-            .idx-delayed-note span {{
-                background: rgba(251, 191, 36, 0.12);
-                border: 1px solid rgba(251, 191, 36, 0.3);
-                color: #fbbf24;
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 0.75rem;
-                font-weight: 600;
+            .idx-band-row {{
+                display: grid;
+                grid-template-columns: 80px 120px 1fr;
+                align-items: center;
+                padding: 0.75rem 1.25rem;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+            }}
+            .idx-band-row:last-child {{ border-bottom: none; }}
+            .idx-band-range {{
+                font-size: 0.85rem;
+                font-weight: 700;
+                font-family: 'Courier New', monospace;
+            }}
+            .idx-band-name {{
+                font-size: 0.8rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+            }}
+            .idx-band-desc {{
+                font-size: 0.8rem;
+                color: #94a3b8;
+            }}
+            .idx-band-low {{
+                background: rgba(34, 197, 94, 0.08);
+            }}
+            .idx-band-low .idx-band-range,
+            .idx-band-low .idx-band-name {{
+                color: #22c55e;
+            }}
+            .idx-band-moderate {{
+                background: rgba(234, 179, 8, 0.08);
+            }}
+            .idx-band-moderate .idx-band-range,
+            .idx-band-moderate .idx-band-name {{
+                color: #eab308;
+            }}
+            .idx-band-elevated {{
+                background: rgba(249, 115, 22, 0.08);
+            }}
+            .idx-band-elevated .idx-band-range,
+            .idx-band-elevated .idx-band-name {{
+                color: #f97316;
+            }}
+            .idx-band-severe {{
+                background: rgba(239, 68, 68, 0.08);
+            }}
+            .idx-band-severe .idx-band-range,
+            .idx-band-severe .idx-band-name {{
+                color: #ef4444;
+            }}
+            .idx-band-critical {{
+                background: rgba(168, 85, 247, 0.08);
+            }}
+            .idx-band-critical .idx-band-range,
+            .idx-band-critical .idx-band-name {{
+                color: #a855f7;
+            }}
+            @media (max-width: 600px) {{
+                .idx-band-row {{
+                    grid-template-columns: 65px 90px 1fr;
+                    padding: 0.6rem 0.75rem;
+                }}
+                .idx-band-range {{ font-size: 0.75rem; }}
+                .idx-band-name {{ font-size: 0.7rem; }}
+                .idx-band-desc {{ font-size: 0.7rem; }}
             }}
 
             .idx-analysis-links {{
@@ -4919,10 +4978,39 @@ async def indices_hub_page(request: Request):
 
                 <p class="idx-scale-note">All indices use a 0&ndash;100 escalation scale, where higher values indicate abnormal energy system stress compared to typical market conditions.</p>
 
-                <div class="idx-delayed-note"><span>&#x1F551; All public values are 24h delayed</span></div>
-
                 <div class="idx-grid">
                     {cards_html}
+                </div>
+
+                <div class="idx-section">
+                    <h2>Risk Level Bands Classification</h2>
+                    <div class="idx-bands-visual">
+                        <div class="idx-band-row idx-band-low">
+                            <div class="idx-band-range">0 &ndash; 20</div>
+                            <div class="idx-band-name">LOW</div>
+                            <div class="idx-band-desc">Normal conditions &mdash; no significant stress detected</div>
+                        </div>
+                        <div class="idx-band-row idx-band-moderate">
+                            <div class="idx-band-range">21 &ndash; 40</div>
+                            <div class="idx-band-name">MODERATE</div>
+                            <div class="idx-band-desc">Emerging pressure &mdash; early signals of structural stress</div>
+                        </div>
+                        <div class="idx-band-row idx-band-elevated">
+                            <div class="idx-band-range">41 &ndash; 60</div>
+                            <div class="idx-band-name">ELEVATED</div>
+                            <div class="idx-band-desc">Active disruption risk &mdash; multiple stress vectors converging</div>
+                        </div>
+                        <div class="idx-band-row idx-band-severe">
+                            <div class="idx-band-range">61 &ndash; 80</div>
+                            <div class="idx-band-name">SEVERE</div>
+                            <div class="idx-band-desc">High disruption pressure &mdash; significant market impact likely</div>
+                        </div>
+                        <div class="idx-band-row idx-band-critical">
+                            <div class="idx-band-range">81 &ndash; 100</div>
+                            <div class="idx-band-name">CRITICAL</div>
+                            <div class="idx-band-desc">Extreme stress &mdash; systemic disruption in progress</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="idx-section">
@@ -4983,7 +5071,7 @@ async def indices_hub_page(request: Request):
                 <div class="idx-cta-section">
                     <h2>Monitor Energy Risk in Real Time</h2>
                     <p>Professional dashboards provide live charts, correlation analysis, and escalation signals across all indices.</p>
-                    <a href="/users" class="idx-cta-btn">View the EnergyRiskIQ Dashboard</a>
+                    <a href="/users" class="idx-cta-btn">Get FREE Access</a>
                 </div>
             </div>
         </main>
