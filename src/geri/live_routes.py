@@ -173,6 +173,55 @@ async def get_timeline(x_user_token: Optional[str] = Header(None)):
     })
 
 
+@router.get("/energy-prices")
+async def get_energy_prices(x_user_token: Optional[str] = Header(None)):
+    if not x_user_token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    user_info = _get_user_plan(x_user_token)
+    _verify_plan(user_info['plan'])
+
+    from datetime import date as _date, timedelta
+    from src.db.db import execute_query
+
+    today = _date.today()
+    brent_rows = execute_query(
+        "SELECT hour, price, change_pct, captured_at FROM intraday_brent WHERE date = %s ORDER BY hour ASC",
+        (today,)
+    ) or []
+    brent = []
+    for r in brent_rows:
+        ca = r['captured_at']
+        if hasattr(ca, 'isoformat'):
+            ca = ca.isoformat()
+        brent.append({
+            'hour': r['hour'],
+            'price': float(r['price']),
+            'change_pct': float(r['change_pct']) if r.get('change_pct') is not None else None,
+            'time': ca,
+        })
+
+    ttf_start = today - timedelta(days=30)
+    ttf_rows = execute_query(
+        "SELECT date, ttf_price FROM ttf_gas_snapshots WHERE date >= %s ORDER BY date ASC",
+        (ttf_start,)
+    ) or []
+    ttf = []
+    for r in ttf_rows:
+        ttf.append({
+            'date': r['date'].isoformat() if hasattr(r['date'], 'isoformat') else str(r['date']),
+            'price': float(r['ttf_price']),
+        })
+
+    return JSONResponse(content={
+        'success': True,
+        'data': {
+            'brent': {'label': 'Brent Crude', 'unit': 'USD/barrel', 'prices': brent},
+            'ttf': {'label': 'TTF Gas', 'unit': 'EUR/MWh', 'prices': ttf},
+        }
+    })
+
+
 @router.get("/stream")
 async def live_stream(token: Optional[str] = Query(None)):
     if not token:

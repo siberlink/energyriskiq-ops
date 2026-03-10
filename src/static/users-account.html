@@ -6352,6 +6352,28 @@
                     </div>
                 </div>
 
+                <div class="geri-live-chart-card" id="brentChartCard">
+                    <div class="geri-live-chart-header">
+                        <span>Brent Crude — Intraday</span>
+                        <span class="geri-live-chart-count" id="brentChartMeta" style="color:#f59e0b;"></span>
+                    </div>
+                    <div class="geri-live-chart-container">
+                        <canvas id="brentIntradayChart" height="160"></canvas>
+                    </div>
+                    <div id="brentChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No intraday Brent data available yet today</div>
+                </div>
+
+                <div class="geri-live-chart-card" id="ttfChartCard">
+                    <div class="geri-live-chart-header">
+                        <span>TTF Gas — 30 Day</span>
+                        <span class="geri-live-chart-count" id="ttfChartMeta" style="color:#22c55e;"></span>
+                    </div>
+                    <div class="geri-live-chart-container">
+                        <canvas id="ttfDailyChart" height="160"></canvas>
+                    </div>
+                    <div id="ttfChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No TTF data available</div>
+                </div>
+
                 <div class="geri-live-sidebar">
                     <div class="geri-live-drivers-card">
                         <div class="geri-live-card-header">Top Drivers</div>
@@ -13753,6 +13775,8 @@
                 clearInterval(geriLiveTimerInterval);
                 geriLiveTimerInterval = null;
             }
+            if (brentChartInstance) { brentChartInstance.destroy(); brentChartInstance = null; }
+            if (ttfChartInstance) { ttfChartInstance.destroy(); ttfChartInstance = null; }
         }
 
         window.addEventListener('beforeunload', cleanupGeriLiveSSE);
@@ -13805,6 +13829,185 @@
             }
 
             connectGeriLiveSSE();
+            loadEnergyPriceCharts();
+        }
+
+        var brentChartInstance = null;
+        var ttfChartInstance = null;
+
+        async function loadEnergyPriceCharts() {
+            var token = sessionToken || '';
+            if (!token) return;
+            try {
+                var resp = await fetch('/api/v1/indices/geri/live/energy-prices', {
+                    headers: { 'X-User-Token': token }
+                });
+                if (!resp.ok) return;
+                var json = await resp.json();
+                if (!json.success || !json.data) return;
+
+                var brent = json.data.brent;
+                var ttf = json.data.ttf;
+
+                if (brent && brent.prices && brent.prices.length > 0) {
+                    renderBrentChart(brent);
+                } else {
+                    document.getElementById('brentIntradayChart').style.display = 'none';
+                    document.getElementById('brentChartEmpty').style.display = 'block';
+                }
+
+                if (ttf && ttf.prices && ttf.prices.length > 0) {
+                    renderTTFChart(ttf);
+                } else {
+                    document.getElementById('ttfDailyChart').style.display = 'none';
+                    document.getElementById('ttfChartEmpty').style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Energy prices load error:', e);
+            }
+        }
+
+        function renderBrentChart(data) {
+            var canvas = document.getElementById('brentIntradayChart');
+            var ctx = canvas.getContext('2d');
+            if (brentChartInstance) { brentChartInstance.destroy(); }
+
+            var prices = data.prices;
+            var labels = prices.map(function(p) { return p.hour + ':00'; });
+            var values = prices.map(function(p) { return p.price; });
+            var latest = prices[prices.length - 1];
+            var first = prices[0];
+            var change = latest.price - first.price;
+            var changePct = ((change / first.price) * 100).toFixed(2);
+            var isUp = change >= 0;
+
+            document.getElementById('brentChartMeta').innerHTML =
+                '$' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
+                (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
+
+            var lineColor = isUp ? '#f59e0b' : '#ef4444';
+
+            brentChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        borderColor: lineColor,
+                        backgroundColor: lineColor + '15',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: lineColor,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(ctx) { return '$' + ctx.raw.toFixed(2) + '/bbl'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 },
+                            grid: { color: '#1e293b44' }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 10 },
+                                callback: function(v) { return '$' + v.toFixed(1); }
+                            },
+                            grid: { color: '#1e293b44' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTTFChart(data) {
+            var canvas = document.getElementById('ttfDailyChart');
+            var ctx = canvas.getContext('2d');
+            if (ttfChartInstance) { ttfChartInstance.destroy(); }
+
+            var prices = data.prices;
+            var labels = prices.map(function(p) {
+                var parts = p.date.split('-');
+                return parts[1] + '/' + parts[2];
+            });
+            var values = prices.map(function(p) { return p.price; });
+            var latest = prices[prices.length - 1];
+            var prev = prices.length > 1 ? prices[prices.length - 2] : prices[0];
+            var change = latest.price - prev.price;
+            var changePct = ((change / prev.price) * 100).toFixed(2);
+            var isUp = change >= 0;
+
+            document.getElementById('ttfChartMeta').innerHTML =
+                '\u20AC' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
+                (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
+
+            var lineColor = '#22c55e';
+
+            ttfChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        borderColor: lineColor,
+                        backgroundColor: lineColor + '15',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: lineColor,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(ctx) { return '\u20AC' + ctx.raw.toFixed(2) + '/MWh'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 10 },
+                            grid: { color: '#1e293b44' }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 10 },
+                                callback: function(v) { return '\u20AC' + v.toFixed(1); }
+                            },
+                            grid: { color: '#1e293b44' }
+                        }
+                    }
+                }
+            });
         }
 
         function connectGeriLiveSSE() {
