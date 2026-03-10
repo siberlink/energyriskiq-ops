@@ -13907,7 +13907,7 @@
                 '$' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
                 (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
 
-            var lineColor = isUp ? '#f59e0b' : '#ef4444';
+            var lineColor = '#f59e0b';
 
             brentChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -13920,9 +13920,14 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
+                        pointRadius: 3,
+                        pointBackgroundColor: lineColor,
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 6,
                         pointHoverBackgroundColor: lineColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
                     }]
                 },
                 options: {
@@ -13977,7 +13982,7 @@
                 '$' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
                 (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
 
-            var lineColor = isUp ? '#3b82f6' : '#ef4444';
+            var lineColor = '#3b82f6';
 
             wtiChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -13990,9 +13995,14 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
+                        pointRadius: 3,
+                        pointBackgroundColor: lineColor,
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 6,
                         pointHoverBackgroundColor: lineColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
                     }]
                 },
                 options: {
@@ -14047,7 +14057,7 @@
                 '$' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
                 (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
 
-            var lineColor = isUp ? '#a78bfa' : '#ef4444';
+            var lineColor = '#a78bfa';
 
             natgasChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -14060,9 +14070,14 @@
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
+                        pointRadius: 3,
+                        pointBackgroundColor: lineColor,
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 6,
                         pointHoverBackgroundColor: lineColor,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
                     }]
                 },
                 options: {
