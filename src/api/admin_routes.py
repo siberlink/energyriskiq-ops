@@ -3,7 +3,8 @@ import secrets
 import hashlib
 import time
 import logging
-from fastapi import APIRouter, HTTPException, Header
+import requests
+from fastapi import APIRouter, HTTPException, Header, Query
 from typing import Optional, List
 from pydantic import BaseModel
 
@@ -11,6 +12,7 @@ from src.plans.plan_helpers import (
     get_plan_settings,
     get_all_plan_settings,
     update_plan_settings,
+    apply_plan_settings_to_user,
     VALID_PLAN_CODES,
     ALL_ALERT_TYPES
 )
@@ -377,4 +379,223 @@ def update_banner_settings_endpoint(body: BannerSettingsUpdate, x_admin_token: O
         return {"success": True, **result}
     except Exception as e:
         logger.error(f"Failed to update banner settings: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/users")
+def admin_list_users(
+    x_admin_token: Optional[str] = Header(None),
+    search: Optional[str] = Query(None),
+    plan_filter: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(25, ge=1, le=100),
+):
+    verify_admin_token(x_admin_token)
+    offset = (page - 1) * per_page
+    conditions = []
+    params = []
+
+    if search:
+        conditions.append("LOWER(u.email) LIKE %s")
+        params.append(f"%{search.lower()}%")
+
+    if plan_filter and plan_filter in VALID_PLAN_CODES:
+        conditions.append("up.plan = %s")
+        params.append(plan_filter)
+
+    where = "WHERE " + " AND ".join(conditions) if conditions else ""
+
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute(f"""
+                SELECT COUNT(*) as total
+                FROM users u
+                LEFT JOIN user_plans up ON u.id = up.user_id
+                {where}
+            """, params)
+            total = cur.fetchone()["total"]
+
+            cur.execute(f"""
+                SELECT u.id, u.email, u.created_at,
+                       u.subscription_status,
+                       COALESCE(up.plan, 'free') as plan,
+                       up.updated_at as plan_updated_at
+                FROM users u
+                LEFT JOIN user_plans up ON u.id = up.user_id
+                {where}
+                ORDER BY u.created_at DESC
+                LIMIT %s OFFSET %s
+            """, params + [per_page, offset])
+            rows = cur.fetchall()
+
+        users = []
+        for r in rows:
+            users.append({
+                "id": r["id"],
+                "email": r["email"],
+                "plan": r["plan"],
+                "subscription_status": r["subscription_status"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+                "plan_updated_at": r["plan_updated_at"].isoformat() if r.get("plan_updated_at") else None,
+            })
+
+        return {
+            "success": True,
+            "users": users,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": max(1, (total + per_page - 1) // per_page),
+        }
+    except Exception as e:
+        logger.error(f"Failed to list users: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/users/{user_id}")
+def admin_get_user(user_id: int, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute("""
+                SELECT u.id, u.email, u.created_at,
+                       u.stripe_customer_id, u.stripe_subscription_id,
+                       u.subscription_status, u.subscription_current_period_end,
+                       u.telegram_chat_id,
+                       COALESCE(up.plan, 'free') as plan,
+                       up.plan_price_usd, up.alerts_delay_minutes,
+                       up.allow_asset_alerts, up.allow_telegram,
+                       up.daily_digest_enabled, up.max_email_alerts_per_day,
+                       up.max_total_alerts_per_day,
+                       up.custom_thresholds, up.priority_processing,
+                       up.created_at as plan_created_at, up.updated_at as plan_updated_at
+                FROM users u
+                LEFT JOIN user_plans up ON u.id = up.user_id
+                WHERE u.id = %s
+            """, (user_id,))
+            row = cur.fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user = {
+            "id": row["id"],
+            "email": row["email"],
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "stripe_customer_id": row.get("stripe_customer_id"),
+            "stripe_subscription_id": row.get("stripe_subscription_id"),
+            "subscription_status": row.get("subscription_status"),
+            "subscription_current_period_end": row["subscription_current_period_end"].isoformat() if row.get("subscription_current_period_end") else None,
+            "telegram_chat_id": row.get("telegram_chat_id"),
+            "plan": row["plan"],
+            "plan_price_usd": float(row["plan_price_usd"]) if row.get("plan_price_usd") is not None else 0,
+            "alerts_delay_minutes": row.get("alerts_delay_minutes"),
+            "allow_asset_alerts": row.get("allow_asset_alerts"),
+            "allow_telegram": row.get("allow_telegram"),
+            "daily_digest_enabled": row.get("daily_digest_enabled"),
+            "max_email_alerts_per_day": row.get("max_email_alerts_per_day"),
+            "max_total_alerts_per_day": row.get("max_total_alerts_per_day"),
+            "custom_thresholds": row.get("custom_thresholds"),
+            "priority_processing": row.get("priority_processing"),
+            "plan_created_at": row["plan_created_at"].isoformat() if row.get("plan_created_at") else None,
+            "plan_updated_at": row["plan_updated_at"].isoformat() if row.get("plan_updated_at") else None,
+        }
+        return {"success": True, "user": user}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class AssignPlanRequest(BaseModel):
+    plan_code: str
+
+
+@router.put("/users/{user_id}/plan")
+def admin_assign_plan(user_id: int, body: AssignPlanRequest, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+
+    if body.plan_code not in VALID_PLAN_CODES:
+        raise HTTPException(status_code=400, detail=f"Invalid plan. Must be one of: {VALID_PLAN_CODES}")
+
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute("SELECT id, email FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        success = apply_plan_settings_to_user(user_id, body.plan_code)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to apply plan settings")
+
+        logger.info(f"Admin assigned plan '{body.plan_code}' to user {user_id} ({user['email']})")
+        return {
+            "success": True,
+            "message": f"Plan '{body.plan_code}' assigned to {user['email']}",
+            "user_id": user_id,
+            "plan": body.plan_code,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to assign plan to user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SendEmailRequest(BaseModel):
+    to_email: str
+    subject: str
+    html_body: str
+
+
+@router.post("/users/send-email")
+def admin_send_email(body: SendEmailRequest, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+
+    if not body.to_email or not body.subject or not body.html_body:
+        raise HTTPException(status_code=400, detail="Email, subject, and body are required")
+
+    brevo_api_key = os.environ.get("BREVO_API_KEY")
+    if not brevo_api_key:
+        raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
+
+    email_from = os.environ.get("EMAIL_FROM", "EnergyRiskIQ <alerts@energyriskiq.com>")
+    import re
+    match = re.match(r'^(.+?)<(.+?)>$', email_from.strip())
+    if match:
+        sender = {"name": match.group(1).strip(), "email": match.group(2).strip()}
+    else:
+        sender = {"email": email_from.strip()}
+
+    try:
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key": brevo_api_key,
+                "Content-Type": "application/json",
+            },
+            json={
+                "sender": sender,
+                "to": [{"email": body.to_email}],
+                "subject": body.subject,
+                "htmlContent": body.html_body,
+            },
+            timeout=30,
+        )
+
+        if response.status_code in [200, 201, 202]:
+            data = response.json()
+            message_id = data.get("messageId")
+            logger.info(f"Admin email sent to {body.to_email}, subject='{body.subject}', messageId={message_id}")
+            return {"success": True, "message": f"Email sent to {body.to_email}", "message_id": message_id}
+        else:
+            error = f"Brevo API error: {response.status_code} - {response.text}"
+            logger.error(f"Admin email send failed: {error}")
+            raise HTTPException(status_code=500, detail=error)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Admin email send failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

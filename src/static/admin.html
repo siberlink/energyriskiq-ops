@@ -1399,12 +1399,91 @@
                     <h1 class="page-title">Users</h1>
                     <p class="page-subtitle">View and manage user accounts</p>
                 </div>
+
                 <div class="content-card">
-                    <div class="card-header">
+                    <div class="card-header" style="flex-wrap:wrap;gap:10px;">
                         <h2 class="card-title">User Management</h2>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="userSearchInput" placeholder="Search by email..." style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:13px;width:220px;" onkeydown="if(event.key==='Enter')loadAdminUsers()">
+                            <select id="userPlanFilter" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:13px;" onchange="loadAdminUsers()">
+                                <option value="">All Plans</option>
+                                <option value="free">Free</option>
+                                <option value="personal">Personal</option>
+                                <option value="trader">Trader</option>
+                                <option value="pro">Pro</option>
+                                <option value="enterprise">Enterprise</option>
+                            </select>
+                            <button onclick="loadAdminUsers()" style="background:#3b82f6;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Search</button>
+                        </div>
                     </div>
-                    <div style="padding: 40px; text-align: center; color: #94a3b8;">
-                        User management features coming soon.
+
+                    <div id="usersTableContainer" style="padding:0;">
+                        <div style="padding:40px;text-align:center;color:#94a3b8;">Click Search or press Enter to load users.</div>
+                    </div>
+
+                    <div id="usersPagination" style="display:none;padding:12px 20px;border-top:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                        <span id="usersPaginationInfo" style="color:#94a3b8;font-size:13px;"></span>
+                        <div style="display:flex;gap:6px;">
+                            <button id="usersPrevBtn" onclick="changeUsersPage(-1)" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Previous</button>
+                            <button id="usersNextBtn" onclick="changeUsersPage(1)" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;">Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Detail Modal -->
+                <div id="userDetailModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto;">
+                    <div style="max-width:600px;margin:40px auto;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:0;">
+                        <div style="padding:20px 24px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;">
+                            <h3 style="margin:0;color:#e2e8f0;font-size:16px;">User Details</h3>
+                            <button onclick="closeUserModal()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">&times;</button>
+                        </div>
+                        <div id="userDetailBody" style="padding:24px;"></div>
+                    </div>
+                </div>
+
+                <!-- Email Composer Modal -->
+                <div id="emailComposerModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1001;overflow-y:auto;">
+                    <div style="max-width:700px;margin:30px auto;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:0;">
+                        <div style="padding:20px 24px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;">
+                            <h3 style="margin:0;color:#e2e8f0;font-size:16px;">Send Email</h3>
+                            <button onclick="closeEmailComposer()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">&times;</button>
+                        </div>
+                        <div style="padding:24px;">
+                            <div style="margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">To</label>
+                                <input type="text" id="emailTo" readonly style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Subject</label>
+                                <input type="text" id="emailSubject" placeholder="Email subject..." style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                            <div style="margin-bottom:8px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Formatting</label>
+                                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                                    <button type="button" onclick="emailFormat('bold')" title="Bold" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">B</button>
+                                    <button type="button" onclick="emailFormat('italic')" title="Italic" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-style:italic;">I</button>
+                                    <button type="button" onclick="emailFormat('underline')" title="Underline" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;text-decoration:underline;">U</button>
+                                    <button type="button" onclick="emailFormat('h2')" title="Heading" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">H</button>
+                                    <button type="button" onclick="emailFormat('ul')" title="Bullet List" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#8226; List</button>
+                                    <button type="button" onclick="emailFormat('link')" title="Insert Link" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#128279; Link</button>
+                                    <button type="button" onclick="emailFormat('hr')" title="Divider" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&mdash; Line</button>
+                                    <button type="button" onclick="emailFormat('color')" title="Text Color" style="background:#1e293b;border:1px solid #334155;color:#3b82f6;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">A</button>
+                                    <button type="button" onclick="toggleEmailPreview()" title="Preview" style="background:#1e293b;border:1px solid #334155;color:#22c55e;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">Preview</button>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Body (HTML)</label>
+                                <textarea id="emailBody" rows="14" placeholder="Write your email content here..." style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;font-family:monospace;resize:vertical;box-sizing:border-box;line-height:1.5;"></textarea>
+                            </div>
+                            <div id="emailPreviewContainer" style="display:none;margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Preview</label>
+                                <div id="emailPreviewBox" style="background:#ffffff;color:#1e293b;padding:20px;border-radius:6px;border:1px solid #334155;font-size:14px;line-height:1.6;max-height:300px;overflow-y:auto;"></div>
+                            </div>
+                            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                                <button onclick="closeEmailComposer()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;">Cancel</button>
+                                <button onclick="sendAdminEmail()" id="sendEmailBtn" style="background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Send Email</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2215,6 +2294,8 @@
                 loadStripeSettings();
             } else if (sectionId === 'banner') {
                 loadBannerSettings();
+            } else if (sectionId === 'users') {
+                loadAdminUsers();
             } else if (sectionId === 'elsa') {
                 loadElsaTopics();
             } else if (sectionId === 'tickets') {
@@ -4402,6 +4483,294 @@
                 loadAdminBlogUsers();
                 showToast('User deleted', 'success');
             } catch(e) {}
+        }
+
+        let usersCurrentPage = 1;
+        let usersTotalPages = 1;
+
+        async function loadAdminUsers() {
+            const search = document.getElementById('userSearchInput').value.trim();
+            const planFilter = document.getElementById('userPlanFilter').value;
+            let url = `/admin/users?page=${usersCurrentPage}&per_page=25`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (planFilter) url += `&plan_filter=${encodeURIComponent(planFilter)}`;
+
+            const container = document.getElementById('usersTableContainer');
+            container.innerHTML = '<div style="padding:30px;text-align:center;color:#94a3b8;"><div class="spinner" style="margin:0 auto 10px;"></div>Loading users...</div>';
+
+            try {
+                const res = await fetch(url, { headers: { 'X-Admin-Token': sessionToken } });
+                if (!res.ok) throw new Error('Failed to load users');
+                const data = await res.json();
+
+                usersTotalPages = data.total_pages;
+
+                if (!data.users || data.users.length === 0) {
+                    container.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;">No users found.</div>';
+                    document.getElementById('usersPagination').style.display = 'none';
+                    return;
+                }
+
+                const planColors = { free: '#64748b', personal: '#3b82f6', trader: '#f59e0b', pro: '#8b5cf6', enterprise: '#22c55e' };
+                let tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead><tr style="border-bottom:1px solid #1e293b;">
+                        <th style="padding:10px 16px;text-align:left;color:#94a3b8;font-weight:600;">Email</th>
+                        <th style="padding:10px 16px;text-align:left;color:#94a3b8;font-weight:600;">Plan</th>
+                        <th style="padding:10px 16px;text-align:left;color:#94a3b8;font-weight:600;">Joined</th>
+                        <th style="padding:10px 16px;text-align:right;color:#94a3b8;font-weight:600;">Actions</th>
+                    </tr></thead><tbody>`;
+
+                for (const u of data.users) {
+                    const planColor = planColors[u.plan] || '#64748b';
+                    const joined = u.created_at ? new Date(u.created_at).toLocaleDateString() : '-';
+                    tableHtml += `<tr style="border-bottom:1px solid #0f172a;" onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">
+                        <td style="padding:10px 16px;color:#e2e8f0;">${u.email}</td>
+                        <td style="padding:10px 16px;"><span style="background:${planColor}22;color:${planColor};padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase;">${u.plan}</span></td>
+                        <td style="padding:10px 16px;color:#94a3b8;">${joined}</td>
+                        <td style="padding:10px 16px;text-align:right;">
+                            <button onclick="viewUserDetail(${u.id})" style="background:#1e293b;color:#3b82f6;border:1px solid #334155;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-right:4px;">View</button>
+                            <button onclick="openPlanAssign(${u.id},'${u.email}','${u.plan}')" style="background:#1e293b;color:#f59e0b;border:1px solid #334155;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-right:4px;">Plan</button>
+                            <button onclick="openEmailComposer('${u.email}')" style="background:#1e293b;color:#22c55e;border:1px solid #334155;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:11px;">Email</button>
+                        </td>
+                    </tr>`;
+                }
+                tableHtml += '</tbody></table>';
+                container.innerHTML = tableHtml;
+
+                const pagination = document.getElementById('usersPagination');
+                pagination.style.display = 'flex';
+                document.getElementById('usersPaginationInfo').textContent = `Page ${data.page} of ${data.total_pages} (${data.total} users)`;
+                document.getElementById('usersPrevBtn').disabled = data.page <= 1;
+                document.getElementById('usersNextBtn').disabled = data.page >= data.total_pages;
+            } catch (e) {
+                container.innerHTML = `<div style="padding:40px;text-align:center;color:#ef4444;">Error: ${e.message}</div>`;
+            }
+        }
+
+        function changeUsersPage(delta) {
+            usersCurrentPage += delta;
+            if (usersCurrentPage < 1) usersCurrentPage = 1;
+            if (usersCurrentPage > usersTotalPages) usersCurrentPage = usersTotalPages;
+            loadAdminUsers();
+        }
+
+        async function viewUserDetail(userId) {
+            const modal = document.getElementById('userDetailModal');
+            const body = document.getElementById('userDetailBody');
+            body.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;"><div class="spinner" style="margin:0 auto 10px;"></div>Loading...</div>';
+            modal.style.display = 'block';
+
+            try {
+                const res = await fetch(`/admin/users/${userId}`, { headers: { 'X-Admin-Token': sessionToken } });
+                if (!res.ok) throw new Error('Failed to load user');
+                const data = await res.json();
+                const u = data.user;
+                const planColors = { free: '#64748b', personal: '#3b82f6', trader: '#f59e0b', pro: '#8b5cf6', enterprise: '#22c55e' };
+                const pc = planColors[u.plan] || '#64748b';
+                const joined = u.created_at ? new Date(u.created_at).toLocaleString() : '-';
+                const planUpdated = u.plan_updated_at ? new Date(u.plan_updated_at).toLocaleString() : '-';
+                const subEnd = u.subscription_current_period_end ? new Date(u.subscription_current_period_end).toLocaleString() : '-';
+
+                const field = (label, val) => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e293b22;"><span style="color:#94a3b8;font-size:13px;">${label}</span><span style="color:#e2e8f0;font-size:13px;">${val || '-'}</span></div>`;
+
+                body.innerHTML = `
+                    <div style="margin-bottom:16px;">
+                        <div style="font-size:18px;color:#e2e8f0;font-weight:600;">${u.email}</div>
+                        <div style="margin-top:6px;"><span style="background:${pc}22;color:${pc};padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;text-transform:uppercase;">${u.plan}</span></div>
+                    </div>
+                    <div style="background:#1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <div style="color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:8px;">Account</div>
+                        ${field('User ID', u.id)}
+                        ${field('Joined', joined)}
+                        ${field('Telegram', u.telegram_chat_id || 'Not connected')}
+                    </div>
+                    <div style="background:#1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <div style="color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:8px;">Plan & Billing</div>
+                        ${field('Current Plan', u.plan.toUpperCase())}
+                        ${field('Plan Price', u.plan_price_usd ? '$' + u.plan_price_usd + '/mo' : 'Free')}
+                        ${field('Plan Updated', planUpdated)}
+                        ${field('Subscription Status', u.subscription_status || 'none')}
+                        ${field('Period End', subEnd)}
+                        ${field('Stripe Customer', u.stripe_customer_id || 'None')}
+                    </div>
+                    <div style="background:#1e293b;border-radius:8px;padding:16px;margin-bottom:16px;">
+                        <div style="color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;margin-bottom:8px;">Permissions</div>
+                        ${field('Alerts Delay', u.alerts_delay_minutes != null ? u.alerts_delay_minutes + ' min' : '-')}
+                        ${field('Max Emails/Day', u.max_email_alerts_per_day)}
+                        ${field('Max Total Alerts/Day', u.max_total_alerts_per_day)}
+                        ${field('Asset Alerts', u.allow_asset_alerts ? 'Yes' : 'No')}
+                        ${field('Telegram Alerts', u.allow_telegram ? 'Yes' : 'No')}
+                        ${field('Daily Digest', u.daily_digest_enabled ? 'Yes' : 'No')}
+                        ${field('Custom Thresholds', u.custom_thresholds ? 'Yes' : 'No')}
+                        ${field('Priority Processing', u.priority_processing ? 'Yes' : 'No')}
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button onclick="openPlanAssign(${u.id},'${u.email}','${u.plan}')" style="background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Change Plan</button>
+                        <button onclick="closeUserModal();openEmailComposer('${u.email}')" style="background:#22c55e22;color:#22c55e;border:1px solid #22c55e44;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">Send Email</button>
+                    </div>
+                `;
+            } catch (e) {
+                body.innerHTML = `<div style="text-align:center;color:#ef4444;padding:20px;">Error: ${e.message}</div>`;
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userDetailModal').style.display = 'none';
+        }
+
+        function openPlanAssign(userId, email, currentPlan) {
+            const plans = ['free', 'personal', 'trader', 'pro', 'enterprise'];
+            const opts = plans.map(p => `<option value="${p}" ${p === currentPlan ? 'selected' : ''}>${p.charAt(0).toUpperCase() + p.slice(1)}</option>`).join('');
+            const modal = document.getElementById('userDetailModal');
+            const body = document.getElementById('userDetailBody');
+            body.innerHTML = `
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:16px;color:#e2e8f0;font-weight:600;">Assign Plan</div>
+                    <div style="color:#94a3b8;font-size:13px;margin-top:4px;">${email}</div>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:6px;">Select Plan</label>
+                    <select id="planAssignSelect" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:14px;">${opts}</select>
+                </div>
+                <div style="background:#f59e0b11;border:1px solid #f59e0b33;border-radius:6px;padding:12px;margin-bottom:16px;">
+                    <div style="color:#f59e0b;font-size:12px;">This assigns the plan directly without payment. All plan permissions will be updated immediately.</div>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button onclick="closeUserModal()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Cancel</button>
+                    <button onclick="confirmPlanAssign(${userId})" id="planAssignBtn" style="background:#f59e0b;color:black;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Assign Plan</button>
+                </div>
+            `;
+            modal.style.display = 'block';
+        }
+
+        async function confirmPlanAssign(userId) {
+            const planCode = document.getElementById('planAssignSelect').value;
+            const btn = document.getElementById('planAssignBtn');
+            btn.disabled = true;
+            btn.textContent = 'Assigning...';
+
+            try {
+                const res = await fetch(`/admin/users/${userId}/plan`, {
+                    method: 'PUT',
+                    headers: { 'X-Admin-Token': sessionToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan_code: planCode })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Failed to assign plan');
+                showToast(data.message, 'success');
+                closeUserModal();
+                loadAdminUsers();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Assign Plan';
+            }
+        }
+
+        function openEmailComposer(toEmail) {
+            document.getElementById('emailTo').value = toEmail;
+            document.getElementById('emailSubject').value = '';
+            document.getElementById('emailBody').value = '';
+            document.getElementById('emailPreviewContainer').style.display = 'none';
+            document.getElementById('emailComposerModal').style.display = 'block';
+        }
+
+        function closeEmailComposer() {
+            document.getElementById('emailComposerModal').style.display = 'none';
+        }
+
+        function emailFormat(type) {
+            const textarea = document.getElementById('emailBody');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selected = textarea.value.substring(start, end);
+            let insert = '';
+
+            switch (type) {
+                case 'bold':
+                    insert = `<strong>${selected || 'bold text'}</strong>`;
+                    break;
+                case 'italic':
+                    insert = `<em>${selected || 'italic text'}</em>`;
+                    break;
+                case 'underline':
+                    insert = `<u>${selected || 'underlined text'}</u>`;
+                    break;
+                case 'h2':
+                    insert = `<h2 style="color:#1e293b;margin:16px 0 8px;">${selected || 'Heading'}</h2>`;
+                    break;
+                case 'ul':
+                    const items = selected ? selected.split('\n').map(l => `  <li>${l}</li>`).join('\n') : '  <li>Item 1</li>\n  <li>Item 2</li>';
+                    insert = `<ul style="margin:8px 0;padding-left:20px;">\n${items}\n</ul>`;
+                    break;
+                case 'link':
+                    const url = prompt('Enter URL:', 'https://');
+                    if (!url) return;
+                    insert = `<a href="${url}" style="color:#3b82f6;">${selected || url}</a>`;
+                    break;
+                case 'hr':
+                    insert = `<hr style="border:1px solid #e2e8f0;margin:16px 0;">`;
+                    break;
+                case 'color':
+                    const color = prompt('Enter color (hex or name):', '#3b82f6');
+                    if (!color) return;
+                    insert = `<span style="color:${color};">${selected || 'colored text'}</span>`;
+                    break;
+            }
+
+            textarea.value = textarea.value.substring(0, start) + insert + textarea.value.substring(end);
+            textarea.focus();
+            textarea.selectionStart = start;
+            textarea.selectionEnd = start + insert.length;
+        }
+
+        function toggleEmailPreview() {
+            const container = document.getElementById('emailPreviewContainer');
+            const box = document.getElementById('emailPreviewBox');
+            if (container.style.display === 'none') {
+                const body = document.getElementById('emailBody').value;
+                const wrapped = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">${body}</div>`;
+                box.innerHTML = wrapped;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        async function sendAdminEmail() {
+            const toEmail = document.getElementById('emailTo').value;
+            const subject = document.getElementById('emailSubject').value.trim();
+            const body = document.getElementById('emailBody').value.trim();
+
+            if (!subject) { showToast('Subject is required', 'error'); return; }
+            if (!body) { showToast('Email body is required', 'error'); return; }
+
+            const btn = document.getElementById('sendEmailBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+                ${body}
+                <hr style="border:1px solid #e2e8f0;margin:24px 0 12px;">
+                <p style="color:#94a3b8;font-size:11px;">Sent from EnergyRiskIQ</p>
+            </div>`;
+
+            try {
+                const res = await fetch('/admin/users/send-email', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Token': sessionToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to_email: toEmail, subject: subject, html_body: htmlBody })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Failed to send email');
+                showToast('Email sent to ' + toEmail, 'success');
+                closeEmailComposer();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Email';
+            }
         }
 
         checkSession();
