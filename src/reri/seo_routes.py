@@ -713,8 +713,8 @@ def _render_eeri_page(eeri: dict):
     geo_count = energy_count = market_count = 0
     for driver in (eeri.get('top_drivers') or []):
         if isinstance(driver, dict):
-            cat = (driver.get('category', '') or '').lower()
-            sev = (driver.get('severity', '') or '').lower()
+            cat = str(driver.get('category', '') or '').lower()
+            sev = str(driver.get('severity', '') or '').lower()
         else:
             cat = ''
             sev = ''
