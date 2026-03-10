@@ -1468,6 +1468,7 @@
                                     <button type="button" onclick="emailFormat('link')" title="Insert Link" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#128279; Link</button>
                                     <button type="button" onclick="emailFormat('hr')" title="Divider" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&mdash; Line</button>
                                     <button type="button" onclick="emailFormat('color')" title="Text Color" style="background:#1e293b;border:1px solid #334155;color:#3b82f6;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">A</button>
+                                    <button type="button" onclick="emailFormat('br')" title="Line Break" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#8629; Break</button>
                                     <button type="button" onclick="toggleEmailPreview()" title="Preview" style="background:#1e293b;border:1px solid #334155;color:#22c55e;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">Preview</button>
                                 </div>
                             </div>
@@ -4716,6 +4717,9 @@
                     if (!color) return;
                     insert = `<span style="color:${color};">${selected || 'colored text'}</span>`;
                     break;
+                case 'br':
+                    insert = `<br>`;
+                    break;
             }
 
             textarea.value = textarea.value.substring(0, start) + insert + textarea.value.substring(end);
@@ -4724,12 +4728,16 @@
             textarea.selectionEnd = start + insert.length;
         }
 
+        function convertNewlinesToBr(text) {
+            return text.replace(/\n/g, '<br>\n');
+        }
+
         function toggleEmailPreview() {
             const container = document.getElementById('emailPreviewContainer');
             const box = document.getElementById('emailPreviewBox');
             if (container.style.display === 'none') {
                 const body = document.getElementById('emailBody').value;
-                const wrapped = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">${body}</div>`;
+                const wrapped = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">${convertNewlinesToBr(body)}</div>`;
                 box.innerHTML = wrapped;
                 container.style.display = 'block';
             } else {
@@ -4750,7 +4758,7 @@
             btn.textContent = 'Sending...';
 
             const htmlBody = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-                ${body}
+                ${convertNewlinesToBr(body)}
                 <hr style="border:1px solid #e2e8f0;margin:24px 0 12px;">
                 <p style="color:#94a3b8;font-size:11px;">Sent from EnergyRiskIQ</p>
             </div>`;
