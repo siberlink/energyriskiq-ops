@@ -558,19 +558,19 @@ def _build_weekly_snapshot_html(snapshot: dict) -> str:
         </div>'''
 
 
-@router.get("/eeri", response_class=HTMLResponse)
+@router.get("/eeri")
+async def eeri_redirect(request: Request):
+    """301 redirect from old /eeri to new canonical URL."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/indices/europe-energy-risk-index", status_code=301)
+
+
+@router.get("/indices/europe-energy-risk-index", response_class=HTMLResponse)
 async def eeri_public_page(request: Request):
     """
-    EERI Main Public Page - SEO anchor page.
+    EERI Main Public Page - Canonical page at /indices/europe-energy-risk-index.
     
-    Shows 24h delayed EERI with:
-    - Today's level, band, trend
-    - Interpretation
-    - Top 3 risk drivers
-    - Affected assets
-    - Risk band visualization
-    - Weekly snapshot
-    - Methodology summary
+    Shows 24h delayed EERI with restructured content matching GERI pattern.
     """
     eeri = get_eeri_delayed(delay_hours=24)
     
@@ -585,8 +585,8 @@ async def eeri_public_page(request: Request):
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>European Energy Risk Index (EERI) | EnergyRiskIQ</title>
-            <meta name="description" content="The European Energy Risk Index (EERI) measures systemic geopolitical, supply-chain, and market disruption risks affecting European energy markets.">
-            <link rel="canonical" href="{BASE_URL}/eeri">
+            <meta name="description" content="Track the European Energy Risk Index (EERI), a public 24-hour delayed measure of geopolitical and supply-chain stress across European gas, power, and energy systems.">
+            <link rel="canonical" href="{BASE_URL}/indices/europe-energy-risk-index">
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_digest_dark_styles()}
         </head>
@@ -598,7 +598,7 @@ async def eeri_public_page(request: Request):
                 </button>
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
@@ -608,10 +608,10 @@ async def eeri_public_page(request: Request):
             <main>
                 <div class="container">
                     <div class="breadcrumbs">
-                        <a href="/">Home</a> / European Energy Risk Index
+                        <a href="/">Home</a> / <a href="/indices">Indices</a> / Europe Energy Risk Index
                     </div>
                     <h1 style="font-size: 1.75rem; color: #f1f5f9; text-align: center; margin-bottom: 0.5rem;">European Energy Risk Index (EERI)</h1>
-                    <p style="color: #94a3b8; text-align: center; margin-bottom: 2rem;">A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
+                    <p style="color: #94a3b8; text-align: center; max-width: 700px; margin: 0 auto 2rem auto; font-size: 0.92rem; line-height: 1.6;">The EERI tracks geopolitical risk, gas supply disruptions, and market stress across European energy systems. Updated daily, it provides a single composite score from 0 to 100 measuring systemic risk in European energy markets.</p>
                     <div style="text-align: center; padding: 3rem 1rem; color: #94a3b8;">
                         <h2 style="color: #f1f5f9; font-size: 1.25rem; margin-bottom: 0.5rem;">EERI Data Coming Soon</h2>
                         <p>EERI data is being computed. Check back shortly.</p>
@@ -626,36 +626,116 @@ async def eeri_public_page(request: Request):
         return HTMLResponse(content=no_data_html)
     
     band_color = get_band_color(eeri['band'])
-    trend_label, trend_sign, trend_color = format_trend(eeri.get('trend_7d'))
-    
-    trend_html = ""
-    if eeri.get('trend_7d') is not None:
-        trend_val = eeri['trend_7d']
-        trend_html = f'<div class="index-trend" style="color: {trend_color};">7-Day Trend: {trend_label} ({trend_sign}{trend_val})</div>'
-    
-    drivers_html = ""
-    top_drivers = eeri.get('top_drivers', [])[:3]
-    for driver in top_drivers:
+
+    index_date = eeri.get('date', date.today().isoformat())
+    try:
+        index_date_obj = datetime.fromisoformat(index_date) if isinstance(index_date, str) else index_date
+        index_date_display = index_date_obj.strftime('%Y-%m-%d')
+    except:
+        index_date_display = index_date
+
+    score_card = f"""
+    <div class="index-metric-card">
+        <div class="index-header">
+            <span class="index-icon">&#x26A1;</span>
+            <span class="index-title">European Energy Risk Index</span>
+        </div>
+        <div style="font-size: 2.5rem; font-weight: 700; color: {band_color}; margin: 0.5rem 0; line-height: 1;">{eeri['value']}<span style="font-size: 1rem; color: #64748b;"> / 100</span></div>
+        <div style="font-size: 1.1rem; font-weight: 600; color: {band_color}; margin-bottom: 0.25rem;">{eeri['band']}</div>
+        <div class="index-scale-ref">0 = minimal risk &middot; 100 = extreme systemic stress</div>
+        <div class="index-date" style="color: #64748b; font-size: 0.8rem; margin-top: 0.75rem;">Last updated: {index_date_display}</div>
+        <div class="index-delay-badge">Public value delay: 24 hours</div>
+    </div>
+    """
+
+    trend_1d_val = eeri.get('trend_1d')
+    trend_7d_val = eeri.get('trend_7d')
+    t1d_sign = "+" if trend_1d_val and trend_1d_val > 0 else ""
+    t1d_display = f"{t1d_sign}{trend_1d_val:.0f}" if trend_1d_val is not None else "N/A"
+    t1d_color = "#ef4444" if (trend_1d_val or 0) > 0 else "#22c55e" if (trend_1d_val or 0) < 0 else "#64748b"
+    t7d_sign = "+" if trend_7d_val and trend_7d_val > 0 else ""
+    t7d_display = f"{t7d_sign}{trend_7d_val:.0f}" if trend_7d_val is not None else "N/A"
+    t7d_color = "#ef4444" if (trend_7d_val or 0) > 0 else "#22c55e" if (trend_7d_val or 0) < 0 else "#64748b"
+
+    from src.db.db import execute_query as _eq
+    from datetime import timedelta
+    thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
+    range_rows = _eq(
+        "SELECT MIN(value) as min_val, MAX(value) as max_val FROM reri_indices_daily WHERE index_id = 'europe:eeri' AND date >= %s",
+        (thirty_days_ago,)
+    )
+    range_row = range_rows[0] if range_rows else {}
+    if range_row and range_row.get('min_val') is not None:
+        range_display = f"{range_row['min_val']}&ndash;{range_row['max_val']}"
+    else:
+        range_display = "N/A"
+
+    change_stats = f"""
+    <div class="eeri-change-stats">
+        <div class="eeri-change-item">
+            <span class="change-label">vs yesterday</span>
+            <span class="change-value" style="color:{t1d_color};">{t1d_display}</span>
+        </div>
+        <div class="eeri-change-item">
+            <span class="change-label">7-day change</span>
+            <span class="change-value" style="color:{t7d_color};">{t7d_display}</span>
+        </div>
+        <div class="eeri-change-item">
+            <span class="change-label">30-day range</span>
+            <span class="change-value" style="color:#94a3b8;">{range_display}</span>
+        </div>
+    </div>
+    """
+
+    geo_cats = ['geopolitical', 'war', 'military', 'conflict', 'sanctions']
+    energy_cats = ['energy', 'supply_chain', 'supply_disruption', 'strike', 'gas', 'pipeline']
+    market_cats = ['political', 'diplomacy', 'market']
+    geo_count = energy_count = market_count = 0
+    for driver in (eeri.get('top_drivers') or []):
         if isinstance(driver, dict):
-            headline = driver.get('headline', driver.get('title', ''))
+            cat = (driver.get('category', '') or '').lower()
+            sev = (driver.get('severity', '') or '').lower()
         else:
-            headline = str(driver)
-        if headline:
-            drivers_html += f'<li><span class="driver-headline">{headline}</span></li>'
-    if not drivers_html:
-        drivers_html = '<li><span class="driver-headline">No significant risk drivers detected</span></li>'
-    
-    assets_html = ""
-    for asset in eeri.get('affected_assets', [])[:4]:
-        assets_html += f'<span class="asset-tag">{asset}</span>'
-    if not assets_html:
-        assets_html = '<span class="asset-tag">Natural Gas</span><span class="asset-tag">Crude Oil</span>'
-    
+            cat = ''
+            sev = ''
+        if any(g in cat for g in geo_cats):
+            geo_count += 1
+        if any(e in cat for e in energy_cats):
+            energy_count += 1
+        if any(m in cat for m in market_cats) or sev == 'high':
+            market_count += 1
+
+    def _level_for(count):
+        if count >= 3: return ('High', 'level-high')
+        if count >= 1: return ('Medium', 'level-medium')
+        return ('Low', 'level-low')
+
+    geo_text, geo_cls = _level_for(geo_count)
+    ene_text, ene_cls = _level_for(energy_count)
+    mkt_text, mkt_cls = _level_for(market_count)
+
+    driver_cards = f"""
+    <div class="eeri-simplified-drivers">
+        <div class="eeri-simplified-driver-card">
+            <div class="driver-icon-pub">&#x2694;&#xFE0F;</div>
+            <div class="driver-label-pub">Geopolitical Risk</div>
+            <div class="driver-level-pub {geo_cls}">{geo_text}</div>
+        </div>
+        <div class="eeri-simplified-driver-card">
+            <div class="driver-icon-pub">&#x26FD;</div>
+            <div class="driver-label-pub">Energy Supply</div>
+            <div class="driver-level-pub {ene_cls}">{ene_text}</div>
+        </div>
+        <div class="eeri-simplified-driver-card">
+            <div class="driver-icon-pub">&#x1F4CA;</div>
+            <div class="driver-label-pub">Market Stress</div>
+            <div class="driver-level-pub {mkt_cls}">{mkt_text}</div>
+        </div>
+    </div>
+    """
+
     top_drivers = eeri.get('top_drivers', [])
     components = eeri.get('components', {})
-    index_date = eeri.get('date', date.today().isoformat())
-    
-    # Use stored interpretation (unique per day), fallback to generation only if missing
     interpretation = eeri.get('explanation') or eeri.get('interpretation')
     if not interpretation:
         interpretation = generate_eeri_interpretation(
@@ -665,46 +745,47 @@ async def eeri_public_page(request: Request):
             components=components,
             index_date=index_date
         )
-    interpretation_html = ''.join(f'<p>{para}</p>' for para in interpretation.split('\n\n') if para.strip())
-    
-    current_band = eeri['band']
-    band_classes = {
-        'LOW': 'low',
-        'MODERATE': 'moderate',
-        'ELEVATED': 'elevated',
-        'SEVERE': 'severe',
-        'CRITICAL': 'critical',
-    }
-    
-    def band_active(band_name):
-        return 'active' if current_band == band_name else ''
-    
-    index_date = eeri.get('date', date.today().isoformat())
-    # Format index date nicely (the date the index is FOR - 24h delayed)
-    try:
-        index_date_obj = datetime.fromisoformat(index_date) if isinstance(index_date, str) else index_date
-        index_date_display = index_date_obj.strftime('%B %d, %Y')
-    except:
-        index_date_display = index_date
-    
-    computed_at = eeri.get('computed_at', '')
-    if computed_at:
-        try:
-            computed_dt = datetime.fromisoformat(str(computed_at).replace('Z', '+00:00'))
-            computed_display = computed_dt.strftime('%B %d, %Y') + ', 01:00 UTC'
-        except:
-            computed_display = str(computed_at).split('T')[0] if 'T' in str(computed_at) else str(computed_at)
-    else:
-        computed_display = 'Daily at 01:00 UTC'
-    
-    trend_display = ""
-    if eeri.get('trend_7d') is not None:
-        trend_val = eeri['trend_7d']
-        trend_sign = "+" if trend_val > 0 else ""
-        trend_display = f'<div class="index-trend" style="color: #4ade80;">7-Day Trend: {trend_label} ({trend_sign}{trend_val:.0f})</div>'
-    
-    delay_badge = '<div class="index-delay-badge">24h delayed • Real-time access with subscription</div>'
-    
+    interp_paragraphs = [p.strip() for p in interpretation.split('\n') if p.strip()]
+    summary_para = interp_paragraphs[0] if interp_paragraphs else ""
+    full_paras = interp_paragraphs[1:] if len(interp_paragraphs) > 1 else []
+    full_html = ''.join(f'<p>{p}</p>' for p in full_paras)
+    expand_section = ""
+    if full_html:
+        expand_section = (
+            '<div id="eeriInterpFull" style="display:none; margin-top: 0.75rem;">'
+            + full_html
+            + '</div>'
+            + "<button onclick=\"var el=document.getElementById('eeriInterpFull');var btn=this;if(el.style.display==='none'){el.style.display='block';btn.textContent='Hide full interpretation';}else{el.style.display='none';btn.textContent='Read full interpretation';}\" style=\"background:none;border:none;color:#60a5fa;cursor:pointer;font-size:0.88rem;font-weight:600;padding:0.5rem 0 0 0;\">Read full interpretation</button>"
+        )
+
+    interp_card = f"""
+    <div class="index-interpretation">
+        <div style="padding: 14px 20px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 16px;">&#x1F9E0;</span>
+            <h3 style="font-size: 15px; font-weight: 600; color: #f1f5f9; margin: 0;">EERI Interpretation</h3>
+        </div>
+        <div style="padding: 16px 20px;">
+            <p>{summary_para}</p>
+            {expand_section}
+        </div>
+    </div>
+    """
+
+    chart_section = """
+    <div style="margin: 1.25rem 0;">
+        <div class="index-section">
+            <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid #334155; margin-bottom: 12px;">
+                <span style="font-size: 16px;">&#x1F4C8;</span>
+                <h3 style="font-size: 15px; font-weight: 600; color: #f1f5f9; margin: 0;">EERI History (14 days)</h3>
+            </div>
+            <div style="position:relative; height:220px;">
+                <canvas id="eeriPublicChart"></canvas>
+            </div>
+            <p style="text-align:center; color:#64748b; font-size:0.8rem; margin-top:0.5rem;">Public 14-day EERI history (24h delayed)</p>
+        </div>
+    </div>
+    """
+
     weekly_snapshot = get_weekly_snapshot()
     weekly_snapshot_html = _build_weekly_snapshot_html(weekly_snapshot)
     
@@ -715,12 +796,12 @@ async def eeri_public_page(request: Request):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>European Energy Risk Index (EERI) | EnergyRiskIQ</title>
-        <meta name="description" content="Track the European Energy Risk Index (EERI) - a daily measure of geopolitical and supply-chain risks affecting European energy markets. Current level: {eeri['value']} ({eeri['band']}).">
-        <link rel="canonical" href="{BASE_URL}/eeri">
+        <meta name="description" content="Track the European Energy Risk Index (EERI), a public 24-hour delayed measure of geopolitical and supply-chain stress across European gas, power, and energy systems. Current level: {eeri['value']} ({eeri['band']}).">
+        <link rel="canonical" href="{BASE_URL}/indices/europe-energy-risk-index">
         
         <meta property="og:title" content="European Energy Risk Index (EERI) | EnergyRiskIQ">
         <meta property="og:description" content="European Energy Risk Index: {eeri['value']} - {eeri['band']}. Track geopolitical and supply-chain risks affecting European energy markets.">
-        <meta property="og:url" content="{BASE_URL}/eeri">
+        <meta property="og:url" content="{BASE_URL}/indices/europe-energy-risk-index">
         <meta property="og:type" content="website">
         
         <link rel="icon" type="image/png" href="/static/favicon.png">
@@ -1068,6 +1149,124 @@ async def eeri_public_page(request: Request):
             }}
             @media (max-width: 600px) {{
                 .index-sections {{ grid-template-columns: 1fr; }}
+                .eeri-simplified-drivers {{ flex-direction: column; align-items: center; }}
+                .eeri-simplified-driver-card {{ max-width: 100%; width: 100%; }}
+                .eeri-change-stats {{ gap: 0.75rem; }}
+                .eeri-change-item {{ min-width: 85px; padding: 0.5rem 0.75rem; }}
+                .related-indices-grid {{ grid-template-columns: 1fr; }}
+            }}
+            .eeri-change-stats {{
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                margin: 1rem 0 1.25rem 0;
+                flex-wrap: wrap;
+            }}
+            .eeri-change-item {{
+                text-align: center;
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 0.65rem 1.25rem;
+                min-width: 110px;
+            }}
+            .change-label {{
+                display: block;
+                font-size: 0.72rem;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 0.3rem;
+            }}
+            .change-value {{
+                display: block;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }}
+            .eeri-what-measures {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem 1.5rem;
+                margin: 1.25rem 0;
+            }}
+            .eeri-what-measures h2 {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0 0 0.6rem 0;
+            }}
+            .eeri-what-measures p {{
+                color: #94a3b8;
+                font-size: 0.88rem;
+                line-height: 1.65;
+                margin: 0;
+            }}
+            .eeri-simplified-drivers {{
+                display: flex;
+                gap: 12px;
+                margin: 1.25rem 0;
+                justify-content: center;
+            }}
+            .eeri-simplified-driver-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1rem 0.75rem;
+                text-align: center;
+                flex: 1;
+                max-width: 160px;
+            }}
+            .driver-icon-pub {{ font-size: 1.25rem; margin-bottom: 0.4rem; }}
+            .driver-label-pub {{ color: #e2e8f0; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; }}
+            .driver-level-pub {{ font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; display: inline-block; }}
+            .driver-level-pub.level-high {{ color: #fca5a5; background: rgba(239,68,68,0.15); }}
+            .driver-level-pub.level-medium {{ color: #fcd34d; background: rgba(234,179,8,0.15); }}
+            .driver-level-pub.level-low {{ color: #86efac; background: rgba(34,197,94,0.15); }}
+            .eeri-keyword-intro {{
+                color: #94a3b8;
+                font-size: 0.92rem;
+                line-height: 1.6;
+                max-width: 700px;
+                margin: 0 auto 0.5rem auto;
+                text-align: center;
+            }}
+            .eeri-related-indices {{
+                margin: 1.5rem 0 0.5rem 0;
+            }}
+            .eeri-related-indices h2 {{
+                font-size: 1.05rem;
+                color: #f1f5f9;
+                margin-bottom: 0.75rem;
+                text-align: center;
+            }}
+            .related-indices-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.75rem;
+            }}
+            .related-index-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1rem;
+                text-align: center;
+                text-decoration: none;
+                transition: border-color 0.2s;
+            }}
+            .related-index-card:hover {{
+                border-color: #60a5fa;
+            }}
+            .related-index-card .ri-name {{
+                color: #60a5fa;
+                font-weight: 600;
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }}
+            .related-index-card .ri-desc {{
+                color: #94a3b8;
+                font-size: 0.78rem;
+                line-height: 1.4;
             }}
         </style>
     </head>
@@ -1079,7 +1278,7 @@ async def eeri_public_page(request: Request):
             </button>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
@@ -1090,94 +1289,34 @@ async def eeri_public_page(request: Request):
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/">Home</a> / European Energy Risk Index
+                    <a href="/">Home</a> / <a href="/indices">Indices</a> / Europe Energy Risk Index
                 </div>
                 <div class="eeri-hero">
                     <h1>European Energy Risk Index (EERI)</h1>
-                    <p>A daily composite measure of systemic geopolitical and supply-chain risk in European energy markets.</p>
-                    <p class="methodology-link"><a href="/eeri/methodology">(EERI Methodology &amp; Construction)</a></p>
+                    <p class="eeri-keyword-intro">The EERI tracks geopolitical risk, gas supply disruptions, and market stress across European energy systems. Updated daily, it provides a single composite score from 0 to 100 measuring systemic risk in European energy markets.</p>
+                    <p class="methodology-link"><a href="/eeri/methodology">EERI Methodology &amp; Construction &rarr;</a></p>
                 </div>
                 
-                <div class="index-metric-card">
-                    <div class="index-header">
-                        <span class="index-icon">⚡</span>
-                        <span class="index-title">European Energy Risk Index:</span>
-                    </div>
-                    <div class="index-value" style="color: {band_color};">{eeri['value']} / 100 ({eeri['band']})</div>
-                    <div class="index-scale-ref">0 = minimal risk · 100 = extreme systemic stress</div>
-                    {trend_display}
-                    <div class="index-meta">
-                        <div class="index-meta-row"><span class="meta-label">Index Date:</span> <span class="meta-value">{index_date_display}</span></div>
-                        <div class="index-meta-row"><span class="meta-label">Computed At:</span> <span class="meta-value">{computed_display}</span></div>
-                        <div class="index-meta-row"><span class="meta-label">Update Frequency:</span> <span class="meta-value">Daily</span></div>
-                    </div>
+                {score_card}
+                {change_stats}
+                
+                <div class="eeri-what-measures">
+                    <h2>What EERI Measures</h2>
+                    <p>EERI aggregates alert severity, regional conflict concentration, and energy asset exposure into a single daily index focused on European energy systems. It captures geopolitical tensions, gas supply disruptions, sanctions impacts, and market volatility affecting natural gas, crude oil, LNG, and power infrastructure across Europe.</p>
                 </div>
                 
-                <div class="index-sections">
-                    <div class="index-section">
-                        <h2 class="section-header-blue">Primary Risk Drivers:</h2>
-                        <ul class="index-list">{drivers_html}</ul>
-                        <p class="source-attribution" style="font-size: 0.8rem; color: #64748b; margin-top: 0.75rem; font-style: italic;">(Based on recent EnergyRiskIQ alerts) <a href="/alerts" style="color: #2563eb;">View alerts &rarr;</a></p>
-                    </div>
-                    
-                    <div class="index-section">
-                        <h2 class="section-header-blue">Top Regions Under Pressure:</h2>
-                        <ul class="index-list regions-list">
-                            <li>Europe <span class="region-label">(Primary)</span></li>
-                            <li>Black Sea <span class="region-label">(Secondary)</span></li>
-                            <li>Middle East <span class="region-label">(Tertiary)</span></li>
-                        </ul>
-                    </div>
-                </div>
+                {driver_cards}
                 
-                <div class="index-section" style="margin: 1.5rem 0;">
-                    <h2 class="section-header-blue">Assets Most Affected:</h2>
-                    <div class="assets-grid">
-                        {assets_html}
-                    </div>
-                </div>
+                {chart_section}
                 
-                <div class="index-section risk-bands-section" style="margin: 1.5rem 0;">
-                    <h2 class="section-header-blue">📈 Risk Level Bands:</h2>
-                    <div class="risk-bands-container">
-                        <div class="risk-band-row {'active' if eeri['band'] == 'LOW' else ''}">
-                            <span class="band-range">0–20</span>
-                            <span class="band-indicator low"></span>
-                            <span class="band-name">Low</span>
-                        </div>
-                        <div class="risk-band-row {'active' if eeri['band'] == 'MODERATE' else ''}">
-                            <span class="band-range">21–40</span>
-                            <span class="band-indicator moderate"></span>
-                            <span class="band-name">Moderate</span>
-                        </div>
-                        <div class="risk-band-row {'active' if eeri['band'] == 'ELEVATED' else ''}">
-                            <span class="band-range">41–60</span>
-                            <span class="band-indicator elevated"></span>
-                            <span class="band-name">Elevated</span>
-                        </div>
-                        <div class="risk-band-row {'active' if eeri['band'] == 'SEVERE' else ''}">
-                            <span class="band-range">61–80</span>
-                            <span class="band-indicator severe"></span>
-                            <span class="band-name">Severe</span>
-                        </div>
-                        <div class="risk-band-row {'active' if eeri['band'] == 'CRITICAL' else ''}">
-                            <span class="band-range">81–100</span>
-                            <span class="band-indicator critical"></span>
-                            <span class="band-name">Critical</span>
-                        </div>
-                    </div>
-                    <div class="current-position">
-                        Current position: <strong style="color: {band_color};">{eeri['band']}</strong> ({eeri['value']})
-                    </div>
-                </div>
+                {interp_card}
                 
                 {weekly_snapshot_html}
                 
-                <div class="index-interpretation">
-                    {interpretation_html}
+                <div class="index-links">
+                    <a href="/eeri/history">Full EERI History</a>
+                    <a href="/eeri/methodology">Methodology</a>
                 </div>
-                
-                {delay_badge}
                 
                 <div class="index-cta">
                     <h3>Get Real-time Access</h3>
@@ -1185,14 +1324,83 @@ async def eeri_public_page(request: Request):
                     <a href="/users" class="cta-button primary">Unlock Real-time EERI</a>
                 </div>
                 
-                <div class="index-links">
-                    <a href="/eeri/history">EERI History</a>
-                    <a href="/eeri/methodology">Methodology</a>
+                <div class="eeri-related-indices">
+                    <h2>Related EnergyRiskIQ Indices</h2>
+                    <div class="related-indices-grid">
+                        <a href="/indices/global-energy-risk-index" class="related-index-card">
+                            <div class="ri-name">GERI</div>
+                            <div class="ri-desc">Global Energy Risk Index</div>
+                        </a>
+                        <a href="/egsi" class="related-index-card">
+                            <div class="ri-name">EGSI</div>
+                            <div class="ri-desc">Europe Gas Stress Index</div>
+                        </a>
+                        <a href="/indices" class="related-index-card">
+                            <div class="ri-name">All Indices</div>
+                            <div class="ri-desc">Browse the full EnergyRiskIQ index suite</div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </main>
         
         {render_digest_footer()}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script>
+        (async function() {{
+            const canvas = document.getElementById('eeriPublicChart');
+            if (!canvas) return;
+            try {{
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const toParam = yesterday.toISOString().split('T')[0];
+                const resp = await fetch('/api/v1/indices/eeri?from=2026-01-01&to=' + toParam);
+                if (!resp.ok) return;
+                const result = await resp.json();
+                let allData = result.data || [];
+                if (allData.length > 14) allData = allData.slice(-14);
+                if (allData.length === 0) return;
+                const labels = allData.map(d => d.date ? d.date.substring(5) : '');
+                const values = allData.map(d => d.value);
+                const bandColors = {{ 'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316', 'SEVERE': '#ef4444', 'CRITICAL': '#dc2626' }};
+                const pointColors = allData.map(d => bandColors[d.band] || '#6b7280');
+                new Chart(canvas, {{
+                    type: 'line',
+                    data: {{
+                        labels: labels,
+                        datasets: [{{
+                            label: 'EERI',
+                            data: values,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59,130,246,0.1)',
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: pointColors,
+                            pointRadius: 4,
+                            tension: 0.3,
+                            fill: true,
+                            yAxisID: 'y'
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {{ legend: {{ display: false }} }},
+                        scales: {{
+                            y: {{
+                                min: 0, max: 100,
+                                grid: {{ color: 'rgba(75,85,99,0.3)' }},
+                                ticks: {{ color: '#9ca3af' }}
+                            }},
+                            x: {{
+                                grid: {{ display: false }},
+                                ticks: {{ color: '#9ca3af', maxRotation: 45 }}
+                            }}
+                        }}
+                    }}
+                }});
+            }} catch(e) {{ console.error('Chart error:', e); }}
+        }})();
+        </script>
     </body>
     </html>
     """
@@ -1371,7 +1579,7 @@ async def eeri_updates_page():
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -1390,7 +1598,7 @@ async def eeri_updates_page():
                 </div>
                 
                 <div class="updates-nav">
-                    <a href="/eeri">Current EERI</a>
+                    <a href="/indices/europe-energy-risk-index">Current EERI</a>
                     <a href="/eeri/history">History</a>
                     <a href="/eeri/methodology">Methodology</a>
                 </div>
@@ -1710,7 +1918,7 @@ async def eeri_methodology_page():
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -2032,7 +2240,7 @@ async def eeri_methodology_page():
             <div class="container">
                 <p>&copy; 2026 EnergyRiskIQ</p>
                 <p style="margin-top: 0.5rem;">
-                    <a href="/eeri">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/indices/global-energy-risk-index">GERI</a> · <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/indices/global-energy-risk-index">GERI</a> · <a href="/egsi">EGSI</a>
                 </p>
             </div>
         </footer>
@@ -2138,7 +2346,7 @@ async def eeri_history_page():
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -2147,7 +2355,7 @@ async def eeri_history_page():
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/eeri">EERI</a> &raquo; History
+                    <a href="/indices/europe-energy-risk-index">EERI</a> &raquo; History
                 </div>
                 
                 <h1>European Energy Risk Index (EERI) History</h1>
@@ -2174,7 +2382,7 @@ async def eeri_history_page():
                 </table>
                 
                 <div class="index-history-nav" style="text-align: center; margin-top: 2rem;">
-                    <a href="/eeri" style="color: #60a5fa;">&larr; Back to Today's EERI</a>
+                    <a href="/indices/europe-energy-risk-index" style="color: #60a5fa;">&larr; Back to Today's EERI</a>
                 </div>
                 
                 <div class="data-sources-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;">
@@ -2305,7 +2513,7 @@ async def eeri_daily_snapshot(date_str: str):
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -2370,7 +2578,7 @@ async def eeri_daily_snapshot(date_str: str):
                 <div class="index-links">
                     <a href="/eeri/history">History</a> · 
                     <a href="/eeri/methodology">Methodology</a> · 
-                    <a href="/eeri">Current EERI</a>
+                    <a href="/indices/europe-energy-risk-index">Current EERI</a>
                 </div>
             </div>
         </main>
@@ -2436,7 +2644,7 @@ async def eeri_monthly_archive(year: int, month: int):
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
             </div>
         </div></nav>
         
@@ -2482,7 +2690,7 @@ async def eeri_monthly_archive(year: int, month: int):
             
             <div style="text-align: center; margin: 2rem 0;">
                 <a href="/eeri/history" style="color: var(--primary); text-decoration: none;">&larr; Back to History</a> · 
-                <a href="/eeri" style="color: var(--primary); text-decoration: none;">Current EERI</a>
+                <a href="/indices/europe-energy-risk-index" style="color: var(--primary); text-decoration: none;">Current EERI</a>
             </div>
         </main>
         

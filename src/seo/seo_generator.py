@@ -803,7 +803,7 @@ def generate_sitemap_core_entries() -> List[Dict]:
         {'loc': '/indices/global-energy-risk-index', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/geri/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
         {'loc': '/why-geri', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
-        {'loc': '/eeri', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/indices/europe-energy-risk-index', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/eeri/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
         {'loc': '/egsi', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/egsi/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},

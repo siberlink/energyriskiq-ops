@@ -1558,7 +1558,7 @@ async def sitemap_html():
                     <li><a href="/indices/global-energy-risk-index">Global Energy Risk Index (GERI)</a></li>
                     <li><a href="/geri/methodology">GERI Methodology & Construction</a></li>
                     <li><a href="/geri/history">GERI History</a></li>
-                    <li><a href="/eeri">European Energy Risk Index (EERI)</a></li>
+                    <li><a href="/indices/europe-energy-risk-index">European Energy Risk Index (EERI)</a></li>
                     <li><a href="/eeri/methodology">EERI Methodology</a></li>
                     <li><a href="/eeri/history">EERI History</a></li>
                     <li><a href="/egsi">Europe Gas Stress Index (EGSI)</a></li>
@@ -2513,7 +2513,7 @@ async def geri_page(request: Request):
                 </button>
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
@@ -2559,7 +2559,7 @@ async def geri_page(request: Request):
                 <div class="geri-related-indices">
                     <h2>Related EnergyRiskIQ Indices</h2>
                     <div class="related-indices-grid">
-                        <a href="/eeri" class="related-index-card">
+                        <a href="/indices/europe-energy-risk-index" class="related-index-card">
                             <div class="ri-name">EERI</div>
                             <div class="ri-desc">Europe Energy Escalation Risk Index</div>
                         </a>
@@ -3000,7 +3000,7 @@ async def geri_updates_page():
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -4697,7 +4697,7 @@ async def indices_hub_page(request: Request):
         "eeri", "European Energy Risk Index", "EERI",
         "Tracks escalation risk specific to Europe's energy system including gas flows, storage stress, sanctions, and infrastructure risk.",
         "The European Energy Risk Index tracks gas flows, sanctions impact, and infrastructure risk across European energy markets.",
-        "/eeri", "&#x26A1;", data.get("eeri")
+        "/indices/europe-energy-risk-index", "&#x26A1;", data.get("eeri")
     ) + _render_index_card(
         "egsi", "Europe Gas Stress Index", "EGSI",
         "Quantifies stress in the European gas market using storage levels, LNG flows, weather risk, and supply disruptions.",
@@ -5111,7 +5111,7 @@ async def indices_hub_page(request: Request):
                 </button>
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>

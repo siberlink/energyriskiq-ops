@@ -248,7 +248,7 @@ async def egsi_public_page(request: Request):
                 </button>
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
@@ -746,7 +746,7 @@ async def egsi_public_page(request: Request):
                 </button>
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
@@ -1156,7 +1156,7 @@ async def egsi_updates_page():
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -1498,7 +1498,7 @@ async def egsi_methodology_page():
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -2027,7 +2027,7 @@ async def egsi_methodology_page():
                     <a href="/egsi">EGSI</a> &middot;
                     <a href="/egsi/history">EGSI History</a> &middot;
                     <a href="/indices/global-energy-risk-index">GERI</a> &middot;
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                 </p>
             </div>
         </footer>
@@ -2090,7 +2090,7 @@ async def egsi_history_page():
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -2191,7 +2191,7 @@ async def egsi_daily_snapshot(date_str: str):
                         EnergyRiskIQ
                     </a>
                     <nav>
-                        <a href="/eeri">EERI</a>
+                        <a href="/indices/europe-energy-risk-index">EERI</a>
                         <a href="/egsi">EGSI</a>
                         <a href="/alerts">Alerts</a>
                     </nav>
@@ -2314,7 +2314,7 @@ async def egsi_daily_snapshot(date_str: str):
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
-                <a href="/eeri">EERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -2411,7 +2411,7 @@ async def egsi_monthly_archive(year: int, month: int):
                         EnergyRiskIQ
                     </a>
                     <nav>
-                        <a href="/eeri">EERI</a>
+                        <a href="/indices/europe-energy-risk-index">EERI</a>
                         <a href="/egsi">EGSI</a>
                         <a href="/alerts">Alerts</a>
                     </nav>
@@ -2489,7 +2489,7 @@ async def egsi_monthly_archive(year: int, month: int):
                     EnergyRiskIQ
                 </a>
                 <nav>
-                    <a href="/eeri">EERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/alerts">Alerts</a>
                 </nav>

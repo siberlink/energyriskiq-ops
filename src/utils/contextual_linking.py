@@ -32,7 +32,7 @@ INDEX_DEFINITIONS = {
     'eeri': {
         'name': 'Europe Energy Risk Index (EERI)',
         'short_name': 'EERI',
-        'url': '/eeri',
+        'url': '/indices/europe-energy-risk-index',
         'description': 'European energy market risk',
         'keywords': ['europe', 'eu', 'european', 'germany', 'france', 'uk', 'poland', 'norway'],
         'regions': ['europe', 'eu', 'european union', 'western europe', 'eastern europe', 'nordic'],
