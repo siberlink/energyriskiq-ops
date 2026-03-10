@@ -25,7 +25,7 @@ INDEX_DEFINITIONS = {
     'geri': {
         'name': 'Global Energy Risk Index (GERI)',
         'short_name': 'GERI',
-        'url': '/geri',
+        'url': '/indices/global-energy-risk-index',
         'description': 'global energy market risk',
         'keywords': ['global', 'energy', 'oil', 'crude', 'opec', 'world', 'international'],
     },

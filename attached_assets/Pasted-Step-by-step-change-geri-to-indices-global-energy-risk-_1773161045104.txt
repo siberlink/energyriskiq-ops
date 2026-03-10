@@ -1,0 +1,220 @@
+Step-by-step: change /geri to /indices/global-energy-risk-index
+
+Do this in order.
+
+Step 1 — Create the new canonical route
+
+Create the new public page at:
+
+/indices/global-energy-risk-index
+
+Do not delete /geri yet.
+
+For a short period, both can exist internally while you test, but only the new one should become canonical.
+
+Step 2 — Put the exact same page content on the new route
+
+Move or duplicate the current GERI public page content to:
+
+/indices/global-energy-risk-index
+
+Before redirecting, confirm:
+
+page loads correctly
+
+charts work
+
+cards work
+
+CTA works
+
+breadcrumb works
+
+metadata works
+
+Step 3 — Update the page title and metadata
+
+For the new page, use something like:
+
+Title tag
+Global Energy Risk Index (GERI) | EnergyRiskIQ
+
+Meta description
+Track the Global Energy Risk Index (GERI), a public 24-hour delayed measure of geopolitical and market stress across oil, gas, LNG, and global energy systems.
+
+H1
+Global Energy Risk Index (GERI)
+
+Step 4 — Set canonical to the new URL
+
+On the new page, canonical should be:
+
+https://energyriskiq.com/indices/global-energy-risk-index
+
+Do not leave canonical pointing to /geri.
+
+Step 5 — Redirect /geri with a 301
+
+Set a permanent redirect:
+
+/geri → /indices/global-energy-risk-index
+
+Use a 301 redirect, not 302.
+
+That way:
+
+users land on the correct page
+
+future backlinks consolidate
+
+Google understands the preferred URL
+
+Even though /geri is not indexed yet, this is still the correct habit.
+
+Step 6 — Update all internal links
+
+Change every internal link that points to /geri.
+
+Update links in:
+
+homepage /
+
+/indices
+
+nav menus
+
+footer if applicable
+
+digest articles
+
+alert pages
+
+CTA buttons
+
+related links
+
+breadcrumbs
+
+All should now point directly to:
+
+/indices/global-energy-risk-index
+
+Not to /geri.
+
+Step 7 — Update breadcrumb
+
+Change breadcrumb from:
+
+Home / Global Energy Risk Index
+
+to:
+
+Home / Indices / Global Energy Risk Index
+
+And link:
+
+Home → /
+
+Indices → /indices
+
+This is better for structure and SEO.
+
+Step 8 — Update sitemap-indices.xml
+
+Add or confirm:
+
+/indices
+
+/indices/global-energy-risk-index
+
+/indices/european-energy-risk-index
+
+/indices/europe-gas-stress-index
+
+Remove /geri from the sitemap if it is there.
+
+/geri should redirect, but not appear as the main sitemap URL.
+
+Step 9 — Add internal cross-links on the page
+
+On the new GERI page, add links to:
+
+/indices
+
+/indices/european-energy-risk-index
+
+/indices/europe-gas-stress-index
+
+This strengthens the index cluster.
+
+Step 10 — Check nav consistency
+
+In the top navigation, the current GERI menu item should now link to:
+
+/indices/global-energy-risk-index
+
+not /geri.
+
+Same for any card/button on /indices.
+
+Step 11 — Test the redirect manually
+
+After deployment, test:
+
+open /geri
+
+confirm it redirects immediately to /indices/global-energy-risk-index
+
+confirm there is no redirect loop
+
+confirm the final page returns successfully
+
+Also test:
+
+desktop
+
+mobile
+
+signed-out state
+
+Step 12 — Resubmit sitemap in Search Console
+
+After the new route is live and the redirect works:
+
+keep the sitemap index URL the same if unchanged
+
+resubmit sitemap in Google Search Console
+
+request indexing for:
+
+/indices
+
+/indices/global-energy-risk-index
+
+Recommended final structure for this page
+
+I would use this order:
+
+Breadcrumb
+
+H1 + short keyword intro
+
+Main GERI score card
+
+“What GERI measures”
+
+Component blocks
+
+14-day history
+
+GERI interpretation
+
+GERI weekly snapshot
+
+Methodology summary
+
+Real-time CTA
+
+Related indices links
+
+That order will perform better than the current one.

@@ -800,7 +800,7 @@ def generate_sitemap_core_entries() -> List[Dict]:
     entries = [
         {'loc': '/', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/alerts', 'priority': '0.7', 'changefreq': 'weekly', 'lastmod': today},
-        {'loc': '/geri', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
+        {'loc': '/indices/global-energy-risk-index', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/geri/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
         {'loc': '/why-geri', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
         {'loc': '/eeri', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},

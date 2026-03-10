@@ -13,7 +13,7 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 **UI/UX Decisions:**
 - The system includes marketing landing pages, user authentication flows, and an admin portal.
 - User-facing dashboards provide event queries, risk summaries, and alert history.
-- Public-facing SEO-optimized pages for indices like GERI, EERI, and EGSI feature methodology and historical data, utilizing a digest-style dark theme and AI interpretations.
+- Public-facing SEO-optimized pages for indices like GERI, EERI, and EGSI feature methodology and historical data, utilizing a digest-style dark theme and AI interpretations. The GERI public page canonical URL is `/indices/global-energy-risk-index` (old `/geri` redirects 301). Sub-routes like `/geri/history`, `/geri/methodology`, `/geri/{date}` remain unchanged.
 
 **Technical Implementations:**
 - **Event Ingestion:** RSS feeds are fetched and categorized.

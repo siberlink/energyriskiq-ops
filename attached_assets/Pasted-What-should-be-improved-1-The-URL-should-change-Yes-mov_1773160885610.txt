@@ -1,0 +1,137 @@
+What should be improved
+1. The URL should change
+
+Yes — move from:
+
+/geri
+
+to:
+
+/indices/global-energy-risk-index
+
+That is the right long-term SEO structure.
+
+2. Add a short keyword paragraph near the top
+
+Your current subtitle is decent, but it is a bit technical and not ideal for search.
+
+Current style:
+
+A daily composite measure of energy market risk...
+
+Add a short plain-English paragraph below the hero card, or just under the H1:
+
+The Global Energy Risk Index (GERI) is a public energy risk index that measures abnormal stress across global oil, gas, LNG, and geopolitical energy systems. It helps analysts, traders, and decision-makers interpret whether current market conditions reflect normal volatility or elevated systemic energy risk.
+
+This helps a lot for:
+
+energy risk index
+
+global energy risk index
+
+geopolitical energy risk
+
+3. The “What GERI Actually Measures” section should be higher
+
+Right now, the interpretation and snapshot come before the educational explanation.
+
+For SEO and conversion, the better order is:
+
+Hero / current value
+
+What GERI measures
+
+Methodology summary
+
+Interpretation
+
+Weekly snapshot
+
+History chart
+
+CTA
+
+Reason: new visitors first need to understand what this page is.
+
+So I would move “What GERI Actually Measures” much higher, ideally above the long interpretation block.
+
+4. The interpretation block is too long near the top
+
+The interpretation text is good in quality, but it is dense.
+
+For public page UX:
+
+show one concise summary paragraph first
+
+then add a “Read full interpretation” expansion, or keep the long version lower
+
+Better top summary example:
+
+Today’s GERI reading signals elevated global energy stress driven by Middle East escalation, tanker disruption risk, and renewed oil supply insecurity. The current regime suggests above-normal geopolitical pressure on crude oil, LNG logistics, and regional supply chains.
+
+Then longer analysis can stay below.
+
+5. Add “Last updated” wording near the main score
+
+You already show:
+
+computed date
+
+24h delayed badge
+
+Good. But make it even clearer:
+
+Last updated: 2026-03-09
+Public value delay: 24 hours
+
+That reduces confusion.
+
+6. Add a small “Change vs yesterday / 7d / 30d”
+
+This is a strong improvement.
+
+Near the main value card, add:
+
+vs yesterday: +2.4
+
+7-day change: -6
+
+30-day range: 39–69
+
+This makes the page feel much more analytical.
+
+7. The history chart needs a label under it
+
+Right now it looks good visually, but add one line above or below:
+
+Public 14-day GERI history (24h delayed)
+
+That reinforces freshness and public/free framing.
+
+8. Weekly Snapshot is excellent, but should be slightly reframed
+
+Very good section. I would change the title to:
+
+GERI Weekly Snapshot
+
+instead of only “Weekly Snapshot”.
+
+That gives stronger keyword reinforcement.
+
+Also add one small line:
+
+Public weekly summary of the Global Energy Risk Index.
+
+9. Add related internal links
+
+At the bottom, include a small section:
+
+Related EnergyRiskIQ Indices
+
+European Energy Risk Index (EERI)
+
+Europe Gas Stress Index (EGSI)
+
+All Indices
+
+This is important for internal SEO linking.

@@ -597,7 +597,7 @@ async def eeri_public_page(request: Request):
                     <span></span><span></span><span></span>
                 </button>
                 <div class="nav-links">
-                    <a href="/geri">GERI</a>
+                    <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
@@ -1078,7 +1078,7 @@ async def eeri_public_page(request: Request):
                 <span></span><span></span><span></span>
             </button>
             <div class="nav-links">
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
@@ -1370,7 +1370,7 @@ async def eeri_updates_page():
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
@@ -1709,7 +1709,7 @@ async def eeri_methodology_page():
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
@@ -2032,7 +2032,7 @@ async def eeri_methodology_page():
             <div class="container">
                 <p>&copy; 2026 EnergyRiskIQ</p>
                 <p style="margin-top: 0.5rem;">
-                    <a href="/eeri">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/geri">GERI</a> · <a href="/egsi">EGSI</a>
+                    <a href="/eeri">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/indices/global-energy-risk-index">GERI</a> · <a href="/egsi">EGSI</a>
                 </p>
             </div>
         </footer>
@@ -2137,7 +2137,7 @@ async def eeri_history_page():
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
@@ -2304,7 +2304,7 @@ async def eeri_daily_snapshot(date_str: str):
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
@@ -2435,7 +2435,7 @@ async def eeri_monthly_archive(year: int, month: int):
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
                 <a href="/alerts">Alerts</a>
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
             </div>
         </div></nav>

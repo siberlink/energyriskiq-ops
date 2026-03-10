@@ -1555,7 +1555,7 @@ async def sitemap_html():
                 <h2>Main Pages</h2>
                 <ul class="page-list" style="list-style: disc; padding-left: 1.5rem;">
                     <li><a href="/">Homepage</a></li>
-                    <li><a href="/geri">Global Energy Risk Index (GERI)</a></li>
+                    <li><a href="/indices/global-energy-risk-index">Global Energy Risk Index (GERI)</a></li>
                     <li><a href="/geri/methodology">GERI Methodology & Construction</a></li>
                     <li><a href="/geri/history">GERI History</a></li>
                     <li><a href="/eeri">European Energy Risk Index (EERI)</a></li>
@@ -1589,10 +1589,17 @@ async def sitemap_html():
     return HTMLResponse(content=html)
 
 
-@router.get("/geri", response_class=HTMLResponse)
+@router.get("/geri")
+async def geri_redirect(request: Request):
+    """301 redirect from old /geri to new canonical URL."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/indices/global-energy-risk-index", status_code=301)
+
+
+@router.get("/indices/global-energy-risk-index", response_class=HTMLResponse)
 async def geri_page(request: Request):
     """
-    GERI Index Page - Single canonical page with plan-based data.
+    GERI Index Page - Canonical public page at /indices/global-energy-risk-index.
     
     - Unauthenticated: Shows 24h delayed GERI
     - Authenticated: Shows real-time GERI
@@ -1600,10 +1607,9 @@ async def geri_page(request: Request):
     Googlebot always sees delayed version (not logged in).
     Protected: Anti-scraping measures applied.
     """
-    # Apply anti-scraping protection
     await apply_anti_scraping(request)
     
-    track_page_view("geri", "/geri")
+    track_page_view("geri", "/indices/global-energy-risk-index")
     
     user_id = None
     x_user_token = request.headers.get('x-user-token')
@@ -1617,20 +1623,22 @@ async def geri_page(request: Request):
     
     geri = get_geri_for_user(user_id)
     
+    score_card = ""
+    change_stats = ""
+    driver_cards = ""
+    interp_card = ""
+    chart_section = ""
+    is_delayed = True
+    
     if not geri:
-        geri_content = """
+        score_card = """
         <div class="geri-unavailable">
             <h2>GERI Data Coming Soon</h2>
             <p>The Global Energy Risk Index is being computed. Check back shortly.</p>
         </div>
         """
-        is_delayed = True
-        badge_label = "24h Delayed"
-        badge_class = "delayed"
     else:
         is_delayed = geri.is_delayed
-        badge_label = "24h Delayed" if is_delayed else "Real-time"
-        badge_class = "delayed" if is_delayed else "realtime"
         
         band_colors = {
             'LOW': '#22c55e',
@@ -1641,27 +1649,60 @@ async def geri_page(request: Request):
         }
         band_color = band_colors.get(geri.band, '#6b7280')
         
-        trend_display = ""
-        if geri.trend_7d is not None:
-            trend_val = geri.trend_7d
-            if abs(trend_val) < 2:
-                trend_label = "Stable"
-                trend_color = "#6b7280"
-            elif trend_val >= 5:
-                trend_label = "Rising Sharply"
-                trend_color = "#ef4444"
-            elif trend_val >= 2:
-                trend_label = "Rising"
-                trend_color = "#f97316"
-            elif trend_val <= -5:
-                trend_label = "Falling Sharply"
-                trend_color = "#22c55e"
-            else:
-                trend_label = "Falling"
-                trend_color = "#4ade80"
-            trend_sign = "+" if trend_val > 0 else ""
-            trend_display = f'<div class="geri-trend" style="color: #4ade80;">7-Day Trend: {trend_label} ({trend_sign}{trend_val:.0f})</div>'
+        delay_badge = '<div class="geri-delay-badge">Public value delay: 24 hours</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time Data</div>'
         
+        score_card = f"""
+        <div class="geri-metric-card">
+            <div class="geri-header">
+                <span class="geri-flame">&#x1F525;</span>
+                <span class="geri-title">Global Energy Risk Index</span>
+            </div>
+            <div style="font-size: 2.5rem; font-weight: 700; color: {band_color}; margin: 0.5rem 0; line-height: 1;">{geri.value}<span style="font-size: 1rem; color: #64748b;"> / 100</span></div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: {band_color}; margin-bottom: 0.25rem;">{geri.band}</div>
+            <div class="geri-scale-ref">0 = minimal risk &middot; 100 = extreme systemic stress</div>
+            <div class="geri-date">Last updated: {geri.computed_at}</div>
+            {delay_badge}
+        </div>
+        """
+
+        trend_1d_val = geri.trend_1d
+        trend_7d_val = geri.trend_7d
+        t1d_sign = "+" if trend_1d_val and trend_1d_val > 0 else ""
+        t1d_display = f"{t1d_sign}{trend_1d_val:.0f}" if trend_1d_val is not None else "N/A"
+        t1d_color = "#ef4444" if (trend_1d_val or 0) > 0 else "#22c55e" if (trend_1d_val or 0) < 0 else "#64748b"
+        t7d_sign = "+" if trend_7d_val and trend_7d_val > 0 else ""
+        t7d_display = f"{t7d_sign}{trend_7d_val:.0f}" if trend_7d_val is not None else "N/A"
+        t7d_color = "#ef4444" if (trend_7d_val or 0) > 0 else "#22c55e" if (trend_7d_val or 0) < 0 else "#64748b"
+
+        from src.db.db import execute_query
+        from datetime import datetime, timedelta
+        thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
+        range_row = execute_query(
+            "SELECT MIN(value) as min_val, MAX(value) as max_val FROM intel_indices_daily WHERE index_id = 'geri' AND date >= %s",
+            (thirty_days_ago,)
+        )
+        if range_row and range_row.get('min_val') is not None:
+            range_display = f"{range_row['min_val']}&ndash;{range_row['max_val']}"
+        else:
+            range_display = "N/A"
+
+        change_stats = f"""
+        <div class="geri-change-stats">
+            <div class="geri-change-item">
+                <span class="change-label">vs yesterday</span>
+                <span class="change-value" style="color:{t1d_color};">{t1d_display}</span>
+            </div>
+            <div class="geri-change-item">
+                <span class="change-label">7-day change</span>
+                <span class="change-value" style="color:{t7d_color};">{t7d_display}</span>
+            </div>
+            <div class="geri-change-item">
+                <span class="change-label">30-day range</span>
+                <span class="change-value" style="color:#94a3b8;">{range_display}</span>
+            </div>
+        </div>
+        """
+
         geo_cats = ['geopolitical', 'war', 'military', 'conflict', 'sanctions']
         energy_cats = ['energy', 'supply_chain', 'supply_disruption', 'strike']
         market_cats = ['political', 'diplomacy']
@@ -1687,42 +1728,7 @@ async def geri_page(request: Request):
         ene_text, ene_cls = _level_for(energy_count)
         mkt_text, mkt_cls = _level_for(market_count)
 
-        top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers_detailed[:5]] if geri.top_drivers_detailed else []
-        interpretation = getattr(geri, 'interpretation', None) or getattr(geri, 'explanation', None)
-        if not interpretation:
-            interpretation = generate_geri_interpretation(
-                value=geri.value,
-                band=geri.band,
-                top_drivers=top_drivers_list,
-                top_regions=geri.top_regions[:3] if geri.top_regions else [],
-                index_date=geri.computed_at
-            )
-        interp_paragraphs = [p.strip() for p in interpretation.split('\n') if p.strip()]
-        if len(interp_paragraphs) > 2:
-            interp_paragraphs = interp_paragraphs[:2]
-        elif len(interp_paragraphs) == 1:
-            words = interp_paragraphs[0].split()
-            if len(words) > 60:
-                mid = len(words) // 2
-                interp_paragraphs = [' '.join(words[:mid]), ' '.join(words[mid:])]
-        interp_html = ''.join(f'<p>{p}</p>' for p in interp_paragraphs)
-        
-        delay_badge = '<div class="geri-delay-badge">24h Delayed (Free Plan)</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time Data</div>'
-        
-        geri_content = f"""
-        <div class="geri-metric-card">
-            <div class="geri-header">
-                <span class="geri-flame">&#x1F525;</span>
-                <span class="geri-title">Global Energy Risk Index</span>
-            </div>
-            <div style="font-size: 2.5rem; font-weight: 700; color: {band_color}; margin: 0.5rem 0; line-height: 1;">{geri.value}<span style="font-size: 1rem; color: #64748b;"> / 100</span></div>
-            <div style="font-size: 1.1rem; font-weight: 600; color: {band_color}; margin-bottom: 0.25rem;">{geri.band}</div>
-            <div class="geri-scale-ref">0 = minimal risk &middot; 100 = extreme systemic stress</div>
-            {trend_display}
-            <div class="geri-date">Computed: {geri.computed_at}</div>
-            {delay_badge}
-        </div>
-
+        driver_cards = f"""
         <div class="geri-simplified-drivers">
             <div class="geri-simplified-driver-card">
                 <div class="driver-icon-pub">&#x2694;&#xFE0F;</div>
@@ -1740,17 +1746,45 @@ async def geri_page(request: Request):
                 <div class="driver-level-pub {mkt_cls}">{mkt_text}</div>
             </div>
         </div>
+        """
 
+        top_drivers_list = [{'headline': d.headline, 'region': d.region, 'category': d.category} for d in geri.top_drivers_detailed[:5]] if geri.top_drivers_detailed else []
+        interpretation = getattr(geri, 'interpretation', None) or getattr(geri, 'explanation', None)
+        if not interpretation:
+            interpretation = generate_geri_interpretation(
+                value=geri.value,
+                band=geri.band,
+                top_drivers=top_drivers_list,
+                top_regions=geri.top_regions[:3] if geri.top_regions else [],
+                index_date=geri.computed_at
+            )
+        interp_paragraphs = [p.strip() for p in interpretation.split('\n') if p.strip()]
+        summary_para = interp_paragraphs[0] if interp_paragraphs else ""
+        full_paras = interp_paragraphs[1:] if len(interp_paragraphs) > 1 else []
+        full_html = ''.join(f'<p>{p}</p>' for p in full_paras)
+        expand_section = ""
+        if full_html:
+            expand_section = (
+                '<div id="geriInterpFull" style="display:none; margin-top: 0.75rem;">'
+                + full_html
+                + '</div>'
+                + "<button onclick=\"var el=document.getElementById('geriInterpFull');var btn=this;if(el.style.display==='none'){el.style.display='block';btn.textContent='Hide full interpretation';}else{el.style.display='none';btn.textContent='Read full interpretation';}\" style=\"background:none;border:none;color:#60a5fa;cursor:pointer;font-size:0.88rem;font-weight:600;padding:0.5rem 0 0 0;\">Read full interpretation</button>"
+            )
+
+        interp_card = f"""
         <div class="geri-interp-card">
             <div class="geri-interp-card-header">
                 <span style="font-size: 16px;">&#x1F9E0;</span>
                 <h3>GERI Interpretation</h3>
             </div>
             <div class="geri-interp-card-body">
-                {interp_html}
+                <p>{summary_para}</p>
+                {expand_section}
             </div>
         </div>
+        """
 
+        chart_section = """
         <div class="geri-chart-section">
             <div class="digest-card">
                 <div class="digest-card-header">
@@ -1761,17 +1795,9 @@ async def geri_page(request: Request):
                     <div style="position:relative; height:220px;">
                         <canvas id="geriPublicChart"></canvas>
                     </div>
+                    <p style="text-align:center; color:#64748b; font-size:0.8rem; margin-top:0.5rem;">Public 14-day GERI history (24h delayed)</p>
                 </div>
             </div>
-        </div>
-        
-        <div class="geri-note-card">
-            <div class="note-header">
-                <span style="font-size: 1.1rem;">&#x1F4E2;</span>
-                <span class="note-label">Please Note</span>
-            </div>
-            <p class="note-content">This is the public <strong>24h delayed</strong> index. To see the <strong>Real-Time GERI</strong> including Charts, Momentum, History, Energy Assets and more &mdash; <a href="/users" class="note-cta">create your account today</a> and get started.</p>
-            <p class="note-tagline">GERI will tell you whether the world is actually becoming more dangerous — or just noisier!</p>
         </div>
         """
     
@@ -1822,10 +1848,11 @@ async def geri_page(request: Request):
         weekly_section = f'''
         <div class="weekly-snapshot-section">
             <div class="weekly-header">
-                <span class="weekly-icon">📊</span>
-                <h2>Weekly Snapshot</h2>
-                <span class="weekly-dates">{start_display} – {end_display}</span>
+                <span class="weekly-icon">&#x1F4CA;</span>
+                <h2>GERI Weekly Snapshot</h2>
+                <span class="weekly-dates">{start_display} &ndash; {end_display}</span>
             </div>
+            <p style="color:#94a3b8; font-size:0.85rem; margin:-0.75rem 0 1rem 0;">Public weekly summary of the Global Energy Risk Index.</p>
             
             <div class="weekly-card">
                 <div class="weekly-chart-container">
@@ -1885,12 +1912,12 @@ async def geri_page(request: Request):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Energy Risk Index (GERI) | EnergyRiskIQ</title>
-        <meta name="description" content="Track the Global Energy Risk Index (GERI) - a daily composite measure of energy market risk. Free 24h delayed access, real-time for Pro subscribers.">
-        <link rel="canonical" href="{BASE_URL}/geri">
+        <meta name="description" content="Track the Global Energy Risk Index (GERI), a public 24-hour delayed measure of geopolitical and market stress across oil, gas, LNG, and global energy systems.">
+        <link rel="canonical" href="{BASE_URL}/indices/global-energy-risk-index">
         
         <meta property="og:title" content="Global Energy Risk Index (GERI) | EnergyRiskIQ">
         <meta property="og:description" content="Track energy market risk with the Global Energy Risk Index. Daily updates on risk levels, drivers, and regional hotspots.">
-        <meta property="og:url" content="{BASE_URL}/geri">
+        <meta property="og:url" content="{BASE_URL}/indices/global-energy-risk-index">
         <meta property="og:type" content="website">
         
         <link rel="icon" type="image/png" href="/static/favicon.png">
@@ -2297,6 +2324,103 @@ async def geri_page(request: Request):
                 font-size: 1.25rem;
                 margin-bottom: 0.5rem;
             }}
+            .geri-change-stats {{
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                margin: 1rem 0 1.25rem 0;
+                flex-wrap: wrap;
+            }}
+            .geri-change-item {{
+                text-align: center;
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 0.65rem 1.25rem;
+                min-width: 110px;
+            }}
+            .change-label {{
+                display: block;
+                font-size: 0.72rem;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 0.3rem;
+            }}
+            .change-value {{
+                display: block;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }}
+            .geri-what-measures {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.25rem 1.5rem;
+                margin: 1.25rem 0;
+            }}
+            .geri-what-measures h2 {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0 0 0.6rem 0;
+            }}
+            .geri-what-measures p {{
+                color: #94a3b8;
+                font-size: 0.88rem;
+                line-height: 1.65;
+                margin: 0;
+            }}
+            .geri-related-indices {{
+                margin: 1.5rem 0 0.5rem 0;
+            }}
+            .geri-related-indices h2 {{
+                font-size: 1.05rem;
+                color: #f1f5f9;
+                margin-bottom: 0.75rem;
+                text-align: center;
+            }}
+            .related-indices-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.75rem;
+            }}
+            .related-index-card {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1rem;
+                text-align: center;
+                text-decoration: none;
+                transition: border-color 0.2s;
+            }}
+            .related-index-card:hover {{
+                border-color: #60a5fa;
+            }}
+            .related-index-card .ri-name {{
+                color: #60a5fa;
+                font-weight: 600;
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+            }}
+            .related-index-card .ri-desc {{
+                color: #94a3b8;
+                font-size: 0.78rem;
+                line-height: 1.4;
+            }}
+            .geri-keyword-intro {{
+                color: #94a3b8;
+                font-size: 0.92rem;
+                line-height: 1.6;
+                max-width: 700px;
+                margin: 0 auto 0.5rem auto;
+                text-align: center;
+            }}
+            @media (max-width: 600px) {{
+                .geri-change-stats {{ gap: 0.75rem; }}
+                .geri-change-item {{ min-width: 85px; padding: 0.5rem 0.75rem; }}
+                .related-indices-grid {{ grid-template-columns: 1fr; }}
+            }}
             .mobile-menu-btn {{
                 display: none;
                 background: none;
@@ -2387,7 +2511,7 @@ async def geri_page(request: Request):
                     <span></span><span></span><span></span>
                 </button>
                 <div class="nav-links">
-                    <a href="/geri">GERI</a>
+                    <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
@@ -2399,24 +2523,54 @@ async def geri_page(request: Request):
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/">Home</a> / Global Energy Risk Index
+                    <a href="/">Home</a> / <a href="/indices">Indices</a> / Global Energy Risk Index
                 </div>
                 <div class="geri-hero">
                     <h1>Global Energy Risk Index (GERI)</h1>
-                    <p>A daily composite measure of energy market risk, computed from alert severity, regional concentration, and asset exposure.</p>
-                    <p class="methodology-link"><a href="/geri/methodology">(GERI Methodology &amp; Construction)</a></p>
+                    <p class="geri-keyword-intro">The GERI tracks geopolitical risk, energy supply disruptions, and market stress across oil, gas, LNG, and power systems worldwide. Updated daily, it provides a single composite score from 0 to 100 measuring systemic risk in global energy markets.</p>
+                    <p class="methodology-link"><a href="/geri/methodology">GERI Methodology &amp; Construction &rarr;</a></p>
                 </div>
                 
-                {geri_content}
+                {score_card}
+                {change_stats}
+                
+                <div class="geri-what-measures">
+                    <h2>What GERI Measures</h2>
+                    <p>GERI aggregates alert severity, regional conflict concentration, and energy asset exposure into a single daily index. It captures geopolitical tensions, supply-chain disruptions, sanctions impacts, and market volatility affecting oil, gas, LNG, and power infrastructure globally.</p>
+                </div>
+                
+                {driver_cards}
+                
+                {chart_section}
+                
+                {interp_card}
                 
                 {weekly_section}
                 
-                {cta_block}
-                
                 <div class="geri-links">
-                    <a href="/geri/history">View History</a>
+                    <a href="/geri/history">Full GERI History</a>
                     <a href="/geri/methodology">Methodology</a>
                     <a href="/why-geri">What GERI Actually Measures</a>
+                </div>
+                
+                {cta_block}
+                
+                <div class="geri-related-indices">
+                    <h2>Related EnergyRiskIQ Indices</h2>
+                    <div class="related-indices-grid">
+                        <a href="/eeri" class="related-index-card">
+                            <div class="ri-name">EERI</div>
+                            <div class="ri-desc">Europe Energy Escalation Risk Index</div>
+                        </a>
+                        <a href="/egsi" class="related-index-card">
+                            <div class="ri-name">EGSI</div>
+                            <div class="ri-desc">Europe Gas Stress Index</div>
+                        </a>
+                        <a href="/indices" class="related-index-card">
+                            <div class="ri-name">All Indices</div>
+                            <div class="ri-desc">Browse the full EnergyRiskIQ index suite</div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </main>
@@ -2583,7 +2737,7 @@ async def geri_history_page(request: Request):
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/geri">GERI</a> &raquo; History
+                    <a href="/indices/global-energy-risk-index">GERI</a> &raquo; History
                 </div>
                 
                 <h1>Global Energy Risk Index (GERI) History</h1>
@@ -2613,7 +2767,7 @@ async def geri_history_page(request: Request):
                 </table>
                 
                 <div class="index-history-nav">
-                    <a href="/geri" class="back-link">&larr; Back to Today's GERI</a>
+                    <a href="/indices/global-energy-risk-index" class="back-link">&larr; Back to Today's GERI</a>
                 </div>
                 
                 <div class="data-sources-section">
@@ -2844,7 +2998,7 @@ async def geri_updates_page():
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
             <div class="nav-links">
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/eeri">EERI</a>
                 <a href="/egsi">EGSI</a>
                 <a href="/alerts">Alerts</a>
@@ -2864,7 +3018,7 @@ async def geri_updates_page():
                 </div>
                 
                 <div class="updates-nav">
-                    <a href="/geri">Current GERI</a>
+                    <a href="/indices/global-energy-risk-index">Current GERI</a>
                     <a href="/geri/history">History</a>
                     <a href="/geri/methodology">Methodology</a>
                 </div>
@@ -3743,7 +3897,7 @@ async def geri_daily_page(request: Request, date: str):
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/geri">GERI</a> &raquo; 
+                    <a href="/indices/global-energy-risk-index">GERI</a> &raquo; 
                     <a href="/geri/history">History</a> &raquo; 
                     <a href="/geri/{year}/{month:02d}">{calendar_month_name[month]} {year}</a> &raquo;
                     {date}
@@ -3906,7 +4060,7 @@ async def geri_monthly_page(request: Request, year: int, month: int):
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/geri">GERI</a> &raquo; 
+                    <a href="/indices/global-energy-risk-index">GERI</a> &raquo; 
                     <a href="/geri/history">History</a> &raquo;
                     {month_display}
                 </div>
@@ -4381,7 +4535,7 @@ def render_digest_nav() -> str:
             </button>
             <div class="nav-links">
                 <a href="/">Home</a>
-                <a href="/geri">GERI</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
@@ -4537,7 +4691,7 @@ async def indices_hub_page(request: Request):
         "geri", "Global Energy Risk Index", "GERI",
         "Measures escalation risk across global energy markets including oil, LNG logistics, and geopolitical tensions.",
         "The Global Energy Risk Index measures escalation risk across global oil, LNG, and geopolitical energy systems.",
-        "/geri", "&#x1F525;", data.get("geri")
+        "/indices/global-energy-risk-index", "&#x1F525;", data.get("geri")
     ) + _render_index_card(
         "eeri", "European Energy Risk Index", "EERI",
         "Tracks escalation risk specific to Europe's energy system including gas flows, storage stress, sanctions, and infrastructure risk.",
@@ -4955,7 +5109,7 @@ async def indices_hub_page(request: Request):
                     <span></span><span></span><span></span>
                 </button>
                 <div class="nav-links">
-                    <a href="/geri">GERI</a>
+                    <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/eeri">EERI</a>
                     <a href="/egsi">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
