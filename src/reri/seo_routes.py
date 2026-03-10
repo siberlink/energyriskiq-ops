@@ -10,8 +10,11 @@ SEO-optimized public pages for European Energy Risk Index.
 """
 
 import os
+import logging
 from datetime import datetime, date
 from calendar import month_name
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
@@ -572,10 +575,18 @@ async def eeri_public_page(request: Request):
     
     Shows 24h delayed EERI with restructured content matching GERI pattern.
     """
-    eeri = get_eeri_delayed(delay_hours=24)
+    try:
+        eeri = get_eeri_delayed(delay_hours=24)
+    except Exception as e:
+        logger.error(f"Error fetching delayed EERI: {e}")
+        eeri = None
     
     if not eeri:
-        eeri = get_latest_eeri_public()
+        try:
+            eeri = get_latest_eeri_public()
+        except Exception as e:
+            logger.error(f"Error fetching latest EERI public: {e}")
+            eeri = None
     
     if not eeri:
         no_data_html = f"""
@@ -625,6 +636,15 @@ async def eeri_public_page(request: Request):
         """
         return HTMLResponse(content=no_data_html)
     
+    try:
+        return _render_eeri_page(eeri)
+    except Exception as e:
+        logger.error(f"Error rendering EERI page: {e}", exc_info=True)
+        return HTMLResponse(content=f"<html><body><h1>Error loading EERI page</h1><p>Please try again shortly.</p><p><a href='/'>Home</a></p></body></html>", status_code=500)
+
+
+def _render_eeri_page(eeri: dict):
+    """Render the full EERI public page."""
     band_color = get_band_color(eeri['band'])
 
     index_date = eeri.get('date', date.today().isoformat())
@@ -738,13 +758,17 @@ async def eeri_public_page(request: Request):
     components = eeri.get('components', {})
     interpretation = eeri.get('explanation') or eeri.get('interpretation')
     if not interpretation:
-        interpretation = generate_eeri_interpretation(
-            value=eeri['value'],
-            band=eeri['band'],
-            drivers=top_drivers[:5] if top_drivers else [],
-            components=components,
-            index_date=index_date
-        )
+        try:
+            interpretation = generate_eeri_interpretation(
+                value=eeri['value'],
+                band=eeri['band'],
+                drivers=top_drivers[:5] if top_drivers else [],
+                components=components,
+                index_date=index_date
+            )
+        except Exception as e:
+            logger.error(f"Error generating EERI interpretation: {e}")
+            interpretation = f"The European Energy Risk Index currently stands at {eeri['value']} ({eeri['band']}). Analysis is temporarily unavailable."
     interp_paragraphs = [p.strip() for p in interpretation.split('\n') if p.strip()]
     summary_para = interp_paragraphs[0] if interp_paragraphs else ""
     full_paras = interp_paragraphs[1:] if len(interp_paragraphs) > 1 else []
@@ -786,8 +810,12 @@ async def eeri_public_page(request: Request):
     </div>
     """
 
-    weekly_snapshot = get_weekly_snapshot()
-    weekly_snapshot_html = _build_weekly_snapshot_html(weekly_snapshot)
+    try:
+        weekly_snapshot = get_weekly_snapshot()
+        weekly_snapshot_html = _build_weekly_snapshot_html(weekly_snapshot)
+    except Exception as e:
+        logger.error(f"Error building weekly snapshot: {e}")
+        weekly_snapshot_html = ""
     
     html = f"""
     <!DOCTYPE html>
