@@ -201,23 +201,44 @@ async def get_energy_prices(x_user_token: Optional[str] = Header(None)):
             'time': ca,
         })
 
-    ttf_start = today - timedelta(days=30)
-    ttf_rows = execute_query(
-        "SELECT date, ttf_price FROM ttf_gas_snapshots WHERE date >= %s ORDER BY date ASC",
-        (ttf_start,)
+    wti_rows = execute_query(
+        "SELECT hour, price, change_pct, captured_at FROM intraday_wti WHERE date = %s ORDER BY hour ASC",
+        (today,)
     ) or []
-    ttf = []
-    for r in ttf_rows:
-        ttf.append({
-            'date': r['date'].isoformat() if hasattr(r['date'], 'isoformat') else str(r['date']),
-            'price': float(r['ttf_price']),
+    wti = []
+    for r in wti_rows:
+        ca = r['captured_at']
+        if hasattr(ca, 'isoformat'):
+            ca = ca.isoformat()
+        wti.append({
+            'hour': r['hour'],
+            'price': float(r['price']),
+            'change_pct': float(r['change_pct']) if r.get('change_pct') is not None else None,
+            'time': ca,
+        })
+
+    natgas_rows = execute_query(
+        "SELECT hour, price, change_pct, captured_at FROM intraday_natgas WHERE date = %s ORDER BY hour ASC",
+        (today,)
+    ) or []
+    natgas = []
+    for r in natgas_rows:
+        ca = r['captured_at']
+        if hasattr(ca, 'isoformat'):
+            ca = ca.isoformat()
+        natgas.append({
+            'hour': r['hour'],
+            'price': float(r['price']),
+            'change_pct': float(r['change_pct']) if r.get('change_pct') is not None else None,
+            'time': ca,
         })
 
     return JSONResponse(content={
         'success': True,
         'data': {
             'brent': {'label': 'Brent Crude', 'unit': 'USD/barrel', 'prices': brent},
-            'ttf': {'label': 'TTF Gas', 'unit': 'EUR/MWh', 'prices': ttf},
+            'wti': {'label': 'WTI Crude', 'unit': 'USD/barrel', 'prices': wti},
+            'natgas': {'label': 'Natural Gas (US)', 'unit': 'USD/MMBtu', 'prices': natgas},
         }
     })
 

@@ -6363,15 +6363,26 @@
                     <div id="brentChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No intraday Brent data available yet today</div>
                 </div>
 
-                <div class="geri-live-chart-card" id="ttfChartCard">
+                <div class="geri-live-chart-card" id="wtiChartCard">
                     <div class="geri-live-chart-header">
-                        <span>TTF Gas — 30 Day</span>
-                        <span class="geri-live-chart-count" id="ttfChartMeta" style="color:#22c55e;"></span>
+                        <span>WTI Crude — Intraday</span>
+                        <span class="geri-live-chart-count" id="wtiChartMeta" style="color:#3b82f6;"></span>
                     </div>
                     <div class="geri-live-chart-container">
-                        <canvas id="ttfDailyChart" height="160"></canvas>
+                        <canvas id="wtiIntradayChart" height="160"></canvas>
                     </div>
-                    <div id="ttfChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No TTF data available</div>
+                    <div id="wtiChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No intraday WTI data available yet today</div>
+                </div>
+
+                <div class="geri-live-chart-card" id="natgasChartCard">
+                    <div class="geri-live-chart-header">
+                        <span>Natural Gas — Intraday</span>
+                        <span class="geri-live-chart-count" id="natgasChartMeta" style="color:#a78bfa;"></span>
+                    </div>
+                    <div class="geri-live-chart-container">
+                        <canvas id="natgasIntradayChart" height="160"></canvas>
+                    </div>
+                    <div id="natgasChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No intraday Natural Gas data available yet today</div>
                 </div>
 
                 <div class="geri-live-sidebar">
@@ -13776,7 +13787,8 @@
                 geriLiveTimerInterval = null;
             }
             if (brentChartInstance) { brentChartInstance.destroy(); brentChartInstance = null; }
-            if (ttfChartInstance) { ttfChartInstance.destroy(); ttfChartInstance = null; }
+            if (wtiChartInstance) { wtiChartInstance.destroy(); wtiChartInstance = null; }
+            if (natgasChartInstance) { natgasChartInstance.destroy(); natgasChartInstance = null; }
         }
 
         window.addEventListener('beforeunload', cleanupGeriLiveSSE);
@@ -13833,7 +13845,8 @@
         }
 
         var brentChartInstance = null;
-        var ttfChartInstance = null;
+        var wtiChartInstance = null;
+        var natgasChartInstance = null;
 
         async function loadEnergyPriceCharts() {
             var token = sessionToken || '';
@@ -13856,11 +13869,20 @@
                     document.getElementById('brentChartEmpty').style.display = 'block';
                 }
 
-                if (ttf && ttf.prices && ttf.prices.length > 0) {
-                    renderTTFChart(ttf);
+                var wti = json.data.wti;
+                if (wti && wti.prices && wti.prices.length > 0) {
+                    renderWTIChart(wti);
                 } else {
-                    document.getElementById('ttfDailyChart').style.display = 'none';
-                    document.getElementById('ttfChartEmpty').style.display = 'block';
+                    document.getElementById('wtiIntradayChart').style.display = 'none';
+                    document.getElementById('wtiChartEmpty').style.display = 'block';
+                }
+
+                var natgas = json.data.natgas;
+                if (natgas && natgas.prices && natgas.prices.length > 0) {
+                    renderNatGasChart(natgas);
+                } else {
+                    document.getElementById('natgasIntradayChart').style.display = 'none';
+                    document.getElementById('natgasChartEmpty').style.display = 'block';
                 }
             } catch (e) {
                 console.error('Energy prices load error:', e);
@@ -13937,30 +13959,27 @@
             });
         }
 
-        function renderTTFChart(data) {
-            var canvas = document.getElementById('ttfDailyChart');
+        function renderWTIChart(data) {
+            var canvas = document.getElementById('wtiIntradayChart');
             var ctx = canvas.getContext('2d');
-            if (ttfChartInstance) { ttfChartInstance.destroy(); }
+            if (wtiChartInstance) { wtiChartInstance.destroy(); }
 
             var prices = data.prices;
-            var labels = prices.map(function(p) {
-                var parts = p.date.split('-');
-                return parts[1] + '/' + parts[2];
-            });
+            var labels = prices.map(function(p) { return p.hour + ':00'; });
             var values = prices.map(function(p) { return p.price; });
             var latest = prices[prices.length - 1];
-            var prev = prices.length > 1 ? prices[prices.length - 2] : prices[0];
-            var change = latest.price - prev.price;
-            var changePct = ((change / prev.price) * 100).toFixed(2);
+            var first = prices[0];
+            var change = latest.price - first.price;
+            var changePct = ((change / first.price) * 100).toFixed(2);
             var isUp = change >= 0;
 
-            document.getElementById('ttfChartMeta').innerHTML =
-                '\u20AC' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
+            document.getElementById('wtiChartMeta').innerHTML =
+                '$' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
                 (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
 
-            var lineColor = '#22c55e';
+            var lineColor = isUp ? '#3b82f6' : '#ef4444';
 
-            ttfChartInstance = new Chart(ctx, {
+            wtiChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -13988,20 +14007,90 @@
                             borderColor: '#334155',
                             borderWidth: 1,
                             callbacks: {
-                                label: function(ctx) { return '\u20AC' + ctx.raw.toFixed(2) + '/MWh'; }
+                                label: function(ctx) { return '$' + ctx.raw.toFixed(2) + '/bbl'; }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 10 },
+                            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 },
                             grid: { color: '#1e293b44' }
                         },
                         y: {
                             ticks: {
                                 color: '#64748b',
                                 font: { size: 10 },
-                                callback: function(v) { return '\u20AC' + v.toFixed(1); }
+                                callback: function(v) { return '$' + v.toFixed(1); }
+                            },
+                            grid: { color: '#1e293b44' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderNatGasChart(data) {
+            var canvas = document.getElementById('natgasIntradayChart');
+            var ctx = canvas.getContext('2d');
+            if (natgasChartInstance) { natgasChartInstance.destroy(); }
+
+            var prices = data.prices;
+            var labels = prices.map(function(p) { return p.hour + ':00'; });
+            var values = prices.map(function(p) { return p.price; });
+            var latest = prices[prices.length - 1];
+            var first = prices[0];
+            var change = latest.price - first.price;
+            var changePct = ((change / first.price) * 100).toFixed(2);
+            var isUp = change >= 0;
+
+            document.getElementById('natgasChartMeta').innerHTML =
+                '$' + latest.price.toFixed(2) + ' <span style="color:' + (isUp ? '#22c55e' : '#ef4444') + ';font-size:11px;">' +
+                (isUp ? '▲' : '▼') + ' ' + (isUp ? '+' : '') + changePct + '%</span>';
+
+            var lineColor = isUp ? '#a78bfa' : '#ef4444';
+
+            natgasChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        borderColor: lineColor,
+                        backgroundColor: lineColor + '15',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: lineColor,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#e2e8f0',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(ctx) { return '$' + ctx.raw.toFixed(2) + '/MMBtu'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#64748b', font: { size: 10 }, maxTicksLimit: 8 },
+                            grid: { color: '#1e293b44' }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 10 },
+                                callback: function(v) { return '$' + v.toFixed(2); }
                             },
                             grid: { color: '#1e293b44' }
                         }
