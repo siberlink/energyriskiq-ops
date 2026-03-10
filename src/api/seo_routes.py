@@ -1677,10 +1677,11 @@ async def geri_page(request: Request):
         from src.db.db import execute_query
         from datetime import datetime, timedelta
         thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
-        range_row = execute_query(
+        range_rows = execute_query(
             "SELECT MIN(value) as min_val, MAX(value) as max_val FROM intel_indices_daily WHERE index_id = 'geri' AND date >= %s",
             (thirty_days_ago,)
         )
+        range_row = range_rows[0] if range_rows else {}
         if range_row and range_row.get('min_val') is not None:
             range_display = f"{range_row['min_val']}&ndash;{range_row['max_val']}"
         else:
