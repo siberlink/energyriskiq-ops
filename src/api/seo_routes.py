@@ -5978,6 +5978,159 @@ async def geri_research_page(request: Request):
                 font-size: 0.73rem;
                 line-height: 1.4;
             }}
+            .case-study {{
+                background: #0f172a;
+                border: 1px solid #1e293b;
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+            }}
+            .case-study-header {{
+                display: flex;
+                align-items: flex-start;
+                gap: 1rem;
+                margin-bottom: 1rem;
+            }}
+            .case-study-badge {{
+                flex-shrink: 0;
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 0.5rem 0.75rem;
+                text-align: center;
+                min-width: 64px;
+            }}
+            .case-study-badge .badge-icon {{
+                font-size: 1.1rem;
+            }}
+            .case-study-badge .badge-label {{
+                font-size: 0.62rem;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-top: 0.15rem;
+            }}
+            .case-study-title {{
+                flex: 1;
+            }}
+            .case-study-title h3 {{
+                font-size: 1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0 0 0.25rem 0;
+            }}
+            .case-study-title .cs-date {{
+                color: #64748b;
+                font-size: 0.78rem;
+            }}
+            .case-study-body p {{
+                color: #94a3b8;
+                font-size: 0.87rem;
+                line-height: 1.7;
+                margin: 0 0 1rem 0;
+            }}
+            .case-study-body p:last-child {{
+                margin-bottom: 0;
+            }}
+            .cs-metrics-row {{
+                display: flex;
+                gap: 0.6rem;
+                margin: 1rem 0;
+                flex-wrap: wrap;
+            }}
+            .cs-metric {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 0.6rem 0.85rem;
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }}
+            .cs-metric .cm-label {{
+                color: #64748b;
+                font-size: 0.68rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                margin-bottom: 0.25rem;
+            }}
+            .cs-metric .cm-value {{
+                color: #f1f5f9;
+                font-size: 1.05rem;
+                font-weight: 700;
+            }}
+            .cs-metric .cm-sub {{
+                color: #94a3b8;
+                font-size: 0.68rem;
+                margin-top: 0.15rem;
+            }}
+            .cs-bar-chart {{
+                margin: 1rem 0;
+            }}
+            .cs-bar-chart .bar-title {{
+                color: #64748b;
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                margin-bottom: 0.6rem;
+            }}
+            .cs-bar-row {{
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                margin-bottom: 0.45rem;
+            }}
+            .cs-bar-label {{
+                color: #94a3b8;
+                font-size: 0.72rem;
+                white-space: nowrap;
+                width: 70px;
+                text-align: right;
+                flex-shrink: 0;
+            }}
+            .cs-bar-track {{
+                flex: 1;
+                background: #1e293b;
+                border-radius: 3px;
+                height: 14px;
+                position: relative;
+                overflow: hidden;
+            }}
+            .cs-bar-fill {{
+                height: 100%;
+                border-radius: 3px;
+                transition: width 0.3s ease;
+            }}
+            .cs-bar-val {{
+                color: #e2e8f0;
+                font-size: 0.72rem;
+                font-weight: 600;
+                width: 55px;
+                flex-shrink: 0;
+            }}
+            .cs-events-list {{
+                margin: 1rem 0;
+            }}
+            .cs-events-list .ev-item {{
+                display: flex;
+                align-items: flex-start;
+                gap: 0.6rem;
+                padding: 0.4rem 0;
+                border-bottom: 1px solid #1e293b;
+                font-size: 0.78rem;
+            }}
+            .cs-events-list .ev-item:last-child {{ border-bottom: none; }}
+            .cs-events-list .ev-sev {{
+                flex-shrink: 0;
+                background: #ef4444;
+                color: white;
+                font-size: 0.65rem;
+                font-weight: 700;
+                border-radius: 4px;
+                padding: 0.15rem 0.35rem;
+                margin-top: 0.1rem;
+            }}
+            .cs-events-list .ev-text {{ color: #cbd5e1; line-height: 1.4; }}
             @media (max-width: 768px) {{
                 .four-pillars-visual {{ grid-template-columns: repeat(2, 1fr); }}
                 .measure-tag {{ font-size: 0.74rem; }}
@@ -5985,6 +6138,8 @@ async def geri_research_page(request: Request):
                 .source-tiers {{ grid-template-columns: 1fr; }}
                 .use-cases-grid {{ grid-template-columns: 1fr; }}
                 .cross-ref-grid {{ grid-template-columns: 1fr; }}
+                .cs-metrics-row {{ gap: 0.4rem; }}
+                .cs-metric {{ min-width: 90px; }}
             }}
             .risk-drivers-grid {{
                 display: flex;
@@ -6532,6 +6687,144 @@ async def geri_research_page(request: Request):
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="research-section">
+                    <h2>Historical Examples of Energy Risk Spikes</h2>
+
+                    <p>The following case studies are drawn from EnergyRiskIQ live production data. They illustrate how the platform captures real-world energy risk events, scores their severity, and reflects them in the index before markets fully absorb the implications.</p>
+
+                    <div class="case-study">
+                        <div class="case-study-header">
+                            <div class="case-study-badge">
+                                <div class="badge-icon">&#x1F4A5;</div>
+                                <div class="badge-label">Geopolitical</div>
+                            </div>
+                            <div class="case-study-title">
+                                <h3>US-Israel Strikes on Iran &amp; Strait of Hormuz Risk</h3>
+                                <div class="cs-date">28 February 2026 &mdash; GERI Live Event</div>
+                            </div>
+                        </div>
+                        <div class="case-study-body">
+                            <p>On 28 February 2026, US and Israeli forces launched coordinated strikes on Iranian targets. Iran responded by striking the US military base in Bahrain. The platform registered 13 severity-5 HIGH_IMPACT_EVENT alerts within a single intraday processing window spanning the Middle East, Asia, and Russia clusters &mdash; the maximum alert severity the system can generate.</p>
+
+                            <div class="cs-metrics-row">
+                                <div class="cs-metric">
+                                    <div class="cm-label">GERI Live</div>
+                                    <div class="cm-value" style="color:#eab308;">31</div>
+                                    <div class="cm-sub">MODERATE band</div>
+                                </div>
+                                <div class="cs-metric">
+                                    <div class="cm-label">Alerts triggered</div>
+                                    <div class="cm-value" style="color:#ef4444;">19</div>
+                                    <div class="cm-sub">13 at severity 5</div>
+                                </div>
+                                <div class="cs-metric">
+                                    <div class="cm-label">Brent next day</div>
+                                    <div class="cm-value" style="color:#22c55e;">+7.2%</div>
+                                    <div class="cm-sub">$72.48 → $77.70</div>
+                                </div>
+                                <div class="cs-metric">
+                                    <div class="cm-label">Hormuz exposure</div>
+                                    <div class="cm-value" style="color:#f97316;">50%</div>
+                                    <div class="cm-sub">India oil imports at risk</div>
+                                </div>
+                            </div>
+
+                            <div class="cs-bar-chart">
+                                <div class="bar-title">Key events captured (severity 5)</div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">Middle East</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:85%;background:#ef4444;"></div></div>
+                                    <div class="cs-bar-val">War / Military</div>
+                                </div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">Asia</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:60%;background:#f97316;"></div></div>
+                                    <div class="cs-bar-val">Sanctions / War</div>
+                                </div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">Russia</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:35%;background:#eab308;"></div></div>
+                                    <div class="cs-bar-val">Diplomatic</div>
+                                </div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">Europe</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:25%;background:#3b82f6;"></div></div>
+                                    <div class="cs-bar-val">Supply Chain</div>
+                                </div>
+                            </div>
+
+                            <div class="cs-events-list">
+                                <div class="ev-item"><span class="ev-sev">SEV 5</span><span class="ev-text">Oil Markets Brace for Volatility As U.S.-Israel Launch Strikes Across Iran</span></div>
+                                <div class="ev-item"><span class="ev-sev">SEV 5</span><span class="ev-text">Iran strikes US military base in Bahrain as explosions heard across Gulf</span></div>
+                                <div class="ev-item"><span class="ev-sev">SEV 5</span><span class="ev-text">US-Israel strike on Iran: Attack puts 50% of India&rsquo;s oil imports at risk via Hormuz</span></div>
+                                <div class="ev-item"><span class="ev-sev">SEV 5</span><span class="ev-text">Russia Oil Exports to China &amp; India Surge Amid Sanctions &mdash; shifting global supply flows</span></div>
+                            </div>
+
+                            <p>The GERI reading of 31 (MODERATE) at the time reflected intraday alert accumulation before the full market reaction was priced in. Brent crude, which closed at $72.48 on the day of the strikes, moved to $77.70 the following session &mdash; a 7.2% single-day move confirming the risk environment GERI had flagged. VIX also rose from 19.86 to 21.21, indicating broader financial market contagion from the energy shock.</p>
+                        </div>
+                    </div>
+
+                    <div class="case-study">
+                        <div class="case-study-header">
+                            <div class="case-study-badge">
+                                <div class="badge-icon">&#x1F4E6;</div>
+                                <div class="badge-label">Structural</div>
+                            </div>
+                            <div class="case-study-title">
+                                <h3>European Gas Storage Crisis &mdash; Critical Seasonal Deviation</h3>
+                                <div class="cs-date">February 2026 &mdash; Persistent ASSET_RISK_SPIKE</div>
+                            </div>
+                        </div>
+                        <div class="case-study-body">
+                            <p>Throughout February 2026, EU gas storage held critically below seasonal norms &mdash; a persistent structural stress condition tracked continuously by the platform. With storage at approximately 30% fill against a seasonal norm of 50%, the deviation reached &minus;20%, triggering CRITICAL band classification and a severity-5 ASSET_RISK_SPIKE alert.</p>
+
+                            <div class="cs-metrics-row">
+                                <div class="cs-metric">
+                                    <div class="cm-label">EU Storage Fill</div>
+                                    <div class="cm-value" style="color:#ef4444;">30.1%</div>
+                                    <div class="cm-sub">Feb 28, 2026</div>
+                                </div>
+                                <div class="cs-metric">
+                                    <div class="cm-label">Seasonal Norm</div>
+                                    <div class="cm-value" style="color:#94a3b8;">50.0%</div>
+                                    <div class="cm-sub">Expected for Feb</div>
+                                </div>
+                                <div class="cs-metric">
+                                    <div class="cm-label">Deviation</div>
+                                    <div class="cm-value" style="color:#ef4444;">&minus;19.9%</div>
+                                    <div class="cm-sub">Below norm</div>
+                                </div>
+                                <div class="cs-metric">
+                                    <div class="cm-label">Risk Band</div>
+                                    <div class="cm-value" style="color:#dc2626;">CRITICAL</div>
+                                    <div class="cm-sub">Score: 79 / 100</div>
+                                </div>
+                            </div>
+
+                            <div class="cs-bar-chart">
+                                <div class="bar-title">EU storage fill vs. seasonal norm (Feb 2026)</div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">Norm (50%)</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:50%;background:#334155;"></div></div>
+                                    <div class="cs-bar-val">50.0%</div>
+                                </div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">Actual</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:30%;background:#ef4444;"></div></div>
+                                    <div class="cs-bar-val" style="color:#ef4444;">30.1%</div>
+                                </div>
+                                <div class="cs-bar-row">
+                                    <div class="cs-bar-label">TTF Gas</div>
+                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:32%;background:#f97316;"></div></div>
+                                    <div class="cs-bar-val">&euro;31.5/MWh</div>
+                                </div>
+                            </div>
+
+                            <p>This case illustrates the <strong>structural risk</strong> dimension of GERI &mdash; a slow-building, persistent threat distinct from a single geopolitical shock. EU gas storage at 30% fill against a 50% seasonal norm signals that Europe&rsquo;s physical buffer against supply disruption is significantly depleted. TTF gas held around &euro;31.5/MWh throughout the period, reflecting market pricing of winter supply tightness. The CRITICAL storage risk band (score 79) fed directly into GERI&rsquo;s Asset Risk and High-Impact Event pillars through ongoing ASSET_RISK_SPIKE alert generation.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
