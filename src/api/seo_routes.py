@@ -5730,6 +5730,77 @@ async def geri_research_page(request: Request):
                 padding: 0 0.5rem;
                 flex-shrink: 0;
             }}
+            .measures-subsection {{
+                margin: 1.5rem 0;
+                padding: 1.25rem;
+                background: #0f172a;
+                border: 1px solid #1e293b;
+                border-radius: 10px;
+            }}
+            .measures-subsection h3 {{
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #e2e8f0;
+                margin: 0 0 0.75rem 0;
+            }}
+            .measures-subsection p {{
+                color: #94a3b8;
+                font-size: 0.88rem;
+                line-height: 1.65;
+                margin: 0 0 0.75rem 0;
+            }}
+            .measures-subsection p:last-child {{
+                margin-bottom: 0;
+            }}
+            .measures-examples {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45rem;
+                margin: 0.75rem 0;
+            }}
+            .measure-tag {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                padding: 0.4rem 0.7rem;
+                font-size: 0.78rem;
+                color: #cbd5e1;
+                white-space: nowrap;
+            }}
+            .four-pillars-visual {{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.75rem;
+                margin: 1.75rem 0 0.5rem 0;
+            }}
+            .pillar-card {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 10px;
+                padding: 1rem;
+                text-align: center;
+            }}
+            .pillar-weight {{
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #f1f5f9;
+                margin-bottom: 0.3rem;
+            }}
+            .pillar-name {{
+                color: #e2e8f0;
+                font-weight: 600;
+                font-size: 0.82rem;
+                margin-bottom: 0.35rem;
+            }}
+            .pillar-desc {{
+                color: #64748b;
+                font-size: 0.7rem;
+                line-height: 1.4;
+            }}
+            @media (max-width: 768px) {{
+                .four-pillars-visual {{ grid-template-columns: repeat(2, 1fr); }}
+                .measure-tag {{ font-size: 0.74rem; }}
+            }}
             .risk-drivers-grid {{
                 display: flex;
                 flex-wrap: wrap;
@@ -5972,6 +6043,91 @@ async def geri_research_page(request: Request):
                     </div>
 
                     <p style="text-align: center; color: #64748b; font-size: 0.82rem; margin-top: 0.25rem;">GERI measures the buildup phase &mdash; giving you the signal before markets move.</p>
+                </div>
+
+                <div class="research-section">
+                    <h2>What the Global Energy Risk Index Measures</h2>
+
+                    <p>GERI distills a multi-source intelligence pipeline into a single daily value by measuring four distinct dimensions of global energy risk. Each dimension captures a different layer of the threat landscape &mdash; from individual high-severity events to the geographic breadth of simultaneous stress.</p>
+
+                    <div class="measures-subsection">
+                        <h3>3.1 &nbsp;Geopolitical Risk Signals</h3>
+                        <p>The dominant driver of GERI movements. This dimension captures events with the potential to cause significant, immediate disruption to global energy supply or pricing.</p>
+                        <div class="measures-examples">
+                            <span class="measure-tag">&#x2694;&#xFE0F; Military escalation &amp; armed conflict</span>
+                            <span class="measure-tag">&#x1F6AB; Sanctions &amp; export restrictions</span>
+                            <span class="measure-tag">&#x2693; Maritime &amp; chokepoint disruptions</span>
+                            <span class="measure-tag">&#x1F4A5; Pipeline sabotage &amp; infrastructure attacks</span>
+                            <span class="measure-tag">&#x1F30D; Conflict in producing regions</span>
+                            <span class="measure-tag">&#x1F4DC; Policy shifts with systemic implications</span>
+                        </div>
+                        <p>Events are scored on a 1&ndash;5 severity scale and weighted by regional influence. A military escalation near the Strait of Hormuz carries fundamentally different weight than an equivalent event in a region with no energy infrastructure.</p>
+                    </div>
+
+                    <div class="measures-subsection">
+                        <h3>3.2 &nbsp;Supply Chain &amp; Transit Stress</h3>
+                        <p>Energy supply disruptions rarely occur without warning. This dimension detects the buildup of stress across global energy transit routes and logistics networks.</p>
+                        <div class="measures-examples">
+                            <span class="measure-tag">&#x1F6A2; Shipping &amp; LNG cargo disruptions</span>
+                            <span class="measure-tag">&#x26F5; Chokepoint stress (Hormuz, Bab el-Mandeb, Suez)</span>
+                            <span class="measure-tag">&#x1F6E2;&#xFE0F; Pipeline flow interruptions</span>
+                            <span class="measure-tag">&#x1F4E6; Port closures &amp; logistics bottlenecks</span>
+                            <span class="measure-tag">&#x1F4B1; LNG cargo competition (Europe vs. Asia)</span>
+                        </div>
+                        <p>GERI monitors accelerating event frequency within regions &mdash; what we call <em>escalation velocity</em>. A cluster of moderate-severity supply events in a single corridor often precedes a major disruption.</p>
+                    </div>
+
+                    <div class="measures-subsection">
+                        <h3>3.3 &nbsp;Market Stress Signals</h3>
+                        <p>Risk signals emanating from direct asset-level stress &mdash; specific commodities, instruments, and financial indicators under threat.</p>
+                        <div class="measures-examples">
+                            <span class="measure-tag">&#x1F4C9; Brent &amp; WTI crude volatility</span>
+                            <span class="measure-tag">&#x1F525; TTF natural gas price spikes</span>
+                            <span class="measure-tag">&#x1F4C8; VIX financial contagion</span>
+                            <span class="measure-tag">&#x1F4B1; EUR/USD risk-off signals</span>
+                            <span class="measure-tag">&#x1F6A2; Freight cost anomalies</span>
+                            <span class="measure-tag">&#x1F4CA; Abnormal Brent-WTI spread widening</span>
+                        </div>
+                        <p>AI-derived directional assessments for oil, gas, FX, and freight are generated for each event &mdash; capturing how intelligence translates into observable market stress before traditional price data reflects it.</p>
+                    </div>
+
+                    <div class="measures-subsection">
+                        <h3>3.4 &nbsp;Structural Risk Indicators</h3>
+                        <p>Persistent, slower-moving risk factors that define the baseline vulnerability of the global energy system.</p>
+                        <div class="measures-examples">
+                            <span class="measure-tag">&#x1F4E6; EU gas storage levels vs. seasonal norms</span>
+                            <span class="measure-tag">&#x1F3ED; Refinery &amp; terminal outages</span>
+                            <span class="measure-tag">&#x26A1; Production disruptions &amp; force majeure</span>
+                            <span class="measure-tag">&#x1F6E0;&#xFE0F; Critical infrastructure vulnerability</span>
+                            <span class="measure-tag">&#x2744;&#xFE0F; Winter readiness &amp; injection rates</span>
+                            <span class="measure-tag">&#x1F30D; Geographic risk concentration</span>
+                        </div>
+                        <p>A world where risk is concentrated in a single region (e.g., 80% emanating from the Middle East) is qualitatively different from one where the same total risk is distributed across four regions. GERI penalises concentrated risk because a single escalation in a dominant region can trigger cascading effects.</p>
+                    </div>
+
+                    <div class="four-pillars-visual">
+                        <div class="pillar-card" style="border-top: 3px solid #ef4444;">
+                            <div class="pillar-weight">40%</div>
+                            <div class="pillar-name">High-Impact Events</div>
+                            <div class="pillar-desc">Geopolitical escalations, supply shocks, policy shifts</div>
+                        </div>
+                        <div class="pillar-card" style="border-top: 3px solid #f97316;">
+                            <div class="pillar-weight">25%</div>
+                            <div class="pillar-name">Regional Risk Spikes</div>
+                            <div class="pillar-desc">Cluster detection, escalation velocity, baseline deviation</div>
+                        </div>
+                        <div class="pillar-card" style="border-top: 3px solid #3b82f6;">
+                            <div class="pillar-weight">20%</div>
+                            <div class="pillar-name">Asset Risk</div>
+                            <div class="pillar-desc">Oil, gas, FX, freight &mdash; asset-level stress signals</div>
+                        </div>
+                        <div class="pillar-card" style="border-top: 3px solid #8b5cf6;">
+                            <div class="pillar-weight">15%</div>
+                            <div class="pillar-name">Region Concentration</div>
+                            <div class="pillar-desc">Geographic diversity of simultaneous risk</div>
+                        </div>
+                    </div>
+                    <p style="text-align: center; color: #64748b; font-size: 0.82rem; margin-top: 0.5rem;">The Four Pillars of GERI &mdash; weighted composite architecture</p>
                 </div>
             </div>
         </main>
