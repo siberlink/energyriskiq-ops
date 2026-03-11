@@ -6263,7 +6263,7 @@ async def geri_research_page(request: Request):
                                     <div class="tier-desc">Al Jazeera, Xinhua, EU Commission</div>
                                 </div>
                             </div>
-                            <p>General news aggregators, opinion blogs, social media, and financial spam feeds are excluded by design. Signal quality depends directly on source credibility and diversity.</p>
+                            <p style="background: rgba(59,130,246,0.08); border-left: 3px solid #3b82f6; padding: 0.6rem 0.85rem; border-radius: 0 6px 6px 0; color: #e2e8f0; font-weight: 500;">General news aggregators, opinion blogs, social media, and financial spam feeds are excluded by design. Signal quality depends directly on source credibility and diversity.</p>
                         </div>
                     </div>
 
