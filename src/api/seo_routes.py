@@ -5621,3 +5621,191 @@ async def digest_latest_page():
     """
 
     return HTMLResponse(content=html, headers={"Cache-Control": "no-cache"})
+
+
+@router.get("/research/global-energy-risk-index", response_class=HTMLResponse)
+async def geri_research_page(request: Request):
+    """
+    GERI Research Page - Deep-dive asset page for the Global Energy Risk Index.
+    Built incrementally section by section.
+    """
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Global Energy Risk Index (GERI) Research | EnergyRiskIQ</title>
+        <meta name="description" content="The Global Energy Risk Index (GERI) is a quantitative framework measuring abnormal geopolitical and systemic risk in global energy markets. Research methodology, construction, and interpretation.">
+        <link rel="canonical" href="{BASE_URL}/research/global-energy-risk-index">
+
+        <meta property="og:title" content="Global Energy Risk Index (GERI) Research | EnergyRiskIQ">
+        <meta property="og:description" content="A quantitative framework measuring abnormal geopolitical and systemic risk in global energy markets.">
+        <meta property="og:url" content="{BASE_URL}/research/global-energy-risk-index">
+        <meta property="og:type" content="article">
+
+        <link rel="icon" type="image/png" href="/static/favicon.png">
+        {get_digest_dark_styles()}
+        <style>
+            .research-hero {{
+                text-align: center;
+                padding: 2.5rem 0 1.5rem 0;
+            }}
+            .research-hero h1 {{
+                font-size: 1.85rem;
+                margin-bottom: 0.75rem;
+                color: #f1f5f9;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+            }}
+            .research-hero .subtitle {{
+                color: #94a3b8;
+                max-width: 640px;
+                margin: 0 auto;
+                font-size: 1rem;
+                line-height: 1.65;
+                font-style: italic;
+            }}
+            .research-section {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.5rem 1.75rem;
+                margin: 1.5rem 0;
+            }}
+            .research-section h2 {{
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0 0 1rem 0;
+            }}
+            .research-section p {{
+                color: #cbd5e1;
+                font-size: 0.92rem;
+                line-height: 1.7;
+                margin: 0 0 1rem 0;
+            }}
+            .research-section p:last-child {{
+                margin-bottom: 0;
+            }}
+            .pipeline-visual {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0;
+                margin: 1.75rem 0 1rem 0;
+                flex-wrap: wrap;
+            }}
+            .pipeline-step {{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 1rem 1.25rem;
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 10px;
+                min-width: 145px;
+                max-width: 180px;
+                flex: 1;
+            }}
+            .pipeline-step .step-icon {{
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+            }}
+            .pipeline-step .step-label {{
+                color: #f1f5f9;
+                font-weight: 600;
+                font-size: 0.88rem;
+                margin-bottom: 0.3rem;
+            }}
+            .pipeline-step .step-desc {{
+                color: #64748b;
+                font-size: 0.75rem;
+                line-height: 1.4;
+            }}
+            .pipeline-arrow {{
+                color: #3b82f6;
+                font-size: 1.35rem;
+                padding: 0 0.5rem;
+                flex-shrink: 0;
+            }}
+            @media (max-width: 768px) {{
+                .research-hero h1 {{ font-size: 1.4rem; }}
+                .research-hero .subtitle {{ font-size: 0.9rem; }}
+                .research-section {{ padding: 1.25rem 1rem; }}
+                .pipeline-visual {{ gap: 0.5rem; }}
+                .pipeline-arrow {{ display: none; }}
+                .pipeline-step {{ min-width: 100%; max-width: 100%; }}
+            }}
+        </style>
+    </head>
+    <body>
+        <nav class="nav">
+            <div class="nav-inner">
+                <a href="/" class="logo">
+                    <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                    EnergyRiskIQ
+                </a>
+                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="nav-links">
+                    <a href="/indices/global-energy-risk-index">GERI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI</a>
+                    <a href="/egsi">EGSI</a>
+                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
+                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
+                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                </div>
+            </div>
+        </nav>
+        <main>
+            <div class="container">
+                <div class="breadcrumbs">
+                    <a href="/">Home</a> / <a href="/indices">Indices</a> / <a href="/indices/global-energy-risk-index">GERI</a> / Research
+                </div>
+
+                <div class="research-hero">
+                    <h1>Global Energy Risk Index (GERI)</h1>
+                    <p class="subtitle">&ldquo;A quantitative framework measuring abnormal geopolitical and systemic risk in global energy markets.&rdquo;</p>
+                </div>
+
+                <div class="research-section">
+                    <h2>Introduction</h2>
+
+                    <p>The Global Energy Risk Index (GERI) is a daily indicator developed by EnergyRiskIQ to measure abnormal geopolitical and systemic stress in global energy markets.</p>
+
+                    <p>The index converts complex energy events &mdash; including supply disruptions, geopolitical escalation, market volatility, and policy shocks &mdash; into a normalized 0&ndash;100 risk score.</p>
+
+                    <p>GERI helps traders, analysts, and policymakers understand when energy markets are operating in a normal environment versus a high-risk regime.</p>
+
+                    <div class="pipeline-visual">
+                        <div class="pipeline-step">
+                            <div class="step-icon">&#x1F4E1;</div>
+                            <div class="step-label">Energy Events</div>
+                            <div class="step-desc">Supply disruptions, geopolitical escalation, policy shocks</div>
+                        </div>
+                        <div class="pipeline-arrow">&#x27A1;&#xFE0F;</div>
+                        <div class="pipeline-step">
+                            <div class="step-icon">&#x26A0;&#xFE0F;</div>
+                            <div class="step-label">Risk Environment</div>
+                            <div class="step-desc">AI classification, severity scoring, regional mapping</div>
+                        </div>
+                        <div class="pipeline-arrow">&#x27A1;&#xFE0F;</div>
+                        <div class="pipeline-step">
+                            <div class="step-icon">&#x1F4C8;</div>
+                            <div class="step-label">Market Reaction</div>
+                            <div class="step-desc">Normalized 0&ndash;100 risk score for energy markets</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        {render_digest_footer()}
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html)
