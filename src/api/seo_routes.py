@@ -5797,9 +5797,114 @@ async def geri_research_page(request: Request):
                 font-size: 0.7rem;
                 line-height: 1.4;
             }}
+            .method-step {{
+                display: flex;
+                gap: 1rem;
+                margin: 1.25rem 0;
+                padding: 1.25rem;
+                background: #0f172a;
+                border: 1px solid #1e293b;
+                border-radius: 10px;
+            }}
+            .method-step-num {{
+                flex-shrink: 0;
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                border: 1px solid #3b82f6;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #60a5fa;
+                font-weight: 700;
+                font-size: 0.85rem;
+            }}
+            .method-step-content h3 {{
+                font-size: 0.95rem;
+                font-weight: 600;
+                color: #e2e8f0;
+                margin: 0 0 0.6rem 0;
+            }}
+            .method-step-content p {{
+                color: #94a3b8;
+                font-size: 0.88rem;
+                line-height: 1.65;
+                margin: 0 0 0.6rem 0;
+            }}
+            .method-step-content p:last-child {{
+                margin-bottom: 0;
+            }}
+            .regime-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1rem 0;
+            }}
+            .regime-table th {{
+                text-align: left;
+                padding: 0.6rem 0.75rem;
+                font-size: 0.78rem;
+                color: #94a3b8;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                border-bottom: 2px solid #334155;
+            }}
+            .regime-table td {{
+                padding: 0.6rem 0.75rem;
+                font-size: 0.85rem;
+                border-bottom: 1px solid #1e293b;
+            }}
+            .regime-table tr:last-child td {{
+                border-bottom: none;
+            }}
+            .regime-table td:first-child {{
+                font-weight: 600;
+                white-space: nowrap;
+            }}
+            .regime-table td:nth-child(2) {{
+                color: #e2e8f0;
+                font-weight: 600;
+            }}
+            .regime-table td:nth-child(3) {{
+                color: #94a3b8;
+            }}
+            .regime-band-dot {{
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 0.4rem;
+                vertical-align: middle;
+            }}
+            .source-tiers {{
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+                margin: 0.75rem 0;
+            }}
+            .source-tier {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                padding: 0.5rem 0.7rem;
+                font-size: 0.78rem;
+            }}
+            .source-tier .tier-label {{
+                color: #60a5fa;
+                font-weight: 600;
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                margin-bottom: 0.2rem;
+            }}
+            .source-tier .tier-desc {{
+                color: #cbd5e1;
+            }}
             @media (max-width: 768px) {{
                 .four-pillars-visual {{ grid-template-columns: repeat(2, 1fr); }}
                 .measure-tag {{ font-size: 0.74rem; }}
+                .method-step {{ flex-direction: column; gap: 0.5rem; }}
+                .source-tiers {{ grid-template-columns: 1fr; }}
             }}
             .risk-drivers-grid {{
                 display: flex;
@@ -6128,6 +6233,121 @@ async def geri_research_page(request: Request):
                         </div>
                     </div>
                     <p style="text-align: center; color: #64748b; font-size: 0.82rem; margin-top: 0.5rem;">The Four Pillars of GERI &mdash; weighted composite architecture</p>
+                </div>
+
+                <div class="research-section">
+                    <h2>How GERI Is Calculated (Methodology)</h2>
+
+                    <p>GERI is computed algorithmically from structured intelligence inputs. There is no editorial override, manual adjustment, or subjective intervention in the daily index value. The methodology is fixed for each model version, and changes are implemented only through formal version upgrades.</p>
+
+                    <div class="method-step">
+                        <div class="method-step-num">4.1</div>
+                        <div class="method-step-content">
+                            <h3>Event Collection</h3>
+                            <p>Events are ingested continuously from a curated portfolio of institutional, trade, and specialist intelligence sources. The source architecture follows a strict credibility hierarchy:</p>
+                            <div class="source-tiers">
+                                <div class="source-tier">
+                                    <div class="tier-label">Tier 0 &mdash; Institutional</div>
+                                    <div class="tier-desc">EIA, OPEC, government agencies</div>
+                                </div>
+                                <div class="source-tier">
+                                    <div class="tier-label">Tier 1 &mdash; Market Intelligence</div>
+                                    <div class="tier-desc">Reuters, ICIS, Platts</div>
+                                </div>
+                                <div class="source-tier">
+                                    <div class="tier-label">Tier 2 &mdash; Trade Specialist</div>
+                                    <div class="tier-desc">FreightWaves, Rigzone, Maritime Executive</div>
+                                </div>
+                                <div class="source-tier">
+                                    <div class="tier-label">Tier 3 &mdash; Regional / General</div>
+                                    <div class="tier-desc">Al Jazeera, Xinhua, EU Commission</div>
+                                </div>
+                            </div>
+                            <p>General news aggregators, opinion blogs, social media, and financial spam feeds are excluded by design. Signal quality depends directly on source credibility and diversity.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-step">
+                        <div class="method-step-num">4.2</div>
+                        <div class="method-step-content">
+                            <h3>Event Classification</h3>
+                            <p>Each ingested event undergoes deduplication, classification, and region tagging. Events are categorized by primary type and thematic sub-category, with a priority hierarchy that ensures the most operationally significant interpretation is selected:</p>
+                            <div class="measures-examples">
+                                <span class="measure-tag">&#x2694;&#xFE0F; War &amp; Armed Conflict</span>
+                                <span class="measure-tag">&#x1F6E1;&#xFE0F; Military Posturing</span>
+                                <span class="measure-tag">&#x1F4A5; Active Conflict</span>
+                                <span class="measure-tag">&#x1F6E0;&#xFE0F; Industrial Strikes</span>
+                                <span class="measure-tag">&#x1F6AB; Sanctions &amp; Embargoes</span>
+                                <span class="measure-tag">&#x26A1; Supply Disruption</span>
+                                <span class="measure-tag">&#x1F6E2;&#xFE0F; Energy Market Events</span>
+                                <span class="measure-tag">&#x1F3DB;&#xFE0F; Policy &amp; Regulation</span>
+                                <span class="measure-tag">&#x1F91D; Diplomacy &amp; De-escalation</span>
+                            </div>
+                            <p>Events are then enriched using AI analysis to produce structured impact assessments, severity scoring, asset linkage, and contextual summaries explaining why the event matters for energy risk.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-step">
+                        <div class="method-step-num">4.3</div>
+                        <div class="method-step-content">
+                            <h3>Scoring Framework</h3>
+                            <p>Each qualifying event receives a multi-dimensional risk assessment based on:</p>
+                            <div class="measures-examples">
+                                <span class="measure-tag">&#x1F4CA; Severity (1&ndash;5 scale)</span>
+                                <span class="measure-tag">&#x1F30D; Regional influence weight</span>
+                                <span class="measure-tag">&#x1F4F0; Source credibility tier</span>
+                                <span class="measure-tag">&#x1F4C8; Market relevance</span>
+                            </div>
+                            <p>Events originating from regions with higher structural influence on global energy flows receive proportionally greater weight. The seven region clusters &mdash; Middle East, Russia/Black Sea, China, United States, Europe Internal, LNG Exporters, and Emerging Supply Regions &mdash; each carry a calibrated influence weight reflecting their importance to global energy markets.</p>
+                            <p>Scored events are then converted into three alert types that feed the index: <strong>High-Impact Events</strong> for individual severe occurrences, <strong>Regional Risk Spikes</strong> for concentrated regional buildup, and <strong>Asset Risk Alerts</strong> for infrastructure and commodity-specific threats.</p>
+                        </div>
+                    </div>
+
+                    <div class="method-step">
+                        <div class="method-step-num">4.4</div>
+                        <div class="method-step-content">
+                            <h3>Normalization &amp; Risk Bands</h3>
+                            <p>The index maintains a rolling historical baseline for normalization purposes. This baseline tracks observed values over a rolling window, ensuring the 0&ndash;100 scale remains calibrated to the range of conditions actually observed. This prevents the index from clustering at one end during prolonged periods of high or low risk.</p>
+                            <p>Each daily GERI value maps to one of five risk bands, accompanied by 1-day and 7-day trend indicators:</p>
+                            <table class="regime-table">
+                                <thead>
+                                    <tr>
+                                        <th>Score</th>
+                                        <th>Risk Band</th>
+                                        <th>Interpretation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="regime-band-dot" style="background:#22c55e;"></span>0 &ndash; 20</td>
+                                        <td>LOW</td>
+                                        <td>Benign geopolitical environment. Energy supply risks minimal. Normal market conditions.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="regime-band-dot" style="background:#eab308;"></span>21 &ndash; 40</td>
+                                        <td>MODERATE</td>
+                                        <td>Background risk present but manageable. Some regional tensions. Standard monitoring posture.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="regime-band-dot" style="background:#f97316;"></span>41 &ndash; 60</td>
+                                        <td>ELEVATED</td>
+                                        <td>Meaningful risk accumulation. Multiple regions contributing. Active monitoring and hedging warranted.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="regime-band-dot" style="background:#ef4444;"></span>61 &ndash; 80</td>
+                                        <td>SEVERE</td>
+                                        <td>Severe disruption pressure. Risk signals converging. Active hedging and contingency planning advised.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="regime-band-dot" style="background:#dc2626;"></span>81 &ndash; 100</td>
+                                        <td>CRITICAL</td>
+                                        <td>Systemic stress. Risk converged across regions and assets. Defensive positioning indicated.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p>Trend context matters: a GERI of 60 that has risen 15 points in a week carries a very different implication than a GERI of 60 that has fallen 10 points over the same period.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
