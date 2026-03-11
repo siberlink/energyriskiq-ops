@@ -6283,7 +6283,7 @@ async def geri_research_page(request: Request):
                                 <span class="measure-tag">&#x1F3DB;&#xFE0F; Policy &amp; Regulation</span>
                                 <span class="measure-tag">&#x1F91D; Diplomacy &amp; De-escalation</span>
                             </div>
-                            <p>Events are then enriched using AI analysis to produce structured impact assessments, severity scoring, asset linkage, and contextual summaries explaining why the event matters for energy risk.</p>
+                            <p>Events are then enriched using Algorithms to produce structured impact assessments, severity scoring, asset linkage, and contextual summaries explaining why the event matters for energy risk.</p>
                         </div>
                     </div>
 
