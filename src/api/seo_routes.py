@@ -21,7 +21,7 @@ import time
 import hashlib
 from collections import defaultdict
 
-from src.db.db import get_cursor, execute_one, execute_query
+from src.db.db import get_cursor, execute_one, execute_query, execute_production_query
 from src.seo.seo_generator import (
     get_daily_page,
     get_recent_daily_pages,
@@ -5632,29 +5632,18 @@ async def geri_research_page(request: Request):
     import json as _json
     from datetime import date as _date
 
-    # ── GERI daily: intel_indices_daily (production) with geri_live fallback ──
-    _geri_rows = execute_query("""
+    # ── GERI daily: production intel_indices_daily via PRODUCTION_DATABASE_URL ─
+    _geri_rows = execute_production_query("""
         SELECT date, value, band
         FROM intel_indices_daily
         WHERE index_id = 'global:geo_energy_risk'
           AND date BETWEEN '2026-02-25' AND '2026-03-04'
         ORDER BY date
     """)
-    if _geri_rows:
-        _geri_by_date = {str(r['date']): int(r['value']) for r in _geri_rows}
-    else:
-        # Fallback: aggregate geri_live by day (development environment)
-        _geri_fallback = execute_query("""
-            SELECT computed_at::date AS date, MAX(value) AS value
-            FROM geri_live
-            WHERE computed_at::date BETWEEN '2026-02-25' AND '2026-03-04'
-            GROUP BY computed_at::date
-            ORDER BY computed_at::date
-        """)
-        _geri_by_date = {str(r['date']): int(r['value']) for r in _geri_fallback} if _geri_fallback else {}
+    _geri_by_date = {str(r['date']): int(r['value']) for r in _geri_rows} if _geri_rows else {}
 
-    # ── Brent: from production oil_price_snapshots ─────────────────────────────
-    _brent_rows = execute_query("""
+    # ── Brent: production oil_price_snapshots ─────────────────────────────────
+    _brent_rows = execute_production_query("""
         SELECT date, brent_price
         FROM oil_price_snapshots
         WHERE date BETWEEN '2026-02-25' AND '2026-03-04'
@@ -5662,8 +5651,8 @@ async def geri_research_page(request: Request):
     """)
     _brent_by_date = {str(r['date']): float(r['brent_price']) for r in _brent_rows} if _brent_rows else {}
 
-    # ── VIX: from production vix_snapshots (market days only) ─────────────────
-    _vix_rows = execute_query("""
+    # ── VIX: production vix_snapshots (market days only) ──────────────────────
+    _vix_rows = execute_production_query("""
         SELECT date, vix_close
         FROM vix_snapshots
         WHERE date BETWEEN '2026-02-25' AND '2026-03-04'
