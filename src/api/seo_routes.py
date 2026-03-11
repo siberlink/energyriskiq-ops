@@ -5629,6 +5629,92 @@ async def geri_research_page(request: Request):
     GERI Research Page - Deep-dive asset page for the Global Energy Risk Index.
     Built incrementally section by section.
     """
+    import json as _json
+    from datetime import date as _date
+
+    # ── GERI Live: daily max per day for case study window ────────────────────
+    _geri_rows = execute_query("""
+        SELECT computed_at::date AS d, MAX(value) AS v
+        FROM geri_live
+        WHERE computed_at::date BETWEEN '2026-02-25' AND '2026-03-04'
+        GROUP BY computed_at::date
+        ORDER BY computed_at::date
+    """)
+    _geri_by_date = {str(r['d']): float(r['v']) for r in _geri_rows} if _geri_rows else {}
+
+    # ── Brent: daily close for case study window ───────────────────────────────
+    _brent_rows = execute_query("""
+        SELECT date, brent_price
+        FROM oil_price_snapshots
+        WHERE date BETWEEN '2026-02-25' AND '2026-03-04'
+        ORDER BY date
+    """)
+    _brent_by_date = {str(r['date']): float(r['brent_price']) for r in _brent_rows} if _brent_rows else {}
+
+    # ── VIX: market-day close for case study window ───────────────────────────
+    _vix_rows = execute_query("""
+        SELECT date, vix_close
+        FROM vix_snapshots
+        WHERE date BETWEEN '2026-02-25' AND '2026-03-04'
+        ORDER BY date
+    """)
+    _vix_by_date = {str(r['date']): float(r['vix_close']) for r in _vix_rows} if _vix_rows else {}
+
+    # ── Build GERI chart arrays (all 8 dates, null for missing) ───────────────
+    _all_dates = ['2026-02-25','2026-02-26','2026-02-27','2026-02-28',
+                  '2026-03-01','2026-03-02','2026-03-03','2026-03-04']
+    _event_date = '2026-02-28'
+    _geri_labels_py = []
+    _geri_data_py   = []
+    for _d in _all_dates:
+        _mo, _dy = _d[5:7], _d[8:]
+        _lbl_base = f"Feb {int(_dy)}" if _mo == '02' else f"Mar {int(_dy)}"
+        _lbl = _lbl_base + ' ★' if _d == _event_date else _lbl_base
+        _geri_labels_py.append(_lbl)
+        _geri_data_py.append(_geri_by_date.get(_d))  # None → JS null
+
+    _geri_event_idx = _all_dates.index(_event_date)
+
+    # ── Build Brent chart arrays (dates that exist in DB) ─────────────────────
+    _brent_labels_py = []
+    _brent_data_py   = []
+    _brent_surge_idx = 0
+    for _i, _d in enumerate(_all_dates):
+        if _d in _brent_by_date:
+            _mo, _dy = _d[5:7], _d[8:]
+            _lbl_base = f"Feb {int(_dy)}" if _mo == '02' else f"Mar {int(_dy)}"
+            _lbl = _lbl_base + ' ★' if _d == _event_date else _lbl_base
+            _brent_labels_py.append(_lbl)
+            _brent_data_py.append(_brent_by_date[_d])
+    # Surge point = highest Brent value
+    if _brent_data_py:
+        _brent_surge_idx = _brent_data_py.index(max(_brent_data_py))
+
+    # ── Build VIX chart arrays (market days only) ──────────────────────────────
+    _vix_labels_py = []
+    _vix_data_py   = []
+    for _d in _all_dates:
+        if _d in _vix_by_date:
+            _mo, _dy = _d[5:7], _d[8:]
+            _lbl_base = f"Feb {int(_dy)}" if _mo == '02' else f"Mar {int(_dy)}"
+            _vix_labels_py.append(_lbl_base)
+            _vix_data_py.append(_vix_by_date[_d])
+    _vix_surge_idx = len(_vix_data_py) - 1 if _vix_data_py else 0
+
+    # ── Serialise to JSON for embedding ───────────────────────────────────────
+    _geri_labels_js = _json.dumps(_geri_labels_py)
+    _geri_data_js   = _json.dumps(_geri_data_py)
+    _brent_labels_js = _json.dumps(_brent_labels_py)
+    _brent_data_js   = _json.dumps(_brent_data_py)
+    _vix_labels_js   = _json.dumps(_vix_labels_py)
+    _vix_data_js     = _json.dumps(_vix_data_py)
+
+    # ── Y-axis ranges (calculated from real data) ──────────────────────────────
+    _brent_min = int(min(_brent_data_py) - 1) if _brent_data_py else 68
+    _brent_max = int(max(_brent_data_py) + 2) if _brent_data_py else 80
+    _vix_min   = int(min(_vix_data_py) - 1) if _vix_data_py else 16
+    _vix_max   = int(max(_vix_data_py) + 2) if _vix_data_py else 24
+
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -6764,8 +6850,8 @@ async def geri_research_page(request: Request):
             const FONT = 'Inter, system-ui, sans-serif';
             Chart.defaults.font.family = FONT;
 
-            const geriLabels = ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28 ★', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4'];
-            const geriData   = [null, null, null, 31, null, 0, 0, 0];
+            const geriLabels = {_geri_labels_js};
+            const geriData   = {_geri_data_js};
 
             new Chart(document.getElementById('geriChart'), {{
                 type: 'line',
@@ -6777,8 +6863,8 @@ async def geri_research_page(request: Request):
                         borderColor: '#f97316',
                         backgroundColor: 'rgba(249,115,22,0.12)',
                         borderWidth: 2.5,
-                        pointRadius: geriData.map((v, i) => i === 3 ? 7 : (v !== null ? 4 : 0)),
-                        pointBackgroundColor: geriData.map((v, i) => i === 3 ? '#ef4444' : '#f97316'),
+                        pointRadius: geriData.map((v, i) => i === {_geri_event_idx} ? 7 : (v !== null ? 4 : 0)),
+                        pointBackgroundColor: geriData.map((v, i) => i === {_geri_event_idx} ? '#ef4444' : '#f97316'),
                         pointBorderColor: '#0f172a',
                         pointBorderWidth: 2,
                         fill: true,
@@ -6812,8 +6898,8 @@ async def geri_research_page(request: Request):
                 }}
             }});
 
-            const brentLabels = ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28 ★', 'Mar 1'];
-            const brentData   = [71.09, 70.84, 71.82, 72.48, 77.70];
+            const brentLabels = {_brent_labels_js};
+            const brentData   = {_brent_data_js};
 
             new Chart(document.getElementById('brentChart'), {{
                 type: 'line',
@@ -6825,8 +6911,8 @@ async def geri_research_page(request: Request):
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59,130,246,0.1)',
                         borderWidth: 2.5,
-                        pointRadius: brentData.map((v, i) => i === 4 ? 7 : 4),
-                        pointBackgroundColor: brentData.map((v, i) => i === 4 ? '#22c55e' : '#3b82f6'),
+                        pointRadius: brentData.map((v, i) => i === {_brent_surge_idx} ? 7 : 4),
+                        pointBackgroundColor: brentData.map((v, i) => i === {_brent_surge_idx} ? '#22c55e' : '#3b82f6'),
                         pointBorderColor: '#0f172a',
                         pointBorderWidth: 2,
                         fill: true,
@@ -6851,7 +6937,7 @@ async def geri_research_page(request: Request):
                     scales: {{
                         x: {{ grid: GRID, ticks: TICK, border: {{ color: '#334155' }} }},
                         y: {{
-                            min: 69, max: 79,
+                            min: {_brent_min}, max: {_brent_max},
                             grid: GRID, ticks: {{ ...TICK, callback: v => '$' + v }},
                             border: {{ color: '#334155' }}
                         }}
@@ -6859,8 +6945,8 @@ async def geri_research_page(request: Request):
                 }}
             }});
 
-            const vixLabels = ['Feb 25', 'Feb 26', 'Feb 27', 'Mar 2'];
-            const vixData   = [17.93, 18.63, 19.86, 21.21];
+            const vixLabels = {_vix_labels_js};
+            const vixData   = {_vix_data_js};
 
             new Chart(document.getElementById('vixChart'), {{
                 type: 'line',
@@ -6872,8 +6958,8 @@ async def geri_research_page(request: Request):
                         borderColor: '#a78bfa',
                         backgroundColor: 'rgba(167,139,250,0.1)',
                         borderWidth: 2.5,
-                        pointRadius: vixData.map((v, i) => i === 3 ? 7 : 4),
-                        pointBackgroundColor: vixData.map((v, i) => i === 3 ? '#ef4444' : '#a78bfa'),
+                        pointRadius: vixData.map((v, i) => i === {_vix_surge_idx} ? 7 : 4),
+                        pointBackgroundColor: vixData.map((v, i) => i === {_vix_surge_idx} ? '#ef4444' : '#a78bfa'),
                         pointBorderColor: '#0f172a',
                         pointBorderWidth: 2,
                         fill: true,
@@ -6898,7 +6984,7 @@ async def geri_research_page(request: Request):
                     scales: {{
                         x: {{ grid: GRID, ticks: TICK, border: {{ color: '#334155' }} }},
                         y: {{
-                            min: 16, max: 23,
+                            min: {_vix_min}, max: {_vix_max},
                             grid: GRID, ticks: TICK,
                             border: {{ color: '#334155' }}
                         }}
