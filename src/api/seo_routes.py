@@ -5645,6 +5645,7 @@ async def geri_research_page(request: Request):
         <meta property="og:type" content="article">
 
         <link rel="icon" type="image/png" href="/static/favicon.png">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
         {get_digest_dark_styles()}
         <style>
             .research-hero {{
@@ -6731,28 +6732,14 @@ async def geri_research_page(request: Request):
                                 </div>
                             </div>
 
-                            <div class="cs-bar-chart">
-                                <div class="bar-title">Key events captured (severity 5)</div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">Middle East</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:85%;background:#ef4444;"></div></div>
-                                    <div class="cs-bar-val">War / Military</div>
-                                </div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">Asia</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:60%;background:#f97316;"></div></div>
-                                    <div class="cs-bar-val">Sanctions / War</div>
-                                </div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">Russia</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:35%;background:#eab308;"></div></div>
-                                    <div class="cs-bar-val">Diplomatic</div>
-                                </div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">Europe</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:25%;background:#3b82f6;"></div></div>
-                                    <div class="cs-bar-val">Supply Chain</div>
-                                </div>
+                            <div style="margin: 1.25rem 0;">
+                                <div style="font-size:0.72rem;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.75rem;">GERI Live &mdash; Feb 25 to Mar 4, 2026 (0&ndash;100 scale)</div>
+                                <div style="position:relative;height:140px;"><canvas id="geriChart"></canvas></div>
+                                <div style="font-size:0.72rem;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin:1.25rem 0 0.75rem 0;">Brent Crude (USD/bbl) &mdash; same period</div>
+                                <div style="position:relative;height:120px;"><canvas id="brentChart"></canvas></div>
+                                <div style="font-size:0.72rem;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin:1.25rem 0 0.75rem 0;">VIX (market days only &mdash; Feb 28 &amp; Mar 1 were weekend)</div>
+                                <div style="position:relative;height:110px;"><canvas id="vixChart"></canvas></div>
+                                <div style="font-size:0.7rem;color:#475569;margin-top:0.5rem;">&#9733; = Strike date (28 Feb). Sources: EnergyRiskIQ GERI Live, OilPriceAPI, CBOE via Yahoo Finance / FRED.</div>
                             </div>
 
                             <div class="cs-events-list">
@@ -6765,71 +6752,161 @@ async def geri_research_page(request: Request):
                             <p>The GERI reading of 31 (MODERATE) at the time reflected intraday alert accumulation before the full market reaction was priced in. Brent crude, which closed at $72.48 on the day of the strikes, moved to $77.70 the following session &mdash; a 7.2% single-day move confirming the risk environment GERI had flagged. VIX also rose from 19.86 to 21.21, indicating broader financial market contagion from the energy shock.</p>
                         </div>
                     </div>
-
-                    <div class="case-study">
-                        <div class="case-study-header">
-                            <div class="case-study-badge">
-                                <div class="badge-icon">&#x1F4E6;</div>
-                                <div class="badge-label">Structural</div>
-                            </div>
-                            <div class="case-study-title">
-                                <h3>European Gas Storage Crisis &mdash; Critical Seasonal Deviation</h3>
-                                <div class="cs-date">February 2026 &mdash; Persistent ASSET_RISK_SPIKE</div>
-                            </div>
-                        </div>
-                        <div class="case-study-body">
-                            <p>Throughout February 2026, EU gas storage held critically below seasonal norms &mdash; a persistent structural stress condition tracked continuously by the platform. With storage at approximately 30% fill against a seasonal norm of 50%, the deviation reached &minus;20%, triggering CRITICAL band classification and a severity-5 ASSET_RISK_SPIKE alert.</p>
-
-                            <div class="cs-metrics-row">
-                                <div class="cs-metric">
-                                    <div class="cm-label">EU Storage Fill</div>
-                                    <div class="cm-value" style="color:#ef4444;">30.1%</div>
-                                    <div class="cm-sub">Feb 28, 2026</div>
-                                </div>
-                                <div class="cs-metric">
-                                    <div class="cm-label">Seasonal Norm</div>
-                                    <div class="cm-value" style="color:#94a3b8;">50.0%</div>
-                                    <div class="cm-sub">Expected for Feb</div>
-                                </div>
-                                <div class="cs-metric">
-                                    <div class="cm-label">Deviation</div>
-                                    <div class="cm-value" style="color:#ef4444;">&minus;19.9%</div>
-                                    <div class="cm-sub">Below norm</div>
-                                </div>
-                                <div class="cs-metric">
-                                    <div class="cm-label">Risk Band</div>
-                                    <div class="cm-value" style="color:#dc2626;">CRITICAL</div>
-                                    <div class="cm-sub">Score: 79 / 100</div>
-                                </div>
-                            </div>
-
-                            <div class="cs-bar-chart">
-                                <div class="bar-title">EU storage fill vs. seasonal norm (Feb 2026)</div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">Norm (50%)</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:50%;background:#334155;"></div></div>
-                                    <div class="cs-bar-val">50.0%</div>
-                                </div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">Actual</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:30%;background:#ef4444;"></div></div>
-                                    <div class="cs-bar-val" style="color:#ef4444;">30.1%</div>
-                                </div>
-                                <div class="cs-bar-row">
-                                    <div class="cs-bar-label">TTF Gas</div>
-                                    <div class="cs-bar-track"><div class="cs-bar-fill" style="width:32%;background:#f97316;"></div></div>
-                                    <div class="cs-bar-val">&euro;31.5/MWh</div>
-                                </div>
-                            </div>
-
-                            <p>This case illustrates the <strong>structural risk</strong> dimension of GERI &mdash; a slow-building, persistent threat distinct from a single geopolitical shock. EU gas storage at 30% fill against a 50% seasonal norm signals that Europe&rsquo;s physical buffer against supply disruption is significantly depleted. TTF gas held around &euro;31.5/MWh throughout the period, reflecting market pricing of winter supply tightness. The CRITICAL storage risk band (score 79) fed directly into GERI&rsquo;s Asset Risk and High-Impact Event pillars through ongoing ASSET_RISK_SPIKE alert generation.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
 
         {render_digest_footer()}
+        <script>
+        (function() {{
+            const GRID = {{ color: 'rgba(51,65,85,0.5)' }};
+            const TICK = {{ color: '#64748b', font: {{ size: 10 }} }};
+            const FONT = 'Inter, system-ui, sans-serif';
+            Chart.defaults.font.family = FONT;
+
+            const geriLabels = ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28 ★', 'Mar 1', 'Mar 2', 'Mar 3', 'Mar 4'];
+            const geriData   = [null, null, null, 31, null, 0, 0, 0];
+
+            new Chart(document.getElementById('geriChart'), {{
+                type: 'line',
+                data: {{
+                    labels: geriLabels,
+                    datasets: [{{
+                        label: 'GERI Live',
+                        data: geriData,
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249,115,22,0.12)',
+                        borderWidth: 2.5,
+                        pointRadius: geriData.map((v, i) => i === 3 ? 7 : (v !== null ? 4 : 0)),
+                        pointBackgroundColor: geriData.map((v, i) => i === 3 ? '#ef4444' : '#f97316'),
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        fill: true,
+                        tension: 0.35,
+                        spanGaps: false
+                    }}]
+                }},
+                options: {{
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {{
+                                label: ctx => ctx.parsed.y !== null ? 'GERI: ' + ctx.parsed.y : 'No data'
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        x: {{ grid: GRID, ticks: TICK, border: {{ color: '#334155' }} }},
+                        y: {{
+                            min: 0, max: 50,
+                            grid: GRID, ticks: {{ ...TICK, stepSize: 10 }},
+                            border: {{ color: '#334155' }}
+                        }}
+                    }}
+                }}
+            }});
+
+            const brentLabels = ['Feb 25', 'Feb 26', 'Feb 27', 'Feb 28 ★', 'Mar 1'];
+            const brentData   = [71.09, 70.84, 71.82, 72.48, 77.70];
+
+            new Chart(document.getElementById('brentChart'), {{
+                type: 'line',
+                data: {{
+                    labels: brentLabels,
+                    datasets: [{{
+                        label: 'Brent (USD/bbl)',
+                        data: brentData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        borderWidth: 2.5,
+                        pointRadius: brentData.map((v, i) => i === 4 ? 7 : 4),
+                        pointBackgroundColor: brentData.map((v, i) => i === 4 ? '#22c55e' : '#3b82f6'),
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }}]
+                }},
+                options: {{
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {{
+                                label: ctx => '$' + ctx.parsed.y.toFixed(2) + ' / bbl'
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        x: {{ grid: GRID, ticks: TICK, border: {{ color: '#334155' }} }},
+                        y: {{
+                            min: 69, max: 79,
+                            grid: GRID, ticks: {{ ...TICK, callback: v => '$' + v }},
+                            border: {{ color: '#334155' }}
+                        }}
+                    }}
+                }}
+            }});
+
+            const vixLabels = ['Feb 25', 'Feb 26', 'Feb 27', 'Mar 2'];
+            const vixData   = [17.93, 18.63, 19.86, 21.21];
+
+            new Chart(document.getElementById('vixChart'), {{
+                type: 'line',
+                data: {{
+                    labels: vixLabels,
+                    datasets: [{{
+                        label: 'VIX',
+                        data: vixData,
+                        borderColor: '#a78bfa',
+                        backgroundColor: 'rgba(167,139,250,0.1)',
+                        borderWidth: 2.5,
+                        pointRadius: vixData.map((v, i) => i === 3 ? 7 : 4),
+                        pointBackgroundColor: vixData.map((v, i) => i === 3 ? '#ef4444' : '#a78bfa'),
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }}]
+                }},
+                options: {{
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {{
+                                label: ctx => 'VIX: ' + ctx.parsed.y.toFixed(2)
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        x: {{ grid: GRID, ticks: TICK, border: {{ color: '#334155' }} }},
+                        y: {{
+                            min: 16, max: 23,
+                            grid: GRID, ticks: TICK,
+                            border: {{ color: '#334155' }}
+                        }}
+                    }}
+                }}
+            }});
+        }})();
+        </script>
     </body>
     </html>
     """
