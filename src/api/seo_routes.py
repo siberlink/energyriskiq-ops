@@ -5730,6 +5730,85 @@ async def geri_research_page(request: Request):
                 padding: 0 0.5rem;
                 flex-shrink: 0;
             }}
+            .risk-drivers-grid {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin: 1.25rem 0;
+                justify-content: center;
+            }}
+            .risk-driver-tag {{
+                background: #0f172a;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 0.5rem 0.85rem;
+                font-size: 0.82rem;
+                color: #e2e8f0;
+                font-weight: 500;
+                white-space: nowrap;
+            }}
+            .risk-lag-visual {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0;
+                margin: 1.75rem 0 0.75rem 0;
+                flex-wrap: wrap;
+            }}
+            .lag-phase {{
+                text-align: center;
+                padding: 1.1rem 1.25rem;
+                border-radius: 10px;
+                min-width: 160px;
+                max-width: 210px;
+                flex: 1;
+            }}
+            .lag-buildup {{
+                background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+                border: 1px solid #3b82f6;
+            }}
+            .lag-reaction {{
+                background: linear-gradient(135deg, #3b1a1a 0%, #0f172a 100%);
+                border: 1px solid #ef4444;
+            }}
+            .lag-icon {{
+                font-size: 1.4rem;
+                margin-bottom: 0.4rem;
+            }}
+            .lag-label {{
+                color: #f1f5f9;
+                font-weight: 600;
+                font-size: 0.88rem;
+                margin-bottom: 0.3rem;
+            }}
+            .lag-desc {{
+                color: #94a3b8;
+                font-size: 0.73rem;
+                line-height: 1.4;
+            }}
+            .lag-connector {{
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                padding: 0 0.6rem;
+                flex-shrink: 0;
+            }}
+            .lag-connector-line {{
+                width: 28px;
+                height: 2px;
+                background: repeating-linear-gradient(90deg, #475569 0px, #475569 4px, transparent 4px, transparent 8px);
+            }}
+            .lag-connector-text {{
+                color: #94a3b8;
+                font-size: 0.7rem;
+                font-style: italic;
+                white-space: nowrap;
+            }}
+            @media (max-width: 768px) {{
+                .lag-connector {{ display: none; }}
+                .lag-phase {{ min-width: 100%; max-width: 100%; margin-bottom: 0.5rem; }}
+                .risk-lag-visual {{ gap: 0.5rem; }}
+            }}
             .quick-facts {{
                 background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
                 border: 1px solid #334155;
@@ -5853,6 +5932,46 @@ async def geri_research_page(request: Request):
                         <tr><td>Developed by</td><td>EnergyRiskIQ</td></tr>
                         <tr><td>First Published</td><td>January 2025</td></tr>
                     </table>
+                </div>
+
+                <div class="research-section">
+                    <h2>Why Prices Alone Cannot Measure Energy Risk</h2>
+
+                    <p>Energy markets are not driven by supply and demand alone. Beneath every price movement lies a web of interconnected risk factors that traditional market data struggles to capture:</p>
+
+                    <div class="risk-drivers-grid">
+                        <div class="risk-driver-tag">&#x1F30D; Geopolitics</div>
+                        <div class="risk-driver-tag">&#x1F6E2;&#xFE0F; Supply Chains</div>
+                        <div class="risk-driver-tag">&#x1F3ED; Infrastructure Vulnerabilities</div>
+                        <div class="risk-driver-tag">&#x1F6AB; Sanctions</div>
+                        <div class="risk-driver-tag">&#x2693; Maritime Risks</div>
+                        <div class="risk-driver-tag">&#x1F4E6; Storage Levels</div>
+                        <div class="risk-driver-tag">&#x1F4B1; Currency Dynamics</div>
+                    </div>
+
+                    <p>These forces shape the risk environment continuously &mdash; but prices only react <em>after</em> risk materializes. By the time a supply disruption or geopolitical escalation is priced in, the opportunity to anticipate it has already passed.</p>
+
+                    <p>A risk index aims to measure the environment <strong>before</strong> markets fully adjust &mdash; capturing the buildup of stress that precedes price moves.</p>
+
+                    <div class="risk-lag-visual">
+                        <div class="lag-phase lag-buildup">
+                            <div class="lag-icon">&#x1F50D;</div>
+                            <div class="lag-label">Risk Buildup</div>
+                            <div class="lag-desc">Geopolitical tensions, supply threats, sanctions &mdash; stress accumulates</div>
+                        </div>
+                        <div class="lag-connector">
+                            <div class="lag-connector-line"></div>
+                            <div class="lag-connector-text">Time lag</div>
+                            <div class="lag-connector-line"></div>
+                        </div>
+                        <div class="lag-phase lag-reaction">
+                            <div class="lag-icon">&#x1F4C9;</div>
+                            <div class="lag-label">Price Reaction</div>
+                            <div class="lag-desc">Markets adjust only after risk events materialize</div>
+                        </div>
+                    </div>
+
+                    <p style="text-align: center; color: #64748b; font-size: 0.82rem; margin-top: 0.25rem;">GERI measures the buildup phase &mdash; giving you the signal before markets move.</p>
                 </div>
             </div>
         </main>
