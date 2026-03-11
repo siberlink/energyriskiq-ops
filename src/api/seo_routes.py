@@ -5632,17 +5632,28 @@ async def geri_research_page(request: Request):
     import json as _json
     from datetime import date as _date
 
-    # ── GERI Live: daily max per day for case study window ────────────────────
+    # ── GERI daily: intel_indices_daily (production) with geri_live fallback ──
     _geri_rows = execute_query("""
-        SELECT computed_at::date AS d, MAX(value) AS v
-        FROM geri_live
-        WHERE computed_at::date BETWEEN '2026-02-25' AND '2026-03-04'
-        GROUP BY computed_at::date
-        ORDER BY computed_at::date
+        SELECT date, value, band
+        FROM intel_indices_daily
+        WHERE index_id = 'global:geo_energy_risk'
+          AND date BETWEEN '2026-02-25' AND '2026-03-04'
+        ORDER BY date
     """)
-    _geri_by_date = {str(r['d']): float(r['v']) for r in _geri_rows} if _geri_rows else {}
+    if _geri_rows:
+        _geri_by_date = {str(r['date']): int(r['value']) for r in _geri_rows}
+    else:
+        # Fallback: aggregate geri_live by day (development environment)
+        _geri_fallback = execute_query("""
+            SELECT computed_at::date AS date, MAX(value) AS value
+            FROM geri_live
+            WHERE computed_at::date BETWEEN '2026-02-25' AND '2026-03-04'
+            GROUP BY computed_at::date
+            ORDER BY computed_at::date
+        """)
+        _geri_by_date = {str(r['date']): int(r['value']) for r in _geri_fallback} if _geri_fallback else {}
 
-    # ── Brent: daily close for case study window ───────────────────────────────
+    # ── Brent: from production oil_price_snapshots ─────────────────────────────
     _brent_rows = execute_query("""
         SELECT date, brent_price
         FROM oil_price_snapshots
@@ -5651,7 +5662,7 @@ async def geri_research_page(request: Request):
     """)
     _brent_by_date = {str(r['date']): float(r['brent_price']) for r in _brent_rows} if _brent_rows else {}
 
-    # ── VIX: market-day close for case study window ───────────────────────────
+    # ── VIX: from production vix_snapshots (market days only) ─────────────────
     _vix_rows = execute_query("""
         SELECT date, vix_close
         FROM vix_snapshots
@@ -5660,9 +5671,9 @@ async def geri_research_page(request: Request):
     """)
     _vix_by_date = {str(r['date']): float(r['vix_close']) for r in _vix_rows} if _vix_rows else {}
 
-    # ── Build GERI chart arrays (all 8 dates, null for missing) ───────────────
-    _all_dates = ['2026-02-25','2026-02-26','2026-02-27','2026-02-28',
-                  '2026-03-01','2026-03-02','2026-03-03','2026-03-04']
+    # ── Build GERI chart arrays (all 8 dates, null for any missing) ───────────
+    _all_dates  = ['2026-02-25','2026-02-26','2026-02-27','2026-02-28',
+                   '2026-03-01','2026-03-02','2026-03-03','2026-03-04']
     _event_date = '2026-02-28'
     _geri_labels_py = []
     _geri_data_py   = []
@@ -5674,23 +5685,24 @@ async def geri_research_page(request: Request):
         _geri_data_py.append(_geri_by_date.get(_d))  # None → JS null
 
     _geri_event_idx = _all_dates.index(_event_date)
+    # Peak point = highest GERI value in range
+    _geri_peak_idx = (_geri_data_py.index(max(v for v in _geri_data_py if v is not None))
+                      if any(v is not None for v in _geri_data_py) else _geri_event_idx)
 
-    # ── Build Brent chart arrays (dates that exist in DB) ─────────────────────
+    # ── Build Brent chart arrays (dates present in DB) ─────────────────────────
     _brent_labels_py = []
     _brent_data_py   = []
-    _brent_surge_idx = 0
-    for _i, _d in enumerate(_all_dates):
+    for _d in _all_dates:
         if _d in _brent_by_date:
             _mo, _dy = _d[5:7], _d[8:]
             _lbl_base = f"Feb {int(_dy)}" if _mo == '02' else f"Mar {int(_dy)}"
             _lbl = _lbl_base + ' ★' if _d == _event_date else _lbl_base
             _brent_labels_py.append(_lbl)
             _brent_data_py.append(_brent_by_date[_d])
-    # Surge point = highest Brent value
-    if _brent_data_py:
-        _brent_surge_idx = _brent_data_py.index(max(_brent_data_py))
+    _brent_surge_idx = (_brent_data_py.index(max(_brent_data_py))
+                        if _brent_data_py else 0)
 
-    # ── Build VIX chart arrays (market days only) ──────────────────────────────
+    # ── Build VIX chart arrays (market days only — weekends excluded) ──────────
     _vix_labels_py = []
     _vix_data_py   = []
     for _d in _all_dates:
@@ -5699,21 +5711,23 @@ async def geri_research_page(request: Request):
             _lbl_base = f"Feb {int(_dy)}" if _mo == '02' else f"Mar {int(_dy)}"
             _vix_labels_py.append(_lbl_base)
             _vix_data_py.append(_vix_by_date[_d])
-    _vix_surge_idx = len(_vix_data_py) - 1 if _vix_data_py else 0
+    _vix_surge_idx = (len(_vix_data_py) - 1) if _vix_data_py else 0
 
-    # ── Serialise to JSON for embedding ───────────────────────────────────────
-    _geri_labels_js = _json.dumps(_geri_labels_py)
-    _geri_data_js   = _json.dumps(_geri_data_py)
+    # ── Serialise to JSON for JS embedding ────────────────────────────────────
+    _geri_labels_js  = _json.dumps(_geri_labels_py)
+    _geri_data_js    = _json.dumps(_geri_data_py)
     _brent_labels_js = _json.dumps(_brent_labels_py)
     _brent_data_js   = _json.dumps(_brent_data_py)
     _vix_labels_js   = _json.dumps(_vix_labels_py)
     _vix_data_js     = _json.dumps(_vix_data_py)
 
-    # ── Y-axis ranges (calculated from real data) ──────────────────────────────
-    _brent_min = int(min(_brent_data_py) - 1) if _brent_data_py else 68
-    _brent_max = int(max(_brent_data_py) + 2) if _brent_data_py else 80
+    # ── Y-axis ranges (tight but padded from real data) ───────────────────────
+    _geri_min  = 0
+    _geri_max  = int(max((v for v in _geri_data_py if v is not None), default=80) + 10)
+    _brent_min = int(min(_brent_data_py) - 2) if _brent_data_py else 68
+    _brent_max = int(max(_brent_data_py) + 3) if _brent_data_py else 85
     _vix_min   = int(min(_vix_data_py) - 1) if _vix_data_py else 16
-    _vix_max   = int(max(_vix_data_py) + 2) if _vix_data_py else 24
+    _vix_max   = int(max(_vix_data_py) + 2) if _vix_data_py else 26
 
     html = f"""
     <!DOCTYPE html>
@@ -6863,8 +6877,8 @@ async def geri_research_page(request: Request):
                         borderColor: '#f97316',
                         backgroundColor: 'rgba(249,115,22,0.12)',
                         borderWidth: 2.5,
-                        pointRadius: geriData.map((v, i) => i === {_geri_event_idx} ? 7 : (v !== null ? 4 : 0)),
-                        pointBackgroundColor: geriData.map((v, i) => i === {_geri_event_idx} ? '#ef4444' : '#f97316'),
+                        pointRadius: geriData.map((v, i) => (i === {_geri_event_idx} || i === {_geri_peak_idx}) ? 7 : (v !== null ? 4 : 0)),
+                        pointBackgroundColor: geriData.map((v, i) => i === {_geri_peak_idx} ? '#ef4444' : (i === {_geri_event_idx} ? '#f97316' : '#f97316')),
                         pointBorderColor: '#0f172a',
                         pointBorderWidth: 2,
                         fill: true,
@@ -6890,7 +6904,7 @@ async def geri_research_page(request: Request):
                     scales: {{
                         x: {{ grid: GRID, ticks: TICK, border: {{ color: '#334155' }} }},
                         y: {{
-                            min: 0, max: 50,
+                            min: {_geri_min}, max: {_geri_max},
                             grid: GRID, ticks: {{ ...TICK, stepSize: 10 }},
                             border: {{ color: '#334155' }}
                         }}
