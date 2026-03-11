@@ -5730,10 +5730,52 @@ async def geri_research_page(request: Request):
                 padding: 0 0.5rem;
                 flex-shrink: 0;
             }}
+            .quick-facts {{
+                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 1.5rem 1.75rem;
+                margin: 1.5rem 0;
+            }}
+            .quick-facts h2 {{
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #f1f5f9;
+                margin: 0 0 1rem 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }}
+            .quick-facts table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            .quick-facts tr {{
+                border-bottom: 1px solid #334155;
+            }}
+            .quick-facts tr:last-child {{
+                border-bottom: none;
+            }}
+            .quick-facts td {{
+                padding: 0.6rem 0.5rem;
+                font-size: 0.88rem;
+                vertical-align: middle;
+            }}
+            .quick-facts td:first-child {{
+                color: #94a3b8;
+                font-weight: 500;
+                white-space: nowrap;
+                width: 40%;
+            }}
+            .quick-facts td:last-child {{
+                color: #f1f5f9;
+                font-weight: 600;
+            }}
             @media (max-width: 768px) {{
                 .research-hero h1 {{ font-size: 1.4rem; }}
                 .research-hero .subtitle {{ font-size: 0.9rem; }}
                 .research-section {{ padding: 1.25rem 1rem; }}
+                .quick-facts {{ padding: 1.25rem 1rem; }}
                 .pipeline-visual {{ gap: 0.5rem; }}
                 .pipeline-arrow {{ display: none; }}
                 .pipeline-step {{ min-width: 100%; max-width: 100%; }}
@@ -5799,6 +5841,18 @@ async def geri_research_page(request: Request):
                             <div class="step-desc">Normalized 0&ndash;100 risk score for energy markets</div>
                         </div>
                     </div>
+                </div>
+
+                <div class="quick-facts">
+                    <h2>&#x1F4CB; GERI Quick Facts</h2>
+                    <table>
+                        <tr><td>Index Type</td><td>Global Energy Risk Indicator</td></tr>
+                        <tr><td>Frequency</td><td>Daily</td></tr>
+                        <tr><td>Scale</td><td>0 &ndash; 100</td></tr>
+                        <tr><td>Coverage</td><td>Oil, LNG, gas flows, geopolitics</td></tr>
+                        <tr><td>Developed by</td><td>EnergyRiskIQ</td></tr>
+                        <tr><td>First Published</td><td>January 2025</td></tr>
+                    </table>
                 </div>
             </div>
         </main>
