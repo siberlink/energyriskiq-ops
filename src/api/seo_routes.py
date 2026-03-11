@@ -5900,11 +5900,91 @@ async def geri_research_page(request: Request):
             .source-tier .tier-desc {{
                 color: #cbd5e1;
             }}
+            .use-cases-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.75rem;
+                margin: 1.25rem 0;
+            }}
+            .use-case-card {{
+                background: #0f172a;
+                border: 1px solid #1e293b;
+                border-radius: 10px;
+                padding: 1.1rem;
+            }}
+            .use-case-card .uc-icon {{
+                font-size: 1.3rem;
+                margin-bottom: 0.5rem;
+            }}
+            .use-case-card .uc-title {{
+                color: #e2e8f0;
+                font-weight: 600;
+                font-size: 0.88rem;
+                margin-bottom: 0.5rem;
+            }}
+            .use-case-card .uc-list {{
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }}
+            .use-case-card .uc-list li {{
+                color: #94a3b8;
+                font-size: 0.8rem;
+                line-height: 1.5;
+                padding: 0.2rem 0;
+                padding-left: 0.9rem;
+                position: relative;
+            }}
+            .use-case-card .uc-list li::before {{
+                content: "—";
+                position: absolute;
+                left: 0;
+                color: #475569;
+            }}
+            .callout-box {{
+                background: rgba(59,130,246,0.08);
+                border-left: 3px solid #3b82f6;
+                padding: 0.85rem 1rem;
+                border-radius: 0 8px 8px 0;
+                margin: 1.25rem 0;
+            }}
+            .callout-box p {{
+                color: #e2e8f0;
+                font-size: 0.9rem;
+                line-height: 1.65;
+                margin: 0;
+                font-weight: 500;
+            }}
+            .cross-ref-grid {{
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+                margin: 1rem 0;
+            }}
+            .cross-ref-item {{
+                background: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                padding: 0.55rem 0.75rem;
+            }}
+            .cross-ref-item .cr-pair {{
+                color: #60a5fa;
+                font-weight: 600;
+                font-size: 0.78rem;
+                margin-bottom: 0.15rem;
+            }}
+            .cross-ref-item .cr-desc {{
+                color: #94a3b8;
+                font-size: 0.73rem;
+                line-height: 1.4;
+            }}
             @media (max-width: 768px) {{
                 .four-pillars-visual {{ grid-template-columns: repeat(2, 1fr); }}
                 .measure-tag {{ font-size: 0.74rem; }}
                 .method-step {{ flex-direction: column; gap: 0.5rem; }}
                 .source-tiers {{ grid-template-columns: 1fr; }}
+                .use-cases-grid {{ grid-template-columns: 1fr; }}
+                .cross-ref-grid {{ grid-template-columns: 1fr; }}
             }}
             .risk-drivers-grid {{
                 display: flex;
@@ -6348,6 +6428,110 @@ async def geri_research_page(request: Request):
                             <p>Trend context matters: a GERI of 60 that has risen 15 points in a week carries a very different implication than a GERI of 60 that has fallen 10 points over the same period.</p>
                         </div>
                     </div>
+                </div>
+
+                <div class="research-section">
+                    <h2>Interpreting the Index</h2>
+
+                    <p>GERI is not an asset price prediction tool. It is a <strong>risk context layer</strong> that answers: &ldquo;What is the current state of the geopolitical and energy risk environment?&rdquo; The distinction is critical &mdash; GERI measures risk inputs, not market outcomes.</p>
+
+                    <div class="callout-box">
+                        <p>A rising GERI indicates that the global energy system is experiencing increasing structural stress, even if prices have not yet reacted. The relationship between GERI and asset prices is mediated by market positioning, liquidity, storage buffers, and participant expectations.</p>
+                    </div>
+
+                    <h3 style="font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.75rem 0;">How Analysts Use GERI</h3>
+
+                    <div class="use-cases-grid">
+                        <div class="use-case-card">
+                            <div class="uc-icon">&#x1F4C8;</div>
+                            <div class="uc-title">Trading</div>
+                            <ul class="uc-list">
+                                <li>Identifying abnormal risk regimes</li>
+                                <li>Confirming volatility environments</li>
+                                <li>Timing hedging decisions</li>
+                                <li>Detecting risk build-up before price moves</li>
+                            </ul>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="uc-icon">&#x1F3AF;</div>
+                            <div class="uc-title">Strategic Planning</div>
+                            <ul class="uc-list">
+                                <li>Assessing geopolitical risk exposure</li>
+                                <li>Informing portfolio allocation</li>
+                                <li>Activating contingency protocols</li>
+                                <li>Evaluating energy procurement timing</li>
+                            </ul>
+                        </div>
+                        <div class="use-case-card">
+                            <div class="uc-icon">&#x1F50D;</div>
+                            <div class="uc-title">Market Analysis</div>
+                            <ul class="uc-list">
+                                <li>Understanding price-risk divergence</li>
+                                <li>Cross-asset risk correlation</li>
+                                <li>Regime recognition and cycle analysis</li>
+                                <li>Contextualising commodity moves</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.75rem 0;">Cross-Asset Context</h3>
+
+                    <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.65;">GERI is designed to be read alongside energy market data for maximum insight. These cross-references reveal whether risk is being priced in &mdash; or ignored:</p>
+
+                    <div class="cross-ref-grid">
+                        <div class="cross-ref-item">
+                            <div class="cr-pair">GERI vs. Brent Crude</div>
+                            <div class="cr-desc">Whether supply disruption fear is priced into oil markets</div>
+                        </div>
+                        <div class="cross-ref-item">
+                            <div class="cr-pair">GERI vs. TTF Gas</div>
+                            <div class="cr-desc">European vulnerability to geopolitical gas risk</div>
+                        </div>
+                        <div class="cross-ref-item">
+                            <div class="cr-pair">GERI vs. VIX</div>
+                            <div class="cr-desc">Whether energy risk is spilling into broader financial markets</div>
+                        </div>
+                        <div class="cross-ref-item">
+                            <div class="cr-pair">GERI vs. EUR/USD</div>
+                            <div class="cr-desc">European macro vulnerability to energy shocks</div>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin: 1.5rem 0 0.75rem 0;">Recognising Risk Regimes</h3>
+
+                    <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.65; margin-bottom: 0.75rem;">GERI&rsquo;s historical trajectory can be divided into four recognisable regimes:</p>
+
+                    <table class="regime-table">
+                        <thead>
+                            <tr>
+                                <th>Regime</th>
+                                <th>GERI Behaviour</th>
+                                <th>Market Characteristics</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="regime-band-dot" style="background:#eab308;"></span>Accumulation</td>
+                                <td>Rising gradually</td>
+                                <td>Risk building, assets react slowly. Markets are discounting. Early warning phase.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="regime-band-dot" style="background:#ef4444;"></span>Shock</td>
+                                <td>Sharp spike</td>
+                                <td>High-impact event materialised. Assets overshoot. Maximum volatility phase.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="regime-band-dot" style="background:#f97316;"></span>Stabilisation</td>
+                                <td>Begins to fall</td>
+                                <td>Markets repricing, uncertainty still elevated. Assets remain volatile.</td>
+                            </tr>
+                            <tr>
+                                <td><span class="regime-band-dot" style="background:#22c55e;"></span>Recovery</td>
+                                <td>Returns to low/moderate</td>
+                                <td>Risk dissipated, markets found equilibrium. Normal conditions resume.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
