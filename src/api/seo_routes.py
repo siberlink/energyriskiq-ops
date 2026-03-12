@@ -6317,7 +6317,7 @@ async def geri_research_page(request: Request):
                 line-height: 1.6;
             }}
             .indicator-callout .callout-text strong {{ color: #f97316; }}
-            @media (max-width: 768px) {{
+            @media (max-width: 1024px) {{
                 .indicator-grid {{ grid-template-columns: repeat(2, 1fr); }}
             }}
             @media (max-width: 480px) {{
