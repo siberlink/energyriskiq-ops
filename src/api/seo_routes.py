@@ -6221,6 +6221,108 @@ async def geri_research_page(request: Request):
                 margin-top: 0.1rem;
             }}
             .cs-events-list .ev-text {{ color: #cbd5e1; line-height: 1.4; }}
+            /* ── GERI vs Indicators section ─────────────────────────── */
+            .indicator-grid {{
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+                margin: 1.5rem 0;
+            }}
+            .indicator-card {{
+                background: #0f172a;
+                border: 1px solid #1e293b;
+                border-radius: 12px;
+                padding: 1.25rem 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                transition: border-color 0.2s;
+            }}
+            .indicator-card:hover {{ border-color: #334155; }}
+            .indicator-card-geri {{
+                border-color: #f97316;
+                background: #0f1a0a;
+                box-shadow: 0 0 0 1px rgba(249,115,22,0.15), 0 4px 24px rgba(249,115,22,0.08);
+            }}
+            .indicator-card-geri:hover {{ border-color: #fb923c; }}
+            .ind-icon {{
+                font-size: 1.6rem;
+                line-height: 1;
+                margin-bottom: 0.25rem;
+            }}
+            .ind-name {{
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #f1f5f9;
+                letter-spacing: -0.01em;
+            }}
+            .ind-type {{
+                display: inline-block;
+                font-size: 0.65rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                padding: 0.2rem 0.55rem;
+                border-radius: 99px;
+                background: #1e293b;
+                color: #64748b;
+                width: fit-content;
+            }}
+            .ind-type-geri {{
+                background: rgba(249,115,22,0.15);
+                color: #f97316;
+            }}
+            .ind-measures-label {{
+                font-size: 0.68rem;
+                color: #475569;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-top: 0.5rem;
+            }}
+            .ind-desc {{
+                font-size: 0.82rem;
+                color: #94a3b8;
+                line-height: 1.5;
+                flex: 1;
+            }}
+            .ind-lag {{
+                font-size: 0.73rem;
+                color: #ef4444;
+                margin-top: auto;
+                padding-top: 0.5rem;
+                border-top: 1px solid #1e293b;
+            }}
+            .ind-lead {{
+                color: #22c55e !important;
+            }}
+            .indicator-callout {{
+                display: flex;
+                gap: 1rem;
+                background: rgba(249,115,22,0.06);
+                border: 1px solid rgba(249,115,22,0.2);
+                border-radius: 12px;
+                padding: 1.1rem 1.25rem;
+                margin-top: 0.5rem;
+                align-items: flex-start;
+            }}
+            .indicator-callout .callout-icon {{
+                font-size: 1.2rem;
+                line-height: 1;
+                flex-shrink: 0;
+                margin-top: 0.1rem;
+            }}
+            .indicator-callout .callout-text {{
+                font-size: 0.88rem;
+                color: #cbd5e1;
+                line-height: 1.6;
+            }}
+            .indicator-callout .callout-text strong {{ color: #f97316; }}
+            @media (max-width: 768px) {{
+                .indicator-grid {{ grid-template-columns: repeat(2, 1fr); }}
+            }}
+            @media (max-width: 480px) {{
+                .indicator-grid {{ grid-template-columns: 1fr; }}
+            }}
             @media (max-width: 768px) {{
                 .four-pillars-visual {{ grid-template-columns: repeat(2, 1fr); }}
                 .measure-tag {{ font-size: 0.74rem; }}
@@ -6840,6 +6942,57 @@ async def geri_research_page(request: Request):
 
                             <p>The GERI reading of 31 (MODERATE) at the time reflected intraday alert accumulation before the full market reaction was priced in. Brent crude, which closed at $72.48 on the day of the strikes, moved to $77.70 the following session &mdash; a 7.2% single-day move confirming the risk environment GERI had flagged. VIX also rose from 19.86 to 21.21, indicating broader financial market contagion from the energy shock.</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: GERI vs Traditional Market Indicators -->
+            <div class="research-section" id="geri-vs-indicators">
+                <h2>GERI vs Traditional Market Indicators</h2>
+                <p style="color:#94a3b8;font-size:0.95rem;line-height:1.7;margin-bottom:1rem;">Traditional financial indicators measure price levels and market sentiment. GERI measures something fundamentally different &mdash; the structural risk environment that precedes price moves.</p>
+
+                <div class="indicator-grid">
+                    <div class="indicator-card">
+                        <div class="ind-icon">&#x1F6E2;&#xFE0F;</div>
+                        <div class="ind-name">Oil Price</div>
+                        <div class="ind-type">Price Signal</div>
+                        <div class="ind-measures-label">What it measures</div>
+                        <div class="ind-desc">Supply &amp; demand expectations &mdash; reflects what market participants are paying for crude oil at this moment.</div>
+                        <div class="ind-lag">&#x25B6; Reactive: price moves <em>after</em> risk materialises</div>
+                    </div>
+
+                    <div class="indicator-card">
+                        <div class="ind-icon">&#x1F4C9;</div>
+                        <div class="ind-name">VIX</div>
+                        <div class="ind-type">Volatility Signal</div>
+                        <div class="ind-measures-label">What it measures</div>
+                        <div class="ind-desc">Equity market volatility &mdash; measures fear and uncertainty across broad equities, not energy-specific risk.</div>
+                        <div class="ind-lag">&#x25B6; Reactive: spikes when markets are already moving</div>
+                    </div>
+
+                    <div class="indicator-card">
+                        <div class="ind-icon">&#x1F525;</div>
+                        <div class="ind-name">TTF Gas</div>
+                        <div class="ind-type">Price Signal</div>
+                        <div class="ind-measures-label">What it measures</div>
+                        <div class="ind-desc">European natural gas pricing &mdash; reflects supply/demand balance at the hub, driven by seasonal and demand factors.</div>
+                        <div class="ind-lag">&#x25B6; Reactive: seasonal and demand-driven pricing</div>
+                    </div>
+
+                    <div class="indicator-card indicator-card-geri">
+                        <div class="ind-icon">&#x26A1;</div>
+                        <div class="ind-name">GERI</div>
+                        <div class="ind-type ind-type-geri">Risk Intelligence</div>
+                        <div class="ind-measures-label" style="color:#f97316;">What it measures</div>
+                        <div class="ind-desc" style="color:#cbd5e1;">Structural energy system risk &mdash; aggregates geopolitical events, supply chain stress, asset risk, and regional escalation into a normalised 0&ndash;100 score.</div>
+                        <div class="ind-lag ind-lead">&#x25B6; Leading: flags risk <em>before</em> markets price it in</div>
+                    </div>
+                </div>
+
+                <div class="indicator-callout">
+                    <div class="callout-icon">&#x1F4A1;</div>
+                    <div class="callout-text">
+                        <strong>The key distinction:</strong> Oil prices, VIX, and TTF respond to risk that has already materialised in markets. GERI captures the risk environment as it builds &mdash; the accumulation of geopolitical events, supply chain disruptions, and regional escalation &mdash; before those pressures fully translate into price. In the US-Israel Iran strike example above, GERI climbed from 30 to 50 (ELEVATED) on the strike date and reached <strong>69 (SEVERE)</strong> three days later, while Brent only peaked at $81.40 days after the alerts first fired. GERI provided the early structural read.
                     </div>
                 </div>
             </div>
