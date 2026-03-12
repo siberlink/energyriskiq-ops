@@ -7544,6 +7544,186 @@ async def geri_research_page(request: Request):
             </div>
             </div>
 
+            <!-- Section 10: Frequently Asked Questions -->
+            <div class="container">
+            <div class="research-section" id="geri-faq">
+                <h2>Frequently Asked Questions</h2>
+                <p style="color:#94a3b8;font-size:1rem;line-height:1.75;max-width:780px;margin-bottom:2.5rem;">
+                    Common questions about how GERI works, what it measures, and how to interpret it correctly.
+                </p>
+
+                <div style="display:flex;flex-direction:column;gap:0;">
+
+                    <!-- FAQ Item -->
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">What is the Global Energy Risk Index?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                GERI is a proprietary composite index that measures the overall level of geopolitical and energy supply risk affecting global energy markets on a given day. It distils a multi-source intelligence pipeline — spanning RSS feeds, AI-enriched event classification, and regional risk scoring — into a single daily value on a 0–100 scale. Think of it as a risk thermometer: analogous to the VIX for financial volatility, but purpose-built for geopolitical and energy risk.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">How often is GERI updated?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                GERI is computed once per day, producing a single authoritative daily value based on alerts generated within the trailing 24-hour window. Paid subscribers receive the new value as soon as computation completes. Free users and public pages display the previous day's value on a 24-hour delay. A GERI Live intraday feed is available on select plans and uses an anchor-based continuity model to provide real-time intraday updates between daily computations.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">Does GERI predict oil prices?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                No. GERI measures risk inputs — it does not predict asset prices or issue trading signals. A rising GERI means geopolitical and energy supply pressures are increasing, but the translation into price movement depends on market positioning, inventory buffers, OPEC spare capacity, and participant expectations. The index is a risk context layer designed to sit alongside fundamental analysis, not replace it. Periods of elevated GERI with flat prices often represent a divergence worth monitoring, since when that divergence resolves, price moves tend to be sharp.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">How is GERI different from volatility indicators like the VIX?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                The VIX measures implied volatility derived from options pricing — it reflects what financial markets expect future equity volatility to be. GERI, by contrast, is built from structured intelligence: real-world events, supply disruption signals, regional escalation data, and asset-level threat assessments. VIX rises after markets have already repriced risk; GERI can rise before asset prices react, because it tracks the underlying geopolitical environment rather than market sentiment. The two indices are complementary — high GERI with low VIX often signals a pre-priced risk window.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">What do the five risk bands mean?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <div style="margin:0 0 0.2rem;">
+                                <div style="display:flex;flex-direction:column;gap:0.45rem;margin-bottom:0.5rem;">
+                                    <div style="display:flex;align-items:center;gap:0.7rem;font-size:0.82rem;"><span style="width:70px;font-weight:700;color:#22c55e;">LOW 0–20</span><span style="color:#94a3b8;">Benign environment. No significant escalation. Standard monitoring posture.</span></div>
+                                    <div style="display:flex;align-items:center;gap:0.7rem;font-size:0.82rem;"><span style="width:70px;font-weight:700;color:#a3e635;">MOD 21–40</span><span style="color:#94a3b8;">Background risk present but manageable. Regional tensions exist without systemic contagion.</span></div>
+                                    <div style="display:flex;align-items:center;gap:0.7rem;font-size:0.82rem;"><span style="width:70px;font-weight:700;color:#f59e0b;">ELEV 41–60</span><span style="color:#94a3b8;">Meaningful risk accumulation. Multiple vectors contributing. Active monitoring warranted.</span></div>
+                                    <div style="display:flex;align-items:center;gap:0.7rem;font-size:0.82rem;"><span style="width:70px;font-weight:700;color:#ef4444;">SEV 61–80</span><span style="color:#94a3b8;">Severe disruption pressure. Risk signals converging. Active hedging strongly advised.</span></div>
+                                    <div style="display:flex;align-items:center;gap:0.7rem;font-size:0.82rem;"><span style="width:70px;font-weight:700;color:#dc2626;">CRIT 81–100</span><span style="color:#94a3b8;">Critical systemic stress. Historical precedent indicates imminent market disruption. Defensive positioning indicated.</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">Which regions carry the most weight in GERI?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.8rem;">
+                                GERI applies a Regional Weighting Model that reflects each region's structural influence on global energy flows. The weights in the current model (v1.1) are:
+                            </p>
+                            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.4rem 1rem;margin-bottom:0.5rem;">
+                                <div style="font-size:0.82rem;color:#94a3b8;"><span style="color:#f59e0b;font-weight:700;">Middle East 25%</span> — Strait of Hormuz, swing production</div>
+                                <div style="font-size:0.82rem;color:#94a3b8;"><span style="color:#f59e0b;font-weight:700;">Russia / Black Sea 20%</span> — Pipeline exports to Europe</div>
+                                <div style="font-size:0.82rem;color:#94a3b8;"><span style="color:#f59e0b;font-weight:700;">China 15%</span> — World's largest energy importer</div>
+                                <div style="font-size:0.82rem;color:#94a3b8;"><span style="color:#f59e0b;font-weight:700;">United States 15%</span> — Largest producer, sanctions issuer</div>
+                                <div style="font-size:0.82rem;color:#94a3b8;"><span style="color:#f59e0b;font-weight:700;">Europe Internal 10%</span> — Regulatory and storage policy</div>
+                                <div style="font-size:0.82rem;color:#94a3b8;"><span style="color:#f59e0b;font-weight:700;">LNG Exporters 10%</span> — Qatar, Australia, Norway</div>
+                            </div>
+                            <p style="color:#94a3b8;font-size:0.82rem;line-height:1.65;margin:0 0 0.2rem;">Emerging supply regions (North Africa, South America) contribute the remaining 5%. The multipliers are scaled so their average equals 1.0 — the model reshapes risk distribution without inflating or deflating the overall index level.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">What data sources feed into GERI?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                GERI ingests from 24 curated RSS feeds organised into four credibility tiers. Tier 0 sources are primary institutional data providers (EIA, OPEC, government agencies). Tier 1 includes professional market intelligence (Reuters, ICIS, Platts). Tier 2 covers specialist trade publications (FreightWaves, Rigzone, Maritime Executive, Hellenic Shipping). Tier 3 provides quality regional coverage (Al Jazeera, Xinhua, China Daily, EU Commission, Norwegian Offshore Directorate). No general news aggregators, opinion blogs, or social media feeds are included by design.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">What is the difference between GERI and EERI?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                GERI and EERI answer fundamentally different questions. GERI is a global macro index — it answers "how dangerous is the world's geopolitical and energy environment today?" producing one number per day. EERI (Europe Energy Risk Index) is a regional tactical index — it answers "how dangerous is the European energy risk environment specifically?" GERI moves slowly and signals broad regime shifts; EERI is faster-moving and directly actionable for European gas and power markets. In practice, GERI tells you whether to be concerned; EERI tells you where to act.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">What does it mean if GERI is rising but energy prices are flat?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                This is one of the most analytically valuable signals GERI produces — a divergence regime. It occurs when geopolitical risk is accumulating but markets have not yet repriced. This can happen because markets are discounting the risk as temporary, because supply buffers are absorbing the signal, or because wider financial conditions are suppressing volatility. History shows that when these divergences resolve, the price adjustment tends to be sharp and fast. GERI during divergence acts as an early-warning layer: the geopolitical inputs are real, even if the market has not yet responded.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">How is GERI scored — what are the four pillars?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.8rem;">
+                                GERI is a weighted composite of four pillars, each capturing a different dimension of risk:
+                            </p>
+                            <div style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:0.5rem;">
+                                <div style="font-size:0.83rem;color:#94a3b8;display:flex;align-items:baseline;gap:0.5rem;"><span style="color:#3b82f6;font-weight:700;white-space:nowrap;">High-Impact Events (40%)</span>Major geopolitical escalations, infrastructure incidents, supply shocks — severity-weighted on a 1–5 scale.</div>
+                                <div style="font-size:0.83rem;color:#94a3b8;display:flex;align-items:baseline;gap:0.5rem;"><span style="color:#3b82f6;font-weight:700;white-space:nowrap;">Regional Risk Spikes (25%)</span>Clusters of moderate events and escalation velocity within specific regions — detects pre-crisis build-up.</div>
+                                <div style="font-size:0.83rem;color:#94a3b8;display:flex;align-items:baseline;gap:0.5rem;"><span style="color:#3b82f6;font-weight:700;white-space:nowrap;">Asset Risk (20%)</span>Threats to specific infrastructure — pipelines, terminals, shipping lanes — that may not surface as geopolitical events.</div>
+                                <div style="font-size:0.83rem;color:#94a3b8;display:flex;align-items:baseline;gap:0.5rem;"><span style="color:#3b82f6;font-weight:700;white-space:nowrap;">Region Concentration (15%)</span>Penalises geographic concentration of risk — a world where 80% of risk comes from one region implies higher disruption probability.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">Is GERI available for free?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                Yes, with a 24-hour delay. Free users and this public page display the previous day's GERI value, band, and trend indicator. Real-time GERI values, full historical charts, component-level breakdowns, AI daily interpretations, and GERI Live intraday updates are available on paid subscription plans. A free account can be created at no cost to access the delayed feed with basic band and trend information.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" style="border:1px solid #1e293b;border-radius:10px;margin-bottom:0.6rem;overflow:hidden;background:#0a1628;">
+                        <div onclick="var a=this.nextElementSibling;a.style.maxHeight=a.style.maxHeight?'':'600px';a.style.paddingBottom=a.style.paddingBottom?'':'1.2rem';this.querySelector('.faq-chev').style.transform=a.style.maxHeight?'rotate(180deg)':'rotate(0deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:1.1rem 1.4rem;cursor:pointer;user-select:none;">
+                            <span style="font-size:0.92rem;font-weight:600;color:#e2e8f0;">Who is GERI designed for?</span>
+                            <span class="faq-chev" style="color:#3b82f6;font-size:1rem;transition:transform 0.25s ease;flex-shrink:0;margin-left:1rem;">&#9660;</span>
+                        </div>
+                        <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
+                            <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
+                                GERI is designed for professionals who need a reliable, quantitative signal to contextualise geopolitical and energy supply risk: macro traders, CIOs and risk committees, asset allocators, energy strategists, hedge funds with commodity exposure, and research analysts covering energy markets. It is also used as a monitoring and briefing tool by corporate energy procurement teams and journalists covering global energy security. GERI is a macro, regime-level index — it is not intended for short-term trading or operational decision-making at the asset level.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            </div>
+
         </main>
 
         {render_digest_footer()}
