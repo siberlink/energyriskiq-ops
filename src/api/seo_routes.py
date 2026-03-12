@@ -6184,10 +6184,16 @@ async def geri_research_page(request: Request):
             .method-step-content p:last-child {{
                 margin-bottom: 0;
             }}
+            .regime-table-wrap {{
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 1rem 0;
+                border-radius: 8px;
+            }}
             .regime-table {{
                 width: 100%;
                 border-collapse: collapse;
-                margin: 1rem 0;
+                min-width: 480px;
             }}
             .regime-table th {{
                 text-align: left;
@@ -6198,11 +6204,13 @@ async def geri_research_page(request: Request):
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
                 border-bottom: 2px solid #334155;
+                white-space: nowrap;
             }}
             .regime-table td {{
                 padding: 0.6rem 0.75rem;
                 font-size: 0.85rem;
                 border-bottom: 1px solid #1e293b;
+                vertical-align: top;
             }}
             .regime-table tr:last-child td {{
                 border-bottom: none;
@@ -6210,10 +6218,13 @@ async def geri_research_page(request: Request):
             .regime-table td:first-child {{
                 font-weight: 600;
                 white-space: nowrap;
+                width: 30%;
             }}
             .regime-table td:nth-child(2) {{
                 color: #e2e8f0;
                 font-weight: 600;
+                width: 20%;
+                white-space: nowrap;
             }}
             .regime-table td:nth-child(3) {{
                 color: #94a3b8;
@@ -7162,6 +7173,7 @@ async def geri_research_page(request: Request):
 
                     <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.65; margin-bottom: 0.75rem;">GERI&rsquo;s historical trajectory can be divided into four recognisable regimes:</p>
 
+                    <div class="regime-table-wrap">
                     <table class="regime-table">
                         <thead>
                             <tr>
@@ -7193,6 +7205,7 @@ async def geri_research_page(request: Request):
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 <div class="research-section">
