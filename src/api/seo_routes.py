@@ -8471,8 +8471,8 @@ async def geri_research_page(request: Request):
                 }});
             }}
 
-            // Download chart as PNG image
-            function copyChartImg(canvasId, btnId) {{
+            // Download chart as PNG image (exposed globally for onclick)
+            window.copyChartImg = function(canvasId, btnId) {{
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const btn = document.getElementById(btnId);
