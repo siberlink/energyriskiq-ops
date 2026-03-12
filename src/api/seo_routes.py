@@ -5819,6 +5819,68 @@ async def geri_research_page(request: Request):
     _ov_lng_js      = _json.dumps(_ov_lng_raw)
     _geri_spikes_js = _json.dumps(_geri_spikes_py)
 
+    # ── Section 8.5: GERI Reading card (24h delayed — OFFSET 1 rule) ─────────
+    _reading_d = None
+    _reading_range_min = None
+    _reading_range_max = None
+    try:
+        _reading_rows = execute_production_query("""
+            SELECT value, band, date, trend_1d, trend_7d, interpretation
+            FROM intel_indices_daily
+            WHERE index_id = 'global:geo_energy_risk'
+            ORDER BY date DESC
+            OFFSET 1 LIMIT 1
+        """)
+        if _reading_rows:
+            _reading_d = _reading_rows[0]
+        _range_rows = execute_production_query("""
+            SELECT MIN(value) as lo, MAX(value) as hi
+            FROM intel_indices_daily
+            WHERE index_id = 'global:geo_energy_risk'
+              AND date >= CURRENT_DATE - INTERVAL '30 days'
+        """)
+        if _range_rows and _range_rows[0]['lo'] is not None:
+            _reading_range_min = int(_range_rows[0]['lo'])
+            _reading_range_max = int(_range_rows[0]['hi'])
+    except Exception:
+        pass
+
+    _rd_band_colors = {
+        'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316',
+        'SEVERE': '#ef4444', 'CRITICAL': '#dc2626'
+    }
+    _rd_band_bg = {
+        'LOW': '#052e16', 'MODERATE': '#1c1200', 'ELEVATED': '#1c0a00',
+        'SEVERE': '#1f0606', 'CRITICAL': '#200505'
+    }
+    _rd_interp_map = {
+        'LOW':      'Global energy risk is low. Geopolitical and supply-chain pressures are subdued, with no significant escalation signals across major producing regions. Markets are operating within normal parameters.',
+        'MODERATE': 'A moderate risk environment is indicated. Background geopolitical tensions and regional supply concerns are present, but systemic contagion risk is not elevated. Standard monitoring posture is appropriate.',
+        'ELEVATED': 'An elevated risk environment is indicated, with meaningful geopolitical and supply-chain pressures accumulating across multiple regions. Active monitoring and hedging consideration is warranted for energy-exposed positions.',
+        'SEVERE':   'A severe risk environment is indicated. Multiple geopolitical escalation vectors and supply disruption signals are converging, placing significant pressure on global energy markets. Active risk management and contingency planning are strongly advised.',
+        'CRITICAL': 'A critical systemic risk environment is indicated. Risk signals have converged across regions and asset classes, consistent with historical precedents for imminent supply disruption and market dislocation. Defensive positioning and emergency protocols are indicated.',
+    }
+
+    if _reading_d:
+        _rd_val      = int(_reading_d['value'])
+        _rd_band     = _reading_d.get('band') or 'N/A'
+        _rd_color    = _rd_band_colors.get(_rd_band, '#64748b')
+        _rd_bg       = _rd_band_bg.get(_rd_band, '#0a1628')
+        _rd_date     = str(_reading_d['date'])
+        _rd_t1d      = _reading_d.get('trend_1d')
+        _rd_t7d      = _reading_d.get('trend_7d')
+        _rd_t1d_str  = ('+' if _rd_t1d >= 0 else '') + str(_rd_t1d) if _rd_t1d is not None else 'N/A'
+        _rd_t7d_str  = ('+' if _rd_t7d >= 0 else '') + str(_rd_t7d) if _rd_t7d is not None else 'N/A'
+        _rd_t1d_col  = '#ef4444' if (_rd_t1d or 0) > 0 else ('#22c55e' if (_rd_t1d or 0) < 0 else '#64748b')
+        _rd_t7d_col  = '#ef4444' if (_rd_t7d or 0) > 0 else ('#22c55e' if (_rd_t7d or 0) < 0 else '#64748b')
+        _rd_range_str = f'{_reading_range_min}–{_reading_range_max}' if _reading_range_min is not None else 'N/A'
+        _rd_interp   = _reading_d.get('interpretation') or _rd_interp_map.get(_rd_band, '')
+    else:
+        _rd_val = _rd_band = _rd_color = _rd_bg = _rd_date = ''
+        _rd_t1d_str = _rd_t7d_str = _rd_range_str = 'N/A'
+        _rd_t1d_col = _rd_t7d_col = '#64748b'
+        _rd_interp = ''
+
     # ── Section 11: Related Indices — EERI & EGSI (24h delayed) ──────────────
     from datetime import datetime as _dt2, timedelta as _td2
     _rel_yesterday = (_dt2.utcnow() - _td2(days=1)).date()
@@ -7423,6 +7485,78 @@ async def geri_research_page(request: Request):
                         </p>
                     </div>
                 </div>
+            </div>
+            </div>
+
+            <!-- Section 8.5: GERI Reading -->
+            <div class="container">
+            <div class="research-section" id="geri-reading">
+                <h2>GERI Reading</h2>
+                <p style="color:#94a3b8;font-size:1rem;line-height:1.75;max-width:780px;margin-bottom:2rem;">
+                    The current state of the Global Energy Risk Index, updated daily with a 24-hour public delay.
+                </p>
+
+                <!-- Card — matches /indices/global-energy-risk-index style, links there -->
+                <a href="/indices/global-energy-risk-index" style="text-decoration:none;display:block;max-width:480px;">
+                <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;transition:border-color 0.2s;" onmouseover="this.style.borderColor='{_rd_color}'" onmouseout="this.style.borderColor='#1e293b'">
+                    <div style="height:4px;background:{_rd_color};"></div>
+                    <div style="padding:1.75rem 2rem 1.5rem;text-align:center;">
+
+                        <!-- Title -->
+                        <div style="display:flex;align-items:center;justify-content:center;gap:0.55rem;margin-bottom:1.4rem;">
+                            <span style="font-size:1.3rem;">🔥</span>
+                            <span style="font-size:1rem;font-weight:700;color:#e2e8f0;">Global Energy Risk Index</span>
+                        </div>
+
+                        <!-- Value block -->
+                        <div style="background:{_rd_bg};border:1px solid {_rd_color}33;border-radius:10px;padding:1.4rem 1.5rem;margin-bottom:1.25rem;">
+                            <div style="font-size:3rem;font-weight:800;color:{_rd_color};line-height:1;letter-spacing:-0.03em;">
+                                {_rd_val}<span style="font-size:1.1rem;font-weight:400;color:#475569;"> / 100</span>
+                            </div>
+                            <div style="font-size:1.1rem;font-weight:700;color:{_rd_color};margin-top:0.55rem;letter-spacing:0.06em;">{_rd_band}</div>
+                            <div style="font-size:0.73rem;color:#475569;margin-top:0.35rem;">0 = minimal risk &middot; 100 = extreme systemic stress</div>
+                        </div>
+
+                        <!-- Date -->
+                        <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.9rem;">
+                            Last updated: <span style="color:#94a3b8;font-weight:600;">{_rd_date}</span>
+                        </div>
+
+                        <!-- 24h badge -->
+                        <div style="border:1px solid #854d0e;border-radius:6px;padding:0.38rem 0.75rem;text-align:center;background:#1c0a00;margin-bottom:1.25rem;">
+                            <span style="font-size:0.75rem;font-weight:600;color:#f59e0b;letter-spacing:0.04em;">Public value delay: 24 hours</span>
+                        </div>
+
+                        <!-- Stats row -->
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:1.4rem;">
+                            <div style="background:#0a1628;border:1px solid #1e293b;border-radius:8px;padding:0.7rem 0.5rem;text-align:center;">
+                                <div style="font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.3rem;">VS Yesterday</div>
+                                <div style="font-size:1.05rem;font-weight:700;color:{_rd_t1d_col};">{_rd_t1d_str}</div>
+                            </div>
+                            <div style="background:#0a1628;border:1px solid #1e293b;border-radius:8px;padding:0.7rem 0.5rem;text-align:center;">
+                                <div style="font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.3rem;">7-Day Change</div>
+                                <div style="font-size:1.05rem;font-weight:700;color:{_rd_t7d_col};">{_rd_t7d_str}</div>
+                            </div>
+                            <div style="background:#0a1628;border:1px solid #1e293b;border-radius:8px;padding:0.7rem 0.5rem;text-align:center;">
+                                <div style="font-size:0.65rem;font-weight:700;color:#64748b;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.3rem;">30-Day Range</div>
+                                <div style="font-size:1.05rem;font-weight:700;color:#94a3b8;">{_rd_range_str}</div>
+                            </div>
+                        </div>
+
+                        <!-- Interpretation -->
+                        <div style="background:#0a1628;border:1px solid #1e293b;border-left:3px solid {_rd_color};border-radius:0 8px 8px 0;padding:0.9rem 1rem;text-align:left;margin-bottom:1.2rem;">
+                            <div style="font-size:0.68rem;font-weight:700;color:{_rd_color};letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.35rem;">Interpretation</div>
+                            <p style="color:#94a3b8;font-size:0.83rem;line-height:1.65;margin:0;">{_rd_interp}</p>
+                        </div>
+
+                        <!-- CTA -->
+                        <div style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.82rem;font-weight:600;color:#3b82f6;">
+                            Live GERI Dashboard <span style="font-size:1rem;">&#8594;</span>
+                        </div>
+
+                    </div>
+                </div>
+                </a>
             </div>
             </div>
 
