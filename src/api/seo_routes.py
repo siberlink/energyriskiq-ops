@@ -8144,6 +8144,48 @@ async def geri_research_page(request: Request):
                     <a href="/research/global-energy-risk-index#geri-methodology" style="color:#60a5fa;text-decoration:none;">Methodology section</a>.
                 </p>
             </div>
+
+            <div class="research-section" id="geri-about">
+                <h2>About EnergyRiskIQ</h2>
+                <p style="color:#94a3b8;font-size:0.95rem;line-height:1.75;max-width:760px;margin-bottom:1.5rem;">
+                    EnergyRiskIQ is an independent research platform dedicated to quantitative energy risk analytics.
+                    We build open methodologies that translate geopolitical, market, and supply-chain signals into
+                    actionable, transparent risk indices — with no proprietary black boxes.
+                </p>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem;">
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.2rem 1.3rem;">
+                        <div style="font-size:1.3rem;margin-bottom:0.5rem;">&#x1F50D;</div>
+                        <div style="color:#e2e8f0;font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;">Independent Research</div>
+                        <div style="color:#64748b;font-size:0.82rem;line-height:1.6;">
+                            Not affiliated with any energy company, broker, or financial institution.
+                            Our indices are constructed solely to inform — not to trade.
+                        </div>
+                    </div>
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.2rem 1.3rem;">
+                        <div style="font-size:1.3rem;margin-bottom:0.5rem;">&#x26A1;</div>
+                        <div style="color:#e2e8f0;font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;">Energy Risk Analytics</div>
+                        <div style="color:#64748b;font-size:0.82rem;line-height:1.6;">
+                            Focused exclusively on energy markets — oil, gas, LNG, and electricity —
+                            at both the regional and global level.
+                        </div>
+                    </div>
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.2rem 1.3rem;">
+                        <div style="font-size:1.3rem;margin-bottom:0.5rem;">&#x1F4D0;</div>
+                        <div style="color:#e2e8f0;font-weight:600;font-size:0.9rem;margin-bottom:0.4rem;">Methodology Development</div>
+                        <div style="color:#64748b;font-size:0.82rem;line-height:1.6;">
+                            All scoring frameworks — GERI, EERI, EGSI — are peer-reviewed, version-controlled,
+                            and published openly for academic and professional use.
+                        </div>
+                    </div>
+                </div>
+
+                <p style="color:#475569;font-size:0.85rem;line-height:1.7;max-width:700px;">
+                    Our indices are used as reference tools by energy analysts, academics, and institutional
+                    researchers. If you cite our work in a publication, please use the
+                    <a href="#geri-citation" style="color:#60a5fa;text-decoration:none;">Citation &amp; Reference</a> format above.
+                </p>
+            </div>
             </div>
 
         </main>
