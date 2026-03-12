@@ -8047,6 +8047,37 @@ async def geri_research_page(request: Request):
             </div>
             </div>
 
+            <!-- Section 12: Citation & Reference -->
+            <div class="container">
+            <div class="research-section" id="geri-citation">
+                <h2>Citation &amp; Reference</h2>
+                <p style="color:#94a3b8;font-size:0.95rem;line-height:1.75;max-width:760px;margin-bottom:1.75rem;">
+                    When referencing the Global Energy Risk Index in research or publications, please use the following citation:
+                </p>
+
+                <div style="position:relative;">
+                    <div id="geri-cite-box" style="background:#0a1628;border:1px solid #1e293b;border-left:3px solid #3b82f6;border-radius:0 10px 10px 0;padding:1.4rem 1.5rem 1.4rem 1.5rem;font-family:'Courier New',Courier,monospace;line-height:1.85;">
+                        <div style="color:#e2e8f0;font-size:0.9rem;">EnergyRiskIQ (2026).</div>
+                        <div style="color:#e2e8f0;font-size:0.9rem;">Global Energy Risk Index (GERI) Methodology.</div>
+                        <div style="margin-top:0.2rem;"><a href="https://energyriskiq.com/research/global-energy-risk-index" style="color:#60a5fa;font-size:0.9rem;text-decoration:none;">https://energyriskiq.com/research/global-energy-risk-index</a></div>
+                    </div>
+                    <button onclick="
+                        var t='EnergyRiskIQ (2026).\\nGlobal Energy Risk Index (GERI) Methodology.\\nhttps://energyriskiq.com/research/global-energy-risk-index';
+                        navigator.clipboard.writeText(t).then(function(){{
+                            var b=document.getElementById('geri-cite-btn');
+                            b.textContent='Copied!';
+                            setTimeout(function(){{b.textContent='Copy';b.style.color='#94a3b8';}},2000);
+                        }});
+                    " id="geri-cite-btn" style="position:absolute;top:0.75rem;right:0.75rem;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:0.3rem 0.75rem;font-size:0.75rem;font-weight:600;color:#94a3b8;cursor:pointer;">Copy</button>
+                </div>
+
+                <p style="color:#475569;font-size:0.82rem;margin-top:1.1rem;">
+                    For BibTeX, APA, or other citation formats, see the full
+                    <a href="/research/global-energy-risk-index#geri-methodology" style="color:#60a5fa;text-decoration:none;">Methodology section</a>.
+                </p>
+            </div>
+            </div>
+
         </main>
 
         <footer>
