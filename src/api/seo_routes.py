@@ -5718,7 +5718,7 @@ async def geri_research_page(request: Request):
     _vix_min   = int(min(_vix_data_py) - 1) if _vix_data_py else 16
     _vix_max   = int(max(_vix_data_py) + 2) if _vix_data_py else 26
 
-    # ── Section 8: GERI vs Market Assets — last 30 days overlay ──────────────
+    # ── Section 8: GERI vs Market Assets — last 30 days dual-axis charts ────────
     _ov_geri_rows  = execute_production_query(
         "SELECT date::text, value FROM intel_indices_daily "
         "WHERE index_id='global:geo_energy_risk' AND date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY date ASC"
@@ -5739,27 +5739,36 @@ async def geri_research_page(request: Request):
         "SELECT e.date::text, e.rate FROM eurusd_snapshots e "
         "WHERE e.date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY e.date ASC"
     )
+    _ov_lng_rows   = execute_production_query(
+        "SELECT l.date::text, l.jkm_price FROM lng_price_snapshots l "
+        "WHERE l.date >= CURRENT_DATE - INTERVAL '30 days' ORDER BY l.date ASC"
+    )
 
     _ov_geri  = {str(r['date']): float(r['value'])       for r in (_ov_geri_rows  or [])}
     _ov_brent = {str(r['date']): float(r['brent_price']) for r in (_ov_brent_rows or [])}
     _ov_vix   = {str(r['date']): float(r['vix_close'])   for r in (_ov_vix_rows   or [])}
     _ov_ttf   = {str(r['date']): float(r['ttf_price'])   for r in (_ov_ttf_rows   or [])}
     _ov_fx    = {str(r['date']): float(r['rate'])         for r in (_ov_fx_rows    or [])}
+    _ov_lng   = {str(r['date']): float(r['jkm_price'])   for r in (_ov_lng_rows   or [])}
 
-    _ov_all_dates = sorted(set(_ov_geri) | set(_ov_brent) | set(_ov_vix) | set(_ov_ttf) | set(_ov_fx))
+    _ov_all_dates = sorted(
+        set(_ov_geri) | set(_ov_brent) | set(_ov_vix) | set(_ov_ttf) | set(_ov_fx) | set(_ov_lng)
+    )
 
     _MN = {'01':'Jan','02':'Feb','03':'Mar','04':'Apr','05':'May','06':'Jun',
            '07':'Jul','08':'Aug','09':'Sep','10':'Oct','11':'Nov','12':'Dec'}
 
-    def _norm30(series_dict, dates):
-        vals = [series_dict.get(d) for d in dates]
-        non_null = [v for v in vals if v is not None]
-        if not non_null:
-            return vals
-        mn, mx = min(non_null), max(non_null)
-        rng = mx - mn if mx != mn else 1
-        return [round((v - mn) / rng * 100, 1) if v is not None else None for v in vals]
+    _ov_labels_py = [f"{_MN.get(_d[5:7],'?')} {int(_d[8:])}" for _d in _ov_all_dates]
 
+    # Raw value arrays aligned to unified date list (None → JS null)
+    _ov_geri_raw  = [_ov_geri.get(d)  for d in _ov_all_dates]
+    _ov_brent_raw = [_ov_brent.get(d) for d in _ov_all_dates]
+    _ov_vix_raw   = [_ov_vix.get(d)   for d in _ov_all_dates]
+    _ov_ttf_raw   = [_ov_ttf.get(d)   for d in _ov_all_dates]
+    _ov_fx_raw    = [_ov_fx.get(d)    for d in _ov_all_dates]
+    _ov_lng_raw   = [_ov_lng.get(d)   for d in _ov_all_dates]
+
+    # Pearson correlation helper
     def _pearson30(gd, ad):
         common = [(gd[d], ad[d]) for d in gd if d in ad]
         if len(common) < 3:
@@ -5772,17 +5781,11 @@ async def geri_research_page(request: Request):
         da  = (sum((a-ma)**2 for a in ay))**0.5
         return round(num/(dg*da), 2) if dg*da > 0 else None
 
-    _ov_labels_py  = [f"{_MN.get(_d[5:7],'?')} {int(_d[8:])}" for _d in _ov_all_dates]
-    _ov_geri_norm  = _norm30(_ov_geri,  _ov_all_dates)
-    _ov_brent_norm = _norm30(_ov_brent, _ov_all_dates)
-    _ov_vix_norm   = _norm30(_ov_vix,   _ov_all_dates)
-    _ov_ttf_norm   = _norm30(_ov_ttf,   _ov_all_dates)
-    _ov_fx_norm    = _norm30(_ov_fx,    _ov_all_dates)
-
     _corr_brent = _pearson30(_ov_geri, _ov_brent)
     _corr_vix   = _pearson30(_ov_geri, _ov_vix)
     _corr_ttf   = _pearson30(_ov_geri, _ov_ttf)
     _corr_fx    = _pearson30(_ov_geri, _ov_fx)
+    _corr_lng   = _pearson30(_ov_geri, _ov_lng)
 
     def _cfmt(v):
         if v is None: return 'N/A'
@@ -5794,12 +5797,27 @@ async def geri_research_page(request: Request):
         if v <= -0.3: return 'corr-neg'
         return 'corr-neutral'
 
-    _ov_labels_js  = _json.dumps(_ov_labels_py)
-    _ov_geri_js    = _json.dumps(_ov_geri_norm)
-    _ov_brent_js   = _json.dumps(_ov_brent_norm)
-    _ov_vix_js     = _json.dumps(_ov_vix_norm)
-    _ov_ttf_js     = _json.dumps(_ov_ttf_norm)
-    _ov_fx_js      = _json.dumps(_ov_fx_norm)
+    # GERI risk spike/drop events (delta ≥ 8 pts or ≤ -8 pts between consecutive days)
+    _geri_spikes_py = []
+    _geri_sorted = sorted(_ov_geri.items())
+    for _si in range(1, len(_geri_sorted)):
+        _sd, _sv = _geri_sorted[_si]
+        _pd, _pv = _geri_sorted[_si - 1]
+        _delta = _sv - _pv
+        if abs(_delta) >= 8 or (_sv >= 75 and _pv < 75):
+            _stype = 'Risk spike' if _delta >= 8 else ('Critical' if _sv >= 75 and _pv < 75 else 'Risk drop')
+            _sidx  = _ov_all_dates.index(_sd) if _sd in _ov_all_dates else -1
+            if _sidx >= 0:
+                _geri_spikes_py.append({'i': _sidx, 'label': _stype, 'up': _delta > 0})
+
+    _ov_labels_js   = _json.dumps(_ov_labels_py)
+    _ov_geri_js     = _json.dumps(_ov_geri_raw)
+    _ov_brent_js    = _json.dumps(_ov_brent_raw)
+    _ov_vix_js      = _json.dumps(_ov_vix_raw)
+    _ov_ttf_js      = _json.dumps(_ov_ttf_raw)
+    _ov_fx_js       = _json.dumps(_ov_fx_raw)
+    _ov_lng_js      = _json.dumps(_ov_lng_raw)
+    _geri_spikes_js = _json.dumps(_geri_spikes_py)
 
     html = f"""
     <!DOCTYPE html>
@@ -5818,6 +5836,8 @@ async def geri_research_page(request: Request):
 
         <link rel="icon" type="image/png" href="/static/favicon.png">
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
         {get_digest_dark_styles()}
         <style>
             .research-hero {{
@@ -6381,6 +6401,74 @@ async def geri_research_page(request: Request):
             .corr-pos     {{ color: #f97316; }}
             .corr-neg     {{ color: #3b82f6; }}
             .corr-neutral {{ color: #64748b; }}
+            .asset-chart-grid {{
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+                margin-bottom: 1.25rem;
+            }}
+            .asset-chart-card {{
+                background: #0a1628;
+                border: 1px solid #1e293b;
+                border-radius: 10px;
+                padding: 1rem 1rem 0.75rem 1rem;
+                overflow: hidden;
+            }}
+            .asset-chart-card.full-width {{ grid-column: 1 / -1; }}
+            .asset-chart-header {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }}
+            .asset-chart-title {{
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #94a3b8;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+            }}
+            .asset-chart-legend {{
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+                margin-top: 0.6rem;
+                padding-top: 0.6rem;
+                border-top: 1px solid #1e293b;
+            }}
+            .asset-chart-legend-item {{
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+                font-size: 0.72rem;
+                color: #94a3b8;
+            }}
+            .legend-dot {{
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }}
+            .legend-dash {{
+                width: 20px;
+                height: 2px;
+                border-top: 2.5px dashed;
+                flex-shrink: 0;
+            }}
+            .zoom-hint {{
+                font-size: 0.68rem;
+                color: #334155;
+                margin-top: 0.4rem;
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+            }}
+            @media (max-width: 600px) {{
+                .asset-chart-grid {{ grid-template-columns: 1fr; }}
+                .asset-chart-card.full-width {{ grid-column: auto; }}
+            }}
             .indicator-callout {{
                 display: flex;
                 gap: 1rem;
@@ -7084,108 +7172,177 @@ async def geri_research_page(request: Request):
             <div class="research-section" id="geri-market-assets">
                 <h2>Relationship Between GERI and Market Assets</h2>
                 <p style="color:#94a3b8;font-size:0.95rem;line-height:1.7;margin-bottom:1.5rem;">
-                    GERI does not move in isolation. It has structured, measurable relationships with
-                    Brent crude, TTF gas, VIX equity volatility, and the EUR/USD exchange rate. Understanding
-                    these correlations &mdash; including their direction, timing, and breakdown regimes &mdash;
-                    reveals how geopolitical risk propagates through energy markets.
+                    GERI does not move in isolation. The charts below show how it relates to key energy market assets over the last 30 days &mdash; each with GERI on the left axis (0&ndash;100) and the asset on its own right axis (actual price). Risk spikes and drops are annotated where GERI moved &ge;8 points in a single day.
                 </p>
 
-                <!-- Overlay chart -->
-                <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.25rem 1.25rem 1rem 1.25rem;margin-bottom:1.25rem;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
-                        <div style="font-size:0.8rem;font-weight:600;color:#94a3b8;letter-spacing:0.06em;text-transform:uppercase;">GERI vs Market Assets &mdash; Last 30 Days (Normalised 0&ndash;100)</div>
-                        <div style="font-size:0.72rem;color:#475569;font-style:italic;">All series scaled to common axis for comparison</div>
+                <!-- 5 Dual-axis charts: GERI (left) vs Asset (right, dashed) -->
+                <div class="asset-chart-grid">
+
+                    <!-- Chart 1: GERI vs Brent -->
+                    <div class="asset-chart-card">
+                        <div class="asset-chart-header">
+                            <span class="asset-chart-title">GERI vs Brent Oil</span>
+                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                        </div>
+                        <div style="position:relative;height:220px;">
+                            <canvas id="chartBrent"></canvas>
+                        </div>
+                        <div class="asset-chart-legend">
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dot" style="background:#3b82f6;"></span>GERI (index, left axis)
+                            </div>
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dash" style="border-color:#f59e0b;"></span>Brent Oil (USD/barrel, right)
+                            </div>
+                        </div>
+                        <div class="zoom-hint">&#x1F4A1; Scroll to zoom &bull; Double-click to reset</div>
                     </div>
-                    <div style="position:relative;height:280px;">
-                        <canvas id="overlayChart"></canvas>
+
+                    <!-- Chart 2: GERI vs TTF Gas -->
+                    <div class="asset-chart-card">
+                        <div class="asset-chart-header">
+                            <span class="asset-chart-title">GERI vs TTF Gas</span>
+                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                        </div>
+                        <div style="position:relative;height:220px;">
+                            <canvas id="chartTTF"></canvas>
+                        </div>
+                        <div class="asset-chart-legend">
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dot" style="background:#3b82f6;"></span>GERI (index, left axis)
+                            </div>
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dash" style="border-color:#8b5cf6;"></span>TTF Gas (EUR/MWh, right)
+                            </div>
+                        </div>
+                        <div class="zoom-hint">&#x1F4A1; Scroll to zoom &bull; Double-click to reset</div>
                     </div>
-                    <!-- Custom legend -->
-                    <div style="display:flex;flex-wrap:wrap;gap:0.75rem 1.25rem;margin-top:0.9rem;padding-top:0.75rem;border-top:1px solid #1e293b;">
-                        <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:#94a3b8;">
-                            <span style="width:22px;height:3px;background:#f97316;border-radius:2px;display:inline-block;"></span>GERI
+
+                    <!-- Chart 3: GERI vs VIX -->
+                    <div class="asset-chart-card">
+                        <div class="asset-chart-header">
+                            <span class="asset-chart-title">GERI vs VIX</span>
+                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
                         </div>
-                        <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:#94a3b8;">
-                            <span style="width:22px;height:3px;background:#3b82f6;border-radius:2px;display:inline-block;"></span>Brent Oil
+                        <div style="position:relative;height:220px;">
+                            <canvas id="chartVIX"></canvas>
                         </div>
-                        <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:#94a3b8;">
-                            <span style="width:22px;height:3px;background:#22c55e;border-radius:2px;display:inline-block;"></span>TTF Gas
+                        <div class="asset-chart-legend">
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dot" style="background:#3b82f6;"></span>GERI (index, left axis)
+                            </div>
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dash" style="border-color:#ef4444;"></span>VIX (index, right)
+                            </div>
                         </div>
-                        <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:#94a3b8;">
-                            <span style="width:22px;height:3px;background:#a78bfa;border-radius:2px;display:inline-block;"></span>VIX
-                        </div>
-                        <div style="display:flex;align-items:center;gap:0.4rem;font-size:0.78rem;color:#94a3b8;">
-                            <span style="width:22px;height:3px;background:#f59e0b;border-radius:2px;display:inline-block;"></span>EUR/USD
-                        </div>
+                        <div class="zoom-hint">&#x1F4A1; Scroll to zoom &bull; Double-click to reset</div>
                     </div>
-                </div>
+
+                    <!-- Chart 4: GERI vs EUR/USD -->
+                    <div class="asset-chart-card">
+                        <div class="asset-chart-header">
+                            <span class="asset-chart-title">GERI vs EUR/USD</span>
+                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                        </div>
+                        <div style="position:relative;height:220px;">
+                            <canvas id="chartFX"></canvas>
+                        </div>
+                        <div class="asset-chart-legend">
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dot" style="background:#3b82f6;"></span>GERI (index, left axis)
+                            </div>
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dash" style="border-color:#06b6d4;"></span>EUR/USD (rate, right)
+                            </div>
+                        </div>
+                        <div class="zoom-hint">&#x1F4A1; Scroll to zoom &bull; Double-click to reset</div>
+                    </div>
+
+                    <!-- Chart 5: GERI vs LNG (spans both columns) -->
+                    <div class="asset-chart-card full-width">
+                        <div class="asset-chart-header">
+                            <span class="asset-chart-title">GERI vs LNG (JKM)</span>
+                            <span style="font-size:0.68rem;color:#475569;">Last 30 days &mdash; Japan/Korea Marker (USD/MMBtu)</span>
+                        </div>
+                        <div style="position:relative;height:220px;">
+                            <canvas id="chartLNG"></canvas>
+                        </div>
+                        <div class="asset-chart-legend">
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dot" style="background:#3b82f6;"></span>GERI (index, left axis)
+                            </div>
+                            <div class="asset-chart-legend-item">
+                                <span class="legend-dash" style="border-color:#10b981;"></span>LNG JKM (USD/MMBtu, right)
+                            </div>
+                        </div>
+                        <div class="zoom-hint">&#x1F4A1; Scroll to zoom &bull; Double-click to reset</div>
+                    </div>
+
+                </div><!-- /.asset-chart-grid -->
 
                 <!-- Correlation table -->
-                <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;overflow-x:auto;">
+                <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;overflow-x:auto;">
                     <div style="font-size:0.78rem;font-weight:600;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.9rem;">30-Day Pearson Correlation with GERI</div>
                     <table style="width:100%;border-collapse:collapse;font-size:0.88rem;">
                         <thead>
                             <tr style="border-bottom:1px solid #1e293b;">
                                 <th style="text-align:left;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;">Asset</th>
                                 <th style="text-align:right;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;">Correlation with GERI</th>
-                                <th style="text-align:left;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;">Direction</th>
+                                <th style="text-align:left;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.78rem;letter-spacing:0.04em;">Signal</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr style="border-bottom:1px solid #0f172a;">
-                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;display:flex;align-items:center;gap:0.5rem;">
-                                    <span style="width:10px;height:10px;background:#3b82f6;border-radius:50%;display:inline-block;flex-shrink:0;"></span>Brent Oil
-                                </td>
+                            <tr style="border-bottom:1px solid #131f35;">
+                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;"><span style="display:inline-block;width:9px;height:9px;background:#f59e0b;border-radius:50%;margin-right:0.4rem;vertical-align:middle;"></span>Brent Oil</td>
                                 <td style="padding:0.55rem 0.75rem;text-align:right;font-weight:700;font-family:monospace;font-size:0.92rem;" class="{_ccls(_corr_brent)}">{_cfmt(_corr_brent)}</td>
-                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Pro-cyclical: risk rises with supply disruption fears" if _corr_brent and _corr_brent > 0 else "Counter-cyclical: risk rises as oil weakens" if _corr_brent and _corr_brent < 0 else "Weak / no clear signal"}</td>
+                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Pro-cyclical — geopolitical risk drives supply fears and price" if _corr_brent and _corr_brent > 0 else "Counter-cyclical — risk rising as oil demand weakens" if _corr_brent and _corr_brent < 0 else "No clear directional signal"}</td>
                             </tr>
-                            <tr style="border-bottom:1px solid #0f172a;">
-                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;display:flex;align-items:center;gap:0.5rem;">
-                                    <span style="width:10px;height:10px;background:#22c55e;border-radius:50%;display:inline-block;flex-shrink:0;"></span>TTF Gas
-                                </td>
+                            <tr style="border-bottom:1px solid #131f35;">
+                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;"><span style="display:inline-block;width:9px;height:9px;background:#8b5cf6;border-radius:50%;margin-right:0.4rem;vertical-align:middle;"></span>TTF Gas</td>
                                 <td style="padding:0.55rem 0.75rem;text-align:right;font-weight:700;font-family:monospace;font-size:0.92rem;" class="{_ccls(_corr_ttf)}">{_cfmt(_corr_ttf)}</td>
-                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Geopolitical risk feeds European gas market tension" if _corr_ttf and _corr_ttf > 0 else "Risk rising while gas prices decline (demand fall or warm weather)" if _corr_ttf and _corr_ttf < 0 else "Weak / no clear signal"}</td>
+                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Geopolitical risk transmits into European gas market tension" if _corr_ttf and _corr_ttf > 0 else "Risk elevated while gas prices soften — demand-side offset" if _corr_ttf and _corr_ttf < 0 else "No clear directional signal"}</td>
                             </tr>
-                            <tr style="border-bottom:1px solid #0f172a;">
-                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;display:flex;align-items:center;gap:0.5rem;">
-                                    <span style="width:10px;height:10px;background:#a78bfa;border-radius:50%;display:inline-block;flex-shrink:0;"></span>VIX
-                                </td>
+                            <tr style="border-bottom:1px solid #131f35;">
+                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;"><span style="display:inline-block;width:9px;height:9px;background:#ef4444;border-radius:50%;margin-right:0.4rem;vertical-align:middle;"></span>VIX</td>
                                 <td style="padding:0.55rem 0.75rem;text-align:right;font-weight:700;font-family:monospace;font-size:0.92rem;" class="{_ccls(_corr_vix)}">{_cfmt(_corr_vix)}</td>
-                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Energy risk transmitting into broad equity fear" if _corr_vix and _corr_vix > 0 else "Market calm despite energy risk build-up" if _corr_vix and _corr_vix < 0 else "Weak / no clear signal"}</td>
+                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Energy risk spilling into broad equity uncertainty" if _corr_vix and _corr_vix > 0 else "Markets calm despite energy risk buildup — divergence watch" if _corr_vix and _corr_vix < 0 else "No clear directional signal"}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #131f35;">
+                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;"><span style="display:inline-block;width:9px;height:9px;background:#06b6d4;border-radius:50%;margin-right:0.4rem;vertical-align:middle;"></span>EUR/USD</td>
+                                <td style="padding:0.55rem 0.75rem;text-align:right;font-weight:700;font-family:monospace;font-size:0.92rem;" class="{_ccls(_corr_fx)}">{_cfmt(_corr_fx)}</td>
+                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Euro strengthening alongside risk — atypical, monitor for divergence" if _corr_fx and _corr_fx > 0 else "Classic risk-off: euro weakens as European energy risk rises" if _corr_fx and _corr_fx < 0 else "No clear directional signal"}</td>
                             </tr>
                             <tr>
-                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;display:flex;align-items:center;gap:0.5rem;">
-                                    <span style="width:10px;height:10px;background:#f59e0b;border-radius:50%;display:inline-block;flex-shrink:0;"></span>EUR/USD
-                                </td>
-                                <td style="padding:0.55rem 0.75rem;text-align:right;font-weight:700;font-family:monospace;font-size:0.92rem;" class="{_ccls(_corr_fx)}">{_cfmt(_corr_fx)}</td>
-                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Euro strengthening alongside risk — rare, divergence watch" if _corr_fx and _corr_fx > 0 else "Classic risk-off: euro weakens as energy risk rises" if _corr_fx and _corr_fx < 0 else "Weak / no clear signal"}</td>
+                                <td style="padding:0.55rem 0.75rem;color:#94a3b8;"><span style="display:inline-block;width:9px;height:9px;background:#10b981;border-radius:50%;margin-right:0.4rem;vertical-align:middle;"></span>LNG (JKM)</td>
+                                <td style="padding:0.55rem 0.75rem;text-align:right;font-weight:700;font-family:monospace;font-size:0.92rem;" class="{_ccls(_corr_lng)}">{_cfmt(_corr_lng)}</td>
+                                <td style="padding:0.55rem 0.75rem;color:#64748b;font-size:0.82rem;">{"Asian LNG demand responding to European supply displacement" if _corr_lng and _corr_lng > 0 else "LNG prices softening while European risk rises — substitution dynamic" if _corr_lng and _corr_lng < 0 else "No clear directional signal"}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Analysis cards: 3 concepts -->
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:0.5rem;">
-                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.1rem 1.1rem 1rem 1.1rem;">
-                        <div style="font-size:0.78rem;font-weight:700;color:#f97316;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Correlation Behaviour</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;">
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.1rem;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#f97316;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Correlation Behaviour</div>
                         <p style="color:#94a3b8;font-size:0.85rem;line-height:1.65;margin:0;">
                             GERI maintains a <strong style="color:#cbd5e1;">positive correlation</strong> with Brent and TTF in geopolitical stress episodes &mdash; supply-side risk raises both the index and commodity prices.
                             Correlation with VIX is positive but looser, reflecting that not all energy risk events trigger equity volatility.
                             EUR/USD typically moves <em>inversely</em> as the euro weakens in risk-off environments.
                         </p>
                     </div>
-                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.1rem 1.1rem 1rem 1.1rem;">
-                        <div style="font-size:0.78rem;font-weight:700;color:#3b82f6;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Lag Effects</div>
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.1rem;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#3b82f6;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Lag Effects</div>
                         <p style="color:#94a3b8;font-size:0.85rem;line-height:1.65;margin:0;">
                             GERI is a <strong style="color:#cbd5e1;">leading indicator</strong>. In most observed episodes, the index rises <strong style="color:#cbd5e1;">1&ndash;3 days</strong> before commodity prices respond.
-                            This lag reflects the time required for traders to fully price in a geopolitical event after it is recognised as structurally significant
-                            &mdash; the window where GERI signals provide actionable intelligence.
+                            This lag reflects the time required for traders to fully price in a geopolitical event &mdash; the window where GERI signals provide actionable intelligence.
                         </p>
                     </div>
-                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:1.1rem 1.1rem 1rem 1.1rem;">
-                        <div style="font-size:0.78rem;font-weight:700;color:#22c55e;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Divergence Regimes</div>
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.1rem;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#22c55e;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.5rem;">Divergence Regimes</div>
                         <p style="color:#94a3b8;font-size:0.85rem;line-height:1.65;margin:0;">
                             Periods of <strong style="color:#cbd5e1;">high GERI with flat prices</strong> represent the most actionable signal.
-                            Divergence occurs when geopolitical risk is building but markets have not yet repriced &mdash; supply concerns are absorbed or offset by demand weakness.
+                            Divergence occurs when geopolitical risk builds but markets have not yet repriced.
                             When the divergence resolves, price moves tend to be sharp. GERI identifies the pre-move window.
                         </p>
                     </div>
@@ -7345,134 +7502,237 @@ async def geri_research_page(request: Request):
                 }}
             }});
 
-            // ── Section 8: Overlay Chart ─────────────────────────────────────
-            const ovLabels = {_ov_labels_js};
-            const ovGeri   = {_ov_geri_js};
-            const ovBrent  = {_ov_brent_js};
-            const ovVix    = {_ov_vix_js};
-            const ovTtf    = {_ov_ttf_js};
-            const ovFx     = {_ov_fx_js};
+            // ── Section 8: 5 Dual-Axis GERI vs Asset Charts ──────────────────
+            const ovLabels  = {_ov_labels_js};
+            const ovGeri    = {_ov_geri_js};
+            const ovBrent   = {_ov_brent_js};
+            const ovTtf     = {_ov_ttf_js};
+            const ovVix     = {_ov_vix_js};
+            const ovFx      = {_ov_fx_js};
+            const ovLng     = {_ov_lng_js};
+            const geriSpikes = {_geri_spikes_js};
 
-            new Chart(document.getElementById('overlayChart'), {{
-                type: 'line',
-                data: {{
-                    labels: ovLabels,
-                    datasets: [
-                        {{
-                            label: 'GERI',
-                            data: ovGeri,
-                            borderColor: '#f97316',
-                            backgroundColor: 'transparent',
-                            borderWidth: 2.5,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#f97316',
-                            pointBorderColor: '#0f172a',
-                            pointBorderWidth: 1.5,
-                            tension: 0.35,
-                            spanGaps: true,
-                            order: 1
+            // Shared band-shading plugin (draws LOW/MODERATE/ELEVATED/SEVERE zones on GERI y-axis)
+            const bandShadingPlugin = {{
+                id: 'bandShading',
+                beforeDraw(chart) {{
+                    const ctx = chart.ctx;
+                    const area = chart.chartArea;
+                    const yScale = chart.scales['y'];
+                    if (!yScale || !area) return;
+                    const bands = [
+                        {{ min: 0,  max: 25,  color: 'rgba(34,197,94,0.07)' }},
+                        {{ min: 25, max: 50,  color: 'rgba(234,179,8,0.07)' }},
+                        {{ min: 50, max: 75,  color: 'rgba(249,115,22,0.08)' }},
+                        {{ min: 75, max: 100, color: 'rgba(239,68,68,0.08)' }}
+                    ];
+                    bands.forEach(b => {{
+                        const top    = yScale.getPixelForValue(b.max);
+                        const bottom = yScale.getPixelForValue(b.min);
+                        ctx.save();
+                        ctx.fillStyle = b.color;
+                        ctx.fillRect(area.left, top, area.right - area.left, bottom - top);
+                        ctx.restore();
+                    }});
+                }}
+            }};
+
+            // Shared spike annotation plugin
+            const spikeAnnotPlugin = {{
+                id: 'spikeAnnot',
+                afterDraw(chart) {{
+                    const ctx = chart.ctx;
+                    const area = chart.chartArea;
+                    const xScale = chart.scales['x'];
+                    const yScale = chart.scales['y'];
+                    const gData  = chart.data.datasets[0].data;
+                    if (!xScale || !yScale) return;
+                    geriSpikes.forEach(sp => {{
+                        const val = gData[sp.i];
+                        if (val === null || val === undefined) return;
+                        const x = xScale.getPixelForValue(sp.i);
+                        const y = yScale.getPixelForValue(val);
+                        if (x < area.left || x > area.right) return;
+                        // Dot above point
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(x, y - 14, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = sp.up ? 'rgba(239,68,68,0.75)' : 'rgba(34,197,94,0.75)';
+                        ctx.fill();
+                        // Label text
+                        ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
+                        ctx.fillStyle = 'rgba(148,163,184,0.75)';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(sp.label, x, y - 22);
+                        ctx.restore();
+                    }});
+                }}
+            }};
+
+            // Helper: build a GERI vs Asset dual-axis chart
+            function makeGeriAssetChart(canvasId, assetData, assetLabel, assetColor, assetUnit, assetDec) {{
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                // Compute tight y1 range from non-null asset values
+                const assetVals = assetData.filter(v => v !== null && v !== undefined);
+                const assetMin  = assetVals.length ? Math.min(...assetVals) : 0;
+                const assetMax  = assetVals.length ? Math.max(...assetVals) : 1;
+                const pad       = (assetMax - assetMin) * 0.08 || 1;
+
+                function getBand(v) {{
+                    if (v === null || v === undefined) return '';
+                    if (v < 25) return 'LOW';
+                    if (v < 50) return 'MODERATE';
+                    if (v < 75) return 'ELEVATED';
+                    return 'SEVERE';
+                }}
+
+                return new Chart(canvas, {{
+                    type: 'line',
+                    plugins: [bandShadingPlugin, spikeAnnotPlugin],
+                    data: {{
+                        labels: ovLabels,
+                        datasets: [
+                            {{
+                                label: 'GERI',
+                                data: ovGeri,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59,130,246,0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: '#3b82f6',
+                                pointBorderColor: '#0a1628',
+                                pointBorderWidth: 2,
+                                yAxisID: 'y',
+                                spanGaps: false,
+                                order: 1
+                            }},
+                            {{
+                                label: assetLabel,
+                                data: assetData,
+                                borderColor: assetColor,
+                                backgroundColor: 'transparent',
+                                borderWidth: 1.5,
+                                borderDash: [5, 5],
+                                fill: false,
+                                tension: 0.3,
+                                pointRadius: 0,
+                                pointHoverRadius: 4,
+                                pointHoverBackgroundColor: assetColor,
+                                yAxisID: 'y1',
+                                spanGaps: true,
+                                order: 2
+                            }}
+                        ]
+                    }},
+                    options: {{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {{ mode: 'index', intersect: false }},
+                        plugins: {{
+                            legend: {{
+                                display: true,
+                                position: 'top',
+                                labels: {{
+                                    color: '#94a3b8',
+                                    usePointStyle: true,
+                                    padding: 16,
+                                    font: {{ size: 11 }}
+                                }}
+                            }},
+                            tooltip: {{
+                                backgroundColor: '#1e293b',
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#94a3b8',
+                                borderColor: '#334155',
+                                borderWidth: 1,
+                                padding: 10,
+                                displayColors: true,
+                                callbacks: {{
+                                    title: items => 'Date: ' + items[0].label,
+                                    label: ctx => {{
+                                        const v = ctx.parsed.y;
+                                        if (v === null || v === undefined) return null;
+                                        if (ctx.dataset.label === 'GERI') {{
+                                            return 'GERI: ' + v.toFixed(0) + '  (' + getBand(v) + ')';
+                                        }}
+                                        return assetLabel + ': ' + v.toFixed(assetDec) + ' ' + assetUnit;
+                                    }}
+                                }}
+                            }},
+                            zoom: {{
+                                pan: {{ enabled: true, mode: 'x' }},
+                                zoom: {{
+                                    wheel: {{ enabled: true }},
+                                    pinch: {{ enabled: true }},
+                                    mode: 'x'
+                                }}
+                            }}
                         }},
-                        {{
-                            label: 'Brent Oil',
-                            data: ovBrent,
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.8,
-                            pointRadius: 2,
-                            pointBackgroundColor: '#3b82f6',
-                            pointBorderColor: '#0f172a',
-                            pointBorderWidth: 1,
-                            tension: 0.3,
-                            spanGaps: true,
-                            order: 2
-                        }},
-                        {{
-                            label: 'TTF Gas',
-                            data: ovTtf,
-                            borderColor: '#22c55e',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.8,
-                            pointRadius: 2,
-                            pointBackgroundColor: '#22c55e',
-                            pointBorderColor: '#0f172a',
-                            pointBorderWidth: 1,
-                            tension: 0.3,
-                            spanGaps: true,
-                            order: 3
-                        }},
-                        {{
-                            label: 'VIX',
-                            data: ovVix,
-                            borderColor: '#a78bfa',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.8,
-                            pointRadius: 2,
-                            pointBackgroundColor: '#a78bfa',
-                            pointBorderColor: '#0f172a',
-                            pointBorderWidth: 1,
-                            tension: 0.3,
-                            spanGaps: true,
-                            order: 4
-                        }},
-                        {{
-                            label: 'EUR/USD',
-                            data: ovFx,
-                            borderColor: '#f59e0b',
-                            backgroundColor: 'transparent',
-                            borderWidth: 1.8,
-                            pointRadius: 2,
-                            pointBackgroundColor: '#f59e0b',
-                            pointBorderColor: '#0f172a',
-                            pointBorderWidth: 1,
-                            tension: 0.3,
-                            spanGaps: true,
-                            order: 5
-                        }}
-                    ]
-                }},
-                options: {{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {{ mode: 'index', intersect: false }},
-                    plugins: {{
-                        legend: {{ display: false }},
-                        tooltip: {{
-                            backgroundColor: '#1e293b',
-                            titleColor: '#f1f5f9',
-                            bodyColor: '#94a3b8',
-                            borderColor: '#334155',
-                            borderWidth: 1,
-                            callbacks: {{
-                                label: ctx => {{
-                                    const raw = ctx.parsed.y;
-                                    if (raw === null || raw === undefined) return null;
-                                    return ctx.dataset.label + ': ' + raw.toFixed(1);
+                        scales: {{
+                            x: {{
+                                grid: GRID,
+                                ticks: {{ ...TICK, maxTicksLimit: 10 }},
+                                border: {{ color: '#334155' }}
+                            }},
+                            y: {{
+                                min: 0, max: 100,
+                                position: 'left',
+                                grid: GRID,
+                                ticks: {{ ...TICK, stepSize: 25 }},
+                                border: {{ color: '#334155' }},
+                                title: {{
+                                    display: true,
+                                    text: 'GERI Value',
+                                    color: '#3b82f6',
+                                    font: {{ size: 10 }}
+                                }}
+                            }},
+                            y1: {{
+                                min: assetMin - pad,
+                                max: assetMax + pad,
+                                position: 'right',
+                                grid: {{ drawOnChartArea: false }},
+                                ticks: {{ color: assetColor, font: {{ size: 10 }} }},
+                                border: {{ color: '#334155' }},
+                                title: {{
+                                    display: true,
+                                    text: assetUnit,
+                                    color: assetColor,
+                                    font: {{ size: 10 }}
                                 }}
                             }}
                         }}
-                    }},
-                    scales: {{
-                        x: {{
-                            grid: GRID,
-                            ticks: {{ ...TICK, maxTicksLimit: 10 }},
-                            border: {{ color: '#334155' }}
-                        }},
-                        y: {{
-                            min: 0,
-                            max: 100,
-                            grid: GRID,
-                            ticks: {{ ...TICK, stepSize: 25, callback: v => v }},
-                            border: {{ color: '#334155' }},
-                            title: {{
-                                display: true,
-                                text: 'Normalised (0–100)',
-                                color: '#475569',
-                                font: {{ size: 10 }}
-                            }}
-                        }}
                     }}
-                }}
+                }});
+            }}
+
+            // Double-click to reset zoom on any canvas
+            ['chartBrent','chartTTF','chartVIX','chartFX','chartLNG'].forEach(id => {{
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('dblclick', () => {{
+                    if (el._chartInstance) el._chartInstance.resetZoom();
+                }});
             }});
+
+            // Create 5 charts
+            const cBrent = makeGeriAssetChart('chartBrent', ovBrent, 'Brent Oil (USD/barrel)', '#f59e0b', 'USD/bbl', 2);
+            const cTTF   = makeGeriAssetChart('chartTTF',   ovTtf,   'TTF Gas (EUR/MWh)',      '#8b5cf6', 'EUR/MWh', 2);
+            const cVIX   = makeGeriAssetChart('chartVIX',   ovVix,   'VIX (index)',             '#ef4444', 'index',   2);
+            const cFX    = makeGeriAssetChart('chartFX',    ovFx,    'EUR/USD',                 '#06b6d4', 'rate',    4);
+            const cLNG   = makeGeriAssetChart('chartLNG',   ovLng,   'LNG JKM (USD/MMBtu)',     '#10b981', 'USD/MMBtu', 2);
+
+            // Attach chart instances for dblclick reset
+            if (cBrent) document.getElementById('chartBrent')._chartInstance = cBrent;
+            if (cTTF)   document.getElementById('chartTTF')._chartInstance   = cTTF;
+            if (cVIX)   document.getElementById('chartVIX')._chartInstance   = cVIX;
+            if (cFX)    document.getElementById('chartFX')._chartInstance    = cFX;
+            if (cLNG)   document.getElementById('chartLNG')._chartInstance   = cLNG;
+
         }})();
         </script>
     </body>
