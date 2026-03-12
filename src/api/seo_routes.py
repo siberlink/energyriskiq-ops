@@ -8074,7 +8074,7 @@ async def geri_research_page(request: Request):
                     <div id="geri-cite-box" style="background:#0a1628;border:1px solid #1e293b;border-left:3px solid #3b82f6;border-radius:0 10px 10px 0;padding:1.4rem 1.5rem 1.4rem 1.5rem;font-family:'Courier New',Courier,monospace;line-height:1.85;">
                         <div style="color:#e2e8f0;font-size:0.9rem;">EnergyRiskIQ (2026).</div>
                         <div style="color:#e2e8f0;font-size:0.9rem;">Global Energy Risk Index (GERI) Methodology.</div>
-                        <div style="margin-top:0.2rem;"><a href="https://energyriskiq.com/research/global-energy-risk-index" style="color:#60a5fa;font-size:0.9rem;text-decoration:none;">https://energyriskiq.com/research/global-energy-risk-index</a></div>
+                        <div style="margin-top:0.2rem;word-break:break-all;overflow-wrap:break-word;"><a href="https://energyriskiq.com/research/global-energy-risk-index" style="color:#60a5fa;font-size:0.9rem;text-decoration:none;">https://energyriskiq.com/research/global-energy-risk-index</a></div>
                     </div>
                     <button onclick="
                         var t='EnergyRiskIQ (2026).\\nGlobal Energy Risk Index (GERI) Methodology.\\nhttps://energyriskiq.com/research/global-energy-risk-index';
