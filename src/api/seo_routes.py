@@ -8493,7 +8493,7 @@ async def geri_research_page(request: Request):
                     btn.innerHTML = '&#x2B07; Download';
                     btn.style.color = '#94a3b8';
                 }}, 2500);
-            }}
+            }};
 
             // Double-click to reset zoom on any canvas
             ['chartBrent','chartTTF','chartVIX','chartFX','chartLNG'].forEach(id => {{
