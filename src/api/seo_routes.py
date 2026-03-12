@@ -6224,7 +6224,7 @@ async def geri_research_page(request: Request):
             /* ── GERI vs Indicators section ─────────────────────────── */
             .indicator-grid {{
                 display: grid;
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
                 gap: 1rem;
                 margin: 1.5rem 0;
             }}
@@ -6317,12 +6317,6 @@ async def geri_research_page(request: Request):
                 line-height: 1.6;
             }}
             .indicator-callout .callout-text strong {{ color: #f97316; }}
-            @media (max-width: 1024px) {{
-                .indicator-grid {{ grid-template-columns: repeat(2, 1fr); }}
-            }}
-            @media (max-width: 480px) {{
-                .indicator-grid {{ grid-template-columns: 1fr; }}
-            }}
             @media (max-width: 768px) {{
                 .four-pillars-visual {{ grid-template-columns: repeat(2, 1fr); }}
                 .measure-tag {{ font-size: 0.74rem; }}
