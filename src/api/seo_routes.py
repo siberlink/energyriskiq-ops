@@ -7336,6 +7336,19 @@ async def geri_research_page(request: Request):
                     GERI does not move in isolation. The charts below show how it relates to key energy market assets over the last 30 days &mdash; each with GERI on the left axis (0&ndash;100) and the asset on its own right axis (actual price). Risk spikes and drops are annotated where GERI moved &ge;8 points in a single day.
                 </p>
 
+                <!-- Usage & Citation note -->
+                <div style="background:#0f172a;border:1px solid #334155;border-left:3px solid #3b82f6;border-radius:8px;padding:0.85rem 1.1rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:0.75rem;">
+                    <span style="font-size:1rem;flex-shrink:0;margin-top:0.05rem;">&#x2B07;</span>
+                    <div style="font-size:0.8rem;color:#94a3b8;line-height:1.6;">
+                        <strong style="color:#cbd5e1;">These charts are free to download and use.</strong>
+                        If you publish or share them, please credit the source:<br>
+                        <span style="font-family:monospace;color:#7dd3fc;font-size:0.77rem;">
+                            EnergyRiskIQ (2026). <em>Global Energy Risk Index (GERI) Methodology.</em>
+                            https://energyriskiq.com/research/global-energy-risk-index
+                        </span>
+                    </div>
+                </div>
+
                 <!-- 5 Dual-axis charts: GERI (left) vs Asset (right, dashed) -->
                 <div class="asset-chart-grid">
 
@@ -7345,7 +7358,7 @@ async def geri_research_page(request: Request):
                             <span class="asset-chart-title">GERI vs Brent Oil</span>
                             <div style="display:flex;align-items:center;gap:0.6rem;">
                                 <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
-                                <button id="copyBrentBtn" onclick="copyChartImg('chartBrent','copyBrentBtn')"
+                                <button id="copyBrentBtn" onclick="copyChartImg('chartBrent','copyBrentBtn','GERI-vs-Brent')"
                                     style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.2rem 0.55rem;font-size:0.68rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
                                     &#x2B07; Download
                                 </button>
@@ -7369,7 +7382,13 @@ async def geri_research_page(request: Request):
                     <div class="asset-chart-card">
                         <div class="asset-chart-header">
                             <span class="asset-chart-title">GERI vs TTF Gas</span>
-                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                            <div style="display:flex;align-items:center;gap:0.6rem;">
+                                <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                                <button id="copyTTFBtn" onclick="copyChartImg('chartTTF','copyTTFBtn','GERI-vs-TTF')"
+                                    style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.2rem 0.55rem;font-size:0.68rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
+                                    &#x2B07; Download
+                                </button>
+                            </div>
                         </div>
                         <div style="position:relative;height:220px;">
                             <canvas id="chartTTF"></canvas>
@@ -7389,7 +7408,13 @@ async def geri_research_page(request: Request):
                     <div class="asset-chart-card">
                         <div class="asset-chart-header">
                             <span class="asset-chart-title">GERI vs VIX</span>
-                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                            <div style="display:flex;align-items:center;gap:0.6rem;">
+                                <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                                <button id="copyVIXBtn" onclick="copyChartImg('chartVIX','copyVIXBtn','GERI-vs-VIX')"
+                                    style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.2rem 0.55rem;font-size:0.68rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
+                                    &#x2B07; Download
+                                </button>
+                            </div>
                         </div>
                         <div style="position:relative;height:220px;">
                             <canvas id="chartVIX"></canvas>
@@ -7409,7 +7434,13 @@ async def geri_research_page(request: Request):
                     <div class="asset-chart-card">
                         <div class="asset-chart-header">
                             <span class="asset-chart-title">GERI vs EUR/USD</span>
-                            <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                            <div style="display:flex;align-items:center;gap:0.6rem;">
+                                <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
+                                <button id="copyFXBtn" onclick="copyChartImg('chartFX','copyFXBtn','GERI-vs-EURUSD')"
+                                    style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.2rem 0.55rem;font-size:0.68rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
+                                    &#x2B07; Download
+                                </button>
+                            </div>
                         </div>
                         <div style="position:relative;height:220px;">
                             <canvas id="chartFX"></canvas>
@@ -7429,7 +7460,13 @@ async def geri_research_page(request: Request):
                     <div class="asset-chart-card full-width">
                         <div class="asset-chart-header">
                             <span class="asset-chart-title">GERI vs LNG (JKM)</span>
-                            <span style="font-size:0.68rem;color:#475569;">Last 30 days &mdash; Japan/Korea Marker (USD/MMBtu)</span>
+                            <div style="display:flex;align-items:center;gap:0.6rem;">
+                                <span style="font-size:0.68rem;color:#475569;">Last 30 days &mdash; Japan/Korea Marker (USD/MMBtu)</span>
+                                <button id="copyLNGBtn" onclick="copyChartImg('chartLNG','copyLNGBtn','GERI-vs-LNG')"
+                                    style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.2rem 0.55rem;font-size:0.68rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
+                                    &#x2B07; Download
+                                </button>
+                            </div>
                         </div>
                         <div style="position:relative;height:220px;">
                             <canvas id="chartLNG"></canvas>
@@ -8472,7 +8509,7 @@ async def geri_research_page(request: Request):
             }}
 
             // Download chart as PNG image (exposed globally for onclick)
-            window.copyChartImg = function(canvasId, btnId) {{
+            window.copyChartImg = function(canvasId, btnId, filename) {{
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const btn = document.getElementById(btnId);
@@ -8484,7 +8521,7 @@ async def geri_research_page(request: Request):
                 ctx.fillRect(0, 0, off.width, off.height);
                 ctx.drawImage(canvas, 0, 0);
                 const a = document.createElement('a');
-                a.download = canvasId + '.png';
+                a.download = (filename || canvasId) + '.png';
                 a.href = off.toDataURL('image/png');
                 a.click();
                 btn.textContent = '\u2713 Downloaded!';
