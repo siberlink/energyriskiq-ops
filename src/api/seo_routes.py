@@ -5823,14 +5823,22 @@ async def geri_research_page(request: Request):
     from datetime import datetime as _dt2, timedelta as _td2
     _rel_yesterday = (_dt2.utcnow() - _td2(days=1)).date()
 
+    # 24h DELAY RULE: The public "24h delayed" value is always the SECOND-TO-LAST
+    # entry in the table (OFFSET 1). The most recent row = today's computed value
+    # (not yet public). The second-most-recent row = yesterday's value = 24h delayed.
+    # e.g. today=2026-03-12 → latest row index_date=2026-03-11 (skip) →
+    #      second row index_date=2026-03-10 (show as 24h delayed).
+    # Pattern: ORDER BY date DESC OFFSET 1 LIMIT 1  (no date filter needed)
+
     _eeri_d = None
     try:
         _eeri_rows2 = execute_production_query("""
             SELECT value, band, date, trend_7d
             FROM reri_indices_daily
-            WHERE index_id = 'europe:eeri' AND date <= %s
-            ORDER BY date DESC LIMIT 1
-        """, (_rel_yesterday,))
+            WHERE index_id = 'europe:eeri'
+            ORDER BY date DESC
+            OFFSET 1 LIMIT 1
+        """)
         if _eeri_rows2:
             _eeri_d = _eeri_rows2[0]
     except Exception:
@@ -5841,9 +5849,10 @@ async def geri_research_page(request: Request):
         _egsi_rows2 = execute_production_query("""
             SELECT index_value as value, band, index_date as date, trend_7d
             FROM egsi_m_daily
-            WHERE region = 'Europe' AND index_date <= %s
-            ORDER BY index_date DESC LIMIT 1
-        """, (_rel_yesterday,))
+            WHERE region = 'Europe'
+            ORDER BY index_date DESC
+            OFFSET 1 LIMIT 1
+        """)
         if _egsi_rows2:
             _egsi_d = _egsi_rows2[0]
     except Exception:

@@ -6,6 +6,12 @@
 
 2. **VERIFY DATA FROM PRODUCTION FIRST.** Before building any feature that displays data, query the production DB using `executeSql({ environment: "production", sqlQuery: "..." })` in the code execution sandbox to confirm what data exists and in which tables.
 
+3. **24H DELAY RULE FOR PUBLIC INDEX CARDS.** When displaying a "24h delayed" value for any index on a public page, always fetch the **second-to-last** (OFFSET 1) row from the table — NOT the most recent row, and NOT filtered by `date <= yesterday`. The most recent row is today's freshly computed value (not yet public). The second-most-recent row is the 24h-delayed public value.
+   - **EERI** → `SELECT ... FROM reri_indices_daily WHERE index_id='europe:eeri' ORDER BY date DESC OFFSET 1 LIMIT 1`
+   - **EGSI-M** → `SELECT ... FROM egsi_m_daily WHERE region='Europe' ORDER BY index_date DESC OFFSET 1 LIMIT 1`
+   - **GERI** → `SELECT ... FROM intel_indices_daily WHERE index_id='global:geo_energy_risk' ORDER BY date DESC OFFSET 1 LIMIT 1`
+   - Example: today=2026-03-12 → latest row has index_date=2026-03-11 (skip, not yet public) → second row has index_date=2026-03-10 (show as 24h delayed).
+
 ---
 
 ## Overview
