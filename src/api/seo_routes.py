@@ -5854,11 +5854,11 @@ async def geri_research_page(request: Request):
         'SEVERE': '#1f0606', 'CRITICAL': '#200505'
     }
     _rd_interp_map = {
-        'LOW':      'Global energy risk is low. Geopolitical and supply-chain pressures are subdued, with no significant escalation signals across major producing regions. Markets are operating within normal parameters.',
-        'MODERATE': 'A moderate risk environment is indicated. Background geopolitical tensions and regional supply concerns are present, but systemic contagion risk is not elevated. Standard monitoring posture is appropriate.',
-        'ELEVATED': 'An elevated risk environment is indicated, with meaningful geopolitical and supply-chain pressures accumulating across multiple regions. Active monitoring and hedging consideration is warranted for energy-exposed positions.',
-        'SEVERE':   'A severe risk environment is indicated. Multiple geopolitical escalation vectors and supply disruption signals are converging, placing significant pressure on global energy markets. Active risk management and contingency planning are strongly advised.',
-        'CRITICAL': 'A critical systemic risk environment is indicated. Risk signals have converged across regions and asset classes, consistent with historical precedents for imminent supply disruption and market dislocation. Defensive positioning and emergency protocols are indicated.',
+        'LOW':      'Geopolitical and supply-chain pressures are subdued. No significant escalation signals are present across major producing regions, and markets are operating within normal risk parameters.',
+        'MODERATE': 'Background geopolitical tensions and regional supply concerns are present, but systemic contagion risk remains contained. The current environment warrants standard monitoring with no urgent defensive action required.',
+        'ELEVATED': 'Meaningful geopolitical and supply-chain pressures are accumulating across multiple regions. Energy-exposed positions merit active monitoring, and hedging consideration is warranted as risk signals trend higher.',
+        'SEVERE':   'Multiple geopolitical escalation vectors and supply disruption signals are converging, placing significant pressure on global energy markets. Active risk management and contingency planning are strongly advised.',
+        'CRITICAL': 'Risk signals have converged across regions and asset classes, consistent with conditions that have historically preceded sharp supply disruptions and market dislocation. Defensive positioning is strongly recommended.',
     }
 
     if _reading_d:
@@ -7497,7 +7497,7 @@ async def geri_research_page(request: Request):
                 </p>
 
                 <!-- Card — matches /indices/global-energy-risk-index style, links there -->
-                <a href="/indices/global-energy-risk-index" style="text-decoration:none;display:block;max-width:480px;">
+                <a href="/indices/global-energy-risk-index" style="text-decoration:none;display:block;max-width:480px;margin:0 auto;">
                 <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;transition:border-color 0.2s;" onmouseover="this.style.borderColor='{_rd_color}'" onmouseout="this.style.borderColor='#1e293b'">
                     <div style="height:4px;background:{_rd_color};"></div>
                     <div style="padding:1.75rem 2rem 1.5rem;text-align:center;">
