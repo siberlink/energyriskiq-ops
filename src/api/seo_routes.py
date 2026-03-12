@@ -7061,6 +7061,7 @@ async def geri_research_page(request: Request):
                             <h3>Normalization &amp; Risk Bands</h3>
                             <p>The index maintains a rolling historical baseline for normalization purposes. This baseline tracks observed values over a rolling window, ensuring the 0&ndash;100 scale remains calibrated to the range of conditions actually observed. This prevents the index from clustering at one end during prolonged periods of high or low risk.</p>
                             <p>Each daily GERI value maps to one of five risk bands, accompanied by 1-day and 7-day trend indicators:</p>
+                            <div class="regime-table-wrap">
                             <table class="regime-table">
                                 <thead>
                                     <tr>
@@ -7097,6 +7098,7 @@ async def geri_research_page(request: Request):
                                     </tr>
                                 </tbody>
                             </table>
+                            </div>
                             <p>Trend context matters: a GERI of 60 that has risen 15 points in a week carries a very different implication than a GERI of 60 that has fallen 10 points over the same period.</p>
                         </div>
                     </div>
