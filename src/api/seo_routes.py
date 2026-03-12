@@ -5819,6 +5819,73 @@ async def geri_research_page(request: Request):
     _ov_lng_js      = _json.dumps(_ov_lng_raw)
     _geri_spikes_js = _json.dumps(_geri_spikes_py)
 
+    # ── Section 11: Related Indices — EERI & EGSI (24h delayed) ──────────────
+    from datetime import datetime as _dt2, timedelta as _td2
+    _rel_yesterday = (_dt2.utcnow() - _td2(days=1)).date()
+
+    _eeri_d = None
+    try:
+        _eeri_rows2 = execute_production_query("""
+            SELECT value, band, date, trend_7d
+            FROM reri_indices_daily
+            WHERE index_id = 'europe:eeri' AND date <= %s
+            ORDER BY date DESC LIMIT 1
+        """, (_rel_yesterday,))
+        if _eeri_rows2:
+            _eeri_d = _eeri_rows2[0]
+    except Exception:
+        pass
+
+    _egsi_d = None
+    try:
+        _egsi_rows2 = execute_production_query("""
+            SELECT index_value as value, band, index_date as date, trend_7d
+            FROM egsi_m_daily
+            WHERE region = 'Europe' AND index_date <= %s
+            ORDER BY index_date DESC LIMIT 1
+        """, (_rel_yesterday,))
+        if _egsi_rows2:
+            _egsi_d = _egsi_rows2[0]
+    except Exception:
+        pass
+
+    _rel_band_colors = {
+        'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316',
+        'SEVERE': '#ef4444', 'CRITICAL': '#dc2626'
+    }
+    _rel_band_bg = {
+        'LOW': '#052e16', 'MODERATE': '#1c1200', 'ELEVATED': '#1c0a00',
+        'SEVERE': '#1f0606', 'CRITICAL': '#200505'
+    }
+
+    def _rel_val_str(row, key='value'):
+        if not row: return 'N/A'
+        v = row.get(key)
+        if v is None: return 'N/A'
+        fv = float(v)
+        return str(int(fv)) if fv == int(fv) else str(round(fv, 1))
+
+    def _rel_trend_str(row):
+        if not row: return ''
+        t = row.get('trend_7d')
+        if t is None: return ''
+        sign = '+' if float(t) >= 0 else ''
+        return f'{sign}{int(float(t))} (7d)'
+
+    _eeri_val      = _rel_val_str(_eeri_d)
+    _eeri_band     = (_eeri_d.get('band') or 'N/A') if _eeri_d else 'N/A'
+    _eeri_color    = _rel_band_colors.get(_eeri_band, '#64748b')
+    _eeri_bg       = _rel_band_bg.get(_eeri_band, '#0a1628')
+    _eeri_date     = str(_eeri_d['date']) if _eeri_d else '—'
+    _eeri_trend    = _rel_trend_str(_eeri_d)
+
+    _egsi_val      = _rel_val_str(_egsi_d)
+    _egsi_band     = (_egsi_d.get('band') or 'N/A') if _egsi_d else 'N/A'
+    _egsi_color    = _rel_band_colors.get(_egsi_band, '#64748b')
+    _egsi_bg       = _rel_band_bg.get(_egsi_band, '#0a1628')
+    _egsi_date     = str(_egsi_d['date']) if _egsi_d else '—'
+    _egsi_trend    = _rel_trend_str(_egsi_d)
+
     html = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -7716,6 +7783,110 @@ async def geri_research_page(request: Request):
                         <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
                             <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
                                 GERI is designed for professionals who need a reliable, quantitative signal to contextualise geopolitical and energy supply risk: macro traders, CIOs and risk committees, asset allocators, energy strategists, hedge funds with commodity exposure, and research analysts covering energy markets. It is also used as a monitoring and briefing tool by corporate energy procurement teams and journalists covering global energy security. GERI is a macro, regime-level index — it is not intended for short-term trading or operational decision-making at the asset level.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            </div>
+
+            <!-- Section 11: Related Energy Risk Indices -->
+            <div class="container">
+            <div class="research-section" id="geri-related-indices">
+                <h2>Related Energy Risk Indices</h2>
+                <p style="color:#94a3b8;font-size:1rem;line-height:1.75;max-width:780px;margin-bottom:2.5rem;">
+                    GERI is the global macro layer of a broader intelligence stack. Two companion indices provide
+                    deeper regional and sector-specific risk signals.
+                </p>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;">
+
+                    <!-- EERI Card -->
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;">
+                        <!-- Card header band strip -->
+                        <div style="height:4px;background:{_eeri_color};"></div>
+                        <div style="padding:1.75rem 1.75rem 1.5rem;">
+                            <!-- Title row -->
+                            <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;">
+                                <span style="font-size:1.3rem;">⚡</span>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#e2e8f0;line-height:1.2;">European Energy Risk Index</div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-top:0.1rem;">EERI · Regional Escalation Risk</div>
+                                </div>
+                            </div>
+
+                            <!-- Value block -->
+                            <div style="background:{_eeri_bg};border:1px solid {_eeri_color}22;border-radius:10px;padding:1.25rem 1.5rem;text-align:center;margin-bottom:1.25rem;">
+                                <div style="font-size:2.6rem;font-weight:800;color:{_eeri_color};line-height:1;letter-spacing:-0.02em;">
+                                    {_eeri_val}<span style="font-size:1.1rem;font-weight:400;color:#475569;"> / 100</span>
+                                </div>
+                                <div style="font-size:1rem;font-weight:700;color:{_eeri_color};margin-top:0.5rem;letter-spacing:0.05em;">{_eeri_band}</div>
+                                <div style="font-size:0.75rem;color:#475569;margin-top:0.4rem;">0 = minimal risk · 100 = extreme systemic stress</div>
+                            </div>
+
+                            <!-- Stats row -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap;gap:0.5rem;">
+                                <div style="font-size:0.8rem;color:#64748b;">
+                                    Last updated: <span style="color:#94a3b8;font-weight:600;">{_eeri_date}</span>
+                                </div>
+                                {"" if not _eeri_trend else f'<div style="font-size:0.8rem;color:#94a3b8;font-weight:600;">{_eeri_trend}</div>'}
+                            </div>
+
+                            <!-- 24h badge -->
+                            <div style="border:1px solid #854d0e;border-radius:6px;padding:0.4rem 0.75rem;text-align:center;background:#1c0a00;">
+                                <span style="font-size:0.75rem;font-weight:600;color:#f59e0b;letter-spacing:0.04em;">Public value delay: 24 hours</span>
+                            </div>
+
+                            <!-- What it measures -->
+                            <p style="color:#64748b;font-size:0.8rem;line-height:1.6;margin:1.1rem 0 0;border-top:1px solid #1e293b;padding-top:1rem;">
+                                Tracks geopolitical risk, gas supply disruptions, and market stress across
+                                European energy systems. A regional tactical index — faster-moving than GERI
+                                and directly actionable for European gas and power markets.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- EGSI Card -->
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;">
+                        <div style="height:4px;background:{_egsi_color};"></div>
+                        <div style="padding:1.75rem 1.75rem 1.5rem;">
+                            <!-- Title row -->
+                            <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;">
+                                <span style="font-size:1.3rem;">🔋</span>
+                                <div>
+                                    <div style="font-size:0.95rem;font-weight:700;color:#e2e8f0;line-height:1.2;">Europe Gas Stress Index</div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-top:0.1rem;">EGSI-M · Market Stress</div>
+                                </div>
+                            </div>
+
+                            <!-- Value block -->
+                            <div style="background:{_egsi_bg};border:1px solid {_egsi_color}22;border-radius:10px;padding:1.25rem 1.5rem;text-align:center;margin-bottom:1.25rem;">
+                                <div style="font-size:2.6rem;font-weight:800;color:{_egsi_color};line-height:1;letter-spacing:-0.02em;">
+                                    {_egsi_val}<span style="font-size:1.1rem;font-weight:400;color:#475569;"> / 100</span>
+                                </div>
+                                <div style="font-size:1rem;font-weight:700;color:{_egsi_color};margin-top:0.5rem;letter-spacing:0.05em;">{_egsi_band}</div>
+                                <div style="font-size:0.75rem;color:#475569;margin-top:0.4rem;">0 = minimal stress · 100 = extreme gas market stress</div>
+                            </div>
+
+                            <!-- Stats row -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap;gap:0.5rem;">
+                                <div style="font-size:0.8rem;color:#64748b;">
+                                    Last updated: <span style="color:#94a3b8;font-weight:600;">{_egsi_date}</span>
+                                </div>
+                                {"" if not _egsi_trend else f'<div style="font-size:0.8rem;color:#94a3b8;font-weight:600;">{_egsi_trend}</div>'}
+                            </div>
+
+                            <!-- 24h badge -->
+                            <div style="border:1px solid #854d0e;border-radius:6px;padding:0.4rem 0.75rem;text-align:center;background:#1c0a00;">
+                                <span style="font-size:0.75rem;font-weight:600;color:#f59e0b;letter-spacing:0.04em;">Public value delay: 24 hours</span>
+                            </div>
+
+                            <!-- What it measures -->
+                            <p style="color:#64748b;font-size:0.8rem;line-height:1.6;margin:1.1rem 0 0;border-top:1px solid #1e293b;padding-top:1rem;">
+                                A daily composite measure of gas transmission stress, infrastructure
+                                pressure, and supply chain vulnerability across European gas markets.
+                                Covers chokepoints, storage conditions, and asset-level risk signals.
                             </p>
                         </div>
                     </div>
