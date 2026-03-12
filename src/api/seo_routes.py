@@ -5875,11 +5875,29 @@ async def geri_research_page(request: Request):
         _rd_t7d_col  = '#ef4444' if (_rd_t7d or 0) > 0 else ('#22c55e' if (_rd_t7d or 0) < 0 else '#64748b')
         _rd_range_str = f'{_reading_range_min}–{_reading_range_max}' if _reading_range_min is not None else 'N/A'
         _rd_interp   = _reading_d.get('interpretation') or _rd_interp_map.get(_rd_band, '')
+        _rd_interp_short    = _rd_interp[:300]
+        _rd_interp_rest     = _rd_interp[300:]
+        _rd_interp_has_more = len(_rd_interp) > 300
+        _rd_ellipsis        = '…' if _rd_interp_has_more else ''
+        _rd_p_margin        = '0.45rem' if _rd_interp_has_more else '0'
+        _rd_onclick = "document.getElementById('rd-interp-rest').style.display='block';this.style.display='none';"
+        _rd_rest_html = (
+            '<p id="rd-interp-rest" style="color:#94a3b8;font-size:0.84rem;line-height:1.75;margin:0.45rem 0 0;display:none;">'
+            + _rd_interp_rest +
+            '</p><button onclick="' + _rd_onclick + '" '
+            'style="background:none;border:none;padding:0;font-size:0.78rem;font-weight:600;color:#3b82f6;cursor:pointer;margin-top:0.15rem;">Read more \u2193</button>'
+        ) if _rd_interp_has_more else ''
     else:
         _rd_val = _rd_band = _rd_color = _rd_bg = _rd_date = ''
         _rd_t1d_str = _rd_t7d_str = _rd_range_str = 'N/A'
         _rd_t1d_col = _rd_t7d_col = '#64748b'
         _rd_interp = ''
+        _rd_interp_short = ''
+        _rd_interp_rest = ''
+        _rd_interp_has_more = False
+        _rd_ellipsis = ''
+        _rd_p_margin = '0'
+        _rd_rest_html = ''
 
     # ── Section 11: Related Indices — EERI & EGSI (24h delayed) ──────────────
     from datetime import datetime as _dt2, timedelta as _td2
@@ -7544,9 +7562,10 @@ async def geri_research_page(request: Request):
                         </div>
 
                         <!-- Interpretation -->
-                        <div style="background:#0a1628;border:1px solid #1e293b;border-left:3px solid {_rd_color};border-radius:0 8px 8px 0;padding:0.9rem 1rem;text-align:left;margin-bottom:1.2rem;">
-                            <div style="font-size:0.68rem;font-weight:700;color:{_rd_color};letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.35rem;">Interpretation</div>
-                            <p style="color:#94a3b8;font-size:0.83rem;line-height:1.65;margin:0;">{_rd_interp}</p>
+                        <div style="background:#0a1628;border:1px solid #1e293b;border-left:3px solid {_rd_color};border-radius:0 8px 8px 0;padding:1.1rem 1.15rem 1rem;text-align:left;margin-bottom:1.2rem;">
+                            <div style="font-size:0.68rem;font-weight:700;color:{_rd_color};letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.65rem;">Interpretation</div>
+                            <p style="color:#94a3b8;font-size:0.84rem;line-height:1.75;margin:0 0 {_rd_p_margin};">{_rd_interp_short}{_rd_ellipsis}</p>
+                            {_rd_rest_html}
                         </div>
 
                         <!-- CTA -->
