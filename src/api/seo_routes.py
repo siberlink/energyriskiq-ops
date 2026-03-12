@@ -7350,6 +7350,200 @@ async def geri_research_page(request: Request):
             </div>
             </div>
 
+            <!-- Section 9: Limitations of the Index -->
+            <div class="container">
+            <div class="research-section" id="geri-limitations">
+                <h2>Limitations of the Index</h2>
+                <p style="color:#94a3b8;font-size:1rem;line-height:1.75;max-width:780px;margin-bottom:2.5rem;">
+                    GERI is built with a commitment to transparency. Understanding what the index <em>cannot</em> do
+                    is as important as understanding what it can. The following limitations are drawn directly from
+                    the methodology specification and ongoing source intelligence assessments.
+                </p>
+
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:2rem;">
+
+                    <!-- Card 1: Daily cadence -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">⏱</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Daily Cadence, Not Real-Time</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#1e3a5f;color:#60a5fa;">By Design</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    GERI is a <strong style="color:#cbd5e1;">daily index</strong>. A flash event occurring at midday —
+                                    a pipeline strike, an emergency OPEC statement — will not appear in the index until
+                                    the following day's computation window. Intraday risk tracking requires a separate
+                                    instrument; GERI captures the 24-hour aggregate picture.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Not a price predictor -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#3b1f08;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📈</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Risk Input, Not Price Output</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#3b1f08;color:#f59e0b;">By Design</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    GERI <strong style="color:#cbd5e1;">does not predict asset prices</strong>. A rising index means
+                                    risk inputs are increasing — it does not guarantee Brent, TTF, or VIX will move in
+                                    any specific direction. The relationship is mediated by market positioning,
+                                    storage buffers, and participant expectations. GERI identifies the risk
+                                    environment; it does not trade it.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Keyword classification -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#2d1f3d;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🏷</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Keyword-Based Event Classification</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#1a2e22;color:#22c55e;">Planned Improvement</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    Events are classified into types and regions using a
+                                    <strong style="color:#cbd5e1;">keyword and heuristic ruleset</strong>, not machine-learning NLP.
+                                    Novel event types, ambiguous phrasing, or geopolitical scenarios outside
+                                    the existing keyword vocabulary may be misclassified or assigned
+                                    incorrect regional weights. Named Entity Recognition and semantic
+                                    clustering are on the development roadmap.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Title-based deduplication -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#2d1f3d;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🔁</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Title-Based Deduplication Only</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#1a2e22;color:#22c55e;">Planned Improvement</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    When multiple sources report the same underlying event with
+                                    <strong style="color:#cbd5e1;">different headlines</strong>, the current deduplication system
+                                    may count them as separate events, slightly inflating the affected pillar.
+                                    Semantic deduplication — grouping events by meaning rather than title
+                                    similarity — is a confirmed planned enhancement requiring accumulated
+                                    historical data to train.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: No temporal resolution -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#2d1f3d;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📅</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">No Temporal Event Resolution</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#1a2e22;color:#22c55e;">Planned Improvement</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    The pipeline does not yet distinguish between
+                                    <strong style="color:#cbd5e1;">developing and resolved events</strong>. A ceasefire or
+                                    resolved supply disruption continues to contribute to the scoring
+                                    window until the 24-hour window expires. This can cause the index
+                                    to remain elevated for a brief period after a risk event has de-escalated.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Geographic coverage gaps -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#1e2a0a;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🌍</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Source Coverage Gaps</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#3b2008;color:#f97316;">Known Limitation</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    Despite recent expansion to 24 curated feeds, the source portfolio
+                                    remains <strong style="color:#cbd5e1;">underweighted in four domains</strong>: Middle East
+                                    military and security intelligence, China demand-side signals, maritime
+                                    chokepoint monitoring (Suez, Hormuz, Red Sea), and direct OPEC
+                                    producer-level intelligence. Events in these domains may be underrepresented
+                                    relative to their true market impact.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 7: Limited historical baseline -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#3b2008;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📊</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Short Historical Baseline</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#3b2008;color:#f97316;">Known Limitation</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    The 0–100 scale is normalised against the
+                                    <strong style="color:#cbd5e1;">historical range of observed values</strong>. With the index
+                                    still in early operation (v1.1, launched February 2026), the
+                                    calibration window is inherently short. Extreme readings — both
+                                    very low and very high — carry less statistical reliability than
+                                    they will once the index accumulates multi-year data across
+                                    diverse geopolitical cycles.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 8: Scope boundaries -->
+                    <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
+                        <div style="display:flex;align-items:flex-start;gap:1rem;">
+                            <div style="flex-shrink:0;width:40px;height:40px;border-radius:8px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🔒</div>
+                            <div style="flex:1;">
+                                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                                    <span style="font-size:0.9rem;font-weight:700;color:#e2e8f0;">Defined Scope Boundaries</span>
+                                    <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:4px;background:#1e3a5f;color:#60a5fa;">By Design</span>
+                                </div>
+                                <p style="color:#94a3b8;font-size:0.84rem;line-height:1.65;margin:0;">
+                                    GERI covers <strong style="color:#cbd5e1;">geopolitical and energy supply risk only</strong>.
+                                    Financial systemic risk, credit risk, and natural or climate
+                                    disasters are outside scope except insofar as they directly affect
+                                    energy markets. A banking crisis that does not touch energy supply
+                                    chains will not register in GERI, even if it causes significant
+                                    broader market volatility.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Transparency callout -->
+                <div style="background:linear-gradient(135deg,#0f1e38 0%,#0a1628 100%);border:1px solid #1d4ed8;border-left:4px solid #3b82f6;border-radius:10px;padding:1.4rem 1.6rem;display:flex;align-items:flex-start;gap:1rem;">
+                    <div style="flex-shrink:0;font-size:1.3rem;margin-top:0.1rem;">🔎</div>
+                    <div>
+                        <div style="font-size:0.8rem;font-weight:700;color:#60a5fa;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.4rem;">Methodology Commitment</div>
+                        <p style="color:#94a3b8;font-size:0.875rem;line-height:1.7;margin:0;">
+                            These limitations are published as part of our methodology documentation, not disclosed selectively. Every index version is tagged and archived,
+                            and model changes are implemented only through formal version upgrades with documented rationale — no silent adjustments, no editorial override.
+                            The full methodology specification is available to <strong style="color:#cbd5e1;">Pro and above subscribers</strong>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            </div>
+
         </main>
 
         {render_digest_footer()}
