@@ -7346,6 +7346,16 @@ async def geri_research_page(request: Request):
                             EnergyRiskIQ (2026). <em>Global Energy Risk Index (GERI) Methodology.</em>
                             https://energyriskiq.com/research/global-energy-risk-index
                         </span>
+                        <div style="margin-top:0.65rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                            <button id="chartCiteBtn"
+                                onclick="navigator.clipboard.writeText('EnergyRiskIQ (2026). Global Energy Risk Index (GERI) Methodology. https://energyriskiq.com/research/global-energy-risk-index').then(function(){{var b=document.getElementById('chartCiteBtn');b.textContent='\u2713 Copied!';b.style.color='#22c55e';setTimeout(function(){{b.textContent='Copy Citation';b.style.color='#94a3b8';}},2000);}});"
+                                style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.25rem 0.65rem;font-size:0.75rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
+                                Copy Citation
+                            </button>
+                            <a href="#geri-citation" style="font-size:0.75rem;color:#60a5fa;text-decoration:none;font-weight:500;">
+                                &#x2192; Citation &amp; Reference
+                            </a>
+                        </div>
                     </div>
                 </div>
 
