@@ -6976,7 +6976,7 @@ async def geri_research_page(request: Request):
                     <p style="text-align: center; color: #64748b; font-size: 0.82rem; margin-top: 0.5rem;">The Four Pillars of GERI &mdash; weighted composite architecture</p>
                 </div>
 
-                <div class="research-section">
+                <div class="research-section" id="geri-methodology">
                     <h2>How GERI Is Calculated (Methodology)</h2>
 
                     <p>GERI is computed algorithmically from structured intelligence inputs. There is no editorial override, manual adjustment, or subjective intervention in the daily index value. The methodology is fixed for each model version, and changes are implemented only through formal version upgrades.</p>
