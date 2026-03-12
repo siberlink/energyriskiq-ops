@@ -6940,6 +6940,7 @@ async def geri_research_page(request: Request):
                 </div>
             </div>
 
+            <div class="container">
             <!-- Section 7: GERI vs Traditional Market Indicators -->
             <div class="research-section" id="geri-vs-indicators">
                 <h2>GERI vs Traditional Market Indicators</h2>
@@ -6989,6 +6990,7 @@ async def geri_research_page(request: Request):
                         <strong>The key distinction:</strong> Oil prices, VIX, and TTF respond to risk that has already materialised in markets. GERI captures the risk environment as it builds &mdash; the accumulation of geopolitical events, supply chain disruptions, and regional escalation &mdash; before those pressures fully translate into price. In the US-Israel Iran strike example above, GERI climbed from 30 to 50 (ELEVATED) on the strike date and reached <strong>69 (SEVERE)</strong> three days later, while Brent only peaked at $81.40 days after the alerts first fired. GERI provided the early structural read.
                     </div>
                 </div>
+            </div>
             </div>
         </main>
 
