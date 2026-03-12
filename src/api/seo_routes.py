@@ -7360,7 +7360,7 @@ async def geri_research_page(request: Request):
                     the methodology specification and ongoing source intelligence assessments.
                 </p>
 
-                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:2rem;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.25rem;margin-bottom:2rem;">
 
                     <!-- Card 1: Daily cadence -->
                     <div style="background:#0a1628;border:1px solid #1e293b;border-radius:10px;padding:1.5rem;">
