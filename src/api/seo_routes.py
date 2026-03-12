@@ -7347,7 +7347,7 @@ async def geri_research_page(request: Request):
                                 <span style="font-size:0.68rem;color:#475569;">Last 30 days</span>
                                 <button id="copyBrentBtn" onclick="copyChartImg('chartBrent','copyBrentBtn')"
                                     style="background:#1e293b;border:1px solid #334155;border-radius:5px;padding:0.2rem 0.55rem;font-size:0.68rem;font-weight:600;color:#94a3b8;cursor:pointer;white-space:nowrap;">
-                                    &#x1F4CB; Copy
+                                    &#x2B07; Download
                                 </button>
                             </div>
                         </div>
@@ -8471,12 +8471,11 @@ async def geri_research_page(request: Request):
                 }});
             }}
 
-            // Copy chart as image to clipboard
+            // Download chart as PNG image
             function copyChartImg(canvasId, btnId) {{
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
                 const btn = document.getElementById(btnId);
-                // Composite canvas: dark background + chart on top
                 const off = document.createElement('canvas');
                 off.width  = canvas.width;
                 off.height = canvas.height;
@@ -8484,25 +8483,16 @@ async def geri_research_page(request: Request):
                 ctx.fillStyle = '#1e293b';
                 ctx.fillRect(0, 0, off.width, off.height);
                 ctx.drawImage(canvas, 0, 0);
-                off.toBlob(function(blob) {{
-                    if (!blob) return;
-                    try {{
-                        navigator.clipboard.write([new ClipboardItem({{'image/png': blob}})]).then(function() {{
-                            btn.textContent = '\u2713 Copied!';
-                            btn.style.color = '#22c55e';
-                            setTimeout(function() {{
-                                btn.innerHTML = '&#x1F4CB; Copy';
-                                btn.style.color = '#94a3b8';
-                            }}, 2500);
-                        }});
-                    }} catch(e) {{
-                        // Fallback: trigger download
-                        const a = document.createElement('a');
-                        a.download = canvasId + '.png';
-                        a.href = off.toDataURL('image/png');
-                        a.click();
-                    }}
-                }}, 'image/png');
+                const a = document.createElement('a');
+                a.download = canvasId + '.png';
+                a.href = off.toDataURL('image/png');
+                a.click();
+                btn.textContent = '\u2713 Downloaded!';
+                btn.style.color = '#22c55e';
+                setTimeout(function() {{
+                    btn.innerHTML = '&#x2B07; Download';
+                    btn.style.color = '#94a3b8';
+                }}, 2500);
             }}
 
             // Double-click to reset zoom on any canvas
