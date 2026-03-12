@@ -6795,17 +6795,7 @@ async def geri_research_page(request: Request):
                     <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
                     EnergyRiskIQ
                 </a>
-                <button class="mobile-menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
-                    <span></span><span></span><span></span>
-                </button>
-                <div class="nav-links">
-                    <a href="/indices/global-energy-risk-index">GERI</a>
-                    <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
-                    <a href="/daily-geo-energy-intelligence-digest">Digest</a>
-                    <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
-                </div>
+                <a href="/users" class="cta-btn-nav">Get FREE Access</a>
             </div>
         </nav>
         <main>
@@ -8059,7 +8049,18 @@ async def geri_research_page(request: Request):
 
         </main>
 
-        {render_digest_footer()}
+        <footer>
+            <div class="footer-inner" style="max-width:900px;margin:0 auto;padding:1.25rem 1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;border-top:1px solid #1e293b;">
+                <div style="color:#64748b;font-size:0.85rem;">&copy; 2026 EnergyRiskIQ. All rights reserved.</div>
+                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                    <a href="/" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Home</a>
+                    <a href="/indices" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Indices</a>
+                    <a href="/privacy" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Privacy</a>
+                    <a href="/terms" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Terms</a>
+                </div>
+            </div>
+        </footer>
+
         <script>
         (function() {{
             const GRID = {{ color: 'rgba(51,65,85,0.5)' }};
