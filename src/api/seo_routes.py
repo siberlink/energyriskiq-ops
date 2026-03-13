@@ -1530,6 +1530,33 @@ async def sitemap_digest_xml():
     return Response(content=_render_urlset_xml(entries), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
 
 
+@router.get("/sitemap-research.xml", response_class=Response)
+async def sitemap_research_xml():
+    """Research pages sitemap."""
+    from datetime import date as _date
+    today = _date.today().isoformat()
+
+    pages = [
+        ("https://energyriskiq.com/research/global-energy-risk-index", "monthly", "0.8"),
+    ]
+
+    entries = ""
+    for loc, freq, pri in pages:
+        entries += f"""
+<url>
+<loc>{loc}</loc>
+<lastmod>{today}</lastmod>
+<changefreq>{freq}</changefreq>
+<priority>{pri}</priority>
+</url>
+"""
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{entries}</urlset>"""
+    return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
 @router.get("/sitemap.xml", response_class=Response)
 async def sitemap_xml():
     """Sitemap index served directly at /sitemap.xml."""
@@ -1537,10 +1564,11 @@ async def sitemap_xml():
     today = _date.today().isoformat()
 
     sitemaps = [
-        ('sitemap-core.xml',    today),
-        ('sitemap-alerts.xml',  today),
-        ('sitemap-indices.xml', today),
-        ('sitemap-digest.xml',  today),
+        ('sitemap-core.xml',     today),
+        ('sitemap-alerts.xml',   today),
+        ('sitemap-indices.xml',  today),
+        ('sitemap-digest.xml',   today),
+        ('sitemap-research.xml', today),
     ]
 
     sitemap_entries = ""
