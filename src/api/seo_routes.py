@@ -1495,9 +1495,32 @@ async def sitemap_alerts_xml():
 
 @router.get("/sitemap-indices.xml", response_class=Response)
 async def sitemap_indices_xml():
-    """Index snapshot pages sitemap (GERI/EERI/EGSI, last 60 days + monthly archives)."""
-    entries = generate_sitemap_indices_entries(limit=60)
-    return Response(content=_render_urlset_xml(entries), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+    """Indices authority pages sitemap."""
+    from datetime import date as _date
+    today = _date.today().isoformat()
+
+    pages = [
+        ("https://energyriskiq.com/indices",                         "weekly", "0.9"),
+        ("https://energyriskiq.com/indices/global-energy-risk-index","daily",  "0.9"),
+        ("https://energyriskiq.com/indices/european-energy-risk-index","daily", "0.9"),
+        ("https://energyriskiq.com/indices/europe-gas-stress-index",  "daily",  "0.9"),
+    ]
+
+    entries = ""
+    for loc, freq, pri in pages:
+        entries += f"""
+<url>
+<loc>{loc}</loc>
+<lastmod>{today}</lastmod>
+<changefreq>{freq}</changefreq>
+<priority>{pri}</priority>
+</url>
+"""
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{entries}</urlset>"""
+    return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @router.get("/sitemap-digest.xml", response_class=Response)
