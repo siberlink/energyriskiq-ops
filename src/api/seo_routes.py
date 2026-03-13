@@ -1508,10 +1508,30 @@ async def sitemap_digest_xml():
 
 
 @router.get("/sitemap.xml", response_class=Response)
-async def sitemap_xml_redirect():
-    """Legacy sitemap.xml redirects to sitemap-index.xml."""
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/sitemap-index.xml", status_code=301)
+async def sitemap_xml():
+    """Sitemap index served directly at /sitemap.xml."""
+    from datetime import date as _date
+    today = _date.today().isoformat()
+
+    sitemaps = [
+        ('sitemap-core.xml',    today),
+        ('sitemap-alerts.xml',  today),
+        ('sitemap-indices.xml', today),
+        ('sitemap-digest.xml',  today),
+    ]
+
+    sitemap_entries = ""
+    for name, lastmod in sitemaps:
+        sitemap_entries += f"""<sitemap>
+<loc>{BASE_URL}/{name}</loc>
+<lastmod>{lastmod}</lastmod>
+</sitemap>
+"""
+
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{sitemap_entries}</sitemapindex>"""
+    return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @router.get("/sitemap.html", response_class=HTMLResponse)
