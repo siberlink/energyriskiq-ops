@@ -610,7 +610,7 @@ async def eeri_public_page(request: Request):
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
                     <a href="/users" class="cta-btn-nav">Get FREE Access</a>
@@ -1307,7 +1307,7 @@ def _render_eeri_page(eeri: dict):
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
                 <a href="/users" class="cta-btn-nav">Get FREE Access</a>
@@ -1359,7 +1359,7 @@ def _render_eeri_page(eeri: dict):
                             <div class="ri-name">GERI</div>
                             <div class="ri-desc">Global Energy Risk Index</div>
                         </a>
-                        <a href="/egsi" class="related-index-card">
+                        <a href="/indices/europe-gas-stress-index" class="related-index-card">
                             <div class="ri-name">EGSI</div>
                             <div class="ri-desc">Europe Gas Stress Index</div>
                         </a>
@@ -1608,7 +1608,7 @@ async def eeri_updates_page():
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -1947,7 +1947,7 @@ async def eeri_methodology_page():
                 <a href="/alerts">Alerts</a>
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
@@ -2268,7 +2268,7 @@ async def eeri_methodology_page():
             <div class="container">
                 <p>&copy; 2026 EnergyRiskIQ</p>
                 <p style="margin-top: 0.5rem;">
-                    <a href="/indices/europe-energy-risk-index">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/indices/global-energy-risk-index">GERI</a> · <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-energy-risk-index">EERI Index</a> · <a href="/eeri/history">History</a> · <a href="/indices/global-energy-risk-index">GERI</a> · <a href="/indices/europe-gas-stress-index">EGSI</a>
                 </p>
             </div>
         </footer>
@@ -2375,7 +2375,7 @@ async def eeri_history_page():
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -2542,7 +2542,7 @@ async def eeri_daily_snapshot(date_str: str):
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>

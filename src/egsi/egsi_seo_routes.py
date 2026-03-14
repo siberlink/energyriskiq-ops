@@ -216,6 +216,13 @@ def format_trend(trend_7d) -> tuple:
 
 
 @router.get("/egsi", response_class=HTMLResponse)
+async def egsi_old_redirect():
+    """301 redirect from legacy /egsi to new canonical URL."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/indices/europe-gas-stress-index", status_code=301)
+
+
+@router.get("/indices/europe-gas-stress-index", response_class=HTMLResponse)
 async def egsi_public_page(request: Request):
     """
     EGSI Main Public Page - SEO anchor page for Europe Gas Stress Index.
@@ -235,8 +242,8 @@ async def egsi_public_page(request: Request):
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Europe Gas Stress Index (EGSI) | EnergyRiskIQ</title>
-            <meta name="description" content="Track Europe's gas market stress levels with EGSI. Monitor supply disruptions, pipeline issues, and infrastructure chokepoints.">
-            <link rel="canonical" href="{BASE_URL}/egsi">
+            <meta name="description" content="Track the Europe Gas Stress Index (EGSI), a public 24-hour delayed measure of stress in the European gas market using storage, LNG flows, weather pressure, and supply disruption signals.">
+            <link rel="canonical" href="{BASE_URL}/indices/europe-gas-stress-index">
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_digest_dark_styles()}
         </head>
@@ -249,7 +256,7 @@ async def egsi_public_page(request: Request):
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
                     <a href="/users" class="cta-btn-nav">Get FREE Access</a>
@@ -257,7 +264,7 @@ async def egsi_public_page(request: Request):
             </div></nav>
             <main>
                 <div class="container">
-                    <div class="breadcrumbs"><a href="/">Home</a> / Europe Gas Stress Index</div>
+                    <div class="breadcrumbs"><a href="/">Home</a> / <a href="/indices">Indices</a> / Europe Gas Stress Index</div>
                     <div style="text-align: center; padding: 2rem 0;">
                         <h1 style="font-size: 1.75rem; color: #f1f5f9; margin-bottom: 0.5rem;">Europe Gas Stress Index (EGSI)</h1>
                         <p style="color: #94a3b8;">A daily composite measure of gas market stress across European infrastructure.</p>
@@ -380,15 +387,15 @@ async def egsi_public_page(request: Request):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Europe Gas Stress Index (EGSI) - {meta_band} at {meta_value:.0f} | EnergyRiskIQ</title>
-        <meta name="description" content="EGSI-M at {m_value_display} ({m_band_display}). Track European gas market and system stress.">
-        <link rel="canonical" href="{BASE_URL}/egsi">
+        <title>Europe Gas Stress Index (EGSI) | EnergyRiskIQ</title>
+        <meta name="description" content="Track the Europe Gas Stress Index (EGSI), a public 24-hour delayed measure of stress in the European gas market using storage, LNG flows, weather pressure, and supply disruption signals.">
+        <link rel="canonical" href="{BASE_URL}/indices/europe-gas-stress-index">
         <link rel="icon" type="image/png" href="/static/favicon.png">
 
         <meta property="og:title" content="Europe Gas Stress Index (EGSI) | EnergyRiskIQ">
-        <meta property="og:description" content="EGSI at {meta_value:.0f} ({meta_band}). Track European gas market stress in real-time.">
+        <meta property="og:description" content="Track the Europe Gas Stress Index (EGSI), a public 24-hour delayed measure of stress in the European gas market using storage, LNG flows, weather pressure, and supply disruption signals.">
         <meta property="og:type" content="website">
-        <meta property="og:url" content="{BASE_URL}/egsi">
+        <meta property="og:url" content="{BASE_URL}/indices/europe-gas-stress-index">
 
         <script type="application/ld+json">
         {{
@@ -396,7 +403,7 @@ async def egsi_public_page(request: Request):
             "@type": "Dataset",
             "name": "Europe Gas Stress Index (EGSI)",
             "description": "Daily index measuring gas market and system stress across European infrastructure",
-            "url": "{BASE_URL}/egsi",
+            "url": "{BASE_URL}/indices/europe-gas-stress-index",
             "creator": {{"@type": "Organization", "name": "EnergyRiskIQ"}},
             "dateModified": "{m_date_str}"
         }}
@@ -747,7 +754,7 @@ async def egsi_public_page(request: Request):
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
                     <a href="/users" class="cta-btn-nav">Get FREE Access</a>
@@ -757,7 +764,7 @@ async def egsi_public_page(request: Request):
         <main>
             <div class="container">
                 <div class="breadcrumbs">
-                    <a href="/">Home</a> / Europe Gas Stress Index
+                    <a href="/">Home</a> / <a href="/indices">Indices</a> / Europe Gas Stress Index
                 </div>
                 <div class="egsi-hero">
                     <h1>Europe Gas Stress Index (EGSI)</h1>
@@ -1157,7 +1164,7 @@ async def egsi_updates_page():
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -1175,7 +1182,7 @@ async def egsi_updates_page():
                 </div>
                 
                 <div class="updates-nav">
-                    <a href="/egsi">Current EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">Current EGSI</a>
                     <a href="/egsi/history">History</a>
                     <a href="/egsi/methodology">Methodology</a>
                 </div>
@@ -1499,7 +1506,7 @@ async def egsi_methodology_page():
                 <a href="/alerts">Alerts</a>
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
         </div></nav>
@@ -2024,7 +2031,7 @@ async def egsi_methodology_page():
             <div class="container">
                 <p>&copy; {datetime.now().year} EnergyRiskIQ. All rights reserved.</p>
                 <p style="margin-top: 0.5rem;">
-                    <a href="/egsi">EGSI</a> &middot;
+                    <a href="/indices/europe-gas-stress-index">EGSI</a> &middot;
                     <a href="/egsi/history">EGSI History</a> &middot;
                     <a href="/indices/global-energy-risk-index">GERI</a> &middot;
                     <a href="/indices/europe-energy-risk-index">EERI</a>
@@ -2091,7 +2098,7 @@ async def egsi_history_page():
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -2100,7 +2107,7 @@ async def egsi_history_page():
         <main>
             <div class="container">
                 <div class="breadcrumb">
-                    <a href="/egsi">EGSI</a> &gt; History
+                    <a href="/indices/europe-gas-stress-index">EGSI</a> &gt; History
                 </div>
                 
                 <h1 style="margin: 40px 0 30px;">EGSI Historical Data</h1>
@@ -2124,7 +2131,7 @@ async def egsi_history_page():
                 {"<div class='index-section' style='margin-top: 40px; background: white; border: 1px solid var(--border);'><h2 style='color: var(--text-primary);'>Monthly Statistics</h2><table><tr><th>Month</th><th>Days</th><th>Avg</th><th>Max</th><th>Min</th></tr>" + stats_html + "</table></div>" if stats_html else ""}
                 
                 <div class="index-links" style="margin-top: 40px;">
-                    <a href="/egsi">&larr; Current EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">&larr; Current EGSI</a>
                     <a href="/egsi/methodology">Methodology &rarr;</a>
                 </div>
                 
@@ -2192,7 +2199,7 @@ async def egsi_daily_snapshot(date_str: str):
                     </a>
                     <nav>
                         <a href="/indices/europe-energy-risk-index">EERI</a>
-                        <a href="/egsi">EGSI</a>
+                        <a href="/indices/europe-gas-stress-index">EGSI</a>
                         <a href="/alerts">Alerts</a>
                     </nav>
                 </div>
@@ -2200,7 +2207,7 @@ async def egsi_daily_snapshot(date_str: str):
             
             <div class="container">
                 <div class="breadcrumb">
-                    <a href="/egsi">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {date_str}
+                    <a href="/indices/europe-gas-stress-index">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {date_str}
                 </div>
                 
                 <div class="index-display" style="margin-top: 40px;">
@@ -2225,7 +2232,7 @@ async def egsi_daily_snapshot(date_str: str):
                 <div class="container">
                     <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
                     <p style="margin-top: 10px;">
-                        <a href="/egsi">Current EGSI</a> | 
+                        <a href="/indices/europe-gas-stress-index">Current EGSI</a> | 
                         <a href="/egsi/history">History</a> | 
                         <a href="/egsi/methodology">Methodology</a>
                     </p>
@@ -2315,7 +2322,7 @@ async def egsi_daily_snapshot(date_str: str):
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -2360,7 +2367,7 @@ async def egsi_daily_snapshot(date_str: str):
                 {date_nav_html}
                 
                 <div class="index-links">
-                    <a href="/egsi">Current EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">Current EGSI</a>
                     <a href="/egsi/history">Full History</a>
                     <a href="/egsi/methodology">Methodology</a>
                 </div>
@@ -2412,7 +2419,7 @@ async def egsi_monthly_archive(year: int, month: int):
                     </a>
                     <nav>
                         <a href="/indices/europe-energy-risk-index">EERI</a>
-                        <a href="/egsi">EGSI</a>
+                        <a href="/indices/europe-gas-stress-index">EGSI</a>
                         <a href="/alerts">Alerts</a>
                     </nav>
                 </div>
@@ -2420,7 +2427,7 @@ async def egsi_monthly_archive(year: int, month: int):
             
             <div class="container">
                 <div class="breadcrumb">
-                    <a href="/egsi">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {month_label}
+                    <a href="/indices/europe-gas-stress-index">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {month_label}
                 </div>
                 
                 <div class="index-display" style="margin-top: 40px;">
@@ -2440,7 +2447,7 @@ async def egsi_monthly_archive(year: int, month: int):
                 <div class="container">
                     <p>&copy; {datetime.now().year} EnergyRiskIQ</p>
                     <p style="margin-top: 10px;">
-                        <a href="/egsi">Current EGSI</a> | 
+                        <a href="/indices/europe-gas-stress-index">Current EGSI</a> | 
                         <a href="/egsi/history">History</a> | 
                         <a href="/egsi/methodology">Methodology</a>
                     </p>
@@ -2490,7 +2497,7 @@ async def egsi_monthly_archive(year: int, month: int):
                 </a>
                 <nav>
                     <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/alerts">Alerts</a>
                 </nav>
             </div>
@@ -2498,7 +2505,7 @@ async def egsi_monthly_archive(year: int, month: int):
         
         <div class="container">
             <div class="breadcrumb">
-                <a href="/egsi">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {month_label}
+                <a href="/indices/europe-gas-stress-index">EGSI</a> &gt; <a href="/egsi/history">History</a> &gt; {month_label}
             </div>
             
             <h1 style="margin: 40px 0 20px;">EGSI - {month_label}</h1>
@@ -2532,7 +2539,7 @@ async def egsi_monthly_archive(year: int, month: int):
             
             <div class="nav-links" style="margin-top: 40px;">
                 <a href="/egsi/history">&larr; Back to History</a>
-                <a href="/egsi">Current EGSI &rarr;</a>
+                <a href="/indices/europe-gas-stress-index">Current EGSI &rarr;</a>
             </div>
         </div>
         

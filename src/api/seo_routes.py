@@ -1632,7 +1632,7 @@ async def sitemap_html():
                     <li><a href="/indices/europe-energy-risk-index">European Energy Risk Index (EERI)</a></li>
                     <li><a href="/eeri/methodology">EERI Methodology</a></li>
                     <li><a href="/eeri/history">EERI History</a></li>
-                    <li><a href="/egsi">Europe Gas Stress Index (EGSI)</a></li>
+                    <li><a href="/indices/europe-gas-stress-index">Europe Gas Stress Index (EGSI)</a></li>
                     <li><a href="/egsi/methodology">EGSI Methodology</a></li>
                     <li><a href="/egsi/history">EGSI History</a></li>
                     <li><a href="/alerts">Alerts Hub</a></li>
@@ -2585,7 +2585,7 @@ async def geri_page(request: Request):
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
                     <a href="/users" class="cta-btn-nav">Get FREE Access</a>
@@ -2634,7 +2634,7 @@ async def geri_page(request: Request):
                             <div class="ri-name">EERI</div>
                             <div class="ri-desc">Europe Energy Escalation Risk Index</div>
                         </a>
-                        <a href="/egsi" class="related-index-card">
+                        <a href="/indices/europe-gas-stress-index" class="related-index-card">
                             <div class="ri-name">EGSI</div>
                             <div class="ri-desc">Europe Gas Stress Index</div>
                         </a>
@@ -3072,7 +3072,7 @@ async def geri_updates_page():
             <div class="nav-links">
                 <a href="/indices/global-energy-risk-index">GERI</a>
                 <a href="/indices/europe-energy-risk-index">EERI</a>
-                <a href="/egsi">EGSI</a>
+                <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
                 <a href="/users" class="cta-nav">Get FREE Access</a>
             </div>
@@ -4773,7 +4773,7 @@ async def indices_hub_page(request: Request):
         "egsi", "Europe Gas Stress Index", "EGSI",
         "Quantifies stress in the European gas market using storage levels, LNG flows, weather risk, and supply disruptions.",
         "The Europe Gas Stress Index quantifies gas market stress using storage, LNG flows, and supply disruption signals.",
-        "/egsi", "&#x1F4A8;", data.get("egsi")
+        "/indices/europe-gas-stress-index", "&#x1F4A8;", data.get("egsi")
     )
 
     readings_rows = ""
@@ -5183,7 +5183,7 @@ async def indices_hub_page(request: Request):
                 <div class="nav-links">
                     <a href="/indices/global-energy-risk-index">GERI</a>
                     <a href="/indices/europe-energy-risk-index">EERI</a>
-                    <a href="/egsi">EGSI</a>
+                    <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
                     <a href="/users" class="cta-btn-nav">Get FREE Access</a>

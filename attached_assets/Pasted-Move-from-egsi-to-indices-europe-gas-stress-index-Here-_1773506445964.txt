@@ -1,0 +1,275 @@
+Move from:
+
+/egsi
+
+to:
+
+/indices/europe-gas-stress-index
+
+Here is the clean step-by-step process.
+
+Step 1 — Create the new canonical route
+
+Create the new public page at:
+
+/indices/europe-gas-stress-index
+
+Do not remove /egsi yet.
+
+Step 2 — Copy the current EGSI public page to the new route
+
+Move or duplicate the full public EGSI page content onto:
+
+/indices/europe-gas-stress-index
+
+Before changing links, check that:
+
+page loads correctly
+
+value card works
+
+charts work
+
+interpretation block works
+
+CTA works
+
+methodology link works
+
+breadcrumb works
+
+Step 3 — Update the page metadata
+
+Use these as your base settings.
+
+Title tag
+
+Europe Gas Stress Index (EGSI) | EnergyRiskIQ
+
+Meta description
+
+Track the Europe Gas Stress Index (EGSI), a public 24-hour delayed measure of stress in the European gas market using storage, LNG flows, weather pressure, and supply disruption signals.
+
+H1
+
+Europe Gas Stress Index (EGSI)
+
+Step 4 — Set the canonical URL
+
+On the new page, set canonical to:
+
+https://energyriskiq.com/indices/europe-gas-stress-index
+
+Do not leave canonical pointing to /egsi.
+
+Step 5 — Add a 301 redirect from the old URL
+
+Set a permanent redirect:
+
+/egsi → /indices/europe-gas-stress-index
+
+Use 301.
+
+Even if /egsi is not indexed yet, this is still the correct long-term setup.
+
+Step 6 — Update all internal links
+
+Change all links that currently point to /egsi.
+
+Update links in:
+
+homepage /
+
+/indices
+
+top navigation
+
+footer if applicable
+
+digest articles
+
+alert pages
+
+related index sections
+
+CTA buttons
+
+breadcrumbs
+
+Every internal link should point directly to:
+
+/indices/europe-gas-stress-index
+
+Not to /egsi.
+
+Step 7 — Update the breadcrumb
+
+Use:
+
+Home / Indices / Europe Gas Stress Index
+
+With links:
+
+Home → /
+
+Indices → /indices
+
+This is better than a flat breadcrumb.
+
+Step 8 — Update /indices cards and links
+
+Inside /indices, the EGSI card button and title should link to:
+
+/indices/europe-gas-stress-index
+
+Also keep the card wording aligned with the page title:
+
+Europe Gas Stress Index (EGSI)
+
+Step 9 — Update the sitemap
+
+Inside sitemap-indices.xml, include:
+
+/indices
+
+/indices/global-energy-risk-index
+
+/indices/european-energy-risk-index
+
+/indices/europe-gas-stress-index
+
+Remove /egsi from the sitemap if it appears there.
+
+The redirect can exist, but the sitemap should only list the canonical page.
+
+Step 10 — Update top navigation if needed
+
+If your nav currently has EGSI, make it link to:
+
+/indices/europe-gas-stress-index
+
+not /egsi.
+
+Step 11 — Add related internal links on the EGSI page
+
+On the public EGSI page, add links to:
+
+/indices
+
+/indices/global-energy-risk-index
+
+/indices/european-energy-risk-index
+
+This strengthens the index cluster.
+
+Step 12 — Make the public/free framing explicit
+
+On the EGSI page, clearly show:
+
+24h delayed
+
+Last updated
+
+Public value
+
+CTA for real-time dashboard access
+
+That same public-vs-real-time separation you used for GERI should exist here too.
+
+Step 13 — Test the redirect
+
+After deployment, manually test:
+
+/egsi
+
+/indices/europe-gas-stress-index
+
+Confirm that:
+
+/egsi redirects correctly
+
+no redirect loop exists
+
+final page loads properly
+
+mobile and desktop both work
+
+Step 14 — Resubmit sitemap and request indexing
+
+After everything is live:
+
+resubmit your sitemap in Google Search Console
+
+request indexing for:
+
+/indices
+
+/indices/europe-gas-stress-index
+
+Recommended content structure for EGSI public page
+
+Use the same pattern as GERI, but adapted to gas-market language.
+
+Suggested order
+
+Breadcrumb
+
+H1 + short intro
+
+Main EGSI score card
+
+What EGSI measures
+
+Component blocks
+
+14-day history
+
+EGSI interpretation
+
+Weekly snapshot
+
+Methodology summary
+
+Real-time CTA
+
+Related indices links
+
+Suggested intro text for EGSI
+
+Under the H1, use a plain-English explanation like this:
+
+The Europe Gas Stress Index (EGSI) is a public energy risk index that measures abnormal stress in the European gas market. It helps analysts and decision-makers track whether current gas conditions reflect normal seasonal pressure or elevated systemic stress driven by storage, LNG flows, weather, and supply disruption risk.
+
+That will help the page rank better than a purely technical subtitle.
+
+Suggested metadata summary
+
+Use this set:
+
+URL: /indices/europe-gas-stress-index
+
+Title: Europe Gas Stress Index (EGSI) | EnergyRiskIQ
+
+H1: Europe Gas Stress Index (EGSI)
+
+Canonical: https://energyriskiq.com/indices/europe-gas-stress-index
+
+Best order of execution
+
+Do it in this sequence:
+
+create /indices/europe-gas-stress-index
+
+copy current /egsi page there
+
+update title, meta description, canonical
+
+update all internal links
+
+add 301 redirect from /egsi
+
+update sitemap
+
+test manually
+
+request indexing

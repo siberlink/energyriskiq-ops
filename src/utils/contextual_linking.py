@@ -40,7 +40,7 @@ INDEX_DEFINITIONS = {
     'egsi': {
         'name': 'Europe Gas Stress Index (EGSI)',
         'short_name': 'EGSI',
-        'url': '/egsi',
+        'url': '/indices/europe-gas-stress-index',
         'description': 'European gas market stress',
         'keywords': ['gas', 'lng', 'pipeline', 'transit', 'gazprom', 'nord stream', 'turkstream', 'storage', 'ttf'],
         'categories': ['gas_supply', 'lng_shipping', 'pipeline', 'gas_infrastructure'],
