@@ -364,16 +364,43 @@ async def egsi_public_page(request: Request):
     chokepoints = m_components.get('chokepoint_factor', {}).get('hits', []) if isinstance(m_components, dict) else []
     chokepoints_list_html = ""
     for cp in chokepoints[:5]:
-        chokepoints_list_html += f'<li>{cp}</li>'
+        if isinstance(cp, dict):
+            cp_text = cp.get('name') or cp.get('label') or cp.get('description') or str(cp)
+        else:
+            cp_text = str(cp)
+        chokepoints_list_html += f'<li><span class="chokepoint-alert-dot"></span>{cp_text}</li>'
     if not chokepoints_list_html:
-        chokepoints_list_html = '<li>No active chokepoint alerts</li>'
+        chokepoints_list_html = '<li class="no-chokepoints">&#x2713; No active chokepoint alerts</li>'
 
-    # Interpretation
+    # Interpretation — 200-char preview with "Read full interpretation" expand
+    _expand_onclick = "var b=this,par=b.parentElement;par.querySelector('.interp-preview-text').style.display='none';par.querySelector('.interp-full-text').style.display='block';b.style.display='none';"
     interp_html = ""
     if m_interpretation:
-        interp_html += f'<div class="egsi-interp-card"><div class="egsi-interp-header"><span>🧠</span><h3>EGSI-M Interpretation</h3></div><div class="egsi-interp-body"><p>{m_interpretation.replace(chr(10)+chr(10), "</p><p>")}</p></div></div>'
+        m_preview = m_interpretation[:200] + ("..." if len(m_interpretation) > 200 else "")
+        m_full = m_interpretation.replace(chr(10)+chr(10), "</p><p>")
+        m_has_more = "inline" if len(m_interpretation) > 200 else "none"
+        interp_html += (
+            '<div class="egsi-interp-card">'
+            '<div class="egsi-interp-header"><span>&#x1F9E0;</span><h3>EGSI-M Interpretation</h3></div>'
+            '<div class="egsi-interp-body">'
+            f'<p class="interp-preview-text">{m_preview}</p>'
+            f'<div class="interp-full-text" style="display:none"><p>{m_full}</p></div>'
+            f'<a class="interp-expand-btn" style="display:{m_has_more}" onclick="{_expand_onclick}">Read full interpretation &#x203A;</a>'
+            '</div></div>'
+        )
     if s_interpretation:
-        interp_html += f'<div class="egsi-interp-card"><div class="egsi-interp-header"><span>📊</span><h3>EGSI-S Interpretation</h3></div><div class="egsi-interp-body"><p>{s_interpretation.replace(chr(10)+chr(10), "</p><p>")}</p></div></div>'
+        s_preview = s_interpretation[:200] + ("..." if len(s_interpretation) > 200 else "")
+        s_full = s_interpretation.replace(chr(10)+chr(10), "</p><p>")
+        s_has_more = "inline" if len(s_interpretation) > 200 else "none"
+        interp_html += (
+            '<div class="egsi-interp-card">'
+            '<div class="egsi-interp-header"><span>&#x1F4CA;</span><h3>EGSI-S Interpretation</h3></div>'
+            '<div class="egsi-interp-body">'
+            f'<p class="interp-preview-text">{s_preview}</p>'
+            f'<div class="interp-full-text" style="display:none"><p>{s_full}</p></div>'
+            f'<a class="interp-expand-btn" style="display:{s_has_more}" onclick="{_expand_onclick}">Read full interpretation &#x203A;</a>'
+            '</div></div>'
+        )
 
     meta_value = m_value if m_value is not None else (s_value or 0)
     meta_band = m_band or s_band or 'LOW'
@@ -588,6 +615,45 @@ async def egsi_public_page(request: Request):
             .egsi-interp-body p:last-child {{
                 margin-bottom: 0;
             }}
+            .interp-preview-text {{
+                color: #cbd5e1;
+                font-size: 0.9rem;
+                line-height: 1.6;
+                margin: 0 0 0.5rem 0;
+            }}
+            .interp-full-text p {{
+                color: #cbd5e1;
+                font-size: 0.9rem;
+                line-height: 1.6;
+                margin: 0 0 0.75rem 0;
+            }}
+            .interp-expand-btn {{
+                display: inline;
+                color: #60a5fa;
+                font-size: 0.85rem;
+                cursor: pointer;
+                text-decoration: none;
+                border: none;
+                background: none;
+                padding: 0;
+                margin-top: 0.25rem;
+            }}
+            .interp-expand-btn:hover {{
+                text-decoration: underline;
+            }}
+            .chokepoint-alert-dot {{
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #ef4444;
+                margin-right: 0.5rem;
+                vertical-align: middle;
+            }}
+            .no-chokepoints {{
+                color: #64748b !important;
+                font-style: italic;
+            }}
             .egsi-chart-section {{
                 background: #1e293b;
                 border: 1px solid #334155;
@@ -795,8 +861,8 @@ async def egsi_public_page(request: Request):
                     <h3>📈 EGSI-M History</h3>
                     <div class="egsi-chart-row">
                         <div class="egsi-chart-box">
-                            <h4>Last 7 Days</h4>
-                            <canvas id="egsiM7"></canvas>
+                            <h4>Last 14 Days</h4>
+                            <canvas id="egsiM14"></canvas>
                         </div>
                         <div class="egsi-chart-box">
                             <h4>Last 30 Days</h4>
@@ -809,8 +875,8 @@ async def egsi_public_page(request: Request):
                     <h3>📈 EGSI-S History</h3>
                     <div class="egsi-chart-row">
                         <div class="egsi-chart-box">
-                            <h4>Last 7 Days</h4>
-                            <canvas id="egsiS7"></canvas>
+                            <h4>Last 14 Days</h4>
+                            <canvas id="egsiS14"></canvas>
                         </div>
                         <div class="egsi-chart-box">
                             <h4>Last 30 Days</h4>
@@ -923,17 +989,17 @@ async def egsi_public_page(request: Request):
 
             // EGSI-M charts
             if (mData.length > 0) {{
-                const m7 = mData.slice(-7);
+                const m14 = mData.slice(-14);
                 const m30 = mData;
-                buildLineChart('egsiM7', m7.map(d => d.date.slice(5)), m7.map(d => d.value), '#3b82f6');
+                buildLineChart('egsiM14', m14.map(d => d.date.slice(5)), m14.map(d => d.value), '#3b82f6');
                 buildLineChart('egsiM30', m30.map(d => d.date.slice(5)), m30.map(d => d.value), '#3b82f6');
             }}
 
             // EGSI-S charts
             if (sData.length > 0) {{
-                const s7 = sData.slice(-7);
+                const s14 = sData.slice(-14);
                 const s30 = sData;
-                buildLineChart('egsiS7', s7.map(d => d.date.slice(5)), s7.map(d => d.value), '#22c55e');
+                buildLineChart('egsiS14', s14.map(d => d.date.slice(5)), s14.map(d => d.value), '#22c55e');
                 buildLineChart('egsiS30', s30.map(d => d.date.slice(5)), s30.map(d => d.value), '#22c55e');
             }}
 
