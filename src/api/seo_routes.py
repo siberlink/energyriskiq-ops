@@ -1538,6 +1538,7 @@ async def sitemap_research_xml():
 
     pages = [
         ("https://energyriskiq.com/research/global-energy-risk-index", "monthly", "0.8"),
+        ("https://energyriskiq.com/research/global-energy-risk-timeline", "monthly", "0.8"),
     ]
 
     entries = ""
@@ -8682,5 +8683,1412 @@ async def geri_research_page(request: Request):
     </body>
     </html>
     """
+
+    return HTMLResponse(content=html)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# /research/global-energy-risk-timeline
+# ─────────────────────────────────────────────────────────────────────────────
+@router.get("/research/global-energy-risk-timeline", response_class=HTMLResponse)
+async def global_energy_risk_timeline_page(request: Request):
+    """
+    Global Energy Risk Timeline — authority research page.
+    Canonical URL: /research/global-energy-risk-timeline
+    Covers 18 major energy disruption events from 2014–2026.
+    Live index cards use 24h-delayed production values (OFFSET 1 rule).
+    """
+
+    # ── 24h-delayed GERI ─────────────────────────────────────────────────────
+    _geri_d = None
+    try:
+        _rows = execute_production_query("""
+            SELECT date::text, value, band, trend_1d, trend_7d
+            FROM intel_indices_daily
+            WHERE index_id = 'global:geo_energy_risk'
+            ORDER BY date DESC OFFSET 1 LIMIT 1
+        """)
+        if _rows:
+            _geri_d = _rows[0]
+    except Exception:
+        pass
+
+    # ── 24h-delayed EERI ─────────────────────────────────────────────────────
+    _eeri_d = None
+    try:
+        _rows = execute_production_query("""
+            SELECT date::text, value, band, trend_7d
+            FROM reri_indices_daily
+            WHERE index_id = 'europe:eeri'
+            ORDER BY date DESC OFFSET 1 LIMIT 1
+        """)
+        if _rows:
+            _eeri_d = _rows[0]
+    except Exception:
+        pass
+
+    # ── 24h-delayed EGSI-M ───────────────────────────────────────────────────
+    _egsi_d = None
+    try:
+        _rows = execute_production_query("""
+            SELECT index_date::text as date, index_value as value, band, trend_7d
+            FROM egsi_m_daily
+            WHERE region = 'Europe'
+            ORDER BY index_date DESC OFFSET 1 LIMIT 1
+        """)
+        if _rows:
+            _egsi_d = _rows[0]
+    except Exception:
+        pass
+
+    # ── Band helpers ──────────────────────────────────────────────────────────
+    _bc = {
+        'LOW': '#22c55e', 'MODERATE': '#eab308', 'ELEVATED': '#f97316',
+        'SEVERE': '#ef4444', 'CRITICAL': '#dc2626', 'HIGH': '#ef4444'
+    }
+    _bb = {
+        'LOW': '#052e16', 'MODERATE': '#1c1200', 'ELEVATED': '#1c0a00',
+        'SEVERE': '#1f0606', 'CRITICAL': '#200505', 'HIGH': '#1f0606'
+    }
+
+    def _fv(row, key='value'):
+        if not row:
+            return 'N/A'
+        v = row.get(key)
+        if v is None:
+            return 'N/A'
+        fv = float(v)
+        return str(int(fv)) if fv == int(fv) else str(round(fv, 1))
+
+    def _ft(row, key='trend_7d'):
+        if not row:
+            return ''
+        t = row.get(key)
+        if t is None:
+            return ''
+        sign = '+' if float(t) >= 0 else ''
+        return sign + str(round(float(t), 1)) + ' (7d)'
+
+    _g_val   = _fv(_geri_d)
+    _g_band  = (_geri_d.get('band') or 'N/A') if _geri_d else 'N/A'
+    _g_color = _bc.get(_g_band, '#64748b')
+    _g_bg    = _bb.get(_g_band, '#0a1628')
+    _g_date  = (_geri_d['date'] if _geri_d else '\u2014')
+    _g_trend = _ft(_geri_d)
+
+    _e_val   = _fv(_eeri_d)
+    _e_band  = (_eeri_d.get('band') or 'N/A') if _eeri_d else 'N/A'
+    _e_color = _bc.get(_e_band, '#64748b')
+    _e_bg    = _bb.get(_e_band, '#0a1628')
+    _e_date  = (_eeri_d['date'] if _eeri_d else '\u2014')
+    _e_trend = _ft(_eeri_d)
+
+    _s_val   = _fv(_egsi_d)
+    _s_band  = (_egsi_d.get('band') or 'N/A') if _egsi_d else 'N/A'
+    _s_color = _bc.get(_s_band, '#64748b')
+    _s_bg    = _bb.get(_s_band, '#0a1628')
+    _s_date  = (_egsi_d['date'] if _egsi_d else '\u2014')
+    _s_trend = _ft(_egsi_d)
+
+    # ── Pre-compute trend arrow strings (no backslash in f-string) ───────────
+    _g_t1d_raw  = (_geri_d.get('trend_1d') if _geri_d else None)
+    _g_t1d_sign = ('+' if (_g_t1d_raw or 0) >= 0 else '')
+    _g_t1d_str  = (_g_t1d_sign + str(int(_g_t1d_raw))) if _g_t1d_raw is not None else 'N/A'
+    _g_t1d_col  = '#ef4444' if (_g_t1d_raw or 0) > 0 else ('#22c55e' if (_g_t1d_raw or 0) < 0 else '#64748b')
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Energy Risk Timeline: Major Disruptions 2014&#x2013;2026 | EnergyRiskIQ</title>
+    <meta name="description" content="A comprehensive timeline of major global energy disruptions from 2014 to 2026 &#x2014; geopolitical shocks, pipeline sabotage, maritime crises, sanctions, and supply emergencies with market impact data.">
+    <link rel="canonical" href="{BASE_URL}/research/global-energy-risk-timeline">
+
+    <meta property="og:title" content="Global Energy Risk Timeline: Major Disruptions 2014&#x2013;2026 | EnergyRiskIQ">
+    <meta property="og:description" content="Geopolitical shocks, pipeline sabotage, maritime disruptions and supply crises that moved energy markets &#x2014; with index data from EnergyRiskIQ.">
+    <meta property="og:url" content="{BASE_URL}/research/global-energy-risk-timeline">
+    <meta property="og:type" content="article">
+
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "Global Energy Risk Timeline: Major Disruptions 2014&#x2013;2026",
+        "description": "A comprehensive chronological record of geopolitical shocks, supply disruptions, and infrastructure crises that shaped global energy markets.",
+        "url": "{BASE_URL}/research/global-energy-risk-timeline",
+        "publisher": {{
+            "@type": "Organization",
+            "name": "EnergyRiskIQ",
+            "url": "{BASE_URL}"
+        }},
+        "dateModified": "2026-03-15"
+    }}
+    </script>
+
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {{"@type":"ListItem","position":1,"name":"Home","item":"{BASE_URL}/"}},
+            {{"@type":"ListItem","position":2,"name":"Research","item":"{BASE_URL}/research"}},
+            {{"@type":"ListItem","position":3,"name":"Global Energy Risk Timeline","item":"{BASE_URL}/research/global-energy-risk-timeline"}}
+        ]
+    }}
+    </script>
+
+    {get_digest_dark_styles()}
+    <style>
+        .tl-hero {{
+            text-align: center;
+            padding: 2.5rem 0 1.5rem;
+        }}
+        .tl-hero h1 {{
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: -0.01em;
+            margin: 0 0 0.75rem;
+        }}
+        .tl-hero .subtitle {{
+            color: #94a3b8;
+            max-width: 680px;
+            margin: 0 auto;
+            font-size: 0.98rem;
+            line-height: 1.65;
+        }}
+        .tl-section {{
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem 1.75rem;
+            margin: 1.5rem 0;
+        }}
+        .tl-section h2 {{
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0 0 1rem;
+        }}
+        .tl-section p {{
+            color: #cbd5e1;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            margin: 0 0 0.85rem;
+        }}
+        .tl-section p:last-child {{ margin-bottom: 0; }}
+        .qr-table-wrap {{ overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; margin: 0.5rem 0; }}
+        .qr-table {{ width: 100%; border-collapse: collapse; min-width: 560px; }}
+        .qr-table th {{
+            text-align: left; padding: 0.6rem 0.85rem; font-size: 0.75rem;
+            color: #94a3b8; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; border-bottom: 2px solid #334155;
+            white-space: nowrap; background: #0f172a;
+        }}
+        .qr-table td {{
+            padding: 0.65rem 0.85rem; font-size: 0.84rem;
+            border-bottom: 1px solid #1e293b; vertical-align: middle;
+        }}
+        .qr-table tr:last-child td {{ border-bottom: none; }}
+        .qr-table tr:hover td {{ background: rgba(59,130,246,0.04); }}
+        .qr-table td:first-child {{ color: #64748b; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }}
+        .qr-table td:nth-child(2) {{ color: #f1f5f9; font-weight: 600; }}
+        .qr-table td:nth-child(3) {{ color: #94a3b8; }}
+        .qr-table td:nth-child(4) {{ color: #60a5fa; font-size: 0.8rem; }}
+        .qr-table td:nth-child(5) {{ color: #94a3b8; font-size: 0.8rem; }}
+        .tl-event {{
+            background: #0f172a; border: 1px solid #1e293b;
+            border-radius: 12px; padding: 1.4rem 1.5rem;
+            margin: 1rem 0; position: relative;
+        }}
+        .tl-event:hover {{ border-color: #334155; }}
+        .tl-event-header {{
+            display: flex; align-items: flex-start;
+            gap: 1rem; margin-bottom: 0.85rem; flex-wrap: wrap;
+        }}
+        .tl-year-badge {{
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            border: 1px solid #3b82f6; border-radius: 8px;
+            padding: 0.45rem 0.75rem; text-align: center; min-width: 58px;
+        }}
+        .tl-year-badge .badge-year {{
+            font-size: 1rem; font-weight: 700; color: #60a5fa; display: block;
+        }}
+        .tl-event-meta {{ flex: 1; }}
+        .tl-event-meta h3 {{ font-size: 1rem; font-weight: 600; color: #f1f5f9; margin: 0 0 0.4rem; }}
+        .tl-event-tags {{ display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.15rem; }}
+        .tl-tag {{
+            font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.55rem;
+            border-radius: 20px; text-transform: uppercase;
+            letter-spacing: 0.04em; white-space: nowrap;
+        }}
+        .tl-tag-geo {{ background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }}
+        .tl-tag-maritime {{ background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }}
+        .tl-tag-infra {{ background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }}
+        .tl-tag-sanction {{ background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }}
+        .tl-tag-supply {{ background: rgba(234,179,8,0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.25); }}
+        .tl-tag-demand {{ background: rgba(100,116,139,0.2); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }}
+        .tl-tag-trade {{ background: rgba(6,182,212,0.15); color: #22d3ee; border: 1px solid rgba(6,182,212,0.25); }}
+        .tl-tag-mgmt {{ background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }}
+        .tl-location {{ font-size: 0.75rem; color: #64748b; margin-top: 0.2rem; }}
+        .tl-location span {{ color: #94a3b8; }}
+        .tl-event-desc {{ color: #94a3b8; font-size: 0.875rem; line-height: 1.7; margin: 0 0 0.85rem; }}
+        .tl-impact-grid {{
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 0.75rem; margin: 0.5rem 0 0.85rem;
+        }}
+        @media (max-width: 540px) {{ .tl-impact-grid {{ grid-template-columns: 1fr; }} }}
+        .tl-impact-card {{
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 8px; padding: 0.75rem;
+        }}
+        .tl-impact-card .ic-label {{
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.35rem;
+        }}
+        .tl-impact-card ul {{ margin: 0; padding: 0; list-style: none; }}
+        .tl-impact-card ul li {{
+            color: #cbd5e1; font-size: 0.8rem; line-height: 1.55;
+            padding: 0.15rem 0; padding-left: 0.85rem; position: relative;
+        }}
+        .tl-impact-card ul li::before {{ content: "&#x2014;"; position: absolute; left: 0; color: #475569; }}
+        .tl-index-row {{ display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }}
+        .tl-index-pill {{
+            display: flex; align-items: center; gap: 0.4rem;
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 20px; padding: 0.3rem 0.75rem; font-size: 0.78rem;
+        }}
+        .tl-index-pill .pil-name {{ color: #64748b; font-weight: 600; font-size: 0.7rem; }}
+        .tl-index-pill .pil-reaction {{ color: #94a3b8; }}
+        .tl-index-pill .pil-live {{ color: #22c55e; font-weight: 600; }}
+        .tl-hist-note {{
+            font-size: 0.75rem; color: #475569; font-style: italic;
+            margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #1e293b;
+        }}
+        .tl-epoch-divider {{ display: flex; align-items: center; gap: 1rem; margin: 2rem 0; }}
+        .tl-epoch-divider .ep-line {{
+            flex: 1; height: 1px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+        }}
+        .tl-epoch-divider .ep-label {{
+            background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.35);
+            border-radius: 8px; padding: 0.5rem 1rem;
+            text-align: center; white-space: nowrap;
+        }}
+        .tl-epoch-divider .ep-label .ep-main {{
+            font-size: 0.78rem; font-weight: 700; color: #60a5fa; display: block;
+        }}
+        .tl-epoch-divider .ep-label .ep-sub {{
+            font-size: 0.68rem; color: #94a3b8; display: block; margin-top: 0.1rem;
+        }}
+        .cat-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin: 1rem 0; }}
+        @media (max-width: 500px) {{ .cat-grid {{ grid-template-columns: 1fr; }} }}
+        .cat-card {{ background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 0.75rem; }}
+        .cat-card .cc-name {{ font-size: 0.82rem; font-weight: 600; color: #e2e8f0; margin-bottom: 0.3rem; }}
+        .cat-card .cc-examples {{ font-size: 0.75rem; color: #64748b; line-height: 1.4; }}
+        .cluster-chart {{
+            display: flex; align-items: flex-end; gap: 0.35rem;
+            height: 100px; margin: 1.25rem 0 0.5rem;
+        }}
+        .cluster-bar-wrap {{
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; height: 100%; justify-content: flex-end;
+        }}
+        .cluster-bar {{ width: 100%; border-radius: 4px 4px 0 0; min-height: 2px; }}
+        .cluster-year {{
+            font-size: 0.62rem; color: #64748b; margin-top: 0.3rem;
+            transform: rotate(-35deg); white-space: nowrap;
+        }}
+        .cluster-count {{ font-size: 0.62rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.2rem; }}
+        .sar-row {{ display: flex; align-items: center; gap: 1rem; margin: 0.75rem 0; }}
+        .sar-label {{
+            flex: 0 0 200px; font-size: 0.82rem;
+            color: #e2e8f0; font-weight: 500;
+        }}
+        @media (max-width: 500px) {{ .sar-label {{ flex: 0 0 130px; font-size: 0.74rem; }} }}
+        .sar-bar-wrap {{
+            flex: 1; background: #0f172a; border: 1px solid #1e293b;
+            border-radius: 6px; height: 14px; overflow: hidden;
+        }}
+        .sar-bar {{ height: 100%; border-radius: 6px; }}
+        .sar-pct {{ flex: 0 0 48px; font-size: 0.82rem; font-weight: 700; color: #f1f5f9; text-align: right; }}
+        .reg-table-wrap {{ overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; margin: 0.75rem 0; }}
+        .reg-table {{ width: 100%; border-collapse: collapse; min-width: 420px; }}
+        .reg-table th {{
+            text-align: left; padding: 0.55rem 0.8rem; font-size: 0.73rem;
+            color: #94a3b8; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; border-bottom: 2px solid #334155; background: #0f172a;
+        }}
+        .reg-table td {{
+            padding: 0.55rem 0.8rem; font-size: 0.82rem;
+            border-bottom: 1px solid #1e293b; vertical-align: middle;
+        }}
+        .reg-table tr:last-child td {{ border-bottom: none; }}
+        .reg-table td:first-child {{ color: #64748b; font-weight: 700; font-size: 0.8rem; }}
+        .reg-dot {{ display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }}
+        .live-cards-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin: 1rem 0; }}
+        @media (max-width: 600px) {{ .live-cards-grid {{ grid-template-columns: 1fr; }} }}
+        .live-card {{ border-radius: 10px; padding: 1.1rem; border: 1px solid #334155; }}
+        .live-card .lc-name {{ font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 0.35rem; }}
+        .live-card .lc-val {{ font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 0.3rem; }}
+        .live-card .lc-band {{ font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }}
+        .live-card .lc-meta {{ font-size: 0.72rem; color: #64748b; line-height: 1.5; }}
+        .live-card .lc-trend {{ font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; }}
+        .live-delay-note {{ text-align: center; font-size: 0.75rem; color: #475569; margin-top: 0.5rem; }}
+        .coverage-box {{
+            background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.25);
+            border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0;
+        }}
+        .coverage-box .cb-title {{
+            font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #60a5fa; margin-bottom: 0.4rem;
+        }}
+        .coverage-box p {{ color: #94a3b8; font-size: 0.84rem; line-height: 1.65; margin: 0; }}
+        .citation-box {{
+            background: #0f172a; border: 1px solid #334155; border-radius: 10px;
+            padding: 1.1rem 1.25rem; margin: 1rem 0;
+            font-family: 'Courier New', monospace; font-size: 0.8rem;
+            color: #94a3b8; line-height: 1.65; word-break: break-word;
+        }}
+        .related-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; margin: 1rem 0; }}
+        @media (max-width: 500px) {{ .related-grid {{ grid-template-columns: 1fr; }} }}
+        .related-card {{
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 8px;
+            padding: 0.85rem; text-decoration: none; display: block;
+        }}
+        .related-card:hover {{ border-color: #334155; }}
+        .related-card .rc-label {{ font-size: 0.7rem; color: #60a5fa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem; }}
+        .related-card .rc-title {{ font-size: 0.88rem; color: #e2e8f0; font-weight: 600; line-height: 1.4; }}
+        .related-card .rc-desc {{ font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; line-height: 1.4; }}
+        .tl-callout {{
+            background: rgba(59,130,246,0.07); border-left: 3px solid #3b82f6;
+            padding: 0.85rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0;
+        }}
+        .tl-callout p {{ color: #e2e8f0; font-size: 0.88rem; line-height: 1.65; margin: 0; font-style: italic; }}
+        @media (max-width: 600px) {{
+            .tl-hero h1 {{ font-size: 1.4rem; }}
+            .tl-section {{ padding: 1.1rem 1.1rem; }}
+            .tl-event {{ padding: 1.1rem 1rem; }}
+        }}
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="logo">
+                <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right:0.5rem;">
+                EnergyRiskIQ
+            </a>
+            <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+
+            <div class="breadcrumbs">
+                <a href="/">Home</a> / <a href="/research/global-energy-risk-index">Research</a> / Global Energy Risk Timeline
+            </div>
+
+            <!-- Hero -->
+            <div class="tl-hero">
+                <h1>Global Energy Risk Timeline</h1>
+                <p class="subtitle">A chronological record of the geopolitical shocks, supply crises, and infrastructure disruptions that have shaped global energy markets from 2014 to the present.</p>
+            </div>
+
+            <div class="tl-callout">
+                <p>&ldquo;Energy markets are repeatedly shaped by geopolitical shocks, infrastructure failures, sanctions regimes, and military conflicts. This timeline tracks the major events that have disrupted global energy supply, influenced price volatility, and defined the risk landscape for oil, gas, and LNG markets.&rdquo;</p>
+            </div>
+
+            <!-- Quick Reference Table -->
+            <div class="tl-section" id="quick-reference">
+                <h2>&#x1F4CB; Crisis Quick Reference</h2>
+                <p style="color:#64748b;font-size:0.82rem;margin:0 0 0.75rem;">Frequently cited by journalists and analysts. Each row links to the full event entry below.</p>
+                <div class="qr-table-wrap">
+                    <table class="qr-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Event</th>
+                                <th>Risk Type</th>
+                                <th>Key Market Impact</th>
+                                <th>Location</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>2026</td><td><a href="#strait-of-hormuz-risk" style="color:#f1f5f9;text-decoration:none;">Strait of Hormuz Escalation</a></td><td>Maritime chokepoint</td><td>Oil spike, tanker insurance surge</td><td>Persian Gulf</td></tr>
+                            <tr><td>2024</td><td><a href="#red-sea-tanker-attacks" style="color:#f1f5f9;text-decoration:none;">Red Sea Tanker Attacks</a></td><td>Maritime security</td><td>Freight surge, route disruption</td><td>Red Sea / Suez</td></tr>
+                            <tr><td>2023</td><td><a href="#nord-stream-sabotage" style="color:#f1f5f9;text-decoration:none;">Nord Stream Sabotage Aftermath</a></td><td>Infrastructure sabotage</td><td>Permanent EU pipeline loss</td><td>Baltic Sea</td></tr>
+                            <tr><td>2022</td><td><a href="#russia-ukraine-energy-shock" style="color:#f1f5f9;text-decoration:none;">Russia&#x2013;Ukraine Energy Shock</a></td><td>Geopolitical conflict</td><td>Brent &gt;$130/bbl, EU gas records</td><td>Eastern Europe</td></tr>
+                            <tr><td>2022</td><td><a href="#european-russia-sanctions" style="color:#f1f5f9;text-decoration:none;">EU Energy Sanctions on Russia</a></td><td>Sanctions regime</td><td>Global trade restructuring</td><td>Europe / Russia</td></tr>
+                            <tr><td>2021</td><td><a href="#european-gas-storage-crisis" style="color:#f1f5f9;text-decoration:none;">European Gas Storage Crisis</a></td><td>Supply crisis</td><td>TTF surge, power markets disrupted</td><td>Europe</td></tr>
+                            <tr><td>2020</td><td><a href="#covid-oil-demand-collapse" style="color:#f1f5f9;text-decoration:none;">COVID Oil Demand Collapse</a></td><td>Demand shock</td><td>WTI went negative (Apr 2020)</td><td>Global</td></tr>
+                            <tr><td>2019</td><td><a href="#saudi-oil-facility-attack" style="color:#f1f5f9;text-decoration:none;">Saudi Aramco Facility Attack</a></td><td>Infrastructure attack</td><td>~5% global supply loss, oil spike</td><td>Saudi Arabia</td></tr>
+                            <tr><td>2018</td><td><a href="#iran-nuclear-deal-collapse" style="color:#f1f5f9;text-decoration:none;">Iran Nuclear Deal Collapse</a></td><td>Sanctions regime</td><td>Iranian exports curtailed</td><td>Iran / Middle East</td></tr>
+                            <tr><td>2014</td><td><a href="#global-oil-price-collapse" style="color:#f1f5f9;text-decoration:none;">Global Oil Price Collapse</a></td><td>Supply/demand shock</td><td>Oil fell $100 &#x2192; ~$30/bbl</td><td>Global</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="tl-section" id="timeline">
+                <h2>&#x23F1;&#xFE0F; Energy Risk Timeline (2014&#x2013;2026)</h2>
+                <p>Presented newest to oldest. Events from January 15, 2026 onward include live EnergyRiskIQ index data. Earlier events are presented as historical context.</p>
+
+                <!-- 2026: Hormuz (WITH live index data) -->
+                <div class="tl-event" id="strait-of-hormuz-risk">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2026</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Strait of Hormuz Escalation Risk</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-maritime">Maritime Chokepoint</span>
+                                <span class="tl-tag tl-tag-geo">Geopolitical</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Persian Gulf &#x2014; Iran / Strait of Hormuz</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Escalating tensions involving Iran increased the risk of disruptions to shipping through the Strait of Hormuz &#x2014; through which approximately <strong>20% of global oil</strong> and a significant share of LNG cargoes transit. Any closure or sustained disruption would represent one of the most severe supply shocks in the modern oil era.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Oil price spike on escalation news</li>
+                                <li>Tanker insurance premiums surged</li>
+                                <li>LNG cargo rerouting risk elevated</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Key Risk Figures</div>
+                            <ul>
+                                <li>~20% of global oil flows at risk</li>
+                                <li>~17% of global LNG exports transit</li>
+                                <li>Potential 2&#x2013;4 week rerouting delay</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="ic-label" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#64748b;margin-bottom:0.4rem;">&#x1F4CA; EnergyRiskIQ Indices (Live)</div>
+                    <div class="tl-index-row">
+                        <div class="tl-index-pill"><span class="pil-name">GERI</span><span class="pil-live">&#x25B2; Active &#x2014; see platform</span></div>
+                        <div class="tl-index-pill"><span class="pil-name">EERI</span><span class="pil-live">&#x25B2; Moderate increase</span></div>
+                        <div class="tl-index-pill"><span class="pil-name">EGSI</span><span class="pil-live">&#x25B2; Elevated (LNG risk)</span></div>
+                    </div>
+                </div>
+
+                <!-- Epoch divider -->
+                <div class="tl-epoch-divider">
+                    <div class="ep-line"></div>
+                    <div class="ep-label">
+                        <span class="ep-main">&#x1F4C5; 15 January 2026</span>
+                        <span class="ep-sub">EnergyRiskIQ index coverage begins &#x2014; GERI, EERI, EGSI</span>
+                    </div>
+                    <div class="ep-line"></div>
+                </div>
+
+                <!-- 2024: Red Sea -->
+                <div class="tl-event" id="red-sea-tanker-attacks">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2024</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Red Sea Tanker Attacks</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-maritime">Maritime Security</span>
+                                <span class="tl-tag tl-tag-geo">Geopolitical</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Red Sea / Bab el-Mandeb / Suez Canal</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Houthi forces began a sustained campaign of drone and missile attacks on commercial vessels transiting the Red Sea and Bab el-Mandeb strait. The attacks forced major shipping companies to divert vessels around the Cape of Good Hope, adding 10&#x2013;14 days to journey times and significantly increasing freight costs.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Freight rates surged sharply</li>
+                                <li>LNG cargoes rerouted via Cape</li>
+                                <li>War risk insurance premiums spiked</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Key Risk Figures</div>
+                            <ul>
+                                <li>~12% of global trade through Red Sea</li>
+                                <li>~8&#x2013;10% of global oil flows affected</li>
+                                <li>Freight costs doubled for some routes</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-index-row">
+                        <div class="tl-index-pill"><span class="pil-name">GERI</span><span class="pil-reaction">&#x25B2; Elevated during attack peaks</span></div>
+                        <div class="tl-index-pill"><span class="pil-name">EERI</span><span class="pil-reaction">&#x25B2; European supply concern</span></div>
+                        <div class="tl-index-pill"><span class="pil-name">EGSI</span><span class="pil-reaction">&#x25B2; LNG delay risk</span></div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; EnergyRiskIQ index calculation began January 15, 2026. This event is presented as historical context.</div>
+                </div>
+
+                <!-- 2023: Nord Stream -->
+                <div class="tl-event" id="nord-stream-sabotage">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2023</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Nord Stream Pipeline Sabotage &amp; Aftershock</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-infra">Infrastructure Sabotage</span>
+                                <span class="tl-tag tl-tag-geo">Geopolitical</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Baltic Sea &#x2014; Nord Stream 1 &amp; 2 pipelines</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Investigations into the September 2022 Nord Stream pipeline explosions continued through 2023, deepening European energy security concerns. The events permanently severed a major Russian gas supply route to Europe, forcing structural LNG dependency and accelerating energy transition policy across the EU.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Permanent loss of Russian pipeline capacity</li>
+                                <li>European LNG import dependency increased</li>
+                                <li>Energy security legislation accelerated</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Infrastructure Scale</div>
+                            <ul>
+                                <li>55 bcm/year capacity destroyed (NS1)</li>
+                                <li>Largest deliberate energy infrastructure attack in history</li>
+                                <li>Reconstruction estimated at &gt;$1 billion</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; EnergyRiskIQ index calculation began January 15, 2026. This event is presented as historical context.</div>
+                </div>
+
+                <!-- 2022: Russia–Ukraine -->
+                <div class="tl-event" id="russia-ukraine-energy-shock">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2022</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Russia&#x2013;Ukraine Energy Shock</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-geo">Geopolitical Conflict</span>
+                                <span class="tl-tag tl-tag-supply">Supply Disruption</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Eastern Europe &#x2014; Ukraine / Russia</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Russia&#x2019;s full-scale invasion of Ukraine on February 24, 2022 triggered the largest energy market shock since the 1973 oil embargo. Western sanctions severed major Russian energy export routes, reshaping global oil, gas, and LNG trade flows for years to come.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Brent crude surged above $130/bbl</li>
+                                <li>EU TTF gas reached all-time highs</li>
+                                <li>Global LNG trade restructured</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Key Risk Figures</div>
+                            <ul>
+                                <li>Russia supplied ~40% of EU gas pre-war</li>
+                                <li>~10% of global crude supply affected</li>
+                                <li>European energy cost crisis: 2022&#x2013;2023</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2022: EU Sanctions -->
+                <div class="tl-event" id="european-russia-sanctions">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2022</span></div>
+                        <div class="tl-event-meta">
+                            <h3>EU Energy Sanctions on Russia</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-sanction">Sanctions Regime</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Europe / Russia &#x2014; global energy trade</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">The European Union imposed successive packages of sanctions on Russian energy exports, including oil embargoes and price caps on Russian crude. These measures forced a complete restructuring of global energy trade &#x2014; Russian crude redirected to India and China while Europe rapidly expanded LNG imports.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Massive restructuring of global crude flows</li>
+                                <li>Russian oil redirected to Asia</li>
+                                <li>European energy costs surged</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Scale</div>
+                            <ul>
+                                <li>~4&#x2013;5 million bpd Russian exports affected</li>
+                                <li>G7 oil price cap at $60/bbl implemented</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2021: Gas Storage Crisis -->
+                <div class="tl-event" id="european-gas-storage-crisis">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2021</span></div>
+                        <div class="tl-event-meta">
+                            <h3>European Gas Storage Crisis</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-supply">Supply Crisis</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Europe &#x2014; gas storage infrastructure</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Europe entered the 2021&#x2013;2022 winter with gas storage levels significantly below seasonal averages. Reduced Russian gas flows, a slower post-COVID economic recovery, and higher Asian LNG demand combined to create a severe supply squeeze.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>TTF gas prices surged to record levels</li>
+                                <li>European power prices exploded</li>
+                                <li>Industrial demand curtailment began</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; EGSI Foresight</div>
+                            <ul>
+                                <li>Precursor to 2022 energy crisis</li>
+                                <li>EU storage regulation revised post-crisis</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2021: LNG Tightness -->
+                <div class="tl-event" id="lng-supply-tightness-asia">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2021</span></div>
+                        <div class="tl-event-meta">
+                            <h3>LNG Supply Tightness &#x2014; Asia &amp; Europe Competition</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-supply">Supply Crisis</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Global LNG markets &#x2014; Asia / Europe</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Cold weather in Asia and structural supply shortfalls triggered intense competition between European and Asian buyers for limited LNG cargoes, pushing spot prices to extreme levels. The crisis exposed the vulnerability of LNG-dependent economies to supply tightness.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>JKM LNG spot prices reached $30+/MMBtu</li>
+                                <li>Europe outbid for LNG cargoes</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Structural Significance</div>
+                            <ul>
+                                <li>Accelerated EU LNG import infrastructure</li>
+                                <li>Foreshadowed 2022 LNG supply scramble</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2020: COVID -->
+                <div class="tl-event" id="covid-oil-demand-collapse">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2020</span></div>
+                        <div class="tl-event-meta">
+                            <h3>COVID-19 Oil Demand Collapse</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-demand">Demand Shock</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Global &#x2014; all major energy markets</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Global COVID-19 lockdowns caused the most severe oil demand collapse in modern energy history. With storage facilities filling to capacity, WTI crude futures briefly traded at negative prices in April 2020 &#x2014; an unprecedented event reflecting the complete breakdown of physical oil market mechanics.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>WTI fell to &#x2212;$37/bbl (April 20, 2020)</li>
+                                <li>Global oil demand fell ~9 mb/d</li>
+                                <li>OPEC+ emergency production cuts</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Historical Scale</div>
+                            <ul>
+                                <li>Largest single-year demand shock on record</li>
+                                <li>~30 million barrels/day demand lost at peak</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2019: Saudi Attack -->
+                <div class="tl-event" id="saudi-oil-facility-attack">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2019</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Saudi Aramco Abqaiq &amp; Khurais Facility Attack</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-infra">Infrastructure Attack</span>
+                                <span class="tl-tag tl-tag-geo">Geopolitical</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Abqaiq &amp; Khurais, Saudi Arabia</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">On September 14, 2019, coordinated drone and missile strikes hit Saudi Aramco&#x2019;s Abqaiq processing facility and the Khurais oil field. The attacks temporarily knocked out approximately 5% of global oil supply &#x2014; triggering one of the largest single-day oil price spikes since the 1990 Gulf War.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Brent spiked ~+15% on opening</li>
+                                <li>~5.7 million bpd production halted</li>
+                                <li>IEA strategic reserve releases considered</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Significance</div>
+                            <ul>
+                                <li>Largest disruption since 1990 Gulf War</li>
+                                <li>~5% of global daily production offline</li>
+                                <li>Exposed critical infrastructure vulnerability</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2019: Iran Sanctions -->
+                <div class="tl-event" id="us-iran-oil-sanctions">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2019</span></div>
+                        <div class="tl-event-meta">
+                            <h3>US Maximum Pressure Sanctions on Iran</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-sanction">Sanctions Regime</span>
+                                <span class="tl-tag tl-tag-geo">Geopolitical</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Iran / Persian Gulf / Global oil markets</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">The United States imposed maximum pressure sanctions targeting Iranian oil exports, aiming to reduce Iran&#x2019;s crude exports to near zero. The measures significantly reduced Iranian supply and elevated geopolitical risk across the Persian Gulf, including heightened Hormuz disruption risk.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Iranian exports fell from ~2.5 to ~0.5 mb/d</li>
+                                <li>Gulf geopolitical risk premium elevated</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Supply Removed</div>
+                            <ul>
+                                <li>~3&#x2013;4% of global crude supply</li>
+                                <li>Hormuz closure risk increased markedly</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2018: US–China Trade War -->
+                <div class="tl-event" id="us-china-trade-war">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2018</span></div>
+                        <div class="tl-event-meta">
+                            <h3>US&#x2013;China Trade War &amp; Energy Markets</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-trade">Trade Conflict</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Global commodity and energy markets</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">The escalating trade dispute between the United States and China disrupted global commodity flows, including energy. China imposed tariffs on US LNG exports, redirecting American LNG away from China and reshaping global LNG trade routes. Uncertainty also weighed on global oil demand expectations.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>US LNG exports to China halted</li>
+                                <li>Global LNG trade rerouted</li>
+                                <li>Oil demand growth forecasts revised down</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Long-term Impact</div>
+                            <ul>
+                                <li>Established US LNG trade vulnerability</li>
+                                <li>Shaped later energy market fragmentation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2018: Iran Deal Collapse -->
+                <div class="tl-event" id="iran-nuclear-deal-collapse">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2018</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Iran Nuclear Deal (JCPOA) Collapse</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-sanction">Sanctions Regime</span>
+                                <span class="tl-tag tl-tag-geo">Geopolitical</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Iran / Middle East / Global oil markets</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">The United States withdrew from the Joint Comprehensive Plan of Action (JCPOA) in May 2018, reimposing nuclear-related sanctions on Iran. The decision reversed Iranian oil export growth that had followed the 2015 deal and re-elevated the geopolitical risk premium in Middle Eastern oil markets.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Iranian oil exports curtailed</li>
+                                <li>Middle East risk premium elevated</li>
+                                <li>Brent crude rose on sanctions announcement</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Supply Impact</div>
+                            <ul>
+                                <li>Iran&#x2019;s exports fell from ~2.5 mb/d</li>
+                                <li>Escalation led directly to 2019 Gulf tensions</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2017: Qatar Crisis -->
+                <div class="tl-event" id="qatar-diplomatic-crisis">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2017</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Qatar Diplomatic Crisis &amp; LNG Risk</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-geo">Geopolitical Conflict</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Qatar / Gulf region</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Saudi Arabia, the UAE, Bahrain, and Egypt severed diplomatic relations with Qatar and imposed a blockade in June 2017. Qatar, one of the world&#x2019;s largest LNG exporters, faced supply disruption fears &#x2014; raising concerns about the security of LNG flows to Europe and Asia.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>LNG supply disruption concerns</li>
+                                <li>Regional energy tensions elevated</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Qatar LNG Scale</div>
+                            <ul>
+                                <li>Qatar exports ~77 million tonnes LNG/yr</li>
+                                <li>~20% of global LNG supply at risk</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2016: OPEC Cut -->
+                <div class="tl-event" id="opec-production-cut">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2016</span></div>
+                        <div class="tl-event-meta">
+                            <h3>OPEC+ Vienna Agreement &#x2014; Production Cut</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-mgmt">Supply Management</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Global oil markets &#x2014; OPEC+ producer nations</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">OPEC and Russia agreed to coordinated oil production cuts in November 2016, forming the OPEC+ alliance. This marked a structural shift in global oil market governance and ended the two-year oil price collapse that had devastated producer economies.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Oil prices stabilized and began recovering</li>
+                                <li>OPEC+ alliance formed (lasting to present)</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Scale</div>
+                            <ul>
+                                <li>~1.8 mb/d initial cut agreement</li>
+                                <li>Brent recovered from ~$28 to ~$55</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2015: Saudi–Iran Proxy -->
+                <div class="tl-event" id="saudi-iran-proxy-conflict">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2015</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Saudi&#x2013;Iran Proxy Conflict Escalation</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-geo">Geopolitical Conflict</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Middle East &#x2014; Yemen / Gulf region</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Regional conflicts intensified across the Middle East in 2015, including the Saudi-led military coalition intervention in Yemen and continued sectarian tensions. The deteriorating security environment elevated the geopolitical risk premium in Gulf energy markets and established the Houthi maritime threat pattern.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Gulf geopolitical risk premium elevated</li>
+                                <li>Bab el-Mandeb disruption risk raised</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Long-term Strategic Significance</div>
+                            <ul>
+                                <li>Precursor to 2024 Red Sea tanker attacks</li>
+                                <li>Established decade-long Houthi threat pattern</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2015: JCPOA Agreement -->
+                <div class="tl-event" id="iran-jcpoa-agreement">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2015</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Iran JCPOA Nuclear Agreement</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-mgmt">Sanctions Relief</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Iran / Global oil markets</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">The Joint Comprehensive Plan of Action signed in July 2015 provided Iran with sanctions relief in exchange for restrictions on its nuclear program. The agreement allowed Iranian oil exports to return to world markets, adding supply and contributing to the ongoing oil price decline.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Iranian exports returned to ~2+ mb/d</li>
+                                <li>Added downward pressure on oil prices</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Context</div>
+                            <ul>
+                                <li>US withdrawal in 2018 reversed all gains</li>
+                                <li>Demonstrated geopolitical supply sensitivity</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2014: Crimea -->
+                <div class="tl-event" id="russia-crimea-annexation">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2014</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Russia&#x2019;s Annexation of Crimea</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-geo">Geopolitical Conflict</span>
+                                <span class="tl-tag tl-tag-sanction">Sanctions</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Crimea / Eastern Europe &#x2014; Russia / Ukraine</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">Russia&#x2019;s annexation of Crimea in March 2014 triggered the first wave of Western sanctions on Russia and marked the beginning of the deterioration in Russia&#x2013;Europe energy relations. While immediate energy impacts were limited, the event established the geopolitical pattern that culminated in the 2022 invasion.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Russia&#x2013;Europe energy tensions elevated</li>
+                                <li>Gas supply security concerns emerged</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Long-Term Significance</div>
+                            <ul>
+                                <li>Set the precedent for 2022 sanctions</li>
+                                <li>Accelerated EU energy diversification planning</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+                <!-- 2014: Oil Price Collapse -->
+                <div class="tl-event" id="global-oil-price-collapse">
+                    <div class="tl-event-header">
+                        <div class="tl-year-badge"><span class="badge-year">2014</span></div>
+                        <div class="tl-event-meta">
+                            <h3>Global Oil Price Collapse</h3>
+                            <div class="tl-event-tags">
+                                <span class="tl-tag tl-tag-supply">Supply Shock</span>
+                                <span class="tl-tag tl-tag-demand">Demand Slowdown</span>
+                            </div>
+                            <div class="tl-location">&#x1F4CD; <span>Global oil markets</span></div>
+                        </div>
+                    </div>
+                    <p class="tl-event-desc">OPEC&#x2019;s decision not to cut production in November 2014 &#x2014; despite a surge in US shale oil output &#x2014; triggered a dramatic oil price collapse. Brent fell from above $100/bbl to below $30/bbl by early 2016, devastating producer economies and reshaping the global energy industry.</p>
+                    <div class="tl-impact-grid">
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x1F4B9; Market Impact</div>
+                            <ul>
+                                <li>Brent fell from ~$115 to ~$28/bbl</li>
+                                <li>Mass energy sector layoffs globally</li>
+                                <li>Producer economy fiscal crises</li>
+                            </ul>
+                        </div>
+                        <div class="tl-impact-card">
+                            <div class="ic-label">&#x26A0;&#xFE0F; Historical Scale</div>
+                            <ul>
+                                <li>Largest oil price decline since 1986</li>
+                                <li>~75% price decline over 18 months</li>
+                                <li>Led directly to 2016 OPEC+ formation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="tl-hist-note">&#x1F4CC; Historical event &#x2014; EnergyRiskIQ index calculation began January 15, 2026.</div>
+                </div>
+
+            </div>
+            <!-- end timeline section -->
+
+            <!-- Risk Categories -->
+            <div class="tl-section" id="risk-categories">
+                <h2>&#x26A0;&#xFE0F; Major Categories of Energy Risk</h2>
+                <p>These events fall into seven distinct categories of energy market disruption, each with different transmission mechanisms and policy responses.</p>
+                <div class="cat-grid">
+                    <div class="cat-card">
+                        <div class="cc-name">&#x2694;&#xFE0F; Geopolitical Conflict</div>
+                        <div class="cc-examples">Russia&#x2013;Ukraine war, Gulf conflicts, Crimea annexation, Qatar crisis</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x2693; Maritime Chokepoint Disruptions</div>
+                        <div class="cc-examples">Strait of Hormuz, Suez Canal, Red Sea, Bab el-Mandeb</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x1F527; Infrastructure Attacks</div>
+                        <div class="cc-examples">Nord Stream sabotage, Saudi Aramco refinery strikes</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x1F6AB; Sanctions &amp; Export Restrictions</div>
+                        <div class="cc-examples">Iran sanctions (&#x00D72), Russian oil embargo, price caps</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x1F4C9; Supply Crises</div>
+                        <div class="cc-examples">European gas shortage, LNG supply tightness, OPEC over-supply</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x1F4A5; Demand Shocks</div>
+                        <div class="cc-examples">COVID-19 collapse, economic slowdowns, demand destruction</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x1F91D; Trade Conflicts</div>
+                        <div class="cc-examples">US&#x2013;China trade war, LNG tariffs, commodity flows disrupted</div>
+                    </div>
+                    <div class="cat-card">
+                        <div class="cc-name">&#x2696;&#xFE0F; Supply Management Events</div>
+                        <div class="cc-examples">OPEC+ production cuts, strategic reserve releases, quota decisions</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Impact Patterns -->
+            <div class="tl-section" id="market-impact-patterns">
+                <h2>&#x1F4CA; Market Impact Patterns by Shock Type</h2>
+                <p>Different energy shocks produce different market reactions. Understanding this pattern helps analysts anticipate how each crisis type will transmit through markets.</p>
+                <div class="qr-table-wrap">
+                    <table class="qr-table">
+                        <thead>
+                            <tr>
+                                <th>Shock Type</th>
+                                <th>Primary Market Reaction</th>
+                                <th>Secondary Effects</th>
+                                <th>Typical Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="color:#f87171;font-weight:600;">Military conflict</td>
+                                <td style="color:#f1f5f9;">Oil price spike</td>
+                                <td>Risk premium, supply route concerns</td>
+                                <td>Days to weeks</td>
+                            </tr>
+                            <tr>
+                                <td style="color:#fb923c;font-weight:600;">Pipeline sabotage</td>
+                                <td style="color:#f1f5f9;">Gas price spike</td>
+                                <td>LNG substitution demand, storage drawdown</td>
+                                <td>Months to permanent</td>
+                            </tr>
+                            <tr>
+                                <td style="color:#c084fc;font-weight:600;">Sanctions</td>
+                                <td style="color:#f1f5f9;">Structural supply shift</td>
+                                <td>Trade route restructuring, price divergence</td>
+                                <td>Months to years</td>
+                            </tr>
+                            <tr>
+                                <td style="color:#60a5fa;font-weight:600;">Maritime disruption</td>
+                                <td style="color:#f1f5f9;">Freight &amp; insurance surge</td>
+                                <td>Longer routes, cargo delays, LNG rerouting</td>
+                                <td>Weeks to months</td>
+                            </tr>
+                            <tr>
+                                <td style="color:#facc15;font-weight:600;">Supply crisis</td>
+                                <td style="color:#f1f5f9;">Gas &amp; power price spike</td>
+                                <td>Industrial demand curtailment, policy response</td>
+                                <td>Months</td>
+                            </tr>
+                            <tr>
+                                <td style="color:#94a3b8;font-weight:600;">Demand shock</td>
+                                <td style="color:#f1f5f9;">Price collapse</td>
+                                <td>Storage filling, production cuts, low investment</td>
+                                <td>1&#x2013;3 years</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Crisis Clustering -->
+            <div class="tl-section" id="crisis-frequency">
+                <h2>&#x1F4C8; Energy Crisis Frequency (2014&#x2013;2026)</h2>
+                <p>The chart below shows the concentration of major energy risk events by year. Crisis clustering in 2022 reflects the compounding effects of the Russia&#x2013;Ukraine invasion and European energy supply shock &#x2014; the most severe energy crisis since 2008.</p>
+                <div class="cluster-chart">
+                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2014</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2015</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2016</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2017</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2018</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2019</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2020</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2021</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">3</div><div class="cluster-bar" style="height:100%;background:#ef4444;"></div><div class="cluster-year">2022</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2023</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2024</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">&ndash;</div><div class="cluster-bar" style="height:3%;background:#334155;"></div><div class="cluster-year">2025</div></div>
+                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#f97316;"></div><div class="cluster-year">2026</div></div>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">Bar height = number of major energy disruption events. 2022 peak = 3 events (Ukraine invasion, pipeline sabotage, EU sanctions). Orange bar (2026) = ongoing event with live EnergyRiskIQ index coverage.</p>
+            </div>
+
+            <!-- Supply at Risk Meter -->
+            <div class="tl-section" id="supply-at-risk">
+                <h2>&#x26A1; Global Energy Supply at Risk &#x2014; Key Chokepoints &amp; Producers</h2>
+                <p>The figures below represent approximate shares of global energy supply flows at risk from historically significant disruption points. These are reference figures frequently cited by energy analysts, policymakers, and the IEA.</p>
+
+                <div class="sar-row">
+                    <div class="sar-label">&#x2693; Strait of Hormuz</div>
+                    <div class="sar-bar-wrap"><div class="sar-bar" style="width:20%;background:linear-gradient(90deg,#ef4444,#f97316);"></div></div>
+                    <div class="sar-pct">~20%</div>
+                    <div style="font-size:0.72rem;color:#475569;flex:0 0 140px;">of global oil flows</div>
+                </div>
+                <div class="sar-row">
+                    <div class="sar-label">&#x1F6A2; Red Sea / Suez Canal</div>
+                    <div class="sar-bar-wrap"><div class="sar-bar" style="width:12%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div>
+                    <div class="sar-pct">~12%</div>
+                    <div style="font-size:0.72rem;color:#475569;flex:0 0 140px;">of global trade volume</div>
+                </div>
+                <div class="sar-row">
+                    <div class="sar-label">Qatar LNG Exports</div>
+                    <div class="sar-bar-wrap"><div class="sar-bar" style="width:20%;background:linear-gradient(90deg,#a855f7,#c084fc);"></div></div>
+                    <div class="sar-pct">~20%</div>
+                    <div style="font-size:0.72rem;color:#475569;flex:0 0 140px;">of global LNG supply</div>
+                </div>
+                <div class="sar-row">
+                    <div class="sar-label">Russia (EU gas, pre-2022)</div>
+                    <div class="sar-bar-wrap"><div class="sar-bar" style="width:40%;background:linear-gradient(90deg,#eab308,#facc15);"></div></div>
+                    <div class="sar-pct">~40%</div>
+                    <div style="font-size:0.72rem;color:#475569;flex:0 0 140px;">of EU gas supply pre-2022</div>
+                </div>
+                <div class="sar-row">
+                    <div class="sar-label">Saudi Aramco</div>
+                    <div class="sar-bar-wrap"><div class="sar-bar" style="width:10%;background:linear-gradient(90deg,#f97316,#fb923c);"></div></div>
+                    <div class="sar-pct">~10%</div>
+                    <div style="font-size:0.72rem;color:#475569;flex:0 0 140px;">of global crude supply</div>
+                </div>
+                <div class="sar-row">
+                    <div class="sar-label">Iran (under sanctions)</div>
+                    <div class="sar-bar-wrap"><div class="sar-bar" style="width:4%;background:linear-gradient(90deg,#c084fc,#a855f7);"></div></div>
+                    <div class="sar-pct">3&#x2013;4%</div>
+                    <div style="font-size:0.72rem;color:#475569;flex:0 0 140px;">of global crude supply</div>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.75rem;">Approximate reference figures. Sources: IEA, EIA, IMF. Russia figure reflects pre-2022 share of EU gas supply.</p>
+            </div>
+
+            <!-- Risk Regime History -->
+            <div class="tl-section" id="risk-regime-history">
+                <h2>&#x1F4C5; Energy Risk Regime History (2014&#x2013;2026)</h2>
+                <p>A year-by-year classification of the dominant global energy risk environment, based on the nature and severity of the events recorded in this timeline.</p>
+                <div class="reg-table-wrap">
+                    <table class="reg-table">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Regime</th>
+                                <th>Key Driver</th>
+                                <th>Dominant Risk Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>2014</td><td><span class="reg-dot" style="background:#eab308;"></span><span style="color:#eab308;font-weight:600;">Elevated</span></td><td style="color:#94a3b8;">Russia sanctions, oil price collapse</td><td style="color:#64748b;">Geopolitical + supply/demand</td></tr>
+                            <tr><td>2015</td><td><span class="reg-dot" style="background:#eab308;"></span><span style="color:#eab308;font-weight:600;">Elevated</span></td><td style="color:#94a3b8;">OPEC over-supply, Iran deal, Gulf proxy</td><td style="color:#64748b;">Supply glut + geopolitical</td></tr>
+                            <tr><td>2016</td><td><span class="reg-dot" style="background:#22c55e;"></span><span style="color:#22c55e;font-weight:600;">Moderate</span></td><td style="color:#94a3b8;">OPEC+ formation, price recovery</td><td style="color:#64748b;">Supply management</td></tr>
+                            <tr><td>2017</td><td><span class="reg-dot" style="background:#eab308;"></span><span style="color:#eab308;font-weight:600;">Elevated</span></td><td style="color:#94a3b8;">Qatar blockade, Gulf tensions</td><td style="color:#64748b;">Geopolitical</td></tr>
+                            <tr><td>2018</td><td><span class="reg-dot" style="background:#eab308;"></span><span style="color:#eab308;font-weight:600;">Elevated</span></td><td style="color:#94a3b8;">Iran deal collapse, US&#x2013;China trade war</td><td style="color:#64748b;">Sanctions + trade conflict</td></tr>
+                            <tr><td>2019</td><td><span class="reg-dot" style="background:#f97316;"></span><span style="color:#f97316;font-weight:600;">High</span></td><td style="color:#94a3b8;">Saudi facility attack, Iran sanctions</td><td style="color:#64748b;">Infrastructure + sanctions</td></tr>
+                            <tr><td>2020</td><td><span class="reg-dot" style="background:#dc2626;"></span><span style="color:#dc2626;font-weight:600;">Extreme</span></td><td style="color:#94a3b8;">COVID-19 demand collapse</td><td style="color:#64748b;">Demand shock</td></tr>
+                            <tr><td>2021</td><td><span class="reg-dot" style="background:#f97316;"></span><span style="color:#f97316;font-weight:600;">High</span></td><td style="color:#94a3b8;">European gas crisis, LNG tightness</td><td style="color:#64748b;">Supply crisis</td></tr>
+                            <tr><td>2022</td><td><span class="reg-dot" style="background:#dc2626;"></span><span style="color:#dc2626;font-weight:600;">Extreme</span></td><td style="color:#94a3b8;">Russia&#x2013;Ukraine invasion + sanctions</td><td style="color:#64748b;">Geopolitical conflict</td></tr>
+                            <tr><td>2023</td><td><span class="reg-dot" style="background:#f97316;"></span><span style="color:#f97316;font-weight:600;">High</span></td><td style="color:#94a3b8;">Nord Stream aftermath, energy transition</td><td style="color:#64748b;">Infrastructure + supply security</td></tr>
+                            <tr><td>2024</td><td><span class="reg-dot" style="background:#eab308;"></span><span style="color:#eab308;font-weight:600;">Elevated</span></td><td style="color:#94a3b8;">Red Sea tanker attacks</td><td style="color:#64748b;">Maritime security</td></tr>
+                            <tr><td>2025</td><td><span class="reg-dot" style="background:#22c55e;"></span><span style="color:#22c55e;font-weight:600;">Moderate</span></td><td style="color:#94a3b8;">Markets stabilizing, energy transition</td><td style="color:#64748b;">Structural adjustment</td></tr>
+                            <tr><td>2026</td><td><span class="reg-dot" style="background:#eab308;"></span><span style="color:#eab308;font-weight:600;">Elevated</span></td><td style="color:#94a3b8;">Hormuz escalation risk</td><td style="color:#64748b;">Maritime chokepoint</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">2026 uses live EnergyRiskIQ index data. Prior years based on historical event analysis. Regime labels follow the EnergyRiskIQ standard band scale.</p>
+            </div>
+
+            <!-- Live Index Cards -->
+            <div class="tl-section" id="live-indices">
+                <h2>&#x1F4CA; EnergyRiskIQ Indices &#x2014; Current Reading</h2>
+                <p>Live risk index values updated daily. These indices provide quantitative measurement of energy risk across global, European, and gas-specific dimensions &#x2014; each calibrated to reflect the types of events documented in this timeline.</p>
+                <div class="live-cards-grid">
+                    <div class="live-card" style="background:{_g_bg};border-color:{_g_color}33;">
+                        <div class="lc-name">Global Energy Risk Index</div>
+                        <div class="lc-val" style="color:{_g_color};">{_g_val}</div>
+                        <div class="lc-band" style="color:{_g_color};">{_g_band}</div>
+                        <div class="lc-meta">
+                            As of {_g_date}<br>
+                            <span class="lc-trend" style="color:{_g_t1d_col};">1d: {_g_t1d_str} &nbsp; 7d: {_g_trend}</span>
+                        </div>
+                        <div style="margin-top:0.6rem;">
+                            <a href="/indices/global-energy-risk-index" style="font-size:0.75rem;color:#60a5fa;text-decoration:none;font-weight:600;">View full GERI &#x2192;</a>
+                        </div>
+                    </div>
+                    <div class="live-card" style="background:{_e_bg};border-color:{_e_color}33;">
+                        <div class="lc-name">Europe Energy Risk Index</div>
+                        <div class="lc-val" style="color:{_e_color};">{_e_val}</div>
+                        <div class="lc-band" style="color:{_e_color};">{_e_band}</div>
+                        <div class="lc-meta">
+                            As of {_e_date}<br>
+                            <span class="lc-trend" style="color:#94a3b8;">7d: {_e_trend}</span>
+                        </div>
+                        <div style="margin-top:0.6rem;">
+                            <a href="/indices/europe-energy-risk-index" style="font-size:0.75rem;color:#60a5fa;text-decoration:none;font-weight:600;">View full EERI &#x2192;</a>
+                        </div>
+                    </div>
+                    <div class="live-card" style="background:{_s_bg};border-color:{_s_color}33;">
+                        <div class="lc-name">Europe Gas Stress Index</div>
+                        <div class="lc-val" style="color:{_s_color};">{_s_val}</div>
+                        <div class="lc-band" style="color:{_s_color};">{_s_band}</div>
+                        <div class="lc-meta">
+                            As of {_s_date}<br>
+                            <span class="lc-trend" style="color:#94a3b8;">7d: {_s_trend}</span>
+                        </div>
+                        <div style="margin-top:0.6rem;">
+                            <a href="/indices/europe-gas-stress-index" style="font-size:0.75rem;color:#60a5fa;text-decoration:none;font-weight:600;">View full EGSI &#x2192;</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="live-delay-note">&#x1F559; Values shown with 24-hour delay. Subscribers receive real-time data.</div>
+            </div>
+
+            <!-- Coverage Window -->
+            <div class="coverage-box">
+                <div class="cb-title">&#x1F4CB; Index Coverage Window &#x2014; Transparency Notice</div>
+                <p>EnergyRiskIQ indices (GERI, EERI, EGSI) began daily calculation on <strong>15 January 2026</strong>. Events before this date are included for historical context and analytical completeness, but do not display quantitative index values. Index values shown in the &#x201C;2026&#x201D; section and the Live Indices panel represent actual calculated values from the EnergyRiskIQ platform. We do not fabricate or backfill historical index data.</p>
+            </div>
+
+            <!-- Methodology -->
+            <div class="tl-section" id="methodology">
+                <h2>&#x1F527; Event Selection Methodology</h2>
+                <p>Events are included in this timeline if they meet at least one of the following criteria:</p>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem;margin:0.75rem 0;">
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.75rem;font-weight:600;color:#60a5fa;margin-bottom:0.25rem;">&#x2705; Supply Criterion</div>
+                        <div style="font-size:0.8rem;color:#94a3b8;">Disrupted or threatened global energy supply flows by a material volume</div>
+                    </div>
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.75rem;font-weight:600;color:#60a5fa;margin-bottom:0.25rem;">&#x2705; Price Criterion</div>
+                        <div style="font-size:0.8rem;color:#94a3b8;">Caused a significant move in benchmark energy prices (oil, gas, LNG, power)</div>
+                    </div>
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.75rem;font-weight:600;color:#60a5fa;margin-bottom:0.25rem;">&#x2705; Infrastructure Criterion</div>
+                        <div style="font-size:0.8rem;color:#94a3b8;">Involved damage to, or a significant threat against, major energy infrastructure</div>
+                    </div>
+                    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.75rem;font-weight:600;color:#60a5fa;margin-bottom:0.25rem;">&#x2705; Geopolitical Criterion</div>
+                        <div style="font-size:0.8rem;color:#94a3b8;">Triggered material geopolitical escalation with demonstrated energy market consequences</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citation -->
+            <div class="tl-section" id="citation">
+                <h2>&#x1F4D6; How to Cite This Page</h2>
+                <p>If you reference this timeline in a publication, article, or research report, please use the following format:</p>
+                <div class="citation-box">EnergyRiskIQ (2026). <em>Global Energy Risk Timeline: Major Energy Disruptions 2014&#x2013;2026.</em> Retrieved from https://energyriskiq.com/research/global-energy-risk-timeline</div>
+                <p style="color:#64748b;font-size:0.8rem;">For API access to our index data for academic or institutional research, contact us through the platform.</p>
+            </div>
+
+            <!-- Related Research -->
+            <div class="tl-section">
+                <h2>&#x1F517; Related Research &amp; Indices</h2>
+                <div class="related-grid">
+                    <a href="/research/global-energy-risk-index" class="related-card">
+                        <div class="rc-label">Research</div>
+                        <div class="rc-title">GERI Methodology &amp; Construction</div>
+                        <div class="rc-desc">How the Global Energy Risk Index is built and what it measures</div>
+                    </a>
+                    <a href="/indices/global-energy-risk-index" class="related-card">
+                        <div class="rc-label">Live Index</div>
+                        <div class="rc-title">Global Energy Risk Index (GERI)</div>
+                        <div class="rc-desc">Current reading, trend, and daily interpretation</div>
+                    </a>
+                    <a href="/indices/europe-energy-risk-index" class="related-card">
+                        <div class="rc-label">Live Index</div>
+                        <div class="rc-title">Europe Energy Risk Index (EERI)</div>
+                        <div class="rc-desc">Regional energy risk across European markets</div>
+                    </a>
+                    <a href="/indices/europe-gas-stress-index" class="related-card">
+                        <div class="rc-label">Live Index</div>
+                        <div class="rc-title">Europe Gas Stress Index (EGSI)</div>
+                        <div class="rc-desc">Storage levels, LNG flows, and European gas system stress</div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-inner" style="max-width:900px;margin:0 auto;padding:1.25rem 1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;border-top:1px solid #1e293b;">
+            <div style="color:#64748b;font-size:0.85rem;">&copy; 2026 EnergyRiskIQ. All rights reserved.</div>
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                <a href="/" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Home</a>
+                <a href="/indices" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Indices</a>
+                <a href="/research/global-energy-risk-index" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Research</a>
+                <a href="/privacy" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Privacy</a>
+                <a href="/terms" style="color:#60a5fa;text-decoration:none;font-size:0.85rem;">Terms</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+"""
 
     return HTMLResponse(content=html)
