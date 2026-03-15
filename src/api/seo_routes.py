@@ -9268,115 +9268,169 @@ async def global_energy_risk_timeline_page(request: Request):
 
             <!-- Energy Crisis Map -->
             <div class="tl-section" id="energy-crisis-map">
-                <h2>&#x1F5FA;&#xFE0F; Global Energy Crisis Map</h2>
+                <h2>&#x1F5FA;&#xFE0F; Global Energy Crisis Map &#x2014; Major Risk Hotspots &amp; Energy Chokepoints</h2>
                 <p>Major energy crises since 2014 cluster around a small number of critical geographic regions. Each region has produced repeated disruptions that transmit through global oil, gas, and LNG markets.</p>
                 <div class="map-download-bar">
                     <div class="map-legend-row">
                         <div class="map-legend-item"><div class="map-legend-dot" style="background:#ef4444;"></div>Extreme / Critical Risk</div>
                         <div class="map-legend-item"><div class="map-legend-dot" style="background:#f97316;"></div>High Risk</div>
-                        <div class="map-legend-item"><div class="map-legend-dot" style="background:#eab308;"></div>Elevated Risk</div>
+                        <div class="map-legend-item"><div class="map-legend-dot" style="background:#eab308;"></div>Elevated / Emerging</div>
                         <div class="map-legend-item"><div class="map-legend-dot" style="background:#3b82f6;"></div>Supply Route</div>
                     </div>
-                    <button class="chart-dl-btn" id="mapDlBtn" onclick="window.downloadEnergyMap('mapDlBtn')">&#x2B07; Download Map</button>
+                    <button class="chart-dl-btn" id="mapDlBtn" onclick="window.downloadEnergyMap('mapDlBtn')">&#x2B07; Download PNG (Hi-Res)</button>
                 </div>
                 <div class="map-wrap">
-                    <svg id="crisis-map-svg" viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+                    <svg id="crisis-map-svg" viewBox="0 0 800 490" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
                         <defs>
                             <filter id="glow">
-                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                            <filter id="glow-strong">
+                                <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
                                 <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                             </filter>
                         </defs>
                         <!-- Background -->
-                        <rect width="800" height="420" fill="#0a1628"/>
+                        <rect width="800" height="490" fill="#0a1628"/>
+                        <!-- Map title -->
+                        <text x="400" y="22" fill="#cbd5e1" font-size="11" font-weight="700" text-anchor="middle" font-family="sans-serif" letter-spacing="1">GLOBAL ENERGY CRISIS MAP — MAJOR RISK HOTSPOTS &amp; CHOKEPOINTS</text>
                         <!-- Grid lines (subtle) -->
-                        <line x1="0" y1="140" x2="800" y2="140" stroke="#1e293b" stroke-width="1"/>
-                        <line x1="0" y1="280" x2="800" y2="280" stroke="#1e293b" stroke-width="1"/>
-                        <line x1="200" y1="0" x2="200" y2="420" stroke="#1e293b" stroke-width="1"/>
-                        <line x1="400" y1="0" x2="400" y2="420" stroke="#1e293b" stroke-width="1"/>
-                        <line x1="600" y1="0" x2="600" y2="420" stroke="#1e293b" stroke-width="1"/>
-                        <!-- Compass labels -->
-                        <text x="10" y="20" fill="#1e3a5f" font-size="10" font-family="monospace">EUROPE</text>
-                        <text x="380" y="20" fill="#1e3a5f" font-size="10" font-family="monospace">MIDDLE EAST</text>
-                        <text x="650" y="20" fill="#1e3a5f" font-size="10" font-family="monospace">ASIA-PACIFIC</text>
-                        <text x="10" y="300" fill="#1e3a5f" font-size="10" font-family="monospace">AFRICA</text>
-                        <text x="10" y="415" fill="#1e3a5f" font-size="10" font-family="monospace">GLOBAL OCEAN ROUTES</text>
-                        <!-- ── REGION: Eastern Europe / Russia (red - extreme) -->
-                        <rect x="120" y="40" width="190" height="90" rx="10" fill="rgba(220,38,38,0.12)" stroke="#dc2626" stroke-width="1.5"/>
-                        <circle cx="215" cy="85" r="18" fill="rgba(220,38,38,0.25)" stroke="#dc2626" stroke-width="2" filter="url(#glow)"/>
-                        <text x="215" y="81" fill="#ef4444" font-size="16" text-anchor="middle" font-weight="bold">!</text>
-                        <text x="215" y="95" fill="#ef4444" font-size="9.5" text-anchor="middle" font-weight="700">RUSSIA / UKRAINE</text>
-                        <text x="215" y="107" fill="#94a3b8" font-size="8.5" text-anchor="middle">Gas cutoff · Sanctions · Conflict</text>
-                        <text x="215" y="119" fill="#dc2626" font-size="8" text-anchor="middle" font-weight="700">EXTREME RISK</text>
+                        <line x1="0" y1="150" x2="800" y2="150" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="0" y1="295" x2="800" y2="295" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="200" y1="35" x2="200" y2="490" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="400" y1="35" x2="400" y2="490" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="600" y1="35" x2="600" y2="490" stroke="#1e293b" stroke-width="1"/>
+                        <!-- Region zone labels -->
+                        <text x="14" y="47" fill="#1e3a5f" font-size="9.5" font-family="monospace">EUROPE</text>
+                        <text x="410" y="47" fill="#1e3a5f" font-size="9.5" font-family="monospace">MIDDLE EAST</text>
+                        <text x="618" y="47" fill="#1e3a5f" font-size="9.5" font-family="monospace">ASIA-PACIFIC</text>
+                        <text x="14" y="310" fill="#1e3a5f" font-size="9.5" font-family="monospace">AFRICA</text>
+
+                        <!-- ── REGION: Eastern Europe / Russia (Extreme risk) -->
+                        <rect x="120" y="52" width="190" height="105" rx="10" fill="rgba(220,38,38,0.12)" stroke="#dc2626" stroke-width="1.5"/>
+                        <circle cx="215" cy="97" r="20" fill="rgba(220,38,38,0.28)" stroke="#dc2626" stroke-width="2" filter="url(#glow)"/>
+                        <text x="215" y="93" fill="#ef4444" font-size="17" text-anchor="middle" font-weight="bold">!</text>
+                        <text x="215" y="107" fill="#ef4444" font-size="9.5" text-anchor="middle" font-weight="700">RUSSIA / UKRAINE</text>
+                        <text x="215" y="119" fill="#94a3b8" font-size="8" text-anchor="middle">Gas cutoff · Sanctions · Conflict</text>
+                        <text x="215" y="130" fill="#dc2626" font-size="7.5" text-anchor="middle" font-weight="700">EXTREME RISK</text>
+                        <text x="215" y="142" fill="#64748b" font-size="7" text-anchor="middle">2014 · 2022</text>
+
                         <!-- ── REGION: Baltic Sea / Nord Stream -->
-                        <rect x="140" y="30" width="60" height="30" rx="5" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1" stroke-dasharray="4,3"/>
-                        <text x="170" y="42" fill="#fb923c" font-size="7.5" text-anchor="middle" font-weight="600">BALTIC SEA</text>
-                        <text x="170" y="53" fill="#64748b" font-size="7" text-anchor="middle">Nord Stream</text>
-                        <!-- ── REGION: Persian Gulf / Strait of Hormuz (red - critical) -->
-                        <rect x="400" y="120" width="160" height="95" rx="10" fill="rgba(239,68,68,0.12)" stroke="#ef4444" stroke-width="1.5"/>
-                        <circle cx="480" cy="168" r="22" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="2" filter="url(#glow)"/>
-                        <text x="480" y="164" fill="#ef4444" font-size="17" text-anchor="middle" font-weight="bold">!</text>
-                        <text x="480" y="178" fill="#ef4444" font-size="9.5" text-anchor="middle" font-weight="700">PERSIAN GULF</text>
-                        <text x="480" y="190" fill="#94a3b8" font-size="8.5" text-anchor="middle">Hormuz · Iran · Tankers</text>
-                        <text x="480" y="202" fill="#ef4444" font-size="8" text-anchor="middle" font-weight="700">~20% GLOBAL OIL</text>
+                        <rect x="120" y="38" width="75" height="28" rx="5" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1" stroke-dasharray="4,3"/>
+                        <text x="157" y="50" fill="#fb923c" font-size="7.5" text-anchor="middle" font-weight="600">BALTIC SEA</text>
+                        <text x="157" y="61" fill="#64748b" font-size="6.5" text-anchor="middle">Nord Stream · 2022–23</text>
+
+                        <!-- ── REGION: Persian Gulf / Strait of Hormuz (MOST CRITICAL — enlarged) -->
+                        <rect x="395" y="128" width="175" height="110" rx="10" fill="rgba(239,68,68,0.14)" stroke="#ef4444" stroke-width="2"/>
+                        <circle cx="482" cy="178" r="28" fill="rgba(239,68,68,0.35)" stroke="#ef4444" stroke-width="2.5" filter="url(#glow-strong)"/>
+                        <text x="482" y="173" fill="#ef4444" font-size="20" text-anchor="middle" font-weight="bold">!</text>
+                        <text x="482" y="188" fill="#ef4444" font-size="10" text-anchor="middle" font-weight="700">PERSIAN GULF</text>
+                        <text x="482" y="201" fill="#f1f5f9" font-size="8.5" text-anchor="middle" font-weight="600">STRAIT OF HORMUZ</text>
+                        <text x="482" y="213" fill="#ef4444" font-size="8" text-anchor="middle" font-weight="700">~20% GLOBAL OIL</text>
+                        <text x="482" y="225" fill="#64748b" font-size="7" text-anchor="middle">2018 · 2026</text>
+
                         <!-- ── REGION: Saudi Arabia -->
-                        <rect x="400" y="200" width="100" height="55" rx="8" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
-                        <circle cx="450" cy="227" r="12" fill="rgba(249,115,22,0.2)" stroke="#f97316" stroke-width="1.5"/>
-                        <text x="450" y="220" fill="#fb923c" font-size="8" text-anchor="middle" font-weight="700">SAUDI ARABIA</text>
-                        <text x="450" y="231" fill="#94a3b8" font-size="7.5" text-anchor="middle">Aramco · ~10% crude</text>
-                        <text x="450" y="243" fill="#f97316" font-size="7.5" text-anchor="middle" font-weight="600">HIGH RISK</text>
+                        <rect x="397" y="218" width="105" height="65" rx="8" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
+                        <circle cx="449" cy="245" r="13" fill="rgba(249,115,22,0.22)" stroke="#f97316" stroke-width="1.5"/>
+                        <text x="449" y="237" fill="#fb923c" font-size="8" text-anchor="middle" font-weight="700">SAUDI ARABIA</text>
+                        <text x="449" y="249" fill="#94a3b8" font-size="7.5" text-anchor="middle">Aramco · ~10% crude</text>
+                        <text x="449" y="260" fill="#f97316" font-size="7.5" text-anchor="middle" font-weight="600">HIGH RISK</text>
+                        <text x="449" y="272" fill="#64748b" font-size="7" text-anchor="middle">2019</text>
+
                         <!-- ── REGION: Red Sea / Bab el-Mandeb -->
-                        <rect x="330" y="215" width="90" height="70" rx="8" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
-                        <circle cx="375" cy="250" r="12" fill="rgba(249,115,22,0.2)" stroke="#f97316" stroke-width="1.5"/>
-                        <text x="375" y="243" fill="#fb923c" font-size="8" text-anchor="middle" font-weight="700">RED SEA</text>
-                        <text x="375" y="254" fill="#94a3b8" font-size="7.5" text-anchor="middle">Houthis · Suez</text>
-                        <text x="375" y="266" fill="#f97316" font-size="7.5" text-anchor="middle" font-weight="600">~12% trade</text>
+                        <rect x="325" y="220" width="92" height="80" rx="8" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
+                        <circle cx="371" cy="258" r="13" fill="rgba(249,115,22,0.22)" stroke="#f97316" stroke-width="1.5"/>
+                        <text x="371" y="250" fill="#fb923c" font-size="8" text-anchor="middle" font-weight="700">RED SEA</text>
+                        <text x="371" y="261" fill="#94a3b8" font-size="7.5" text-anchor="middle">Houthis · Suez</text>
+                        <text x="371" y="272" fill="#f97316" font-size="7.5" text-anchor="middle" font-weight="600">~12% trade</text>
+                        <text x="371" y="284" fill="#64748b" font-size="7" text-anchor="middle">2015 · 2024</text>
+
                         <!-- ── REGION: Qatar (LNG) -->
-                        <rect x="490" y="185" width="85" height="55" rx="8" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1.5"/>
-                        <circle cx="532" cy="212" r="10" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="1.5"/>
-                        <text x="532" y="206" fill="#c084fc" font-size="8" text-anchor="middle" font-weight="700">QATAR LNG</text>
-                        <text x="532" y="217" fill="#94a3b8" font-size="7.5" text-anchor="middle">~20% global LNG</text>
-                        <text x="532" y="229" fill="#a855f7" font-size="7.5" text-anchor="middle" font-weight="600">SUPPLY HUB</text>
+                        <rect x="490" y="200" width="88" height="62" rx="8" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1.5"/>
+                        <circle cx="534" cy="225" r="11" fill="rgba(168,85,247,0.22)" stroke="#a855f7" stroke-width="1.5"/>
+                        <text x="534" y="218" fill="#c084fc" font-size="8" text-anchor="middle" font-weight="700">QATAR LNG</text>
+                        <text x="534" y="230" fill="#94a3b8" font-size="7.5" text-anchor="middle">~20% global LNG</text>
+                        <text x="534" y="242" fill="#a855f7" font-size="7.5" text-anchor="middle" font-weight="600">SUPPLY HUB</text>
+                        <text x="534" y="254" fill="#64748b" font-size="7" text-anchor="middle">2017 · ongoing</text>
+
                         <!-- ── REGION: Iran (sanctions) -->
-                        <rect x="540" y="90" width="90" height="55" rx="8" fill="rgba(168,85,247,0.1)" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3"/>
-                        <circle cx="585" cy="117" r="10" fill="rgba(168,85,247,0.15)" stroke="#7c3aed" stroke-width="1.5"/>
-                        <text x="585" y="111" fill="#c084fc" font-size="8" text-anchor="middle" font-weight="700">IRAN</text>
-                        <text x="585" y="122" fill="#94a3b8" font-size="7.5" text-anchor="middle">Sanctions · Hormuz</text>
-                        <text x="585" y="134" fill="#7c3aed" font-size="7.5" text-anchor="middle" font-weight="600">3–4% crude</text>
+                        <rect x="545" y="98" width="92" height="62" rx="8" fill="rgba(168,85,247,0.1)" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3"/>
+                        <circle cx="591" cy="126" r="11" fill="rgba(168,85,247,0.18)" stroke="#7c3aed" stroke-width="1.5"/>
+                        <text x="591" y="119" fill="#c084fc" font-size="8" text-anchor="middle" font-weight="700">IRAN</text>
+                        <text x="591" y="131" fill="#94a3b8" font-size="7.5" text-anchor="middle">Sanctions · Hormuz</text>
+                        <text x="591" y="143" fill="#7c3aed" font-size="7.5" text-anchor="middle" font-weight="600">3–4% crude</text>
+                        <text x="591" y="153" fill="#64748b" font-size="7" text-anchor="middle">2018 · 2026</text>
+
+                        <!-- ── REGION: South China Sea (Emerging / Elevated) -->
+                        <rect x="650" y="98" width="130" height="85" rx="8" fill="rgba(234,179,8,0.08)" stroke="#eab308" stroke-width="1.5" stroke-dasharray="5,3"/>
+                        <circle cx="715" cy="130" r="13" fill="rgba(234,179,8,0.15)" stroke="#eab308" stroke-width="1.5"/>
+                        <text x="715" y="113" fill="#facc15" font-size="8" text-anchor="middle" font-weight="700">SOUTH CHINA SEA</text>
+                        <text x="715" y="125" fill="#94a3b8" font-size="7.5" text-anchor="middle">LNG routes · Taiwan</text>
+                        <text x="715" y="137" fill="#94a3b8" font-size="7.5" text-anchor="middle">China geopolitics</text>
+                        <text x="715" y="148" fill="#eab308" font-size="7.5" text-anchor="middle" font-weight="600">EMERGING RISK</text>
+                        <text x="715" y="160" fill="#64748b" font-size="7" text-anchor="middle">~25% seaborne trade</text>
+                        <text x="715" y="172" fill="#475569" font-size="6.5" text-anchor="middle" font-style="italic">Malacca Strait</text>
+
                         <!-- ── Supply Routes -->
-                        <!-- Hormuz → Europe via Suez -->
-                        <path d="M 480 168 Q 400 200 375 250 Q 310 290 250 310 Q 180 330 100 310" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.5"/>
-                        <!-- Hormuz → Asia -->
-                        <path d="M 480 168 Q 560 180 640 200 Q 700 215 760 210" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.5"/>
-                        <!-- Russia → Europe -->
-                        <path d="M 215 125 Q 200 170 185 200 Q 170 235 155 260" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.4"/>
+                        <!-- Hormuz → Europe via Red Sea / Suez -->
+                        <path d="M 482 178 Q 400 215 371 258 Q 310 300 250 318 Q 180 340 100 320" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.55"/>
+                        <!-- Hormuz → Asia via Malacca -->
+                        <path d="M 482 178 Q 570 185 640 205 Q 680 220 715 210" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.55"/>
+                        <!-- Russia → Europe pipelines -->
+                        <path d="M 215 157 Q 198 190 182 218 Q 165 248 150 272" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.4"/>
                         <!-- Route labels -->
-                        <text x="290" y="290" fill="#3b82f6" font-size="7.5" font-style="italic" opacity="0.7">Suez Canal route</text>
-                        <text x="640" y="196" fill="#3b82f6" font-size="7.5" font-style="italic" opacity="0.7">Asia–Pacific route</text>
-                        <!-- ── Key Chokepoints labels at bottom -->
-                        <rect x="10" y="330" width="780" height="80" rx="8" fill="rgba(15,23,42,0.8)" stroke="#1e293b" stroke-width="1"/>
-                        <text x="25" y="348" fill="#64748b" font-size="8.5" font-weight="700" text-transform="uppercase">KEY CHOKEPOINTS</text>
+                        <text x="290" y="303" fill="#3b82f6" font-size="7" font-style="italic" opacity="0.75">Suez Canal route</text>
+                        <text x="635" y="202" fill="#3b82f6" font-size="7" font-style="italic" opacity="0.75">Asia–Pacific route</text>
+
+                        <!-- ── Key Chokepoints reference panel -->
+                        <rect x="10" y="350" width="780" height="115" rx="8" fill="rgba(10,22,40,0.92)" stroke="#1e293b" stroke-width="1"/>
+                        <text x="25" y="368" fill="#94a3b8" font-size="8.5" font-weight="700" font-family="sans-serif">KEY CHOKEPOINTS &amp; REFERENCE DATA</text>
                         <!-- Hormuz -->
-                        <circle cx="50" cy="370" r="5" fill="#ef4444"/>
-                        <text x="60" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Strait of Hormuz</text>
-                        <text x="60" y="376" fill="#64748b" font-size="7.5">~20% global oil</text>
+                        <circle cx="50" cy="390" r="5" fill="#ef4444"/>
+                        <text x="60" y="385" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Strait of Hormuz</text>
+                        <text x="60" y="397" fill="#64748b" font-size="7.5" font-family="sans-serif">~20% global oil · 2018, 2026</text>
                         <!-- Red Sea -->
-                        <circle cx="200" cy="370" r="5" fill="#f97316"/>
-                        <text x="210" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Bab el-Mandeb / Red Sea</text>
-                        <text x="210" y="376" fill="#64748b" font-size="7.5">~12% global trade</text>
+                        <circle cx="205" cy="390" r="5" fill="#f97316"/>
+                        <text x="215" y="385" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Red Sea / Bab el-Mandeb</text>
+                        <text x="215" y="397" fill="#64748b" font-size="7.5" font-family="sans-serif">~12% global trade · 2024</text>
                         <!-- Suez -->
-                        <circle cx="400" cy="370" r="5" fill="#eab308"/>
-                        <text x="410" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Suez Canal</text>
-                        <text x="410" y="376" fill="#64748b" font-size="7.5">Europe–Asia trade route</text>
+                        <circle cx="400" cy="390" r="5" fill="#eab308"/>
+                        <text x="410" y="385" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Suez Canal</text>
+                        <text x="410" y="397" fill="#64748b" font-size="7.5" font-family="sans-serif">Europe–Asia trade route</text>
+                        <!-- S. China Sea -->
+                        <circle cx="573" cy="390" r="5" fill="#eab308"/>
+                        <text x="583" y="385" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">South China Sea</text>
+                        <text x="583" y="397" fill="#64748b" font-size="7.5" font-family="sans-serif">~25% seaborne · Emerging</text>
+                        <!-- Row 2 -->
                         <!-- Baltic -->
-                        <circle cx="560" cy="370" r="5" fill="#a855f7"/>
-                        <text x="570" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Baltic Sea / Nord Stream</text>
-                        <text x="570" y="376" fill="#64748b" font-size="7.5">EU pipeline infrastructure</text>
+                        <circle cx="50" cy="418" r="5" fill="#a855f7"/>
+                        <text x="60" y="413" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Baltic / Nord Stream</text>
+                        <text x="60" y="425" fill="#64748b" font-size="7.5" font-family="sans-serif">EU pipeline · 2022–23</text>
+                        <!-- Saudi -->
+                        <circle cx="205" cy="418" r="5" fill="#f97316"/>
+                        <text x="215" y="413" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Saudi Aramco</text>
+                        <text x="215" y="425" fill="#64748b" font-size="7.5" font-family="sans-serif">~10% global crude · 2019</text>
+                        <!-- Russia -->
+                        <circle cx="400" cy="418" r="5" fill="#dc2626"/>
+                        <text x="410" y="413" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Russia / Ukraine</text>
+                        <text x="410" y="425" fill="#64748b" font-size="7.5" font-family="sans-serif">~40% EU gas pre-2022</text>
+                        <!-- Qatar -->
+                        <circle cx="573" cy="418" r="5" fill="#a855f7"/>
+                        <text x="583" y="413" fill="#f1f5f9" font-size="8.5" font-weight="600" font-family="sans-serif">Qatar LNG</text>
+                        <text x="583" y="425" fill="#64748b" font-size="7.5" font-family="sans-serif">~20% global LNG</text>
+                        <!-- Source & annotation lines -->
+                        <line x1="25" y1="434" x2="775" y2="434" stroke="#1e293b" stroke-width="0.75"/>
+                        <text x="25" y="447" fill="#475569" font-size="7" font-family="sans-serif">Circle radius reflects relative severity of recorded disruptions. Stylized geographic representation — not to exact geographic scale.</text>
+                        <text x="25" y="458" fill="#475569" font-size="7" font-family="sans-serif">Sources: IEA, EIA, U.S. Energy Information Administration, Reuters, Bloomberg, EnergyRiskIQ analysis (2026).</text>
                         <!-- Watermark -->
-                        <text x="790" y="415" fill="#1e3a5f" font-size="8" text-anchor="end" font-style="italic">EnergyRiskIQ (2026)</text>
+                        <text x="790" y="485" fill="#1e3a5f" font-size="8" text-anchor="end" font-style="italic" font-family="sans-serif">EnergyRiskIQ (2026) · energyriskiq.com</text>
                     </svg>
                 </div>
-                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">Stylized geographic risk map. Region size and placement are indicative only. Circle radius reflects relative severity of recorded disruptions. Route lines show key shipping and pipeline corridors. Sources: IEA, EIA, Reuters.</p>
+                <div style="background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:1rem 1.2rem;margin-top:0.85rem;">
+                    <h3 style="font-size:0.88rem;font-weight:700;color:#f1f5f9;margin:0 0 0.4rem;">Why Energy Crises Cluster Around These Regions</h3>
+                    <p style="font-size:0.83rem;color:#94a3b8;margin:0;line-height:1.7;">Most global energy disruptions originate from a small number of geographic chokepoints where energy supply infrastructure, international shipping routes, and geopolitical tensions intersect. The Strait of Hormuz controls approximately 20% of global oil flows, while the Red Sea corridor handles around 12% of global seaborne trade. When conflict, sanctions, or infrastructure attacks hit these narrow corridors, price shocks transmit instantly across global oil, gas, and LNG markets &#x2014; regardless of where the consuming country is located.</p>
+                </div>
             </div>
 
             <!-- Timeline -->
@@ -10619,28 +10673,51 @@ async def global_energy_risk_timeline_page(request: Request):
             }}
         }};
 
-        // ── Download SVG map as SVG file ─────────────────────────────────────
+        // ── Download map as high-resolution PNG (3x canvas scale) ────────────
         window.downloadEnergyMap = function(btnId) {{
             var svg = document.getElementById('crisis-map-svg');
             if (!svg) return;
             var btn = document.getElementById(btnId);
+            if (btn) {{ btn.textContent = 'Generating...'; btn.style.color = '#facc15'; }}
+            var SCALE = 3;
+            var VW = 800, VH = 490;
             var serializer = new XMLSerializer();
             var svgStr = serializer.serializeToString(svg);
-            var blob = new Blob([svgStr], {{type: 'image/svg+xml'}});
+            // Inject explicit dimensions so the browser renders at full resolution
+            svgStr = svgStr.replace(/<svg /, '<svg width="' + VW + '" height="' + VH + '" ');
+            var blob = new Blob([svgStr], {{type: 'image/svg+xml;charset=utf-8'}});
             var url = URL.createObjectURL(blob);
-            var a = document.createElement('a');
-            a.download = 'energy-crisis-map-energyriskiq.svg';
-            a.href = url;
-            a.click();
-            URL.revokeObjectURL(url);
-            if (btn) {{
-                btn.textContent = '\u2713 Downloaded!';
-                btn.style.color = '#22c55e';
-                setTimeout(function() {{
-                    btn.innerHTML = '&#x2B07; Download Map';
-                    btn.style.color = '#94a3b8';
-                }}, 2500);
-            }}
+            var img = new Image();
+            img.onload = function() {{
+                var canvas = document.createElement('canvas');
+                canvas.width  = VW * SCALE;
+                canvas.height = VH * SCALE;
+                var ctx = canvas.getContext('2d');
+                // Fill dark background matching SVG (ensures opaque PNG)
+                ctx.fillStyle = '#0a1628';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.scale(SCALE, SCALE);
+                ctx.drawImage(img, 0, 0, VW, VH);
+                URL.revokeObjectURL(url);
+                var a = document.createElement('a');
+                a.download = 'global-energy-crisis-map-energyriskiq.png';
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+                if (btn) {{
+                    btn.textContent = '\u2713 PNG Downloaded!';
+                    btn.style.color = '#22c55e';
+                    setTimeout(function() {{
+                        btn.innerHTML = '&#x2B07; Download PNG (Hi-Res)';
+                        btn.style.color = '#94a3b8';
+                    }}, 3000);
+                }}
+            }};
+            img.onerror = function() {{
+                URL.revokeObjectURL(url);
+                if (btn) {{ btn.innerHTML = '&#x2B07; Download PNG (Hi-Res)'; btn.style.color = '#94a3b8'; }}
+                alert('PNG export failed — try right-clicking the map and saving the image.');
+            }};
+            img.src = url;
         }};
     }})();
     </script>

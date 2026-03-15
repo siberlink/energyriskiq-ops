@@ -1,0 +1,120 @@
+Improvements That Would Make It Even Better
+
+These are small tweaks, not redesigns.
+
+1. Add One Title Above the Map
+
+Right now the title is good but could be stronger for SEO.
+
+Suggested title:
+
+Global Energy Crisis Map — Major Risk Hotspots & Energy Chokepoints
+
+This adds keywords:
+
+• energy chokepoints
+• energy crisis map
+
+2. Add Year Markers to Crisis Regions
+
+Right now the map shows regions but not time reference.
+
+Example improvement:
+
+Russia–Ukraine
+2014 / 2022
+Red Sea
+2024
+Saudi Aramco
+2019
+
+Journalists love date anchors.
+
+3. Slightly Increase the Visibility of Hormuz
+
+Hormuz is arguably the most important energy chokepoint on Earth.
+
+You may want to slightly emphasize it.
+
+Example:
+
+Increase the circle size slightly.
+
+This visually reinforces:
+
+20% of global oil flows
+
+4. Add a Small Annotation
+
+Example:
+
+Circle radius reflects relative severity of recorded disruptions.
+
+This helps interpretation.
+
+5. Add a Source Line
+
+Very important for credibility.
+
+Add at bottom:
+
+Sources: IEA, EIA, Reuters, EnergyRiskIQ analysis
+
+Journalists trust maps more when sources are explicit.
+
+6. Add One More Region (Optional but Powerful)
+
+Consider adding:
+
+South China Sea
+
+Reason:
+
+• major shipping corridor
+• LNG routes
+• China–Taiwan geopolitical tension
+
+Even if no event yet, analysts expect this to be a future hotspot.
+
+7. Allow Image Download
+
+I noticed the Download Map button.
+
+Excellent.
+
+But make sure it exports:
+
+• PNG
+• high resolution
+• white background version (optional)
+
+Journalists often embed these images.
+
+One Very Smart SEO Trick
+
+Below the map add:
+
+Why Energy Crises Cluster Around These Regions
+
+Short explanation:
+
+Most global energy disruptions originate from a small number of geographic chokepoints where energy supply, shipping routes, and geopolitical tensions intersect.
+
+This creates indexable text for Google.
+
+The Strategic Value of This Map
+
+This single map can generate a large number of backlinks.
+
+Journalists writing about:
+
+• oil supply risk
+• Strait of Hormuz
+• Red Sea crisis
+• Russian gas
+
+will often search:
+
+“global energy chokepoints map”
+
+Your page could rank for this.
