@@ -8815,16 +8815,34 @@ async def global_energy_risk_timeline_page(request: Request):
     <script type="application/ld+json">
     {{
         "@context": "https://schema.org",
-        "@type": "Article",
+        "@type": "ScholarlyArticle",
         "headline": "Global Energy Risk Timeline: Major Disruptions 2014&#x2013;2026",
         "description": "A comprehensive chronological record of geopolitical shocks, supply disruptions, and infrastructure crises that shaped global energy markets.",
         "url": "{BASE_URL}/research/global-energy-risk-timeline",
+        "author": {{"@type":"Organization","name":"EnergyRiskIQ","url":"{BASE_URL}"}},
         "publisher": {{
             "@type": "Organization",
             "name": "EnergyRiskIQ",
             "url": "{BASE_URL}"
         }},
-        "dateModified": "2026-03-15"
+        "datePublished": "2026-01-15",
+        "dateModified": "2026-03-15",
+        "keywords": "energy crisis, geopolitical energy shocks, oil price shock, global energy risk, energy chokepoints, LNG disruption, pipeline sabotage"
+    }}
+    </script>
+
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": "Global Energy Risk Timeline 2014&#x2013;2026",
+        "description": "Chronological record of 18 major geopolitical shocks, supply disruptions, and infrastructure crises that shaped global oil, gas, and LNG markets from 2014 to 2026.",
+        "url": "{BASE_URL}/research/global-energy-risk-timeline",
+        "creator": {{"@type":"Organization","name":"EnergyRiskIQ","url":"{BASE_URL}"}},
+        "datePublished": "2026-01-15",
+        "dateModified": "2026-03-15",
+        "keywords": ["energy crisis","geopolitical risk","oil market","LNG","energy chokepoints","pipeline sabotage","maritime security"],
+        "license": "https://creativecommons.org/licenses/by/4.0/"
     }}
     </script>
 
@@ -9074,6 +9092,99 @@ async def global_energy_risk_timeline_page(request: Request):
             .tl-section {{ padding: 1.1rem 1.1rem; }}
             .tl-event {{ padding: 1.1rem 1rem; }}
         }}
+        /* ── Sticky TOC ─────────────────────────────────── */
+        .tl-toc-wrap {{
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 10px; padding: 1rem 1.25rem; margin: 1rem 0 1.5rem;
+        }}
+        .tl-toc-title {{
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.07em; color: #64748b; margin-bottom: 0.65rem;
+        }}
+        .tl-toc-grid {{
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.2rem 1rem;
+        }}
+        @media (max-width: 600px) {{ .tl-toc-grid {{ grid-template-columns: repeat(2, 1fr); }} }}
+        @media (max-width: 380px) {{ .tl-toc-grid {{ grid-template-columns: 1fr; }} }}
+        .tl-toc-grid a {{
+            font-size: 0.8rem; color: #60a5fa; text-decoration: none;
+            padding: 0.18rem 0; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }}
+        .tl-toc-grid a:hover {{ color: #93c5fd; }}
+        /* ── Energy Crisis Map ──────────────────────────── */
+        .map-download-bar {{
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem;
+        }}
+        .map-legend-row {{ display: flex; gap: 1.1rem; flex-wrap: wrap; }}
+        .map-legend-item {{ display: flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; color: #94a3b8; }}
+        .map-legend-dot {{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }}
+        .map-wrap {{ border-radius: 10px; overflow: hidden; border: 1px solid #334155; background: #0a1628; margin: 0.5rem 0; }}
+        .chart-dl-btn {{
+            background: #1e293b; border: 1px solid #334155; border-radius: 5px;
+            padding: 0.25rem 0.7rem; font-size: 0.72rem; font-weight: 600;
+            color: #94a3b8; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+        }}
+        .chart-dl-btn:hover {{ border-color: #60a5fa; color: #60a5fa; }}
+        /* ── Chokepoints ────────────────────────────────── */
+        .choke-table-wrap {{ overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; margin: 0.75rem 0; }}
+        .choke-table {{ width: 100%; border-collapse: collapse; min-width: 480px; }}
+        .choke-table th {{
+            text-align: left; padding: 0.55rem 0.8rem; font-size: 0.73rem;
+            color: #94a3b8; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.05em; border-bottom: 2px solid #334155; background: #0f172a;
+        }}
+        .choke-table td {{
+            padding: 0.6rem 0.8rem; font-size: 0.83rem;
+            border-bottom: 1px solid #1e293b; vertical-align: middle;
+        }}
+        .choke-table tr:last-child td {{ border-bottom: none; }}
+        .choke-table td:first-child {{ color: #f1f5f9; font-weight: 600; }}
+        .choke-table td:nth-child(2) {{ color: #94a3b8; font-size: 0.8rem; }}
+        .choke-table td:nth-child(3) {{ color: #60a5fa; font-weight: 700; font-size: 0.85rem; text-align: right; }}
+        .choke-table td:nth-child(4) {{ color: #64748b; font-size: 0.78rem; }}
+        /* ── Canvas chart wrapper ───────────────────────── */
+        .canvas-chart-wrap {{ position: relative; height: 200px; margin: 1rem 0 0.5rem; }}
+        .chart-header-row {{
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;
+        }}
+        .chart-header-label {{ font-size: 0.8rem; color: #64748b; }}
+        /* ── CTA block ──────────────────────────────────── */
+        .tl-cta-block {{
+            background: linear-gradient(135deg, #0f1e3d 0%, #0a1628 100%);
+            border: 1px solid #334155; border-left: 3px solid #3b82f6;
+            border-radius: 12px; padding: 1.5rem 1.75rem; margin: 1.5rem 0;
+            display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+        }}
+        .tl-cta-text {{ flex: 1; min-width: 200px; }}
+        .tl-cta-text h3 {{ font-size: 1rem; font-weight: 700; color: #f1f5f9; margin: 0 0 0.4rem; }}
+        .tl-cta-text p {{ font-size: 0.86rem; color: #94a3b8; margin: 0; line-height: 1.6; }}
+        .tl-cta-btn {{
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff; font-size: 0.88rem; font-weight: 700;
+            padding: 0.65rem 1.4rem; border-radius: 8px;
+            text-decoration: none; white-space: nowrap; flex-shrink: 0;
+            border: none; cursor: pointer; display: inline-block;
+        }}
+        .tl-cta-btn:hover {{ background: linear-gradient(135deg, #60a5fa, #3b82f6); }}
+        /* ── Sources section ────────────────────────────── */
+        .sources-grid {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin: 0.75rem 0; }}
+        @media (max-width: 480px) {{ .sources-grid {{ grid-template-columns: 1fr; }} }}
+        .source-item {{
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 7px;
+            padding: 0.65rem 0.85rem; font-size: 0.8rem; color: #94a3b8;
+        }}
+        .source-item strong {{ color: #e2e8f0; display: block; margin-bottom: 0.15rem; font-size: 0.82rem; }}
+        /* ── Download note ──────────────────────────────── */
+        .dl-note {{
+            background: #0f172a; border: 1px solid #334155; border-left: 3px solid #3b82f6;
+            border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem;
+            display: flex; align-items: flex-start; gap: 0.65rem;
+        }}
+        .dl-note-icon {{ font-size: 0.95rem; flex-shrink: 0; margin-top: 0.05rem; }}
+        .dl-note p {{ font-size: 0.79rem; color: #94a3b8; margin: 0; line-height: 1.55; }}
+        .dl-note strong {{ color: #cbd5e1; }}
     </style>
 </head>
 <body>
@@ -9097,11 +9208,31 @@ async def global_energy_risk_timeline_page(request: Request):
             <!-- Hero -->
             <div class="tl-hero">
                 <h1>Global Energy Risk Timeline</h1>
-                <p class="subtitle">A chronological record of the geopolitical shocks, supply crises, and infrastructure disruptions that have shaped global energy markets from 2014 to the present.</p>
+                <p class="subtitle">The Global Energy Risk Timeline documents the major geopolitical shocks, infrastructure attacks, supply crises, and market disruptions that have shaped global oil, gas, and LNG markets since 2014. By combining historical energy events with the EnergyRiskIQ risk framework, this timeline provides analysts, journalists, and policymakers with a structured view of how geopolitical risk propagates through energy markets.</p>
             </div>
 
             <div class="tl-callout">
                 <p>&ldquo;Energy markets are repeatedly shaped by geopolitical shocks, infrastructure failures, sanctions regimes, and military conflicts. This timeline tracks the major events that have disrupted global energy supply, influenced price volatility, and defined the risk landscape for oil, gas, and LNG markets.&rdquo;</p>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="tl-toc-wrap">
+                <div class="tl-toc-title">&#x1F4CB; On This Page</div>
+                <div class="tl-toc-grid">
+                    <a href="#quick-reference">Crisis Quick Reference</a>
+                    <a href="#energy-crisis-map">Energy Crisis Map</a>
+                    <a href="#timeline">Energy Risk Timeline</a>
+                    <a href="#risk-categories">Risk Categories</a>
+                    <a href="#energy-chokepoints">Key Chokepoints</a>
+                    <a href="#market-impact-patterns">Market Impact Patterns</a>
+                    <a href="#crisis-frequency">Crisis Frequency</a>
+                    <a href="#crisis-evolution">Risk Evolution</a>
+                    <a href="#supply-at-risk">Supply at Risk</a>
+                    <a href="#risk-regime-history">Risk Regime History</a>
+                    <a href="#sources">Data Sources</a>
+                    <a href="#methodology">Methodology</a>
+                    <a href="#citation">How to Cite</a>
+                </div>
             </div>
 
             <!-- Quick Reference Table -->
@@ -9133,6 +9264,119 @@ async def global_energy_risk_timeline_page(request: Request):
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Energy Crisis Map -->
+            <div class="tl-section" id="energy-crisis-map">
+                <h2>&#x1F5FA;&#xFE0F; Global Energy Crisis Map</h2>
+                <p>Major energy crises since 2014 cluster around a small number of critical geographic regions. Each region has produced repeated disruptions that transmit through global oil, gas, and LNG markets.</p>
+                <div class="map-download-bar">
+                    <div class="map-legend-row">
+                        <div class="map-legend-item"><div class="map-legend-dot" style="background:#ef4444;"></div>Extreme / Critical Risk</div>
+                        <div class="map-legend-item"><div class="map-legend-dot" style="background:#f97316;"></div>High Risk</div>
+                        <div class="map-legend-item"><div class="map-legend-dot" style="background:#eab308;"></div>Elevated Risk</div>
+                        <div class="map-legend-item"><div class="map-legend-dot" style="background:#3b82f6;"></div>Supply Route</div>
+                    </div>
+                    <button class="chart-dl-btn" id="mapDlBtn" onclick="window.downloadEnergyMap('mapDlBtn')">&#x2B07; Download Map</button>
+                </div>
+                <div class="map-wrap">
+                    <svg id="crisis-map-svg" viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                            </filter>
+                        </defs>
+                        <!-- Background -->
+                        <rect width="800" height="420" fill="#0a1628"/>
+                        <!-- Grid lines (subtle) -->
+                        <line x1="0" y1="140" x2="800" y2="140" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="0" y1="280" x2="800" y2="280" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="200" y1="0" x2="200" y2="420" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="400" y1="0" x2="400" y2="420" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="600" y1="0" x2="600" y2="420" stroke="#1e293b" stroke-width="1"/>
+                        <!-- Compass labels -->
+                        <text x="10" y="20" fill="#1e3a5f" font-size="10" font-family="monospace">EUROPE</text>
+                        <text x="380" y="20" fill="#1e3a5f" font-size="10" font-family="monospace">MIDDLE EAST</text>
+                        <text x="650" y="20" fill="#1e3a5f" font-size="10" font-family="monospace">ASIA-PACIFIC</text>
+                        <text x="10" y="300" fill="#1e3a5f" font-size="10" font-family="monospace">AFRICA</text>
+                        <text x="10" y="415" fill="#1e3a5f" font-size="10" font-family="monospace">GLOBAL OCEAN ROUTES</text>
+                        <!-- ── REGION: Eastern Europe / Russia (red - extreme) -->
+                        <rect x="120" y="40" width="190" height="90" rx="10" fill="rgba(220,38,38,0.12)" stroke="#dc2626" stroke-width="1.5"/>
+                        <circle cx="215" cy="85" r="18" fill="rgba(220,38,38,0.25)" stroke="#dc2626" stroke-width="2" filter="url(#glow)"/>
+                        <text x="215" y="81" fill="#ef4444" font-size="16" text-anchor="middle" font-weight="bold">!</text>
+                        <text x="215" y="95" fill="#ef4444" font-size="9.5" text-anchor="middle" font-weight="700">RUSSIA / UKRAINE</text>
+                        <text x="215" y="107" fill="#94a3b8" font-size="8.5" text-anchor="middle">Gas cutoff · Sanctions · Conflict</text>
+                        <text x="215" y="119" fill="#dc2626" font-size="8" text-anchor="middle" font-weight="700">EXTREME RISK</text>
+                        <!-- ── REGION: Baltic Sea / Nord Stream -->
+                        <rect x="140" y="30" width="60" height="30" rx="5" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1" stroke-dasharray="4,3"/>
+                        <text x="170" y="42" fill="#fb923c" font-size="7.5" text-anchor="middle" font-weight="600">BALTIC SEA</text>
+                        <text x="170" y="53" fill="#64748b" font-size="7" text-anchor="middle">Nord Stream</text>
+                        <!-- ── REGION: Persian Gulf / Strait of Hormuz (red - critical) -->
+                        <rect x="400" y="120" width="160" height="95" rx="10" fill="rgba(239,68,68,0.12)" stroke="#ef4444" stroke-width="1.5"/>
+                        <circle cx="480" cy="168" r="22" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="2" filter="url(#glow)"/>
+                        <text x="480" y="164" fill="#ef4444" font-size="17" text-anchor="middle" font-weight="bold">!</text>
+                        <text x="480" y="178" fill="#ef4444" font-size="9.5" text-anchor="middle" font-weight="700">PERSIAN GULF</text>
+                        <text x="480" y="190" fill="#94a3b8" font-size="8.5" text-anchor="middle">Hormuz · Iran · Tankers</text>
+                        <text x="480" y="202" fill="#ef4444" font-size="8" text-anchor="middle" font-weight="700">~20% GLOBAL OIL</text>
+                        <!-- ── REGION: Saudi Arabia -->
+                        <rect x="400" y="200" width="100" height="55" rx="8" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
+                        <circle cx="450" cy="227" r="12" fill="rgba(249,115,22,0.2)" stroke="#f97316" stroke-width="1.5"/>
+                        <text x="450" y="220" fill="#fb923c" font-size="8" text-anchor="middle" font-weight="700">SAUDI ARABIA</text>
+                        <text x="450" y="231" fill="#94a3b8" font-size="7.5" text-anchor="middle">Aramco · ~10% crude</text>
+                        <text x="450" y="243" fill="#f97316" font-size="7.5" text-anchor="middle" font-weight="600">HIGH RISK</text>
+                        <!-- ── REGION: Red Sea / Bab el-Mandeb -->
+                        <rect x="330" y="215" width="90" height="70" rx="8" fill="rgba(249,115,22,0.1)" stroke="#f97316" stroke-width="1.5"/>
+                        <circle cx="375" cy="250" r="12" fill="rgba(249,115,22,0.2)" stroke="#f97316" stroke-width="1.5"/>
+                        <text x="375" y="243" fill="#fb923c" font-size="8" text-anchor="middle" font-weight="700">RED SEA</text>
+                        <text x="375" y="254" fill="#94a3b8" font-size="7.5" text-anchor="middle">Houthis · Suez</text>
+                        <text x="375" y="266" fill="#f97316" font-size="7.5" text-anchor="middle" font-weight="600">~12% trade</text>
+                        <!-- ── REGION: Qatar (LNG) -->
+                        <rect x="490" y="185" width="85" height="55" rx="8" fill="rgba(168,85,247,0.1)" stroke="#a855f7" stroke-width="1.5"/>
+                        <circle cx="532" cy="212" r="10" fill="rgba(168,85,247,0.2)" stroke="#a855f7" stroke-width="1.5"/>
+                        <text x="532" y="206" fill="#c084fc" font-size="8" text-anchor="middle" font-weight="700">QATAR LNG</text>
+                        <text x="532" y="217" fill="#94a3b8" font-size="7.5" text-anchor="middle">~20% global LNG</text>
+                        <text x="532" y="229" fill="#a855f7" font-size="7.5" text-anchor="middle" font-weight="600">SUPPLY HUB</text>
+                        <!-- ── REGION: Iran (sanctions) -->
+                        <rect x="540" y="90" width="90" height="55" rx="8" fill="rgba(168,85,247,0.1)" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3"/>
+                        <circle cx="585" cy="117" r="10" fill="rgba(168,85,247,0.15)" stroke="#7c3aed" stroke-width="1.5"/>
+                        <text x="585" y="111" fill="#c084fc" font-size="8" text-anchor="middle" font-weight="700">IRAN</text>
+                        <text x="585" y="122" fill="#94a3b8" font-size="7.5" text-anchor="middle">Sanctions · Hormuz</text>
+                        <text x="585" y="134" fill="#7c3aed" font-size="7.5" text-anchor="middle" font-weight="600">3–4% crude</text>
+                        <!-- ── Supply Routes -->
+                        <!-- Hormuz → Europe via Suez -->
+                        <path d="M 480 168 Q 400 200 375 250 Q 310 290 250 310 Q 180 330 100 310" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.5"/>
+                        <!-- Hormuz → Asia -->
+                        <path d="M 480 168 Q 560 180 640 200 Q 700 215 760 210" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.5"/>
+                        <!-- Russia → Europe -->
+                        <path d="M 215 125 Q 200 170 185 200 Q 170 235 155 260" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-dasharray="6,4" opacity="0.4"/>
+                        <!-- Route labels -->
+                        <text x="290" y="290" fill="#3b82f6" font-size="7.5" font-style="italic" opacity="0.7">Suez Canal route</text>
+                        <text x="640" y="196" fill="#3b82f6" font-size="7.5" font-style="italic" opacity="0.7">Asia–Pacific route</text>
+                        <!-- ── Key Chokepoints labels at bottom -->
+                        <rect x="10" y="330" width="780" height="80" rx="8" fill="rgba(15,23,42,0.8)" stroke="#1e293b" stroke-width="1"/>
+                        <text x="25" y="348" fill="#64748b" font-size="8.5" font-weight="700" text-transform="uppercase">KEY CHOKEPOINTS</text>
+                        <!-- Hormuz -->
+                        <circle cx="50" cy="370" r="5" fill="#ef4444"/>
+                        <text x="60" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Strait of Hormuz</text>
+                        <text x="60" y="376" fill="#64748b" font-size="7.5">~20% global oil</text>
+                        <!-- Red Sea -->
+                        <circle cx="200" cy="370" r="5" fill="#f97316"/>
+                        <text x="210" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Bab el-Mandeb / Red Sea</text>
+                        <text x="210" y="376" fill="#64748b" font-size="7.5">~12% global trade</text>
+                        <!-- Suez -->
+                        <circle cx="400" cy="370" r="5" fill="#eab308"/>
+                        <text x="410" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Suez Canal</text>
+                        <text x="410" y="376" fill="#64748b" font-size="7.5">Europe–Asia trade route</text>
+                        <!-- Baltic -->
+                        <circle cx="560" cy="370" r="5" fill="#a855f7"/>
+                        <text x="570" y="365" fill="#f1f5f9" font-size="8.5" font-weight="600">Baltic Sea / Nord Stream</text>
+                        <text x="570" y="376" fill="#64748b" font-size="7.5">EU pipeline infrastructure</text>
+                        <!-- Watermark -->
+                        <text x="790" y="415" fill="#1e3a5f" font-size="8" text-anchor="end" font-style="italic">EnergyRiskIQ (2026)</text>
+                    </svg>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">Stylized geographic risk map. Region size and placement are indicative only. Circle radius reflects relative severity of recorded disruptions. Route lines show key shipping and pipeline corridors. Sources: IEA, EIA, Reuters.</p>
             </div>
 
             <!-- Timeline -->
@@ -9805,6 +10049,63 @@ async def global_energy_risk_timeline_page(request: Request):
                 </div>
             </div>
 
+            <!-- Key Energy Chokepoints -->
+            <div class="tl-section" id="energy-chokepoints">
+                <h2>&#x2693; Key Global Energy Chokepoints</h2>
+                <p>A small number of geographic bottlenecks control the flow of the world&rsquo;s energy. Disruption at any of these points triggers immediate price responses in oil, gas, and LNG markets. The events in this timeline repeatedly demonstrate their strategic importance.</p>
+                <div class="choke-table-wrap">
+                    <table class="choke-table">
+                        <thead>
+                            <tr>
+                                <th>Chokepoint</th>
+                                <th>What it Carries</th>
+                                <th>Share at Risk</th>
+                                <th>Key Crisis Events</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>&#x26A0;&#xFE0F; Strait of Hormuz</td>
+                                <td>Persian Gulf crude oil &amp; LNG exports</td>
+                                <td>~20% global oil</td>
+                                <td>Iran sanctions (2018), Hormuz escalation (2026)</td>
+                            </tr>
+                            <tr>
+                                <td>&#x26A0;&#xFE0F; Bab el-Mandeb / Red Sea</td>
+                                <td>Tankers and container ships via Suez</td>
+                                <td>~12% global trade</td>
+                                <td>Saudi&#x2013;Iran proxy conflict (2015), Red Sea tanker attacks (2024)</td>
+                            </tr>
+                            <tr>
+                                <td>&#x26A0;&#xFE0F; Suez Canal</td>
+                                <td>Europe&#x2013;Asia energy and goods trade</td>
+                                <td>~8% seaborne oil trade</td>
+                                <td>Red Sea disruptions reroute around Cape of Good Hope (2024)</td>
+                            </tr>
+                            <tr>
+                                <td>&#x1F6A8; Turkish Straits (Bosphorus)</td>
+                                <td>Black Sea crude oil exports (Russia, Kazakhstan)</td>
+                                <td>~3% global oil supply</td>
+                                <td>Russia&#x2013;Ukraine war limits Black Sea navigation (2022)</td>
+                            </tr>
+                            <tr>
+                                <td>&#x1F6A8; Nord Stream Pipelines (Baltic)</td>
+                                <td>Russian gas to Central and Western Europe</td>
+                                <td>~40% of EU gas pre-2022</td>
+                                <td>Russia gas cutoff (2022), Nord Stream sabotage (2022&#x2013;2023)</td>
+                            </tr>
+                            <tr>
+                                <td>&#x1F6A2; Malacca Strait</td>
+                                <td>Middle East LNG and oil to China, Japan, South Korea</td>
+                                <td>~25% global seaborne trade</td>
+                                <td>LNG supply tightness Asia (2021); ongoing maritime risk</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">Sources: IEA, EIA, U.S. Energy Information Administration Chokepoint Report. Share figures are approximate annual averages.</p>
+            </div>
+
             <!-- Market Impact Patterns -->
             <div class="tl-section" id="market-impact-patterns">
                 <h2>&#x1F4CA; Market Impact Patterns by Shock Type</h2>
@@ -9861,26 +10162,40 @@ async def global_energy_risk_timeline_page(request: Request):
                 </div>
             </div>
 
-            <!-- Crisis Clustering -->
+            <!-- Crisis Frequency — Chart.js canvas -->
             <div class="tl-section" id="crisis-frequency">
                 <h2>&#x1F4C8; Energy Crisis Frequency (2014&#x2013;2026)</h2>
                 <p>The chart below shows the concentration of major energy risk events by year. Crisis clustering in 2022 reflects the compounding effects of the Russia&#x2013;Ukraine invasion and European energy supply shock &#x2014; the most severe energy crisis since 2008.</p>
-                <div class="cluster-chart">
-                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2014</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2015</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2016</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2017</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2018</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2019</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2020</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">2</div><div class="cluster-bar" style="height:66%;background:#3b82f6;"></div><div class="cluster-year">2021</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">3</div><div class="cluster-bar" style="height:100%;background:#ef4444;"></div><div class="cluster-year">2022</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2023</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#60a5fa;"></div><div class="cluster-year">2024</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">&ndash;</div><div class="cluster-bar" style="height:3%;background:#334155;"></div><div class="cluster-year">2025</div></div>
-                    <div class="cluster-bar-wrap"><div class="cluster-count">1</div><div class="cluster-bar" style="height:33%;background:#f97316;"></div><div class="cluster-year">2026</div></div>
+                <div class="dl-note">
+                    <div class="dl-note-icon">&#x2B07;</div>
+                    <p><strong>This chart is free to download and use.</strong> If you publish or share it, please credit: <span style="font-family:monospace;color:#7dd3fc;font-size:0.77rem;">EnergyRiskIQ (2026). Global Energy Risk Timeline. https://energyriskiq.com/research/global-energy-risk-timeline</span></p>
                 </div>
-                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">Bar height = number of major energy disruption events. 2022 peak = 3 events (Ukraine invasion, pipeline sabotage, EU sanctions). Orange bar (2026) = ongoing event with live EnergyRiskIQ index coverage.</p>
+                <div class="chart-header-row">
+                    <div class="chart-header-label">Major energy disruption events per year</div>
+                    <button class="chart-dl-btn" id="freqDlBtn" onclick="window.copyChartImg('freqChart','freqDlBtn','energy-crisis-frequency-2014-2026')">&#x2B07; Download</button>
+                </div>
+                <div class="canvas-chart-wrap">
+                    <canvas id="freqChart"></canvas>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">2022 peak = 3 events (Ukraine invasion, pipeline sabotage, EU sanctions). Orange bar (2026) = ongoing event with live EnergyRiskIQ index coverage. 2025 had no major catalogued events in this timeline.</p>
+            </div>
+
+            <!-- Timeline Evolution Chart -->
+            <div class="tl-section" id="crisis-evolution">
+                <h2>&#x1F4C9; Global Energy Risk Evolution (2014&#x2013;2026)</h2>
+                <p>Are energy crises becoming more frequent and severe? The chart below plots the dominant risk regime level for each year, based on the event classification in this timeline. The global energy system has transitioned through several distinct risk regimes: a supply oversupply era (2014&#x2013;2016), a period of Middle East geopolitical tension (2017&#x2013;2019), a demand shock (2020), a structural supply crisis (2021&#x2013;2022), and an era of maritime disruption and geopolitical fragmentation (2023&#x2013;2026).</p>
+                <div class="dl-note">
+                    <div class="dl-note-icon">&#x2B07;</div>
+                    <p><strong>This chart is free to download and use.</strong> If you publish or share it, please credit: <span style="font-family:monospace;color:#7dd3fc;font-size:0.77rem;">EnergyRiskIQ (2026). Global Energy Risk Timeline. https://energyriskiq.com/research/global-energy-risk-timeline</span></p>
+                </div>
+                <div class="chart-header-row">
+                    <div class="chart-header-label">Risk regime level by year (1=Moderate → 5=Extreme)</div>
+                    <button class="chart-dl-btn" id="evoDlBtn" onclick="window.copyChartImg('evoChart','evoDlBtn','energy-risk-evolution-2014-2026')">&#x2B07; Download</button>
+                </div>
+                <div class="canvas-chart-wrap">
+                    <canvas id="evoChart"></canvas>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.5rem;">Scale: Moderate=1, Elevated=2, High=3, Severe=4, Extreme=5. 2026 value reflects current EnergyRiskIQ live index data. Prior years are based on historical event classification.</p>
             </div>
 
             <!-- Supply at Risk Meter -->
@@ -10044,6 +10359,48 @@ async def global_energy_risk_timeline_page(request: Request):
                 <p style="color:#64748b;font-size:0.8rem;">For API access to our index data for academic or institutional research, contact us through the platform.</p>
             </div>
 
+            <!-- Data Sources -->
+            <div class="tl-section" id="sources">
+                <h2>&#x1F4DA; Data Sources</h2>
+                <p>This timeline references historical events and market data documented by the following authoritative sources. All quantitative figures (price levels, supply shares, market impacts) reflect published data at the time of each event.</p>
+                <div class="sources-grid">
+                    <div class="source-item">
+                        <strong>International Energy Agency (IEA)</strong>
+                        Oil Market Reports, Gas Market Reports, Energy Security assessments
+                    </div>
+                    <div class="source-item">
+                        <strong>U.S. Energy Information Administration (EIA)</strong>
+                        Short-Term Energy Outlook, chokepoint data, market reports
+                    </div>
+                    <div class="source-item">
+                        <strong>IMF Commodity Reports</strong>
+                        Primary commodity price data and economic impact assessments
+                    </div>
+                    <div class="source-item">
+                        <strong>BP Statistical Review of World Energy</strong>
+                        Historical production, consumption, and trade flow data
+                    </div>
+                    <div class="source-item">
+                        <strong>Reuters / Bloomberg Energy Coverage</strong>
+                        Real-time event reporting, price data, and crisis documentation
+                    </div>
+                    <div class="source-item">
+                        <strong>EnergyRiskIQ Platform</strong>
+                        Live GERI, EERI, EGSI index values (Jan 15, 2026 onward)
+                    </div>
+                </div>
+                <p style="font-size:0.75rem;color:#475569;margin-top:0.75rem;">Historical prices are referenced as approximate figures widely reported in the energy press. They are intended as illustrative benchmarks and should not be used as precise trading reference data.</p>
+            </div>
+
+            <!-- CTA -->
+            <div class="tl-cta-block">
+                <div class="tl-cta-text">
+                    <h3>&#x1F4CA; Monitor Energy Risk in Real Time</h3>
+                    <p>Historical crises show how quickly energy markets can destabilize. The Global Energy Risk Index (GERI) tracks real-time geopolitical risk signals across global energy markets &#x2014; updated daily, with professional-grade interpretations for analysts and traders.</p>
+                </div>
+                <a href="/indices/global-energy-risk-index" class="tl-cta-btn">View Live GERI Dashboard &#x2192;</a>
+            </div>
+
             <!-- Related Research -->
             <div class="tl-section">
                 <h2>&#x1F517; Related Research &amp; Indices</h2>
@@ -10068,6 +10425,16 @@ async def global_energy_risk_timeline_page(request: Request):
                         <div class="rc-title">Europe Gas Stress Index (EGSI)</div>
                         <div class="rc-desc">Storage levels, LNG flows, and European gas system stress</div>
                     </a>
+                    <a href="/geri/history" class="related-card">
+                        <div class="rc-label">Historical Data</div>
+                        <div class="rc-title">GERI Historical Index Data</div>
+                        <div class="rc-desc">Daily GERI values and trend history since January 2026</div>
+                    </a>
+                    <a href="/eeri/history" class="related-card">
+                        <div class="rc-label">Historical Data</div>
+                        <div class="rc-title">EERI Historical Data</div>
+                        <div class="rc-desc">European energy risk history and pattern analysis</div>
+                    </a>
                 </div>
             </div>
 
@@ -10086,6 +10453,197 @@ async def global_energy_risk_timeline_page(request: Request):
             </div>
         </div>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+    (function() {{
+        // ── Shared chart defaults ────────────────────────────────────────────
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
+        var YEARS = ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025','2026'];
+
+        // ── Crisis Frequency Chart ───────────────────────────────────────────
+        var freqCounts = [2, 2, 1, 1, 2, 2, 1, 2, 3, 1, 1, 0, 1];
+        var freqColors = freqCounts.map(function(v, i) {{
+            if (i === 12) return 'rgba(249,115,22,0.8)';  // 2026 = orange
+            if (v === 3)  return 'rgba(239,68,68,0.85)';  // peak = red
+            if (v === 2)  return 'rgba(59,130,246,0.75)';
+            if (v === 0)  return 'rgba(51,65,85,0.5)';
+            return 'rgba(96,165,250,0.65)';
+        }});
+        var freqBorders = freqColors.map(function(c) {{ return c.replace('0.8','1').replace('0.85','1').replace('0.75','1').replace('0.5','0.7').replace('0.65','1'); }});
+
+        var freqCanvas = document.getElementById('freqChart');
+        if (freqCanvas) {{
+            new Chart(freqCanvas, {{
+                type: 'bar',
+                data: {{
+                    labels: YEARS,
+                    datasets: [{{
+                        label: 'Major disruption events',
+                        data: freqCounts,
+                        backgroundColor: freqColors,
+                        borderColor: freqBorders,
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: '#1e293b',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {{
+                                title: function(items) {{ return items[0].label + ' events'; }},
+                                label: function(item) {{
+                                    var n = item.raw;
+                                    return n === 0 ? 'None catalogued' : (n + ' major event' + (n > 1 ? 's' : ''));
+                                }}
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        x: {{
+                            grid: {{ color: 'rgba(51,65,85,0.4)' }},
+                            ticks: {{ font: {{ size: 11 }} }}
+                        }},
+                        y: {{
+                            grid: {{ color: 'rgba(51,65,85,0.4)' }},
+                            ticks: {{ stepSize: 1, font: {{ size: 11 }} }},
+                            min: 0, max: 4
+                        }}
+                    }}
+                }}
+            }});
+        }}
+
+        // ── Risk Evolution Chart ─────────────────────────────────────────────
+        // Risk level: Moderate=1, Elevated=2, High=3, Severe=4, Extreme=5
+        var evoLevels = [2, 2, 1, 2, 2, 3, 5, 3, 5, 3, 2, 1, 2];
+        var evoLabels = ['Moderate','Elevated','Moderate','Elevated','Elevated','High','Extreme','High','Extreme','High','Elevated','Moderate','Elevated'];
+        var evoPointColors = evoLevels.map(function(v) {{
+            if (v === 5) return '#dc2626';
+            if (v === 4) return '#ef4444';
+            if (v === 3) return '#f97316';
+            if (v === 2) return '#eab308';
+            return '#22c55e';
+        }});
+        var evoCanvas = document.getElementById('evoChart');
+        if (evoCanvas) {{
+            new Chart(evoCanvas, {{
+                type: 'line',
+                data: {{
+                    labels: YEARS,
+                    datasets: [{{
+                        label: 'Risk Regime Level',
+                        data: evoLevels,
+                        fill: true,
+                        backgroundColor: 'rgba(59,130,246,0.08)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        tension: 0.35,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: evoPointColors,
+                        pointBorderColor: evoPointColors,
+                        pointBorderWidth: 2
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{ display: false }},
+                        tooltip: {{
+                            backgroundColor: '#1e293b',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            callbacks: {{
+                                title: function(items) {{ return items[0].label; }},
+                                label: function(item) {{
+                                    return evoLabels[item.dataIndex] + ' (level ' + item.raw + ')';
+                                }}
+                            }}
+                        }}
+                    }},
+                    scales: {{
+                        x: {{
+                            grid: {{ color: 'rgba(51,65,85,0.4)' }},
+                            ticks: {{ font: {{ size: 11 }} }}
+                        }},
+                        y: {{
+                            grid: {{ color: 'rgba(51,65,85,0.4)' }},
+                            min: 0, max: 6,
+                            ticks: {{
+                                stepSize: 1,
+                                font: {{ size: 11 }},
+                                callback: function(v) {{
+                                    var map = {{0:'',1:'Moderate',2:'Elevated',3:'High',4:'Severe',5:'Extreme',6:''}};
+                                    return map[v] || '';
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+        }}
+
+        // ── Download chart as PNG (matches GERI research page pattern) ───────
+        window.copyChartImg = function(canvasId, btnId, filename) {{
+            var canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            var btn = document.getElementById(btnId);
+            var off = document.createElement('canvas');
+            off.width  = canvas.width;
+            off.height = canvas.height;
+            var ctx = off.getContext('2d');
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, off.width, off.height);
+            ctx.drawImage(canvas, 0, 0);
+            var a = document.createElement('a');
+            a.download = (filename || canvasId) + '.png';
+            a.href = off.toDataURL('image/png');
+            a.click();
+            if (btn) {{
+                btn.textContent = '\u2713 Downloaded!';
+                btn.style.color = '#22c55e';
+                setTimeout(function() {{
+                    btn.innerHTML = '&#x2B07; Download';
+                    btn.style.color = '#94a3b8';
+                }}, 2500);
+            }}
+        }};
+
+        // ── Download SVG map as SVG file ─────────────────────────────────────
+        window.downloadEnergyMap = function(btnId) {{
+            var svg = document.getElementById('crisis-map-svg');
+            if (!svg) return;
+            var btn = document.getElementById(btnId);
+            var serializer = new XMLSerializer();
+            var svgStr = serializer.serializeToString(svg);
+            var blob = new Blob([svgStr], {{type: 'image/svg+xml'}});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.download = 'energy-crisis-map-energyriskiq.svg';
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+            if (btn) {{
+                btn.textContent = '\u2713 Downloaded!';
+                btn.style.color = '#22c55e';
+                setTimeout(function() {{
+                    btn.innerHTML = '&#x2B07; Download Map';
+                    btn.style.color = '#94a3b8';
+                }}, 2500);
+            }}
+        }};
+    }})();
+    </script>
 
 </body>
 </html>

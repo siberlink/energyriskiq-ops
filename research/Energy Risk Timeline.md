@@ -1033,3 +1033,193 @@ This timeline page is the foundation of a broader research library. Planned comp
 | `/research/global-energy-crisis-map` | Interactive geographic risk map |
 
 Together they create a **data ecosystem** journalists reference — making EnergyRiskIQ the authoritative source for energy risk intelligence.
+
+---
+
+## 22. Page Improvement Audit — March 2026
+
+The following improvements were identified and implemented based on a Bloomberg-level research page quality review. The audit rated the original page at **8.5/10** and identified the following additions to bring it to **9.7/10** (Bloomberg-level research page quality).
+
+### Improvements Implemented
+
+#### 1. Table of Contents (Anchor Navigation)
+**Why:** Long research pages need fast navigation for journalists scanning under deadline.
+
+A sticky "On This Page" navigation panel was added directly below the opening callout quote. It displays all 13 major page sections in a 3-column grid with anchor links.
+
+Anchors covered:
+- `#quick-reference` — Crisis Quick Reference
+- `#energy-crisis-map` — Energy Crisis Map
+- `#timeline` — Energy Risk Timeline
+- `#risk-categories` — Major Risk Categories
+- `#energy-chokepoints` — Key Energy Chokepoints
+- `#market-impact-patterns` — Market Impact Patterns
+- `#crisis-frequency` — Crisis Frequency
+- `#crisis-evolution` — Risk Evolution Chart
+- `#supply-at-risk` — Supply at Risk Meter
+- `#risk-regime-history` — Risk Regime History
+- `#sources` — Data Sources
+- `#methodology` — Event Selection Methodology
+- `#citation` — How to Cite
+
+#### 2. Global Energy Crisis Map
+**Why:** Maps are the most cited assets in geopolitical research and can triple backlinks.
+
+An SVG-based global energy risk map was added as a dedicated section (`#energy-crisis-map`) positioned between the Quick Reference table and the Timeline events. The map features:
+- Color-coded risk regions (red = Extreme, orange = High, yellow = Elevated, blue = Supply Route)
+- Labeled regions: Eastern Europe/Russia, Baltic Sea (Nord Stream), Persian Gulf/Hormuz, Saudi Arabia, Red Sea/Bab el-Mandeb, Qatar LNG, Iran
+- Supply route lines: Hormuz → Suez, Hormuz → Asia-Pacific, Russia → Europe
+- Key chokepoints panel at bottom with share-at-risk figures
+- **Download Map button** (SVG export via `window.downloadEnergyMap()`)
+
+#### 3. Timeline Evolution Chart (Risk Regime Evolution 2014–2026)
+**Why:** Journalists ask "Are energy crises becoming more frequent?" — this chart answers it visually.
+
+A new Chart.js line chart (`#crisis-evolution`) was added showing the dominant risk regime level for each year from 2014 to 2026 on a 1–5 scale:
+
+| Scale Level | Label |
+|---|---|
+| 1 | Moderate |
+| 2 | Elevated |
+| 3 | High |
+| 4 | Severe |
+| 5 | Extreme |
+
+Data points: `[2, 2, 1, 2, 2, 3, 5, 3, 5, 3, 2, 1, 2]` (2014–2026)
+
+Key narrative embedded in the section: the global energy system transitioned through five distinct risk regimes:
+- **2014–2016**: Supply oversupply and oil price collapse
+- **2017–2019**: Geopolitical tension in the Middle East
+- **2020**: Global demand shock (COVID)
+- **2021–2022**: Structural supply crisis (peak = Extreme)
+- **2023–2026**: Maritime disruption and geopolitical fragmentation
+
+**Download button** uses `window.copyChartImg('evoChart', ...)` (same pattern as GERI research page).
+
+#### 4. Key Energy Chokepoints Section
+**Why:** Dedicated section targets high-volume SEO keywords ("energy chokepoints", "global oil chokepoints", "LNG chokepoints").
+
+A new section (`#energy-chokepoints`) was added after Risk Categories, before Market Impact Patterns. It contains a 4-column table:
+
+| Chokepoint | What it Carries | Share at Risk | Key Crisis Events |
+|---|---|---|---|
+| Strait of Hormuz | Persian Gulf crude & LNG | ~20% global oil | Iran sanctions (2018), Hormuz (2026) |
+| Bab el-Mandeb / Red Sea | Tankers via Suez | ~12% global trade | Saudi–Iran proxy (2015), Red Sea attacks (2024) |
+| Suez Canal | Europe–Asia trade | ~8% seaborne oil | Red Sea rerouting (2024) |
+| Turkish Straits | Black Sea crude | ~3% global oil | Ukraine war (2022) |
+| Nord Stream (Baltic) | Russian gas to EU | ~40% EU gas pre-2022 | Russia cutoff (2022), sabotage (2022–2023) |
+| Malacca Strait | ME LNG/oil to Asia | ~25% global seaborne trade | LNG tightness (2021) |
+
+#### 5. Structured Data (JSON-LD) — Dataset + ScholarlyArticle
+**Why:** Google ranks research pages higher when they include schema markup for Dataset and ScholarlyArticle types.
+
+Two new JSON-LD schemas were added to the `<head>`:
+
+**ScholarlyArticle** (replaces the plain Article type):
+- `@type`: ScholarlyArticle
+- `author`, `publisher`, `datePublished`, `dateModified`, `keywords`
+
+**Dataset**:
+- `@type`: Dataset
+- `name`, `description`, `url`, `creator`, `datePublished`, `dateModified`, `keywords` array, `license` (CC BY 4.0)
+
+#### 6. Data Sources Section
+**Why:** Journalists prefer pages with explicit source attribution. It increases credibility signals and citation confidence.
+
+A new section (`#sources`) was added after the Citation block. It contains a 2-column grid of 6 source items:
+1. International Energy Agency (IEA) — Oil/Gas Market Reports, Energy Security assessments
+2. U.S. Energy Information Administration (EIA) — STEO, chokepoint data
+3. IMF Commodity Reports — Price data and economic impact
+4. BP Statistical Review of World Energy — Historical production and trade data
+5. Reuters / Bloomberg Energy Coverage — Real-time event reporting
+6. EnergyRiskIQ Platform — Live GERI, EERI, EGSI index values (Jan 15, 2026 onward)
+
+#### 7. Download Technique for Charts, Maps, and Timeline
+**Why:** Shareable visual assets dramatically increase backlinks. Journalists embed charts in articles.
+
+The "Download" technique from the GERI research page (`/research/global-energy-risk-index`) was applied using the same pattern:
+
+**`window.copyChartImg(canvasId, btnId, filename)`**:
+- Creates an off-screen canvas with dark background (`#1e293b`)
+- Copies chart canvas pixels
+- Triggers PNG download
+- Button feedback: "✓ Downloaded!" for 2.5 seconds, then resets
+
+Applied to:
+- **Crisis Frequency chart** → `freqChart` canvas → filename: `energy-crisis-frequency-2014-2026.png`
+- **Timeline Evolution chart** → `evoChart` canvas → filename: `energy-risk-evolution-2014-2026.png`
+
+**`window.downloadEnergyMap(btnId)`**:
+- Serializes the inline SVG element (#crisis-map-svg) via XMLSerializer
+- Creates Blob of type `image/svg+xml`
+- Triggers `.svg` file download with filename `energy-crisis-map-energyriskiq.svg`
+- Same button feedback pattern as copyChartImg
+
+The Crisis Frequency chart was converted from a CSS-only bar chart to a Chart.js canvas chart to enable canvas-based PNG download. Chart.js 4.4.4 was loaded from CDN.
+
+Both charts display a "Download note" banner above them stating the charts are free to use with attribution.
+
+#### 8. Improved First Paragraph (SEO)
+**Why:** The intro needed SEO keywords that journalists search when looking for a reference source.
+
+The subtitle was rewritten to include:
+- "geopolitical shocks"
+- "infrastructure attacks"
+- "supply crises"
+- "oil, gas, and LNG markets"
+- "analysts, journalists, and policymakers"
+- "geopolitical risk propagates through energy markets"
+
+#### 9. Internal Hub Links (Related Research expanded)
+The Related Research section was expanded from 4 to 6 cards, adding:
+- GERI Historical Data (`/geri/history`)
+- EERI Historical Data (`/eeri/history`)
+
+#### 10. CTA Block — "Monitor Energy Risk in Real Time"
+**Why:** Converts research readers into platform users.
+
+A prominent CTA block was added before the Related Research section:
+- Headline: "Monitor Energy Risk in Real Time"
+- Copy: "Historical crises show how quickly energy markets can destabilize. The Global Energy Risk Index (GERI) tracks real-time geopolitical risk signals across global energy markets..."
+- Button: "View Live GERI Dashboard →" → links to `/indices/global-energy-risk-index`
+- Styled with blue left-border accent and gradient background
+
+---
+
+## 23. Technical Implementation Notes (March 2026)
+
+**CSS classes added:**
+- `.tl-toc-wrap`, `.tl-toc-grid` — Table of Contents component
+- `.map-download-bar`, `.map-legend-row`, `.map-legend-item`, `.map-wrap` — Map section
+- `.chart-dl-btn` — Shared download button style
+- `.choke-table-wrap`, `.choke-table` — Chokepoints table
+- `.canvas-chart-wrap`, `.chart-header-row` — Chart canvas containers
+- `.tl-cta-block`, `.tl-cta-text`, `.tl-cta-btn` — CTA block
+- `.sources-grid`, `.source-item` — Sources section
+- `.dl-note` — Download attribution banner
+
+**JavaScript functions (window-scoped for onclick):**
+- `window.copyChartImg(canvasId, btnId, filename)` — Canvas PNG download
+- `window.downloadEnergyMap(btnId)` — SVG download
+
+**Section order (final):**
+1. Hero (updated SEO subtitle)
+2. Callout quote
+3. Table of Contents (`#quick-reference` … `#citation`)
+4. Crisis Quick Reference table
+5. Global Energy Crisis Map (SVG + download)
+6. Energy Risk Timeline — 18 events
+7. Major Categories of Energy Risk
+8. Key Energy Chokepoints
+9. Market Impact Patterns
+10. Crisis Frequency (Chart.js bar chart + download)
+11. Risk Evolution (Chart.js line chart + download)
+12. Supply at Risk meter
+13. Risk Regime History table
+14. Live Index Cards (GERI, EERI, EGSI)
+15. Index Coverage Window notice
+16. Event Selection Methodology
+17. Citation
+18. Data Sources
+19. CTA block
+20. Related Research (6 cards)

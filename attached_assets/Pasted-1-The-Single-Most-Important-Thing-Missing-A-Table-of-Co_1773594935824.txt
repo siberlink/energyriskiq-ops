@@ -1,0 +1,252 @@
+1. The Single Most Important Thing Missing
+A Table of Contents (Anchor Navigation)
+
+Your page is long.
+
+Journalists and analysts scan pages quickly.
+
+You need a sticky table of contents at the top.
+
+Example:
+
+ON THIS PAGE
+
+• Crisis Quick Reference
+• Energy Risk Timeline
+• Major Categories of Energy Risk
+• Market Impact Patterns
+• Global Energy Supply at Risk
+• Energy Crisis Frequency
+• Energy Risk Regime History
+• Methodology
+• How to Cite This Page
+
+Each item should link to anchors:
+
+#crisis-reference
+#energy-risk-timeline
+#risk-categories
+#market-impact-patterns
+#supply-at-risk
+#crisis-frequency
+#risk-regime-history
+#methodology
+
+This improves:
+
+• SEO crawlability
+• user navigation
+• journalist usability
+
+2. Add an “Energy Crisis Map”
+
+This is one of the most linked assets in research pages.
+
+Right now you have:
+
+✔ timeline
+✔ supply at risk
+
+But you are missing geographic visualization.
+
+Add a section:
+
+Global Energy Risk Map
+
+Example content:
+
+Major energy crises cluster around a small number of critical regions:
+
+Region	Risk Type
+Persian Gulf	Oil chokepoint
+Red Sea	Shipping disruption
+Eastern Europe	Pipeline conflict
+Baltic Sea	Infrastructure sabotage
+Saudi Arabia	Production infrastructure
+
+Even a simple map image will dramatically improve the page.
+
+Journalists love maps.
+
+3. Add a “Timeline Evolution Chart”
+
+You have a frequency chart, which is excellent.
+
+But what journalists often ask is:
+
+Are energy crises becoming more frequent?
+
+Add a second chart:
+
+Energy Risk Evolution (2014–2026)
+
+Example explanation:
+
+The global energy system has transitioned through several distinct risk regimes:
+
+2014–2016: Supply oversupply and oil price collapse
+2017–2019: Geopolitical tension in the Middle East
+2020: Global demand shock
+2021–2022: Structural supply crisis
+2023–2026: Maritime disruption and geopolitical fragmentation
+
+This creates analytical narrative, not just events.
+
+4. Add a Section Called:
+Key Energy Chokepoints
+
+You already reference them indirectly.
+
+But a dedicated section increases SEO.
+
+Example:
+
+Chokepoint	Importance
+Strait of Hormuz	~20% of global oil flows
+Bab el-Mandeb	Red Sea shipping
+Suez Canal	Europe–Asia trade
+Turkish Straits	Black Sea exports
+
+This targets SEO keywords like:
+
+energy chokepoints
+
+global oil chokepoints
+
+LNG chokepoints
+
+Huge search volume.
+
+5. Add Structured Data (Very Important)
+
+For SEO you should add schema markup.
+
+Example schema types:
+
+Dataset
+ScholarlyArticle
+ResearchProject
+
+Example fields:
+
+name: Global Energy Risk Timeline
+creator: EnergyRiskIQ
+datePublished: 2026
+keywords:
+energy crisis
+oil price shock
+geopolitical energy risk
+
+Google loves this for research pages.
+
+6. Add a “Sources” Section
+
+Right now you cite:
+
+IEA, EIA, IMF
+
+But journalists prefer explicit sources.
+
+Add a section at the bottom:
+
+Data Sources
+
+Example:
+
+The timeline references historical events documented by:
+
+• International Energy Agency (IEA)
+• U.S. Energy Information Administration (EIA)
+• IMF commodity reports
+• BP Statistical Review of Energy
+• Reuters / Bloomberg crisis coverage
+
+This increases credibility signals.
+
+7. Add Shareable Visual Assets
+
+The page currently contains good UI charts.
+
+But journalists often embed images in articles.
+
+Add:
+
+Download Chart
+Download Map
+Download Timeline
+
+This increases backlinks dramatically.
+
+8. Improve the First Paragraph (SEO)
+
+Your intro is good, but we should add keywords journalists search.
+
+Suggested rewrite:
+
+The Global Energy Risk Timeline documents the major geopolitical shocks, infrastructure attacks, supply crises, and market disruptions that have shaped global oil, gas, and LNG markets since 2014.
+
+By combining historical energy events with the EnergyRiskIQ risk framework, this timeline provides analysts, journalists, and policymakers with a structured view of how geopolitical risk propagates through energy markets.
+
+Keywords added:
+
+• geopolitical energy shocks
+• oil market disruptions
+• global energy crises
+
+9. Add Internal Links to Other Future Pages
+
+This page should become the hub of your research section.
+
+Example links:
+
+Related Research
+
+Global Energy Risk Index Methodology
+European Energy Risk Index
+Global Energy Chokepoints
+Energy Crisis Map
+History of Oil Price Shocks
+
+Internal linking = SEO multiplier.
+
+10. Add One Very Smart CTA
+
+Right now the page is research-heavy.
+
+Add a small block:
+
+Monitor Energy Risk in Real Time
+
+Example:
+
+Historical crises show how quickly energy markets can destabilize.
+
+The Global Energy Risk Index (GERI) tracks real-time geopolitical risk signals across global energy markets.
+
+Button:
+
+View Live GERI Dashboard
+
+This converts readers.
+
+Final Score
+
+Your page right now:
+
+8.5 / 10
+
+With the additions above it becomes:
+
+9.7 / 10
+
+Which is Bloomberg-level research page quality.
+
+The Most Important Improvement
+
+If you add only one thing, add this:
+
+Global Energy Crisis Map
+
+That single feature can triple the backlinks to this page.
+
+Maps are the most cited assets in geopolitical research.
