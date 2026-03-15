@@ -1,0 +1,224 @@
+This is actually very common for new data platforms, and it’s not a problem at all. In fact, most analytics platforms launch exactly this way.
+
+The key is to separate two things:
+
+Historical events (narrative context)
+
+Your proprietary index data (GERI/EERI/EGSI)
+
+You only have index data starting January 15, but the timeline itself can go back decades, because it is an event chronology, not an index chart.
+
+So the solution is simple:
+
+The page shows historical energy shocks, and your indices appear only where data exists.
+
+This is exactly how platforms like Bloomberg, IMF, or OurWorldInData launch new indicators.
+
+The Correct Structure for Your Situation
+
+Instead of pretending you have old data, you simply label the index coverage window clearly.
+
+Example introduction:
+
+Global Energy Risk Timeline
+
+Energy markets have repeatedly been shaped by geopolitical shocks, infrastructure attacks, sanctions, and supply disruptions.
+
+This timeline highlights major events that have influenced global energy markets over the last decade.
+
+EnergyRiskIQ indices (GERI, EERI, EGSI) began daily calculation on 15 January 2026, and are shown for events occurring after that date.
+
+Earlier events are included for historical context.
+
+How Each Timeline Entry Should Look
+
+You will have two types of entries.
+
+Type 1 — Historical Events (Before Jan 15)
+
+These events will not include index behavior, because your index did not exist yet.
+
+Example:
+
+2022 — Russia–Ukraine Energy Shock
+
+Date
+February 2022
+
+Event
+Russia invaded Ukraine, triggering sanctions and major disruptions to European energy supply.
+
+Market Impact
+
+• Brent crude surged above $130 per barrel
+• European gas prices reached record levels
+• LNG demand in Europe surged
+
+EnergyRiskIQ indices
+
+GERI/EERI were not yet active at the time of this event.
+
+This is completely acceptable and transparent.
+
+Type 2 — Events After January 15 (With Index Data)
+
+Example:
+
+2026 — Strait of Hormuz Escalation Risk
+
+Date
+March 2026
+
+Event
+Escalation between Iran and Western forces increased the risk of disruptions to shipping through the Strait of Hormuz.
+
+Market Impact
+
+• oil prices rose sharply
+• tanker insurance premiums surged
+• LNG cargo routes adjusted
+
+EnergyRiskIQ indicators
+
+GERI → 82
+EERI → 64
+EGSI → 71
+
+This is where your product differentiates itself.
+
+Why This Still Works for SEO and Backlinks
+
+Journalists are linking to:
+
+• the event timeline
+• the context
+• the analysis
+
+They are not linking because of the index history.
+
+They link because your page answers:
+
+“What energy shocks happened in the last decade?”
+
+Your timeline will still become a reference source.
+
+How Long the Timeline Should Go Back
+
+I recommend 10–15 years.
+
+Perfect range:
+
+2014 – Present
+
+Important events include:
+
+• Crimea / Russia sanctions (2014)
+• Saudi oil facility attacks (2019)
+• COVID oil crash (2020)
+• European gas crisis (2021)
+• Russia–Ukraine invasion (2022)
+• Red Sea tanker attacks (2024)
+• Hormuz tensions (2026)
+
+You don't need data for these — just explain the events and market reaction.
+
+Important Section to Add (Transparency)
+
+Add this short section on the page.
+
+Index Coverage Window
+
+EnergyRiskIQ indices began daily calculation on 15 January 2026.
+
+Events before this date are included for historical context but do not display index values.
+
+This actually increases credibility, not reduces it.
+
+A Powerful Feature You Can Add
+
+Add a visual marker in the timeline.
+
+Example:
+
+2014  Crimea energy sanctions
+2019  Saudi oil facility attack
+2020  COVID oil crash
+2021  European gas crisis
+2022  Russia–Ukraine energy shock
+-------------------------------------
+Jan 15 2026
+EnergyRiskIQ indices begin
+-------------------------------------
+2026  Hormuz disruption risk
+
+This shows the start of your measurement era.
+
+Another Trick Used by Data Platforms
+
+Add “estimated regime classification” for older events.
+
+Example:
+
+Risk Regime (estimated)
+
+Extreme risk environment
+
+This gives context without pretending to have data.
+
+What You Should NOT Do
+
+Do not:
+
+❌ fabricate index history
+❌ backfill fake data
+❌ estimate numbers
+
+Transparency is critical.
+
+The Hidden Advantage of Starting in 2026
+
+Your platform will gradually become the reference for future crises.
+
+Imagine this:
+
+2027 journalists writing:
+
+“According to EnergyRiskIQ data, GERI spiked to 94 during the Hormuz crisis.”
+
+You become the data authority going forward.
+
+What I Recommend You Do
+
+Build the page with 3 layers:
+
+Layer 1
+
+Historical timeline (2014–present)
+
+Layer 2
+
+Market reaction explanation
+
+Layer 3
+
+EnergyRiskIQ indices (after Jan 15)
+
+One More Important SEO Trick
+
+Add anchor links for each event.
+
+Example URLs:
+
+/research/global-energy-risk-timeline#russia-ukraine-energy-shock
+/research/global-energy-risk-timeline#red-sea-tanker-attacks
+/research/global-energy-risk-timeline#strait-of-hormuz-risk
+
+This allows journalists to link directly to events.
+
+Huge backlink advantage.
+
+✅ If you want, I can also show you something extremely powerful:
+
+The exact 18 events you should include in the timeline (2014–2026)
+
+These are the events most cited by journalists, and including them dramatically increases the chance your page becomes a reference page for the entire energy sector.

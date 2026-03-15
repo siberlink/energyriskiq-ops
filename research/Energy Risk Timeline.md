@@ -328,6 +328,174 @@ This page can become a **permanent link magnet** — establishing EnergyRiskIQ a
 
 ---
 
-## 10. Suggested Events to Include (2015–2026)
+## 10. Suggested Events to Include (2014–2026)
 
 > 15–20 key events across the decade that will dramatically increase the authority of the page and make journalists link to it. To be populated.
+
+---
+
+## 11. Handling the Absence of Historical Index Data
+
+This is very common for new data platforms and is not a problem. Most analytics platforms launch exactly this way.
+
+The key is to separate two things:
+
+- **Historical events** — narrative context (can go back decades)
+- **Proprietary index data** — GERI / EERI / EGSI (available from January 15, 2026)
+
+The page shows historical energy shocks, and indices appear only where data exists. This is exactly how Bloomberg, IMF, and OurWorldInData launch new indicators.
+
+---
+
+## 12. Two Types of Timeline Entries
+
+### Type 1 — Historical Events (Before Jan 15, 2026)
+
+These events do not include index values. Example:
+
+---
+
+**2022 — Russia–Ukraine Energy Shock**
+
+| Field | Detail |
+|---|---|
+| **Date** | February 2022 |
+| **Event** | Russia invaded Ukraine, triggering sanctions and major disruptions to European energy supply. |
+
+**Market Impact:**
+- Brent crude surged above $130 per barrel
+- European gas prices reached record levels
+- LNG demand in Europe surged
+
+**EnergyRiskIQ Indices:**
+> GERI/EERI were not yet active at the time of this event.
+
+---
+
+### Type 2 — Events After January 15, 2026 (With Index Data)
+
+These entries include live GERI, EERI, and EGSI values. Example:
+
+---
+
+**2026 — Strait of Hormuz Escalation Risk**
+
+| Field | Detail |
+|---|---|
+| **Date** | March 2026 |
+| **Event** | Escalation between Iran and Western forces increased the risk of disruptions to shipping through the Strait of Hormuz. |
+
+**Market Impact:**
+- Oil prices rose sharply
+- Tanker insurance premiums surged
+- LNG cargo routes adjusted
+
+**EnergyRiskIQ Indicators:**
+
+| Index | Value |
+|---|---|
+| GERI | 82 |
+| EERI | 64 |
+| EGSI | 71 |
+
+---
+
+## 13. Index Coverage Window (Transparency Section)
+
+Add this section prominently on the page. It increases credibility.
+
+> **Index Coverage Window**
+>
+> EnergyRiskIQ indices (GERI, EERI, EGSI) began daily calculation on **15 January 2026**.
+> Events before this date are included for historical context but do not display index values.
+
+**What NOT to do:**
+
+- ❌ Fabricate index history
+- ❌ Backfill fake data
+- ❌ Estimate numbers
+
+Transparency is critical and actually builds more trust than invented data.
+
+---
+
+## 14. Visual Timeline Marker
+
+Add a visual dividing line in the timeline to mark the start of the EnergyRiskIQ measurement era.
+
+```
+2014  Crimea energy sanctions
+2019  Saudi oil facility attack
+2020  COVID oil crash
+2021  European gas crisis
+2022  Russia–Ukraine energy shock
+─────────────────────────────────
+        15 January 2026
+   EnergyRiskIQ indices begin
+─────────────────────────────────
+2026  Hormuz disruption risk
+```
+
+This clearly communicates the index coverage window while keeping all historical context intact.
+
+---
+
+## 15. Recommended Timeline Coverage
+
+**Recommended range:** 2014 – Present (10–15 years)
+
+Key events to include:
+
+| Year | Event |
+|---|---|
+| 2014 | Crimea / Russia sanctions |
+| 2019 | Saudi oil facility attacks (Abqaiq) |
+| 2020 | COVID oil price crash |
+| 2021 | European gas storage crisis |
+| 2022 | Russia–Ukraine invasion and energy shock |
+| 2024 | Red Sea tanker attacks |
+| 2026 | Hormuz escalation risk |
+
+You do not need index data for older events — explain the event and market reaction only.
+
+---
+
+## 16. Three-Layer Page Architecture
+
+Build the page with three layers:
+
+| Layer | Content |
+|---|---|
+| **Layer 1** | Historical timeline (2014–present) — events, dates, context |
+| **Layer 2** | Market reaction explanation — price moves, supply chain impact |
+| **Layer 3** | EnergyRiskIQ indices — live data shown only for events after Jan 15, 2026 |
+
+---
+
+## 17. SEO Anchor Links Strategy
+
+Add anchor links for each event to allow journalists to link directly to specific events.
+
+**Example URLs:**
+
+```
+/research/global-energy-risk-timeline#russia-ukraine-energy-shock
+/research/global-energy-risk-timeline#red-sea-tanker-attacks
+/research/global-energy-risk-timeline#strait-of-hormuz-risk
+/research/global-energy-risk-timeline#covid-oil-crash
+/research/global-energy-risk-timeline#european-gas-crisis
+```
+
+This is a significant backlink advantage. Journalists can cite a specific event directly, making your page far more linkable than a generic overview.
+
+---
+
+## 18. The Long-Term Data Advantage
+
+Starting from January 2026, your platform will gradually become the authoritative reference for future crises.
+
+By 2027, journalists will write:
+
+> "According to EnergyRiskIQ data, GERI spiked to 94 during the Hormuz crisis of 2026."
+
+You become the data authority going forward. The timeline page is the foundation that makes this possible.
