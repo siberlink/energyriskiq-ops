@@ -1,0 +1,284 @@
+To turn your Energy Risk Timeline into a backlink magnet, the page should not just be a list of events.
+The pages that journalists link to most (Bloomberg, IMF, VisualCapitalist, OurWorldInData) always include visual and analytical layers.
+
+Below are 7 features that dramatically increase backlinks because they make the page useful for journalists, analysts, and researchers.
+
+1. Global Energy Risk Map (Crisis Geography)
+What it is
+
+A world map highlighting locations of major energy disruptions.
+
+Example regions:
+
+Strait of Hormuz
+
+Red Sea / Bab el-Mandeb
+
+Ukraine
+
+Nord Stream pipelines
+
+Saudi oil facilities
+
+Qatar LNG export routes
+
+Why journalists link to it
+
+Journalists love maps because they visually explain complex crises quickly.
+
+Typical article sentence:
+
+“Several key chokepoints have repeatedly threatened global energy supply…”
+
+Your map becomes the visual reference.
+
+How to implement
+
+Add a section:
+
+Global Energy Risk Hotspots
+
+Display a map with markers:
+
+Region	Risk Type
+Hormuz	Oil chokepoint
+Red Sea	Shipping attacks
+Ukraine	Pipeline supply disruption
+Saudi Arabia	Oil infrastructure risk
+
+Even a simple static map works initially.
+
+2. Energy Crisis Clustering Chart
+What it is
+
+A chart showing how energy crises cluster in time.
+
+Example visualization:
+
+2014  ███
+2015  █
+2016  █
+2017  █
+2018  ██
+2019  ███
+2020  ███
+2021  ███
+2022  ███████
+2023  ██
+2024  ███
+2025  █
+2026  ███
+
+This reveals something powerful:
+
+Energy crises do not occur randomly — they cluster during geopolitical instability.
+
+Why journalists link to it
+
+Because it answers a common question:
+
+“Are energy crises becoming more frequent?”
+
+Your chart provides the answer visually.
+
+3. Oil Price Shock Overlay Chart
+What it is
+
+Overlay major events with oil price spikes.
+
+Example:
+
+Event	Oil reaction
+Saudi facility attack	+15%
+Ukraine invasion	+30%
+Red Sea attacks	+8%
+
+Visualization:
+
+Oil price chart
+↑ spikes marked with crisis events
+Why this attracts backlinks
+
+Financial journalists constantly write sentences like:
+
+“Oil surged after geopolitical tensions escalated…”
+
+Your chart visually links crises with price movements.
+
+This becomes a citation chart.
+
+4. Energy Risk Regime Timeline
+
+This is where your EnergyRiskIQ platform becomes visible.
+
+Concept
+
+Define risk regimes:
+
+Regime	Description
+Normal	Stable markets
+Elevated	Rising geopolitical tension
+High	Multiple risk signals
+Extreme	Major crisis
+
+Example timeline:
+
+2019  Elevated
+2020  Extreme (COVID demand shock)
+2021  High (gas crisis)
+2022  Extreme (Ukraine invasion)
+2023  Elevated
+2024  High (Red Sea disruption)
+Why journalists link to this
+
+It simplifies complex events into clear market regimes.
+
+This is extremely useful for:
+
+analysts
+
+research reports
+
+think tanks
+
+5. Energy Supply at Risk Meter
+
+This feature is extremely powerful.
+
+Concept
+
+Show how much global supply was threatened during major events.
+
+Example:
+
+Event	Supply risk
+Saudi facility attack	5% global oil
+Hormuz closure risk	20% oil flows
+Nord Stream sabotage	major EU gas flows
+
+Visualization:
+
+Global oil supply risk
+█████████████  Hormuz
+█████          Saudi attack
+███            Iran sanctions
+Why this attracts links
+
+Journalists constantly cite supply percentages.
+
+Example article sentence:
+
+“About 20% of global oil passes through the Strait of Hormuz…”
+
+Your page becomes the source for these numbers.
+
+6. Crisis Impact Table (Fast Reference)
+
+Journalists love simple tables they can quote.
+
+Example:
+
+Year	Event	Market Impact
+2026	Hormuz escalation	oil spike risk
+2024	Red Sea tanker attacks	freight surge
+2022	Ukraine invasion	oil + gas shock
+2021	Gas storage crisis	TTF surge
+2020	COVID collapse	negative oil prices
+
+This becomes the “quick reference table” journalists use.
+
+7. Energy Risk Evolution Chart
+
+This chart explains how energy risk has evolved structurally.
+
+Example trend:
+
+2014–2016   oil supply wars
+2017–2019   geopolitical tensions
+2020        demand collapse
+2021–2022   supply crisis
+2023–2026   maritime disruptions
+
+Visualization:
+
+Energy risk evolution
+Oil wars → Sanctions → Supply crisis → Shipping disruptions
+Why this gets backlinks
+
+It helps writers explain how the energy system changed over time.
+
+Very valuable for:
+
+think tanks
+
+research reports
+
+policy analysis
+
+What Your Final Page Should Look Like
+
+Structure:
+
+Title
+Global Energy Risk Timeline
+
+Intro
+
+SECTION 1
+Timeline of major events
+
+SECTION 2
+Global energy risk map
+
+SECTION 3
+Crisis clustering chart
+
+SECTION 4
+Oil price shock overlay
+
+SECTION 5
+Energy supply at risk
+
+SECTION 6
+Energy crisis reference table
+
+SECTION 7
+Energy risk evolution analysis
+
+This transforms the page from:
+
+❌ simple article
+to
+
+✅ reference research page
+
+Why This Page Can Become One of Your Top SEO Assets
+
+Pages like this become permanent backlinks sources.
+
+Because journalists writing about:
+
+oil price shocks
+
+gas crises
+
+Middle East tensions
+
+LNG disruptions
+
+will constantly need historical context.
+
+Your page becomes the source they cite.
+
+My Recommendation
+
+This page should become part of your EnergyRiskIQ research library.
+
+Example structure:
+
+/research/global-energy-risk-timeline
+/research/global-energy-chokepoints
+/research/history-of-oil-price-shocks
+/research/global-energy-crisis-map
+
+Together they create a data ecosystem journalists reference.
