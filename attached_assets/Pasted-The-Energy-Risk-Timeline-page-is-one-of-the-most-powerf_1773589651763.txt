@@ -1,0 +1,469 @@
+The Energy Risk Timeline page is one of the most powerful “authority pages” you can build for EnergyRiskIQ. It serves three strategic purposes simultaneously:
+
+SEO authority page (journalists + analysts link to it)
+
+Educational context page (helps readers understand energy crises historically)
+
+Data bridge to your indices (GERI, EERI, EGSI)
+
+Below is a complete blueprint for building it.
+
+1. Purpose of the Energy Risk Timeline
+
+Recommended URL
+
+/research/global-energy-risk-timeline
+Core idea
+
+Create a chronological map of major energy shocks affecting global oil, gas, and energy infrastructure.
+
+Energy markets experience repeated geopolitical disruptions — wars, sanctions, infrastructure sabotage, maritime chokepoint risks, cyberattacks, etc.
+
+Examples include:
+
+Russia–Ukraine war disrupting European energy supply
+
+Middle East conflicts threatening shipping routes
+
+LNG infrastructure disruptions
+
+Pipeline sabotage
+
+Maritime chokepoint closures
+
+For example, the Russia–Ukraine invasion in 2022 pushed Brent crude prices to around $139 per barrel, the highest since 2008.
+
+Similarly, disruption risks around the Strait of Hormuz threaten 20% of global oil shipments, making it one of the most critical energy chokepoints.
+
+Your page would visually demonstrate how energy risk repeatedly shocks markets over time.
+
+2. Strategic Value for EnergyRiskIQ
+
+This page becomes a reference source for journalists.
+
+When media writes something like:
+
+“Energy markets have faced repeated geopolitical shocks in the last decade…”
+
+They need examples.
+
+Your timeline provides:
+
+historical events
+
+dates
+
+market impact
+
+analytical context
+
+This turns your page into a citation source.
+
+Exactly like:
+
+Wikipedia timelines
+
+Bloomberg crisis chronologies
+
+IMF financial crisis timelines
+
+3. Structure of the Page
+
+The page should have 6 main sections.
+
+Section 1 — Introduction
+
+Short explanation.
+
+Example:
+
+Title
+
+Global Energy Risk Timeline
+
+Intro paragraph
+
+Energy markets are repeatedly shaped by geopolitical shocks, infrastructure failures, sanctions regimes, and military conflicts.
+This timeline tracks the major events that have disrupted global energy markets and influenced price volatility, supply security, and geopolitical energy risk.
+
+Each event includes:
+
+• the trigger
+• market reaction
+• structural impact
+• behavior of energy risk indices
+
+Section 2 — Interactive Timeline (Main Feature)
+
+This is the core section.
+
+A chronological list.
+
+Newest → oldest.
+
+Example layout:
+
+2026 — Strait of Hormuz Disruption Risk
+
+Date
+March 2026
+
+Event
+Escalation between Iran and Western forces threatens shipping through the Strait of Hormuz.
+
+Why it matters
+
+~20% of global oil shipments pass through the Strait
+
+major LNG flows also transit this route
+
+Market Impact
+
+oil price spike
+
+insurance premiums for tankers surged
+
+LNG cargo rerouting
+
+EnergyRiskIQ indicators
+
+GERI → Spike
+EERI → Moderate increase
+EGSI → Elevated due to LNG risks
+
+2024 — Red Sea Tanker Attacks
+
+Date
+2024
+
+Event
+
+Houthi attacks on commercial shipping in the Red Sea forced vessels to avoid the Suez Canal.
+
+Market Impact
+
+longer shipping routes
+
+freight costs surged
+
+LNG cargo delays
+
+Index behavior
+
+GERI ↑
+EERI ↑
+EGSI ↑
+
+2022 — Russia–Ukraine Energy Shock
+
+Date
+February 2022
+
+Event
+
+Russia invaded Ukraine, triggering sanctions and major disruptions in global energy flows.
+
+Market Impact
+
+Brent oil reached ~$139 per barrel
+
+European gas prices surged
+
+LNG trade patterns changed
+
+Index behavior
+
+GERI spike
+EERI extreme spike
+
+2021 — European Gas Storage Crisis
+
+Event
+
+Europe entered winter with unusually low storage levels.
+
+Market Impact
+
+gas prices surged
+
+power markets destabilized
+
+Index behavior
+
+EGSI surge
+
+Section 3 — Major Categories of Energy Risk
+
+Journalists love classification.
+
+Add a section explaining types of shocks.
+
+Geopolitical conflict
+
+Examples:
+
+Russia–Ukraine war
+
+Gulf conflicts
+
+Maritime chokepoint disruptions
+
+Examples:
+
+Strait of Hormuz
+
+Suez Canal
+
+Red Sea
+
+Energy infrastructure attacks
+
+Examples:
+
+Nord Stream sabotage
+
+refinery attacks
+
+Sanctions and export restrictions
+
+Examples:
+
+Iran sanctions
+
+Russian oil embargo
+
+Energy supply crises
+
+Examples:
+
+European gas shortages
+
+LNG supply disruptions
+
+Section 4 — Market Impact Patterns
+
+This section is analytical content.
+
+Explain how markets typically react.
+
+Example:
+
+Shock type	Typical impact
+Military conflict	Oil spike
+Pipeline sabotage	Gas price spike
+Sanctions	Structural supply shift
+Maritime disruptions	Freight + insurance surge
+
+Explain:
+
+volatility spikes
+
+risk premiums
+
+supply chain changes
+
+Section 5 — EnergyRiskIQ Risk Indices Behavior
+
+This is where you integrate your platform.
+
+Explain:
+
+How risk indices behave during crises
+
+Example chart:
+
+Event → GERI → EERI → EGSI
+
+Example:
+
+Event	GERI	EERI	EGSI
+Russia invasion	Extreme	Extreme	Moderate
+Red Sea attacks	High	Moderate	High
+Hormuz risk	Extreme	High	Moderate
+
+This subtly markets your product.
+
+Section 6 — Methodology
+
+Journalists like methodology transparency.
+
+Explain:
+
+How events are selected
+
+Criteria example:
+
+Events included if they:
+
+• disrupted global energy supply
+• significantly moved oil or gas prices
+• affected major energy infrastructure
+• triggered geopolitical escalation
+
+4. Data Fields to Include (Important)
+
+Each timeline event should contain structured data.
+
+Recommended fields:
+
+Event title
+
+Short description.
+
+Example:
+
+“Russia–Ukraine energy shock”
+
+Date
+
+Exact date or month.
+
+Location
+
+Example:
+
+Ukraine
+Persian Gulf
+Europe
+
+Type of risk
+
+Example:
+
+Geopolitical conflict
+Infrastructure sabotage
+Maritime disruption
+
+Description
+
+2–3 sentences explaining the event.
+
+Market impact
+
+Examples:
+
+oil price spike
+
+gas price spike
+
+supply disruption
+
+Key metrics
+
+Example:
+
+Brent +20%
+
+EU gas +300%
+
+Risk index behavior
+
+Your unique angle.
+
+Example:
+
+GERI: 78 → 94
+
+5. Design Layout
+
+Simple but professional.
+
+Example:
+
+--------------------------------
+YEAR
+--------------------------------
+
+Event title
+
+Date
+Location
+Risk type
+
+Description
+
+Market impact
+
+GERI / EERI / EGSI reaction
+6. SEO Strategy
+
+This page targets high-value keywords.
+
+Examples:
+
+energy crisis timeline
+
+geopolitical energy shocks
+
+history of energy crises
+
+energy market disruptions
+
+oil supply disruptions timeline
+
+These queries are searched by journalists, analysts, and researchers.
+
+7. Why Journalists Link to Pages Like This
+
+Journalists need fast historical context.
+
+Typical article lines:
+
+“Energy markets have faced repeated shocks in recent years…”
+
+They need:
+
+examples
+
+dates
+
+explanation
+
+Your page becomes:
+
+“the easiest reference”
+
+8. Future Expansion
+
+You can expand this page massively.
+
+Add:
+
+charts
+
+Timeline chart of GERI spikes.
+
+maps
+
+Map of major risk zones.
+
+filters
+
+Events by:
+
+region
+
+risk type
+
+energy market (oil / gas / LNG)
+
+9. Hidden Strategic Advantage
+
+This page can become a permanent link magnet.
+
+Example pages that get thousands of backlinks:
+
+Wikipedia crisis timelines
+
+IMF financial crisis timeline
+
+Oil price history pages
+
+Your version will be:
+
+EnergyRiskIQ Global Energy Risk Timeline
+
+✅ If you want, I can also show you:
+
+The 15–20 events you should include in the timeline (2015–2026)
+These will dramatically increase the authority of the page and make journalists link to it.
