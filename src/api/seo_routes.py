@@ -8965,15 +8965,15 @@ async def global_energy_risk_timeline_page(request: Request):
             border-radius: 8px; padding: 0.75rem;
         }}
         .tl-impact-card .ic-label {{
-            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-            letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.35rem;
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 0.45rem;
         }}
         .tl-impact-card ul {{ margin: 0; padding: 0; list-style: none; }}
         .tl-impact-card ul li {{
-            color: #cbd5e1; font-size: 0.8rem; line-height: 1.55;
-            padding: 0.15rem 0; padding-left: 0.85rem; position: relative;
+            color: #e2e8f0; font-size: 0.83rem; line-height: 1.6;
+            padding: 0.18rem 0; padding-left: 1rem; position: relative;
         }}
-        .tl-impact-card ul li::before {{ content: "&#x2014;"; position: absolute; left: 0; color: #475569; }}
+        .tl-impact-card ul li::before {{ content: "—"; position: absolute; left: 0; color: #60a5fa; }}
         .tl-index-row {{ display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }}
         .tl-index-pill {{
             display: flex; align-items: center; gap: 0.4rem;
