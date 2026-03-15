@@ -328,9 +328,347 @@ This page can become a **permanent link magnet** — establishing EnergyRiskIQ a
 
 ---
 
-## 10. Suggested Events to Include (2014–2026)
+## 10. The 18 Events to Include (2014–2026)
 
-> 15–20 key events across the decade that will dramatically increase the authority of the page and make journalists link to it. To be populated.
+These are the events most frequently referenced by analysts, journalists, and market reports — covering every major energy risk category. Present newest → oldest on the page.
+
+---
+
+### 2026 — Strait of Hormuz Escalation Risk {#strait-of-hormuz-risk}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2026 |
+| **Location** | Persian Gulf |
+| **Risk Type** | Maritime chokepoint risk |
+
+**Event:** Escalating tensions involving Iran threaten shipping through the Strait of Hormuz.
+
+**Market Impact:**
+- Oil price spike
+- Tanker insurance premiums surge
+- LNG shipping routes face disruption risk
+
+**Why it matters:** ~20% of global oil supply transits this chokepoint.
+
+**EnergyRiskIQ Indices:** *Live data available — see platform.*
+
+---
+
+### 2024 — Red Sea Tanker Attacks {#red-sea-tanker-attacks}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2024 |
+| **Location** | Red Sea / Suez Canal |
+| **Risk Type** | Maritime security disruption |
+
+**Event:** Houthi attacks on commercial vessels forced many ships to avoid the Suez Canal.
+
+**Market Impact:**
+- Longer shipping routes
+- Higher freight costs
+- LNG cargo delays
+
+**EnergyRiskIQ Indices:** *Live data available — see platform.*
+
+---
+
+### 2023 — Nord Stream Pipeline Sabotage Aftershock {#nord-stream-sabotage}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2023 |
+| **Location** | Baltic Sea / Europe |
+| **Risk Type** | Infrastructure sabotage |
+
+**Event:** Investigations and geopolitical tensions following the Nord Stream pipeline explosions intensified European energy security concerns.
+
+**Market Impact:**
+- Permanent loss of Russian pipeline gas supply routes
+- Increased LNG dependency in Europe
+
+**EnergyRiskIQ Indices:** GERI/EERI data not available before January 2026.
+
+---
+
+### 2022 — Russia–Ukraine Energy Shock {#russia-ukraine-energy-shock}
+
+| Field | Detail |
+|---|---|
+| **Date** | February 2022 |
+| **Location** | Eastern Europe |
+| **Risk Type** | Geopolitical conflict |
+
+**Event:** Russia invaded Ukraine, triggering sanctions and severe disruption of energy flows to Europe.
+
+**Market Impact:**
+- Brent crude surged above $130 per barrel
+- European gas prices reached record levels
+- LNG trade flows reshaped globally
+
+**EnergyRiskIQ Indices:** GERI/EERI data not available before January 2026.
+
+---
+
+### 2022 — European Energy Sanctions on Russia {#european-russia-sanctions}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2022 |
+| **Location** | Europe / Russia |
+| **Risk Type** | Sanctions regime |
+
+**Event:** The EU imposed embargoes on Russian oil and gas imports.
+
+**Market Impact:**
+- Massive restructuring of global energy trade
+- Russian crude redirected to Asia
+
+**EnergyRiskIQ Indices:** GERI/EERI data not available before January 2026.
+
+---
+
+### 2021 — European Gas Storage Crisis {#european-gas-storage-crisis}
+
+| Field | Detail |
+|---|---|
+| **Date** | Winter 2021 |
+| **Location** | Europe |
+| **Risk Type** | Energy supply crisis |
+
+**Event:** Europe entered winter with unusually low natural gas storage levels.
+
+**Market Impact:**
+- TTF gas prices surged
+- Power prices exploded across Europe
+
+**EnergyRiskIQ Indices:** GERI/EERI/EGSI data not available before January 2026.
+
+---
+
+### 2021 — LNG Supply Tightness in Asia {#lng-supply-tightness-asia}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2021 |
+| **Location** | Asia / Global LNG markets |
+| **Risk Type** | Energy supply crisis |
+
+**Event:** Cold weather and supply shortages caused intense LNG competition between Europe and Asia.
+
+**Market Impact:**
+- LNG spot prices reached extreme levels
+
+**EnergyRiskIQ Indices:** GERI/EGSI data not available before January 2026.
+
+---
+
+### 2020 — COVID Oil Demand Collapse {#covid-oil-demand-collapse}
+
+| Field | Detail |
+|---|---|
+| **Date** | April 2020 |
+| **Location** | Global |
+| **Risk Type** | Demand shock |
+
+**Event:** Global lockdowns caused oil demand to collapse.
+
+**Market Impact:**
+- WTI crude briefly traded below zero
+- Largest demand shock in modern energy history
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2019 — Saudi Aramco Oil Facility Attack {#saudi-oil-facility-attack}
+
+| Field | Detail |
+|---|---|
+| **Date** | September 2019 |
+| **Location** | Abqaiq & Khurais, Saudi Arabia |
+| **Risk Type** | Infrastructure attack |
+
+**Event:** Drone and missile attacks hit Saudi Arabia's Abqaiq and Khurais oil processing facilities.
+
+**Market Impact:**
+- Temporary loss of ~5% of global oil supply
+- One of the largest oil price spikes in decades
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2019 — US Sanctions on Iranian Oil Exports {#us-iran-oil-sanctions}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2019 |
+| **Location** | Iran / Persian Gulf |
+| **Risk Type** | Sanctions regime |
+
+**Event:** The United States imposed strict sanctions targeting Iran's oil exports.
+
+**Market Impact:**
+- Reduced Iranian oil supply
+- Increased geopolitical risk in the Gulf
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2018 — US–China Trade War and Energy Markets {#us-china-trade-war}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2018 |
+| **Location** | Global |
+| **Risk Type** | Trade conflict |
+
+**Event:** Tariffs between the US and China disrupted global commodity flows.
+
+**Market Impact:**
+- LNG trade routes adjusted
+- Oil demand expectations shifted
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2018 — Iran Nuclear Deal Collapse {#iran-nuclear-deal-collapse}
+
+| Field | Detail |
+|---|---|
+| **Date** | May 2018 |
+| **Location** | Iran / Middle East |
+| **Risk Type** | Sanctions regime |
+
+**Event:** The United States withdrew from the Iran nuclear agreement (JCPOA).
+
+**Market Impact:**
+- Sanctions on Iranian oil exports returned
+- Middle East tensions increased
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2017 — Qatar Diplomatic Crisis {#qatar-diplomatic-crisis}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2017 |
+| **Location** | Qatar / Gulf region |
+| **Risk Type** | Geopolitical conflict |
+
+**Event:** Saudi Arabia and several Gulf states imposed a blockade on Qatar.
+
+**Market Impact:**
+- Concerns about LNG supply disruptions
+- Regional energy tensions escalated
+
+**EnergyRiskIQ Indices:** GERI/EGSI data not available before January 2026.
+
+---
+
+### 2016 — OPEC Production Cut Agreement {#opec-production-cut}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2016 |
+| **Location** | Global oil markets |
+| **Risk Type** | Supply management |
+
+**Event:** OPEC and Russia agreed to coordinated oil production cuts.
+
+**Market Impact:**
+- Oil prices stabilized after a major crash
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2015 — Saudi–Iran Proxy Conflict Escalation {#saudi-iran-proxy-conflict}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2015 |
+| **Location** | Middle East |
+| **Risk Type** | Geopolitical conflict |
+
+**Event:** Regional conflicts intensified across the Middle East.
+
+**Market Impact:**
+- Higher geopolitical risk premium in oil markets
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2015 — Iranian Nuclear Agreement (JCPOA) {#iran-jcpoa-agreement}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2015 |
+| **Location** | Iran / Global |
+| **Risk Type** | Sanctions relief |
+
+**Event:** Sanctions relief allowed Iranian oil exports to return to global markets.
+
+**Market Impact:**
+- Increased oil supply expectations
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2014 — Russia Crimea Annexation {#russia-crimea-annexation}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2014 |
+| **Location** | Crimea / Eastern Europe |
+| **Risk Type** | Geopolitical conflict |
+
+**Event:** Russia annexed Crimea, triggering Western sanctions.
+
+**Market Impact:**
+- Energy trade tensions between Russia and Europe
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### 2014 — Global Oil Price Collapse {#global-oil-price-collapse}
+
+| Field | Detail |
+|---|---|
+| **Date** | 2014 |
+| **Location** | Global oil markets |
+| **Risk Type** | Supply/demand shock |
+
+**Event:** OPEC declined to cut production during a surge in US shale output.
+
+**Market Impact:**
+- Oil prices collapsed from $100 to ~$30 per barrel
+
+**EnergyRiskIQ Indices:** GERI data not available before January 2026.
+
+---
+
+### Event Category Coverage
+
+| Category | Events |
+|---|---|
+| Geopolitical conflicts | Ukraine war, Gulf tensions, Crimea annexation, Qatar crisis |
+| Infrastructure attacks | Saudi oil facility attack, Nord Stream sabotage |
+| Sanctions regimes | Iran sanctions (×2), Russia sanctions |
+| Supply crises | European gas shortage, LNG tightness |
+| Demand shocks | COVID oil collapse |
+| Maritime disruptions | Red Sea attacks, Hormuz risk |
+| Supply management | OPEC production cut |
+| Trade conflicts | US–China trade war |
 
 ---
 

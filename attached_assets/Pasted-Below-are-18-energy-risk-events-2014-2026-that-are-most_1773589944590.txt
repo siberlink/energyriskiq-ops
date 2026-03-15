@@ -1,0 +1,310 @@
+Below are 18 energy risk events (2014–2026) that are most frequently referenced by analysts, journalists, and market reports.
+
+These events will make your EnergyRiskIQ Timeline page authoritative, because they represent the major shocks that shaped global oil, gas, and LNG markets in the last decade.
+
+You should present them newest → oldest on the page.
+
+The 18 Events to Include in the Energy Risk Timeline
+2026 — Strait of Hormuz Escalation Risk
+
+Date: 2026
+Type: Maritime chokepoint risk
+
+Event
+Escalating tensions involving Iran threaten shipping through the Strait of Hormuz.
+
+Market impact
+
+• Oil price spike
+• Tanker insurance premiums surge
+• LNG shipping routes face disruption risk
+
+Why it matters
+
+~20% of global oil supply transits this chokepoint.
+
+2024 — Red Sea Tanker Attacks
+
+Date: 2024
+Type: Maritime security disruption
+
+Event
+
+Houthi attacks on commercial vessels forced many ships to avoid the Suez Canal.
+
+Market impact
+
+• Longer shipping routes
+• Higher freight costs
+• LNG cargo delays
+
+2023 — Nord Stream Pipeline Sabotage Aftershock
+
+Date: 2023
+Type: Infrastructure sabotage
+
+Event
+
+Investigations and geopolitical tensions following the Nord Stream pipeline explosions intensified European energy security concerns.
+
+Market impact
+
+• Permanent loss of Russian pipeline gas supply routes
+• Increased LNG dependency in Europe
+
+2022 — Russia–Ukraine Energy Shock
+
+Date: February 2022
+Type: Geopolitical conflict
+
+Event
+
+Russia invaded Ukraine, triggering sanctions and severe disruption of energy flows to Europe.
+
+Market impact
+
+• Brent oil surged above $130
+• European gas prices reached record levels
+• LNG trade flows reshaped globally
+
+2022 — European Energy Sanctions on Russia
+
+Date: 2022
+Type: Sanctions regime
+
+Event
+
+The EU imposed embargoes on Russian oil and gas imports.
+
+Market impact
+
+• Massive restructuring of global energy trade
+• Russian crude redirected to Asia
+
+2021 — European Gas Storage Crisis
+
+Date: Winter 2021
+
+Event
+
+Europe entered winter with unusually low natural gas storage.
+
+Market impact
+
+• TTF gas prices surged
+• Power prices exploded across Europe
+
+2021 — LNG Supply Tightness in Asia
+
+Date: 2021
+
+Event
+
+Cold weather and supply shortages caused intense LNG competition between Europe and Asia.
+
+Market impact
+
+• LNG spot prices reached extreme levels
+
+2020 — COVID Oil Demand Collapse
+
+Date: April 2020
+
+Event
+
+Global lockdowns caused oil demand to collapse.
+
+Market impact
+
+• WTI crude briefly traded below zero
+• Largest demand shock in modern energy history
+
+2019 — Saudi Aramco Oil Facility Attack
+
+Date: September 2019
+
+Event
+
+Drone and missile attacks hit Saudi Arabia’s Abqaiq and Khurais facilities.
+
+Market impact
+
+• Temporary loss of ~5% of global oil supply
+• One of the largest oil price spikes in decades
+
+2019 — US Sanctions on Iranian Oil Exports
+
+Date: 2019
+
+Event
+
+The United States imposed strict sanctions targeting Iran’s oil exports.
+
+Market impact
+
+• Reduced Iranian oil supply
+• Increased geopolitical risk in the Gulf
+
+2018 — US–China Trade War and Energy Markets
+
+Date: 2018
+
+Event
+
+Tariffs between the US and China disrupted global commodity flows.
+
+Market impact
+
+• LNG trade routes adjusted
+• Oil demand expectations shifted
+
+2018 — Iran Nuclear Deal Collapse
+
+Date: May 2018
+
+Event
+
+The United States withdrew from the Iran nuclear agreement.
+
+Market impact
+
+• Sanctions on Iranian oil exports returned
+• Middle East tensions increased
+
+2017 — Qatar Diplomatic Crisis
+
+Date: 2017
+
+Event
+
+Saudi Arabia and several Gulf states imposed a blockade on Qatar.
+
+Market impact
+
+• Concerns about LNG supply disruptions
+• Regional energy tensions escalated
+
+2016 — OPEC Production Cut Agreement
+
+Date: 2016
+
+Event
+
+OPEC and Russia agreed to coordinated oil production cuts.
+
+Market impact
+
+• Oil prices stabilized after a major crash
+
+2015 — Saudi–Iran Proxy Conflict Escalation
+
+Date: 2015
+
+Event
+
+Regional conflicts intensified across the Middle East.
+
+Market impact
+
+• Higher geopolitical risk premium in oil markets
+
+2015 — Iranian Nuclear Agreement (JCPOA)
+
+Date: 2015
+
+Event
+
+Sanctions relief allowed Iranian oil exports to return to global markets.
+
+Market impact
+
+• Increased oil supply expectations
+
+2014 — Russia Crimea Annexation
+
+Date: 2014
+
+Event
+
+Russia annexed Crimea, triggering Western sanctions.
+
+Market impact
+
+• Energy trade tensions between Russia and Europe
+
+2014 — Global Oil Price Collapse
+
+Date: 2014
+
+Event
+
+OPEC declined to cut production during a surge in US shale output.
+
+Market impact
+
+• Oil prices collapsed from $100 to ~$30 per barrel
+
+How to Present Them on Your Page
+
+Each event should follow this structured format.
+
+Example:
+
+2022 — Russia–Ukraine Energy Shock
+
+Date
+February 2022
+
+Location
+Eastern Europe
+
+Risk Type
+Geopolitical conflict
+
+Description
+
+Russia’s invasion of Ukraine triggered sanctions on Russian energy exports and major disruptions to European gas supply.
+
+Market Impact
+
+• Brent crude surged above $130
+• European gas prices reached historic highs
+• LNG trade patterns reshaped globally
+
+EnergyRiskIQ indices
+
+GERI/EERI data not available before January 2026.
+
+Why These 18 Events Are Important
+
+These events cover all major energy risk categories:
+
+Category	Events
+Geopolitical conflicts	Ukraine war, Gulf tensions
+Infrastructure attacks	Saudi oil facility attack
+Sanctions regimes	Iran sanctions, Russia sanctions
+Supply crises	European gas shortage
+Demand shocks	COVID oil collapse
+Maritime disruptions	Red Sea attacks
+
+This diversity makes the timeline analytically valuable.
+
+Extra SEO Advantage
+
+Each event should have its own anchor link.
+
+Example:
+
+/research/global-energy-risk-timeline#russia-ukraine-energy-shock
+/research/global-energy-risk-timeline#saudi-oil-facility-attack
+/research/global-energy-risk-timeline#covid-oil-demand-collapse
+
+Journalists can link directly to specific events.
+
+This significantly increases backlinks.
+
+✅ If you want, I can also show you something very powerful for SEO:
+
+The 7 additional timeline features that dramatically increase backlinks (maps, crisis clustering, volatility charts, etc.).
+
+These features are used by Bloomberg, VisualCapitalist, and IMF research pages to attract thousands of citations.
