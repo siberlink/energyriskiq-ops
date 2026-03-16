@@ -9421,8 +9421,8 @@ async def global_energy_risk_timeline_page(request: Request):
                         <text x="583" y="425" fill="#64748b" font-size="7.5" font-family="sans-serif">~20% global LNG</text>
                         <!-- Source & annotation lines -->
                         <line x1="25" y1="434" x2="775" y2="434" stroke="#1e293b" stroke-width="0.75"/>
-                        <text x="25" y="447" fill="#475569" font-size="7" font-family="sans-serif">Circle radius reflects relative severity of recorded disruptions. Stylized geographic representation — not to exact geographic scale.</text>
-                        <text x="25" y="458" fill="#475569" font-size="7" font-family="sans-serif">Sources: IEA, EIA, U.S. Energy Information Administration, Reuters, Bloomberg, EnergyRiskIQ analysis (2026).</text>
+                        <text x="25" y="448" fill="#475569" font-size="9" font-family="sans-serif">Circle radius reflects relative severity of recorded disruptions. Stylized geographic representation — not to exact geographic scale.</text>
+                        <text x="25" y="461" fill="#475569" font-size="9" font-family="sans-serif">Sources: IEA, EIA, U.S. Energy Information Administration, Reuters, Bloomberg, EnergyRiskIQ analysis (2026).</text>
                         <!-- Watermark -->
                         <text x="790" y="485" fill="#1e3a5f" font-size="8" text-anchor="end" font-style="italic" font-family="sans-serif">EnergyRiskIQ (2026) · energyriskiq.com</text>
                     </svg>
