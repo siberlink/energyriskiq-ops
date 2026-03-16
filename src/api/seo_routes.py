@@ -10067,7 +10067,11 @@ async def global_energy_risk_timeline_page(request: Request):
             <div class="tl-section" id="risk-categories">
                 <h2>&#x26A0;&#xFE0F; Major Categories of Energy Risk</h2>
                 <p>These events fall into seven distinct categories of energy market disruption, each with different transmission mechanisms and policy responses.</p>
-                <div class="cat-grid">
+                <div class="chart-header-row" style="margin-bottom:0.6rem;">
+                    <div class="chart-header-label">8 disruption categories with historical examples</div>
+                    <button class="chart-dl-btn" id="catDlBtn" onclick="window.downloadSectionPng('cat-grid-dl','Major Categories of Energy Risk','catDlBtn')">&#x2B07; Download PNG (Hi-Res)</button>
+                </div>
+                <div id="cat-grid-dl" class="cat-grid">
                     <div class="cat-card">
                         <div class="cc-name">&#x2694;&#xFE0F; Geopolitical Conflict</div>
                         <div class="cc-examples">Russia&#x2013;Ukraine war, Gulf conflicts, Crimea annexation, Qatar crisis</div>
@@ -10107,7 +10111,11 @@ async def global_energy_risk_timeline_page(request: Request):
             <div class="tl-section" id="energy-chokepoints">
                 <h2>&#x2693; Key Global Energy Chokepoints</h2>
                 <p>A small number of geographic bottlenecks control the flow of the world&rsquo;s energy. Disruption at any of these points triggers immediate price responses in oil, gas, and LNG markets. The events in this timeline repeatedly demonstrate their strategic importance.</p>
-                <div class="choke-table-wrap">
+                <div class="chart-header-row" style="margin-bottom:0.6rem;">
+                    <div class="chart-header-label">6 strategic chokepoints — share at risk &amp; key crisis events</div>
+                    <button class="chart-dl-btn" id="chokeDlBtn" onclick="window.downloadSectionPng('choke-table-wrap','Key Global Energy Chokepoints','chokeDlBtn')">&#x2B07; Download PNG (Hi-Res)</button>
+                </div>
+                <div id="choke-table-wrap" class="choke-table-wrap">
                     <table class="choke-table">
                         <thead>
                             <tr>
@@ -10164,7 +10172,11 @@ async def global_energy_risk_timeline_page(request: Request):
             <div class="tl-section" id="market-impact-patterns">
                 <h2>&#x1F4CA; Market Impact Patterns by Shock Type</h2>
                 <p>Different energy shocks produce different market reactions. Understanding this pattern helps analysts anticipate how each crisis type will transmit through markets.</p>
-                <div class="qr-table-wrap">
+                <div class="chart-header-row" style="margin-bottom:0.6rem;">
+                    <div class="chart-header-label">6 shock types — primary reaction, secondary effects, typical duration</div>
+                    <button class="chart-dl-btn" id="impactDlBtn" onclick="window.downloadSectionPng('qr-table-wrap','Market Impact Patterns by Shock Type','impactDlBtn')">&#x2B07; Download PNG (Hi-Res)</button>
+                </div>
+                <div id="qr-table-wrap" class="qr-table-wrap">
                     <table class="qr-table">
                         <thead>
                             <tr>
@@ -10508,6 +10520,7 @@ async def global_energy_risk_timeline_page(request: Request):
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
     (function() {{
@@ -10718,6 +10731,85 @@ async def global_energy_risk_timeline_page(request: Request):
                 alert('PNG export failed — try right-clicking the map and saving the image.');
             }};
             img.src = url;
+        }};
+
+        // ── Download HTML section as high-resolution PNG with title banner ────
+        window.downloadSectionPng = function(elId, title, btnId) {{
+            var el = document.getElementById(elId);
+            if (!el || typeof html2canvas === 'undefined') {{
+                alert('Export library not ready — please wait a moment and try again.');
+                return;
+            }}
+            var btn = document.getElementById(btnId);
+            if (btn) {{ btn.textContent = 'Generating\u2026'; btn.style.color = '#facc15'; }}
+            var SCALE = 2;
+            var PAD   = 28 * SCALE;   // horizontal inner padding (canvas px)
+            var TITLE_H = 90;          // title bar height (canvas px)
+            html2canvas(el, {{
+                scale: SCALE,
+                backgroundColor: '#0f172a',
+                logging: false,
+                useCORS: true
+            }}).then(function(captured) {{
+                var CW = captured.width + PAD * 2;
+                var CH = captured.height + TITLE_H + 16;
+                var canvas = document.createElement('canvas');
+                canvas.width  = CW;
+                canvas.height = CH;
+                var ctx = canvas.getContext('2d');
+
+                // ── Full background
+                ctx.fillStyle = '#0a1628';
+                ctx.fillRect(0, 0, CW, CH);
+
+                // ── Title bar background
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, CW, TITLE_H);
+
+                // ── Left accent stripe
+                ctx.fillStyle = '#3b82f6';
+                ctx.fillRect(0, 0, 6, TITLE_H);
+
+                // ── Title text
+                ctx.font = 'bold 32px sans-serif';
+                ctx.fillStyle = '#f1f5f9';
+                ctx.fillText(title, PAD, 42);
+
+                // ── Subtitle / branding
+                ctx.font = '20px sans-serif';
+                ctx.fillStyle = '#60a5fa';
+                ctx.fillText('EnergyRiskIQ  \u00B7  energyriskiq.com  \u00B7  2026', PAD, 72);
+
+                // ── Divider line
+                ctx.fillStyle = '#1e3a5f';
+                ctx.fillRect(0, TITLE_H, CW, 2);
+
+                // ── Content
+                ctx.drawImage(captured, PAD, TITLE_H + 14);
+
+                // ── Bottom watermark
+                ctx.font = '18px sans-serif';
+                ctx.fillStyle = '#1e3a5f';
+                var wm = 'EnergyRiskIQ (2026) \u00B7 energyriskiq.com';
+                ctx.fillText(wm, CW - ctx.measureText(wm).width - PAD, CH - 8);
+
+                var a = document.createElement('a');
+                var slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+                a.download = slug + '-energyriskiq.png';
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+                if (btn) {{
+                    btn.textContent = '\u2713 Downloaded!';
+                    btn.style.color = '#22c55e';
+                    setTimeout(function() {{
+                        btn.innerHTML = '&#x2B07; Download PNG (Hi-Res)';
+                        btn.style.color = '#94a3b8';
+                    }}, 3000);
+                }}
+            }}).catch(function(err) {{
+                if (btn) {{ btn.innerHTML = '&#x2B07; Download PNG (Hi-Res)'; btn.style.color = '#94a3b8'; }}
+                alert('Export failed. Try right-clicking and saving the image instead.');
+            }});
         }};
     }})();
     </script>
