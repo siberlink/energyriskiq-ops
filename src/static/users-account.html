@@ -6738,7 +6738,8 @@
                                 </div>
                             </div>
                             <div class="eeri-asset-toggles">
-                                <button class="eeri-asset-btn" data-asset="brent" style="--asset-color: #f59e0b;">
+                                <span style="font-size:10px;color:#475569;align-self:center;margin-right:2px;white-space:nowrap;">EERI vs.</span>
+                                <button class="eeri-asset-btn active" data-asset="brent" style="--asset-color: #f59e0b; border-color: #f59e0b; color: #f59e0b;">
                                     <span class="eeri-asset-dot" style="background: #f59e0b;"></span>Brent Oil
                                 </button>
                                 <button class="eeri-asset-btn" data-asset="ttf" style="--asset-color: #10b981;">
@@ -6749,9 +6750,6 @@
                                 </button>
                                 <button class="eeri-asset-btn" data-asset="eurusd" style="--asset-color: #3b82f6;">
                                     <span class="eeri-asset-dot" style="background: #3b82f6;"></span>EUR/USD
-                                </button>
-                                <button class="eeri-asset-btn" data-asset="storage" style="--asset-color: #06b6d4;">
-                                    <span class="eeri-asset-dot" style="background: #06b6d4;"></span>EU Storage
                                 </button>
                                 <button class="eeri-asset-btn" data-asset="lng" style="--asset-color: #d946ef;">
                                     <span class="eeri-asset-dot" style="background: #d946ef;"></span>LNG (JKM)
@@ -9742,7 +9740,7 @@
             days: 30,
             smoothing: 'raw',
             data: null,
-            activeAssets: [],
+            activeAssets: ['brent'],
             assetData: null
         };
 
@@ -10957,35 +10955,20 @@
                 });
             }
 
-            const EERI_ASSET_NORM_RANGES = {
-                brent: { min: 50, max: 120 },
-                ttf: { min: 20, max: 100 },
-                vix: { min: 10, max: 50 },
-                eurusd: { min: 1.00, max: 1.30 },
-                storage: { min: 0, max: 100 },
-                lng: { min: 5, max: 30 },
-            };
-
-            function eeriNormalizeToScale(value, assetId) {
-                if (value === null || value === undefined) return null;
-                const range = EERI_ASSET_NORM_RANGES[assetId];
-                if (!range) return value;
-                const normalized = ((value - range.min) / (range.max - range.min)) * 100;
-                return Math.max(0, Math.min(100, normalized));
-            }
-
-            const hasAssets = eeriProState.activeAssets.length > 0;
+            // ── Active single asset (radio-style: at most one at a time) ─────────
+            const activeAssetId = eeriProState.activeAssets.length > 0 ? eeriProState.activeAssets[0] : null;
             const subtitle = document.getElementById('eeriAssetSubtitle');
-            if (subtitle) subtitle.style.display = hasAssets ? '' : 'none';
+            if (subtitle) subtitle.style.display = activeAssetId ? '' : 'none';
 
-            if (hasAssets && eeriProState.assetData) {
-                const dateIndex = {};
-                eeriDates.forEach((d, i) => { dateIndex[d] = i; });
+            // Build aligned raw asset series and push dataset on y2
+            let assetY2Min = null, assetY2Max = null;
+            const activeAssetMeta = activeAssetId ? (ASSET_META[activeAssetId] || { label: activeAssetId, color: '#94a3b8', unit: '', suffix: '' }) : null;
 
-                eeriProState.activeAssets.forEach(assetId => {
-                    const assetSeries = eeriProState.assetData[assetId];
-                    if (!assetSeries || assetSeries.length === 0) return;
-                    const meta = ASSET_META[assetId] || { label: assetId, color: '#94a3b8', unit: '', suffix: '' };
+            if (activeAssetId && eeriProState.assetData) {
+                const assetSeries = eeriProState.assetData[activeAssetId];
+                if (assetSeries && assetSeries.length > 0) {
+                    const dateIndex = {};
+                    eeriDates.forEach((d, i) => { dateIndex[d] = i; });
 
                     const rawAligned = new Array(eeriDates.length).fill(null);
                     assetSeries.forEach(pt => {
@@ -10993,43 +10976,45 @@
                         if (idx !== undefined) rawAligned[idx] = pt.value;
                     });
 
+                    // Fill-forward on non-trading days
                     let lastKnown = null;
                     for (let i = 0; i < rawAligned.length; i++) {
-                        if (rawAligned[i] !== null) {
-                            lastKnown = rawAligned[i];
-                        } else if (lastKnown !== null) {
-                            rawAligned[i] = lastKnown;
-                        }
+                        if (rawAligned[i] !== null) { lastKnown = rawAligned[i]; }
+                        else if (lastKnown !== null) { rawAligned[i] = lastKnown; }
                     }
 
-                    const normalized = rawAligned.map(v => eeriNormalizeToScale(v, assetId));
-
-                    let displayData = normalized;
+                    let displayData = rawAligned;
                     if (smoothing === 'ma3') {
-                        displayData = computeMovingAverage(normalized, 3);
+                        displayData = computeMovingAverage(rawAligned, 3);
                     } else if (smoothing === 'ma7') {
-                        displayData = computeMovingAverage(normalized, 7);
+                        displayData = computeMovingAverage(rawAligned, 7);
+                    }
+
+                    const validVals = displayData.filter(v => v !== null);
+                    if (validVals.length) {
+                        assetY2Min = Math.min(...validVals);
+                        assetY2Max = Math.max(...validVals);
                     }
 
                     datasets.push({
-                        label: meta.label,
+                        label: activeAssetMeta.label,
                         data: displayData,
-                        borderColor: meta.color,
+                        borderColor: activeAssetMeta.color,
                         backgroundColor: 'transparent',
-                        borderWidth: 1.5,
-                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        borderDash: [6, 4],
                         fill: false,
                         tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        yAxisID: 'y',
+                        pointRadius: values.length > 60 ? 0 : 2,
+                        pointHoverRadius: 5,
+                        yAxisID: 'y2',
                         _isAsset: true,
-                        _assetId: assetId,
+                        _assetId: activeAssetId,
                         _rawValues: rawAligned,
-                        _meta: meta,
+                        _meta: activeAssetMeta,
                         spanGaps: true,
                     });
-                });
+                }
             }
 
             const scalesConfig = {
@@ -11042,10 +11027,48 @@
                     min: 0,
                     max: 100,
                     grid: { color: 'rgba(51, 65, 85, 0.5)' },
-                    ticks: { color: '#64748b', font: { size: 11 } },
-                    title: { display: false }
+                    ticks: {
+                        color: '#8b5cf6',
+                        font: { size: 11 },
+                        callback: v => v.toFixed(0)
+                    },
+                    title: {
+                        display: true,
+                        text: 'EERI (0–100)',
+                        color: '#8b5cf6',
+                        font: { size: 10 }
+                    }
                 }
             };
+
+            // Add right Y-axis if an asset is active
+            if (activeAssetId && assetY2Min !== null) {
+                const pad = (assetY2Max - assetY2Min) * 0.08 || 2;
+                const aid = activeAssetId;
+                const isEurusd = aid === 'eurusd';
+                const isStorage = activeAssetMeta.suffix === '%';
+                const decimals = isEurusd ? 4 : (isStorage ? 1 : 2);
+                scalesConfig.y2 = {
+                    position: 'right',
+                    min: assetY2Min - pad,
+                    max: assetY2Max + pad,
+                    grid: { drawOnChartArea: false },
+                    ticks: {
+                        color: activeAssetMeta.color,
+                        font: { size: 11 },
+                        callback: v => {
+                            const meta = activeAssetMeta;
+                            return meta.unit + Number(v).toFixed(decimals) + meta.suffix;
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: activeAssetMeta.label + (activeAssetMeta.unit ? ' (' + activeAssetMeta.unit + activeAssetMeta.suffix + ')' : (activeAssetMeta.suffix ? ' (' + activeAssetMeta.suffix + ')' : '')),
+                        color: activeAssetMeta.color,
+                        font: { size: 10 }
+                    }
+                };
+            }
             
             eeriProChart = new Chart(ctx, {
                 type: 'line',
@@ -11128,20 +11151,31 @@
                 });
             });
 
+            // Radio-style: clicking an asset selects it exclusively;
+            // clicking the active one again deselects (EERI-only view).
             document.querySelectorAll('.eeri-asset-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const assetId = this.dataset.asset;
-                    const idx = eeriProState.activeAssets.indexOf(assetId);
-                    if (idx >= 0) {
-                        eeriProState.activeAssets.splice(idx, 1);
-                        this.classList.remove('active');
-                        this.style.borderColor = '#334155';
+                    const isAlreadyActive = eeriProState.activeAssets[0] === assetId;
+
+                    // Reset all buttons to default
+                    document.querySelectorAll('.eeri-asset-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.borderColor = '#334155';
+                        b.style.color = '';
+                    });
+
+                    if (isAlreadyActive) {
+                        // Deselect — show EERI only
+                        eeriProState.activeAssets = [];
                     } else {
-                        eeriProState.activeAssets.push(assetId);
-                        this.classList.add('active');
+                        // Select this asset exclusively
+                        eeriProState.activeAssets = [assetId];
                         const color = this.style.getPropertyValue('--asset-color');
-                        if (color) this.style.borderColor = color;
+                        this.classList.add('active');
+                        if (color) { this.style.borderColor = color; this.style.color = color; }
                     }
+
                     if (eeriProState.data) {
                         renderEeriHistoryChart(eeriProState.data, eeriProState.smoothing);
                     }
