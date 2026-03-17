@@ -170,26 +170,25 @@ def _build_infographic_html(
         '  border-radius:12px; overflow:hidden; font-family:"Inter",sans-serif;'
         '  min-width:760px; }'
         '.ig-grid { display:grid;'
-        '  grid-template:"prices clipboard" auto "indices clipboard" 1fr "footer footer" auto / 1fr 264px; }'
+        '  grid-template:"prices clipboard" auto "indices clipboard" 1fr "footer footer" auto / 1fr 310px; }'
         '.ig-prices { grid-area:prices; display:flex; border-bottom:1px solid rgba(255,255,255,0.06); }'
-        '.ig-price-card { flex:1; padding:20px 22px; position:relative; overflow:hidden; min-height:100px; }'
-        '.ig-price-card + .ig-price-card { border-left:1px solid rgba(255,255,255,0.07); }'
-        '.ig-brent-bg { background:linear-gradient(135deg,#2d1a06 0%,#3a2010 55%,#141926 100%); }'
-        '.ig-ttf-bg { background:linear-gradient(135deg,#062030 0%,#0a2840 55%,#141926 100%); }'
-        '.ig-pc-img { position:absolute; top:0; height:100%; width:46%; object-fit:cover;'
-        '  opacity:0.72; pointer-events:none; }'
-        '.ig-pc-img-left  { left:0; -webkit-mask-image:linear-gradient(to right,rgba(0,0,0,0.9) 0%,transparent 100%);'
-        '  mask-image:linear-gradient(to right,rgba(0,0,0,0.9) 0%,transparent 100%); }'
-        '.ig-pc-img-right { right:0; -webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.9) 0%,transparent 100%);'
-        '  mask-image:linear-gradient(to left,rgba(0,0,0,0.9) 0%,transparent 100%); }'
-        '.ig-pc-text { position:relative; z-index:1; padding-left:44%; }'
-        '.ig-pc-text-right { padding-left:0; padding-right:44%; text-align:right; }'
+        '.ig-price-card { flex:1; padding:22px 20px; position:relative; overflow:hidden; min-height:108px; }'
+        '.ig-price-card + .ig-price-card { border-left:1px solid rgba(255,255,255,0.12); }'
+        '.ig-brent-bg { background:#2d1a06; }'
+        '.ig-ttf-bg   { background:#062030; }'
+        '.ig-pc-img { position:absolute; top:0; left:0; width:100%; height:100%;'
+        '  object-fit:cover; opacity:0.68; pointer-events:none; }'
+        '.ig-pc-overlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;'
+        '  background:linear-gradient(160deg,rgba(0,0,0,0.18) 0%,rgba(0,0,0,0.62) 100%); }'
+        '.ig-pc-text { position:relative; z-index:2; }'
         '.ig-pc-label { font-size:11px; font-weight:700; letter-spacing:1.2px;'
-        '  text-transform:uppercase; color:#94a3b8; margin-bottom:7px; }'
-        '.ig-pc-value { font-size:34px; font-weight:800; color:#fff; line-height:1; margin-bottom:7px; }'
+        '  text-transform:uppercase; color:rgba(255,255,255,0.75); margin-bottom:7px;'
+        '  text-shadow:0 1px 4px rgba(0,0,0,0.8); }'
+        '.ig-pc-value { font-size:34px; font-weight:800; color:#fff; line-height:1; margin-bottom:7px;'
+        '  text-shadow:0 2px 8px rgba(0,0,0,0.9); }'
         '.ig-pc-value sup { font-size:17px; vertical-align:top; margin-top:4px; }'
-        '.ig-pc-unit { font-size:14px; font-weight:500; color:#94a3b8; }'
-        '.ig-pc-change { font-size:13px; font-weight:600; }'
+        '.ig-pc-unit { font-size:14px; font-weight:500; color:rgba(255,255,255,0.65); }'
+        '.ig-pc-change { font-size:13px; font-weight:600; text-shadow:0 1px 4px rgba(0,0,0,0.8); }'
         '.ig-indices { grid-area:indices; padding:16px 18px;'
         '  border-right:1px solid rgba(255,255,255,0.06); background:#0f1522; }'
         '.ig-heading { font-size:16px; font-weight:700; color:#d4a017; margin-bottom:14px; }'
@@ -214,19 +213,26 @@ def _build_infographic_html(
         '.ig-storage-val { font-size:20px; font-weight:800; margin-bottom:4px; }'
         '.ig-storage-note { font-size:10px; color:#94a3b8; line-height:1.4;'
         '  padding-left:8px; border-left:2px solid rgba(212,160,23,0.3); }'
-        '.ig-clipboard { grid-area:clipboard; background:#1a1208;'
+        '.ig-clipboard { grid-area:clipboard; position:relative;'
         '  border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; }'
+        '.ig-clipboard-bg { position:absolute; top:0; left:0; width:100%; height:100%;'
+        '  object-fit:cover; object-position:center top; opacity:0.55; pointer-events:none; }'
+        '.ig-clipboard-inner { position:relative; z-index:1; display:flex; flex-direction:column;'
+        '  height:100%; background:rgba(14,9,2,0.55); }'
         '.ig-clip-top { display:flex; align-items:center; justify-content:center;'
-        '  padding:12px 10px 10px; background:#221a0a; border-bottom:2px solid #3d2810; }'
-        '.ig-clip-metal { width:64px; height:24px;'
-        '  background:linear-gradient(135deg,#888 0%,#ccc 40%,#aaa 60%,#888 100%);'
-        '  border-radius:4px 4px 8px 8px; position:relative; }'
-        '.ig-clip-metal::before { content:""; position:absolute; top:-9px; left:50%;'
-        '  transform:translateX(-50%); width:34px; height:11px;'
-        '  background:linear-gradient(135deg,#777,#bbb,#999); border-radius:3px 3px 0 0; }'
+        '  padding:14px 10px 12px; background:rgba(0,0,0,0.45);'
+        '  border-bottom:2px solid rgba(100,70,20,0.6); }'
+        '.ig-clip-metal { width:68px; height:26px;'
+        '  background:linear-gradient(135deg,#777 0%,#d0d0d0 35%,#bbb 55%,#888 80%,#666 100%);'
+        '  border-radius:4px 4px 10px 10px; position:relative;'
+        '  box-shadow:0 2px 8px rgba(0,0,0,0.7); }'
+        '.ig-clip-metal::before { content:""; position:absolute; top:-11px; left:50%;'
+        '  transform:translateX(-50%); width:36px; height:13px;'
+        '  background:linear-gradient(135deg,#666,#b0b0b0,#888); border-radius:3px 3px 0 0;'
+        '  box-shadow:0 -2px 4px rgba(0,0,0,0.5); }'
         '.ig-clip-header { padding:10px 14px 8px; font-size:11px; font-weight:800;'
         '  letter-spacing:1.8px; text-transform:uppercase; color:#d4a017;'
-        '  border-bottom:1px solid rgba(255,255,255,0.07); background:#221a0a; }'
+        '  border-bottom:1px solid rgba(255,255,255,0.07); background:rgba(0,0,0,0.35); }'
         '.ig-wl-item { display:flex; gap:9px; align-items:flex-start;'
         '  padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.04); }'
         '.ig-wl-item:last-child { border-bottom:none; }'
@@ -258,7 +264,8 @@ def _build_infographic_html(
       <!-- ── PRICE CARDS ── -->
       <div class="ig-prices">
         <div class="ig-price-card ig-brent-bg">
-          <img class="ig-pc-img ig-pc-img-left" src="/static/ig-brent-oilrig.png" alt="Oil rig" crossorigin="anonymous">
+          <img class="ig-pc-img" src="/static/ig-brent-oilrig.png" alt="Oil rig" crossorigin="anonymous">
+          <div class="ig-pc-overlay"></div>
           <div class="ig-pc-text">
             <div class="ig-pc-label">Brent Crude Oil</div>
             <div class="ig-pc-value"><sup>$</sup>{brent_price:.2f}</div>
@@ -266,7 +273,8 @@ def _build_infographic_html(
           </div>
         </div>
         <div class="ig-price-card ig-ttf-bg">
-          <img class="ig-pc-img ig-pc-img-right" src="/static/ig-ttf-lngship.png" alt="LNG ship" crossorigin="anonymous">
+          <img class="ig-pc-img" src="/static/ig-ttf-lngship.png" alt="LNG ship" crossorigin="anonymous">
+          <div class="ig-pc-overlay"></div>
           <div class="ig-pc-text">
             <div class="ig-pc-label">TTF Natural Gas</div>
             <div class="ig-pc-value"><sup>&euro;</sup>{ttf_price:.2f}<span class="ig-pc-unit">/MWh</span></div>
@@ -326,9 +334,12 @@ def _build_infographic_html(
 
       <!-- ── CLIPBOARD WATCHLIST ── -->
       <div class="ig-clipboard">
-        <div class="ig-clip-top"><div class="ig-clip-metal"></div></div>
-        <div class="ig-clip-header">Custom Watchlist:</div>
-        {wl_items}
+        <img class="ig-clipboard-bg" src="/static/ig-clipboard-bg.png" alt="" crossorigin="anonymous">
+        <div class="ig-clipboard-inner">
+          <div class="ig-clip-top"><div class="ig-clip-metal"></div></div>
+          <div class="ig-clip-header">Custom Watchlist:</div>
+          {wl_items}
+        </div>
       </div>
 
       <!-- ── FOOTER TEXT ── -->
