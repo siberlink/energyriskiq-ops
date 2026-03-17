@@ -6,6 +6,8 @@ SEO-optimized live page showing current global energy risk state.
 import os
 import math
 import json
+import hashlib
+import threading
 import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request
@@ -515,75 +517,126 @@ def _build_short_interpretation(geri_val, eeri_val, egsi_val, storage_pct, geri_
     )
 
 
-_AI_TEXTS_CACHE: dict = {}   # {date_str: {texts dict}}
+# ── Snapshot Engine ─────────────────────────────────────────────────────────
+# Single shared cache keyed by data fingerprint (not UTC date).
+# AI texts regenerate automatically whenever live data changes.
+_SNAPSHOT_CACHE: dict = {}
+_SNAPSHOT_LOCK = threading.Lock()
 
 
-def _ai_indices_texts(
-    geri_val, geri_band, geri_delta,
+def _compute_fingerprint(
+    geri_val, geri_date, eeri_val, eeri_date,
+    egsi_val, egsi_date, brent_price, brent_hour,
+    ttf_price, ttf_date, vix_close, lng_price, storage_pct,
+) -> str:
+    raw = (
+        f"{geri_date}:{geri_val}|{eeri_date}:{eeri_val}|{egsi_date}:{round(egsi_val,1)}"
+        f"|{round(brent_price,1)}h{brent_hour}|{ttf_date}:{round(ttf_price,2)}"
+        f"|{round(vix_close,2)}|{round(lng_price,2)}|{round(storage_pct,1)}"
+    )
+    return hashlib.md5(raw.encode()).hexdigest()[:14]
+
+
+def _run_snapshot_engine(
+    fingerprint,
+    geri_val, geri_band, geri_delta, geri_date,
     eeri_val, eeri_band, eeri_delta,
     egsi_val, egsi_band,
-    storage_pct, brent_price, ttf_price,
-    geri_date_str,
+    brent_price, ttf_price, vix_close, lng_price,
+    storage_pct, storage_band,
+    watchlist_items,
+    today_str,
 ) -> dict:
-    """Call OpenAI to generate daily AI-driven text for the infographic indices panel.
-    Returns dict with keys: geri_desc, eeri_desc, egsi_bullet1, egsi_bullet2, storage_note.
-    Caches result per calendar day; falls back to static text on any error."""
-    cache_key = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    if cache_key in _AI_TEXTS_CACHE:
-        return _AI_TEXTS_CACHE[cache_key]
+    """Dedicated snapshot engine.
+    Generates AI panel captions + expert daily assessment in one call.
+    Result is cached by data fingerprint — regenerates only when live data changes."""
 
-    _FALLBACKS = {
-        'geri_desc': f'Sharp increase driven by Middle East conflict escalation and infrastructure attacks.',
-        'eeri_desc': f'Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.',
-        'egsi_bullet1': f'High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.',
-        'egsi_bullet2': f'EU gas storage sits at {storage_pct:.2f}% full.',
-        'storage_note': f'Weekly changes to assess supply cushion ahead of summer.',
+    with _SNAPSHOT_LOCK:
+        if fingerprint in _SNAPSHOT_CACHE:
+            logger.debug(f"Snapshot engine: cache hit for fingerprint={fingerprint}")
+            return _SNAPSHOT_CACHE[fingerprint]
+
+    fallback_texts = {
+        'geri_desc':    'Elevated global risk driven by Middle East escalation and persistent supply chain stress.',
+        'eeri_desc':    'European risk remains structurally high, supported by ongoing Ukraine infrastructure attacks.',
+        'egsi_bullet1': 'Geopolitical stress sustained by Gulf chokepoint tensions and tanker traffic disruptions.',
+        'egsi_bullet2': f'EU gas storage at {storage_pct:.2f}% constrains the supply buffer ahead of summer.',
+        'storage_note': 'Storage below seasonal average raises refill risk through the injection season.',
     }
+    fallback_assessment = _build_short_interpretation(
+        geri_val, eeri_val, egsi_val, storage_pct, geri_band, eeri_band, None
+    )
+
     try:
         from openai import OpenAI
         ai_key = os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
         ai_url = os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL')
         client = OpenAI(api_key=ai_key, base_url=ai_url) if ai_key and ai_url else OpenAI()
 
+        wl_context = ""
+        if watchlist_items:
+            wl_context = "\nActive risk vectors being monitored:\n" + "\n".join(
+                f"  - {w['title']}: {w['desc']}" for w in watchlist_items[:5]
+            )
+
+        sign = lambda v: '+' if v >= 0 else ''
+
         prompt = (
-            f"Today is {geri_date_str}. You are writing caption text for an energy risk infographic.\n"
-            f"Current data:\n"
-            f"- GERI (Global Energy Risk Index): {geri_val}/100, band={geri_band}, 1-day delta={geri_delta:+d}\n"
-            f"- EERI (European Energy Risk Index): {eeri_val}/100, band={eeri_band}, 1-day delta={eeri_delta:+d}\n"
-            f"- EGSI-M (Energy Geopolitical Stress Index, Middle East): {egsi_val:.1f}, band={egsi_band}\n"
-            f"- EU Gas Storage: {storage_pct:.2f}% full\n"
-            f"- Brent Crude Oil: ${brent_price:.2f}/bbl\n"
-            f"- TTF Natural Gas: €{ttf_price:.2f}/MWh\n\n"
-            "Return ONLY a valid JSON object with exactly these 5 keys. Each value is a single sentence (max 120 chars). "
-            "Be specific, analytical, factual. Do NOT start sentences with the key name. No markdown.\n"
-            "Keys:\n"
-            "  geri_desc: 1-sentence driver explanation for the current GERI level\n"
-            "  eeri_desc: 1-sentence driver explanation for the current EERI level\n"
-            "  egsi_bullet1: 1 sentence on the primary EGSI-M stress factor (geopolitical)\n"
-            "  egsi_bullet2: 1 sentence linking EGSI-M to current gas storage or supply outlook\n"
-            "  storage_note: 1 sentence on what the EU storage level implies for seasonal supply risk\n"
+            f"Today is {today_str}. You are EnergyRiskIQ's senior energy risk analyst.\n\n"
+            f"LIVE DATA (all from production pipeline, just updated):\n"
+            f"  GERI  (Global Energy Risk Index):       {geri_val}/100  band={geri_band}  delta={sign(geri_delta)}{geri_delta:d}pt vs yesterday\n"
+            f"  EERI  (European Energy Risk Index):     {eeri_val}/100  band={eeri_band}  delta={sign(eeri_delta)}{eeri_delta:d}pt vs yesterday\n"
+            f"  EGSI-M (Geopolitical Stress, Mid-East): {egsi_val:.1f}    band={egsi_band}\n"
+            f"  EU Gas Storage:  {storage_pct:.2f}% full  band={storage_band}\n"
+            f"  Brent Crude Oil: ${brent_price:.2f}/bbl\n"
+            f"  TTF Natural Gas: €{ttf_price:.2f}/MWh\n"
+            f"  VIX Volatility:  {vix_close:.2f}\n"
+            f"  LNG JKM (Asia):  ${lng_price:.2f}/MMBtu\n"
+            f"{wl_context}\n\n"
+            "Return ONLY a valid JSON object with exactly these 6 keys. No markdown. No extra keys.\n\n"
+            "1. 'geri_desc'    (≤130 chars): 1 sentence explaining the primary driver of the current GERI level.\n"
+            "2. 'eeri_desc'    (≤130 chars): 1 sentence explaining the primary driver of the current EERI level.\n"
+            "3. 'egsi_bullet1' (≤130 chars): 1 sentence on the primary geopolitical stress factor behind EGSI-M.\n"
+            "4. 'egsi_bullet2' (≤130 chars): 1 sentence linking EGSI-M stress to the current gas storage or supply outlook.\n"
+            "5. 'storage_note' (≤130 chars): 1 sentence on what the EU storage level implies for seasonal supply risk.\n"
+            "6. 'assessment'   (≤520 chars): 3–4 sentence expert daily assessment paragraph. "
+            "Reference specific numbers (GERI, EERI, EGSI values, Brent, TTF, VIX, LNG, storage %). "
+            "Connect the data points analytically. Authoritative, fact-dense, flowing prose. No bullets. No markdown."
         )
+
         resp = client.chat.completions.create(
             model='gpt-4.1-mini',
             messages=[{'role': 'user', 'content': prompt}],
-            temperature=0.4,
-            max_tokens=400,
+            temperature=0.35,
+            max_tokens=650,
             response_format={'type': 'json_object'},
-            timeout=12,
+            timeout=18,
         )
-        raw = resp.choices[0].message.content
-        data = json.loads(raw)
-        result = {}
-        for k in _FALLBACKS:
+        data = json.loads(resp.choices[0].message.content)
+
+        ai_texts = {}
+        for k in fallback_texts:
             val = str(data.get(k, '')).strip().rstrip('.')
-            result[k] = (val[:160] + '.') if val else _FALLBACKS[k]
-        _AI_TEXTS_CACHE.clear()
-        _AI_TEXTS_CACHE[cache_key] = result
-        logger.info(f"AI infographic texts generated and cached for {cache_key}")
-        return result
-    except Exception as e:
-        logger.warning(f"AI indices text generation failed: {e}")
-        return _FALLBACKS
+            ai_texts[k] = (val[:170] + '.') if val else fallback_texts[k]
+
+        assessment = str(data.get('assessment', '')).strip()
+        if not assessment:
+            assessment = fallback_assessment
+
+        engine_result = {'ai_texts': ai_texts, 'assessment': assessment}
+
+        with _SNAPSHOT_LOCK:
+            if len(_SNAPSHOT_CACHE) >= 6:
+                oldest_key = next(iter(_SNAPSHOT_CACHE))
+                del _SNAPSHOT_CACHE[oldest_key]
+            _SNAPSHOT_CACHE[fingerprint] = engine_result
+
+        logger.info(f"Snapshot engine: generated AI output for fingerprint={fingerprint}")
+        return engine_result
+
+    except Exception as exc:
+        logger.warning(f"Snapshot engine AI call failed: {exc}")
+        return {'ai_texts': fallback_texts, 'assessment': fallback_assessment}
 
 
 @router.get("/data/energy-risk-snapshot", response_class=HTMLResponse)
@@ -714,23 +767,39 @@ async def energy_risk_snapshot(request: Request):
         ebg = BAND_BG.get(eeri_band,  'rgba(249,115,22,0.10)')
         mgbg = BAND_BG.get(egsi_band, 'rgba(249,115,22,0.10)')
 
-        # --- Interpretation ---
-        interpretation = _build_short_interpretation(
-            geri_val, eeri_val, egsi_val, storage_pct, geri_band, eeri_band, geri_comp
+        storage_color = BAND_COLORS.get(storage_band, '#f97316')
+
+        # --- Watchlist (live alert events — fetched before AI call so events inform the assessment) ---
+        ig_watchlist = _fetch_infographic_watchlist(geri_val=geri_val, storage_pct=storage_pct)
+
+        # --- Data fingerprint: changes whenever any live value changes ---
+        brent_hour_val = int(brent_intra['hour']) if brent_intra else 0
+        ttf_date_val   = str(ttf_row['date'])     if ttf_row    else ''
+        eeri_date_val  = str(eeri_row['date'])    if eeri_row   else ''
+        egsi_date_val  = str(egsi_row['index_date']) if egsi_row else ''
+        fingerprint = _compute_fingerprint(
+            geri_val=geri_val, geri_date=geri_date,
+            eeri_val=eeri_val, eeri_date=eeri_date_val,
+            egsi_val=egsi_val, egsi_date=egsi_date_val,
+            brent_price=brent_price, brent_hour=brent_hour_val,
+            ttf_price=ttf_price, ttf_date=ttf_date_val,
+            vix_close=vix_close, lng_price=lng_price, storage_pct=storage_pct,
         )
 
-        # --- Watchlist HTML ---
-        wl_items = []
-        for w in WATCHLIST:
-            wl_items.append(f"""
-              <a href="/research/watchlist/{w['slug']}" class="wl-item">
-                <div class="wl-check">&#10003;</div>
-                <div class="wl-body">
-                  <div class="wl-title">{w['title']}</div>
-                  <div class="wl-desc">{w['desc']}</div>
-                </div>
-              </a>""")
-        watchlist_html = "\n".join(wl_items)
+        # --- Run dedicated snapshot engine (AI captions + daily assessment) ---
+        engine_result = _run_snapshot_engine(
+            fingerprint=fingerprint,
+            geri_val=geri_val, geri_band=geri_band, geri_delta=geri_delta, geri_date=geri_date,
+            eeri_val=eeri_val, eeri_band=eeri_band, eeri_delta=eeri_delta,
+            egsi_val=egsi_val, egsi_band=egsi_band,
+            brent_price=brent_price, ttf_price=ttf_price,
+            vix_close=vix_close, lng_price=lng_price,
+            storage_pct=storage_pct, storage_band=storage_band,
+            watchlist_items=ig_watchlist,
+            today_str=today_str,
+        )
+        ig_ai_texts  = engine_result['ai_texts']
+        interpretation = engine_result['assessment']
 
         # --- Index delta badge HTML ---
         def delta_badge(delta_str, color):
@@ -740,20 +809,7 @@ async def energy_risk_snapshot(request: Request):
         eeri_delta_badge  = delta_badge(eeri_delta_str,  ec if eeri_delta  != 0 else '#94a3b8')
         egsi_delta_badge  = delta_badge(egsi_delta_str,  mgc if egsi_delta != 0 else '#94a3b8')
 
-        storage_color = BAND_COLORS.get(storage_band, '#f97316')
-
-        # --- AI texts for infographic indices panel ---
-        ig_ai_texts = _ai_indices_texts(
-            geri_val=geri_val, geri_band=geri_band, geri_delta=geri_delta,
-            eeri_val=eeri_val, eeri_band=eeri_band, eeri_delta=eeri_delta,
-            egsi_val=egsi_val, egsi_band=egsi_band,
-            storage_pct=storage_pct,
-            brent_price=brent_price, ttf_price=ttf_price,
-            geri_date_str=today_str,
-        )
-
         # --- Infographic section ---
-        ig_watchlist = _fetch_infographic_watchlist(geri_val=geri_val, storage_pct=storage_pct)
         infographic_section = _build_infographic_html(
             today_str=today_str,
             geri_val=geri_val, geri_band=geri_band, geri_date=geri_date, geri_delta=geri_delta,
