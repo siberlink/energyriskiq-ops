@@ -543,7 +543,7 @@ def _run_snapshot_engine(
     eeri_val, eeri_band, eeri_delta,
     egsi_val, egsi_band,
     brent_price, ttf_price, vix_close, lng_price,
-    storage_pct, storage_band,
+    storage_pct, storage_band, storage_norm, storage_dev,
     watchlist_items,
     today_str,
 ) -> dict:
@@ -560,8 +560,8 @@ def _run_snapshot_engine(
         'geri_desc':    'Elevated global risk driven by Middle East escalation and persistent supply chain stress.',
         'eeri_desc':    'European risk remains structurally high, supported by ongoing Ukraine infrastructure attacks.',
         'egsi_bullet1': 'Geopolitical stress sustained by Gulf chokepoint tensions and tanker traffic disruptions.',
-        'egsi_bullet2': f'EU gas storage at {storage_pct:.2f}% constrains the supply buffer ahead of summer.',
-        'storage_note': 'Storage below seasonal average raises refill risk through the injection season.',
+        'egsi_bullet2': f'EU gas storage at {storage_pct:.2f}% — {abs(storage_dev):.1f}% below seasonal norm of {storage_norm:.1f}% — constrains the summer supply buffer.',
+        'storage_note': f'Storage deviation of {storage_dev:+.1f}% from the {storage_norm:.1f}% seasonal norm raises refill risk through the injection season.',
     }
     fallback_assessment = _build_short_interpretation(
         geri_val, eeri_val, egsi_val, storage_pct, geri_band, eeri_band, None
@@ -587,7 +587,7 @@ def _run_snapshot_engine(
             f"  GERI  (Global Energy Risk Index):       {geri_val}/100  band={geri_band}  delta={sign(geri_delta)}{geri_delta:d}pt vs yesterday\n"
             f"  EERI  (European Energy Risk Index):     {eeri_val}/100  band={eeri_band}  delta={sign(eeri_delta)}{eeri_delta:d}pt vs yesterday\n"
             f"  EGSI-M (Geopolitical Stress, Mid-East): {egsi_val:.1f}    band={egsi_band}\n"
-            f"  EU Gas Storage:  {storage_pct:.2f}% full  band={storage_band}\n"
+            f"  EU Gas Storage:  {storage_pct:.2f}% full  seasonal_norm={storage_norm:.1f}%  deviation={'+' if storage_dev >= 0 else ''}{storage_dev:.1f}%  band={storage_band}\n"
             f"  Brent Crude Oil: ${brent_price:.2f}/bbl\n"
             f"  TTF Natural Gas: €{ttf_price:.2f}/MWh\n"
             f"  VIX Volatility:  {vix_close:.2f}\n"
@@ -683,7 +683,7 @@ async def energy_risk_snapshot(request: Request):
             "SELECT date, jkm_price, jkm_change_pct FROM lng_price_snapshots ORDER BY date DESC LIMIT 1"
         )
         storage_row = execute_production_one(
-            "SELECT date, eu_storage_percent, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1"
+            "SELECT date, eu_storage_percent, seasonal_norm, deviation_from_norm, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1"
         )
 
         # --- Extract values ---
@@ -726,8 +726,10 @@ async def energy_risk_snapshot(request: Request):
         lng_price = _safe_float(lng_row['jkm_price']) if lng_row else 0.0
         lng_chg_pct = _safe_float(lng_row['jkm_change_pct']) if lng_row else 0.0
 
-        storage_pct  = _safe_float(storage_row['eu_storage_percent']) if storage_row else 0.0
-        storage_band = str(storage_row['risk_band']) if storage_row else 'ELEVATED'
+        storage_pct      = _safe_float(storage_row['eu_storage_percent'])   if storage_row else 0.0
+        storage_band     = str(storage_row['risk_band'])                     if storage_row else 'ELEVATED'
+        storage_norm     = _safe_float(storage_row['seasonal_norm'])         if storage_row else 40.0
+        storage_dev      = _safe_float(storage_row['deviation_from_norm'])   if storage_row else 0.0
 
         # --- Formatted strings ---
         today_str = datetime.now(timezone.utc).strftime('%B %-d, %Y')
@@ -773,10 +775,12 @@ async def energy_risk_snapshot(request: Request):
         ig_watchlist = _fetch_infographic_watchlist(geri_val=geri_val, storage_pct=storage_pct)
 
         # --- Data fingerprint: changes whenever any live value changes ---
-        brent_hour_val = int(brent_intra['hour']) if brent_intra else 0
-        ttf_date_val   = str(ttf_row['date'])     if ttf_row    else ''
-        eeri_date_val  = str(eeri_row['date'])    if eeri_row   else ''
-        egsi_date_val  = str(egsi_row['index_date']) if egsi_row else ''
+        brent_hour_val = int(brent_intra['hour'])    if brent_intra else 0
+        ttf_date_val   = str(ttf_row['date'])        if ttf_row    else ''
+        vix_date_val   = str(vix_row['date'])        if vix_row    else ''
+        lng_date_val   = str(lng_row['date'])        if lng_row    else ''
+        eeri_date_val  = str(eeri_row['date'])       if eeri_row   else ''
+        egsi_date_val  = str(egsi_row['index_date']) if egsi_row   else ''
         fingerprint = _compute_fingerprint(
             geri_val=geri_val, geri_date=geri_date,
             eeri_val=eeri_val, eeri_date=eeri_date_val,
@@ -795,6 +799,7 @@ async def energy_risk_snapshot(request: Request):
             brent_price=brent_price, ttf_price=ttf_price,
             vix_close=vix_close, lng_price=lng_price,
             storage_pct=storage_pct, storage_band=storage_band,
+            storage_norm=storage_norm, storage_dev=storage_dev,
             watchlist_items=ig_watchlist,
             today_str=today_str,
         )
@@ -1293,14 +1298,15 @@ async def energy_risk_snapshot(request: Request):
     <div>
       <div class="storage-label">EU Gas Storage</div>
       <div class="storage-value" style="color:{storage_color}">{storage_pct:.2f}% full</div>
-      <div class="storage-note">Weekly changes assessed to track supply cushion ahead of summer. Risk band: <strong style="color:{storage_color}">{storage_band}</strong></div>
+      <div class="storage-note">Seasonal norm: <strong style="color:#94a3b8">{storage_norm:.1f}%</strong> &nbsp;&bull;&nbsp; Deviation: <strong style="color:{storage_color}">{'+' if storage_dev >= 0 else ''}{storage_dev:.1f}%</strong> &nbsp;&bull;&nbsp; Risk band: <strong style="color:{storage_color}">{storage_band}</strong></div>
     </div>
     <div class="storage-bar-wrap">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:5px;text-align:right">{storage_pct:.1f}% / 100%</div>
-      <div class="storage-bar">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:5px;text-align:right">{storage_pct:.1f}% full &nbsp;|&nbsp; norm {storage_norm:.1f}%</div>
+      <div class="storage-bar" style="position:relative">
         <div class="storage-bar-fill" style="width:{min(storage_pct, 100):.1f}%; background:{storage_color}"></div>
+        <div style="position:absolute;top:0;bottom:0;left:{min(storage_norm, 100):.1f}%;width:2px;background:#64748b;opacity:0.8" title="Seasonal norm {storage_norm:.1f}%"></div>
       </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">Seasonal avg ~40%</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">Seasonal norm {storage_norm:.1f}% &nbsp;&#9474;&nbsp; Current {storage_pct:.1f}%</div>
     </div>
   </div>
 
@@ -1321,7 +1327,7 @@ async def energy_risk_snapshot(request: Request):
       <div class="price-commodity">TTF Natural Gas</div>
       <div class="price-value"><sup>&#8364;</sup>{ttf_price:.2f}<span style="font-size:14px;font-weight:500;color:var(--muted)">/MWh</span></div>
       <div class="price-change" style="color:{ttf_color}">{ttf_arrow} {ttf_chg_str}</div>
-      <div class="price-source">Daily Close — Mar 16, 2026</div>
+      <div class="price-source">Daily Close — {ttf_date_val}</div>
     </div>
 
     <!-- VIX -->
@@ -1329,7 +1335,7 @@ async def energy_risk_snapshot(request: Request):
       <div class="price-commodity">VIX Volatility Index</div>
       <div class="price-value">{vix_close:.2f}</div>
       <div class="price-change" style="color:{vix_color}">{vix_arrow} {vix_chg_str}</div>
-      <div class="price-source">CBOE — Daily Close</div>
+      <div class="price-source">CBOE — {vix_date_val}</div>
     </div>
 
     <!-- LNG -->
@@ -1337,7 +1343,7 @@ async def energy_risk_snapshot(request: Request):
       <div class="price-commodity">LNG JKM (Asia)</div>
       <div class="price-value"><sup>$</sup>{lng_price:.2f}<span style="font-size:14px;font-weight:500;color:var(--muted)">/MMBtu</span></div>
       <div class="price-change" style="color:{lng_color}">{lng_arrow} {lng_chg_str}</div>
-      <div class="price-source">Platts JKM — Daily Close</div>
+      <div class="price-source">Platts JKM — {lng_date_val}</div>
     </div>
 
   </div>
