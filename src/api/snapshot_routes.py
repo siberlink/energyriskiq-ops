@@ -201,8 +201,10 @@ def _build_infographic_html(
 
     # Watchlist — live items from digest data, fallback to static WATCHLIST
     _wl_source = watchlist_items if watchlist_items else WATCHLIST
-    wl_items = ''
-    for w in _wl_source[:4]:
+    _wl_list   = _wl_source[:4]
+    wl_count   = len(_wl_list)
+    wl_items   = ''
+    for w in _wl_list:
         wl_items += (
             '<div class="ig-wl-item">'
             '<div class="ig-wl-check">&#10003;</div>'
@@ -279,26 +281,26 @@ def _build_infographic_html(
         '  margin-bottom:7px; line-height:1.45; }'
         '.ig-storage-note { font-size:10.5px; color:#94a3b8; line-height:1.45; }'
         '.ig-clipboard { grid-area:clipboard; position:relative;'
-        '  border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; }'
-        '.ig-clipboard-bg { position:absolute; top:0; left:0; width:100%; height:100%;'
-        '  object-fit:cover; object-position:center top; opacity:1.0; pointer-events:none; }'
-        '.ig-clipboard-inner { position:relative; z-index:1; display:flex; flex-direction:column;'
-        '  height:100%; background:transparent; padding:0 22px 16px; }'
-        '.ig-clip-top { height:62px; flex-shrink:0; }'
+        '  display:flex; flex-direction:column;'
+        '  background:#131d31; border-left:1px solid #1e3050; }'
+        '.ig-clipboard-inner { display:flex; flex-direction:column;'
+        '  height:100%; padding:18px 16px 14px; }'
+        '.ig-clip-top { display:none; }'
         '.ig-clip-metal { display:none; }'
-        '.ig-clip-header { padding:0 0 7px; font-size:11px; font-weight:900;'
-        '  letter-spacing:1.6px; text-transform:uppercase; color:#2a1800;'
-        '  border-bottom:2px solid rgba(60,35,5,0.30); }'
-        '.ig-wl-item { display:flex; gap:9px; align-items:flex-start;'
-        '  padding:10px 0; border-bottom:1px solid rgba(80,55,20,0.18); }'
+        '.ig-clip-header { font-size:11px; font-weight:900;'
+        '  letter-spacing:1.8px; text-transform:uppercase; color:#d4a017;'
+        '  margin-bottom:4px; }'
+        '.ig-clip-subcount { font-size:10px; color:#64748b; margin-bottom:10px;'
+        '  padding-bottom:10px; border-bottom:1px solid rgba(51,65,85,0.8); }'
+        '.ig-wl-item { display:flex; gap:10px; align-items:flex-start;'
+        '  padding:10px 0; border-bottom:1px solid rgba(51,65,85,0.5); }'
         '.ig-wl-item:last-child { border-bottom:none; }'
-        '.ig-wl-check { width:17px; height:17px; border-radius:3px;'
-        '  background:rgba(46,125,46,0.15); border:2px solid #3a7a2e;'
-        '  color:#2e7d2e; font-size:10px; font-weight:800;'
-        '  display:flex; align-items:center; justify-content:center;'
-        '  flex-shrink:0; margin-top:1px; }'
-        '.ig-wl-title { font-size:12px; font-weight:700; color:#1a0a00; margin-bottom:3px; }'
-        '.ig-wl-desc { font-size:10px; color:#4a3520; line-height:1.35; }'
+        '.ig-wl-check { width:18px; height:18px; border-radius:3px; flex-shrink:0;'
+        '  background:rgba(212,160,23,0.18); border:1.5px solid #d4a017;'
+        '  color:#d4a017; font-size:11px; font-weight:900;'
+        '  display:flex; align-items:center; justify-content:center; margin-top:1px; }'
+        '.ig-wl-title { font-size:11.5px; font-weight:700; color:#f1f5f9; margin-bottom:3px; }'
+        '.ig-wl-desc { font-size:9.5px; color:#64748b; line-height:1.4; }'
         '.ig-footer { grid-area:footer; padding:16px 22px; text-align:center;'
         '  background:#0f1522; border-top:1px solid rgba(255,255,255,0.06);'
         '  font-size:15px; color:#cbd5e1; font-style:italic; line-height:1.6; }'
@@ -398,10 +400,9 @@ def _build_infographic_html(
 
       <!-- ── CLIPBOARD WATCHLIST ── -->
       <div class="ig-clipboard">
-        <img class="ig-clipboard-bg" src="/static/ig-clipboard-bg.png" alt="" crossorigin="anonymous">
         <div class="ig-clipboard-inner">
-          <div class="ig-clip-top"></div>
           <div class="ig-clip-header">&#128203; Custom Watchlist</div>
+          <div class="ig-clip-subcount">{wl_count} active risk vectors being monitored</div>
           {wl_items}
         </div>
       </div>
@@ -759,6 +760,7 @@ async def energy_risk_snapshot(request: Request):
   <meta name="description" content="Live global energy risk snapshot for {today_str}. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices. Powered by EnergyRiskIQ.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
   <meta property="og:title" content="Global Energy Risk Snapshot — {today_str}">
   <meta property="og:description" content="Live energy risk indices (GERI {geri_val}/100 {geri_band}, EERI {eeri_val}/100 {eeri_band}) plus Brent ${brent_price:.2f}, TTF €{ttf_price:.2f}/MWh, VIX {vix_close:.2f}.">
   <meta property="og:type" content="article">
@@ -772,10 +774,10 @@ async def energy_risk_snapshot(request: Request):
   <style>
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     :root {{
-      --bg: #0b0f1a;
-      --card: #111827;
-      --card2: #151c2c;
-      --border: rgba(255,255,255,0.07);
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card2: #162032;
+      --border: #334155;
       --text: #e2e8f0;
       --muted: #94a3b8;
       --gold: #d4a017;
@@ -784,26 +786,35 @@ async def energy_risk_snapshot(request: Request):
     body {{
       background: var(--bg);
       color: var(--text);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       min-height: 100vh;
       line-height: 1.6;
+      overflow-x: hidden;
     }}
 
-    /* ── HEADER ── */
-    .site-header {{
-      background: rgba(11,15,26,0.96);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
-      display: flex; align-items: center; justify-content: space-between;
+    /* ── NAV (matches /research/global-energy-risk-index) ── */
+    .nav {{
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }}
-    .site-logo {{ font-size: 15px; font-weight: 700; color: var(--gold2); letter-spacing: 0.5px; text-decoration: none; }}
-    .site-logo span {{ color: var(--muted); font-weight: 400; }}
-    .header-badge {{
-      font-size: 11px; font-weight: 600; padding: 4px 10px;
-      border-radius: 20px; border: 1px solid rgba(251,191,36,0.4);
-      color: var(--gold2); background: rgba(251,191,36,0.08);
-      letter-spacing: 0.5px;
+    .nav-inner {{
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 1160px; margin: 0 auto; padding: 0 1.5rem;
     }}
+    .logo {{
+      font-weight: 700; font-size: 1.2rem; color: #f1f5f9;
+      text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+    }}
+    .cta-btn-nav {{
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white !important; padding: 0.5rem 1rem; border-radius: 6px;
+      text-decoration: none; font-weight: 600; font-size: 13px;
+    }}
+    .cta-btn-nav:hover {{ opacity: 0.9; }}
 
     /* ── HERO ── */
     .hero {{
@@ -1126,10 +1137,15 @@ async def energy_risk_snapshot(request: Request):
 </head>
 <body>
 
-<header class="site-header">
-  <a href="/" class="site-logo">EnergyRisk<span>IQ</span></a>
-  <span class="header-badge">LIVE DATA</span>
-</header>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="logo">
+      <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36">
+      EnergyRiskIQ
+    </a>
+    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+  </div>
+</nav>
 
 <div class="hero">
   <div class="hero-date">&#128197; {today_str}</div>
