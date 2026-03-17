@@ -72,6 +72,262 @@ def _safe_float(val, default=0.0):
         return default
 
 
+def _infographic_gauge_svg(value: int, band: str) -> str:
+    """Infographic-sized speedometer gauge — viewBox 130×72, center (65,68), radius 56."""
+    color = BAND_COLORS.get(band, '#f97316')
+
+    def arc_pt(v, r=56):
+        theta = math.pi - v * math.pi / 100
+        return round(65 + r * math.cos(theta), 1), round(68 - r * math.sin(theta), 1)
+
+    def needle_pt(v, r=46):
+        theta = math.pi - v * math.pi / 100
+        return round(65 + r * math.cos(theta), 1), round(68 - r * math.sin(theta), 1)
+
+    p0   = arc_pt(0)
+    p20  = arc_pt(20)
+    p40  = arc_pt(40)
+    p60  = arc_pt(60)
+    p80  = arc_pt(80)
+    p100 = arc_pt(100)
+    npt  = needle_pt(value)
+
+    return (
+        f'<svg viewBox="0 0 130 72" xmlns="http://www.w3.org/2000/svg" style="width:130px;max-width:100%;display:block">'
+        f'<path d="M{p0[0]},{p0[1]} A56,56 0 0,1 {p20[0]},{p20[1]}" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="butt"/>'
+        f'<path d="M{p20[0]},{p20[1]} A56,56 0 0,1 {p40[0]},{p40[1]}" fill="none" stroke="#eab308" stroke-width="10" stroke-linecap="butt"/>'
+        f'<path d="M{p40[0]},{p40[1]} A56,56 0 0,1 {p60[0]},{p60[1]}" fill="none" stroke="#f97316" stroke-width="10" stroke-linecap="butt"/>'
+        f'<path d="M{p60[0]},{p60[1]} A56,56 0 0,1 {p80[0]},{p80[1]}" fill="none" stroke="#ef4444" stroke-width="10" stroke-linecap="butt"/>'
+        f'<path d="M{p80[0]},{p80[1]} A56,56 0 0,1 {p100[0]},{p100[1]}" fill="none" stroke="#dc2626" stroke-width="10" stroke-linecap="butt"/>'
+        f'<line x1="65" y1="68" x2="{npt[0]}" y2="{npt[1]}" stroke="white" stroke-width="3" stroke-linecap="round"/>'
+        f'<circle cx="65" cy="68" r="5.5" fill="{color}" stroke="rgba(255,255,255,0.85)" stroke-width="1.5"/>'
+        f'<text x="5" y="71" fill="#6b7280" font-size="8" font-family="sans-serif">LOW</text>'
+        f'<text x="109" y="71" fill="#6b7280" font-size="8" font-family="sans-serif">HIGH</text>'
+        f'</svg>'
+    )
+
+
+def _build_infographic_html(
+    today_str,
+    geri_val, geri_band, geri_date, geri_delta,
+    eeri_val, eeri_band, eeri_delta,
+    egsi_val, egsi_band,
+    brent_price, brent_chg, brent_chg_pct,
+    ttf_price, ttf_chg,
+    storage_pct,
+) -> str:
+    """Build the infographic section HTML. CSS uses plain string (no f-string brace issue)."""
+    gc  = BAND_COLORS.get(geri_band,  '#f97316')
+    ec  = BAND_COLORS.get(eeri_band,  '#f97316')
+    mgc = BAND_COLORS.get(egsi_band,  '#f97316')
+
+    geri_ig   = _infographic_gauge_svg(geri_val, geri_band)
+    eeri_ig   = _infographic_gauge_svg(eeri_val, eeri_band)
+
+    b_arrow  = '&#9650;' if brent_chg >= 0 else '&#9660;'
+    b_color  = '#22c55e' if brent_chg >= 0 else '#ef4444'
+    t_arrow  = '&#9650;' if ttf_chg >= 0   else '&#9660;'
+    t_color  = '#22c55e' if ttf_chg >= 0   else '#ef4444'
+
+    b_chg_str = ('+' if brent_chg >= 0 else '') + f'{brent_chg:.2f} | ' + ('+' if brent_chg_pct >= 0 else '') + f'{brent_chg_pct:.2f}% d/d'
+    t_chg_str = ('+' if ttf_chg >= 0 else '') + f'{ttf_chg:.2f} d/d'
+
+    g_delta = ('+' if geri_delta >= 0 else '') + str(geri_delta)
+    e_delta = ('+' if eeri_delta >= 0 else '') + str(eeri_delta)
+
+    eeri_change_note = 'unchanged' if eeri_delta == 0 else (f'+{eeri_delta}' if eeri_delta > 0 else str(eeri_delta))
+
+    # Watchlist — 4 items to match image
+    wl_items = ''
+    for w in WATCHLIST[:4]:
+        wl_items += (
+            '<div class="ig-wl-item">'
+            '<div class="ig-wl-check">&#10003;</div>'
+            '<div class="ig-wl-body">'
+            f'<div class="ig-wl-title">{w["title"]}</div>'
+            f'<div class="ig-wl-desc">{w["desc"]}</div>'
+            '</div></div>'
+        )
+
+    # Infographic footer interpretation
+    price_action = 'mixed' if abs(brent_chg_pct) < 2.5 else ('falling' if brent_chg_pct < 0 else 'rising')
+    footer_text = (
+        f'So we have {price_action} price action, but a persistently tense risk regime and tight storage. '
+        f'<strong>What to watch?</strong>'
+    )
+
+    # CSS as plain string (no brace doubling needed — not inside outer f-string)
+    CSS = (
+        '<style id="ig-styles">'
+        '.ig-outer { margin-bottom: 44px; }'
+        '.ig-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }'
+        '.ig-topbar-title { font-size:13px; font-weight:600; color:#94a3b8; }'
+        '.ig-dl-btn { font-size:13px; font-weight:600; padding:9px 20px; border-radius:6px;'
+        '  background:rgba(212,160,23,0.12); border:1px solid rgba(212,160,23,0.35);'
+        '  color:#d4a017; cursor:pointer; transition:all 0.2s; }'
+        '.ig-dl-btn:hover { background:rgba(212,160,23,0.22); color:#fbbf24; }'
+        '.ig-root { background:#141926; border:1px solid rgba(255,255,255,0.08);'
+        '  border-radius:12px; overflow:hidden; font-family:"Inter",sans-serif;'
+        '  min-width:760px; }'
+        '.ig-grid { display:grid;'
+        '  grid-template:"prices clipboard" auto "indices clipboard" 1fr "footer footer" auto / 1fr 264px; }'
+        '.ig-prices { grid-area:prices; display:flex; border-bottom:1px solid rgba(255,255,255,0.06); }'
+        '.ig-price-card { flex:1; padding:20px 22px; position:relative; overflow:hidden; }'
+        '.ig-price-card + .ig-price-card { border-left:1px solid rgba(255,255,255,0.07); }'
+        '.ig-brent-bg { background:linear-gradient(135deg,#2d1a06 0%,#3a2010 55%,#141926 100%); }'
+        '.ig-ttf-bg { background:linear-gradient(135deg,#062030 0%,#0a2840 55%,#141926 100%); }'
+        '.ig-pc-label { font-size:11px; font-weight:700; letter-spacing:1.2px;'
+        '  text-transform:uppercase; color:#94a3b8; margin-bottom:7px; }'
+        '.ig-pc-value { font-size:34px; font-weight:800; color:#fff; line-height:1; margin-bottom:7px; }'
+        '.ig-pc-value sup { font-size:17px; vertical-align:top; margin-top:4px; }'
+        '.ig-pc-unit { font-size:14px; font-weight:500; color:#94a3b8; }'
+        '.ig-pc-change { font-size:13px; font-weight:600; }'
+        '.ig-indices { grid-area:indices; padding:16px 18px;'
+        '  border-right:1px solid rgba(255,255,255,0.06); background:#0f1522; }'
+        '.ig-heading { font-size:16px; font-weight:700; color:#d4a017; margin-bottom:14px; }'
+        '.ig-indices-body { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }'
+        '.ig-left-col { }'
+        '.ig-right-col { padding-left:16px; border-left:1px solid rgba(255,255,255,0.06);'
+        '  grid-row:1/-1; }'
+        '.ig-idx-label { font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:0.5px;'
+        '  margin-bottom:6px; }'
+        '.ig-idx-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:14px; }'
+        '.ig-idx-row + .ig-idx-row { border-top:1px solid rgba(255,255,255,0.05); padding-top:12px; }'
+        '.ig-idx-info { flex:1; }'
+        '.ig-band-name { font-size:22px; font-weight:800; line-height:1.1; margin-bottom:5px; }'
+        '.ig-band-note { font-size:11px; color:#94a3b8; line-height:1.45; }'
+        '.ig-idx-subval { font-size:13px; color:#94a3b8; margin-top:4px; }'
+        '.ig-egsi-title { font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:5px; }'
+        '.ig-egsi-val { font-size:17px; font-weight:800; margin-bottom:5px; }'
+        '.ig-egsi-note { font-size:10px; color:#94a3b8; line-height:1.4; padding-left:8px;'
+        '  border-left:2px solid rgba(255,255,255,0.08); margin-bottom:4px; }'
+        '.ig-storage-sep { margin:10px 0 8px; border:none; border-top:1px solid rgba(255,255,255,0.07); }'
+        '.ig-storage-title { font-size:11px; font-weight:700; color:#d4a017; margin-bottom:4px; }'
+        '.ig-storage-val { font-size:20px; font-weight:800; margin-bottom:4px; }'
+        '.ig-storage-note { font-size:10px; color:#94a3b8; line-height:1.4;'
+        '  padding-left:8px; border-left:2px solid rgba(212,160,23,0.3); }'
+        '.ig-clipboard { grid-area:clipboard; background:#1a1208;'
+        '  border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; }'
+        '.ig-clip-top { display:flex; align-items:center; justify-content:center;'
+        '  padding:12px 10px 10px; background:#221a0a; border-bottom:2px solid #3d2810; }'
+        '.ig-clip-metal { width:64px; height:24px;'
+        '  background:linear-gradient(135deg,#888 0%,#ccc 40%,#aaa 60%,#888 100%);'
+        '  border-radius:4px 4px 8px 8px; position:relative; }'
+        '.ig-clip-metal::before { content:""; position:absolute; top:-9px; left:50%;'
+        '  transform:translateX(-50%); width:34px; height:11px;'
+        '  background:linear-gradient(135deg,#777,#bbb,#999); border-radius:3px 3px 0 0; }'
+        '.ig-clip-header { padding:10px 14px 8px; font-size:11px; font-weight:800;'
+        '  letter-spacing:1.8px; text-transform:uppercase; color:#d4a017;'
+        '  border-bottom:1px solid rgba(255,255,255,0.07); background:#221a0a; }'
+        '.ig-wl-item { display:flex; gap:9px; align-items:flex-start;'
+        '  padding:11px 14px; border-bottom:1px solid rgba(255,255,255,0.04); }'
+        '.ig-wl-item:last-child { border-bottom:none; }'
+        '.ig-wl-check { width:17px; height:17px; border-radius:3px;'
+        '  background:rgba(212,160,23,0.15); border:1px solid rgba(212,160,23,0.45);'
+        '  color:#d4a017; font-size:10px; font-weight:800;'
+        '  display:flex; align-items:center; justify-content:center;'
+        '  flex-shrink:0; margin-top:1px; }'
+        '.ig-wl-title { font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:3px; }'
+        '.ig-wl-desc { font-size:10px; color:#94a3b8; line-height:1.35; }'
+        '.ig-footer { grid-area:footer; padding:16px 22px; text-align:center;'
+        '  background:#0f1522; border-top:1px solid rgba(255,255,255,0.06);'
+        '  font-size:15px; color:#cbd5e1; font-style:italic; line-height:1.6; }'
+        '.ig-footer strong { color:#ffffff; font-style:normal; }'
+        '.ig-scroll { overflow-x:auto; }'
+        '</style>'
+    )
+
+    HTML = f"""
+<div class="ig-outer">
+  <div class="ig-topbar">
+    <span class="ig-topbar-title">&#128248;&nbsp; Current Energy Risk Environment &mdash; {today_str}</span>
+    <button class="ig-dl-btn" id="igDlBtn" onclick="downloadInfographic('eriq-infographic','igDlBtn')">&#11015; Download PNG</button>
+  </div>
+  <div class="ig-scroll">
+  <div id="eriq-infographic" class="ig-root">
+    <div class="ig-grid">
+
+      <!-- ── PRICE CARDS ── -->
+      <div class="ig-prices">
+        <div class="ig-price-card ig-brent-bg">
+          <div class="ig-pc-label">Brent Crude Oil</div>
+          <div class="ig-pc-value"><sup>$</sup>{brent_price:.2f}</div>
+          <div class="ig-pc-change" style="color:{b_color}">{b_arrow} {b_chg_str}</div>
+        </div>
+        <div class="ig-price-card ig-ttf-bg">
+          <div class="ig-pc-label">TTF Natural Gas</div>
+          <div class="ig-pc-value"><sup>&euro;</sup>{ttf_price:.2f}<span class="ig-pc-unit">/MWh</span></div>
+          <div class="ig-pc-change" style="color:{t_color}">{t_arrow} {t_chg_str}</div>
+        </div>
+      </div>
+
+      <!-- ── INDICES PANEL ── -->
+      <div class="ig-indices">
+        <div class="ig-heading">EnergyRiskIQ&#8217;s Indices:</div>
+        <div class="ig-indices-body">
+
+          <!-- LEFT: GERI + EERI gauges -->
+          <div class="ig-left-col">
+
+            <!-- GERI -->
+            <div class="ig-idx-label">GERI (Global Energy Risk Index): {geri_val}/100</div>
+            <div class="ig-idx-row">
+              <div>{geri_ig}
+                <div style="text-align:center;font-size:10px;color:#6b7280;margin-top:2px">GERI: {geri_val}</div>
+              </div>
+              <div class="ig-idx-info">
+                <div class="ig-band-name" style="color:{gc}">{geri_band}</div>
+                <div class="ig-band-note">&#8211; Sharp increase driven by Middle East conflict escalation and infrastructure attacks</div>
+                <div class="ig-idx-subval" style="color:{gc}">&#9660; {g_delta} from prev day</div>
+              </div>
+            </div>
+
+            <!-- EERI -->
+            <div class="ig-idx-label">EERI (European Energy Risk Index):</div>
+            <div class="ig-idx-row">
+              <div>{eeri_ig}
+                <div style="text-align:center;font-size:10px;color:#6b7280;margin-top:2px">EERI: {eeri_val}</div>
+              </div>
+              <div class="ig-idx-info">
+                <div class="ig-band-name" style="color:{ec}">{eeri_val} ({eeri_change_note})</div>
+                <div class="ig-band-note">&#8211; Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT: EGSI-M + EU Storage -->
+          <div class="ig-right-col">
+            <div class="ig-egsi-title">EGSI-M (Energy Geopolitical Stress Index): <span style="color:{mgc}">{egsi_val}</span></div>
+            <div class="ig-egsi-val" style="color:{mgc}">{egsi_band}</div>
+            <div class="ig-egsi-note">&#8211; High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.</div>
+            <div class="ig-egsi-note">&#8211; EU gas storage sits at {storage_pct:.2f}% full.</div>
+            <hr class="ig-storage-sep">
+            <div class="ig-storage-title">EU Gas Storage Levels: <span style="color:{mgc}">{storage_pct:.2f}%</span> full</div>
+            <div class="ig-storage-note">&#8226; Weekly changes to assess supply cushion ahead of summer.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── CLIPBOARD WATCHLIST ── -->
+      <div class="ig-clipboard">
+        <div class="ig-clip-top"><div class="ig-clip-metal"></div></div>
+        <div class="ig-clip-header">Custom Watchlist:</div>
+        {wl_items}
+      </div>
+
+      <!-- ── FOOTER TEXT ── -->
+      <div class="ig-footer">{footer_text}</div>
+
+    </div>
+  </div>
+  </div><!-- /ig-scroll -->
+</div>
+"""
+    return CSS + HTML
+
+
 def _gauge_svg(value: int, band: str) -> str:
     """Build SVG gauge for a 0-100 index value."""
     color = BAND_COLORS.get(band, '#f97316')
@@ -309,6 +565,17 @@ async def energy_risk_snapshot(request: Request):
         egsi_delta_badge  = delta_badge(egsi_delta_str,  mgc if egsi_delta != 0 else '#94a3b8')
 
         storage_color = BAND_COLORS.get(storage_band, '#f97316')
+
+        # --- Infographic section ---
+        infographic_section = _build_infographic_html(
+            today_str=today_str,
+            geri_val=geri_val, geri_band=geri_band, geri_date=geri_date, geri_delta=geri_delta,
+            eeri_val=eeri_val, eeri_band=eeri_band, eeri_delta=eeri_delta,
+            egsi_val=egsi_val, egsi_band=egsi_band,
+            brent_price=brent_price, brent_chg=brent_chg, brent_chg_pct=brent_chg_pct,
+            ttf_price=ttf_price, ttf_chg=ttf_chg,
+            storage_pct=storage_pct,
+        )
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -682,6 +949,7 @@ async def energy_risk_snapshot(request: Request):
     "license": "https://energyriskiq.com/terms"
   }}
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -735,6 +1003,10 @@ async def energy_risk_snapshot(request: Request):
     </div>
 
   </div>
+
+  <!-- ── INFOGRAPHIC ── -->
+  <div class="section-label">Current Energy Risk Environment</div>
+  {infographic_section}
 
   <!-- ── INDICES + WATCHLIST ── -->
   <div class="section-label">EnergyRiskIQ Indices</div>
@@ -863,6 +1135,77 @@ async def energy_risk_snapshot(request: Request):
   <a href="/privacy">Privacy</a>
   <a href="/terms">Terms</a>
 </footer>
+
+<script>
+window.downloadInfographic = function(elId, btnId) {{
+  var el  = document.getElementById(elId);
+  var btn = document.getElementById(btnId);
+  if (!el || typeof html2canvas === 'undefined') {{
+    alert('Export library not loaded yet — please wait a moment and try again.');
+    return;
+  }}
+  if (btn) {{ btn.textContent = 'Generating\u2026'; btn.style.color = '#facc15'; }}
+  var SCALE   = 2;
+  var PAD     = 40 * SCALE;
+  var TITLE_H = 80;
+  html2canvas(el, {{
+    scale: SCALE,
+    backgroundColor: '#141926',
+    logging: false,
+    useCORS: true,
+    allowTaint: true
+  }}).then(function(captured) {{
+    var CW = captured.width + PAD * 2;
+    var CH = captured.height + TITLE_H + 14;
+    var canvas = document.createElement('canvas');
+    canvas.width  = CW;
+    canvas.height = CH;
+    var ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#0b0f1a';
+    ctx.fillRect(0, 0, CW, CH);
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, CW, TITLE_H);
+    ctx.fillStyle = '#d4a017';
+    ctx.fillRect(0, 0, 6, TITLE_H);
+
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillText('Current Energy Risk Environment \u2014 {today_str}', PAD, 36);
+
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = '#d4a017';
+    ctx.fillText('EnergyRiskIQ  \u00B7  energyriskiq.com', PAD, 62);
+
+    ctx.fillStyle = '#1e3a5f';
+    ctx.fillRect(0, TITLE_H, CW, 2);
+
+    ctx.drawImage(captured, PAD, TITLE_H + 10);
+
+    ctx.font = '16px sans-serif';
+    ctx.fillStyle = '#1e3a5f';
+    var wm = 'EnergyRiskIQ \u00B7 energyriskiq.com \u00B7 {data_date}';
+    ctx.fillText(wm, CW - ctx.measureText(wm).width - PAD / 2, CH - 6);
+
+    var a = document.createElement('a');
+    a.download = 'energy-risk-environment-{data_date}-energyriskiq.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+
+    if (btn) {{
+      btn.textContent = '\u2713 Downloaded!';
+      btn.style.color = '#22c55e';
+      setTimeout(function() {{
+        btn.textContent = '\u2B07 Download PNG';
+        btn.style.color = '';
+      }}, 2800);
+    }}
+  }}).catch(function(err) {{
+    console.error('Download failed:', err);
+    if (btn) {{ btn.textContent = '\u2B07 Download PNG'; btn.style.color = ''; }}
+  }});
+}};
+</script>
 
 </body>
 </html>"""
