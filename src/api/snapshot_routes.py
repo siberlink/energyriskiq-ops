@@ -172,10 +172,18 @@ def _build_infographic_html(
         '.ig-grid { display:grid;'
         '  grid-template:"prices clipboard" auto "indices clipboard" 1fr "footer footer" auto / 1fr 264px; }'
         '.ig-prices { grid-area:prices; display:flex; border-bottom:1px solid rgba(255,255,255,0.06); }'
-        '.ig-price-card { flex:1; padding:20px 22px; position:relative; overflow:hidden; }'
+        '.ig-price-card { flex:1; padding:20px 22px; position:relative; overflow:hidden; min-height:100px; }'
         '.ig-price-card + .ig-price-card { border-left:1px solid rgba(255,255,255,0.07); }'
         '.ig-brent-bg { background:linear-gradient(135deg,#2d1a06 0%,#3a2010 55%,#141926 100%); }'
         '.ig-ttf-bg { background:linear-gradient(135deg,#062030 0%,#0a2840 55%,#141926 100%); }'
+        '.ig-pc-img { position:absolute; top:0; height:100%; width:46%; object-fit:cover;'
+        '  opacity:0.72; pointer-events:none; }'
+        '.ig-pc-img-left  { left:0; -webkit-mask-image:linear-gradient(to right,rgba(0,0,0,0.9) 0%,transparent 100%);'
+        '  mask-image:linear-gradient(to right,rgba(0,0,0,0.9) 0%,transparent 100%); }'
+        '.ig-pc-img-right { right:0; -webkit-mask-image:linear-gradient(to left,rgba(0,0,0,0.9) 0%,transparent 100%);'
+        '  mask-image:linear-gradient(to left,rgba(0,0,0,0.9) 0%,transparent 100%); }'
+        '.ig-pc-text { position:relative; z-index:1; padding-left:44%; }'
+        '.ig-pc-text-right { padding-left:0; padding-right:44%; text-align:right; }'
         '.ig-pc-label { font-size:11px; font-weight:700; letter-spacing:1.2px;'
         '  text-transform:uppercase; color:#94a3b8; margin-bottom:7px; }'
         '.ig-pc-value { font-size:34px; font-weight:800; color:#fff; line-height:1; margin-bottom:7px; }'
@@ -250,14 +258,20 @@ def _build_infographic_html(
       <!-- ── PRICE CARDS ── -->
       <div class="ig-prices">
         <div class="ig-price-card ig-brent-bg">
-          <div class="ig-pc-label">Brent Crude Oil</div>
-          <div class="ig-pc-value"><sup>$</sup>{brent_price:.2f}</div>
-          <div class="ig-pc-change" style="color:{b_color}">{b_arrow} {b_chg_str}</div>
+          <img class="ig-pc-img ig-pc-img-left" src="/static/ig-brent-oilrig.png" alt="Oil rig" crossorigin="anonymous">
+          <div class="ig-pc-text">
+            <div class="ig-pc-label">Brent Crude Oil</div>
+            <div class="ig-pc-value"><sup>$</sup>{brent_price:.2f}</div>
+            <div class="ig-pc-change" style="color:{b_color}">{b_arrow} {b_chg_str}</div>
+          </div>
         </div>
         <div class="ig-price-card ig-ttf-bg">
-          <div class="ig-pc-label">TTF Natural Gas</div>
-          <div class="ig-pc-value"><sup>&euro;</sup>{ttf_price:.2f}<span class="ig-pc-unit">/MWh</span></div>
-          <div class="ig-pc-change" style="color:{t_color}">{t_arrow} {t_chg_str}</div>
+          <img class="ig-pc-img ig-pc-img-right" src="/static/ig-ttf-lngship.png" alt="LNG ship" crossorigin="anonymous">
+          <div class="ig-pc-text">
+            <div class="ig-pc-label">TTF Natural Gas</div>
+            <div class="ig-pc-value"><sup>&euro;</sup>{ttf_price:.2f}<span class="ig-pc-unit">/MWh</span></div>
+            <div class="ig-pc-change" style="color:{t_color}">{t_arrow} {t_chg_str}</div>
+          </div>
         </div>
       </div>
 
