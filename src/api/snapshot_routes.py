@@ -306,6 +306,21 @@ def _build_infographic_html(
         '  font-size:15px; color:#cbd5e1; font-style:italic; line-height:1.6; }'
         '.ig-footer strong { color:#ffffff; font-style:normal; }'
         '.ig-scroll { overflow-x:auto; }'
+        '@media (max-width:640px) {'
+        '  .ig-root { min-width:0 !important; }'
+        '  .ig-scroll { overflow-x:visible; }'
+        '  .ig-grid { display:block; }'
+        '  .ig-prices { flex-wrap:wrap; }'
+        '  .ig-price-card { flex:0 0 50%; box-sizing:border-box; min-height:80px; }'
+        '  .ig-price-card + .ig-price-card { border-left:none; }'
+        '  .ig-price-card:nth-child(n+3) { border-top:1px solid rgba(255,255,255,0.12); }'
+        '  .ig-indices-body { display:block; }'
+        '  .ig-right-col { padding-left:0; border-left:none; padding-top:12px; margin-top:10px;'
+        '    border-top:1px solid rgba(255,255,255,0.10); }'
+        '  .ig-clipboard { border-left:none; border-top:1px solid #1e3050; }'
+        '  .ig-topbar { flex-direction:column; gap:8px; align-items:flex-start; }'
+        '  .ig-pc-value { font-size:26px; }'
+        '}'
         '</style>'
     )
 
@@ -1056,6 +1071,43 @@ async def energy_risk_snapshot(request: Request):
       transition: width 0.5s;
     }}
 
+    /* ── CITATION CARD ── */
+    .snap-cite-card {{
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
+    }}
+    .snap-cite-card h3 {{
+      font-size: 1.05rem; font-weight: 700; color: #f1f5f9;
+      margin-bottom: 10px;
+    }}
+    .snap-cite-desc {{
+      font-size: 14px; color: #94a3b8; margin-bottom: 18px; line-height: 1.6;
+    }}
+    .snap-cite-code-wrap {{
+      background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; padding: 16px 20px; position: relative;
+    }}
+    .snap-cite-code {{
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px; color: #e2e8f0; line-height: 1.8;
+    }}
+    .snap-cite-code a {{ color: #60a5fa; text-decoration: none; }}
+    .snap-cite-copy-btn {{
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(30,41,59,0.9); border: 1px solid #475569;
+      color: #94a3b8; padding: 5px 14px; font-size: 12px; font-weight: 600;
+      border-radius: 6px; cursor: pointer; font-family: inherit;
+    }}
+    .snap-cite-copy-btn:hover {{ color: #f1f5f9; border-color: #94a3b8; }}
+    .snap-cite-footer {{
+      margin-top: 14px; font-size: 12px; color: #64748b;
+    }}
+    .snap-cite-footer a {{ color: #60a5fa; text-decoration: none; }}
+    .snap-cite-footer a:hover {{ text-decoration: underline; }}
+
     /* ── CITATION ── */
     .citation-block {{
       background: rgba(255,255,255,0.02);
@@ -1155,6 +1207,47 @@ async def energy_risk_snapshot(request: Request):
 
 <div class="page-body">
 
+  <!-- ── INFOGRAPHIC ── -->
+  <div class="section-label">Current Energy Risk Environment</div>
+  {infographic_section}
+
+  <!-- ── CITATION CARD ── -->
+  <div class="snap-cite-card">
+    <h3>Citation &amp; Reference</h3>
+    <p class="snap-cite-desc">When referencing the Global Energy Risk Snapshot in research or publications, please use the following citation:</p>
+    <div class="snap-cite-code-wrap">
+      <div class="snap-cite-code">
+        EnergyRiskIQ ({datetime.now().year}).<br>
+        Global Energy Risk Snapshot &mdash; GERI, EERI, EGSI-M. {today_str}.<br>
+        <a href="https://energyriskiq.com/data/energy-risk-snapshot">https://energyriskiq.com/data/energy-risk-snapshot</a>
+      </div>
+      <button class="snap-cite-copy-btn" onclick="(function(b){{
+        navigator.clipboard.writeText('EnergyRiskIQ ({datetime.now().year}). Global Energy Risk Snapshot \u2014 GERI, EERI, EGSI-M. {today_str}. https://energyriskiq.com/data/energy-risk-snapshot').then(function(){{
+          b.textContent='\u2713 Copied!'; b.style.color='#22c55e';
+          setTimeout(function(){{b.textContent='Copy'; b.style.color='';}},2000);
+        }});
+      }})(this)">Copy</button>
+    </div>
+    <p class="snap-cite-footer">For BibTeX, APA, or other citation formats, see the full <a href="/research/global-energy-risk-index">Methodology section</a>.</p>
+  </div>
+
+  <!-- ── EU GAS STORAGE ── -->
+  <div class="storage-row">
+    <div class="storage-icon">&#9651;</div>
+    <div>
+      <div class="storage-label">EU Gas Storage</div>
+      <div class="storage-value" style="color:{storage_color}">{storage_pct:.2f}% full</div>
+      <div class="storage-note">Weekly changes assessed to track supply cushion ahead of summer. Risk band: <strong style="color:{storage_color}">{storage_band}</strong></div>
+    </div>
+    <div class="storage-bar-wrap">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:5px;text-align:right">{storage_pct:.1f}% / 100%</div>
+      <div class="storage-bar">
+        <div class="storage-bar-fill" style="width:{min(storage_pct, 100):.1f}%; background:{storage_color}"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">Seasonal avg ~40%</div>
+    </div>
+  </div>
+
   <!-- ── KEY MARKET PRICES ── -->
   <div class="section-label">Key Market Prices</div>
   <div class="price-grid">
@@ -1191,27 +1284,6 @@ async def energy_risk_snapshot(request: Request):
       <div class="price-source">Platts JKM — Daily Close</div>
     </div>
 
-  </div>
-
-  <!-- ── INFOGRAPHIC ── -->
-  <div class="section-label">Current Energy Risk Environment</div>
-  {infographic_section}
-
-  <!-- ── EU GAS STORAGE ── -->
-  <div class="storage-row">
-    <div class="storage-icon">&#9651;</div>
-    <div>
-      <div class="storage-label">EU Gas Storage</div>
-      <div class="storage-value" style="color:{storage_color}">{storage_pct:.2f}% full</div>
-      <div class="storage-note">Weekly changes assessed to track supply cushion ahead of summer. Risk band: <strong style="color:{storage_color}">{storage_band}</strong></div>
-    </div>
-    <div class="storage-bar-wrap">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:5px;text-align:right">{storage_pct:.1f}% / 100%</div>
-      <div class="storage-bar">
-        <div class="storage-bar-fill" style="width:{min(storage_pct, 100):.1f}%; background:{storage_color}"></div>
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;text-align:right">Seasonal avg ~40%</div>
-    </div>
   </div>
 
   <!-- ── INTERPRETATION BLOCK ── -->
