@@ -108,6 +108,57 @@ def _infographic_gauge_svg(value: int, band: str) -> str:
     )
 
 
+def _fetch_infographic_watchlist(geri_val: float, storage_pct: float) -> list:
+    """Fetch watchlist items using same logic as Daily Digest section 10."""
+    from datetime import date, timedelta
+    items = []
+    try:
+        start = date.today() - timedelta(days=1)
+        end   = date.today() + timedelta(days=1)
+        rows  = execute_production_query(
+            """SELECT headline, scope_region, severity, category
+               FROM alert_events
+               WHERE created_at >= %s AND created_at < %s AND severity >= 7
+               ORDER BY severity DESC, created_at DESC
+               LIMIT 10""",
+            (start, end)
+        )
+        seen = set()
+        for r in (rows or []):
+            headline = (r.get("headline") or "").strip()
+            region   = r.get("scope_region") or "Global"
+            sev      = r.get("severity", 7)
+            cat      = r.get("category") or "general"
+            key      = f"{cat}:{region}"
+            if key in seen or not headline:
+                continue
+            seen.add(key)
+            items.append({
+                "title": headline[:52],
+                "desc":  f"{region} — Severity {sev}/10. Monitor for energy supply disruption signals.",
+            })
+            if len(items) >= 4:
+                break
+    except Exception as ex:
+        logger.warning(f"_fetch_infographic_watchlist error: {ex}")
+
+    if geri_val > 60 and len(items) < 4:
+        items.append({
+            "title": "GERI Above 60 — Elevated Global Risk",
+            "desc":  "Global risk index in elevated territory. Monitor supply chain disruptions.",
+        })
+    if storage_pct < 40 and len(items) < 4:
+        items.append({
+            "title": f"EU Gas Storage At {storage_pct:.1f}% — Below Norm",
+            "desc":  "Storage below seasonal comfort level — supply cushion at risk.",
+        })
+    for w in WATCHLIST:
+        if len(items) >= 4:
+            break
+        items.append({"title": w["title"], "desc": w["desc"]})
+    return items[:4]
+
+
 def _build_infographic_html(
     today_str,
     geri_val, geri_band, geri_date, geri_delta,
@@ -117,6 +168,7 @@ def _build_infographic_html(
     ttf_price, ttf_chg,
     storage_pct,
     ai_texts=None,
+    watchlist_items=None,
 ) -> str:
     """Build the infographic section HTML. CSS uses plain string (no f-string brace issue)."""
     gc  = BAND_COLORS.get(geri_band,  '#f97316')
@@ -147,9 +199,10 @@ def _build_infographic_html(
     ai_egsi_bullet2 = _at.get('egsi_bullet2', f'EU gas storage sits at {storage_pct:.2f}% full.')
     ai_storage_note = _at.get('storage_note', 'Weekly changes to assess supply cushion ahead of summer.')
 
-    # Watchlist — 4 items to match image
+    # Watchlist — live items from digest data, fallback to static WATCHLIST
+    _wl_source = watchlist_items if watchlist_items else WATCHLIST
     wl_items = ''
-    for w in WATCHLIST[:4]:
+    for w in _wl_source[:4]:
         wl_items += (
             '<div class="ig-wl-item">'
             '<div class="ig-wl-check">&#10003;</div>'
@@ -228,33 +281,24 @@ def _build_infographic_html(
         '.ig-clipboard { grid-area:clipboard; position:relative;'
         '  border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; }'
         '.ig-clipboard-bg { position:absolute; top:0; left:0; width:100%; height:100%;'
-        '  object-fit:cover; object-position:center top; opacity:0.88; pointer-events:none; }'
+        '  object-fit:cover; object-position:center top; opacity:1.0; pointer-events:none; }'
         '.ig-clipboard-inner { position:relative; z-index:1; display:flex; flex-direction:column;'
-        '  height:100%; background:rgba(10,6,0,0.22); }'
-        '.ig-clip-top { display:flex; align-items:center; justify-content:center;'
-        '  padding:14px 10px 12px; background:rgba(20,12,2,0.72);'
-        '  border-bottom:3px solid rgba(60,35,5,0.8); }'
-        '.ig-clip-metal { width:68px; height:26px;'
-        '  background:linear-gradient(135deg,#777 0%,#d0d0d0 35%,#bbb 55%,#888 80%,#666 100%);'
-        '  border-radius:4px 4px 10px 10px; position:relative;'
-        '  box-shadow:0 2px 8px rgba(0,0,0,0.7); }'
-        '.ig-clip-metal::before { content:""; position:absolute; top:-11px; left:50%;'
-        '  transform:translateX(-50%); width:36px; height:13px;'
-        '  background:linear-gradient(135deg,#666,#b0b0b0,#888); border-radius:3px 3px 0 0;'
-        '  box-shadow:0 -2px 4px rgba(0,0,0,0.5); }'
-        '.ig-clip-header { padding:10px 14px 8px; font-size:11px; font-weight:800;'
-        '  letter-spacing:1.8px; text-transform:uppercase; color:#d4a017;'
-        '  border-bottom:1px solid rgba(0,0,0,0.18); background:rgba(20,12,2,0.68); }'
+        '  height:100%; background:transparent; padding:0 22px 16px; }'
+        '.ig-clip-top { height:62px; flex-shrink:0; }'
+        '.ig-clip-metal { display:none; }'
+        '.ig-clip-header { padding:0 0 7px; font-size:11px; font-weight:900;'
+        '  letter-spacing:1.6px; text-transform:uppercase; color:#2a1800;'
+        '  border-bottom:2px solid rgba(60,35,5,0.30); }'
         '.ig-wl-item { display:flex; gap:9px; align-items:flex-start;'
-        '  padding:11px 14px; border-bottom:1px solid rgba(0,0,0,0.10); }'
+        '  padding:10px 0; border-bottom:1px solid rgba(80,55,20,0.18); }'
         '.ig-wl-item:last-child { border-bottom:none; }'
         '.ig-wl-check { width:17px; height:17px; border-radius:3px;'
-        '  background:rgba(60,120,60,0.22); border:2px solid #4a8a3a;'
+        '  background:rgba(46,125,46,0.15); border:2px solid #3a7a2e;'
         '  color:#2e7d2e; font-size:10px; font-weight:800;'
         '  display:flex; align-items:center; justify-content:center;'
         '  flex-shrink:0; margin-top:1px; }'
-        '.ig-wl-title { font-size:12px; font-weight:700; color:#1a0d00; margin-bottom:3px; }'
-        '.ig-wl-desc { font-size:10px; color:#3d2e10; line-height:1.35; }'
+        '.ig-wl-title { font-size:12px; font-weight:700; color:#1a0a00; margin-bottom:3px; }'
+        '.ig-wl-desc { font-size:10px; color:#4a3520; line-height:1.35; }'
         '.ig-footer { grid-area:footer; padding:16px 22px; text-align:center;'
         '  background:#0f1522; border-top:1px solid rgba(255,255,255,0.06);'
         '  font-size:15px; color:#cbd5e1; font-style:italic; line-height:1.6; }'
@@ -356,8 +400,8 @@ def _build_infographic_html(
       <div class="ig-clipboard">
         <img class="ig-clipboard-bg" src="/static/ig-clipboard-bg.png" alt="" crossorigin="anonymous">
         <div class="ig-clipboard-inner">
-          <div class="ig-clip-top"><div class="ig-clip-metal"></div></div>
-          <div class="ig-clip-header">Custom Watchlist:</div>
+          <div class="ig-clip-top"></div>
+          <div class="ig-clip-header">&#128203; Custom Watchlist</div>
           {wl_items}
         </div>
       </div>
@@ -693,6 +737,7 @@ async def energy_risk_snapshot(request: Request):
         )
 
         # --- Infographic section ---
+        ig_watchlist = _fetch_infographic_watchlist(geri_val=geri_val, storage_pct=storage_pct)
         infographic_section = _build_infographic_html(
             today_str=today_str,
             geri_val=geri_val, geri_band=geri_band, geri_date=geri_date, geri_delta=geri_delta,
@@ -702,6 +747,7 @@ async def energy_risk_snapshot(request: Request):
             ttf_price=ttf_price, ttf_chg=ttf_chg,
             storage_pct=storage_pct,
             ai_texts=ig_ai_texts,
+            watchlist_items=ig_watchlist,
         )
 
         html = f"""<!DOCTYPE html>
