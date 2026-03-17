@@ -2,7 +2,7 @@
 
 ## ⚠️ CRITICAL RULES — READ BEFORE EVERY TASK
 
-1. **ALWAYS USE THE PRODUCTION DATABASE.** All data queries must use `execute_production_query()` or `get_production_cursor()` from `src.db.db`. Never use `execute_query()` or `get_cursor()` for reading index/market data. The production DB is accessed via `PRODUCTION_DATABASE_URL` (falls back to `DATABASE_URL` if not set). The pattern is established in `src/geri/repo.py` — follow it.
+1. **ALWAYS USE THE PRODUCTION DATABASE.** All data queries must use `execute_production_query()` or `get_production_cursor()` from `src.db.db`. Never use `execute_query()` or `get_cursor()` for reading index/market data. `PRODUCTION_DATABASE_URL` is now set as a shared env var pointing to the Neon PostgreSQL production database. This takes priority over `DATABASE_URL` (the local Helium dev DB). The pattern is established in `src/geri/repo.py` — follow it.
 
 2. **VERIFY DATA FROM PRODUCTION FIRST.** Before building any feature that displays data, query the production DB using `executeSql({ environment: "production", sqlQuery: "..." })` in the code execution sandbox to confirm what data exists and in which tables.
 
