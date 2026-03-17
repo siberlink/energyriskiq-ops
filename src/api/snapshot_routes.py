@@ -153,10 +153,10 @@ def _fetch_infographic_watchlist(geri_val: float, storage_pct: float) -> list:
             "desc":  "Storage below seasonal comfort level — supply cushion at risk.",
         })
     for w in WATCHLIST:
-        if len(items) >= 4:
+        if len(items) >= 5:
             break
         items.append({"title": w["title"], "desc": w["desc"]})
-    return items[:4]
+    return items[:5]
 
 
 def _build_infographic_html(
@@ -201,7 +201,7 @@ def _build_infographic_html(
 
     # Watchlist — live items from digest data, fallback to static WATCHLIST
     _wl_source = watchlist_items if watchlist_items else WATCHLIST
-    _wl_list   = _wl_source[:4]
+    _wl_list   = _wl_source[:5]
     wl_count   = len(_wl_list)
     wl_items   = ''
     for w in _wl_list:
@@ -1197,77 +1197,6 @@ async def energy_risk_snapshot(request: Request):
   <div class="section-label">Current Energy Risk Environment</div>
   {infographic_section}
 
-  <!-- ── INDICES + WATCHLIST ── -->
-  <div class="section-label">EnergyRiskIQ Indices</div>
-  <div class="main-grid">
-
-    <!-- INDICES COL -->
-    <div class="indices-col">
-
-      <!-- GERI -->
-      <article class="index-card" style="border-left:3px solid {gc}; background:linear-gradient(135deg,{gbg} 0%,var(--card) 40%)">
-        <div class="gauge-wrap">{geri_gauge}</div>
-        <div class="index-detail">
-          <div class="index-name">GERI</div>
-          <div class="index-fullname">Global Energy Risk Index</div>
-          <div class="index-value-row">
-            <span class="index-number" style="color:{gc}">{geri_val}</span>
-            <span class="index-denom">/100</span>
-            {geri_delta_badge}
-          </div>
-          <span class="band-pill" style="color:{gc}; border-color:{gc}; background:rgba(0,0,0,0.2)">{geri_band}</span>
-          <div class="index-note">Middle East escalation and infrastructure attacks driving sustained supply-chain pressure across key export corridors.</div>
-          <div class="index-date">&#128338; Data as of {geri_date} &nbsp;&bull;&nbsp; <a href="/indices/global-energy-risk-index" style="color:var(--gold2);text-decoration:none;font-size:11px">Full Analysis &#8594;</a></div>
-        </div>
-      </article>
-
-      <!-- EERI -->
-      <article class="index-card" style="border-left:3px solid {ec}; background:linear-gradient(135deg,{ebg} 0%,var(--card) 40%)">
-        <div class="gauge-wrap">{eeri_gauge}</div>
-        <div class="index-detail">
-          <div class="index-name">EERI</div>
-          <div class="index-fullname">Europe Energy Risk Index</div>
-          <div class="index-value-row">
-            <span class="index-number" style="color:{ec}">{eeri_val}</span>
-            <span class="index-denom">/100</span>
-            {eeri_delta_badge}
-          </div>
-          <span class="band-pill" style="color:{ec}; border-color:{ec}; background:rgba(0,0,0,0.2)">{eeri_band}</span>
-          <div class="index-note">Stability reflects ongoing but contained European risks — notably Ukraine power grid attacks and Black Sea shipping disruptions.</div>
-          <div class="index-date">&#128338; Data as of {eeri_date} &nbsp;&bull;&nbsp; <a href="/indices/europe-energy-risk-index" style="color:var(--gold2);text-decoration:none;font-size:11px">Full Analysis &#8594;</a></div>
-        </div>
-      </article>
-
-      <!-- EGSI-M -->
-      <article class="index-card" style="border-left:3px solid {mgc}; background:linear-gradient(135deg,{mgbg} 0%,var(--card) 40%)">
-        <div class="gauge-wrap">{egsi_gauge}</div>
-        <div class="index-detail">
-          <div class="index-name">EGSI-M</div>
-          <div class="index-fullname">Europe Gas Stress Index — Market</div>
-          <div class="index-value-row">
-            <span class="index-number" style="color:{mgc}">{egsi_val}</span>
-            <span class="index-denom">/100</span>
-            {egsi_delta_badge}
-          </div>
-          <span class="band-pill" style="color:{mgc}; border-color:{mgc}; background:rgba(0,0,0,0.2)">{egsi_band}</span>
-          <div class="index-note">High market-side gas stress sustained due to repeated strikes on Gulf oil hubs and port disruptions impacting LNG re-exports.</div>
-          <div class="index-date">&#128338; Data as of {egsi_date} &nbsp;&bull;&nbsp; <a href="/indices/europe-gas-stress-index" style="color:var(--gold2);text-decoration:none;font-size:11px">Full Analysis &#8594;</a></div>
-        </div>
-      </article>
-
-    </div>
-
-    <!-- WATCHLIST COL -->
-    <aside class="watchlist-card">
-      <div class="wl-header">
-        <div class="wl-header-title">&#128203; Custom Watchlist</div>
-        <div class="wl-header-sub">6 active risk vectors being monitored</div>
-      </div>
-      {watchlist_html}
-    </aside>
-
-  </div>
-
   <!-- ── EU GAS STORAGE ── -->
   <div class="storage-row">
     <div class="storage-icon">&#9651;</div>
@@ -1304,13 +1233,9 @@ async def energy_risk_snapshot(request: Request):
     <a href="/indices/europe-gas-stress-index#methodology">EGSI Methodology</a>.
   </div>
 
-  <!-- ── CTA ── -->
-  <div class="cta-section">
-    <div class="cta-label">Real-Time Intelligence</div>
-    <h2 class="cta-headline">Monitor Risk in Real-Time</h2>
-    <p class="cta-sub">Get live index alerts, daily AI-powered briefings, and full dashboard access across all EnergyRiskIQ risk indices.</p>
-    <a href="/register" class="cta-btn">Start Free — No Card Required</a>
-    <a href="/indices" class="cta-secondary">Explore all indices &#8594;</a>
+  <!-- ── CTA BUTTON ── -->
+  <div style="text-align:center; padding:36px 0 24px;">
+    <a href="/users" class="cta-btn-nav" style="font-size:15px; padding:14px 36px; border-radius:8px; display:inline-block; font-weight:700; letter-spacing:0.2px; box-shadow:0 4px 20px rgba(59,130,246,0.3);">Get FREE Access To Intelligence</a>
   </div>
 
 </div>
