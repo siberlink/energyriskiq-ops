@@ -3,6 +3,7 @@ Energy Risk Snapshot Page
 Route: /data/energy-risk-snapshot
 SEO-optimized live page showing current global energy risk state.
 """
+import os
 import math
 import json
 import logging
@@ -115,6 +116,7 @@ def _build_infographic_html(
     brent_price, brent_chg, brent_chg_pct,
     ttf_price, ttf_chg,
     storage_pct,
+    ai_texts=None,
 ) -> str:
     """Build the infographic section HTML. CSS uses plain string (no f-string brace issue)."""
     gc  = BAND_COLORS.get(geri_band,  '#f97316')
@@ -136,6 +138,14 @@ def _build_infographic_html(
     e_delta = ('+' if eeri_delta >= 0 else '') + str(eeri_delta)
 
     eeri_change_note = 'unchanged' if eeri_delta == 0 else (f'+{eeri_delta}' if eeri_delta > 0 else str(eeri_delta))
+
+    # AI-generated daily texts (with fallback)
+    _at = ai_texts or {}
+    ai_geri_desc    = _at.get('geri_desc',    'Sharp increase driven by Middle East conflict escalation and infrastructure attacks.')
+    ai_eeri_desc    = _at.get('eeri_desc',    'Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.')
+    ai_egsi_bullet1 = _at.get('egsi_bullet1', 'High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.')
+    ai_egsi_bullet2 = _at.get('egsi_bullet2', f'EU gas storage sits at {storage_pct:.2f}% full.')
+    ai_storage_note = _at.get('storage_note', 'Weekly changes to assess supply cushion ahead of summer.')
 
     # Watchlist — 4 items to match image
     wl_items = ''
@@ -191,28 +201,30 @@ def _build_infographic_html(
         '.ig-pc-change { font-size:13px; font-weight:600; text-shadow:0 1px 4px rgba(0,0,0,0.8); }'
         '.ig-indices { grid-area:indices; padding:16px 18px;'
         '  border-right:1px solid rgba(255,255,255,0.06); background:#0f1522; }'
-        '.ig-heading { font-size:16px; font-weight:700; color:#d4a017; margin-bottom:14px; }'
-        '.ig-indices-body { display:grid; grid-template-columns:1fr 1fr; gap:0 20px; }'
-        '.ig-left-col { }'
-        '.ig-right-col { padding-left:16px; border-left:1px solid rgba(255,255,255,0.06);'
-        '  grid-row:1/-1; }'
-        '.ig-idx-label { font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:0.5px;'
-        '  margin-bottom:6px; }'
-        '.ig-idx-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:14px; }'
-        '.ig-idx-row + .ig-idx-row { border-top:1px solid rgba(255,255,255,0.05); padding-top:12px; }'
-        '.ig-idx-info { flex:1; }'
-        '.ig-band-name { font-size:22px; font-weight:800; line-height:1.1; margin-bottom:5px; }'
-        '.ig-band-note { font-size:11px; color:#94a3b8; line-height:1.45; }'
-        '.ig-idx-subval { font-size:13px; color:#94a3b8; margin-top:4px; }'
-        '.ig-egsi-title { font-size:12px; font-weight:700; color:#e2e8f0; margin-bottom:5px; }'
-        '.ig-egsi-val { font-size:17px; font-weight:800; margin-bottom:5px; }'
-        '.ig-egsi-note { font-size:10px; color:#94a3b8; line-height:1.4; padding-left:8px;'
-        '  border-left:2px solid rgba(255,255,255,0.08); margin-bottom:4px; }'
-        '.ig-storage-sep { margin:10px 0 8px; border:none; border-top:1px solid rgba(255,255,255,0.07); }'
-        '.ig-storage-title { font-size:11px; font-weight:700; color:#d4a017; margin-bottom:4px; }'
-        '.ig-storage-val { font-size:20px; font-weight:800; margin-bottom:4px; }'
-        '.ig-storage-note { font-size:10px; color:#94a3b8; line-height:1.4;'
-        '  padding-left:8px; border-left:2px solid rgba(212,160,23,0.3); }'
+        '.ig-heading { font-size:16px; font-weight:800; color:#d4a017; margin-bottom:13px;'
+        '  border-bottom:1px solid rgba(212,160,23,0.25); padding-bottom:8px; }'
+        '.ig-indices-body { display:grid; grid-template-columns:54% 46%; gap:0; height:100%; }'
+        '.ig-left-col { padding-right:14px; }'
+        '.ig-right-col { padding-left:14px; border-left:1px solid rgba(255,255,255,0.10); }'
+        '.ig-idx-label { font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:0.4px;'
+        '  margin-bottom:7px; }'
+        '.ig-idx-row { display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; }'
+        '.ig-idx-sep { border:none; border-top:1px solid rgba(255,255,255,0.07);'
+        '  margin:8px 0 10px; }'
+        '.ig-gauge-block { flex-shrink:0; text-align:center; }'
+        '.ig-gauge-sub { font-size:10px; color:#d4a017; font-weight:700; margin-top:3px; }'
+        '.ig-idx-info { flex:1; min-width:0; }'
+        '.ig-band-name { font-size:25px; font-weight:900; line-height:1.1; margin-bottom:5px; }'
+        '.ig-band-val  { font-size:20px; font-weight:800; line-height:1.1; margin-bottom:5px; }'
+        '.ig-band-note { font-size:10.5px; color:#94a3b8; line-height:1.5; }'
+        '.ig-rc-title { font-size:11px; font-weight:700; color:#e2e8f0; margin-bottom:9px;'
+        '  line-height:1.45; }'
+        '.ig-rc-bullet { font-size:10.5px; color:#94a3b8; line-height:1.45; margin-bottom:5px; }'
+        '.ig-storage-sep { margin:9px 0 8px; border:none;'
+        '  border-top:2px solid rgba(255,255,255,0.10); }'
+        '.ig-storage-title { font-size:11px; font-weight:700; color:#d4a017;'
+        '  margin-bottom:7px; line-height:1.45; }'
+        '.ig-storage-note { font-size:10.5px; color:#94a3b8; line-height:1.45; }'
         '.ig-clipboard { grid-area:clipboard; position:relative;'
         '  border-left:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; }'
         '.ig-clipboard-bg { position:absolute; top:0; left:0; width:100%; height:100%;'
@@ -288,31 +300,34 @@ def _build_infographic_html(
         <div class="ig-heading">EnergyRiskIQ&#8217;s Indices:</div>
         <div class="ig-indices-body">
 
-          <!-- LEFT: GERI + EERI gauges -->
+          <!-- LEFT: GERI + EERI -->
           <div class="ig-left-col">
 
-            <!-- GERI -->
+            <!-- GERI row -->
             <div class="ig-idx-label">GERI (Global Energy Risk Index): {geri_val}/100</div>
             <div class="ig-idx-row">
-              <div>{geri_ig}
-                <div style="text-align:center;font-size:10px;color:#6b7280;margin-top:2px">GERI: {geri_val}</div>
+              <div class="ig-gauge-block">
+                {geri_ig}
+                <div class="ig-gauge-sub">GERI: {geri_val}</div>
               </div>
               <div class="ig-idx-info">
                 <div class="ig-band-name" style="color:{gc}">{geri_band}</div>
-                <div class="ig-band-note">&#8211; Sharp increase driven by Middle East conflict escalation and infrastructure attacks</div>
-                <div class="ig-idx-subval" style="color:{gc}">&#9660; {g_delta} from prev day</div>
+                <div class="ig-band-note">&#8211; {ai_geri_desc}</div>
               </div>
             </div>
 
-            <!-- EERI -->
+            <hr class="ig-idx-sep">
+
+            <!-- EERI row -->
             <div class="ig-idx-label">EERI (European Energy Risk Index):</div>
             <div class="ig-idx-row">
-              <div>{eeri_ig}
-                <div style="text-align:center;font-size:10px;color:#6b7280;margin-top:2px">EERI: {eeri_val}</div>
+              <div class="ig-gauge-block">
+                {eeri_ig}
+                <div class="ig-gauge-sub">EERI: {eeri_val}</div>
               </div>
               <div class="ig-idx-info">
-                <div class="ig-band-name" style="color:{ec}">{eeri_val} ({eeri_change_note})</div>
-                <div class="ig-band-note">&#8211; Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.</div>
+                <div class="ig-band-val" style="color:{ec}">{eeri_val} ({eeri_change_note})</div>
+                <div class="ig-band-note">&#8211; {ai_eeri_desc}</div>
               </div>
             </div>
 
@@ -320,13 +335,18 @@ def _build_infographic_html(
 
           <!-- RIGHT: EGSI-M + EU Storage -->
           <div class="ig-right-col">
-            <div class="ig-egsi-title">EGSI-M (Energy Geopolitical Stress Index): <span style="color:{mgc}">{egsi_val}</span></div>
-            <div class="ig-egsi-val" style="color:{mgc}">{egsi_band}</div>
-            <div class="ig-egsi-note">&#8211; High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.</div>
-            <div class="ig-egsi-note">&#8211; EU gas storage sits at {storage_pct:.2f}% full.</div>
+            <div class="ig-rc-title">
+              EGSI-M (Energy Geopolitical Stress Index &#8211; Middle East:
+              <span style="color:{mgc};font-weight:900"> {egsi_val:.1f}</span>)
+            </div>
+            <div class="ig-rc-bullet">&#8211; {ai_egsi_bullet1}</div>
+            <div class="ig-rc-bullet">&#8211; {ai_egsi_bullet2}</div>
             <hr class="ig-storage-sep">
-            <div class="ig-storage-title">EU Gas Storage Levels: <span style="color:{mgc}">{storage_pct:.2f}%</span> full</div>
-            <div class="ig-storage-note">&#8226; Weekly changes to assess supply cushion ahead of summer.</div>
+            <div class="ig-storage-title">
+              EU Gas Storage Levels:
+              <span style="color:{mgc};font-weight:900"> {storage_pct:.2f}%</span> full
+            </div>
+            <div class="ig-storage-note">&#8226; {ai_storage_note}</div>
           </div>
 
         </div>
@@ -433,6 +453,77 @@ def _build_short_interpretation(geri_val, eeri_val, egsi_val, storage_pct, geri_
         f"Global energy risk remains {geri_desc}, driven by Middle East escalation and persistent supply chain disruptions."
         f"{driver_note} European risk {eeri_desc}.{storage_note}"
     )
+
+
+_AI_TEXTS_CACHE: dict = {}   # {date_str: {texts dict}}
+
+
+def _ai_indices_texts(
+    geri_val, geri_band, geri_delta,
+    eeri_val, eeri_band, eeri_delta,
+    egsi_val, egsi_band,
+    storage_pct, brent_price, ttf_price,
+    geri_date_str,
+) -> dict:
+    """Call OpenAI to generate daily AI-driven text for the infographic indices panel.
+    Returns dict with keys: geri_desc, eeri_desc, egsi_bullet1, egsi_bullet2, storage_note.
+    Caches result per calendar day; falls back to static text on any error."""
+    cache_key = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    if cache_key in _AI_TEXTS_CACHE:
+        return _AI_TEXTS_CACHE[cache_key]
+
+    _FALLBACKS = {
+        'geri_desc': f'Sharp increase driven by Middle East conflict escalation and infrastructure attacks.',
+        'eeri_desc': f'Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.',
+        'egsi_bullet1': f'High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.',
+        'egsi_bullet2': f'EU gas storage sits at {storage_pct:.2f}% full.',
+        'storage_note': f'Weekly changes to assess supply cushion ahead of summer.',
+    }
+    try:
+        from openai import OpenAI
+        ai_key = os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
+        ai_url = os.environ.get('AI_INTEGRATIONS_OPENAI_BASE_URL')
+        client = OpenAI(api_key=ai_key, base_url=ai_url) if ai_key and ai_url else OpenAI()
+
+        prompt = (
+            f"Today is {geri_date_str}. You are writing caption text for an energy risk infographic.\n"
+            f"Current data:\n"
+            f"- GERI (Global Energy Risk Index): {geri_val}/100, band={geri_band}, 1-day delta={geri_delta:+d}\n"
+            f"- EERI (European Energy Risk Index): {eeri_val}/100, band={eeri_band}, 1-day delta={eeri_delta:+d}\n"
+            f"- EGSI-M (Energy Geopolitical Stress Index, Middle East): {egsi_val:.1f}, band={egsi_band}\n"
+            f"- EU Gas Storage: {storage_pct:.2f}% full\n"
+            f"- Brent Crude Oil: ${brent_price:.2f}/bbl\n"
+            f"- TTF Natural Gas: €{ttf_price:.2f}/MWh\n\n"
+            "Return ONLY a valid JSON object with exactly these 5 keys. Each value is a single sentence (max 120 chars). "
+            "Be specific, analytical, factual. Do NOT start sentences with the key name. No markdown.\n"
+            "Keys:\n"
+            "  geri_desc: 1-sentence driver explanation for the current GERI level\n"
+            "  eeri_desc: 1-sentence driver explanation for the current EERI level\n"
+            "  egsi_bullet1: 1 sentence on the primary EGSI-M stress factor (geopolitical)\n"
+            "  egsi_bullet2: 1 sentence linking EGSI-M to current gas storage or supply outlook\n"
+            "  storage_note: 1 sentence on what the EU storage level implies for seasonal supply risk\n"
+        )
+        resp = client.chat.completions.create(
+            model='gpt-4.1-mini',
+            messages=[{'role': 'user', 'content': prompt}],
+            temperature=0.4,
+            max_tokens=400,
+            response_format={'type': 'json_object'},
+            timeout=12,
+        )
+        raw = resp.choices[0].message.content
+        data = json.loads(raw)
+        result = {}
+        for k in _FALLBACKS:
+            val = str(data.get(k, '')).strip().rstrip('.')
+            result[k] = (val[:160] + '.') if val else _FALLBACKS[k]
+        _AI_TEXTS_CACHE.clear()
+        _AI_TEXTS_CACHE[cache_key] = result
+        logger.info(f"AI infographic texts generated and cached for {cache_key}")
+        return result
+    except Exception as e:
+        logger.warning(f"AI indices text generation failed: {e}")
+        return _FALLBACKS
 
 
 @router.get("/data/energy-risk-snapshot", response_class=HTMLResponse)
@@ -591,6 +682,16 @@ async def energy_risk_snapshot(request: Request):
 
         storage_color = BAND_COLORS.get(storage_band, '#f97316')
 
+        # --- AI texts for infographic indices panel ---
+        ig_ai_texts = _ai_indices_texts(
+            geri_val=geri_val, geri_band=geri_band, geri_delta=geri_delta,
+            eeri_val=eeri_val, eeri_band=eeri_band, eeri_delta=eeri_delta,
+            egsi_val=egsi_val, egsi_band=egsi_band,
+            storage_pct=storage_pct,
+            brent_price=brent_price, ttf_price=ttf_price,
+            geri_date_str=today_str,
+        )
+
         # --- Infographic section ---
         infographic_section = _build_infographic_html(
             today_str=today_str,
@@ -600,6 +701,7 @@ async def energy_risk_snapshot(request: Request):
             brent_price=brent_price, brent_chg=brent_chg, brent_chg_pct=brent_chg_pct,
             ttf_price=ttf_price, ttf_chg=ttf_chg,
             storage_pct=storage_pct,
+            ai_texts=ig_ai_texts,
         )
 
         html = f"""<!DOCTYPE html>
