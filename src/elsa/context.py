@@ -16,6 +16,7 @@ def build_elsa_context(question: str) -> str:
         ("Content & Pipeline Metrics", _get_content_metrics),
         ("Index Values", _get_index_summary),
         ("Asset & Commodity Prices", _get_asset_prices),
+        ("Intraday Prices", _get_intraday_prices),
         ("EGSI Component Details", _get_egsi_components),
         ("Delivery & Engagement", _get_delivery_metrics),
         ("ERIQ Bot Usage", _get_eriq_usage),
@@ -209,8 +210,11 @@ def _get_asset_prices() -> str:
                 diff = float(oil['brent_price']) - float(oil_prev['brent_price'])
                 brent_trend = f", day change: {diff:+.2f}"
             except: pass
-        lines.append(f"- Brent Crude: ${oil['brent_price']} ({oil.get('brent_change_pct', 0):+.2f}%) | Date: {oil['date']}{brent_trend}")
-        lines.append(f"- WTI Crude: ${oil['wti_price']} ({oil.get('wti_change_pct', 0):+.2f}%) | Brent-WTI Spread: ${oil.get('brent_wti_spread', 'N/A')}")
+        brent_chg = oil.get('brent_change_pct') or 0
+        wti_chg = oil.get('wti_change_pct') or 0
+        brent_wti_spread = oil.get('brent_wti_spread', 'N/A')
+        lines.append(f"- Brent Crude: ${oil['brent_price']} ({brent_chg:+.2f}%) | Date: {oil['date']}{brent_trend}")
+        lines.append(f"- WTI Crude: ${oil['wti_price']} ({wti_chg:+.2f}%) | Brent-WTI Spread: ${brent_wti_spread}")
     else:
         lines.append("- Oil prices: data unavailable")
 
@@ -232,7 +236,8 @@ def _get_asset_prices() -> str:
                 diff = float(lng['jkm_price']) - float(lng_prev['jkm_price'])
                 lng_trend = f", day change: {diff:+.2f}"
             except: pass
-        lines.append(f"- LNG JKM (Asia): ${lng['jkm_price']}/MMBtu ({lng.get('jkm_change_pct', 0):+.2f}%) | Date: {lng['date']}{lng_trend}")
+        lng_chg = lng.get('jkm_change_pct') or 0
+        lines.append(f"- LNG JKM (Asia): ${lng['jkm_price']}/MMBtu ({lng_chg:+.2f}%) | Date: {lng['date']}{lng_trend}")
     else:
         lines.append("- LNG: data unavailable")
 
@@ -268,6 +273,78 @@ def _get_asset_prices() -> str:
     if ttf_7d and len(ttf_7d) > 1:
         vals = [f"{r['date']}: €{r['ttf_price']}" for r in ttf_7d]
         lines.append(f"- TTF 7-day: {', '.join(vals)}")
+
+    return "\n".join(lines)
+
+
+def _get_intraday_prices() -> str:
+    brent_latest = _q("""
+        SELECT date, hour, price, change_24h, change_pct, captured_at
+        FROM intraday_brent ORDER BY captured_at DESC LIMIT 1
+    """)
+    brent_today = _qq("""
+        SELECT hour, price, change_pct FROM intraday_brent
+        WHERE date = (SELECT MAX(date) FROM intraday_brent)
+        ORDER BY hour DESC LIMIT 8
+    """)
+
+    wti_latest = _q("""
+        SELECT date, hour, price, change_24h, change_pct, captured_at
+        FROM intraday_wti ORDER BY captured_at DESC LIMIT 1
+    """)
+    wti_today = _qq("""
+        SELECT hour, price, change_pct FROM intraday_wti
+        WHERE date = (SELECT MAX(date) FROM intraday_wti)
+        ORDER BY hour DESC LIMIT 8
+    """)
+
+    natgas_latest = _q("""
+        SELECT date, hour, price, change_24h, change_pct, captured_at
+        FROM intraday_natgas ORDER BY captured_at DESC LIMIT 1
+    """)
+    natgas_today = _qq("""
+        SELECT hour, price, change_pct FROM intraday_natgas
+        WHERE date = (SELECT MAX(date) FROM intraday_natgas)
+        ORDER BY hour DESC LIMIT 8
+    """)
+
+    lines = ["## INTRADAY PRICES (Hourly Real-Time Snapshots — use EXACT values)"]
+
+    if brent_latest:
+        b = brent_latest
+        lines.append(
+            f"- Brent Crude (intraday): ${b['price']} | 24h change: {b.get('change_24h', 0):+.2f} "
+            f"({b.get('change_pct', 0):+.2f}%) | Hour: {b['hour']}:00 UTC | Date: {b['date']}"
+        )
+        if brent_today and len(brent_today) > 1:
+            trend = ", ".join([f"{r['hour']}h: ${r['price']}" for r in reversed(brent_today)])
+            lines.append(f"  Today's hourly: {trend}")
+    else:
+        lines.append("- Brent (intraday): data unavailable")
+
+    if wti_latest:
+        w = wti_latest
+        lines.append(
+            f"- WTI Crude (intraday): ${w['price']} | 24h change: {w.get('change_24h', 0):+.2f} "
+            f"({w.get('change_pct', 0):+.2f}%) | Hour: {w['hour']}:00 UTC | Date: {w['date']}"
+        )
+        if wti_today and len(wti_today) > 1:
+            trend = ", ".join([f"{r['hour']}h: ${r['price']}" for r in reversed(wti_today)])
+            lines.append(f"  Today's hourly: {trend}")
+    else:
+        lines.append("- WTI (intraday): data unavailable")
+
+    if natgas_latest:
+        n = natgas_latest
+        lines.append(
+            f"- US Natural Gas (intraday): ${n['price']}/MMBtu | 24h change: {n.get('change_24h', 0):+.4f} "
+            f"({n.get('change_pct', 0):+.2f}%) | Hour: {n['hour']}:00 UTC | Date: {n['date']}"
+        )
+        if natgas_today and len(natgas_today) > 1:
+            trend = ", ".join([f"{r['hour']}h: ${r['price']}" for r in reversed(natgas_today)])
+            lines.append(f"  Today's hourly: {trend}")
+    else:
+        lines.append("- US Natural Gas (intraday): data unavailable")
 
     return "\n".join(lines)
 
