@@ -1014,7 +1014,6 @@ _LOADER_HTML = """<!DOCTYPE html>
 <style>
 """ + _PAGE_CSS + """
 /* ── LOADER ── */
-html,body{overflow:hidden}
 #snap-loader{
   position:fixed;inset:0;background:#0f172a;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -1073,7 +1072,7 @@ html,body{overflow:hidden}
 .ld-footer{position:absolute;bottom:28px;font-size:10px;font-weight:700;letter-spacing:2px;color:#1e293b;text-transform:uppercase}
 </style>
 </head>
-<body>
+<body style="overflow:hidden">
 <div id="snap-loader">
   <div class="ld-logo">
     <img src="/static/logo.png" alt="EnergyRiskIQ">
