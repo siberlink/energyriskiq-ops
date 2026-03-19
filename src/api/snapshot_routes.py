@@ -10,6 +10,7 @@ import hashlib
 import threading
 import asyncio
 import logging
+import html as _html
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -196,11 +197,11 @@ def _build_infographic_html(
 
     # AI-generated daily texts (with fallback)
     _at = ai_texts or {}
-    ai_geri_desc    = _at.get('geri_desc',    'Sharp increase driven by Middle East conflict escalation and infrastructure attacks.')
-    ai_eeri_desc    = _at.get('eeri_desc',    'Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.')
-    ai_egsi_bullet1 = _at.get('egsi_bullet1', 'High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.')
-    ai_egsi_bullet2 = _at.get('egsi_bullet2', f'EU gas storage sits at {storage_pct:.2f}% full.')
-    ai_storage_note = _at.get('storage_note', 'Weekly changes to assess supply cushion ahead of summer.')
+    ai_geri_desc    = _html.escape(_at.get('geri_desc',    'Sharp increase driven by Middle East conflict escalation and infrastructure attacks.'))
+    ai_eeri_desc    = _html.escape(_at.get('eeri_desc',    'Stability reflects ongoing but contained European risks, notably Ukraine power grid attacks.'))
+    ai_egsi_bullet1 = _html.escape(_at.get('egsi_bullet1', 'High stress sustained due to repeated strikes on Gulf oil hubs and port disruptions.'))
+    ai_egsi_bullet2 = _html.escape(_at.get('egsi_bullet2', f'EU gas storage sits at {storage_pct:.2f}% full.'))
+    ai_storage_note = _html.escape(_at.get('storage_note', 'Weekly changes to assess supply cushion ahead of summer.'))
 
     # Watchlist — live items from digest data, fallback to static WATCHLIST
     _wl_source = watchlist_items if watchlist_items else WATCHLIST
@@ -212,8 +213,8 @@ def _build_infographic_html(
             '<div class="ig-wl-item">'
             '<div class="ig-wl-check">&#10003;</div>'
             '<div class="ig-wl-body">'
-            f'<div class="ig-wl-title">{w["title"]}</div>'
-            f'<div class="ig-wl-desc">{w["desc"]}</div>'
+            f'<div class="ig-wl-title">{_html.escape(w["title"])}</div>'
+            f'<div class="ig-wl-desc">{_html.escape(w["desc"])}</div>'
             '</div></div>'
         )
 
@@ -640,19 +641,382 @@ def _run_snapshot_engine(
         return {'ai_texts': fallback_texts, 'assessment': fallback_assessment}
 
 
+_PAGE_CSS = """
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card2: #162032;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --gold: #d4a017;
+      --gold2: #fbbf24;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    .nav {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 1160px; margin: 0 auto; padding: 0 1.5rem;
+    }
+    .logo {
+      font-weight: 700; font-size: 1.2rem; color: #f1f5f9;
+      text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .cta-btn-nav {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+      color: white !important; padding: 0.5rem 1rem; border-radius: 6px;
+      text-decoration: none; font-weight: 600; font-size: 13px;
+    }
+    .cta-btn-nav:hover { opacity: 0.9; }
+    .hero {
+      padding: 52px 24px 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(212,160,23,0.04) 0%, transparent 100%);
+    }
+    .hero-date {
+      font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 400;
+      color: #ffffff;
+      line-height: 1.2;
+      max-width: 700px;
+      margin: 0 auto 16px;
+    }
+    .hero-sub {
+      font-size: 15px; color: var(--muted);
+      max-width: 560px; margin: 0 auto;
+    }
+    .page-body {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+    .section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(212,160,23,0.4) 0%, transparent 100%);
+    }
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+    @media (max-width: 768px) { .price-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 420px) { .price-grid { grid-template-columns: 1fr; } }
+    .price-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .price-card:hover { border-color: rgba(212,160,23,0.35); transform: translateY(-2px); }
+    .price-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .price-commodity {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+    }
+    .price-value {
+      font-size: 30px; font-weight: 800;
+      color: #ffffff; line-height: 1; margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    .price-value sup { font-size: 16px; font-weight: 600; vertical-align: top; margin-top: 4px; }
+    .price-change {
+      font-size: 13px; font-weight: 600;
+    }
+    .price-source {
+      font-size: 10px; color: var(--muted);
+      margin-top: 8px; opacity: 0.7;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      margin-bottom: 36px;
+    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+    .indices-col { display: flex; flex-direction: column; gap: 16px; }
+    .index-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+    }
+    .index-card:hover { border-color: rgba(212,160,23,0.3); }
+    .gauge-wrap {
+      flex-shrink: 0;
+      width: 100px;
+    }
+    .gauge-svg { width: 100%; height: auto; display: block; }
+    .index-detail { flex: 1; }
+    .index-name {
+      font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+    }
+    .index-fullname {
+      font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 400;
+    }
+    .index-value-row {
+      display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;
+    }
+    .index-number {
+      font-size: 40px; font-weight: 800; line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .index-denom { font-size: 18px; color: var(--muted); font-weight: 400; }
+    .band-pill {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+      border: 1px solid currentColor; margin-bottom: 8px;
+    }
+    .delta { font-size: 13px; font-weight: 600; }
+    .index-note {
+      font-size: 12px; color: var(--muted); line-height: 1.5;
+      border-left: 2px solid rgba(255,255,255,0.08);
+      padding-left: 10px; margin-top: 6px;
+    }
+    .index-date { font-size: 11px; color: #475569; margin-top: 6px; }
+    .watchlist-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .wl-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(212,160,23,0.06) 0%, transparent 100%);
+    }
+    .wl-header-title {
+      font-size: 13px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--gold2);
+    }
+    .wl-header-sub {
+      font-size: 11px; color: var(--muted); margin-top: 3px;
+    }
+    .wl-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+    }
+    .wl-item:last-child { border-bottom: none; }
+    .wl-item:hover { background: rgba(255,255,255,0.03); }
+    .wl-check {
+      width: 20px; height: 20px; border-radius: 4px;
+      background: rgba(212,160,23,0.15);
+      border: 1px solid rgba(212,160,23,0.4);
+      color: var(--gold2);
+      font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .wl-body { flex: 1; }
+    .wl-title { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 3px; }
+    .wl-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .interp-block {
+      background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+      border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 14px;
+      padding: 32px 36px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .interp-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .interp-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .interp-label::before { content: '\25B6'; font-size: 8px; }
+    .interp-text {
+      font-size: 17px;
+      color: #cbd5e1;
+      line-height: 1.75;
+      font-weight: 400;
+    }
+    .interp-text strong { color: #ffffff; font-weight: 600; }
+    .storage-row {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      margin-bottom: 28px;
+    }
+    .storage-icon { font-size: 28px; flex-shrink: 0; }
+    .storage-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .storage-value { font-size: 24px; font-weight: 800; }
+    .storage-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .storage-bar-wrap { flex: 1; }
+    .storage-bar {
+      height: 8px; background: rgba(255,255,255,0.08);
+      border-radius: 4px; overflow: hidden;
+    }
+    .storage-bar-fill {
+      height: 100%; border-radius: 4px;
+      transition: width 0.5s;
+    }
+    .snap-cite-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
+    }
+    .snap-cite-card h3 {
+      font-size: 1.05rem; font-weight: 700; color: #f1f5f9;
+      margin-bottom: 10px;
+    }
+    .snap-cite-desc {
+      font-size: 14px; color: #94a3b8; margin-bottom: 18px; line-height: 1.6;
+    }
+    .snap-cite-code-wrap {
+      background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; padding: 16px 20px; position: relative;
+    }
+    .snap-cite-code {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px; color: #e2e8f0; line-height: 1.8;
+    }
+    .snap-cite-code a { color: #60a5fa; text-decoration: none; }
+    .snap-cite-copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(30,41,59,0.9); border: 1px solid #475569;
+      color: #94a3b8; padding: 5px 14px; font-size: 12px; font-weight: 600;
+      border-radius: 6px; cursor: pointer; font-family: inherit;
+    }
+    .snap-cite-copy-btn:hover { color: #f1f5f9; border-color: #94a3b8; }
+    .snap-cite-footer {
+      margin-top: 14px; font-size: 12px; color: #64748b;
+    }
+    .snap-cite-footer a { color: #60a5fa; text-decoration: none; }
+    .snap-cite-footer a:hover { text-decoration: underline; }
+    .citation-block {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .citation-block a { color: var(--gold2); text-decoration: none; }
+    .citation-block a:hover { text-decoration: underline; }
+    .cta-section {
+      text-align: center;
+      padding: 52px 24px;
+      background: linear-gradient(135deg, rgba(212,160,23,0.06) 0%, rgba(11,15,26,0) 60%);
+      border-top: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .cta-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
+    }
+    .cta-headline {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 400; color: #ffffff;
+      margin-bottom: 12px; line-height: 1.25;
+    }
+    .cta-sub {
+      font-size: 15px; color: var(--muted);
+      max-width: 480px; margin: 0 auto 28px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #d4a017, #fbbf24);
+      color: #0b0f1a;
+      font-size: 15px; font-weight: 700;
+      padding: 14px 36px; border-radius: 8px;
+      text-decoration: none; letter-spacing: 0.3px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(212,160,23,0.3);
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(212,160,23,0.45); }
+    .cta-secondary {
+      display: block; margin-top: 14px;
+      font-size: 13px; color: var(--muted); text-decoration: none;
+    }
+    .cta-secondary:hover { color: var(--text); }
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 12px; color: #475569;
+    }
+    .page-footer a { color: var(--muted); text-decoration: none; margin: 0 8px; }
+    .page-footer a:hover { color: var(--text); }
+"""
+
 _LOADER_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Loading Energy Risk Data... | EnergyRiskIQ</title>
+<title>Global Energy Risk Snapshot | EnergyRiskIQ</title>
+<meta name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot">
 <link rel="icon" type="image/png" href="/static/favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{background:#0b0f1a;height:100%;overflow:hidden;font-family:'Inter',sans-serif}
+""" + _PAGE_CSS + """
+/* ── LOADER ── */
+html,body{overflow:hidden}
 #snap-loader{
-  position:fixed;inset:0;background:#0b0f1a;
+  position:fixed;inset:0;background:#0f172a;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   z-index:9999;
 }
@@ -1007,430 +1371,20 @@ def _build_snapshot_html(
             watchlist_items=ig_watchlist,
         )
 
-        html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Energy Risk Snapshot — {today_str} | EnergyRiskIQ</title>
-  <meta name="description" content="Live global energy risk snapshot for {today_str}. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices. Powered by EnergyRiskIQ.">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <meta property="og:title" content="Global Energy Risk Snapshot — {today_str}">
-  <meta property="og:description" content="Live energy risk indices (GERI {geri_val}/100 {geri_band}, EERI {eeri_val}/100 {eeri_band}) plus Brent ${brent_price:.2f}, TTF €{ttf_price:.2f}/MWh, VIX {vix_close:.2f}.">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://energyriskiq.com/data/energy-risk-snapshot">
-  <meta property="og:site_name" content="EnergyRiskIQ">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Global Energy Risk Snapshot — {today_str}">
-  <meta name="twitter:description" content="GERI {geri_val} ({geri_band}) | EERI {eeri_val} ({eeri_band}) | Brent ${brent_price:.2f} | TTF €{ttf_price:.2f}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    :root {{
-      --bg: #0f172a;
-      --card: #1e293b;
-      --card2: #162032;
-      --border: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --gold: #d4a017;
-      --gold2: #fbbf24;
-    }}
-    body {{
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100vh;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }}
-
-    /* ── NAV (matches /research/global-energy-risk-index) ── */
-    .nav {{
-      background: #1e293b;
-      border-bottom: 1px solid #334155;
-      padding: 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }}
-    .nav-inner {{
-      display: flex; justify-content: space-between; align-items: center;
-      max-width: 1160px; margin: 0 auto; padding: 0 1.5rem;
-    }}
-    .logo {{
-      font-weight: 700; font-size: 1.2rem; color: #f1f5f9;
-      text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
-    }}
-    .cta-btn-nav {{
-      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-      color: white !important; padding: 0.5rem 1rem; border-radius: 6px;
-      text-decoration: none; font-weight: 600; font-size: 13px;
-    }}
-    .cta-btn-nav:hover {{ opacity: 0.9; }}
-
-    /* ── HERO ── */
-    .hero {{
-      padding: 52px 24px 40px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(212,160,23,0.04) 0%, transparent 100%);
-    }}
-    .hero-date {{
-      font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
-      color: var(--gold); text-transform: uppercase; margin-bottom: 14px;
-    }}
-    .hero h1 {{
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(28px, 5vw, 48px);
-      font-weight: 400;
-      color: #ffffff;
-      line-height: 1.2;
-      max-width: 700px;
-      margin: 0 auto 16px;
-    }}
-    .hero-sub {{
-      font-size: 15px; color: var(--muted);
-      max-width: 560px; margin: 0 auto;
-    }}
-
-    /* ── LAYOUT ── */
-    .page-body {{
-      max-width: 1160px;
-      margin: 0 auto;
-      padding: 40px 20px 60px;
-    }}
-
-    /* ── SECTION TITLES ── */
-    .section-label {{
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      color: var(--gold); text-transform: uppercase;
-      margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
-    }}
-    .section-label::after {{
-      content: '';
-      flex: 1; height: 1px;
-      background: linear-gradient(90deg, rgba(212,160,23,0.4) 0%, transparent 100%);
-    }}
-
-    /* ── PRICE STRIP ── */
-    .price-grid {{
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 44px;
-    }}
-    @media (max-width: 768px) {{ .price-grid {{ grid-template-columns: repeat(2, 1fr); }} }}
-    @media (max-width: 420px) {{ .price-grid {{ grid-template-columns: 1fr; }} }}
-
-    .price-card {{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px 20px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.2s, transform 0.2s;
-    }}
-    .price-card:hover {{ border-color: rgba(212,160,23,0.35); transform: translateY(-2px); }}
-    .price-card::before {{
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 60%);
-      pointer-events: none;
-    }}
-    .price-commodity {{
-      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
-    }}
-    .price-value {{
-      font-size: 30px; font-weight: 800;
-      color: #ffffff; line-height: 1; margin-bottom: 8px;
-      font-variant-numeric: tabular-nums;
-    }}
-    .price-value sup {{ font-size: 16px; font-weight: 600; vertical-align: top; margin-top: 4px; }}
-    .price-change {{
-      font-size: 13px; font-weight: 600;
-    }}
-    .price-source {{
-      font-size: 10px; color: var(--muted);
-      margin-top: 8px; opacity: 0.7;
-    }}
-
-    /* ── MAIN GRID ── */
-    .main-grid {{
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 28px;
-      margin-bottom: 36px;
-    }}
-    @media (max-width: 900px) {{ .main-grid {{ grid-template-columns: 1fr; }} }}
-
-    /* ── INDEX CARDS ── */
-    .indices-col {{ display: flex; flex-direction: column; gap: 16px; }}
-    .index-card {{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px 24px;
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      transition: border-color 0.2s;
-    }}
-    .index-card:hover {{ border-color: rgba(212,160,23,0.3); }}
-    .gauge-wrap {{
-      flex-shrink: 0;
-      width: 100px;
-    }}
-    .gauge-svg {{ width: 100%; height: auto; display: block; }}
-    .index-detail {{ flex: 1; }}
-    .index-name {{
-      font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
-    }}
-    .index-fullname {{
-      font-size: 13px; color: #64748b; margin-bottom: 8px; font-weight: 400;
-    }}
-    .index-value-row {{
-      display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;
-    }}
-    .index-number {{
-      font-size: 40px; font-weight: 800; line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }}
-    .index-denom {{ font-size: 18px; color: var(--muted); font-weight: 400; }}
-    .band-pill {{
-      display: inline-block;
-      font-size: 11px; font-weight: 700; letter-spacing: 1px;
-      text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
-      border: 1px solid currentColor; margin-bottom: 8px;
-    }}
-    .delta {{ font-size: 13px; font-weight: 600; }}
-    .index-note {{
-      font-size: 12px; color: var(--muted); line-height: 1.5;
-      border-left: 2px solid rgba(255,255,255,0.08);
-      padding-left: 10px; margin-top: 6px;
-    }}
-    .index-date {{ font-size: 11px; color: #475569; margin-top: 6px; }}
-
-    /* ── WATCHLIST ── */
-    .watchlist-card {{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }}
-    .wl-header {{
-      padding: 18px 20px 14px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(135deg, rgba(212,160,23,0.06) 0%, transparent 100%);
-    }}
-    .wl-header-title {{
-      font-size: 13px; font-weight: 700; letter-spacing: 1px;
-      text-transform: uppercase; color: var(--gold2);
-    }}
-    .wl-header-sub {{
-      font-size: 11px; color: var(--muted); margin-top: 3px;
-    }}
-    .wl-item {{
-      display: flex; gap: 12px; align-items: flex-start;
-      padding: 14px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      text-decoration: none;
-      color: inherit;
-      transition: background 0.15s;
-    }}
-    .wl-item:last-child {{ border-bottom: none; }}
-    .wl-item:hover {{ background: rgba(255,255,255,0.03); }}
-    .wl-check {{
-      width: 20px; height: 20px; border-radius: 4px;
-      background: rgba(212,160,23,0.15);
-      border: 1px solid rgba(212,160,23,0.4);
-      color: var(--gold2);
-      font-size: 12px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin-top: 1px;
-    }}
-    .wl-body {{ flex: 1; }}
-    .wl-title {{ font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 3px; }}
-    .wl-desc {{ font-size: 11px; color: var(--muted); line-height: 1.4; }}
-
-    /* ── INTERPRETATION BLOCK ── */
-    .interp-block {{
-      background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
-      border: 1px solid rgba(212,160,23,0.2);
-      border-radius: 14px;
-      padding: 32px 36px;
-      margin-bottom: 28px;
-      position: relative;
-      overflow: hidden;
-    }}
-    .interp-block::before {{
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--gold), transparent);
-    }}
-    .interp-label {{
-      font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--gold);
-      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
-    }}
-    .interp-label::before {{ content: '\\25B6'; font-size: 8px; }}
-    .interp-text {{
-      font-size: 17px;
-      color: #cbd5e1;
-      line-height: 1.75;
-      font-weight: 400;
-    }}
-    .interp-text strong {{ color: #ffffff; font-weight: 600; }}
-
-    /* ── STORAGE CALLOUT ── */
-    .storage-row {{
-      display: flex; align-items: center; gap: 16px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 24px;
-      margin-bottom: 28px;
-    }}
-    .storage-icon {{ font-size: 28px; flex-shrink: 0; }}
-    .storage-label {{ font-size: 12px; color: var(--muted); font-weight: 500; }}
-    .storage-value {{ font-size: 24px; font-weight: 800; }}
-    .storage-note {{ font-size: 12px; color: var(--muted); margin-top: 2px; }}
-    .storage-bar-wrap {{ flex: 1; }}
-    .storage-bar {{
-      height: 8px; background: rgba(255,255,255,0.08);
-      border-radius: 4px; overflow: hidden;
-    }}
-    .storage-bar-fill {{
-      height: 100%; border-radius: 4px;
-      transition: width 0.5s;
-    }}
-
-    /* ── CITATION CARD ── */
-    .snap-cite-card {{
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 24px 28px;
-      margin-bottom: 32px;
-    }}
-    .snap-cite-card h3 {{
-      font-size: 1.05rem; font-weight: 700; color: #f1f5f9;
-      margin-bottom: 10px;
-    }}
-    .snap-cite-desc {{
-      font-size: 14px; color: #94a3b8; margin-bottom: 18px; line-height: 1.6;
-    }}
-    .snap-cite-code-wrap {{
-      background: #0f172a; border: 1px solid #334155;
-      border-radius: 8px; padding: 16px 20px; position: relative;
-    }}
-    .snap-cite-code {{
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px; color: #e2e8f0; line-height: 1.8;
-    }}
-    .snap-cite-code a {{ color: #60a5fa; text-decoration: none; }}
-    .snap-cite-copy-btn {{
-      position: absolute; top: 12px; right: 12px;
-      background: rgba(30,41,59,0.9); border: 1px solid #475569;
-      color: #94a3b8; padding: 5px 14px; font-size: 12px; font-weight: 600;
-      border-radius: 6px; cursor: pointer; font-family: inherit;
-    }}
-    .snap-cite-copy-btn:hover {{ color: #f1f5f9; border-color: #94a3b8; }}
-    .snap-cite-footer {{
-      margin-top: 14px; font-size: 12px; color: #64748b;
-    }}
-    .snap-cite-footer a {{ color: #60a5fa; text-decoration: none; }}
-    .snap-cite-footer a:hover {{ text-decoration: underline; }}
-
-    /* ── CITATION ── */
-    .citation-block {{
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 20px;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin-bottom: 36px;
-    }}
-    .citation-block a {{ color: var(--gold2); text-decoration: none; }}
-    .citation-block a:hover {{ text-decoration: underline; }}
-
-    /* ── CTA ── */
-    .cta-section {{
-      text-align: center;
-      padding: 52px 24px;
-      background: linear-gradient(135deg, rgba(212,160,23,0.06) 0%, rgba(11,15,26,0) 60%);
-      border-top: 1px solid var(--border);
-      border-radius: 16px;
-    }}
-    .cta-label {{
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--gold); margin-bottom: 16px;
-    }}
-    .cta-headline {{
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(24px, 4vw, 36px);
-      font-weight: 400; color: #ffffff;
-      margin-bottom: 12px; line-height: 1.25;
-    }}
-    .cta-sub {{
-      font-size: 15px; color: var(--muted);
-      max-width: 480px; margin: 0 auto 28px;
-    }}
-    .cta-btn {{
-      display: inline-block;
-      background: linear-gradient(135deg, #d4a017, #fbbf24);
-      color: #0b0f1a;
-      font-size: 15px; font-weight: 700;
-      padding: 14px 36px; border-radius: 8px;
-      text-decoration: none; letter-spacing: 0.3px;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 20px rgba(212,160,23,0.3);
-    }}
-    .cta-btn:hover {{ transform: translateY(-2px); box-shadow: 0 8px 28px rgba(212,160,23,0.45); }}
-    .cta-secondary {{
-      display: block; margin-top: 14px;
-      font-size: 13px; color: var(--muted); text-decoration: none;
-    }}
-    .cta-secondary:hover {{ color: var(--text); }}
-
-    /* ── FOOTER ── */
-    .page-footer {{
-      border-top: 1px solid var(--border);
-      padding: 24px;
-      text-align: center;
-      font-size: 12px; color: #475569;
-    }}
-    .page-footer a {{ color: var(--muted); text-decoration: none; margin: 0 8px; }}
-    .page-footer a:hover {{ color: var(--text); }}
-  </style>
-
-  <script type="application/ld+json">
-  {{
-    "@context": "https://schema.org",
-    "@type": "Dataset",
-    "name": "Global Energy Risk Snapshot — {today_str}",
-    "description": "Live energy risk indices and commodity prices from EnergyRiskIQ. GERI: {geri_val}/100 ({geri_band}), EERI: {eeri_val}/100 ({eeri_band}), EGSI-M: {egsi_val} ({egsi_band}).",
-    "url": "https://energyriskiq.com/data/energy-risk-snapshot",
-    "publisher": {{ "@type": "Organization", "name": "EnergyRiskIQ", "url": "https://energyriskiq.com" }},
-    "dateModified": "{data_date}",
-    "keywords": ["energy risk", "GERI", "EERI", "EGSI", "Brent crude", "TTF gas", "VIX", "LNG", "geopolitical risk"],
-    "license": "https://energyriskiq.com/terms"
-  }}
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-</head>
-<body>
-<script>
+        html = f"""<script>
 (function(){{
+  document.title='Global Energy Risk Snapshot \u2014 {today_str} | EnergyRiskIQ';
+  var m;
+  m=document.querySelector('meta[name="description"]');
+  if(m)m.setAttribute('content','Live global energy risk snapshot for {today_str}. GERI {geri_val}/100 ({geri_band}), EERI {eeri_val}/100 ({eeri_band}), EGSI-M {egsi_val} ({egsi_band}). Brent ${{brent_price:.2f}}, TTF \u20ac{{ttf_price:.2f}}/MWh. Powered by EnergyRiskIQ.');
+  m=document.querySelector('meta[property="og:title"]');
+  if(m)m.setAttribute('content','Global Energy Risk Snapshot \u2014 {today_str}');
+  m=document.querySelector('meta[property="og:description"]');
+  if(m)m.setAttribute('content','GERI {geri_val}/100 ({geri_band}) | EERI {eeri_val}/100 ({eeri_band}) | Brent ${{brent_price:.2f}} | TTF \u20ac{{ttf_price:.2f}}/MWh');
+  m=document.querySelector('meta[name="twitter:title"]');
+  if(m)m.setAttribute('content','Global Energy Risk Snapshot \u2014 {today_str}');
+  m=document.querySelector('meta[name="twitter:description"]');
+  if(m)m.setAttribute('content','GERI {geri_val} ({geri_band}) | EERI {eeri_val} ({eeri_band}) | Brent ${{brent_price:.2f}} | TTF \u20ac{{ttf_price:.2f}}');
   var l=document.getElementById('snap-loader');
   if(l){{
     l.style.transition='opacity 0.65s ease, visibility 0.65s ease';
@@ -1439,7 +1393,6 @@ def _build_snapshot_html(
     setTimeout(function(){{if(l.parentNode)l.parentNode.removeChild(l);}},700);
   }}
   document.body.style.overflow='';
-  document.title='Global Energy Risk Snapshot \u2014 {today_str} | EnergyRiskIQ';
 }})();
 </script>
 
@@ -1545,7 +1498,7 @@ def _build_snapshot_html(
   <div class="section-label">Risk Intelligence Interpretation</div>
   <div class="interp-block">
     <div class="interp-label">EnergyRiskIQ Daily Assessment</div>
-    <p class="interp-text">{interpretation}</p>
+    <p class="interp-text">{_html.escape(interpretation)}</p>
     <div style="margin-top:16px;font-size:12px;color:#475569">
       Indices powered by EnergyRiskIQ's proprietary GERI, EERI and EGSI methodology. Data as of {data_date}.
     </div>
