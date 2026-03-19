@@ -8,10 +8,11 @@ import math
 import json
 import hashlib
 import threading
+import asyncio
 import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 
 from src.db.db import execute_production_one, execute_production_query
 
@@ -639,8 +640,120 @@ def _run_snapshot_engine(
         return {'ai_texts': fallback_texts, 'assessment': fallback_assessment}
 
 
-@router.get("/data/energy-risk-snapshot", response_class=HTMLResponse)
-async def energy_risk_snapshot(request: Request):
+_LOADER_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Loading Energy Risk Data... | EnergyRiskIQ</title>
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0b0f1a;height:100%;overflow:hidden;font-family:'Inter',sans-serif}
+#snap-loader{
+  position:fixed;inset:0;background:#0b0f1a;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;
+}
+.ld-logo{margin-bottom:36px;opacity:.95}
+.ld-logo img{height:34px;vertical-align:middle;margin-right:10px}
+.ld-logo span{font-size:1.25rem;font-weight:800;color:#e2e8f0;letter-spacing:-.3px;vertical-align:middle}
+.ld-ring-wrap{position:relative;width:84px;height:84px}
+.ld-ring-bg{
+  position:absolute;inset:0;border-radius:50%;
+  border:3px solid rgba(255,255,255,.05);
+}
+.ld-arc1{
+  position:absolute;inset:0;border-radius:50%;
+  border:3px solid transparent;
+  border-top-color:#d4a017;border-right-color:#d4a017;
+  animation:spin-cw 1.4s cubic-bezier(.6,.2,.4,.8) infinite;
+}
+.ld-arc2{
+  position:absolute;inset:8px;border-radius:50%;
+  border:2.5px solid transparent;
+  border-bottom-color:#3b82f6;border-left-color:#3b82f6;
+  animation:spin-ccw 1.1s cubic-bezier(.6,.2,.4,.8) infinite;
+}
+.ld-arc3{
+  position:absolute;inset:18px;border-radius:50%;
+  border:2px solid transparent;
+  border-top-color:rgba(251,191,36,.6);
+  animation:spin-cw .8s linear infinite;
+}
+.ld-dot{
+  position:absolute;top:50%;left:50%;width:8px;height:8px;
+  background:#d4a017;border-radius:50%;
+  transform:translate(-50%,-50%);
+  animation:pulse-dot 1.4s ease-in-out infinite;
+  box-shadow:0 0 10px rgba(212,160,23,.8);
+}
+@keyframes spin-cw{to{transform:rotate(360deg)}}
+@keyframes spin-ccw{to{transform:rotate(-360deg)}}
+@keyframes pulse-dot{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:1}50%{transform:translate(-50%,-50%) scale(.5);opacity:.4}}
+.ld-label{margin-top:28px;text-align:center}
+.ld-label-main{font-size:15px;font-weight:600;color:#e2e8f0;letter-spacing:.3px;margin-bottom:8px}
+.ld-label-sub{font-size:12px;color:#475569;min-height:18px;transition:opacity .3s}
+.ld-bar-wrap{width:240px;height:2px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:22px;overflow:hidden}
+.ld-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#d4a017,#fbbf24);animation:bar-progress 12s ease-in-out forwards}
+@keyframes bar-progress{0%{width:2%}15%{width:28%}35%{width:52%}55%{width:68%}72%{width:80%}88%{width:90%}100%{width:94%}}
+.ld-tags{display:flex;gap:8px;margin-top:28px;flex-wrap:wrap;justify-content:center;max-width:300px}
+.ld-tag{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#334155;border:1px solid #1e293b;padding:4px 10px;border-radius:20px;animation:tag-pop .4s ease both}
+.ld-tag:nth-child(1){animation-delay:.1s;color:#d4a017;border-color:rgba(212,160,23,.25)}
+.ld-tag:nth-child(2){animation-delay:.2s;color:#3b82f6;border-color:rgba(59,130,246,.25)}
+.ld-tag:nth-child(3){animation-delay:.3s}
+.ld-tag:nth-child(4){animation-delay:.4s}
+.ld-tag:nth-child(5){animation-delay:.5s}
+@keyframes tag-pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.ld-footer{position:absolute;bottom:28px;font-size:10px;font-weight:700;letter-spacing:2px;color:#1e293b;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="snap-loader">
+  <div class="ld-logo">
+    <img src="/static/logo.png" alt="EnergyRiskIQ">
+    <span>EnergyRiskIQ</span>
+  </div>
+  <div class="ld-ring-wrap">
+    <div class="ld-ring-bg"></div>
+    <div class="ld-arc1"></div>
+    <div class="ld-arc2"></div>
+    <div class="ld-arc3"></div>
+    <div class="ld-dot"></div>
+  </div>
+  <div class="ld-label">
+    <div class="ld-label-main">Loading latest data</div>
+    <div class="ld-label-sub" id="ld-status">Connecting to production pipeline&hellip;</div>
+  </div>
+  <div class="ld-bar-wrap"><div class="ld-bar-fill"></div></div>
+  <div class="ld-tags">
+    <span class="ld-tag">GERI</span>
+    <span class="ld-tag">EERI</span>
+    <span class="ld-tag">EGSI&#8209;M</span>
+    <span class="ld-tag">Brent</span>
+    <span class="ld-tag">TTF</span>
+  </div>
+  <div class="ld-footer">Live Data Engine &mdash; EnergyRiskIQ</div>
+</div>
+<script>
+(function(){
+  var msgs=['Connecting to production pipeline\u2026',
+            'Fetching GERI\u00a0&\u00a0EERI indices\u2026',
+            'Loading commodity prices\u2026',
+            'Querying EU gas storage\u2026',
+            'Analysing risk environment\u2026',
+            'Generating AI assessment\u2026',
+            'Building infographic\u2026'];
+  var i=0,el=document.getElementById('ld-status');
+  setInterval(function(){i=(i+1)%msgs.length;if(el){el.style.opacity='0';setTimeout(function(){el.textContent=msgs[i];el.style.opacity='1';},200);}},2200);
+})();
+</script>
+"""
+
+
+def _compute_snapshot_html() -> str:
+    """Synchronous worker: fetch all production data, run snapshot engine, return full page HTML."""
     try:
         # --- Fetch all production data ---
         geri_row = execute_production_one(
@@ -685,7 +798,74 @@ async def energy_risk_snapshot(request: Request):
         storage_row = execute_production_one(
             "SELECT date, eu_storage_percent, seasonal_norm, deviation_from_norm, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1"
         )
+        return ('ok', geri_row, geri_prev, eeri_row, eeri_prev, egsi_row, egsi_prev,
+                brent_row, brent_intra, ttf_row, ttf_prev, vix_row, vix_prev,
+                lng_row, storage_row)
+    except Exception as e:
+        return ('error', str(e))
 
+
+@router.get("/data/energy-risk-snapshot")
+async def energy_risk_snapshot(request: Request):
+    async def generate():
+        yield _LOADER_HTML
+
+        try:
+            rows = await asyncio.to_thread(_compute_snapshot_html)
+        except Exception as exc:
+            logger.error(f"Snapshot data fetch failed: {exc}", exc_info=True)
+            yield f"""<script>
+var l=document.getElementById('snap-loader');
+if(l){{l.style.display='none';}}
+document.body.style.overflow='';
+document.title='Error | EnergyRiskIQ';
+</script>
+<div style="color:#ef4444;padding:40px;font-family:sans-serif;background:#0b0f1a">
+  <h2>Error loading snapshot</h2><p>{exc}</p>
+</div></body></html>"""
+            return
+
+        if rows[0] == 'error':
+            yield f"""<script>
+var l=document.getElementById('snap-loader');if(l)l.style.display='none';
+document.body.style.overflow='';
+</script>
+<div style="color:#ef4444;padding:40px;font-family:sans-serif;background:#0b0f1a">
+  <h2>Error loading snapshot</h2><p>{rows[1]}</p>
+</div></body></html>"""
+            return
+
+        (_, geri_row, geri_prev, eeri_row, eeri_prev, egsi_row, egsi_prev,
+         brent_row, brent_intra, ttf_row, ttf_prev, vix_row, vix_prev,
+         lng_row, storage_row) = rows
+
+        try:
+            yield await asyncio.to_thread(
+                _build_snapshot_html,
+                geri_row, geri_prev, eeri_row, eeri_prev, egsi_row, egsi_prev,
+                brent_row, brent_intra, ttf_row, ttf_prev, vix_row, vix_prev,
+                lng_row, storage_row,
+            )
+        except Exception as exc:
+            logger.error(f"Snapshot HTML build failed: {exc}", exc_info=True)
+            yield f"""<script>
+var l=document.getElementById('snap-loader');if(l)l.style.display='none';
+document.body.style.overflow='';
+</script>
+<div style="color:#ef4444;padding:40px;font-family:sans-serif;background:#0b0f1a">
+  <h2>Error building snapshot</h2><p>{exc}</p>
+</div></body></html>"""
+
+    return StreamingResponse(generate(), media_type="text/html")
+
+
+def _build_snapshot_html(
+    geri_row, geri_prev, eeri_row, eeri_prev, egsi_row, egsi_prev,
+    brent_row, brent_intra, ttf_row, ttf_prev, vix_row, vix_prev,
+    lng_row, storage_row,
+) -> str:
+    """Build the full page HTML string from pre-fetched DB rows."""
+    try:
         # --- Extract values ---
         geri_val  = int(geri_row['value'])  if geri_row  else 0
         geri_band = str(geri_row['band'])   if geri_row  else 'ELEVATED'
@@ -1249,6 +1429,19 @@ async def energy_risk_snapshot(request: Request):
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
+<script>
+(function(){{
+  var l=document.getElementById('snap-loader');
+  if(l){{
+    l.style.transition='opacity 0.65s ease, visibility 0.65s ease';
+    l.style.opacity='0';
+    l.style.visibility='hidden';
+    setTimeout(function(){{if(l.parentNode)l.parentNode.removeChild(l);}},700);
+  }}
+  document.body.style.overflow='';
+  document.title='Global Energy Risk Snapshot \u2014 {today_str} | EnergyRiskIQ';
+}})();
+</script>
 
 <nav class="nav">
   <div class="nav-inner">
@@ -1457,8 +1650,8 @@ window.downloadInfographic = function(elId, btnId) {{
 
 </body>
 </html>"""
-        return HTMLResponse(content=html)
+        return html
 
     except Exception as e:
-        logger.error(f"Energy risk snapshot failed: {e}", exc_info=True)
-        return HTMLResponse(content=f"<h1>Error loading snapshot</h1><p>{e}</p>", status_code=500)
+        logger.error(f"Snapshot HTML build failed: {e}", exc_info=True)
+        raise
