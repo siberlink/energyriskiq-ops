@@ -20,6 +20,45 @@ from src.db.db import execute_production_one, execute_production_query
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
+@router.get("/api/hero-snapshot")
+async def hero_snapshot_api():
+    """Fast JSON endpoint powering the hero panel on the landing page."""
+    from fastapi.responses import JSONResponse
+    try:
+        geri = execute_production_one(
+            "SELECT value, band FROM intel_indices_daily "
+            "WHERE index_id='global:geo_energy_risk' ORDER BY date DESC LIMIT 1"
+        )
+        eeri = execute_production_one(
+            "SELECT value, band FROM reri_indices_daily "
+            "WHERE index_id='europe:eeri' ORDER BY date DESC LIMIT 1"
+        )
+        egsi = execute_production_one(
+            "SELECT index_value AS value, band FROM egsi_m_daily "
+            "WHERE region='Europe' ORDER BY index_date DESC LIMIT 1"
+        )
+        brent = execute_production_one(
+            "SELECT brent_price FROM oil_price_snapshots ORDER BY date DESC LIMIT 1"
+        )
+        ttf = execute_production_one(
+            "SELECT ttf_price FROM ttf_gas_snapshots ORDER BY date DESC LIMIT 1"
+        )
+        storage = execute_production_one(
+            "SELECT eu_storage_percent FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1"
+        )
+        return JSONResponse({
+            "geri":    {"value": float(geri["value"]),       "band": geri["band"]},
+            "eeri":    {"value": float(eeri["value"]),       "band": eeri["band"]},
+            "egsi":    {"value": float(egsi["value"]),       "band": egsi["band"]},
+            "brent":   float(brent["brent_price"]),
+            "ttf":     float(ttf["ttf_price"]),
+            "storage": float(storage["eu_storage_percent"]),
+        }, headers={"Cache-Control": "public, max-age=300"})
+    except Exception as exc:
+        logger.error("hero-snapshot API error: %s", exc)
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
 BAND_COLORS = {
     'LOW':      '#22c55e',
     'MODERATE': '#eab308',

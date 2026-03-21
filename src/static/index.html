@@ -195,6 +195,105 @@
             letter-spacing: 0.01em;
         }
 
+        /* ── BLOCK 1: INDEX ROWS ── */
+        .snap-block { padding-top: 14px; }
+
+        .snap-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .snap-row:last-child { border-bottom: none; }
+
+        .snap-row-label {
+            flex: 1;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-align: left;
+        }
+
+        .snap-row-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #f8fafc;
+            min-width: 38px;
+            text-align: right;
+        }
+
+        .snap-badge {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 100px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            min-width: 82px;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .snap-badge-ELEVATED {
+            background: rgba(249,115,22,0.14);
+            color: #fb923c;
+            border-color: rgba(249,115,22,0.28);
+            box-shadow: 0 0 8px rgba(249,115,22,0.12);
+        }
+        .snap-badge-HIGH, .snap-badge-SEVERE {
+            background: rgba(239,68,68,0.14);
+            color: #f87171;
+            border-color: rgba(239,68,68,0.28);
+            box-shadow: 0 0 8px rgba(239,68,68,0.12);
+        }
+        .snap-badge-CRITICAL {
+            background: rgba(220,38,38,0.18);
+            color: #ef4444;
+            border-color: rgba(220,38,38,0.35);
+            box-shadow: 0 0 10px rgba(220,38,38,0.18);
+        }
+        .snap-badge-STABLE_HIGH, .snap-badge-MODERATE {
+            background: rgba(234,179,8,0.13);
+            color: #fbbf24;
+            border-color: rgba(234,179,8,0.28);
+            box-shadow: 0 0 8px rgba(234,179,8,0.1);
+        }
+        .snap-badge-LOW, .snap-badge-NORMAL {
+            background: rgba(34,197,94,0.12);
+            color: #4ade80;
+            border-color: rgba(34,197,94,0.25);
+            box-shadow: 0 0 8px rgba(34,197,94,0.1);
+        }
+
+        /* ── BLOCK 2: MARKET ROWS ── */
+        .snap-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin: 6px 0 2px;
+        }
+
+        .snap-block-market { padding-top: 8px; }
+
+        .snap-mrow {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+        .snap-mrow-label {
+            flex: 1;
+            font-size: 0.76rem;
+            font-weight: 500;
+            color: rgba(148,163,184,0.65);
+            text-align: left;
+        }
+        .snap-mrow-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
         @media (max-width: 600px) {
             .hero-body {
                 padding: 1rem 1.25rem 2rem;
@@ -2722,12 +2821,81 @@
                 Track geopolitical energy risk, European gas stress, and supply disruptions before they move prices.
             </p>
 
-            <div class="snap-panel">
+            <div class="snap-panel" style="width:100%;text-align:left;">
                 <div class="snap-panel-header">
                     <div class="snap-panel-title">Daily Energy Risk Snapshot</div>
                     <div class="snap-panel-subtitle">Updated daily at 01:30 UTC (based on prior-day events)</div>
                 </div>
+
+                <!-- Block 1: Risk Indices -->
+                <div class="snap-block">
+                    <div class="snap-row">
+                        <span class="snap-row-label">Global Energy Risk Index (GERI)</span>
+                        <span class="snap-row-value" id="snap-geri-value">—</span>
+                        <span class="snap-badge" id="snap-geri-band"></span>
+                    </div>
+                    <div class="snap-row">
+                        <span class="snap-row-label">European Energy Risk Index (EERI)</span>
+                        <span class="snap-row-value" id="snap-eeri-value">—</span>
+                        <span class="snap-badge" id="snap-eeri-band"></span>
+                    </div>
+                    <div class="snap-row">
+                        <span class="snap-row-label">European Gas Stress Index (EGSI)</span>
+                        <span class="snap-row-value" id="snap-egsi-value">—</span>
+                        <span class="snap-badge" id="snap-egsi-band"></span>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="snap-divider"></div>
+
+                <!-- Block 2: Market Context -->
+                <div class="snap-block snap-block-market">
+                    <div class="snap-mrow">
+                        <span class="snap-mrow-label">Brent Crude</span>
+                        <span class="snap-mrow-value" id="snap-brent-value">—</span>
+                    </div>
+                    <div class="snap-mrow">
+                        <span class="snap-mrow-label">TTF Gas</span>
+                        <span class="snap-mrow-value" id="snap-ttf-value">—</span>
+                    </div>
+                    <div class="snap-mrow">
+                        <span class="snap-mrow-label">EU Gas Storage</span>
+                        <span class="snap-mrow-value" id="snap-storage-value">—</span>
+                    </div>
+                </div>
             </div>
+
+            <script>
+            (function(){
+                var BAND_LABEL = {
+                    LOW:'Low', NORMAL:'Normal', MODERATE:'Moderate',
+                    ELEVATED:'Elevated', STABLE_HIGH:'Stable High',
+                    HIGH:'High', SEVERE:'Severe', CRITICAL:'Critical',
+                    STRESSED:'Stressed'
+                };
+                function fmt(v,d){ return v==null?'—':parseFloat(v).toFixed(d); }
+                function applyBadge(el,band){
+                    el.textContent = BAND_LABEL[band] || band;
+                    el.className = 'snap-badge snap-badge-' + (band||'').replace(/\s+/g,'_');
+                }
+                fetch('/api/hero-snapshot')
+                    .then(function(r){return r.json();})
+                    .then(function(d){
+                        if(d.error) return;
+                        document.getElementById('snap-geri-value').textContent = fmt(d.geri.value,0);
+                        applyBadge(document.getElementById('snap-geri-band'), d.geri.band);
+                        document.getElementById('snap-eeri-value').textContent = fmt(d.eeri.value,0);
+                        applyBadge(document.getElementById('snap-eeri-band'), d.eeri.band);
+                        document.getElementById('snap-egsi-value').textContent = fmt(d.egsi.value,1);
+                        applyBadge(document.getElementById('snap-egsi-band'), d.egsi.band);
+                        document.getElementById('snap-brent-value').textContent = '$'+fmt(d.brent,2);
+                        document.getElementById('snap-ttf-value').textContent   = '\u20ac'+fmt(d.ttf,2);
+                        document.getElementById('snap-storage-value').textContent = fmt(d.storage,1)+'%';
+                    })
+                    .catch(function(){});
+            })();
+            </script>
 
         </div>
     </section>
