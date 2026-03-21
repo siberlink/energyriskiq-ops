@@ -54,6 +54,114 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 - **Production Hardening:** Includes preflight checks, health checks, user allowlisting, and circuit breakers.
 - **Observability:** Tracks engine runs and provides internal API endpoints for monitoring.
 
+## Standard Loading Functionality
+
+All async data panels on the platform use a unified **Standard Loading Functionality** pattern. When adding a new data panel that loads via `fetch()`, always implement this pattern — do not use spinners, plain "Loading..." text, or skeleton shimmers.
+
+### Visual Components
+1. **Concentric spinning rings** — three arcs at different radii, counter-rotating at different speeds, with a pulsing gold centre dot.
+2. **Cycling status messages** — a `<div id="pl-status">` element whose text cycles through contextually relevant messages every 2 seconds with a fade transition.
+3. **Data source tags** — small pill badges naming the data sources being loaded (e.g. GERI, EERI, Brent, TTF).
+4. **Animated progress bar** — a thin 2px bar that animates from 2% → 94% over ~4 s using a CSS `@keyframes` `pl-bar-progress` rule (intentionally never reaches 100% — resolves when data arrives).
+
+### Colour Tokens
+| Element | Value |
+|---|---|
+| Arc 1 (outer) | `#d4a017` (gold) top + right |
+| Arc 2 (mid)   | `#3b82f6` (blue) bottom + left |
+| Arc 3 (inner) | `rgba(251,191,36,0.6)` top |
+| Centre dot    | `#d4a017` with glow `rgba(212,160,23,0.8)` |
+| Progress bar  | `linear-gradient(90deg, #d4a017, #fbbf24)` |
+
+### CSS Classes (defined in `src/static/index.html` `<style>` block)
+- `.snap-panel-loader` — flex column, centred, `padding: 32px 20px 28px`, `gap: 14px`
+- `.pl-ring-wrap` — `52×52px` relative container
+- `.pl-ring-bg`, `.pl-arc1`, `.pl-arc2`, `.pl-arc3`, `.pl-dot` — ring parts
+- `.pl-label-main` — "Loading latest data" text, `0.78rem`, `#e2e8f0`
+- `.pl-label-sub` — cycling status text, `0.7rem`, `#475569`, `transition: opacity 0.3s`
+- `.pl-tags` / `.pl-tag` — data-source pills; first tag gets gold, second gets blue
+- `.pl-bar-wrap` / `.pl-bar-fill` — progress bar container + fill
+- `.snap-panel-loader.pl-hidden` — `display: none` (applied by JS on load complete)
+- `.snap-panel-content` — `opacity: 0`, `transition: opacity 0.35s ease` (content hidden during load)
+- `.snap-panel-content.pl-loaded` — `opacity: 1` (applied by JS on load complete)
+
+### Animation Keyframes
+- `@keyframes pl-spin-cw` / `@keyframes pl-spin-ccw` — full rotation for arcs
+- `@keyframes pl-pulse-dot` — scale 1→0.4→1 for centre dot
+- `@keyframes pl-tag-pop` — `opacity 0 + translateY(4px)` → normal, staggered per tag
+- `@keyframes pl-bar-progress` — width 2%→45%→72%→88%→94% over 4 s
+
+### HTML Structure
+```html
+<div class="snap-panel">
+  <div class="snap-panel-header">...</div>
+
+  <!-- Loader: visible by default -->
+  <div class="snap-panel-loader" id="MY-loader">
+    <div class="pl-ring-wrap">
+      <div class="pl-ring-bg"></div>
+      <div class="pl-arc1"></div>
+      <div class="pl-arc2"></div>
+      <div class="pl-arc3"></div>
+      <div class="pl-dot"></div>
+    </div>
+    <div class="pl-label-main">Loading latest data</div>
+    <div class="pl-label-sub" id="MY-status">Connecting to production pipeline&hellip;</div>
+    <div class="pl-tags">
+      <span class="pl-tag">SOURCE A</span>
+      <span class="pl-tag">SOURCE B</span>
+    </div>
+    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+  </div>
+
+  <!-- Content: hidden until loaded -->
+  <div class="snap-panel-content" id="MY-content">
+    <!-- ...data rows... -->
+  </div>
+</div>
+```
+
+### JavaScript Pattern
+```javascript
+(function(){
+  var msgs = [
+    'Connecting to production pipeline\u2026',
+    'Fetching [source A]\u2026',
+    'Loading [source B]\u2026',
+    'Analysing risk environment\u2026'
+  ];
+  var idx = 0, el = document.getElementById('MY-status');
+  var timer = setInterval(function(){
+    idx = (idx + 1) % msgs.length;
+    if(el){ el.style.opacity='0'; setTimeout(function(){ el.textContent=msgs[idx]; el.style.opacity='1'; },200); }
+  }, 2000);
+
+  fetch('/api/MY-endpoint')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      clearInterval(timer);
+      // ...populate DOM values...
+      document.getElementById('MY-loader').classList.add('pl-hidden');
+      document.getElementById('MY-content').classList.add('pl-loaded');
+    })
+    .catch(function(){
+      clearInterval(timer);
+      document.getElementById('MY-loader').classList.add('pl-hidden');
+      document.getElementById('MY-content').classList.add('pl-loaded');
+    });
+})();
+```
+
+### Currently Implemented
+| Location | Loader ID | Content ID | API Endpoint |
+|---|---|---|---|
+| `/` hero panel (`src/static/index.html`) | `snap-panel-loader` | `snap-panel-content` | `/api/hero-snapshot` |
+
+### Full-Screen Variant
+The `/data/energy-risk-snapshot` page uses a **full-screen** variant of the same pattern: the loader is `position:fixed; inset:0; background:#0f172a; z-index:9999` and is streamed as the first HTML chunk before AI generation completes. The ring sizes are larger (84px), the bar animation runs for 12 s, and the pattern includes a logo and footer. This full-screen variant lives in `_LOADER_HTML` inside `src/api/snapshot_routes.py`. For in-panel loading, always use the compact panel variant described above.
+
+---
+
 ## External Dependencies
 
 - **Database:** PostgreSQL

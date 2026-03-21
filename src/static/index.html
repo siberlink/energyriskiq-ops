@@ -294,6 +294,135 @@
             color: #94a3b8;
         }
 
+        /* ── PANEL LOADER (Standard Loading Functionality) ── */
+        .snap-panel-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px 28px;
+            gap: 14px;
+        }
+        .pl-ring-wrap {
+            position: relative;
+            width: 52px;
+            height: 52px;
+        }
+        .pl-ring-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.05);
+        }
+        .pl-arc1 {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: #d4a017;
+            border-right-color: #d4a017;
+            animation: pl-spin-cw 1.4s cubic-bezier(.6,.2,.4,.8) infinite;
+        }
+        .pl-arc2 {
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 1.5px solid transparent;
+            border-bottom-color: #3b82f6;
+            border-left-color: #3b82f6;
+            animation: pl-spin-ccw 1.1s cubic-bezier(.6,.2,.4,.8) infinite;
+        }
+        .pl-arc3 {
+            position: absolute;
+            inset: 13px;
+            border-radius: 50%;
+            border: 1.5px solid transparent;
+            border-top-color: rgba(251,191,36,0.6);
+            animation: pl-spin-cw 0.8s linear infinite;
+        }
+        .pl-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: #d4a017;
+            border-radius: 50%;
+            transform: translate(-50%,-50%);
+            animation: pl-pulse-dot 1.4s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(212,160,23,0.8);
+        }
+        @keyframes pl-spin-cw  { to { transform: rotate(360deg);  } }
+        @keyframes pl-spin-ccw { to { transform: rotate(-360deg); } }
+        @keyframes pl-pulse-dot {
+            0%,100% { transform: translate(-50%,-50%) scale(1);   opacity: 1;   }
+            50%      { transform: translate(-50%,-50%) scale(0.4); opacity: 0.4; }
+        }
+        .pl-label-main {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            letter-spacing: 0.3px;
+        }
+        .pl-label-sub {
+            font-size: 0.7rem;
+            color: #475569;
+            min-height: 16px;
+            transition: opacity 0.3s;
+            margin-top: -6px;
+            text-align: center;
+        }
+        .pl-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pl-tag {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #334155;
+            border: 1px solid #1e293b;
+            padding: 3px 8px;
+            border-radius: 20px;
+            animation: pl-tag-pop 0.4s ease both;
+        }
+        .pl-tag:nth-child(1) { animation-delay: .1s; color: #d4a017; border-color: rgba(212,160,23,0.25); }
+        .pl-tag:nth-child(2) { animation-delay: .2s; color: #3b82f6; border-color: rgba(59,130,246,0.25); }
+        .pl-tag:nth-child(3) { animation-delay: .3s; }
+        .pl-tag:nth-child(4) { animation-delay: .4s; }
+        .pl-tag:nth-child(5) { animation-delay: .5s; }
+        @keyframes pl-tag-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .pl-bar-wrap {
+            width: 160px;
+            height: 2px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: -4px;
+        }
+        .pl-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #d4a017, #fbbf24);
+            animation: pl-bar-progress 4s ease-in-out forwards;
+        }
+        @keyframes pl-bar-progress {
+            0%   { width: 2%;  }
+            30%  { width: 45%; }
+            60%  { width: 72%; }
+            85%  { width: 88%; }
+            100% { width: 94%; }
+        }
+        .snap-panel-loader.pl-hidden { display: none; }
+        .snap-panel-content {
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .snap-panel-content.pl-loaded { opacity: 1; }
+
         @media (max-width: 600px) {
             .hero-body {
                 padding: 1rem 1.25rem 2rem;
@@ -2827,41 +2956,65 @@
                     <div class="snap-panel-subtitle">Updated daily at 01:30 UTC (based on prior-day events)</div>
                 </div>
 
-                <!-- Block 1: Risk Indices -->
-                <div class="snap-block">
-                    <div class="snap-row">
-                        <span class="snap-row-label">Global Energy Risk Index (GERI)</span>
-                        <span class="snap-row-value" id="snap-geri-value">—</span>
-                        <span class="snap-badge" id="snap-geri-band"></span>
+                <!-- Loading state -->
+                <div class="snap-panel-loader" id="snap-panel-loader">
+                    <div class="pl-ring-wrap">
+                        <div class="pl-ring-bg"></div>
+                        <div class="pl-arc1"></div>
+                        <div class="pl-arc2"></div>
+                        <div class="pl-arc3"></div>
+                        <div class="pl-dot"></div>
                     </div>
-                    <div class="snap-row">
-                        <span class="snap-row-label">European Energy Risk Index (EERI)</span>
-                        <span class="snap-row-value" id="snap-eeri-value">—</span>
-                        <span class="snap-badge" id="snap-eeri-band"></span>
+                    <div class="pl-label-main">Loading latest data</div>
+                    <div class="pl-label-sub" id="pl-status">Connecting to production pipeline&hellip;</div>
+                    <div class="pl-tags">
+                        <span class="pl-tag">GERI</span>
+                        <span class="pl-tag">EERI</span>
+                        <span class="pl-tag">EGSI&#8209;M</span>
+                        <span class="pl-tag">Brent</span>
+                        <span class="pl-tag">TTF</span>
                     </div>
-                    <div class="snap-row">
-                        <span class="snap-row-label">European Gas Stress Index (EGSI)</span>
-                        <span class="snap-row-value" id="snap-egsi-value">—</span>
-                        <span class="snap-badge" id="snap-egsi-band"></span>
-                    </div>
+                    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
                 </div>
 
-                <!-- Divider -->
-                <div class="snap-divider"></div>
+                <!-- Data content (hidden until loaded) -->
+                <div class="snap-panel-content" id="snap-panel-content">
+                    <!-- Block 1: Risk Indices -->
+                    <div class="snap-block">
+                        <div class="snap-row">
+                            <span class="snap-row-label">Global Energy Risk Index (GERI)</span>
+                            <span class="snap-row-value" id="snap-geri-value">—</span>
+                            <span class="snap-badge" id="snap-geri-band"></span>
+                        </div>
+                        <div class="snap-row">
+                            <span class="snap-row-label">European Energy Risk Index (EERI)</span>
+                            <span class="snap-row-value" id="snap-eeri-value">—</span>
+                            <span class="snap-badge" id="snap-eeri-band"></span>
+                        </div>
+                        <div class="snap-row">
+                            <span class="snap-row-label">European Gas Stress Index (EGSI)</span>
+                            <span class="snap-row-value" id="snap-egsi-value">—</span>
+                            <span class="snap-badge" id="snap-egsi-band"></span>
+                        </div>
+                    </div>
 
-                <!-- Block 2: Market Context -->
-                <div class="snap-block snap-block-market">
-                    <div class="snap-mrow">
-                        <span class="snap-mrow-label">Brent Crude</span>
-                        <span class="snap-mrow-value" id="snap-brent-value">—</span>
-                    </div>
-                    <div class="snap-mrow">
-                        <span class="snap-mrow-label">TTF Gas</span>
-                        <span class="snap-mrow-value" id="snap-ttf-value">—</span>
-                    </div>
-                    <div class="snap-mrow">
-                        <span class="snap-mrow-label">EU Gas Storage</span>
-                        <span class="snap-mrow-value" id="snap-storage-value">—</span>
+                    <!-- Divider -->
+                    <div class="snap-divider"></div>
+
+                    <!-- Block 2: Market Context -->
+                    <div class="snap-block snap-block-market">
+                        <div class="snap-mrow">
+                            <span class="snap-mrow-label">Brent Crude</span>
+                            <span class="snap-mrow-value" id="snap-brent-value">—</span>
+                        </div>
+                        <div class="snap-mrow">
+                            <span class="snap-mrow-label">TTF Gas</span>
+                            <span class="snap-mrow-value" id="snap-ttf-value">—</span>
+                        </div>
+                        <div class="snap-mrow">
+                            <span class="snap-mrow-label">EU Gas Storage</span>
+                            <span class="snap-mrow-value" id="snap-storage-value">—</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2879,9 +3032,25 @@
                     el.textContent = BAND_LABEL[band] || band;
                     el.className = 'snap-badge snap-badge-' + (band||'').replace(/\s+/g,'_');
                 }
+
+                /* ── Cycling status messages (Standard Loading Functionality) ── */
+                var plMsgs = [
+                    'Connecting to production pipeline\u2026',
+                    'Fetching GERI\u00a0&\u00a0EERI indices\u2026',
+                    'Loading commodity prices\u2026',
+                    'Querying EU gas storage\u2026',
+                    'Analysing risk environment\u2026'
+                ];
+                var plIdx = 0, plEl = document.getElementById('pl-status');
+                var plTimer = setInterval(function(){
+                    plIdx = (plIdx + 1) % plMsgs.length;
+                    if(plEl){ plEl.style.opacity='0'; setTimeout(function(){ plEl.textContent=plMsgs[plIdx]; plEl.style.opacity='1'; },200); }
+                }, 2000);
+
                 fetch('/api/hero-snapshot')
-                    .then(function(r){return r.json();})
+                    .then(function(r){ return r.json(); })
                     .then(function(d){
+                        clearInterval(plTimer);
                         if(d.error) return;
                         document.getElementById('snap-geri-value').textContent = fmt(d.geri.value,0);
                         applyBadge(document.getElementById('snap-geri-band'), d.geri.band);
@@ -2892,8 +3061,20 @@
                         document.getElementById('snap-brent-value').textContent = '$'+fmt(d.brent,2);
                         document.getElementById('snap-ttf-value').textContent   = '\u20ac'+fmt(d.ttf,2);
                         document.getElementById('snap-storage-value').textContent = fmt(d.storage,1)+'%';
+                        /* hide loader, reveal content */
+                        var loader = document.getElementById('snap-panel-loader');
+                        var content = document.getElementById('snap-panel-content');
+                        if(loader){ loader.classList.add('pl-hidden'); }
+                        if(content){ content.classList.add('pl-loaded'); }
                     })
-                    .catch(function(){});
+                    .catch(function(){
+                        clearInterval(plTimer);
+                        /* on error: still hide loader, reveal whatever partial content exists */
+                        var loader = document.getElementById('snap-panel-loader');
+                        var content = document.getElementById('snap-panel-content');
+                        if(loader){ loader.classList.add('pl-hidden'); }
+                        if(content){ content.classList.add('pl-loaded'); }
+                    });
             })();
             </script>
 
