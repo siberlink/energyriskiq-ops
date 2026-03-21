@@ -173,7 +173,20 @@
                 0 0 0 1px rgba(96,165,250,0.04),
                 0 8px 32px rgba(0,0,0,0.55),
                 0 0 60px rgba(96,165,250,0.05);
+            position: relative;
+            overflow: hidden;
         }
+        /* Gradient wash — matches Today's Global Energy Risk Snapshot page */
+        .snap-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(212,160,23,0.055) 0%, transparent 55%);
+            pointer-events: none;
+            border-radius: 16px;
+            z-index: 0;
+        }
+        .snap-panel > * { position: relative; z-index: 1; }
 
         .snap-panel-header {
             padding-bottom: 14px;
@@ -293,6 +306,63 @@
             font-weight: 600;
             color: #94a3b8;
         }
+
+        /* ── CLICKABLE INDEX ROWS ── */
+        a.snap-row {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            border-radius: 7px;
+            margin: 0 -8px;
+            padding-left: 8px;
+            padding-right: 8px;
+            transition: background 0.18s ease;
+        }
+        a.snap-row:hover {
+            background: rgba(212,160,23,0.07);
+            border-bottom-color: transparent;
+        }
+        a.snap-row:hover .snap-row-label { color: #e2e8f0; }
+        a.snap-row:hover .snap-row-value { color: #ffffff; }
+        .snap-row-chevron {
+            font-size: 0.7rem;
+            color: rgba(148,163,184,0.3);
+            transition: color 0.18s ease, transform 0.18s ease;
+            flex-shrink: 0;
+        }
+        a.snap-row:hover .snap-row-chevron {
+            color: rgba(212,160,23,0.65);
+            transform: translateX(3px);
+        }
+
+        /* ── NUMBER FADE-IN ON LOAD ── */
+        @keyframes pl-num-fadein {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0);   }
+        }
+        .snap-panel-content.pl-loaded .snap-row:nth-child(1) .snap-row-value { animation: pl-num-fadein 0.45s ease 0.05s both; }
+        .snap-panel-content.pl-loaded .snap-row:nth-child(2) .snap-row-value { animation: pl-num-fadein 0.45s ease 0.13s both; }
+        .snap-panel-content.pl-loaded .snap-row:nth-child(3) .snap-row-value { animation: pl-num-fadein 0.45s ease 0.21s both; }
+        .snap-panel-content.pl-loaded .snap-mrow:nth-child(1) .snap-mrow-value { animation: pl-num-fadein 0.45s ease 0.28s both; }
+        .snap-panel-content.pl-loaded .snap-mrow:nth-child(2) .snap-mrow-value { animation: pl-num-fadein 0.45s ease 0.34s both; }
+        .snap-panel-content.pl-loaded .snap-mrow:nth-child(3) .snap-mrow-value { animation: pl-num-fadein 0.45s ease 0.40s both; }
+
+        /* ── BADGE GLOW PULSE ── */
+        @keyframes pl-badge-glow {
+            0%, 100% { box-shadow: 0 0 5px  var(--badge-glow, rgba(249,115,22,0.15)); }
+            50%       { box-shadow: 0 0 13px var(--badge-glow, rgba(249,115,22,0.40)); }
+        }
+        .snap-panel-content.pl-loaded .snap-badge {
+            animation: pl-badge-glow 3s ease-in-out infinite;
+        }
+        .snap-panel-content.pl-loaded .snap-badge-ELEVATED  { --badge-glow: rgba(249,115,22,0.4);  }
+        .snap-panel-content.pl-loaded .snap-badge-HIGH,
+        .snap-panel-content.pl-loaded .snap-badge-SEVERE    { --badge-glow: rgba(239,68,68,0.4);   }
+        .snap-panel-content.pl-loaded .snap-badge-CRITICAL  { --badge-glow: rgba(220,38,38,0.45);  }
+        .snap-panel-content.pl-loaded .snap-badge-MODERATE,
+        .snap-panel-content.pl-loaded .snap-badge-STABLE_HIGH { --badge-glow: rgba(234,179,8,0.4); }
+        .snap-panel-content.pl-loaded .snap-badge-LOW,
+        .snap-panel-content.pl-loaded .snap-badge-NORMAL    { --badge-glow: rgba(34,197,94,0.4);   }
 
         /* ── PANEL LOADER (Standard Loading Functionality) ── */
         .snap-panel-loader {
@@ -2981,21 +3051,24 @@
                 <div class="snap-panel-content" id="snap-panel-content">
                     <!-- Block 1: Risk Indices -->
                     <div class="snap-block">
-                        <div class="snap-row">
+                        <a class="snap-row" href="/indices/global-energy-risk-index">
                             <span class="snap-row-label">Global Energy Risk Index (GERI)</span>
                             <span class="snap-row-value" id="snap-geri-value">—</span>
                             <span class="snap-badge" id="snap-geri-band"></span>
-                        </div>
-                        <div class="snap-row">
+                            <span class="snap-row-chevron">›</span>
+                        </a>
+                        <a class="snap-row" href="/indices/europe-energy-risk-index">
                             <span class="snap-row-label">European Energy Risk Index (EERI)</span>
                             <span class="snap-row-value" id="snap-eeri-value">—</span>
                             <span class="snap-badge" id="snap-eeri-band"></span>
-                        </div>
-                        <div class="snap-row">
+                            <span class="snap-row-chevron">›</span>
+                        </a>
+                        <a class="snap-row" href="/indices/europe-gas-stress-index">
                             <span class="snap-row-label">European Gas Stress Index (EGSI)</span>
                             <span class="snap-row-value" id="snap-egsi-value">—</span>
                             <span class="snap-badge" id="snap-egsi-band"></span>
-                        </div>
+                            <span class="snap-row-chevron">›</span>
+                        </a>
                     </div>
 
                     <!-- Divider -->
