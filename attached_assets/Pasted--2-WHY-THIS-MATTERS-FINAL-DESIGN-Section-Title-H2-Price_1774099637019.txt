@@ -1,0 +1,103 @@
+🟩 2. “WHY THIS MATTERS” — FINAL DESIGN
+🔹 Section Title (H2)
+
+Prices Tell You What Happened. Risk Tells You What Comes Next.
+
+👉 Keep exactly as is — this is excellent (hook + differentiation + memorable)
+
+🔹 Layout (High Impact)
+
+Two-column layout (desktop):
+
+Left: Explanation (short + punchy)
+Right: Comparison visual (table/cards)
+
+Mobile:
+
+Stack → Title → Text → Comparison
+🔹 Left Side — Explanation (Refined Copy)
+
+Keep it ultra-fast to read:
+
+Option (Recommended):
+
+Prices react after the move.
+Headlines amplify noise.
+Markets move on shifting risk regimes.
+
+EnergyRiskIQ quantifies global energy risk into clear, structured signals — before it’s fully reflected in prices.
+
+🔹 Why this works:
+Short sentences → scannable
+Clear contrast → educational
+Ends with your value proposition
+🔹 Right Side — Visual Comparison (Core Element)
+
+This is the money visual — make it clean and sharp.
+
+Format: 2-Column Comparison Card
+Prices                EnergyRiskIQ
+-----------------------------------------
+Reactive              Predictive
+Noisy                 Structured
+Lagging               Forward-looking
+🔹 Design Styling
+🧩 Container
+Same style as Hero panel (consistency)
+Background: dark
+Border radius: 16px
+Padding: 20px
+🔴 Left Column (Prices)
+Color: muted grey/red tone
+Slightly “weaker” visual weight
+🟢 Right Column (EnergyRiskIQ)
+Color: accent (green/blue)
+Slight glow or highlight
+
+👉 This subtly says:
+“Right side = better”
+
+🔹 Visual Enhancement (IMPORTANT)
+
+Add icons for faster cognition:
+
+Prices	EnergyRiskIQ
+⏱ Reactive	🔮 Predictive
+🔊 Noisy	📊 Structured
+🐢 Lagging	⚡ Forward-looking
+
+👉 This increases understanding in <3 seconds
+
+🔹 Optional Label (Top of Card)
+
+Add a small label:
+
+“Traditional vs Energy Risk Intelligence”
+
+🔹 SEO Layer (Subtle but Important)
+
+Include keywords naturally in section:
+
+energy risk
+energy markets
+geopolitical risk
+energy prices
+
+You already do this — no stuffing needed.
+
+🔹 Micro CTA (End of Section)
+
+Add a small line under the visual:
+
+👉 “See how the indices work →”
+(link to /indices or /research/global-energy-risk-index)
+
+🔹 Strategic Purpose (Why this section matters)
+
+This section solves 3 problems instantly:
+
+❓ “What is this?” → Answered
+🤔 “Why should I care?” → Answered
+🔄 “How is this different?” → Answered
+
+👉 Without this, users bounce.

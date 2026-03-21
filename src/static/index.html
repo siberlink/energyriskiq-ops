@@ -2989,6 +2989,197 @@
             .egsi-card { padding: 1.25rem; }
             .egsi-icon { font-size: 2rem; }
         }
+
+        /* ══════════════════════════════════════════
+           WHY THIS MATTERS — Section
+        ══════════════════════════════════════════ */
+        .wtm-section {
+            background: #080e1a;
+            padding: 80px 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s ease, transform 0.65s ease;
+        }
+        .wtm-section.wtm-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .wtm-inner {
+            max-width: 1020px;
+            margin: 0 auto;
+        }
+        .wtm-eyebrow {
+            font-size: 0.71rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #d4a017;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .wtm-eyebrow::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(212,160,23,0.35) 0%, transparent 100%);
+        }
+        .wtm-title {
+            font-size: clamp(1.55rem, 3.2vw, 2.25rem);
+            font-weight: 800;
+            color: #f8fafc;
+            line-height: 1.25;
+            margin-bottom: 52px;
+            max-width: 680px;
+        }
+        .wtm-title em {
+            font-style: normal;
+            color: #d4a017;
+        }
+        .wtm-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+        @media (max-width: 780px) {
+            .wtm-grid { grid-template-columns: 1fr; gap: 40px; }
+            .wtm-section { padding: 56px 1.25rem; }
+            .wtm-title { margin-bottom: 36px; }
+        }
+
+        /* Left side */
+        .wtm-taglines {
+            margin-bottom: 28px;
+        }
+        .wtm-taglines p {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0 0 10px;
+            padding: 10px 14px;
+            border-left: 2px solid rgba(212,160,23,0.45);
+            background: rgba(212,160,23,0.035);
+            border-radius: 0 6px 6px 0;
+        }
+        .wtm-body {
+            font-size: 0.95rem;
+            color: #64748b;
+            line-height: 1.75;
+            margin-bottom: 28px;
+        }
+        .wtm-body strong {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .wtm-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #d4a017;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(212,160,23,0.3);
+            padding-bottom: 2px;
+            transition: color 0.2s, border-color 0.2s, gap 0.2s;
+        }
+        .wtm-cta:hover {
+            color: #fbbf24;
+            border-color: rgba(251,191,36,0.5);
+            gap: 10px;
+        }
+
+        /* Right side — comparison card */
+        .wtm-card {
+            background: #0B1220;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        .wtm-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(212,160,23,0.04) 0%, transparent 55%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .wtm-card-label {
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            color: rgba(148,163,184,0.45);
+            text-align: center;
+            padding: 16px 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+        .wtm-col-headers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 12px 20px 8px;
+            position: relative;
+            z-index: 1;
+        }
+        .wtm-col-h {
+            font-size: 0.73rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            text-align: center;
+            padding-bottom: 8px;
+        }
+        .wtm-col-h-prices {
+            color: rgba(239,68,68,0.65);
+            border-bottom: 1px solid rgba(239,68,68,0.2);
+        }
+        .wtm-col-h-eriq {
+            color: #22c55e;
+            border-bottom: 1px solid rgba(34,197,94,0.25);
+        }
+        .wtm-rows {
+            position: relative;
+            z-index: 1;
+        }
+        .wtm-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-top: 1px solid rgba(255,255,255,0.055);
+        }
+        .wtm-cell {
+            padding: 15px 20px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wtm-cell-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .wtm-cell-prices {
+            color: rgba(148,163,184,0.55);
+            border-right: 1px solid rgba(255,255,255,0.055);
+        }
+        .wtm-cell-eriq {
+            color: #e2e8f0;
+            background: rgba(34,197,94,0.04);
+        }
+        /* Row stagger animation */
+        @keyframes wtm-row-in {
+            from { opacity: 0; transform: translateX(-6px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .wtm-visible .wtm-row:nth-child(1) { animation: wtm-row-in 0.4s ease 0.35s both; }
+        .wtm-visible .wtm-row:nth-child(2) { animation: wtm-row-in 0.4s ease 0.48s both; }
+        .wtm-visible .wtm-row:nth-child(3) { animation: wtm-row-in 0.4s ease 0.61s both; }
     </style>
 </head>
 <body>
@@ -3152,6 +3343,85 @@
             </script>
 
         </div>
+    </section>
+
+    <!-- Section: Why This Matters -->
+    <section class="wtm-section" id="why-this-matters">
+        <div class="wtm-inner">
+
+            <div class="wtm-eyebrow">Why This Matters</div>
+
+            <h2 class="wtm-title">Prices Tell You What Happened.<br><em>Risk Tells You What Comes Next.</em></h2>
+
+            <div class="wtm-grid">
+
+                <!-- Left: Explanation -->
+                <div class="wtm-left">
+                    <div class="wtm-taglines">
+                        <p>Prices react after the move.</p>
+                        <p>Headlines amplify noise.</p>
+                        <p>Markets move on shifting risk regimes.</p>
+                    </div>
+                    <p class="wtm-body">
+                        EnergyRiskIQ quantifies <strong>global energy risk</strong> into clear, structured signals &mdash; capturing geopolitical risk, energy price dynamics, and supply disruptions <strong>before</strong> they&rsquo;re fully reflected in energy markets.
+                    </p>
+                    <a href="/indices/global-energy-risk-index" class="wtm-cta">See how the indices work <span aria-hidden="true">&#8594;</span></a>
+                </div>
+
+                <!-- Right: Comparison card -->
+                <div class="wtm-card">
+                    <div class="wtm-card-label">Traditional vs Energy Risk Intelligence</div>
+                    <div class="wtm-col-headers">
+                        <div class="wtm-col-h wtm-col-h-prices">Prices</div>
+                        <div class="wtm-col-h wtm-col-h-eriq">EnergyRiskIQ</div>
+                    </div>
+                    <div class="wtm-rows">
+                        <div class="wtm-row">
+                            <div class="wtm-cell wtm-cell-prices">
+                                <span class="wtm-cell-icon">&#9200;</span> Reactive
+                            </div>
+                            <div class="wtm-cell wtm-cell-eriq">
+                                <span class="wtm-cell-icon">&#128302;</span> Predictive
+                            </div>
+                        </div>
+                        <div class="wtm-row">
+                            <div class="wtm-cell wtm-cell-prices">
+                                <span class="wtm-cell-icon">&#128266;</span> Noisy
+                            </div>
+                            <div class="wtm-cell wtm-cell-eriq">
+                                <span class="wtm-cell-icon">&#128202;</span> Structured
+                            </div>
+                        </div>
+                        <div class="wtm-row">
+                            <div class="wtm-cell wtm-cell-prices">
+                                <span class="wtm-cell-icon">&#128034;</span> Lagging
+                            </div>
+                            <div class="wtm-cell wtm-cell-eriq">
+                                <span class="wtm-cell-icon">&#9889;</span> Forward-looking
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <script>
+        (function(){
+            var el = document.getElementById('why-this-matters');
+            if (!el) return;
+            if ('IntersectionObserver' in window) {
+                var obs = new IntersectionObserver(function(entries){
+                    entries.forEach(function(e){
+                        if (e.isIntersecting) { el.classList.add('wtm-visible'); obs.unobserve(el); }
+                    });
+                }, { threshold: 0.12 });
+                obs.observe(el);
+            } else {
+                el.classList.add('wtm-visible');
+            }
+        })();
+        </script>
     </section>
 
     <!-- Section: GERI Presentation -->
