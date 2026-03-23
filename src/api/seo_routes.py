@@ -43,7 +43,7 @@ from src.seo.digest_page_generator import (
     get_public_digest_page,
     get_recent_public_digest_pages,
 )
-from src.geri.geri_service import get_geri_for_user, get_geri_delayed
+from src.geri.geri_service import get_geri_for_user, get_geri_delayed, get_geri_latest
 from src.geri.interpretation import generate_interpretation as generate_geri_interpretation
 from src.geri.geri_history_service import (
     get_snapshot_by_date,
@@ -1694,14 +1694,14 @@ async def geri_page(request: Request):
         except:
             pass
     
-    geri = get_geri_for_user(user_id)
+    geri = get_geri_latest()
     
     score_card = ""
     change_stats = ""
     driver_cards = ""
     interp_card = ""
     chart_section = ""
-    is_delayed = True
+    is_delayed = False
     
     if not geri:
         score_card = """
@@ -1722,8 +1722,6 @@ async def geri_page(request: Request):
         }
         band_color = band_colors.get(geri.band, '#6b7280')
         
-        delay_badge = '<div class="geri-delay-badge">Public value delay: 24 hours</div>' if is_delayed else '<div class="geri-realtime-badge">Real-time Data</div>'
-        
         score_card = f"""
         <div class="geri-metric-card">
             <div class="geri-header">
@@ -1734,7 +1732,6 @@ async def geri_page(request: Request):
             <div style="font-size: 1.1rem; font-weight: 600; color: {band_color}; margin-bottom: 0.25rem;">{geri.band}</div>
             <div class="geri-scale-ref">0 = minimal risk &middot; 100 = extreme systemic stress</div>
             <div class="geri-date">Last updated: {geri.computed_at}</div>
-            {delay_badge}
         </div>
         """
 
@@ -1747,11 +1744,10 @@ async def geri_page(request: Request):
         t7d_display = f"{t7d_sign}{trend_7d_val:.0f}" if trend_7d_val is not None else "N/A"
         t7d_color = "#ef4444" if (trend_7d_val or 0) > 0 else "#22c55e" if (trend_7d_val or 0) < 0 else "#64748b"
 
-        from src.db.db import execute_query
         from datetime import datetime, timedelta
         thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%d')
-        range_rows = execute_query(
-            "SELECT MIN(value) as min_val, MAX(value) as max_val FROM intel_indices_daily WHERE index_id = 'geri' AND date >= %s",
+        range_rows = execute_production_query(
+            "SELECT MIN(value) as min_val, MAX(value) as max_val FROM intel_indices_daily WHERE index_id = 'global:geo_energy_risk' AND date >= %s",
             (thirty_days_ago,)
         )
         range_row = range_rows[0] if range_rows else {}
