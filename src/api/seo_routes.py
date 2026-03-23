@@ -5892,7 +5892,7 @@ async def geri_research_page(request: Request):
     _ov_lng_js      = _json.dumps(_ov_lng_raw)
     _geri_spikes_js = _json.dumps(_geri_spikes_py)
 
-    # ── Section 8.5: GERI Reading card (24h delayed — OFFSET 1 rule) ─────────
+    # ── Section 8.5: GERI Reading card (current data — no delay) ─────────────
     _reading_d = None
     _reading_range_min = None
     _reading_range_max = None
@@ -5902,7 +5902,7 @@ async def geri_research_page(request: Request):
             FROM intel_indices_daily
             WHERE index_id = 'global:geo_energy_risk'
             ORDER BY date DESC
-            OFFSET 1 LIMIT 1
+            LIMIT 1
         """)
         if _reading_rows:
             _reading_d = _reading_rows[0]
@@ -7642,7 +7642,7 @@ async def geri_research_page(request: Request):
             <div class="research-section" id="geri-reading">
                 <h2>GERI Reading</h2>
                 <p style="color:#94a3b8;font-size:1rem;line-height:1.75;max-width:780px;margin-bottom:2rem;">
-                    The current state of the Global Energy Risk Index, updated daily with a 24-hour public delay.
+                    The current state of the Global Energy Risk Index, updated daily.
                 </p>
 
                 <!-- Card — matches /indices/global-energy-risk-index style, links there -->
@@ -7671,11 +7671,6 @@ async def geri_research_page(request: Request):
                             Last updated: <span style="color:#94a3b8;font-weight:600;">{_rd_date}</span>
                         </div>
 
-                        <!-- 24h badge -->
-                        <div style="border:1px solid #854d0e;border-radius:6px;padding:0.38rem 0.75rem;text-align:center;background:#1c0a00;margin-bottom:1.25rem;">
-                            <span style="font-size:0.75rem;font-weight:600;color:#f59e0b;letter-spacing:0.04em;">Public value delay: 24 hours</span>
-                        </div>
-
                         <!-- Stats row -->
                         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:1.4rem;">
                             <div style="background:#0a1628;border:1px solid #1e293b;border-radius:8px;padding:0.7rem 0.5rem;text-align:center;">
@@ -7692,11 +7687,10 @@ async def geri_research_page(request: Request):
                             </div>
                         </div>
 
-                        <!-- Interpretation -->
+                        <!-- What GERI Tracks -->
                         <div style="background:#0a1628;border:1px solid #1e293b;border-left:3px solid {_rd_color};border-radius:0 8px 8px 0;padding:1.1rem 1.15rem 1rem;text-align:left;margin-bottom:1.2rem;">
-                            <div style="font-size:0.68rem;font-weight:700;color:{_rd_color};letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.65rem;">Interpretation</div>
-                            <p style="color:#94a3b8;font-size:0.84rem;line-height:1.75;margin:0 0 {_rd_p_margin};">{_rd_interp_short}{_rd_ellipsis}</p>
-                            {_rd_rest_html}
+                            <div style="font-size:0.68rem;font-weight:700;color:{_rd_color};letter-spacing:0.07em;text-transform:uppercase;margin-bottom:0.65rem;">What GERI Tracks</div>
+                            <p style="color:#94a3b8;font-size:0.84rem;line-height:1.75;margin:0;">Tracks geopolitical escalation events, energy supply disruptions, sanctions regimes, and regional instability across major oil and gas markets. Aggregates signals from producing zones, transit chokepoints, and LNG corridors into a single 0&ndash;100 daily score &mdash; delivering structured risk intelligence before stress is reflected in commodity prices.</p>
                         </div>
 
                         <!-- CTA -->
