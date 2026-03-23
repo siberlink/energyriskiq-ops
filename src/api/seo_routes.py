@@ -2596,7 +2596,7 @@ async def geri_page(request: Request):
                     <a href="/">Home</a> / <a href="/indices">Indices</a> / Global Energy Risk Index
                 </div>
                 <div class="geri-hero">
-                    <h1>Global Energy Risk Index (GERI)</h1>
+                    <h1>Global Energy Risk Index (GERI)<span style="display:block;font-size:0.45em;font-weight:500;color:#64748b;letter-spacing:0.08em;text-transform:uppercase;margin-top:0.4em;">Updating Daily</span></h1>
                     <p class="geri-keyword-intro">The GERI tracks geopolitical risk, energy supply disruptions, and market stress across oil, gas, LNG, and power systems worldwide. Updated daily, it provides a single composite score from 0 to 100 measuring systemic risk in global energy markets.</p>
                     <p class="methodology-link"><a href="/geri/methodology">GERI Methodology &amp; Construction &rarr;</a></p>
                 </div>
