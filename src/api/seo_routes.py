@@ -5972,16 +5972,7 @@ async def geri_research_page(request: Request):
         _rd_p_margin = '0'
         _rd_rest_html = ''
 
-    # ── Section 11: Related Indices — EERI & EGSI (24h delayed) ──────────────
-    from datetime import datetime as _dt2, timedelta as _td2
-    _rel_yesterday = (_dt2.utcnow() - _td2(days=1)).date()
-
-    # 24h DELAY RULE: The public "24h delayed" value is always the SECOND-TO-LAST
-    # entry in the table (OFFSET 1). The most recent row = today's computed value
-    # (not yet public). The second-most-recent row = yesterday's value = 24h delayed.
-    # e.g. today=2026-03-12 → latest row index_date=2026-03-11 (skip) →
-    #      second row index_date=2026-03-10 (show as 24h delayed).
-    # Pattern: ORDER BY date DESC OFFSET 1 LIMIT 1  (no date filter needed)
+    # ── Section 11: Related Indices — EERI & EGSI (current data) ─────────────
 
     _eeri_d = None
     try:
@@ -5990,7 +5981,7 @@ async def geri_research_page(request: Request):
             FROM reri_indices_daily
             WHERE index_id = 'europe:eeri'
             ORDER BY date DESC
-            OFFSET 1 LIMIT 1
+            LIMIT 1
         """)
         if _eeri_rows2:
             _eeri_d = _eeri_rows2[0]
@@ -6004,7 +5995,7 @@ async def geri_research_page(request: Request):
             FROM egsi_m_daily
             WHERE region = 'Europe'
             ORDER BY index_date DESC
-            OFFSET 1 LIMIT 1
+            LIMIT 1
         """)
         if _egsi_rows2:
             _egsi_d = _egsi_rows2[0]
@@ -8098,7 +8089,7 @@ async def geri_research_page(request: Request):
                             <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;">
                                 <span style="font-size:1.3rem;">⚡</span>
                                 <div>
-                                    <div style="font-size:0.95rem;font-weight:700;color:#e2e8f0;line-height:1.2;">European Energy Risk Index</div>
+                                    <a href="/indices/europe-energy-risk-index" style="font-size:0.95rem;font-weight:700;color:#e2e8f0;line-height:1.2;text-decoration:none;">European Energy Risk Index</a>
                                     <div style="font-size:0.72rem;font-weight:600;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-top:0.1rem;">EERI · Regional Escalation Risk</div>
                                 </div>
                             </div>
@@ -8120,11 +8111,6 @@ async def geri_research_page(request: Request):
                                 {"" if not _eeri_trend else f'<div style="font-size:0.8rem;color:#94a3b8;font-weight:600;">{_eeri_trend}</div>'}
                             </div>
 
-                            <!-- 24h badge -->
-                            <div style="border:1px solid #854d0e;border-radius:6px;padding:0.4rem 0.75rem;text-align:center;background:#1c0a00;">
-                                <span style="font-size:0.75rem;font-weight:600;color:#f59e0b;letter-spacing:0.04em;">Public value delay: 24 hours</span>
-                            </div>
-
                             <!-- What it measures -->
                             <p style="color:#64748b;font-size:0.8rem;line-height:1.6;margin:1.1rem 0 0;border-top:1px solid #1e293b;padding-top:1rem;">
                                 Tracks geopolitical risk, gas supply disruptions, and market stress across
@@ -8142,7 +8128,7 @@ async def geri_research_page(request: Request):
                             <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;">
                                 <span style="font-size:1.3rem;">🔋</span>
                                 <div>
-                                    <div style="font-size:0.95rem;font-weight:700;color:#e2e8f0;line-height:1.2;">Europe Gas Stress Index</div>
+                                    <a href="/indices/europe-gas-stress-index" style="font-size:0.95rem;font-weight:700;color:#e2e8f0;line-height:1.2;text-decoration:none;">Europe Gas Stress Index</a>
                                     <div style="font-size:0.72rem;font-weight:600;color:#64748b;letter-spacing:0.06em;text-transform:uppercase;margin-top:0.1rem;">EGSI-M · Market Stress</div>
                                 </div>
                             </div>
@@ -8162,11 +8148,6 @@ async def geri_research_page(request: Request):
                                     Last updated: <span style="color:#94a3b8;font-weight:600;">{_egsi_date}</span>
                                 </div>
                                 {"" if not _egsi_trend else f'<div style="font-size:0.8rem;color:#94a3b8;font-weight:600;">{_egsi_trend}</div>'}
-                            </div>
-
-                            <!-- 24h badge -->
-                            <div style="border:1px solid #854d0e;border-radius:6px;padding:0.4rem 0.75rem;text-align:center;background:#1c0a00;">
-                                <span style="font-size:0.75rem;font-weight:600;color:#f59e0b;letter-spacing:0.04em;">Public value delay: 24 hours</span>
                             </div>
 
                             <!-- What it measures -->
