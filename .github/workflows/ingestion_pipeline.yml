@@ -43,6 +43,7 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OIL_PRICE_API_KEY: ${{ secrets.OIL_PRICE_API_KEY }}
       PYTHONPATH: '.'
       SKIP_MIGRATIONS: 'true'
     
@@ -96,6 +97,24 @@ jobs:
           
           echo "ai_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
+      - name: Capture Intraday Prices
+        id: intraday
+        timeout-minutes: 3
+        run: |
+          echo "=== Capturing Intraday Prices ==="
+          python -c "
+          from src.ingest.intraday_prices import capture_intraday_prices
+          result = capture_intraday_prices()
+          assets = result.get('assets', {})
+          for key, info in assets.items():
+              status = info.get('status', 'unknown')
+              price  = info.get('price', 'N/A')
+              print(f'  {key}: {status} @ {price}')
+          print(f'Intraday capture complete: hour {result[\"hour\"]} UTC')
+          " 2>&1 | tee intraday_output.txt
+          
+          echo "intraday_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
       - name: Run Risk Scoring
         id: risk
         if: github.event.inputs.skip_risk != 'true'
@@ -118,6 +137,7 @@ jobs:
           path: |
             ingest_output.txt
             ai_output.txt
+            intraday_output.txt
             risk_output.txt
           retention-days: 7
 
@@ -149,6 +169,12 @@ jobs:
             echo "| AI Enrichment | Completed |" >> $GITHUB_STEP_SUMMARY
           else
             echo "| AI Enrichment | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f intraday_output.txt ]; then
+            echo "| Intraday Prices | Completed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Intraday Prices | Not Run |" >> $GITHUB_STEP_SUMMARY
           fi
           
           if [ -f risk_output.txt ]; then

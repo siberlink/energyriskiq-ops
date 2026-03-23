@@ -77,18 +77,33 @@ def insert_risk_event(event_id: int, region: str, category: str, base_severity: 
             (event_id, region, category, base_severity, ai_confidence, weighted_score)
         )
 
-def get_rolling_max(region: str, days: int = 90) -> float:
+def get_rolling_max(region: str, window_days: int = 7, lookback_days: int = 180) -> float:
+    """Max rolling window sum over lookback_days, using windows of window_days length.
+    
+    Compares apples-to-apples: the current window_days score is normalised against the
+    highest window_days sum seen in the historical lookback, so the result correctly
+    stays below 100 unless today is a genuine all-time high.
+    """
     query = """
-    SELECT COALESCE(MAX(total_score), 1.0) as max_score
-    FROM (
-        SELECT SUM(weighted_score) as total_score
+    WITH daily_scores AS (
+        SELECT DATE(created_at) AS day,
+               SUM(weighted_score) AS daily_total
         FROM risk_events
         WHERE region = %s
           AND created_at >= NOW() - make_interval(days => %s)
         GROUP BY DATE(created_at)
-    ) daily_totals
+    )
+    SELECT COALESCE(MAX(window_sum), 1.0) AS max_score
+    FROM (
+        SELECT SUM(d2.daily_total) AS window_sum
+        FROM daily_scores d1
+        JOIN daily_scores d2
+          ON d2.day BETWEEN d1.day
+                        AND (d1.day + make_interval(days => %s - 1))
+        GROUP BY d1.day
+    ) windows
     """
-    result = execute_one(query, (region, days))
+    result = execute_one(query, (region, lookback_days, window_days))
     return max(result['max_score'] if result['max_score'] else 1.0, 1.0)
 
 def compute_window_score(region: str, window_days: int) -> float:
@@ -290,10 +305,10 @@ def run_risk_engine():
     logger.info("Computing regional risk indices...")
     
     for region in FOCUS_REGIONS:
-        rolling_max = get_rolling_max(region)
         trend = compute_trend(region)
         
         for window in WINDOWS:
+            rolling_max = get_rolling_max(region, window_days=window)
             raw_score = compute_window_score(region, window)
             normalized_score = min((raw_score / rolling_max) * 100, 100)
             
