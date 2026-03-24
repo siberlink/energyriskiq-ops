@@ -63,6 +63,36 @@ async def hero_snapshot_api():
         logger.error("hero-snapshot API error: %s", exc)
         return JSONResponse({"error": str(exc)}, status_code=500)
 
+@router.get("/api/ceri-sparklines")
+async def ceri_sparklines_api():
+    """30-day sparkline data for GERI, EERI, EGSI — used by Core Energy Risk Indices cards."""
+    from fastapi.responses import JSONResponse
+    try:
+        def _vals(rows, col="value"):
+            return [round(float(r[col]), 2) for r in (rows or [])]
+
+        geri_rows = execute_production_query(
+            "SELECT value FROM (SELECT date, value FROM intel_indices_daily "
+            "WHERE index_id='global:geo_energy_risk' ORDER BY date DESC LIMIT 30) t ORDER BY date ASC"
+        )
+        eeri_rows = execute_production_query(
+            "SELECT value FROM (SELECT date, value FROM reri_indices_daily "
+            "WHERE index_id='europe:eeri' ORDER BY date DESC LIMIT 30) t ORDER BY date ASC"
+        )
+        egsi_rows = execute_production_query(
+            "SELECT index_value AS value FROM (SELECT index_date, index_value FROM egsi_m_daily "
+            "WHERE region='Europe' ORDER BY index_date DESC LIMIT 30) t ORDER BY index_date ASC"
+        )
+        return JSONResponse({
+            "geri": _vals(geri_rows),
+            "eeri": _vals(eeri_rows),
+            "egsi": _vals(egsi_rows),
+        }, headers={"Cache-Control": "public, max-age=3600"})
+    except Exception as exc:
+        logger.error("ceri-sparklines API error: %s", exc)
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
+
 BAND_COLORS = {
     'LOW':      '#22c55e',
     'MODERATE': '#eab308',

@@ -3504,8 +3504,14 @@
                             </div>
                             <div id="ceri-geri-band" style="display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #f97316; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); border-radius: 6px; padding: 0.2rem 0.6rem; margin-bottom: 1rem; text-transform: uppercase;">--</div>
                             <div style="font-size: 0.75rem; color: #475569; margin-bottom: 0.75rem;">0 = minimal risk &middot; 100 = extreme systemic stress</div>
-                            <div id="ceri-geri-trend" style="font-size: 0.8rem; color: #94a3b8;">7-Day Trend: <span id="ceri-geri-trend-label" style="color: #e2e8f0; font-weight: 600;">--</span> <span id="ceri-geri-trend-value" style="color: #64748b;"></span></div>
-                            <div style="margin-top: 1.25rem; font-size: 0.82rem; color: #64748b; line-height: 1.55;">Tracks global geopolitical energy risk across major producing and transit regions.</div>
+                            <div style="margin: 1rem 0 0.5rem 0;">
+                                <svg id="spark-geri" width="100%" height="56" style="display:block;overflow:visible;"></svg>
+                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                                    <span style="font-size:0.65rem;color:#334155;">30 days ago</span>
+                                    <span style="font-size:0.65rem;color:#334155;">Today</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.75rem; font-size: 0.82rem; color: #64748b; line-height: 1.55;">Tracks global geopolitical energy risk across major producing and transit regions.</div>
                         </div>
                     </a>
 
@@ -3523,8 +3529,14 @@
                             </div>
                             <div id="ceri-eeri-band" style="display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #60a5fa; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; padding: 0.2rem 0.6rem; margin-bottom: 1rem; text-transform: uppercase;">--</div>
                             <div style="font-size: 0.75rem; color: #475569; margin-bottom: 0.75rem;">0 = minimal risk &middot; 100 = extreme disruption stress</div>
-                            <div id="ceri-eeri-trend" style="font-size: 0.8rem; color: #94a3b8;">7-Day Trend: <span id="ceri-eeri-trend-label" style="color: #e2e8f0; font-weight: 600;">--</span> <span id="ceri-eeri-trend-value" style="color: #64748b;"></span></div>
-                            <div style="margin-top: 1.25rem; font-size: 0.82rem; color: #64748b; line-height: 1.55;">Measures escalation risk across Europe, including infrastructure, conflict, and policy shocks.</div>
+                            <div style="margin: 1rem 0 0.5rem 0;">
+                                <svg id="spark-eeri" width="100%" height="56" style="display:block;overflow:visible;"></svg>
+                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                                    <span style="font-size:0.65rem;color:#334155;">30 days ago</span>
+                                    <span style="font-size:0.65rem;color:#334155;">Today</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.75rem; font-size: 0.82rem; color: #64748b; line-height: 1.55;">Measures escalation risk across Europe, including infrastructure, conflict, and policy shocks.</div>
                         </div>
                     </a>
 
@@ -3542,8 +3554,14 @@
                             </div>
                             <div id="ceri-egsi-band" style="display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #34d399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); border-radius: 6px; padding: 0.2rem 0.6rem; margin-bottom: 1rem; text-transform: uppercase;">--</div>
                             <div style="font-size: 0.75rem; color: #475569; margin-bottom: 0.75rem;">0 = minimal stress &middot; 100 = critical gas system stress</div>
-                            <div id="ceri-egsi-trend" style="font-size: 0.8rem; color: #94a3b8;">7-Day Trend: <span id="ceri-egsi-trend-label" style="color: #e2e8f0; font-weight: 600;">--</span> <span id="ceri-egsi-trend-value" style="color: #64748b;"></span></div>
-                            <div style="margin-top: 1.25rem; font-size: 0.82rem; color: #64748b; line-height: 1.55;">Monitors European gas market stress using storage, flows, and disruption signals.</div>
+                            <div style="margin: 1rem 0 0.5rem 0;">
+                                <svg id="spark-egsi" width="100%" height="56" style="display:block;overflow:visible;"></svg>
+                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                                    <span style="font-size:0.65rem;color:#334155;">30 days ago</span>
+                                    <span style="font-size:0.65rem;color:#334155;">Today</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.75rem; font-size: 0.82rem; color: #64748b; line-height: 1.55;">Monitors European gas market stress using storage, flows, and disruption signals.</div>
                         </div>
                     </a>
 
@@ -3569,53 +3587,93 @@
         (function(){
             var msgs = [
                 'Connecting to production pipeline\u2026',
-                'Fetching GERI index\u2026',
-                'Loading EERI\u00a0&\u00a0EGSI\u2026',
+                'Fetching 30-day index history\u2026',
+                'Building GERI\u00a0\u00b7\u00a0EERI\u00a0\u00b7\u00a0EGSI sparklines\u2026',
                 'Analysing risk environment\u2026'
             ];
-            var idx = 0, el = document.getElementById('ceri-status');
+            var msgIdx = 0, el = document.getElementById('ceri-status');
             var timer = setInterval(function(){
-                idx = (idx + 1) % msgs.length;
-                if(el){ el.style.opacity='0'; setTimeout(function(){ el.textContent=msgs[idx]; el.style.opacity='1'; },200); }
+                msgIdx = (msgIdx + 1) % msgs.length;
+                if(el){ el.style.opacity='0'; setTimeout(function(){ el.textContent=msgs[msgIdx]; el.style.opacity='1'; },200); }
             }, 2000);
 
             function fmtNum(v, dp) {
                 if (v === null || v === undefined) return '--';
                 return parseFloat(v).toFixed(dp);
             }
-            function fillCeriCard(key, valueId, bandId, trendId, trendLabelId, trendValueId, dp, data) {
-                var idx = data[key];
-                if (!idx) return;
-                var valEl   = document.getElementById(valueId);
-                var bandEl  = document.getElementById(bandId);
-                if (valEl)  valEl.textContent  = fmtNum(idx.value, dp);
-                if (bandEl) bandEl.textContent  = idx.band || '--';
 
-                var t7 = idx.trend_7d;
-                if (t7 !== null && t7 !== undefined) {
-                    var lbl = 'Stable';
-                    if (t7 >= 5)       lbl = 'Rising';
-                    else if (t7 >= 2)  lbl = 'Slightly Rising';
-                    else if (t7 <= -5) lbl = 'Easing';
-                    else if (t7 <= -2) lbl = 'Slightly Easing';
-                    var lblEl  = document.getElementById(trendLabelId);
-                    var valTEl = document.getElementById(trendValueId);
-                    if (lblEl)  lblEl.textContent  = lbl;
-                    if (valTEl) valTEl.textContent = '(' + (t7 >= 0 ? '+' : '') + t7 + ')';
-                } else {
-                    var tEl = document.getElementById(trendId);
-                    if (tEl) tEl.style.display = 'none';
+            /* ── SVG Sparkline renderer ── */
+            function drawSparkline(svgId, data, color) {
+                var svg = document.getElementById(svgId);
+                if (!svg || !data || data.length < 2) return;
+                var W = svg.getBoundingClientRect().width || svg.parentNode.clientWidth || 240;
+                var H = 56, PAD = 4;
+                var min = Math.min.apply(null, data);
+                var max = Math.max.apply(null, data);
+                var range = (max - min) || 1;
+                var n = data.length;
+                /* map data → SVG coords */
+                var pts = data.map(function(v, i) {
+                    return [
+                        (i / (n - 1)) * W,
+                        H - PAD - ((v - min) / range) * (H - PAD * 2)
+                    ];
+                });
+                /* smooth cubic bezier path */
+                var path = 'M ' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
+                for (var i = 1; i < pts.length; i++) {
+                    var dx = (pts[i][0] - pts[i-1][0]) / 2.5;
+                    var c1x = (pts[i-1][0] + dx).toFixed(2), c1y = pts[i-1][1].toFixed(2);
+                    var c2x = (pts[i][0] - dx).toFixed(2),   c2y = pts[i][1].toFixed(2);
+                    path += ' C ' + c1x + ' ' + c1y + ',' + c2x + ' ' + c2y + ',' + pts[i][0].toFixed(2) + ' ' + pts[i][1].toFixed(2);
                 }
+                /* fill area under line */
+                var fill = path + ' L ' + pts[n-1][0].toFixed(2) + ' ' + H + ' L ' + pts[0][0].toFixed(2) + ' ' + H + ' Z';
+                var uid = svgId.replace(/[^a-z]/gi,'');
+                svg.innerHTML =
+                    '<defs>' +
+                      '<linearGradient id="sg' + uid + '" x1="0" y1="0" x2="0" y2="1">' +
+                        '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.28"/>' +
+                        '<stop offset="100%" stop-color="' + color + '" stop-opacity="0"/>' +
+                      '</linearGradient>' +
+                    '</defs>' +
+                    '<path d="' + fill + '" fill="url(#sg' + uid + ')" stroke="none"/>' +
+                    '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+                    '<circle cx="' + pts[n-1][0].toFixed(2) + '" cy="' + pts[n-1][1].toFixed(2) + '" r="3" fill="' + color + '" stroke="#0f172a" stroke-width="1.5"/>';
             }
 
-            fetch('/api/hero-snapshot')
-                .then(function(r){ return r.json(); })
-                .then(function(d){
+            /* ── Fetch both endpoints in parallel ── */
+            var snapP = fetch('/api/hero-snapshot').then(function(r){ return r.json(); });
+            var sparkP = fetch('/api/ceri-sparklines').then(function(r){ return r.json(); });
+
+            Promise.all([snapP, sparkP])
+                .then(function(results){
                     clearInterval(timer);
-                    if (d.error) return;
-                    fillCeriCard('geri', 'ceri-geri-value', 'ceri-geri-band', 'ceri-geri-trend', 'ceri-geri-trend-label', 'ceri-geri-trend-value', 0, d);
-                    fillCeriCard('eeri', 'ceri-eeri-value', 'ceri-eeri-band', 'ceri-eeri-trend', 'ceri-eeri-trend-label', 'ceri-eeri-trend-value', 0, d);
-                    fillCeriCard('egsi', 'ceri-egsi-value', 'ceri-egsi-band', 'ceri-egsi-trend', 'ceri-egsi-trend-label', 'ceri-egsi-trend-value', 1, d);
+                    var d = results[0], sp = results[1];
+
+                    /* Values + bands */
+                    if (!d.error) {
+                        var pairs = [
+                            ['geri', 'ceri-geri-value', 'ceri-geri-band', 0],
+                            ['eeri', 'ceri-eeri-value', 'ceri-eeri-band', 0],
+                            ['egsi', 'ceri-egsi-value', 'ceri-egsi-band', 1],
+                        ];
+                        pairs.forEach(function(p) {
+                            var idx = d[p[0]]; if (!idx) return;
+                            var vEl = document.getElementById(p[1]);
+                            var bEl = document.getElementById(p[2]);
+                            if (vEl) vEl.textContent = fmtNum(idx.value, p[3]);
+                            if (bEl) bEl.textContent = idx.band || '--';
+                        });
+                    }
+
+                    /* Sparklines */
+                    if (!sp.error) {
+                        drawSparkline('spark-geri', sp.geri, '#f97316');
+                        drawSparkline('spark-eeri', sp.eeri, '#60a5fa');
+                        drawSparkline('spark-egsi', sp.egsi, '#34d399');
+                    }
+
                     document.getElementById('ceri-loader').classList.add('pl-hidden');
                     document.getElementById('ceri-content').classList.add('pl-loaded');
                 })
