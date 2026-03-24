@@ -3457,6 +3457,177 @@
         </script>
     </section>
 
+    <!-- Section: Core Energy Risk Indices -->
+    <section id="core-indices-section" style="background: linear-gradient(180deg, #0c1222 0%, #0f172a 100%); padding: 5rem 0;">
+        <div style="max-width: 1100px; margin: 0 auto; padding: 0 1.5rem;">
+
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.25rem; font-weight: 800; color: #f8fafc; margin: 0 0 0.75rem 0; letter-spacing: -0.02em;">Core Energy Risk Indices</h2>
+                <p style="font-size: 1.1rem; color: #64748b; margin: 0;">Three indices. One structured view of global energy risk.</p>
+            </div>
+
+            <!-- Standard Loading Functionality -->
+            <div class="snap-panel-loader" id="ceri-loader">
+                <div class="pl-ring-wrap">
+                    <div class="pl-ring-bg"></div>
+                    <div class="pl-arc1"></div>
+                    <div class="pl-arc2"></div>
+                    <div class="pl-arc3"></div>
+                    <div class="pl-dot"></div>
+                </div>
+                <div class="pl-label-main">Loading latest data</div>
+                <div class="pl-label-sub" id="ceri-status">Connecting to production pipeline&hellip;</div>
+                <div class="pl-tags">
+                    <span class="pl-tag">GERI</span>
+                    <span class="pl-tag">EERI</span>
+                    <span class="pl-tag">EGSI</span>
+                </div>
+                <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+            </div>
+
+            <!-- Cards Grid (hidden until loaded) -->
+            <div class="snap-panel-content" id="ceri-content">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+
+                    <!-- GERI Card -->
+                    <a href="/indices/global-energy-risk-index" style="text-decoration: none; color: inherit; display: block;">
+                        <div style="background: rgba(30,41,59,0.85); border: 1px solid rgba(249,115,22,0.35); border-radius: 14px; padding: 1.75rem 1.5rem; height: 100%; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;" onmouseover="this.style.borderColor='rgba(249,115,22,0.7)';this.style.boxShadow='0 0 24px rgba(249,115,22,0.12)';" onmouseout="this.style.borderColor='rgba(249,115,22,0.35)';this.style.boxShadow='none';">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.5rem;">🔥</span>
+                                <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; color: #f97316; text-transform: uppercase;">GERI</span>
+                            </div>
+                            <div style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 1.25rem;">Global Energy Risk Index</div>
+                            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span id="ceri-geri-value" style="font-size: 3rem; font-weight: 800; color: #f97316; line-height: 1;">--</span>
+                                <span style="font-size: 1rem; color: #64748b; font-weight: 500;">/100</span>
+                            </div>
+                            <div id="ceri-geri-band" style="display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #f97316; background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); border-radius: 6px; padding: 0.2rem 0.6rem; margin-bottom: 1rem; text-transform: uppercase;">--</div>
+                            <div style="font-size: 0.75rem; color: #475569; margin-bottom: 0.75rem;">0 = minimal risk &middot; 100 = extreme systemic stress</div>
+                            <div id="ceri-geri-trend" style="font-size: 0.8rem; color: #94a3b8;">7-Day Trend: <span id="ceri-geri-trend-label" style="color: #e2e8f0; font-weight: 600;">--</span> <span id="ceri-geri-trend-value" style="color: #64748b;"></span></div>
+                            <div style="margin-top: 1.25rem; font-size: 0.8rem; font-weight: 600; color: #f97316; display: flex; align-items: center; gap: 0.3rem;">View Index <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></div>
+                        </div>
+                    </a>
+
+                    <!-- EERI Card -->
+                    <a href="/indices/europe-energy-risk-index" style="text-decoration: none; color: inherit; display: block;">
+                        <div style="background: rgba(30,41,59,0.85); border: 1px solid rgba(59,130,246,0.35); border-radius: 14px; padding: 1.75rem 1.5rem; height: 100%; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;" onmouseover="this.style.borderColor='rgba(59,130,246,0.7)';this.style.boxShadow='0 0 24px rgba(59,130,246,0.12)';" onmouseout="this.style.borderColor='rgba(59,130,246,0.35)';this.style.boxShadow='none';">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.5rem;">⚡</span>
+                                <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; color: #60a5fa; text-transform: uppercase;">EERI</span>
+                            </div>
+                            <div style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 1.25rem;">European Energy Risk Index</div>
+                            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span id="ceri-eeri-value" style="font-size: 3rem; font-weight: 800; color: #60a5fa; line-height: 1;">--</span>
+                                <span style="font-size: 1rem; color: #64748b; font-weight: 500;">/100</span>
+                            </div>
+                            <div id="ceri-eeri-band" style="display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #60a5fa; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; padding: 0.2rem 0.6rem; margin-bottom: 1rem; text-transform: uppercase;">--</div>
+                            <div style="font-size: 0.75rem; color: #475569; margin-bottom: 0.75rem;">0 = minimal risk &middot; 100 = extreme disruption stress</div>
+                            <div id="ceri-eeri-trend" style="font-size: 0.8rem; color: #94a3b8;">7-Day Trend: <span id="ceri-eeri-trend-label" style="color: #e2e8f0; font-weight: 600;">--</span> <span id="ceri-eeri-trend-value" style="color: #64748b;"></span></div>
+                            <div style="margin-top: 1.25rem; font-size: 0.8rem; font-weight: 600; color: #60a5fa; display: flex; align-items: center; gap: 0.3rem;">View Index <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></div>
+                        </div>
+                    </a>
+
+                    <!-- EGSI Card -->
+                    <a href="/indices/europe-gas-stress-index" style="text-decoration: none; color: inherit; display: block;">
+                        <div style="background: rgba(30,41,59,0.85); border: 1px solid rgba(16,185,129,0.35); border-radius: 14px; padding: 1.75rem 1.5rem; height: 100%; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s;" onmouseover="this.style.borderColor='rgba(16,185,129,0.7)';this.style.boxShadow='0 0 24px rgba(16,185,129,0.12)';" onmouseout="this.style.borderColor='rgba(16,185,129,0.35)';this.style.boxShadow='none';">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.5rem;">🌡️</span>
+                                <span style="font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; color: #34d399; text-transform: uppercase;">EGSI</span>
+                            </div>
+                            <div style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 1.25rem;">Europe Gas Stress Index</div>
+                            <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span id="ceri-egsi-value" style="font-size: 3rem; font-weight: 800; color: #34d399; line-height: 1;">--</span>
+                                <span style="font-size: 1rem; color: #64748b; font-weight: 500;">/100</span>
+                            </div>
+                            <div id="ceri-egsi-band" style="display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #34d399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); border-radius: 6px; padding: 0.2rem 0.6rem; margin-bottom: 1rem; text-transform: uppercase;">--</div>
+                            <div style="font-size: 0.75rem; color: #475569; margin-bottom: 0.75rem;">0 = minimal stress &middot; 100 = critical gas system stress</div>
+                            <div id="ceri-egsi-trend" style="font-size: 0.8rem; color: #94a3b8;">7-Day Trend: <span id="ceri-egsi-trend-label" style="color: #e2e8f0; font-weight: 600;">--</span> <span id="ceri-egsi-trend-value" style="color: #64748b;"></span></div>
+                            <div style="margin-top: 1.25rem; font-size: 0.8rem; font-weight: 600; color: #34d399; display: flex; align-items: center; gap: 0.3rem;">View Index <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg></div>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+
+        <style>
+        @media (max-width: 768px) {
+            #ceri-content > div {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        @media (max-width: 1024px) and (min-width: 769px) {
+            #ceri-content > div {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        </style>
+
+        <script>
+        (function(){
+            var msgs = [
+                'Connecting to production pipeline\u2026',
+                'Fetching GERI index\u2026',
+                'Loading EERI\u00a0&\u00a0EGSI\u2026',
+                'Analysing risk environment\u2026'
+            ];
+            var idx = 0, el = document.getElementById('ceri-status');
+            var timer = setInterval(function(){
+                idx = (idx + 1) % msgs.length;
+                if(el){ el.style.opacity='0'; setTimeout(function(){ el.textContent=msgs[idx]; el.style.opacity='1'; },200); }
+            }, 2000);
+
+            function fmtNum(v, dp) {
+                if (v === null || v === undefined) return '--';
+                return parseFloat(v).toFixed(dp);
+            }
+            function fillCeriCard(key, valueId, bandId, trendId, trendLabelId, trendValueId, dp, data) {
+                var idx = data[key];
+                if (!idx) return;
+                var valEl   = document.getElementById(valueId);
+                var bandEl  = document.getElementById(bandId);
+                if (valEl)  valEl.textContent  = fmtNum(idx.value, dp);
+                if (bandEl) bandEl.textContent  = idx.band || '--';
+
+                var t7 = idx.trend_7d;
+                if (t7 !== null && t7 !== undefined) {
+                    var lbl = 'Stable';
+                    if (t7 >= 5)       lbl = 'Rising';
+                    else if (t7 >= 2)  lbl = 'Slightly Rising';
+                    else if (t7 <= -5) lbl = 'Easing';
+                    else if (t7 <= -2) lbl = 'Slightly Easing';
+                    var lblEl  = document.getElementById(trendLabelId);
+                    var valTEl = document.getElementById(trendValueId);
+                    if (lblEl)  lblEl.textContent  = lbl;
+                    if (valTEl) valTEl.textContent = '(' + (t7 >= 0 ? '+' : '') + t7 + ')';
+                } else {
+                    var tEl = document.getElementById(trendId);
+                    if (tEl) tEl.style.display = 'none';
+                }
+            }
+
+            fetch('/api/hero-snapshot')
+                .then(function(r){ return r.json(); })
+                .then(function(d){
+                    clearInterval(timer);
+                    if (d.error) return;
+                    fillCeriCard('geri', 'ceri-geri-value', 'ceri-geri-band', 'ceri-geri-trend', 'ceri-geri-trend-label', 'ceri-geri-trend-value', 0, d);
+                    fillCeriCard('eeri', 'ceri-eeri-value', 'ceri-eeri-band', 'ceri-eeri-trend', 'ceri-eeri-trend-label', 'ceri-eeri-trend-value', 0, d);
+                    fillCeriCard('egsi', 'ceri-egsi-value', 'ceri-egsi-band', 'ceri-egsi-trend', 'ceri-egsi-trend-label', 'ceri-egsi-trend-value', 1, d);
+                    document.getElementById('ceri-loader').classList.add('pl-hidden');
+                    document.getElementById('ceri-content').classList.add('pl-loaded');
+                })
+                .catch(function(){
+                    clearInterval(timer);
+                    document.getElementById('ceri-loader').classList.add('pl-hidden');
+                    document.getElementById('ceri-content').classList.add('pl-loaded');
+                });
+        })();
+        </script>
+    </section>
+
     <!-- Section: GERI Presentation -->
     <section class="section section-geri" id="geri-section" style="background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); padding: 4rem 0;">
         <div class="section-inner" style="max-width: 1000px; margin: 0 auto; padding: 0 1.5rem;">
