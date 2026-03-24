@@ -3316,6 +3316,8 @@
                     .then(function(d){
                         clearInterval(plTimer);
                         if(d.error) return;
+
+                        /* ── Top hero panel ── */
                         document.getElementById('snap-geri-value').textContent = fmt(d.geri.value,0);
                         applyBadge(document.getElementById('snap-geri-band'), d.geri.band);
                         document.getElementById('snap-eeri-value').textContent = fmt(d.eeri.value,0);
@@ -3325,6 +3327,37 @@
                         document.getElementById('snap-brent-value').textContent = '$'+fmt(d.brent,2);
                         document.getElementById('snap-ttf-value').textContent   = '\u20ac'+fmt(d.ttf,2);
                         document.getElementById('snap-storage-value').textContent = fmt(d.storage,1)+'%';
+
+                        /* ── Section index cards (GERI / EERI / EGSI) ── */
+                        function fillIndexCard(key, decimalPlaces, sectionId, valueId, bandId, trendId, trendLabelId, trendValueId) {
+                            var idx = d[key];
+                            if (!idx) return;
+                            var valEl  = document.getElementById(valueId);
+                            var bandEl = document.getElementById(bandId);
+                            var sec    = document.getElementById(sectionId);
+                            if (valEl)  valEl.textContent  = fmt(idx.value, decimalPlaces);
+                            if (bandEl) bandEl.textContent = idx.band;
+                            if (sec)    sec.style.display  = 'block';
+                            var t7 = idx.trend_7d;
+                            if (t7 !== null && t7 !== undefined) {
+                                var lbl = 'Stable';
+                                if (t7 >= 5) lbl = 'Rising';
+                                else if (t7 >= 2) lbl = 'Slightly Rising';
+                                else if (t7 <= -5) lbl = 'Easing';
+                                else if (t7 <= -2) lbl = 'Slightly Easing';
+                                var lblEl = document.getElementById(trendLabelId);
+                                var valTEl = document.getElementById(trendValueId);
+                                if (lblEl)  lblEl.textContent  = lbl;
+                                if (valTEl) valTEl.textContent = '(' + (t7 >= 0 ? '+' : '') + t7 + ')';
+                            } else {
+                                var tEl = document.getElementById(trendId);
+                                if (tEl) tEl.style.display = 'none';
+                            }
+                        }
+                        fillIndexCard('geri', 0, 'geri-public-section', 'geri-value', 'geri-band', 'geri-trend', 'geri-trend-label', 'geri-trend-value');
+                        fillIndexCard('eeri', 0, 'eeri-public-section', 'eeri-value', 'eeri-band', 'eeri-trend', 'eeri-trend-label', 'eeri-trend-value');
+                        fillIndexCard('egsi', 1, 'egsi-public-section', 'egsi-value', 'egsi-band', 'egsi-trend', 'egsi-trend-label', 'egsi-trend-value');
+
                         /* hide loader, reveal content */
                         var loader = document.getElementById('snap-panel-loader');
                         var content = document.getElementById('snap-panel-content');
@@ -4847,126 +4880,8 @@
             }
         });
 
-        // Load GERI Public Data (24h delayed)
-        async function loadGeriPublic() {
-            try {
-                const response = await fetch('/api/v1/indices/geri/public');
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    const data = result.data;
-                    const section = document.getElementById('geri-public-section');
-                    
-                    // Set value and band
-                    document.getElementById('geri-value').textContent = data.value;
-                    document.getElementById('geri-band').textContent = data.band;
-                    
-                    // Format trend with expressive label
-                    const trend7d = data.trend_7d || 0;
-                    let trendLabel = 'Stable';
-                    if (trend7d >= 5) trendLabel = 'Rising';
-                    else if (trend7d >= 2) trendLabel = 'Slightly Rising';
-                    else if (trend7d <= -5) trendLabel = 'Easing';
-                    else if (trend7d <= -2) trendLabel = 'Slightly Easing';
-                    
-                    document.getElementById('geri-trend-label').textContent = trendLabel;
-                    const trendValueText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
-                    document.getElementById('geri-trend-value').textContent = '(' + trendValueText + ')';
-                    
-                    // Show section
-                    section.style.display = 'block';
-                }
-            } catch (error) {
-                console.log('GERI data not available:', error);
-            }
-        }
-        
-        // Load GERI on page load
-        loadGeriPublic();
-
-        // Load EERI Public Data (24h delayed)
-        async function loadEeriPublic() {
-            try {
-                const response = await fetch('/api/v1/indices/eeri/public');
-                const data = await response.json();
-                
-                if (data && data.value !== undefined) {
-                    const section = document.getElementById('eeri-public-section');
-                    
-                    // Set values
-                    document.getElementById('eeri-value').textContent = data.value;
-                    document.getElementById('eeri-band').textContent = data.band;
-                    
-                    // Set band color
-                    const valueEl = document.getElementById('eeri-value');
-                    const bandEl = document.getElementById('eeri-band');
-                    valueEl.className = 'eeri-value eeri-band-' + data.band;
-                    bandEl.className = 'eeri-band eeri-band-' + data.band;
-                    
-                    // Set trend
-                    const trend7d = data.trend_7d || 0;
-                    let trendLabel = 'Stable';
-                    if (trend7d >= 5) trendLabel = 'Rising';
-                    else if (trend7d >= 2) trendLabel = 'Slightly Rising';
-                    else if (trend7d <= -5) trendLabel = 'Falling';
-                    else if (trend7d <= -2) trendLabel = 'Slightly Easing';
-                    
-                    document.getElementById('eeri-trend-label').textContent = trendLabel;
-                    const trendValueText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
-                    document.getElementById('eeri-trend-value').textContent = '(' + trendValueText + ')';
-                    
-                    // Show section
-                    section.style.display = 'block';
-                }
-            } catch (error) {
-                console.log('EERI data not available:', error);
-            }
-        }
-        
-        // Load EERI on page load
-        loadEeriPublic();
-
-        // Load EGSI Public Data (24h delayed)
-        async function loadEgsiPublic() {
-            try {
-                const response = await fetch('/api/v1/indices/egsi-m/public');
-                const data = await response.json();
-                
-                if (data && data.value !== undefined) {
-                    const section = document.getElementById('egsi-public-section');
-                    
-                    // Set values
-                    document.getElementById('egsi-value').textContent = data.value;
-                    document.getElementById('egsi-band').textContent = data.band;
-                    
-                    // Set band color
-                    const valueEl = document.getElementById('egsi-value');
-                    const bandEl = document.getElementById('egsi-band');
-                    valueEl.className = 'egsi-value egsi-band-' + data.band;
-                    bandEl.className = 'egsi-band egsi-band-' + data.band;
-                    
-                    // Set trend
-                    const trend7d = data.trend_7d || 0;
-                    let trendLabel = 'Stable';
-                    if (trend7d >= 5) trendLabel = 'Rising';
-                    else if (trend7d >= 2) trendLabel = 'Slightly Rising';
-                    else if (trend7d <= -5) trendLabel = 'Falling';
-                    else if (trend7d <= -2) trendLabel = 'Slightly Easing';
-                    
-                    document.getElementById('egsi-trend-label').textContent = trendLabel;
-                    const trendValueText = trend7d >= 0 ? '+' + trend7d : trend7d.toString();
-                    document.getElementById('egsi-trend-value').textContent = '(' + trendValueText + ')';
-                    
-                    // Show section
-                    section.style.display = 'block';
-                }
-            } catch (error) {
-                console.log('EGSI data not available:', error);
-            }
-        }
-        
-        // Load EGSI on page load
-        loadEgsiPublic();
+        // Index section cards (GERI / EERI / EGSI) are now populated by the
+        // hero-snapshot fetch above — no separate delayed API calls needed.
 
         async function loadDigestPublic() {
             try {

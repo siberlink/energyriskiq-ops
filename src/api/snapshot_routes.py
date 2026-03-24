@@ -27,15 +27,15 @@ async def hero_snapshot_api():
     from fastapi.responses import JSONResponse
     try:
         geri = execute_production_one(
-            "SELECT value, band FROM intel_indices_daily "
+            "SELECT value, band, trend_7d FROM intel_indices_daily "
             "WHERE index_id='global:geo_energy_risk' ORDER BY date DESC LIMIT 1"
         )
         eeri = execute_production_one(
-            "SELECT value, band FROM reri_indices_daily "
+            "SELECT value, band, trend_7d FROM reri_indices_daily "
             "WHERE index_id='europe:eeri' ORDER BY date DESC LIMIT 1"
         )
         egsi = execute_production_one(
-            "SELECT index_value AS value, band FROM egsi_m_daily "
+            "SELECT index_value AS value, band, trend_7d FROM egsi_m_daily "
             "WHERE region='Europe' ORDER BY index_date DESC LIMIT 1"
         )
         brent = execute_production_one(
@@ -47,10 +47,14 @@ async def hero_snapshot_api():
         storage = execute_production_one(
             "SELECT eu_storage_percent FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1"
         )
+        def _trend(row, key="trend_7d"):
+            v = row.get(key)
+            return round(float(v), 1) if v is not None else None
+
         return JSONResponse({
-            "geri":    {"value": float(geri["value"]),       "band": geri["band"]},
-            "eeri":    {"value": float(eeri["value"]),       "band": eeri["band"]},
-            "egsi":    {"value": float(egsi["value"]),       "band": egsi["band"]},
+            "geri":    {"value": float(geri["value"]), "band": geri["band"], "trend_7d": _trend(geri)},
+            "eeri":    {"value": float(eeri["value"]), "band": eeri["band"], "trend_7d": _trend(eeri)},
+            "egsi":    {"value": float(egsi["value"]), "band": egsi["band"], "trend_7d": _trend(egsi)},
             "brent":   float(brent["brent_price"]),
             "ttf":     float(ttf["ttf_price"]),
             "storage": float(storage["eu_storage_percent"]),
