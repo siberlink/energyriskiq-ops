@@ -449,7 +449,7 @@ _FORECAST_CSS = """
 
 
 def _build_forecast_html(
-    today_str, today_date,
+    today_str, today_date, next_day_str,
     # Brent
     brent_latest, brent_chg, brent_chg_pct,
     brent_3d_rows, brent_intraday_pts,
@@ -531,6 +531,7 @@ def _build_forecast_html(
         storage_pct=storage_pct,
         ai_texts=ai_texts,
         watchlist_items=watchlist_items,
+        title_override=f'Global Energy Risk Forecast &mdash; {next_day_str}',
     )
 
     # ── Interpretation paragraphs ────────────────────────────────────────────
@@ -606,7 +607,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/indices/europe-gas-stress-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/data/energy-risk-snapshot" style="font-size:13px;color:#94a3b8;text-decoration:none;">Snapshot</a>
-      <a href="/register" class="cta-btn-nav">Get Access</a>
+      <a href="/users" class="cta-btn-nav">Get Free Access</a>
     </div>
   </div>
 </nav>
@@ -637,8 +638,33 @@ document.body.style.overflow='';
 
 <main class="page-body">
 
+  <!-- INFOGRAPHIC — NEXT 24H FORECAST DOWNLOADABLE -->
+  <div class="section-label" style="margin-bottom:20px;">&#128248; Next 24 Hours Global Energy Risk Forecast &mdash; Downloadable</div>
+
+  <!-- Forecast summary bar above infographic -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+    <div style="background:rgba(249,115,22,0.07);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px 20px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#f97316;margin-bottom:6px;">Brent Crude — 24H Forecast</div>
+      <div style="font-size:20px;font-weight:800;color:#e2e8f0;font-variant-numeric:tabular-nums;margin-bottom:4px;">
+        ${forecast.get('brent_low', 0):.2f} &ndash; ${forecast.get('brent_high', 0):.2f} <span style="font-size:12px;color:#64748b;font-weight:500;">/bbl</span>
+      </div>
+      {brent_badge}
+      <div style="font-size:11px;color:#64748b;margin-top:6px;">GERI {geri_val}/100 &bull; {geri_band} &bull; GPT-5.1 signal</div>
+    </div>
+    <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:16px 20px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#60a5fa;margin-bottom:6px;">TTF Natural Gas — 24H Forecast</div>
+      <div style="font-size:20px;font-weight:800;color:#e2e8f0;font-variant-numeric:tabular-nums;margin-bottom:4px;">
+        &euro;{forecast.get('ttf_low', 0):.2f} &ndash; &euro;{forecast.get('ttf_high', 0):.2f} <span style="font-size:12px;color:#64748b;font-weight:500;">/MWh</span>
+      </div>
+      {ttf_badge}
+      <div style="font-size:11px;color:#64748b;margin-top:6px;">EERI {eeri_val}/100 &bull; {eeri_band} &bull; EU Storage {storage_pct:.1f}%</div>
+    </div>
+  </div>
+
+  {infographic_html}
+
   <!-- KEY MARKET PRICES -->
-  <div class="section-label" style="margin-bottom:20px;">&#128200; Key Market Prices</div>
+  <div class="section-label" style="margin-bottom:20px;">&#128200; Key Market Prices &mdash; Last Closing</div>
   <div class="price-grid" style="margin-bottom:44px;">
     <div class="price-card">
       <div class="price-commodity">Brent Crude Oil</div>
@@ -750,13 +776,8 @@ document.body.style.overflow='';
   <!-- AI INTERPRETATION -->
   <div class="section-label" style="margin-bottom:20px;">&#129302; Risk Intelligence Forecast Interpretation</div>
   <div class="forecast-box" style="margin-bottom:40px;">
-    <div class="forecast-box-label">GPT-5.1 &bull; Advanced AI Analysis &bull; {today_str}</div>
     {interp_html}
   </div>
-
-  <!-- INFOGRAPHIC -->
-  <div class="section-label" style="margin-bottom:20px;">&#128248; Current Risk Environment &mdash; Downloadable</div>
-  {infographic_html}
 
   <!-- CONTEXT LINKS WHEEL -->
   <div class="section-label" style="margin-bottom:20px;">&#128279; Related Intelligence &amp; Context</div>
@@ -824,7 +845,7 @@ AI model: GPT-5.1 | Data sources: OilPriceAPI, Yahoo Finance, AGSI+, internal ri
       Subscribe to EnergyRiskIQ for daily AI-powered energy risk briefings,
       real-time GERI/EERI/EGSI updates, and Brent &amp; TTF price signals.
     </p>
-    <a href="/register" class="cta-btn">Start Free Trial &rarr;</a>
+    <a href="/energy-risk-intelligence-signals" class="cta-btn">Get Free Intelligence &rarr;</a>
     <a href="/indices" class="cta-secondary">Explore All Indices</a>
   </div>
 
@@ -1014,6 +1035,7 @@ document.body.style.overflow='';</script>
         # ── Compute values ───────────────────────────────────────────────────
         today_str = datetime.now(timezone.utc).strftime('%B %-d, %Y')
         today_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        next_day_str = (datetime.now(timezone.utc) + timedelta(days=1)).strftime('%B %-d, %Y')
 
         brent_latest = _safe_float(brent_latest_row['brent_price']) if brent_latest_row else 0.0
         brent_chg = _safe_float(brent_latest_row['brent_change_24h']) if brent_latest_row else 0.0
@@ -1088,6 +1110,7 @@ document.body.style.overflow='';</script>
         html_body = _build_forecast_html(
             today_str=today_str,
             today_date=today_date,
+            next_day_str=next_day_str,
             brent_latest=brent_latest,
             brent_chg=brent_chg,
             brent_chg_pct=brent_chg_pct,

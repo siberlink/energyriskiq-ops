@@ -246,6 +246,7 @@ def _build_infographic_html(
     storage_pct,
     ai_texts=None,
     watchlist_items=None,
+    title_override=None,
 ) -> str:
     """Build the infographic section HTML. CSS uses plain string (no f-string brace issue)."""
     gc  = BAND_COLORS.get(geri_band,  '#f97316')
@@ -404,7 +405,7 @@ def _build_infographic_html(
     HTML = f"""
 <div class="ig-outer">
   <div class="ig-topbar">
-    <span class="ig-topbar-title">&#128248;&nbsp; Current Energy Risk Environment &mdash; {today_str}</span>
+    <span class="ig-topbar-title">&#128248;&nbsp; {title_override if title_override else f'Current Energy Risk Environment &mdash; {today_str}'}</span>
     <button class="ig-dl-btn" id="igDlBtn" onclick="downloadInfographic('eriq-infographic','igDlBtn')">&#11015; Download PNG</button>
   </div>
   <div class="ig-scroll">
