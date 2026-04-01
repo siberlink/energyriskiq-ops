@@ -247,6 +247,7 @@ def _build_infographic_html(
     ai_texts=None,
     watchlist_items=None,
     title_override=None,
+    forecast_data=None,
 ) -> str:
     """Build the infographic section HTML. CSS uses plain string (no f-string brace issue)."""
     gc  = BAND_COLORS.get(geri_band,  '#f97316')
@@ -299,6 +300,73 @@ def _build_infographic_html(
         f'<strong>What to watch?</strong>'
     )
 
+    # Forecast mode helpers — used when forecast_data is provided
+    def _dir_attrs(direction):
+        d = (direction or 'NEUTRAL').upper()
+        if d == 'BULLISH':
+            return '&#9650;', '#22c55e', 'Bullish Bias'
+        elif d == 'BEARISH':
+            return '&#9660;', '#ef4444', 'Bearish Bias'
+        else:
+            return '&#8594;', '#94a3b8', 'Neutral Outlook'
+
+    if forecast_data:
+        fd = forecast_data
+        b_low  = float(fd.get('brent_low', 0) or 0)
+        b_high = float(fd.get('brent_high', 0) or 0)
+        b_dir  = fd.get('brent_direction', 'NEUTRAL')
+        b_conf = int(fd.get('brent_confidence', 50) or 50)
+        t_low  = float(fd.get('ttf_low', 0) or 0)
+        t_high = float(fd.get('ttf_high', 0) or 0)
+        t_dir  = fd.get('ttf_direction', 'NEUTRAL')
+        t_conf = int(fd.get('ttf_confidence', 50) or 50)
+        bd_arrow, bd_color, bd_label = _dir_attrs(b_dir)
+        td_arrow, td_color, td_label = _dir_attrs(t_dir)
+
+        brent_card_html = f"""        <div class="ig-price-card ig-brent-bg">
+          <img class="ig-pc-img" src="/static/ig-brent-oilrig.png" alt="Oil rig" crossorigin="anonymous">
+          <div class="ig-pc-overlay"></div>
+          <div class="ig-pc-text">
+            <div class="ig-pc-label">Brent Crude &mdash; 24H Forecast</div>
+            <div class="ig-pc-fcast-range">${b_low:.2f} &ndash; ${b_high:.2f} <span class="ig-pc-unit">/bbl</span></div>
+            <div class="ig-pc-bias" style="color:{bd_color}">{bd_arrow} {bd_label}</div>
+            <div class="ig-pc-conf">CONFIDENCE &nbsp;<strong>{b_conf}%</strong>
+              <div class="ig-pc-conf-bar"><div class="ig-pc-conf-fill" style="width:{b_conf}%;background:{bd_color}"></div></div>
+            </div>
+          </div>
+        </div>"""
+        ttf_card_html = f"""        <div class="ig-price-card ig-ttf-bg">
+          <img class="ig-pc-img" src="/static/ig-ttf-lngship.png" alt="LNG ship" crossorigin="anonymous">
+          <div class="ig-pc-overlay"></div>
+          <div class="ig-pc-text">
+            <div class="ig-pc-label">TTF Natural Gas &mdash; 24H Forecast</div>
+            <div class="ig-pc-fcast-range">&euro;{t_low:.2f} &ndash; &euro;{t_high:.2f} <span class="ig-pc-unit">/MWh</span></div>
+            <div class="ig-pc-bias" style="color:{td_color}">{td_arrow} {td_label}</div>
+            <div class="ig-pc-conf">CONFIDENCE &nbsp;<strong>{t_conf}%</strong>
+              <div class="ig-pc-conf-bar"><div class="ig-pc-conf-fill" style="width:{t_conf}%;background:{td_color}"></div></div>
+            </div>
+          </div>
+        </div>"""
+    else:
+        brent_card_html = f"""        <div class="ig-price-card ig-brent-bg">
+          <img class="ig-pc-img" src="/static/ig-brent-oilrig.png" alt="Oil rig" crossorigin="anonymous">
+          <div class="ig-pc-overlay"></div>
+          <div class="ig-pc-text">
+            <div class="ig-pc-label">Brent Crude Oil</div>
+            <div class="ig-pc-value"><sup>$</sup>{brent_price:.2f}</div>
+            <div class="ig-pc-change" style="color:{b_color}">{b_arrow} {b_chg_str}</div>
+          </div>
+        </div>"""
+        ttf_card_html = f"""        <div class="ig-price-card ig-ttf-bg">
+          <img class="ig-pc-img" src="/static/ig-ttf-lngship.png" alt="LNG ship" crossorigin="anonymous">
+          <div class="ig-pc-overlay"></div>
+          <div class="ig-pc-text">
+            <div class="ig-pc-label">TTF Natural Gas</div>
+            <div class="ig-pc-value"><sup>&euro;</sup>{ttf_price:.2f}<span class="ig-pc-unit">/MWh</span></div>
+            <div class="ig-pc-change" style="color:{t_color}">{t_arrow} {t_chg_str}</div>
+          </div>
+        </div>"""
+
     # CSS as plain string (no brace doubling needed — not inside outer f-string)
     CSS = (
         '<style id="ig-styles">'
@@ -332,6 +400,16 @@ def _build_infographic_html(
         '.ig-pc-value sup { font-size:17px; vertical-align:top; margin-top:4px; }'
         '.ig-pc-unit { font-size:14px; font-weight:500; color:rgba(255,255,255,0.65); }'
         '.ig-pc-change { font-size:13px; font-weight:600; text-shadow:0 1px 4px rgba(0,0,0,0.8); }'
+        '.ig-pc-fcast-range { font-size:24px; font-weight:800; color:#fff; line-height:1.1; margin-bottom:6px;'
+        '  text-shadow:0 2px 8px rgba(0,0,0,0.9); }'
+        '.ig-pc-bias { font-size:13px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase;'
+        '  text-shadow:0 1px 4px rgba(0,0,0,0.8); margin-bottom:6px; }'
+        '.ig-pc-conf { font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;'
+        '  color:rgba(255,255,255,0.55); text-shadow:0 1px 4px rgba(0,0,0,0.8); }'
+        '.ig-pc-conf strong { color:rgba(255,255,255,0.9); }'
+        '.ig-pc-conf-bar { margin-top:4px; height:3px; background:rgba(255,255,255,0.12);'
+        '  border-radius:2px; overflow:hidden; width:100%; max-width:120px; }'
+        '.ig-pc-conf-fill { height:100%; border-radius:2px; }'
         '.ig-indices { grid-area:indices; padding:16px 18px;'
         '  border-right:1px solid rgba(255,255,255,0.06); background:#0f1522; }'
         '.ig-heading { font-size:16px; font-weight:800; color:#d4a017; margin-bottom:13px;'
@@ -414,24 +492,8 @@ def _build_infographic_html(
 
       <!-- ── PRICE CARDS ── -->
       <div class="ig-prices">
-        <div class="ig-price-card ig-brent-bg">
-          <img class="ig-pc-img" src="/static/ig-brent-oilrig.png" alt="Oil rig" crossorigin="anonymous">
-          <div class="ig-pc-overlay"></div>
-          <div class="ig-pc-text">
-            <div class="ig-pc-label">Brent Crude Oil</div>
-            <div class="ig-pc-value"><sup>$</sup>{brent_price:.2f}</div>
-            <div class="ig-pc-change" style="color:{b_color}">{b_arrow} {b_chg_str}</div>
-          </div>
-        </div>
-        <div class="ig-price-card ig-ttf-bg">
-          <img class="ig-pc-img" src="/static/ig-ttf-lngship.png" alt="LNG ship" crossorigin="anonymous">
-          <div class="ig-pc-overlay"></div>
-          <div class="ig-pc-text">
-            <div class="ig-pc-label">TTF Natural Gas</div>
-            <div class="ig-pc-value"><sup>&euro;</sup>{ttf_price:.2f}<span class="ig-pc-unit">/MWh</span></div>
-            <div class="ig-pc-change" style="color:{t_color}">{t_arrow} {t_chg_str}</div>
-          </div>
-        </div>
+{brent_card_html}
+{ttf_card_html}
       </div>
 
       <!-- ── INDICES PANEL ── -->

@@ -532,6 +532,7 @@ def _build_forecast_html(
         ai_texts=ai_texts,
         watchlist_items=watchlist_items,
         title_override=f'Global Energy Risk Forecast &mdash; {next_day_str}',
+        forecast_data=forecast,
     )
 
     # ── Interpretation paragraphs ────────────────────────────────────────────
