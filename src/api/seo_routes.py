@@ -1462,6 +1462,7 @@ async def sitemap_index_xml():
         ('sitemap-alerts.xml', today),
         ('sitemap-indices.xml', today),
         ('sitemap-digest.xml', today),
+        ('sitemap-data.xml', today),
     ]
 
     sitemap_entries = ""

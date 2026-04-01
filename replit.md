@@ -44,6 +44,7 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 - **ELSA Marketing Bot:** An AI-powered marketing and business intelligence advisor for the admin dashboard, providing strategic advice, accessing production database metrics, and offering image generation via DALL-E 3.
 - **Ticketing System:** A support ticket module with user and admin interfaces, live unread notifications, and category filtering.
 - **Blog:** A public educational blog with user registration, article submission (pending approval), commenting, and admin management. Features include a markdown editor with image uploads and a live preview.
+- **Global Energy Risk Forecast Page:** A SEO-optimised public page at `/data/global-energy-risk-forecast` that streams an AI-powered 24-hour Brent & TTF price forecast using GPT-5.1. Uses live GERI/EERI data, 72h daily prices from `oil_price_snapshots`/`ttf_gas_snapshots`, intraday Brent from `intraday_brent`, and alert context from `alert_events`. Includes downloadable infographic, wheel linking, citation block, and `sitemap-data.xml` (served at `/sitemap-data.xml`, referenced in sitemap-index.xml). Route file: `src/api/forecast_routes.py`. Key AI param: `max_completion_tokens` (not `max_tokens`) for GPT-5.1.
 
 **System Design Choices:**
 - **Database:** PostgreSQL is used for persistence, with a single production database architecture.
