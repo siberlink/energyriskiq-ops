@@ -5675,7 +5675,7 @@
                     </svg>
                 </span>
                 Daily Delivery
-                <span id="deliverySetupBadge" class="delivery-setup-badge" style="display:none;">Setup</span>
+                <span id="deliverySetupBadge" class="delivery-setup-badge" style="display:inline-block;">Setup</span>
             </a>
         </div>
 
@@ -9326,6 +9326,7 @@
                     const user = await response.json();
                     if (user.telegram_chat_id) {
                         currentUser = user;
+                        currentUser.plan = 'enterprise';
                         updateTelegramUI();
                         cancelTelegramLink();
                         telegramPollCount = 0;
