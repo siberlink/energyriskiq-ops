@@ -7392,6 +7392,7 @@
                 const dashboard = await dashboardResponse.json();
                 
                 currentUser = dashboard.user;
+                currentUser.plan = 'enterprise';
                 allAlerts = dashboard.alerts.items || [];
                 userSettings = dashboard.settings;
                 allowedAlertTypes = dashboard.alerts.allowed_types || [];
