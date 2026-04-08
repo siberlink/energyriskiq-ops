@@ -13840,8 +13840,6 @@
 
         async function loadGeriLive() {
             if (!currentUser) return;
-            var plan = currentUser.plan || 'free';
-            if (plan !== 'pro' && plan !== 'enterprise') return;
 
             setGeriLiveConnection('reconnecting', 'Connecting...');
 

@@ -30,17 +30,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/indices/geri/live", tags=["GERI Live"])
 
-ALLOWED_PLANS = {'pro', 'enterprise'}
-
-
-def _verify_plan(plan: str):
-    if plan not in ALLOWED_PLANS:
-        raise HTTPException(
-            status_code=403,
-            detail="GERI Live is available for Pro and Enterprise plans only"
-        )
-
-
 def _get_user_plan(token: str) -> dict:
     try:
         from src.api.user_routes import verify_user_session
@@ -66,8 +55,7 @@ async def get_live_latest(x_user_token: Optional[str] = Header(None)):
     if not x_user_token:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    user_info = _get_user_plan(x_user_token)
-    _verify_plan(user_info['plan'])
+    _get_user_plan(x_user_token)
 
     try:
         result = compute_live_geri(force=False)
@@ -137,8 +125,7 @@ async def get_trader_intel(x_user_token: Optional[str] = Header(None)):
     if not x_user_token:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    user_info = _get_user_plan(x_user_token)
-    _verify_plan(user_info['plan'])
+    _get_user_plan(x_user_token)
 
     latest = get_latest_live_geri()
     value = latest['value'] if latest else 0
@@ -164,8 +151,7 @@ async def get_timeline(x_user_token: Optional[str] = Header(None)):
     if not x_user_token:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    user_info = _get_user_plan(x_user_token)
-    _verify_plan(user_info['plan'])
+    _get_user_plan(x_user_token)
 
     return JSONResponse(content={
         'success': True,
@@ -178,8 +164,7 @@ async def get_energy_prices(x_user_token: Optional[str] = Header(None)):
     if not x_user_token:
         raise HTTPException(status_code=401, detail="Authentication required")
 
-    user_info = _get_user_plan(x_user_token)
-    _verify_plan(user_info['plan'])
+    _get_user_plan(x_user_token)
 
     from datetime import date as _date, timedelta
     from src.db.db import execute_query
@@ -248,8 +233,7 @@ async def live_stream(token: Optional[str] = Query(None)):
     if not token:
         raise HTTPException(status_code=401, detail="Authentication required (pass token as query param)")
 
-    user_info = _get_user_plan(token)
-    _verify_plan(user_info['plan'])
+    _get_user_plan(token)
 
     queue: asyncio.Queue = asyncio.Queue(maxsize=50)
     await register_live_client(queue)
