@@ -654,6 +654,14 @@ async def alerts_hub():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Geopolitical & Energy Risk Alerts Archive | EnergyRiskIQ</title>
@@ -732,6 +740,14 @@ async def alerts_by_region(region_slug: str):
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{region_name} Risk Alerts Archive | EnergyRiskIQ</title>
@@ -901,6 +917,14 @@ async def regional_daily_alerts_page(region_slug: str, date_str: str, request: R
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{model['seo_title']}</title>
@@ -984,6 +1008,14 @@ async def alerts_by_category(category_slug: str):
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{category_name} Risk Alerts | EnergyRiskIQ</title>
@@ -1194,6 +1226,14 @@ async def daily_alerts_page(date_str: str, request: Request):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{model['seo_title']}</title>
@@ -1304,6 +1344,14 @@ async def monthly_archive_page(year: int, month: int):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Risk Alerts - {month_display} | EnergyRiskIQ</title>
@@ -1613,6 +1661,14 @@ async def sitemap_html():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sitemap | EnergyRiskIQ</title>
@@ -1980,6 +2036,14 @@ async def geri_page(request: Request):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Energy Risk Index (GERI) | EnergyRiskIQ</title>
@@ -2794,6 +2858,14 @@ async def geri_history_page(request: Request):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Energy Risk Index History | EnergyRiskIQ</title>
@@ -2948,6 +3020,14 @@ async def geri_updates_page():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>GERI Updates & Changelog | EnergyRiskIQ</title>
@@ -3120,6 +3200,14 @@ async def geri_methodology_page():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>GERI Methodology - Global Geo-Energy Risk Index | EnergyRiskIQ</title>
@@ -3766,6 +3854,14 @@ async def geri_daily_page(request: Request, date: str):
         <!DOCTYPE html>
         <html lang="en">
         <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>GERI {date} Not Found | EnergyRiskIQ</title>
@@ -3869,6 +3965,14 @@ async def geri_daily_page(request: Request, date: str):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Energy Risk Index {date} | EnergyRiskIQ</title>
@@ -4038,6 +4142,14 @@ async def geri_monthly_page(request: Request, year: int, month: int):
         <!DOCTYPE html>
         <html lang="en">
         <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>GERI {calendar_month_name[month]} {year} Not Found | EnergyRiskIQ</title>
@@ -4117,6 +4229,14 @@ async def geri_monthly_page(request: Request, year: int, month: int):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Energy Risk Index {month_display} | EnergyRiskIQ</title>
@@ -4804,6 +4924,14 @@ async def indices_hub_page(request: Request):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Energy Risk Indices for Global Energy Markets | EnergyRiskIQ</title>
@@ -5554,6 +5682,14 @@ async def digest_history_page():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily Geo-Energy Intelligence Digest - History | EnergyRiskIQ</title>
@@ -5618,6 +5754,14 @@ async def digest_date_page(date_str: str):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{seo_title}</title>
@@ -5668,6 +5812,14 @@ async def digest_latest_page():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily Geo-Energy Intelligence Digest | EnergyRiskIQ</title>
@@ -6040,6 +6192,14 @@ async def geri_research_page(request: Request):
     <!DOCTYPE html>
     <html lang="en">
     <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Global Energy Risk Index (GERI) Research | EnergyRiskIQ</title>
@@ -8772,6 +8932,14 @@ async def global_energy_risk_timeline_page(request: Request):
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Energy Risk Timeline: Major Disruptions 2014&#x2013;2026 | EnergyRiskIQ</title>
