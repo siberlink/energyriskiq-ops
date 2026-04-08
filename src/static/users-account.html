@@ -5722,7 +5722,7 @@
                 <button class="upgrade-btn" id="upgradeBannerBtn" onclick="showSection('plans')">View Plans</button>
             </div>
 
-            <div class="stats-grid">
+            <div class="stats-grid" style="display:none;">
                 <div class="stat-card">
                     <div class="stat-label">Current Plan</div>
                     <div class="stat-value" id="currentPlan">Free</div>
@@ -7585,16 +7585,10 @@
             if (elSettingsPlan) elSettingsPlan.textContent = planDisplay;
 
             const ub = document.getElementById('upgradeBanner');
-            if (plan === 'free' && (!cachedBannerEnabled || cachedFreeTrialDays <= 0)) {
-                if (ub) ub.style.display = 'flex';
-            } else if (plan === 'free' && cachedBannerEnabled && cachedFreeTrialDays > 0) {
-                if (ub) ub.style.display = 'none';
-            }
-            
+            if (ub) ub.style.display = 'none';
+
             const elUpgradeSidebar = document.getElementById('upgradeSidebarCard');
-            if (plan !== 'enterprise' && elUpgradeSidebar) {
-                elUpgradeSidebar.style.display = 'block';
-            }
+            if (elUpgradeSidebar) elUpgradeSidebar.style.display = 'none';
             
             updateTelegramUI();
         }
