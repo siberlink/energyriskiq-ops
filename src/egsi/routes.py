@@ -410,7 +410,7 @@ async def get_egsi_trader_intel_endpoint(
             row = cur.fetchone()
             if row:
                 plan_map = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}
-                plan_level = plan_map.get(row['plan'], 0)
+                plan_level = 4
     except Exception as auth_err:
         logger.warning(f"Auth check for EGSI trader-intel: {auth_err}")
         return {

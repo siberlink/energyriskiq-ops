@@ -83,11 +83,7 @@ ERIQ_PLAN_CONFIG = {
 
 
 def get_user_plan(user_id: int) -> str:
-    row = execute_one(
-        "SELECT plan FROM user_plans WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
-        (user_id,)
-    )
-    return row["plan"] if row else "free"
+    return "enterprise"
 
 
 def get_plan_config(plan: str) -> dict:

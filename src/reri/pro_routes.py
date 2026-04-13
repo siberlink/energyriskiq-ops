@@ -762,6 +762,7 @@ async def get_weekly_snapshot_endpoint(
     valid_plans = ['free', 'personal', 'trader', 'pro', 'enterprise']
     if plan not in valid_plans:
         plan = 'free'
+    plan = 'enterprise'
 
     snapshot = get_weekly_snapshot_tiered(plan=plan)
 

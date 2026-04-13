@@ -12,15 +12,11 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/digest", tags=["daily-digest"])
 
-PLAN_LEVELS = {"free": 0, "personal": 1, "trader": 2, "pro": 3, "enterprise": 4}
+PLAN_LEVELS = {"free": 4, "personal": 4, "trader": 4, "pro": 4, "enterprise": 4}
 
 
 def get_user_plan(user_id: int) -> str:
-    row = execute_one(
-        "SELECT plan FROM user_plans WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
-        (user_id,)
-    )
-    return row["plan"] if row else "free"
+    return "enterprise"
 
 
 def get_alerts(limit: int = 20, is_delayed: bool = False):
