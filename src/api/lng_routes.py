@@ -532,6 +532,121 @@ _LNG_CSS = """
 
 # ── Data Fetcher ──────────────────────────────────────────────────────────────
 
+_RISK_LEVEL_ORDER = ["LOW", "MODERATE", "ELEVATED", "HIGH", "CRITICAL"]
+_RISK_COLORS = {
+    "CRITICAL": "#ef4444",
+    "HIGH":     "#f97316",
+    "ELEVATED": "#eab308",
+    "MODERATE": "#3b82f6",
+    "LOW":      "#22c55e",
+}
+_WEIGHT = {"war": 3, "supply_disruption": 2.5, "conflict": 2, "energy": 1, "military": 1.5, "geopolitical": 1}
+
+
+def _score_to_risk(score: float) -> str:
+    if score >= 30:   return "CRITICAL"
+    if score >= 14:   return "HIGH"
+    if score >= 6:    return "ELEVATED"
+    if score >= 2:    return "MODERATE"
+    return "LOW"
+
+
+def _fetch_import_sources_intelligence(jkm_ttf_spread: float) -> list:
+    """
+    Read lng_import_sources from DB and enrich each row with:
+    - Dynamic risk level from last 7 days of alert_events per scope_region
+    - Most recent critical alert headline for that region
+    - Cargo competition signal derived from JKM-TTF spread and flexibility
+    """
+    sources = execute_production_query(
+        "SELECT id, origin, scope_region, est_annual_bcm_display, contract_type, "
+        "flexibility, static_notes, sort_order "
+        "FROM lng_import_sources WHERE active = TRUE ORDER BY sort_order ASC"
+    ) or []
+
+    # Fetch 7-day alert summary per region in one query
+    alert_rows = execute_production_query(
+        "SELECT scope_region, category, COUNT(*) as cnt, "
+        "MAX(severity) as max_sev, "
+        "MAX(headline) as top_headline "
+        "FROM alert_events "
+        "WHERE created_at >= NOW() - INTERVAL '7 days' "
+        "GROUP BY scope_region, category"
+    ) or []
+
+    # Fetch top headline per region (most recent high-severity)
+    headline_rows = execute_production_query(
+        "SELECT DISTINCT ON (scope_region) scope_region, headline, category, created_at "
+        "FROM alert_events "
+        "WHERE created_at >= NOW() - INTERVAL '7 days' "
+        "  AND severity >= 4 "
+        "ORDER BY scope_region, severity DESC, created_at DESC"
+    ) or []
+    headline_map = {r["scope_region"]: dict(r) for r in headline_rows}
+
+    # Group alert counts by region
+    region_alerts: dict = {}
+    for row in alert_rows:
+        rgn = row["scope_region"]
+        if rgn not in region_alerts:
+            region_alerts[rgn] = {"score": 0.0, "total": 0}
+        cat = (row.get("category") or "").lower()
+        cnt = int(row.get("cnt") or 0)
+        w   = _WEIGHT.get(cat, 0.5)
+        region_alerts[rgn]["score"] += cnt * w
+        region_alerts[rgn]["total"] += cnt
+
+    enriched = []
+    for src in sources:
+        src = dict(src)
+        region = src.get("scope_region", "Global")
+        flex   = (src.get("flexibility") or "MEDIUM").upper()
+
+        # Risk from alerts for this region
+        agg = region_alerts.get(region, {"score": 0.0, "total": 0})
+        # Global region: average of all regions
+        if region == "Global":
+            all_scores = [v["score"] for v in region_alerts.values()]
+            agg = {"score": (sum(all_scores) / len(all_scores)) if all_scores else 0.0, "total": 0}
+        risk_level = _score_to_risk(agg["score"])
+        alert_count = agg["total"]
+
+        # Top headline for region
+        hl_data = headline_map.get(region) or {}
+        if not hl_data and region == "Global":
+            # Use the region with most alerts as global headline
+            top_rgn = max(region_alerts, key=lambda k: region_alerts[k]["score"], default=None)
+            hl_data = headline_map.get(top_rgn, {}) if top_rgn else {}
+        top_headline  = (hl_data.get("headline") or "")[:120]
+        top_hl_cat    = (hl_data.get("category") or "").title()
+
+        # Cargo competition signal from JKM-TTF spread × flexibility
+        if flex == "HIGH":
+            # Fully spot-exposed: spread has full impact
+            if jkm_ttf_spread > 5:   cargo_sig = "CRITICAL"
+            elif jkm_ttf_spread > 3: cargo_sig = "HIGH"
+            elif jkm_ttf_spread > 1: cargo_sig = "ELEVATED"
+            else:                    cargo_sig = "LOW"
+        elif flex == "MEDIUM":
+            if jkm_ttf_spread > 5:   cargo_sig = "HIGH"
+            elif jkm_ttf_spread > 3: cargo_sig = "ELEVATED"
+            elif jkm_ttf_spread > 1: cargo_sig = "MODERATE"
+            else:                    cargo_sig = "LOW"
+        else:  # LOW flexibility — contract bound
+            cargo_sig = "LOW"
+
+        src["risk_level"]    = risk_level
+        src["risk_color"]    = _RISK_COLORS.get(risk_level, "#3b82f6")
+        src["alert_count"]   = alert_count
+        src["top_headline"]  = top_headline
+        src["top_hl_cat"]    = top_hl_cat
+        src["cargo_signal"]  = cargo_sig
+        src["cargo_color"]   = _RISK_COLORS.get(cargo_sig, "#3b82f6")
+        enriched.append(src)
+
+    return enriched
+
+
 def _fetch_lng_data() -> dict:
     """Fetch all data needed for the LNG page from production DB."""
 
@@ -552,6 +667,11 @@ def _fetch_lng_data() -> dict:
     ) or []
     lng_30d = list(reversed(lng_30d))
 
+    # LNG 7-day momentum for supply dynamics
+    lng_7d = execute_production_query(
+        "SELECT date, jkm_price FROM lng_price_snapshots ORDER BY date DESC LIMIT 7"
+    ) or []
+
     # TTF for spread comparison — use all available for chart
     ttf_history = execute_production_query(
         "SELECT date, ttf_price FROM ttf_gas_snapshots ORDER BY date ASC"
@@ -565,7 +685,7 @@ def _fetch_lng_data() -> dict:
 
     # Storage for context
     storage_row = execute_production_one(
-        "SELECT eu_storage_percent, seasonal_norm, risk_band "
+        "SELECT eu_storage_percent, seasonal_norm, risk_band, date "
         "FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1"
     )
 
@@ -581,7 +701,7 @@ def _fetch_lng_data() -> dict:
         "WHERE index_id='europe:eeri' ORDER BY date DESC LIMIT 1"
     )
 
-    # Alert context
+    # Alert context for AI analysis (72h)
     alert_cats = execute_production_query(
         "SELECT category, COUNT(*) as cnt FROM alert_events "
         "WHERE created_at >= NOW() - INTERVAL '72 hours' "
@@ -593,30 +713,57 @@ def _fetch_lng_data() -> dict:
         ) if alert_cats else "No recent alerts."
     )
 
+    # Per-region alert counts for Supply Dynamics cards (7 days)
+    region_alert_counts = execute_production_query(
+        "SELECT scope_region, COUNT(*) as cnt FROM alert_events "
+        "WHERE created_at >= NOW() - INTERVAL '7 days' "
+        "GROUP BY scope_region ORDER BY cnt DESC"
+    ) or []
+    region_count_map = {r["scope_region"]: int(r["cnt"]) for r in region_alert_counts}
+    asian_demand_alerts = (
+        region_count_map.get("Asia", 0) +
+        region_count_map.get("Middle East", 0)
+    )
+    na_alerts = region_count_map.get("North America", 0)
+    europe_alerts = region_count_map.get("Europe", 0)
+
     # YTD stats from history
     all_prices = [float(r["jkm_price"]) for r in lng_history if r.get("jkm_price")]
     ytd_low  = min(all_prices) if all_prices else 0.0
     ytd_high = max(all_prices) if all_prices else 0.0
 
+    # 7-day JKM momentum
+    if len(lng_7d) >= 2:
+        newest = float(lng_7d[0]["jkm_price"] or 0)
+        oldest = float(lng_7d[-1]["jkm_price"] or 0)
+        jkm_7d_pct = ((newest - oldest) / oldest * 100) if oldest else 0.0
+    else:
+        jkm_7d_pct = 0.0
+
     return {
-        "lng_latest":   lng_latest,
-        "lng_history":  lng_history,
-        "lng_30d":      lng_30d,
-        "ttf_history":  ttf_history,
-        "ttf_latest":   ttf_latest,
-        "ttf_prev":     ttf_prev,
-        "storage_row":  storage_row,
-        "geri_row":     geri_row,
-        "eeri_row":     eeri_row,
-        "alert_context": alert_context,
-        "ytd_low":      ytd_low,
-        "ytd_high":     ytd_high,
+        "lng_latest":         lng_latest,
+        "lng_history":        lng_history,
+        "lng_30d":            lng_30d,
+        "lng_7d":             lng_7d,
+        "ttf_history":        ttf_history,
+        "ttf_latest":         ttf_latest,
+        "ttf_prev":           ttf_prev,
+        "storage_row":        storage_row,
+        "geri_row":           geri_row,
+        "eeri_row":           eeri_row,
+        "alert_context":      alert_context,
+        "ytd_low":            ytd_low,
+        "ytd_high":           ytd_high,
+        "jkm_7d_pct":         jkm_7d_pct,
+        "asian_demand_alerts": asian_demand_alerts,
+        "na_alerts":          na_alerts,
+        "europe_alerts":      europe_alerts,
     }
 
 
 # ── HTML Builder ──────────────────────────────────────────────────────────────
 
-def _build_lng_html(data: dict, analysis: str, today_str: str) -> str:
+def _build_lng_html(data: dict, analysis: str, today_str: str, import_sources: list = None) -> str:
 
     lng_row     = data["lng_latest"] or {}
     lng_history = data["lng_history"]
@@ -626,6 +773,12 @@ def _build_lng_html(data: dict, analysis: str, today_str: str) -> str:
     storage_row = data["storage_row"] or {}
     geri_row    = data["geri_row"] or {}
     eeri_row    = data["eeri_row"] or {}
+
+    # ── Live dynamic fields ───────────────────────────────────────────────────
+    jkm_7d_pct         = data.get("jkm_7d_pct", 0.0)
+    asian_demand_alerts = data.get("asian_demand_alerts", 0)
+    na_alerts           = data.get("na_alerts", 0)
+    europe_alerts       = data.get("europe_alerts", 0)
 
     # ── Core values ──────────────────────────────────────────────────────────
     jkm         = _safe_float(lng_row.get("jkm_price", 0))
@@ -737,23 +890,77 @@ def _build_lng_html(data: dict, analysis: str, today_str: str) -> str:
         ],
     }, indent=2)
 
-    # ── LNG flow reference table rows ────────────────────────────────────────
-    # Static but realistic reference for European LNG import context
-    flow_data = [
-        ("United States (USGC)",     "~55 bcm/yr",  "Dominant supplier — Sabine Pass, Corpus Christi, Freeport", "upval"),
-        ("Qatar",                     "~25 bcm/yr",  "Long-term contracts; limited spot flexibility",              "neut"),
-        ("Norway (Hammerfest LNG)",   "~5 bcm/yr",   "Periodic outages impact near-term flows",                   "neut"),
-        ("Algeria & Egypt",           "~20 bcm/yr",  "Key for Southern Europe (Spain, Italy, Greece)",            "upval"),
-        ("Nigeria & Angola",          "~15 bcm/yr",  "Spot-market cargoes; Asia competes aggressively",           "dnval"),
-        ("Russia (Yamal LNG)",        "~15 bcm/yr",  "Politically sensitive; partial EU sanctions debate ongoing", "dnval"),
-    ]
+    # ── LNG flow reference table rows — DYNAMIC from DB + live alert intelligence
+    import_sources = import_sources or []
+
+    # Flexibility badge labels
+    flex_label = {"HIGH": "Spot-exposed", "MEDIUM": "Partially flexible", "LOW": "Contract-bound"}
+    flex_color = {"HIGH": "#f97316", "MEDIUM": "#eab308", "LOW": "#3b82f6"}
+
     flow_rows_html = ""
-    for origin, vol, note, cls in flow_data:
-        flow_rows_html += f"""<tr>
-          <td style="font-weight:600;color:#e2e8f0;">{origin}</td>
-          <td class="{cls}">{vol}</td>
-          <td style="font-size:11px;">{note}</td>
-        </tr>"""
+    if import_sources:
+        for src in import_sources:
+            origin    = _html.escape(src.get("origin", ""))
+            vol       = _html.escape(src.get("est_annual_bcm_display", "—"))
+            ctype     = _html.escape(src.get("contract_type", ""))
+            notes     = _html.escape(src.get("static_notes", ""))
+            flex      = (src.get("flexibility") or "MEDIUM").upper()
+            risk_lvl  = src.get("risk_level", "LOW")
+            risk_col  = src.get("risk_color", "#22c55e")
+            cargo_sig = src.get("cargo_signal", "LOW")
+            cargo_col = src.get("cargo_color", "#22c55e")
+            headline  = _html.escape((src.get("top_headline") or "No significant alerts in past 7 days")[:120])
+            hl_cat    = _html.escape(src.get("top_hl_cat") or "")
+            al_cnt    = int(src.get("alert_count") or 0)
+            fl_lbl    = flex_label.get(flex, flex)
+            fl_col    = flex_color.get(flex, "#94a3b8")
+
+            flow_rows_html += f"""<tr>
+              <td style="font-weight:600;color:#e2e8f0;vertical-align:top;">
+                {origin}
+                <div style="font-size:10px;color:#475569;margin-top:3px;">{ctype}</div>
+              </td>
+              <td style="vertical-align:top;">
+                <span style="color:#d4a017;font-weight:700;">{vol}</span>
+              </td>
+              <td style="vertical-align:top;padding:9px 12px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.8px;
+                    padding:2px 8px;border-radius:10px;text-transform:uppercase;
+                    background:{risk_col}1a;color:{risk_col};border:1px solid {risk_col}44;">
+                    &#9888; {risk_lvl}
+                  </span>
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.8px;
+                    padding:2px 8px;border-radius:10px;text-transform:uppercase;
+                    background:{fl_col}1a;color:{fl_col};border:1px solid {fl_col}44;">
+                    {fl_lbl}
+                  </span>
+                  <span style="font-size:9px;font-weight:700;letter-spacing:0.8px;
+                    padding:2px 8px;border-radius:10px;text-transform:uppercase;
+                    background:{cargo_col}1a;color:{cargo_col};border:1px solid {cargo_col}44;">
+                    Cargo competition: {cargo_sig}
+                  </span>
+                </div>
+                <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">{notes}</div>
+                {'<div style="font-size:10px;color:#64748b;font-style:italic;margin-top:4px;">' + (f'&#128680; {hl_cat}: ' if hl_cat else '') + f'{headline}</div>' if headline else ''}
+                {'<div style="font-size:10px;color:#334155;margin-top:2px;">' + str(al_cnt) + ' alerts in last 7 days</div>' if al_cnt > 0 else ''}
+              </td>
+            </tr>"""
+    else:
+        # Fallback if DB not yet populated
+        for origin, vol, note in [
+            ("United States (USGC)", "~55 bcm/yr", "Dominant flexible supplier — Sabine Pass, Corpus Christi, Freeport, Cameron."),
+            ("Qatar",                "~25 bcm/yr", "Long-term contracts; Hormuz transit risk."),
+            ("Norway",               "~5 bcm/yr",  "Europe's only indigenous LNG source."),
+            ("Algeria & Egypt",      "~20 bcm/yr", "Key for Southern Europe — Spain, Italy, Greece."),
+            ("Nigeria & Angola",     "~15 bcm/yr", "Spot-market cargoes; Asian competition elevated."),
+            ("Russia (Yamal LNG)",   "~15 bcm/yr", "Politically sensitive; EU sanctions debate ongoing."),
+        ]:
+            flow_rows_html += f"""<tr>
+              <td style="font-weight:600;color:#e2e8f0;">{_html.escape(origin)}</td>
+              <td style="color:#d4a017;font-weight:700;">{vol}</td>
+              <td style="font-size:11px;color:#94a3b8;">{_html.escape(note)}</td>
+            </tr>"""
 
     # ── Page HTML ─────────────────────────────────────────────────────────────
     return f"""<script>
@@ -914,37 +1121,85 @@ document.body.style.overflow='';
   <div class="lng-intel-card">
     <div class="lng-intel-icon">&#127979;</div>
     <div class="lng-intel-title">Asian Demand Competition</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+        background:{'rgba(239,68,68,0.12)' if asian_demand_alerts > 50 else 'rgba(234,179,8,0.12)' if asian_demand_alerts > 20 else 'rgba(59,130,246,0.12)'};
+        color:{'#ef4444' if asian_demand_alerts > 50 else '#eab308' if asian_demand_alerts > 20 else '#3b82f6'};">
+        {asian_demand_alerts} geopolitical alerts / 7d
+      </span>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+        background:rgba(212,160,23,0.12);color:#d4a017;">
+        JKM {jkm_7d_pct:+.1f}% / 7d
+      </span>
+    </div>
     <div class="lng-intel-body">
       Japan, South Korea, and China are Europe's primary competitors for Atlantic-basin LNG cargoes.
-      Asian buyers operate under long-term contracts for base load but actively source spot cargoes
-      during demand peaks — summer air-conditioning load (May–August) and winter heating peaks (November–February).
-      When Asian spot demand surges, European utilities face higher competition and rising import costs.
-      The JKM at <strong style="color:#d4a017">${jkm:.2f}/MMBtu</strong> reflects current Asian market tightness.
+      JKM is currently at <strong style="color:#d4a017">${jkm:.2f}/MMBtu</strong> —
+      {'up ' + f'{jkm_7d_pct:+.1f}% over the past 7 days, signalling strengthening Asian demand.' if jkm_7d_pct > 1 else
+       'down ' + f'{abs(jkm_7d_pct):.1f}% over the past 7 days, indicating some demand softening in Asia.' if jkm_7d_pct < -1 else
+       'broadly flat over the past 7 days, suggesting balanced near-term Asian demand.'}
+      There are currently <strong>{asian_demand_alerts}</strong> active geopolitical alerts across Middle East and Asia
+      in the past 7 days — {'a high-alert environment that is directly impacting LNG shipping routes and cargo security.' if asian_demand_alerts > 50
+      else 'an elevated risk environment requiring close monitoring of cargo routing.' if asian_demand_alerts > 20
+      else 'a relatively contained backdrop for Asian cargo flows.'} The JKM–TTF spread of
+      <strong style="color:{spread_color}">${abs(jkm_ttf_spread):.2f}/MMBtu</strong> currently
+      {'places European importers under active cargo competition pressure.' if jkm_ttf_spread > 2
+       else 'sits at a level where cargo routing decisions are finely balanced.' if jkm_ttf_spread > 0
+       else 'favours European destinations, with Atlantic cargoes biased westward.'}
     </div>
   </div>
   <div class="lng-intel-card">
     <div class="lng-intel-icon">&#127824;</div>
     <div class="lng-intel-title">US Export Capacity — The Swing Supplier</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+        background:rgba(212,160,23,0.12);color:#d4a017;">
+        ~55 bcm/yr capacity
+      </span>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+        background:{'rgba(239,68,68,0.12)' if jkm_ttf_spread > 3 else 'rgba(234,179,8,0.12)' if jkm_ttf_spread > 1 else 'rgba(34,197,94,0.12)'};
+        color:{'#ef4444' if jkm_ttf_spread > 3 else '#eab308' if jkm_ttf_spread > 1 else '#22c55e'};">
+        {'Asia pull HIGH' if jkm_ttf_spread > 3 else 'Asia pull MODERATE' if jkm_ttf_spread > 1 else 'Europe preferred'}
+      </span>
+      {('<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(234,179,8,0.12);color:#eab308;">' + str(na_alerts) + ' NA alerts / 7d</span>') if na_alerts > 0 else ''}
+    </div>
     <div class="lng-intel-body">
       The United States Gulf Coast (Sabine Pass, Corpus Christi, Freeport, Cameron)
-      has become Europe's largest LNG supplier since 2022, providing approximately 55 bcm/year
-      of flexible, destination-free volumes. US LNG exports have been the primary swing factor
-      stabilising European gas balances — but when Asian netbacks are superior, US cargoes pivot
-      eastward. Feed gas outages, weather disruptions at Gulf Coast terminals, and US domestic
-      gas supply dynamics are the primary operational risk factors to monitor.
+      has become Europe's largest LNG supplier since 2022, providing approximately
+      <strong>55 bcm/year</strong> of flexible, destination-free volumes.
+      At the current JKM–TTF spread of
+      <strong style="color:{spread_color}">${abs(jkm_ttf_spread):.2f}/MMBtu</strong>,
+      US producers {'have a structural incentive to divert Atlantic cargoes toward Asian buyers, which directly reduces European import availability.' if jkm_ttf_spread > 2
+      else 'are making routing decisions on a cargo-by-cargo basis — European and Asian netbacks are competitive.' if jkm_ttf_spread > 0
+      else 'find European netbacks more attractive, supporting a westward bias in US LNG cargo routing.'}
+      {('There are currently <strong>' + str(na_alerts) + '</strong> North American geopolitical alerts in the past 7 days — monitor for any Gulf Coast terminal disruption signals.') if na_alerts > 0
+       else 'No significant North American disruption alerts in the past 7 days.'}
     </div>
   </div>
   <div class="lng-intel-card">
     <div class="lng-intel-icon">&#127811;</div>
     <div class="lng-intel-title">Storage Refill — The Seasonal Clock</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+        background:{'rgba(239,68,68,0.12)' if storage_pct < 30 else 'rgba(234,179,8,0.12)' if storage_pct < 50 else 'rgba(34,197,94,0.12)'};
+        color:{'#ef4444' if storage_pct < 30 else '#eab308' if storage_pct < 50 else '#22c55e'};">
+        EU Storage: {storage_pct:.1f}% full
+      </span>
+      <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;
+        background:rgba(59,130,246,0.12);color:#3b82f6;">
+        Target: 90% by Nov 1
+      </span>
+    </div>
     <div class="lng-intel-body">
-      Europe must inject approximately {required_refill_gwh_display(storage_pct)} of gas
-      through to November 1 to meet the EU-mandated 90% storage target. LNG imports are
-      a critical component of this refill — particularly Norwegian pipeline volumes
-      that free up capacity for cross-border flows. When Asian demand competes for
-      Atlantic LNG during the spring-summer injection window, Europe's ability to
-      refill storage is directly constrained, creating a tight feedback loop between
-      JKM pricing, TTF, and the November storage outlook.
+      EU storage is currently at <strong style="color:{'#ef4444' if storage_pct < 30 else '#eab308' if storage_pct < 50 else '#22c55e'}">{storage_pct:.1f}%</strong>
+      ({storage_norm:.1f}% seasonal norm).
+      Europe must inject approximately <strong>{required_refill_gwh_display(storage_pct)}</strong>
+      through to November 1 to reach the 90% EU target — a
+      {'demanding refill requirement that makes every lost LNG cargo to Asia directly consequential for winter supply security.' if storage_pct < 35
+       else 'significant injection programme where LNG availability remains a key variable alongside Norwegian pipeline flows.' if storage_pct < 55
+       else 'manageable injection target, though LNG availability remains a key input into the seasonal gas balance.'}
+      When the JKM–TTF spread is elevated — as it is today at <strong style="color:{spread_color}">${abs(jkm_ttf_spread):.2f}/MMBtu</strong> —
+      the storage refill and LNG import dynamics create a direct feedback loop into TTF forward pricing.
     </div>
   </div>
 </div>
@@ -962,9 +1217,9 @@ document.body.style.overflow='';
   <table class="lng-flow-table">
     <thead>
       <tr>
-        <th>Origin</th>
-        <th>Est. Annual Volume</th>
-        <th>Key Considerations</th>
+        <th>Origin &amp; Contract Type</th>
+        <th>Est. Volume</th>
+        <th>Live Intelligence — Risk &bull; Flexibility &bull; Cargo Competition &bull; Today's Alerts</th>
       </tr>
     </thead>
     <tbody>
@@ -1208,8 +1463,8 @@ async def europe_lng_supply_demand():
         geri_val    = int(round(_safe_float(geri_row.get("value", 0))))
         geri_band   = (geri_row.get("band") or "LOW").upper()
 
-        # Run custom analysis engine
-        analysis = await asyncio.to_thread(
+        # Run analysis engine + import sources intelligence in parallel
+        analysis_task = asyncio.create_task(asyncio.to_thread(
             _run_lng_analysis,
             today_str,
             jkm, jkm_chg, jkm_chg_pct,
@@ -1218,9 +1473,22 @@ async def europe_lng_supply_demand():
             storage_pct,
             geri_val, geri_band,
             data["alert_context"],
+        ))
+        sources_task = asyncio.create_task(
+            asyncio.to_thread(_fetch_import_sources_intelligence, spread)
         )
 
-        html_body = _build_lng_html(data, analysis, today_str)
+        analysis, import_sources = await asyncio.gather(
+            analysis_task, sources_task, return_exceptions=True
+        )
+        if isinstance(analysis, Exception):
+            logger.warning(f"Analysis engine failed: {analysis}")
+            analysis = _LNG_ANALYSIS_FALLBACK
+        if isinstance(import_sources, Exception):
+            logger.warning(f"Import sources fetch failed: {import_sources}")
+            import_sources = []
+
+        html_body = _build_lng_html(data, analysis, today_str, import_sources=import_sources)
         yield html_body
 
     return StreamingResponse(generate(), media_type="text/html")
