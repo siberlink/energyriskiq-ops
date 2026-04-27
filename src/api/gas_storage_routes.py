@@ -297,7 +297,7 @@ _GAS_STORAGE_LOADER = _LOADER_HTML.replace(
     "European Gas Storage Levels — Live Data &amp; Risk Intelligence | EnergyRiskIQ",
 ).replace(
     'name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices."',
-    'name="description" content="Live European gas storage levels, seasonal comparison, refill trajectory, and AI-powered risk intelligence for traders and analysts. Updated daily from AGSI+ GIE."',
+    'name="description" content="Live European gas storage levels, seasonal comparison, refill trajectory, and proprietary risk intelligence for traders and analysts. Updated daily from AGSI+ GIE."',
 ).replace(
     'rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot"',
     'rel="canonical" href="https://energyriskiq.com/gas-storage-levels-in-europe"',
@@ -306,7 +306,7 @@ _GAS_STORAGE_LOADER = _LOADER_HTML.replace(
     "Fetching EU gas storage data\u2026",
 ).replace(
     '<span class="ld-tag">GERI</span>\n    <span class="ld-tag">EERI</span>\n    <span class="ld-tag">EGSI&#8209;M</span>\n    <span class="ld-tag">Brent</span>\n    <span class="ld-tag">TTF</span>',
-    '<span class="ld-tag">AGSI+</span>\n    <span class="ld-tag">EGSI&#8209;M</span>\n    <span class="ld-tag">TTF</span>\n    <span class="ld-tag">AI Intelligence</span>',
+    '<span class="ld-tag">AGSI+</span>\n    <span class="ld-tag">EGSI&#8209;M</span>\n    <span class="ld-tag">TTF</span>\n    <span class="ld-tag">Risk Intelligence</span>',
 )
 
 
@@ -490,30 +490,41 @@ _GAS_STORAGE_CSS = """
   text-transform: uppercase; color: var(--gold);
 }
 .gs-wheel-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
-.gs-citation-box {
-  background: rgba(255,255,255,0.015);
-  border: 1px solid rgba(255,255,255,0.06);
+.snap-cite-card {
+  background: #1e293b;
+  border: 1px solid #334155;
   border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 44px;
+  padding: 24px 28px;
+  margin-bottom: 32px;
 }
-.gs-citation-title {
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
+.snap-cite-card h3 {
+  font-size: 1.05rem; font-weight: 700; color: #f1f5f9;
+  margin-bottom: 10px;
 }
-.gs-citation-text {
-  font-size: 12px; color: #475569; line-height: 1.7; font-style: italic;
+.snap-cite-desc {
+  font-size: 14px; color: #94a3b8; margin-bottom: 18px; line-height: 1.6;
 }
-.gs-data-source-row {
-  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+.snap-cite-code-wrap {
+  background: #0f172a; border: 1px solid #334155;
+  border-radius: 8px; padding: 16px 20px; position: relative;
 }
-.gs-data-badge {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
-  padding: 3px 10px; border-radius: 20px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #64748b;
+.snap-cite-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px; color: #e2e8f0; line-height: 1.8;
 }
+.snap-cite-code a { color: #60a5fa; text-decoration: none; }
+.snap-cite-copy-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(30,41,59,0.9); border: 1px solid #475569;
+  color: #94a3b8; padding: 5px 14px; font-size: 12px; font-weight: 600;
+  border-radius: 6px; cursor: pointer; font-family: inherit;
+}
+.snap-cite-copy-btn:hover { color: #f1f5f9; border-color: #94a3b8; }
+.snap-cite-footer {
+  margin-top: 14px; font-size: 12px; color: #64748b;
+}
+.snap-cite-footer a { color: #60a5fa; text-decoration: none; }
+.snap-cite-footer a:hover { text-decoration: underline; }
 .gs-egsi-band-chip {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
@@ -705,7 +716,7 @@ def _build_gas_storage_html(data: dict, ai_interp: str, today_str: str) -> str:
                     f"Live European gas storage fill rate at {storage_pct:.1f}%, "
                     f"{storage_dev:+.1f}pp vs seasonal norm. "
                     "Real-time risk intelligence, EGSI correlation, TTF price implications, "
-                    "and AI-powered analysis for energy traders and risk managers."
+                    "and proprietary algorithm analysis for energy traders and risk managers."
                 ),
                 "url": f"{BASE_URL}/gas-storage-levels-in-europe",
                 "dateModified": str(_date.today()),
@@ -806,7 +817,7 @@ document.body.style.overflow='';
              max-width:680px;margin:0 auto 1.5rem;">
     EU storage currently at <strong style="color:{rb_color}">{storage_pct:.1f}%</strong>
     &mdash; <strong style="color:#ef4444">{storage_dev:+.1f}pp below seasonal norm</strong>.
-    Live risk intelligence, TTF price correlation, and AI-powered analysis
+    Live risk intelligence, TTF price correlation, and custom algorithm analysis
     for energy traders, analysts, and risk managers.
   </h2>
   <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:1.2rem;">
@@ -979,15 +990,15 @@ document.body.style.overflow='';
   </div>
 </div>
 
-<!-- ── SECTION: AI INTELLIGENCE ──────────────────────────────────────────── -->
-<div class="section-label" style="margin-bottom:20px;">&#129302; AI Market Intelligence &mdash; Storage Risk Interpretation</div>
+<!-- ── SECTION: ANALYSIS INTELLIGENCE ────────────────────────────────────── -->
+<div class="section-label" style="margin-bottom:20px;">&#129302; Market Intelligence &mdash; Storage Risk Interpretation</div>
 
 <div class="gs-ai-box">
-  <div class="gs-ai-label">EnergyRiskIQ AI Analysis &bull; Powered by GPT-4.1 &bull; {today_str}</div>
+  <div class="gs-ai-label">EnergyRiskIQ Proprietary Analysis Engine &bull; {today_str}</div>
   {interp_html}
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.05);
               font-size:10px;color:#334155;line-height:1.5;">
-    This interpretation is generated by EnergyRiskIQ's AI analysis engine using live AGSI+ storage data,
+    This interpretation is generated by EnergyRiskIQ's proprietary analysis engine using live AGSI+ storage data,
     EGSI-M readings, TTF price context, and alert signal inputs. It is for informational purposes only
     and does not constitute financial or trading advice.
     &bull; Storage data: AGSI+ / Gas Infrastructure Europe
@@ -1042,7 +1053,7 @@ document.body.style.overflow='';
       <li>Daily fill rate snapshots with risk-scored deviation analysis</li>
       <li>EGSI-M correlation to interpret near-term vs medium-term risk</li>
       <li>Historical trend data for seasonal comparisons and report citations</li>
-      <li>AI narrative interpretation to accelerate research drafting</li>
+      <li>Custom algorithm narrative interpretation to accelerate research drafting</li>
     </ul>
   </div>
 </div>
@@ -1126,7 +1137,7 @@ document.body.style.overflow='';
       Storage data is updated daily following the AGSI+ publication window
       (typically 10:00–12:00 CET). EnergyRiskIQ's ingestion pipeline processes
       the new data within minutes of publication, updating risk scores,
-      EGSI inputs, and AI interpretations automatically.
+      EGSI inputs, and algorithm-driven interpretations automatically.
     </div>
   </div>
 </div>
@@ -1152,8 +1163,8 @@ document.body.style.overflow='';
   </a>
   <a href="/data/global-energy-risk-forecast" class="gs-wheel-link">
     <div class="gs-wheel-icon">&#127919;</div>
-    <div class="gs-wheel-label">AI Forecast</div>
-    <div class="gs-wheel-desc">24H Brent &amp; TTF AI price outlook</div>
+    <div class="gs-wheel-label">Forecast</div>
+    <div class="gs-wheel-desc">24H Brent &amp; TTF price outlook</div>
   </a>
   <a href="/data/energy-risk-snapshot" class="gs-wheel-link">
     <div class="gs-wheel-icon">&#128248;</div>
@@ -1168,20 +1179,25 @@ document.body.style.overflow='';
 </div>
 
 <!-- ── SECTION: CITATION BLOCK ────────────────────────────────────────────── -->
-<div class="gs-citation-box">
-  <div class="gs-citation-title">&#128196; Citing This Page</div>
-  <div class="gs-citation-text">
-    EnergyRiskIQ (2026). <em>European Gas Storage Levels — Live Data &amp; Risk Intelligence.</em>
-    Updated {today_str}. EnergyRiskIQ Platform. Available at:
-    https://energyriskiq.com/gas-storage-levels-in-europe
+<div class="section-label" style="margin-bottom:20px;">&#128196; Citation &amp; Reference</div>
+<div class="snap-cite-card" style="margin-bottom:44px;">
+  <h3>How to Cite This Page</h3>
+  <p class="snap-cite-desc">
+    This page is updated daily with fresh data from live production pipelines.
+    To reference this intelligence in research, journalism, or professional reports,
+    use the citation below.
+  </p>
+  <div class="snap-cite-code-wrap">
+    <pre class="snap-cite-code">EnergyRiskIQ. (2026). <em>European Gas Storage Levels — Live Data &amp; Risk Intelligence — {today_str}</em>.
+Retrieved from <a href="{BASE_URL}/gas-storage-levels-in-europe">{BASE_URL}/gas-storage-levels-in-europe</a>
+Data sources: AGSI+ / GIE (EU storage), Yahoo Finance (TTF), EnergyRiskIQ risk pipeline (EGSI-M, GERI, EERI).</pre>
+    <button class="snap-cite-copy-btn" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). European Gas Storage Levels \u2014 Live Data & Risk Intelligence \u2014 {today_str}. Retrieved from {BASE_URL}/gas-storage-levels-in-europe')">Copy</button>
   </div>
-  <div class="gs-data-source-row">
-    <span class="gs-data-badge">Source: AGSI+ / GIE</span>
-    <span class="gs-data-badge">TTF: Yahoo Finance</span>
-    <span class="gs-data-badge">EGSI-M: EnergyRiskIQ</span>
-    <span class="gs-data-badge">AI: GPT-4.1-mini</span>
-    <span class="gs-data-badge">Updated: Daily</span>
-    <span class="gs-data-badge">Coverage: EU Aggregate</span>
+  <div class="snap-cite-footer">
+    Data sourced from: AGSI+ / Gas Infrastructure Europe (EU aggregate storage),
+    Yahoo Finance (TTF natural gas futures), EnergyRiskIQ internal risk scoring pipeline (EGSI-M, GERI, EERI).
+    Custom algorithm analysis via proprietary EnergyRiskIQ analysis engine. <strong>Not financial advice.</strong>
+    See <a href="{BASE_URL}/indices/europe-gas-stress-index">EGSI methodology</a> for full scoring detail.
   </div>
 </div>
 
