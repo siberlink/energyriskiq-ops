@@ -1413,72 +1413,104 @@ def run_lng_price_migration():
     logger.info("LNG price migration complete.")
 
 
+def _apply_lng_import_sources_ddl(cursor):
+    """DDL + seed for lng_import_sources — runs against any open cursor."""
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS lng_import_sources (
+            id                     SERIAL PRIMARY KEY,
+            origin                 VARCHAR(140) NOT NULL,
+            scope_region           VARCHAR(80)  NOT NULL,
+            est_annual_bcm_display VARCHAR(30)  NOT NULL,
+            contract_type          VARCHAR(100) NOT NULL,
+            flexibility            VARCHAR(10)  NOT NULL,
+            static_notes           TEXT         NOT NULL,
+            sort_order             INT          DEFAULT 0,
+            active                 BOOLEAN      DEFAULT TRUE,
+            updated_at             TIMESTAMP    DEFAULT NOW()
+        );
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_lng_sources_region
+        ON lng_import_sources(scope_region);
+    """)
+    cursor.execute("SELECT COUNT(*) FROM lng_import_sources;")
+    row = cursor.fetchone()
+    count = int(row[0] if isinstance(row, tuple) else row.get("count", 0))
+    if count == 0:
+        cursor.execute("""
+            INSERT INTO lng_import_sources
+                (origin, scope_region, est_annual_bcm_display, contract_type,
+                 flexibility, static_notes, sort_order)
+            VALUES
+                ('United States (USGC)', 'North America', '~55 bcm/yr',
+                 'Destination-free spot + long-term', 'HIGH',
+                 'Dominant flexible supplier — Sabine Pass, Corpus Christi, Freeport, Cameron. '
+                 'Destination-free contracts mean US cargoes pivot to Asia when JKM netbacks exceed European bids.',
+                 1),
+                ('Qatar', 'Middle East', '~25 bcm/yr',
+                 'Predominantly long-term contracts', 'LOW',
+                 'Long-term contract volumes with limited spot flexibility. Hormuz transit dependency '
+                 'makes Qatar supply highly sensitive to Middle East conflict escalation.',
+                 2),
+                ('Norway (Hammerfest LNG)', 'Europe', '~5 bcm/yr',
+                 'Long-term + spot', 'MEDIUM',
+                 'Europe''s only indigenous LNG source. Snohvit field; periodic maintenance outages '
+                 'can tighten near-term supply. Key supplementary source for NW European terminals.',
+                 3),
+                ('Algeria & Egypt', 'North Africa', '~20 bcm/yr',
+                 'Mixed long-term and spot', 'MEDIUM',
+                 'Critical for Southern Europe — Spain, Italy, and Greece. Algerian Arzew and Skikda '
+                 'terminals plus Egyptian Damietta/Idku. Political stability and infrastructure risk.',
+                 4),
+                ('Nigeria & Angola', 'Global', '~15 bcm/yr',
+                 'Spot-market oriented', 'HIGH',
+                 'Atlantic-basin spot cargoes; highly contested by Asian buyers when JKM premiums are elevated. '
+                 'Bontang and Bonny LNG. Operational reliability and security disruption risk.',
+                 5),
+                ('Russia (Yamal LNG)', 'Russia', '~15 bcm/yr',
+                 'Long-term + spot shadow market', 'LOW',
+                 'Politically sensitive; EU sanctions debate ongoing. Yamal Peninsula — Arctic LNG exported '
+                 'via Arc7 ice-class tankers. Significant reputational and regulatory risk for EU importers.',
+                 6)
+            ON CONFLICT DO NOTHING;
+        """)
+        return True
+    return False
+
+
 def run_lng_import_sources_migration():
-    """Create and seed lng_import_sources table for dynamic LNG route intelligence."""
-    logger.info("Running LNG import sources migration...")
+    """Create and seed lng_import_sources in production DB AND local dev DB.
+
+    Running in both databases keeps schemas in sync and prevents Replit's
+    deployment tool from flagging the table as an untracked phantom and
+    generating a destructive-migration warning on every deploy.
+    """
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+
+    # ── 1. Production / primary DB (via get_cursor which uses PRODUCTION_DATABASE_URL) ──
+    logger.info("Running LNG import sources migration (production DB)...")
     with get_cursor() as cursor:
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS lng_import_sources (
-                id SERIAL PRIMARY KEY,
-                origin VARCHAR(140) NOT NULL,
-                scope_region VARCHAR(80) NOT NULL,
-                est_annual_bcm_display VARCHAR(30) NOT NULL,
-                contract_type VARCHAR(100) NOT NULL,
-                flexibility VARCHAR(10) NOT NULL,
-                static_notes TEXT NOT NULL,
-                sort_order INT DEFAULT 0,
-                active BOOLEAN DEFAULT TRUE,
-                updated_at TIMESTAMP DEFAULT NOW()
-            );
-        """)
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_lng_sources_region
-            ON lng_import_sources(scope_region);
-        """)
-        # Seed only if table is empty
-        cursor.execute("SELECT COUNT(*) FROM lng_import_sources;")
-        row = cursor.fetchone()
-        count = row["count"] if row else 0
-        if int(count) == 0:
-            cursor.execute("""
-                INSERT INTO lng_import_sources
-                    (origin, scope_region, est_annual_bcm_display, contract_type,
-                     flexibility, static_notes, sort_order)
-                VALUES
-                    ('United States (USGC)', 'North America', '~55 bcm/yr',
-                     'Destination-free spot + long-term', 'HIGH',
-                     'Dominant flexible supplier — Sabine Pass, Corpus Christi, Freeport, Cameron. '
-                     'Destination-free contracts mean US cargoes pivot to Asia when JKM netbacks exceed European bids.',
-                     1),
-                    ('Qatar', 'Middle East', '~25 bcm/yr',
-                     'Predominantly long-term contracts', 'LOW',
-                     'Long-term contract volumes with limited spot flexibility. Hormuz transit dependency '
-                     'makes Qatar supply highly sensitive to Middle East conflict escalation.',
-                     2),
-                    ('Norway (Hammerfest LNG)', 'Europe', '~5 bcm/yr',
-                     'Long-term + spot', 'MEDIUM',
-                     'Europe''s only indigenous LNG source. Snøhvit field; periodic maintenance outages '
-                     'can tighten near-term supply. Key supplementary source for NW European terminals.',
-                     3),
-                    ('Algeria & Egypt', 'North Africa', '~20 bcm/yr',
-                     'Mixed long-term and spot', 'MEDIUM',
-                     'Critical for Southern Europe — Spain, Italy, and Greece. Algerian Arzew and Skikda '
-                     'terminals plus Egyptian Damietta/Idku. Political stability and infrastructure risk.',
-                     4),
-                    ('Nigeria & Angola', 'Global', '~15 bcm/yr',
-                     'Spot-market oriented', 'HIGH',
-                     'Atlantic-basin spot cargoes; highly contested by Asian buyers when JKM premiums are elevated. '
-                     'Bontang and Bonny LNG. Operational reliability and security disruption risk.',
-                     5),
-                    ('Russia (Yamal LNG)', 'Russia', '~15 bcm/yr',
-                     'Long-term + spot shadow market', 'LOW',
-                     'Politically sensitive; EU sanctions debate ongoing. Yamal Peninsula — Arctic LNG exported '
-                     'via Arc7 ice-class tankers. Significant reputational and regulatory risk for EU importers.',
-                     6)
-                ON CONFLICT DO NOTHING;
-            """)
-            logger.info("Seeded 6 LNG import sources.")
-    logger.info("LNG import sources migration complete.")
+        seeded = _apply_lng_import_sources_ddl(cursor)
+        if seeded:
+            logger.info("Seeded 6 LNG import sources (production DB).")
+    logger.info("LNG import sources migration complete (production DB).")
+
+    # ── 2. Local dev DB — only when it differs from the production DB ──
+    prod_url = os.environ.get("PRODUCTION_DATABASE_URL", "")
+    local_url = os.environ.get("DATABASE_URL", "")
+    if local_url and local_url != prod_url:
+        try:
+            logger.info("Running LNG import sources migration (local dev DB)...")
+            conn = psycopg2.connect(local_url)
+            cur = conn.cursor()
+            _apply_lng_import_sources_ddl(cur)
+            conn.commit()
+            conn.close()
+            logger.info("LNG import sources migration complete (local dev DB).")
+        except Exception as exc:
+            logger.warning(f"Local dev DB LNG migration skipped: {exc}")
+
 
 
 def run_fix_skipped_alerts():
