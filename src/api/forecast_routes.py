@@ -1159,6 +1159,7 @@ async def sitemap_data_xml():
         (f"{BASE_URL}/data/energy-risk-snapshot",           "daily",  "0.9"),
         (f"{BASE_URL}/data/global-energy-risk-forecast",    "daily",  "0.9"),
         (f"{BASE_URL}/gas-storage-levels-in-europe",        "daily",  "0.9"),
+        (f"{BASE_URL}/data/europe-lng-supply-demand",        "daily",  "0.9"),
     ]
     urls = ''
     for loc, freq, pri in pages:

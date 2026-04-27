@@ -44,6 +44,7 @@ from src.blog.routes import router as blog_router
 from src.api.snapshot_routes import router as snapshot_router
 from src.api.forecast_routes import router as forecast_router
 from src.api.gas_storage_routes import router as gas_storage_router
+from src.api.lng_routes import router as lng_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -190,6 +191,7 @@ app.include_router(blog_router)
 app.include_router(snapshot_router)
 app.include_router(forecast_router)
 app.include_router(gas_storage_router)
+app.include_router(lng_router)
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")
