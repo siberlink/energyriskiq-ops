@@ -496,22 +496,41 @@ _LNG_CSS = """
 .lng-wheel-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
                    text-transform: uppercase; color: var(--gold); }
 .lng-wheel-desc  { font-size: 11px; color: var(--muted); line-height: 1.4; }
-.lng-citation-box {
-  background: rgba(255,255,255,0.015);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px; padding: 20px 24px; margin-bottom: 44px;
+.snap-cite-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 32px;
 }
-.lng-citation-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-                      text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-.lng-citation-text  { font-size: 12px; color: #475569; line-height: 1.7; font-style: italic; }
-.lng-badge-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-.lng-badge {
-  font-size:10px; font-weight:600; letter-spacing:0.05em;
-  padding:3px 10px; border-radius:20px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  color:#64748b;
+.snap-cite-card h3 {
+  font-size: 1.05rem; font-weight: 700; color: #f1f5f9;
+  margin-bottom: 10px;
 }
+.snap-cite-desc {
+  font-size: 14px; color: #94a3b8; margin-bottom: 18px; line-height: 1.6;
+}
+.snap-cite-code-wrap {
+  background: #0f172a; border: 1px solid #334155;
+  border-radius: 8px; padding: 16px 20px; position: relative;
+}
+.snap-cite-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px; color: #e2e8f0; line-height: 1.8;
+}
+.snap-cite-code a { color: #60a5fa; text-decoration: none; }
+.snap-cite-copy-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(30,41,59,0.9); border: 1px solid #475569;
+  color: #94a3b8; padding: 5px 14px; font-size: 12px; font-weight: 600;
+  border-radius: 6px; cursor: pointer; font-family: inherit;
+}
+.snap-cite-copy-btn:hover { color: #f1f5f9; border-color: #94a3b8; }
+.snap-cite-footer {
+  margin-top: 14px; font-size: 12px; color: #64748b;
+}
+.snap-cite-footer a { color: #60a5fa; text-decoration: none; }
+.snap-cite-footer a:hover { text-decoration: underline; }
 .lng-flow-table {
   width:100%; border-collapse:collapse; font-size:12px; margin-top:12px;
 }
@@ -1359,20 +1378,25 @@ document.body.style.overflow='';
 </div>
 
 <!-- ── SECTION: CITATION ───────────────────────────────────────────────────── -->
-<div class="lng-citation-box">
-  <div class="lng-citation-title">&#128196; Citing This Page</div>
-  <div class="lng-citation-text">
-    EnergyRiskIQ (2026). <em>Europe LNG Supply &amp; Demand — Live Market Intelligence.</em>
-    Updated {today_str}. EnergyRiskIQ Platform. Available at:
-    https://energyriskiq.com/data/europe-lng-supply-demand
+<div class="section-label" style="margin-bottom:20px;">&#128196; Citation &amp; Reference</div>
+<div class="snap-cite-card" style="margin-bottom:44px;">
+  <h3>How to Cite This Page</h3>
+  <p class="snap-cite-desc">
+    This page is updated daily with fresh data from live production pipelines.
+    To reference this intelligence in research, journalism, or professional reports,
+    use the citation below.
+  </p>
+  <div class="snap-cite-code-wrap">
+    <pre class="snap-cite-code">EnergyRiskIQ. (2026). <em>Europe LNG Supply &amp; Demand — Live Market Intelligence — {today_str}</em>.
+Retrieved from <a href="{BASE_URL}/data/europe-lng-supply-demand">{BASE_URL}/data/europe-lng-supply-demand</a>
+Data sources: OilPriceAPI (JKM), Yahoo Finance (TTF), AGSI+ / GIE (EU storage), EnergyRiskIQ risk pipeline.</pre>
+    <button class="snap-cite-copy-btn" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Europe LNG Supply & Demand \u2014 Live Market Intelligence \u2014 {today_str}. Retrieved from {BASE_URL}/data/europe-lng-supply-demand')">Copy</button>
   </div>
-  <div class="lng-badge-row">
-    <span class="lng-badge">JKM: OilPrice.com</span>
-    <span class="lng-badge">TTF: Yahoo Finance</span>
-    <span class="lng-badge">Storage: AGSI+ / GIE</span>
-    <span class="lng-badge">Risk: EnergyRiskIQ</span>
-    <span class="lng-badge">Updated: Daily</span>
-    <span class="lng-badge">Coverage: Atlantic Basin LNG</span>
+  <div class="snap-cite-footer">
+    Data sourced from: OilPriceAPI (JKM spot price), Yahoo Finance (TTF natural gas futures),
+    AGSI+ / GIE (EU gas storage), EnergyRiskIQ internal risk scoring pipeline (GERI, EERI, EGSI-M, alert events).
+    Custom algorithm analysis via proprietary EnergyRiskIQ analysis engine. <strong>Not financial advice.</strong>
+    See <a href="{BASE_URL}/indices/global-energy-risk-index">GERI methodology</a> for full scoring detail.
   </div>
 </div>
 
