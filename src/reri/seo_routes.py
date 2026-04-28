@@ -2115,7 +2115,7 @@ async def eeri_methodology_page():
                                 <li>Full EERI value, band, and trend</li>
                                 <li>Component breakdown and top drivers</li>
                                 <li>Asset stress panel</li>
-                                <li>AI-generated interpretation</li>
+                                <li>Custom algorithm interpretation</li>
                             </ul>
                         </div>
                         <div class="tier-card">
@@ -2253,7 +2253,7 @@ async def eeri_methodology_page():
 
             <div class="meth-cta">
                 <h3>Unlock the Full Power of EERI</h3>
-                <p>Access real-time EERI values, component breakdowns, historical charts, asset stress panels, and AI-powered interpretations with EnergyRiskIQ Pro.</p>
+                <p>Access real-time EERI values, component breakdowns, historical charts, asset stress panels, and custom algorithm interpretations with EnergyRiskIQ Pro.</p>
                 <a href="/users" class="cta-button">Get FREE Access</a>
             </div>
 

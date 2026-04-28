@@ -593,7 +593,7 @@ def render_cta_section(position: str = "mid") -> str:
         return """
         <section class="cta-section cta-mid">
             <h3>These are public summaries.</h3>
-            <p>Pro users receive <strong>full AI analysis</strong>, <strong>instant multi-channel delivery</strong>, and <strong>priority alerts</strong> before they appear here.</p>
+            <p>Pro users receive <strong>full custom algorithm analysis</strong>, <strong>instant multi-channel delivery</strong>, and <strong>priority alerts</strong> before they appear here.</p>
             <a href="/users" class="cta-btn">Get FREE Access &rarr;</a>
         </section>
         """
@@ -2967,14 +2967,14 @@ async def geri_updates_page():
             "date": "2026-02-03",
             "version": "1.3",
             "title": "Plan-Tiered Pro Dashboard",
-            "description": "Launched the GERI Pro Dashboard module with progressive intelligence depth across subscription tiers. Includes real-time GERI display, component breakdown, asset stress panel, top risk drivers, historical intelligence, regime statistics, and daily AI-generated summaries.",
+            "description": "Launched the GERI Pro Dashboard module with progressive intelligence depth across subscription tiers. Includes real-time GERI display, component breakdown, asset stress panel, top risk drivers, historical intelligence, regime statistics, and daily custom algorithm summaries.",
             "type": "release"
         },
         {
             "date": "2026-02-02",
             "version": "1.3",
             "title": "Daily Geo-Energy Intelligence Digest",
-            "description": "Added an AI-powered daily briefing that synthesizes alerts, index movements, and market context into actionable intelligence. Tiered features range from executive snapshots (Free) through regime classification and probability scoring (Trader) to full institutional intelligence with scenario forecasts (Enterprise).",
+            "description": "Added an algorithm-driven daily briefing that synthesizes alerts, index movements, and market context into actionable intelligence. Tiered features range from executive snapshots (Free) through regime classification and probability scoring (Trader) to full institutional intelligence with scenario forecasts (Enterprise).",
             "type": "enhancement"
         },
         {
@@ -3673,8 +3673,8 @@ async def geri_methodology_page():
                         <li><strong>Region Tagging</strong> — Events are assigned to geographic regions based on content analysis</li>
                     </ul>
 
-                    <h3>AI Enrichment</h3>
-                    <p>Classified events are enriched using AI analysis to produce structured intelligence:</p>
+                    <h3>Custom Algorithm Enrichment</h3>
+                    <p>Classified events are enriched using custom algorithms to produce structured intelligence:</p>
                     <ul>
                         <li><strong>Impact Assessment</strong> — Structured evaluation of the event's potential effect on energy markets</li>
                         <li><strong>Severity Scoring</strong> — Quantitative severity assignment on a standardised scale</li>
@@ -3706,7 +3706,7 @@ async def geri_methodology_page():
                             <ul>
                                 <li>Full GERI value, band, and trend</li>
                                 <li>Component breakdown and top drivers</li>
-                                <li>AI-generated interpretation</li>
+                                <li>Custom algorithm interpretation</li>
                                 <li>Cross-asset context and historical comparison</li>
                             </ul>
                         </div>
@@ -3794,7 +3794,7 @@ async def geri_methodology_page():
                     <h3>Planned Enhancements</h3>
                     <ul>
                         <li><strong>Source Weighting Calibration</strong> — An adaptive system that will calibrate individual source weights based on measured contribution to predictive power, uniqueness, timeliness, and false-positive control</li>
-                        <li><strong>Semantic Deduplication</strong> — Moving beyond title-based deduplication to AI-powered semantic clustering, reducing noise from multiple sources reporting the same underlying event</li>
+                        <li><strong>Semantic Deduplication</strong> — Moving beyond title-based deduplication to custom algorithm semantic clustering, reducing noise from multiple sources reporting the same underlying event</li>
                         <li><strong>Temporal Event Detection</strong> — Distinguishing between developing events and resolved events, preventing stale intelligence from inflating the index</li>
                     </ul>
 
@@ -3805,7 +3805,7 @@ async def geri_methodology_page():
 
             <div class="meth-cta">
                 <h3>Access Full GERI Intelligence</h3>
-                <p>Get real-time GERI values, component breakdowns, historical charts, cross-asset context, and AI-powered interpretations with EnergyRiskIQ.</p>
+                <p>Get real-time GERI values, component breakdowns, historical charts, cross-asset context, and custom algorithm interpretations with EnergyRiskIQ.</p>
                 <a href="/users" class="cta-button">Get FREE Access</a>
             </div>
 
@@ -5638,7 +5638,7 @@ def render_digest_html(d: dict) -> str:
             <div class="digest-card-header">
                 <span class="digest-section-icon">&#x1F9E0;</span>
                 <h3>Executive Intelligence Brief</h3>
-                <span style="background: rgba(59,130,246,0.2); color: #60a5fa; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">AI-Generated</span>
+                <span style="background: rgba(59,130,246,0.2); color: #60a5fa; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">Algorithm-Generated</span>
             </div>
             <div class="digest-card-body">
                 <div class="digest-narrative">{rendered}</div>
@@ -5693,7 +5693,7 @@ async def digest_history_page():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily Geo-Energy Intelligence Digest - History | EnergyRiskIQ</title>
-        <meta name="description" content="Browse the archive of daily geo-energy risk intelligence digests from EnergyRiskIQ. Free GERI index data, market reactions, and AI risk analysis.">
+        <meta name="description" content="Browse the archive of daily geo-energy risk intelligence digests from EnergyRiskIQ. Free GERI index data, market reactions, and custom algorithm risk analysis.">
         <link rel="canonical" href="{BASE_URL}/daily-geo-energy-intelligence-digest/history">
         <meta property="og:title" content="Daily Geo-Energy Intelligence Digest - History | EnergyRiskIQ">
         <meta property="og:description" content="Browse the archive of daily geo-energy risk intelligence digests.">
@@ -5710,7 +5710,7 @@ async def digest_history_page():
                     <a href="/">Home</a> / <a href="/daily-geo-energy-intelligence-digest">Digest</a> / History
                 </div>
                 <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem; color: #f1f5f9;">Daily Geo-Energy Intelligence Digest Archive</h1>
-                <p style="color: #94a3b8; margin-bottom: 2rem;">Browse past daily intelligence digests with GERI index movements, market reactions, and AI-generated risk analysis.</p>
+                <p style="color: #94a3b8; margin-bottom: 2rem;">Browse past daily intelligence digests with GERI index movements, market reactions, and custom algorithm risk analysis.</p>
                 <ul class="page-list">
                     {pages_html}
                 </ul>
@@ -5823,7 +5823,7 @@ async def digest_latest_page():
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Daily Geo-Energy Intelligence Digest | EnergyRiskIQ</title>
-        <meta name="description" content="Daily geo-energy risk intelligence digest with GERI index, market reactions, and AI analysis. Free from EnergyRiskIQ.">
+        <meta name="description" content="Daily geo-energy risk intelligence digest with GERI index, market reactions, and custom algorithm analysis. Free from EnergyRiskIQ.">
         <link rel="canonical" href="{BASE_URL}/daily-geo-energy-intelligence-digest">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_digest_dark_styles()}
@@ -7060,7 +7060,7 @@ async def geri_research_page(request: Request):
                         <div class="pipeline-step">
                             <div class="step-icon">&#x26A0;&#xFE0F;</div>
                             <div class="step-label">Risk Environment</div>
-                            <div class="step-desc">AI classification, severity scoring, regional mapping</div>
+                            <div class="step-desc">Custom algorithm classification, severity scoring, regional mapping</div>
                         </div>
                         <div class="pipeline-arrow">&#x27A1;&#xFE0F;</div>
                         <div class="pipeline-step">
@@ -7166,7 +7166,7 @@ async def geri_research_page(request: Request):
                             <span class="measure-tag">&#x1F6A2; Freight cost anomalies</span>
                             <span class="measure-tag">&#x1F4CA; Abnormal Brent-WTI spread widening</span>
                         </div>
-                        <p>AI-derived directional assessments for oil, gas, FX, and freight are generated for each event &mdash; capturing how intelligence translates into observable market stress before traditional price data reflects it.</p>
+                        <p>Algorithm-derived directional assessments for oil, gas, FX, and freight are generated for each event &mdash; capturing how intelligence translates into observable market stress before traditional price data reflects it.</p>
                     </div>
 
                     <div class="measures-subsection">
@@ -8064,7 +8064,7 @@ async def geri_research_page(request: Request):
                         </div>
                         <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
                             <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
-                                GERI is a proprietary composite index that measures the overall level of geopolitical and energy supply risk affecting global energy markets on a given day. It distils a multi-source intelligence pipeline — spanning RSS feeds, AI-enriched event classification, and regional risk scoring — into a single daily value on a 0–100 scale. Think of it as a risk thermometer: analogous to the VIX for financial volatility, but purpose-built for geopolitical and energy risk.
+                                GERI is a proprietary composite index that measures the overall level of geopolitical and energy supply risk affecting global energy markets on a given day. It distils a multi-source intelligence pipeline — spanning RSS feeds, algorithm-enriched event classification, and regional risk scoring — into a single daily value on a 0–100 scale. Think of it as a risk thermometer: analogous to the VIX for financial volatility, but purpose-built for geopolitical and energy risk.
                             </p>
                         </div>
                     </div>
@@ -8205,7 +8205,7 @@ async def geri_research_page(request: Request):
                         </div>
                         <div style="max-height:0;overflow:hidden;transition:max-height 0.35s ease,padding-bottom 0.35s ease;padding:0 1.4rem;">
                             <p style="color:#94a3b8;font-size:0.875rem;line-height:1.75;margin:0 0 0.2rem;">
-                                Yes, with a 24-hour delay. Free users and this public page display the previous day's GERI value, band, and trend indicator. Real-time GERI values, full historical charts, component-level breakdowns, AI daily interpretations, and GERI Live intraday updates are available on paid subscription plans. A free account can be created at no cost to access the delayed feed with basic band and trend information.
+                                Yes, with a 24-hour delay. Free users and this public page display the previous day's GERI value, band, and trend indicator. Real-time GERI values, full historical charts, component-level breakdowns, custom algorithm daily interpretations, and GERI Live intraday updates are available on paid subscription plans. A free account can be created at no cost to access the delayed feed with basic band and trend information.
                             </p>
                         </div>
                     </div>

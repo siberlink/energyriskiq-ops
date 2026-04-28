@@ -1886,7 +1886,7 @@ async def egsi_methodology_page():
                     <table class="meth-table">
                         <thead><tr><th>Audience</th><th>Timing</th><th>Content</th></tr></thead>
                         <tbody>
-                            <tr><td><strong>Paid subscribers</strong></td><td>Real-time on computation</td><td>Full EGSI-M and EGSI-S values, bands, trends, component breakdown, top drivers, chokepoint watch, and AI interpretation</td></tr>
+                            <tr><td><strong>Paid subscribers</strong></td><td>Real-time on computation</td><td>Full EGSI-M and EGSI-S values, bands, trends, component breakdown, top drivers, chokepoint watch, and custom algorithm interpretation</td></tr>
                             <tr><td><strong>Free users</strong></td><td>24-hour delay</td><td>EGSI value and band with limited context</td></tr>
                             <tr><td><strong>Public / SEO pages</strong></td><td>24-hour delay</td><td>EGSI value, band, trend indicator, and top driver headlines</td></tr>
                         </tbody>
@@ -2082,7 +2082,7 @@ async def egsi_methodology_page():
             <!-- CTA -->
             <div class="meth-cta">
                 <h3>Access Full Gas Intelligence</h3>
-                <p>Get real-time EGSI-M and EGSI-S readings, component breakdowns, chokepoint monitoring, and AI-powered interpretation delivered daily.</p>
+                <p>Get real-time EGSI-M and EGSI-S readings, component breakdowns, chokepoint monitoring, and custom algorithm interpretation delivered daily.</p>
                 <a href="/users" class="cta-button">Get FREE Access</a>
             </div>
 

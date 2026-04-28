@@ -1367,7 +1367,7 @@ document.body.style.overflow='';
   </a>
   <a href="/data/global-energy-risk-forecast" class="lng-wheel-link">
     <div class="lng-wheel-icon">&#127919;</div>
-    <div class="lng-wheel-label">AI Forecast</div>
+    <div class="lng-wheel-label">Forecast</div>
     <div class="lng-wheel-desc">24H Brent &amp; TTF price outlook</div>
   </a>
   <a href="/users" class="lng-wheel-link">

@@ -316,10 +316,10 @@ No markdown. No extra keys. Valid JSON only."""
 
 _FORECAST_LOADER_HTML = _LOADER_HTML.replace(
     'Global Energy Risk Snapshot | EnergyRiskIQ',
-    'Global Energy Risk Forecast — 24H AI Price Outlook | EnergyRiskIQ'
+    'Global Energy Risk Forecast — 24H Custom Algorithm Outlook | EnergyRiskIQ'
 ).replace(
     'name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices."',
-    'name="description" content="AI-powered 24-hour energy price forecast for Brent crude and TTF natural gas, driven by live GERI and EERI risk index data. Updated daily."'
+    'name="description" content="Algorithm-driven 24-hour energy price forecast for Brent crude and TTF natural gas, driven by live GERI and EERI risk index data. Updated daily."'
 ).replace(
     'rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot"',
     'rel="canonical" href="https://energyriskiq.com/data/global-energy-risk-forecast"'
@@ -328,7 +328,7 @@ _FORECAST_LOADER_HTML = _LOADER_HTML.replace(
     'Fetching risk indices & market data\u2026',
 ).replace(
     '<span class="ld-tag">GERI</span>\n    <span class="ld-tag">EERI</span>\n    <span class="ld-tag">EGSI&#8209;M</span>\n    <span class="ld-tag">Brent</span>\n    <span class="ld-tag">TTF</span>',
-    '<span class="ld-tag">GERI</span>\n    <span class="ld-tag">EERI</span>\n    <span class="ld-tag">Brent</span>\n    <span class="ld-tag">TTF</span>\n    <span class="ld-tag">AI Forecast</span>',
+    '<span class="ld-tag">GERI</span>\n    <span class="ld-tag">EERI</span>\n    <span class="ld-tag">Brent</span>\n    <span class="ld-tag">TTF</span>\n    <span class="ld-tag">Custom Forecast</span>',
 )
 
 # ── Additional CSS for forecast-specific elements ────────────────────────────
@@ -541,7 +541,7 @@ def _build_forecast_html(
     if not paras:
         paras = [interp_raw.strip()] if interp_raw.strip() else [
             'Energy market risk conditions remain elevated across key indicators. '
-            'Please check back shortly for the updated AI forecast.'
+            'Please check back shortly for the updated forecast.'
         ]
     interp_html = ''.join(
         f'<p class="interp-para">{_html.escape(p)}</p>'
@@ -618,7 +618,7 @@ document.body.style.overflow='';
   <div class="hero-date">&#128337; Updated Daily &nbsp;&bull;&nbsp; {today_str}</div>
   <h1>Global Energy Risk Forecast</h1>
   <p class="hero-sub">
-    AI-Powered 24-Hour Energy Price Outlook for Brent Crude &amp; TTF Natural Gas &mdash;
+    Custom Algorithm 24-Hour Energy Price Outlook for Brent Crude &amp; TTF Natural Gas &mdash;
     driven by live GERI &amp; EERI risk index data, intraday prices, and geopolitical alert signals.
   </p>
   <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:1.5rem;">
@@ -632,7 +632,7 @@ document.body.style.overflow='';
     </a>
     <span style="font-size:12px;font-weight:600;color:#60a5fa;
       border:1px solid rgba(96,165,250,0.2);border-radius:20px;padding:4px 14px;">
-      AI Model: GPT-5.1
+      Analysis Engine: GPT-5.1
     </span>
   </div>
 </header>
@@ -820,20 +820,20 @@ document.body.style.overflow='';
   <div class="snap-cite-card" style="margin-bottom:36px;">
     <h3>How to Cite This Forecast</h3>
     <p class="snap-cite-desc">
-      This page is updated daily with fresh AI-generated forecasts based on live production
+      This page is updated daily with fresh algorithm-generated forecasts based on live production
       pipeline data. To reference this analysis in research, journalism, or professional reports,
       use the citation below.
     </p>
     <div class="snap-cite-code-wrap">
       <pre class="snap-cite-code">EnergyRiskIQ. (2026). <em>Global Energy Risk Forecast — {today_str}</em>.
 Retrieved from <a href="{BASE_URL}/data/global-energy-risk-forecast">{BASE_URL}/data/global-energy-risk-forecast</a>
-AI model: GPT-5.1 | Data sources: OilPriceAPI, Yahoo Finance, AGSI+, internal risk pipeline.</pre>
+Analysis engine: GPT-5.1 | Data sources: OilPriceAPI, Yahoo Finance, AGSI+, internal risk pipeline.</pre>
       <button class="snap-cite-copy-btn" onclick="this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Global Energy Risk Forecast — {today_str}. Retrieved from {BASE_URL}/data/global-energy-risk-forecast')">Copy</button>
     </div>
     <div class="snap-cite-footer">
       Data sourced from: OilPriceAPI (Brent spot, TTF), Yahoo Finance (yfinance BZ=F intraday futures),
       AGSI+ / GIE (EU gas storage), EnergyRiskIQ internal risk scoring pipeline (GERI, EERI, EGSI-M).
-      AI interpretation generated using GPT-5.1. <strong>Not financial advice.</strong>
+      Custom algorithm interpretation powered by GPT-5.1. <strong>Not financial advice.</strong>
       See <a href="{BASE_URL}/indices/global-energy-risk-index">GERI methodology</a> for full scoring detail.
     </div>
   </div>
@@ -843,7 +843,7 @@ AI model: GPT-5.1 | Data sources: OilPriceAPI, Yahoo Finance, AGSI+, internal ri
     <div class="cta-label">Daily Risk Intelligence</div>
     <h2 class="cta-headline">Get the Full Forecast<br>Every Morning</h2>
     <p class="cta-sub">
-      Subscribe to EnergyRiskIQ for daily AI-powered energy risk briefings,
+      Subscribe to EnergyRiskIQ for daily custom algorithm energy risk briefings,
       real-time GERI/EERI/EGSI updates, and Brent &amp; TTF price signals.
     </p>
     <a href="/energy-risk-intelligence-signals" class="cta-btn">Get Free Intelligence &rarr;</a>
