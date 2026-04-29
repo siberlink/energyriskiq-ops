@@ -26,6 +26,7 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 **UI/UX Decisions:**
 - The system includes marketing landing pages, user authentication flows, and an admin portal.
 - User-facing dashboards provide event queries, risk summaries, and alert history.
+- **Landing page `/` is fully dark-themed end-to-end.** All sections from hero to footer use palette: `#0f172a` / `#0c1222` backgrounds, `#1e293b` cards, `#334155` borders, `#e2e8f0` / `#94a3b8` text, gold `#d4a017`/`#fbbf24` and blue `#3b82f6` accents. Dark theme overrides live in a block labelled "DARK THEME" near the end of the `<style>` in `src/static/index.html` (lines ~3187–3530).
 - Public-facing SEO-optimized pages for indices like GERI, EERI, and EGSI feature methodology and historical data, utilizing a digest-style dark theme and AI interpretations. The GERI public page canonical URL is `/indices/global-energy-risk-index` (old `/geri` redirects 301). The EERI public page canonical URL is `/indices/europe-energy-risk-index` (old `/eeri` redirects 301). The EGSI public page canonical URL is `/indices/europe-gas-stress-index` (old `/egsi` redirects 301). Sub-routes like `/geri/history`, `/geri/methodology`, `/geri/{date}`, `/eeri/history`, `/eeri/methodology`, `/eeri/{date}`, `/egsi/history`, `/egsi/methodology`, `/egsi/{date}` remain unchanged.
 
 **Technical Implementations:**

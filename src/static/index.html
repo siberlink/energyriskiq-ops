@@ -3180,6 +3180,343 @@
         .wtm-visible .wtm-row:nth-child(1) { animation: wtm-row-in 0.4s ease 0.35s both; }
         .wtm-visible .wtm-row:nth-child(2) { animation: wtm-row-in 0.4s ease 0.48s both; }
         .wtm-visible .wtm-row:nth-child(3) { animation: wtm-row-in 0.4s ease 0.61s both; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           DARK THEME — all sections from section-problem onward
+           Palette: bg-darkest #0c1222 | bg-dark #0f172a | card #1e293b
+                    border #334155 | text-primary #e2e8f0 | text-sec #94a3b8
+                    gold #d4a017 | gold-light #fbbf24 | blue #3b82f6
+        ═══════════════════════════════════════════════════════════════ */
+
+        /* Base body dark */
+        body { background: #0f172a; }
+
+        /* Section base */
+        .section { background: #0f172a; }
+
+        /* ── h2 & headings in lower sections ── */
+        .section-problem h2, .section-promise h2, .section-edge h2,
+        .section-indices h2, .section-eriq h2, .section-audience h2,
+        .section-trust h2, .section-faq h2 {
+            color: #e2e8f0;
+        }
+        .section-problem .section-subtitle,
+        .section-indices .section-subtitle,
+        .section-edge .section-subtitle,
+        .section-trust .section-subtitle,
+        .section-faq .section-subtitle,
+        .section-audience .section-subtitle { color: #94a3b8; }
+
+        /* ── Section: Problem ── */
+        .section-problem { background: #0c1222; }
+
+        .problem-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .problem-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .problem-card h3 { color: #e2e8f0; }
+        .problem-card p { color: #94a3b8; }
+        .problem-icon {
+            background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.06));
+        }
+
+        .contrast-card { background: #1e293b; }
+        .contrast-card.old-way {
+            background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.04));
+            border-color: rgba(239,68,68,0.25);
+        }
+        .contrast-card.new-way {
+            background: linear-gradient(135deg, rgba(212,160,23,0.1), rgba(251,191,36,0.05));
+            border-color: rgba(212,160,23,0.3);
+        }
+        .old-way .contrast-label { background: rgba(239,68,68,0.18); color: #f87171; }
+        .new-way .contrast-label { background: rgba(212,160,23,0.18); color: #fbbf24; }
+        .old-way h4 { color: #f87171; }
+        .new-way h4 { color: #fbbf24; }
+        .contrast-card p { color: #94a3b8; }
+
+        /* ── Section: Promise ── */
+        .section-promise { background: #0f172a; }
+        .promise-label { color: #d4a017; }
+        .promise-statement { color: #e2e8f0; }
+        .promise-sub { color: #94a3b8; }
+        .promise-bullet {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .promise-bullet:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .bullet-text { color: #94a3b8; }
+        .bullet-icon.bi-indices { background: rgba(59,130,246,0.12); }
+        .bullet-icon.bi-escalation { background: rgba(239,68,68,0.12); }
+        .bullet-icon.bi-assets { background: rgba(34,197,94,0.12); }
+        .bullet-icon.bi-alert { background: rgba(212,160,23,0.12); }
+        .bullet-icon.bi-alert svg { color: #fbbf24; }
+        .contrast-item { color: #64748b; }
+        .contrast-item::before { background: #334155; }
+        .promise-tagline {
+            background: linear-gradient(135deg, rgba(212,160,23,0.06), rgba(59,130,246,0.06));
+            border-color: rgba(212,160,23,0.2);
+        }
+        .tagline-text { color: #e2e8f0; }
+
+        /* ── Section: Edge ── */
+        .section-edge { background: #0c1222; }
+        .edge-intro p { color: #94a3b8; }
+        .edge-tier {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .edge-tier:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .edge-tier.featured {
+            border-color: #d4a017;
+            box-shadow: 0 8px 30px rgba(212,160,23,0.15);
+        }
+        .edge-tier-title { color: #e2e8f0; }
+        .edge-tier-sub { color: #94a3b8; }
+        .edge-tier-features li { color: #94a3b8; }
+        .edge-tier-tag.free-tag { background: rgba(34,197,94,0.12); color: #22c55e; }
+        .edge-tier-tag.growth-tag { background: linear-gradient(135deg, #d4a017, #fbbf24); color: #0f172a; }
+        .edge-tier-tag.pro-tag { background: rgba(99,102,241,0.12); color: #818cf8; }
+
+        .edge-tier-cta.cta-free {
+            background: rgba(34,197,94,0.1);
+            color: #22c55e;
+            border-color: rgba(34,197,94,0.3);
+        }
+        .edge-tier-cta.cta-free:hover { background: rgba(34,197,94,0.18); }
+        .edge-tier-cta.cta-pro {
+            background: rgba(99,102,241,0.1);
+            color: #818cf8;
+            border-color: rgba(99,102,241,0.3);
+        }
+        .edge-tier-cta.cta-pro:hover { background: rgba(99,102,241,0.18); }
+
+        .edge-tier.tier-free .feat-icon svg { stroke: #22c55e; }
+        .edge-tier.tier-growth .feat-icon svg { stroke: #d4a017; }
+        .edge-tier.tier-pro .feat-icon svg { stroke: #818cf8; }
+
+        .edge-stat-label { color: #64748b; }
+        .edge-stat-label a { color: #64748b; }
+        .edge-bottom-line { color: #e2e8f0; }
+        .edge-stat-number {
+            background: linear-gradient(135deg, #d4a017, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Section: Indices ── */
+        .section-indices { background: #0f172a; }
+        .index-card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .index-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+        .index-card-header.geri {
+            background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.04));
+            border-bottom-color: #ef4444;
+        }
+        .index-card-header.eeri {
+            background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.04));
+            border-bottom-color: #f59e0b;
+        }
+        .index-card-header.egsi {
+            background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.04));
+            border-bottom-color: #10b981;
+        }
+        .index-card-header.digest {
+            background: linear-gradient(135deg, rgba(212,160,23,0.1), rgba(251,191,36,0.04));
+            border-bottom-color: #d4a017;
+        }
+        .index-card-header.digest .index-card-label { color: #d4a017; }
+        .index-card-title { color: #e2e8f0; }
+        .index-card-desc { color: #94a3b8; }
+        .index-features li { color: #94a3b8; }
+        .index-card-footer { border-top-color: #334155; }
+        .index-tier-text { color: #64748b; }
+        .index-tier-badge.paid { background: linear-gradient(135deg, #d4a017, #fbbf24); color: #0f172a; }
+
+        /* Testimonials (indices section) */
+        .eriq-testimonial {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .eriq-testimonial:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .eriq-testimonial-text { color: #94a3b8; }
+        .eriq-testimonial-name { color: #e2e8f0; }
+        .eriq-testimonial-role { color: #64748b; }
+
+        /* ── Section: ERIQ Intro ── */
+        .section-eriq-intro { background: #0c1222; }
+        .eriq-intro-question { color: #e2e8f0; }
+        .eriq-intro-answer { color: #94a3b8; }
+
+        /* ── Section: ERIQ ── */
+        .section-eriq { background: #0f172a; }
+        .eriq-intro p { color: #94a3b8; }
+        .eriq-chat-preview {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .eriq-chat-context { border-bottom-color: #334155; color: #64748b; }
+        .eriq-chat-body { background: #1e293b; }
+        .eriq-msg.bot {
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+        .eriq-msg.bot strong { color: #60a5fa; }
+        .eriq-chat-input { border-top-color: #334155; }
+        .eriq-chat-input span { color: #475569; }
+
+        .eriq-cap {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .eriq-cap:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+        .eriq-cap-text h4 { color: #e2e8f0; }
+        .eriq-cap-text p { color: #94a3b8; }
+        .eriq-cap-icon.cap-rag { background: rgba(99,102,241,0.12); }
+        .eriq-cap-icon.cap-live { background: rgba(16,185,129,0.12); }
+        .eriq-cap-icon.cap-modes { background: rgba(212,160,23,0.12); }
+        .eriq-cap-icon.cap-modes svg { color: #fbbf24; }
+        .eriq-cap-icon.cap-plan { background: rgba(59,130,246,0.12); }
+        .eriq-value-line { color: #e2e8f0; }
+        .eriq-authority span {
+            background: rgba(255,255,255,0.04);
+            border-color: #334155;
+            color: #64748b;
+        }
+        .eriq-mode-ex { background: rgba(212,160,23,0.1); color: #d4a017; }
+
+        /* ── Section: Audience ── */
+        .section-audience { background: #0c1222; }
+        .audience-card {
+            background: linear-gradient(135deg, #1e293b, #1a2540);
+            border-color: #334155;
+        }
+        .audience-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .audience-card h3 { color: #e2e8f0; }
+        .audience-card p { color: #94a3b8; }
+        .audience-tagline {
+            background: linear-gradient(135deg, rgba(212,160,23,0.07), rgba(59,130,246,0.07));
+            border-color: rgba(212,160,23,0.2);
+        }
+        .audience-tagline p { color: #e2e8f0; }
+
+        /* ── Section: Free CTA ── */
+        .section-free-cta {
+            background: linear-gradient(180deg, #0c1222 0%, #0f172a 50%, #0c1222 100%);
+        }
+        .section-free-cta .free-cta-left h2 { color: #e2e8f0; }
+        .section-free-cta .free-feature span { color: #e2e8f0; }
+        .section-free-cta .feature-check { background: #d4a017; }
+        .free-cta-right {
+            background: rgba(212,160,23,0.05);
+            border-color: rgba(212,160,23,0.2);
+        }
+        .free-cta-right h3 { color: #f1f5f9; }
+        .free-cta-right .no-cc { color: rgba(255,255,255,0.5); }
+        .upgrade-teaser { border-top-color: rgba(255,255,255,0.1); }
+        .upgrade-teaser p { color: rgba(255,255,255,0.6); }
+        .upgrade-teaser a { color: #fbbf24; }
+
+        /* ── Section: Trust ── */
+        .section-trust { background: #0f172a; }
+        .trust-item {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .trust-icon {
+            background: linear-gradient(135deg, rgba(212,160,23,0.1), rgba(59,130,246,0.06));
+        }
+        .trust-icon svg { color: #d4a017; }
+        .trust-item p { color: #94a3b8; }
+        .trust-footer {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        .trust-footer p { color: #94a3b8; }
+
+        /* ── Section: FAQ ── */
+        .section-faq { background: #0c1222; }
+        .faq-container { background: transparent; }
+        .faq-item { border-bottom-color: #334155; }
+        .faq-question {
+            color: #e2e8f0;
+        }
+        .faq-question:hover { color: #fbbf24; }
+        .faq-item.active .faq-icon { color: #fbbf24; }
+        .faq-answer-content { color: #94a3b8; }
+        .faq-answer-content strong { color: #e2e8f0; }
+        .faq-answer-content ul li { color: #94a3b8; }
+        .faq-cta { border-top-color: #334155; }
+        .faq-cta p { color: #94a3b8; }
+
+        /* ── Section: Final CTA ── */
+        .section-final-cta {
+            background: linear-gradient(135deg, #0c1222 0%, #0f172a 50%, #0c1222 100%);
+        }
+        .final-cta-content h2 { color: #e2e8f0; }
+        .final-cta-btn {
+            background: linear-gradient(135deg, #d4a017, #fbbf24);
+            color: #0f172a;
+            box-shadow: 0 4px 20px rgba(212,160,23,0.35);
+        }
+        .final-cta-btn:hover {
+            box-shadow: 0 8px 32px rgba(212,160,23,0.5);
+        }
+
+        /* ── Highlight gradient (dark pages) ── */
+        .section-problem .highlight,
+        .section-promise .highlight,
+        .section-edge .highlight,
+        .section-indices .highlight,
+        .section-eriq .highlight,
+        .section-audience .highlight,
+        .section-free-cta .highlight,
+        .section-trust .highlight,
+        .section-faq .highlight,
+        .section-eriq-intro .highlight,
+        .section-final-cta .highlight,
+        .eriq-value-line .highlight,
+        .tagline-text .highlight {
+            background: linear-gradient(135deg, #d4a017, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── CTA button (dark pages) ── */
+        .section-free-cta .btn.btn-primary,
+        .section-faq .btn.btn-primary {
+            background: linear-gradient(135deg, #d4a017, #fbbf24);
+            color: #0f172a;
+            border: none;
+        }
+
+        /* ── ERIQ additional dark overrides ── */
+        .section-eriq .eriq-cta-sub { color: #64748b; }
+        .section-eriq .eriq-authority { color: #64748b; }
+        .section-eriq .eriq-mode-ex {
+            background: rgba(212,160,23,0.1);
+            color: #fbbf24;
+        }
+        .section-eriq .eriq-chat-body { background: #1e293b; }
+        /* chat bar is already dark via var(--secondary) = #1A1A2E — no change needed */
+
+        /* ── Section dividers: subtle top highlight ── */
+        .section-promise,
+        .section-edge,
+        .section-indices,
+        .section-eriq,
+        .section-audience,
+        .section-trust {
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
     </style>
 </head>
 <body>
