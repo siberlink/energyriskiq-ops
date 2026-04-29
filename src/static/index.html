@@ -632,6 +632,58 @@
             color: var(--secondary);
         }
 
+        /* ── Hero nav link overrides (dark bg) ── */
+        .hero .nav-link {
+            color: rgba(255,255,255,0.72);
+            white-space: nowrap;
+        }
+        .hero .nav-link:hover { color: #fbbf24; }
+        .hero .mobile-menu-btn svg { color: #f8fafc; }
+        .hero .nav-cta {
+            background: linear-gradient(135deg, #d4a017, #fbbf24);
+            color: #0f172a;
+            white-space: nowrap;
+        }
+        .hero .nav-cta:hover { background: linear-gradient(135deg, #c49015, #f0b020); }
+
+        /* ── Mobile nav dropdown ── */
+        .mobile-nav {
+            display: none;
+            flex-direction: column;
+            background: #1e293b;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            padding: 0.5rem 1.5rem 1rem;
+            position: relative;
+            z-index: 9;
+        }
+        .mobile-nav.open { display: flex; }
+        .mobile-nav-link {
+            color: rgba(255,255,255,0.78);
+            text-decoration: none;
+            font-size: 0.93rem;
+            font-weight: 500;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            transition: color 0.2s;
+            display: block;
+        }
+        .mobile-nav-link:hover { color: #fbbf24; }
+        .mobile-nav-cta {
+            display: block;
+            text-align: center;
+            margin-top: 0.9rem;
+            padding: 0.8rem 1.25rem;
+            background: linear-gradient(135deg, #d4a017, #fbbf24);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        .mobile-nav-cta:hover { opacity: 0.88; }
+
         @media (max-width: 768px) {
             .nav {
                 padding: 1rem 1.25rem;
@@ -3528,12 +3580,24 @@
                 </div>
                 EnergyRiskIQ
             </a>
-            <button class="mobile-menu-btn" aria-label="Menu">
+            <div class="nav-links">
+                <a href="/indices" class="nav-link">Proprietary Indices</a>
+                <a href="/gas-storage-levels-in-europe" class="nav-link">European Gas Storage</a>
+                <a href="/data/global-energy-risk-forecast" class="nav-link">Energy Risk Forecast</a>
+                <a href="/users/signup" class="nav-cta">Get FREE Access</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
         </nav>
+        <div class="mobile-nav" id="mobile-nav">
+            <a href="/indices" class="mobile-nav-link">Proprietary Indices</a>
+            <a href="/gas-storage-levels-in-europe" class="mobile-nav-link">European Gas Storage Levels</a>
+            <a href="/data/global-energy-risk-forecast" class="mobile-nav-link">Energy Risk Forecast</a>
+            <a href="/users/signup" class="mobile-nav-cta">Get FREE Access</a>
+        </div>
 
         <div class="hero-body">
 
@@ -5352,6 +5416,36 @@
     </div>
 
     <script>
+        // Mobile nav menu toggle
+        (function() {
+            var btn = document.getElementById('mobile-menu-btn');
+            var nav = document.getElementById('mobile-nav');
+            if (!btn || !nav) return;
+            var path = btn.querySelector('svg path');
+            var hamburgerD = 'M4 6h16M4 12h16M4 18h16';
+            var closeD = 'M6 18L18 6M6 6l12 12';
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isOpen = nav.classList.toggle('open');
+                if (path) path.setAttribute('d', isOpen ? closeD : hamburgerD);
+                btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+            document.addEventListener('click', function(e) {
+                if (nav.classList.contains('open') && !btn.contains(e.target) && !nav.contains(e.target)) {
+                    nav.classList.remove('open');
+                    if (path) path.setAttribute('d', hamburgerD);
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && nav.classList.contains('open')) {
+                    nav.classList.remove('open');
+                    if (path) path.setAttribute('d', hamburgerD);
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
+
         // FAQ Accordion
         document.querySelectorAll('.faq-question').forEach(button => {
             button.addEventListener('click', () => {
