@@ -632,19 +632,35 @@
             color: var(--secondary);
         }
 
-        /* ── Hero nav link overrides (dark bg) ── */
-        .hero .nav-link {
+        /* ── Sticky floating site header ── */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(15, 23, 42, 0.96);
+            border-bottom: 1px solid rgba(212, 160, 23, 0.18);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .site-header.scrolled {
+            border-bottom-color: rgba(212, 160, 23, 0.38);
+            box-shadow: 0 4px 28px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ── Site-header nav link overrides ── */
+        .site-header .nav-link {
             color: rgba(255,255,255,0.72);
             white-space: nowrap;
         }
-        .hero .nav-link:hover { color: #fbbf24; }
-        .hero .mobile-menu-btn svg { color: #f8fafc; }
-        .hero .nav-cta {
+        .site-header .nav-link:hover { color: #fbbf24; }
+        .site-header .mobile-menu-btn svg { color: #f8fafc; }
+        .site-header .nav-cta {
             background: linear-gradient(135deg, #d4a017, #fbbf24);
             color: #0f172a;
             white-space: nowrap;
         }
-        .hero .nav-cta:hover { background: linear-gradient(135deg, #c49015, #f0b020); }
+        .site-header .nav-cta:hover { background: linear-gradient(135deg, #c49015, #f0b020); }
 
         /* ── Mobile nav dropdown ── */
         .mobile-nav {
@@ -3572,7 +3588,7 @@
     </style>
 </head>
 <body>
-    <section class="hero">
+    <header class="site-header" id="site-header">
         <nav class="nav">
             <a href="/" class="logo">
                 <div class="logo-icon">
@@ -3598,7 +3614,8 @@
             <a href="/data/global-energy-risk-forecast" class="mobile-nav-link">Energy Risk Forecast</a>
             <a href="/users/signup" class="mobile-nav-cta">Get FREE Access</a>
         </div>
-
+    </header>
+    <section class="hero">
         <div class="hero-body">
 
             <div class="badge">
@@ -5416,6 +5433,16 @@
     </div>
 
     <script>
+        // Sticky header scroll enhancement
+        (function() {
+            var header = document.getElementById('site-header');
+            if (!header) return;
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 20) header.classList.add('scrolled');
+                else header.classList.remove('scrolled');
+            }, { passive: true });
+        })();
+
         // Mobile nav menu toggle
         (function() {
             var btn = document.getElementById('mobile-menu-btn');
