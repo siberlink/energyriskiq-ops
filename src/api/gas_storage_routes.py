@@ -553,6 +553,48 @@ _GAS_STORAGE_CSS = """
   color: #cbd5e1;
 }
 .gs-risk-season-table tr:last-child td { border-bottom: none; }
+
+/* ── Mobile responsive ── */
+@media (max-width: 640px) {
+  .nav-inner {
+    padding: 0 1rem;
+  }
+  .nav-inner > div a:not(.cta-btn-nav) {
+    display: none;
+  }
+  .snap-cite-card {
+    padding: 18px 16px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .snap-cite-code-wrap {
+    overflow-x: auto;
+    padding: 14px;
+    max-width: 100%;
+  }
+  .snap-cite-code {
+    white-space: pre-wrap !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: 11px;
+  }
+  .snap-cite-copy-btn {
+    position: static !important;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    margin-top: 12px;
+  }
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+  .hero {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
 """
 
 

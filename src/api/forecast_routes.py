@@ -471,6 +471,9 @@ _FORECAST_CSS = """
   .forecast-card-body {
     padding: 16px 16px 20px;
   }
+  .nav-inner {
+    padding: 0 1rem;
+  }
   .nav-inner > div a:not(.cta-btn-nav) {
     display: none;
   }
@@ -501,8 +504,13 @@ _FORECAST_CSS = """
   .interp-para {
     font-size: 14px;
   }
-  body {
+  html, body {
     overflow-x: hidden;
+    max-width: 100%;
+  }
+  .hero {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 """
