@@ -1769,6 +1769,45 @@
             margin-top: 12px; font-size: 11px; color: #64748b; line-height: 1.6;
         }
         .geri-history-cite-footer a { color: #60a5fa; text-decoration: none; }
+        /* Pagination */
+        .geri-hist-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 18px 0 4px;
+        }
+        .geri-hist-pg-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 18px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #94a3b8;
+            transition: all 0.18s;
+            font-family: inherit;
+        }
+        .geri-hist-pg-btn:hover:not(:disabled) {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+        .geri-hist-pg-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+        .geri-hist-pg-info {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            min-width: 100px;
+            text-align: center;
+        }
 
         @media (max-width: 768px) {
             .geri-details-grid {
@@ -5753,6 +5792,15 @@
                 GERI Live
                 <span class="geri-live-badge-nav">LIVE</span>
             </a>
+            <a class="nav-item" id="geriHistoryNavItem" onclick="showSection('geri-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                GERI History
+            </a>
             <a class="nav-item" id="eeriNavItem" onclick="showSection('eeri-pro'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -6356,14 +6404,55 @@
                 </div>
             </div>
 
-            <!-- GERI History Table -->
+            <div class="eriq-ctx-widget" id="eriqCtxGeri" data-page="geri">
+                <button class="eriq-ctx-toggle" onclick="toggleEriqCtxChat('geri')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span>Ask ERIQ about GERI</span>
+                </button>
+                <div class="eriq-ctx-panel" id="eriqCtxPanelGeri" style="display:none;">
+                    <div class="eriq-ctx-header">
+                        <div class="eriq-ctx-header-left">
+                            <span class="eriq-ctx-dot"></span>
+                            <span>ERIQ — GERI Context</span>
+                        </div>
+                        <button class="eriq-ctx-close" onclick="toggleEriqCtxChat('geri')">&times;</button>
+                    </div>
+                    <div class="eriq-ctx-messages" id="eriqCtxMsgsGeri">
+                        <div class="eriq-ctx-welcome">
+                            <p>I can help you understand the GERI dashboard. Try asking:</p>
+                            <div class="eriq-ctx-suggestions">
+                                <button onclick="eriqCtxAsk('geri','What is driving the current GERI reading?')">What's driving GERI today?</button>
+                                <button onclick="eriqCtxAsk('geri','Explain the GERI pillar breakdown I see on the dashboard')">Explain the pillar breakdown</button>
+                                <button onclick="eriqCtxAsk('geri','What does this GERI band mean for energy markets?')">What does this band mean?</button>
+                                <button onclick="eriqCtxAsk('geri','How is the Global Energy Risk Index calculated?')">How is GERI calculated?</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="eriq-ctx-input-area">
+                        <input type="text" class="eriq-ctx-input" id="eriqCtxInputGeri" placeholder="Ask about GERI..." maxlength="2000" onkeydown="if(event.key==='Enter')eriqCtxSend('geri')">
+                        <button class="eriq-ctx-send" onclick="eriqCtxSend('geri')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GERI History Section -->
+        <div class="section-content" id="section-geri-history">
+            <div class="page-header">
+                <h1 class="page-title">GERI History</h1>
+                <p class="page-subtitle" id="geriHistPageSubtitle">Global Energy Risk Index &mdash; Daily Record Archive</p>
+            </div>
+
+            <!-- History container card -->
             <div class="geri-history-section" id="geriHistorySection">
                 <div class="geri-history-header">
                     <div>
                         <div class="geri-history-title">
-                            <span>📊</span> GERI History
+                            <span>📊</span> Index History
                         </div>
-                        <div class="geri-history-subtitle">Daily index values from production pipeline &mdash; last <span id="geriHistCount">—</span> records</div>
+                        <div class="geri-history-subtitle">Daily values from production pipeline &mdash; <span id="geriHistCount">—</span> records &bull; showing 20 per page</div>
                     </div>
                     <div class="geri-history-actions">
                         <button class="geri-dl-btn csv" onclick="downloadGeriHistory('csv')" title="Download CSV">
@@ -6413,59 +6502,39 @@
                         </table>
                     </div>
 
-                    <!-- Citation & Reference -->
-                    <div class="geri-history-cite" style="margin-top: 24px;">
-                        <h3>&#128196; Citation &amp; Reference</h3>
-                        <p class="geri-history-cite-desc">
-                            GERI (Global Energy Risk Index) daily values are computed by EnergyRiskIQ's proprietary risk scoring pipeline from structured geopolitical and energy supply intelligence. To cite this data in research, analysis, or professional reports, use the reference below.
-                        </p>
-                        <div class="geri-history-cite-code-wrap">
-                            <pre class="geri-history-cite-code">EnergyRiskIQ. (2026). <em>Global Energy Risk Index — Daily History</em>.
-Retrieved from <a href="https://energyriskiq.com/research/global-energy-risk-index" target="_blank">https://energyriskiq.com/research/global-energy-risk-index</a>
-Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index scale: 0–100.</pre>
-                            <button class="geri-history-cite-copy-btn" id="geriCiteCopyBtn"
-                                onclick="navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Global Energy Risk Index — Daily History. Retrieved from https://energyriskiq.com/research/global-energy-risk-index').then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',2000)})">Copy</button>
-                        </div>
-                        <div class="geri-history-cite-footer">
-                            Data sourced from: EnergyRiskIQ internal risk scoring pipeline (GERI &mdash; Global Energy Risk Index).
-                            Index computed daily from structured geopolitical, energy supply, and infrastructure intelligence signals.
-                            See <a href="/geri/methodology" target="_blank">GERI Methodology</a> for full scoring detail.
-                            <strong>Not financial advice.</strong>
-                        </div>
+                    <!-- Pagination -->
+                    <div class="geri-hist-pagination" id="geriHistPagination">
+                        <button class="geri-hist-pg-btn" id="geriHistPgPrev" onclick="geriHistGoPage(geriHistCurrentPage - 1)" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                            Prev
+                        </button>
+                        <span class="geri-hist-pg-info" id="geriHistPgInfo">Page 1 of 1</span>
+                        <button class="geri-hist-pg-btn" id="geriHistPgNext" onclick="geriHistGoPage(geriHistCurrentPage + 1)" disabled>
+                            Next
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div class="eriq-ctx-widget" id="eriqCtxGeri" data-page="geri">
-                <button class="eriq-ctx-toggle" onclick="toggleEriqCtxChat('geri')">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span>Ask ERIQ about GERI</span>
-                </button>
-                <div class="eriq-ctx-panel" id="eriqCtxPanelGeri" style="display:none;">
-                    <div class="eriq-ctx-header">
-                        <div class="eriq-ctx-header-left">
-                            <span class="eriq-ctx-dot"></span>
-                            <span>ERIQ — GERI Context</span>
-                        </div>
-                        <button class="eriq-ctx-close" onclick="toggleEriqCtxChat('geri')">&times;</button>
-                    </div>
-                    <div class="eriq-ctx-messages" id="eriqCtxMsgsGeri">
-                        <div class="eriq-ctx-welcome">
-                            <p>I can help you understand the GERI dashboard. Try asking:</p>
-                            <div class="eriq-ctx-suggestions">
-                                <button onclick="eriqCtxAsk('geri','What is driving the current GERI reading?')">What's driving GERI today?</button>
-                                <button onclick="eriqCtxAsk('geri','Explain the GERI pillar breakdown I see on the dashboard')">Explain the pillar breakdown</button>
-                                <button onclick="eriqCtxAsk('geri','What does this GERI band mean for energy markets?')">What does this band mean?</button>
-                                <button onclick="eriqCtxAsk('geri','How is the Global Energy Risk Index calculated?')">How is GERI calculated?</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="eriq-ctx-input-area">
-                        <input type="text" class="eriq-ctx-input" id="eriqCtxInputGeri" placeholder="Ask about GERI..." maxlength="2000" onkeydown="if(event.key==='Enter')eriqCtxSend('geri')">
-                        <button class="eriq-ctx-send" onclick="eriqCtxSend('geri')">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                        </button>
-                    </div>
+            <!-- Citation & Reference -->
+            <div class="geri-history-cite" style="margin-top: 24px;">
+                <h3>&#128196; Citation &amp; Reference</h3>
+                <p class="geri-history-cite-desc">
+                    GERI (Global Energy Risk Index) daily values are computed by EnergyRiskIQ's proprietary risk scoring pipeline from structured geopolitical and energy supply intelligence. To cite this data in research, analysis, or professional reports, use the reference below.
+                </p>
+                <div class="geri-history-cite-code-wrap">
+                    <pre class="geri-history-cite-code">EnergyRiskIQ. (2026). <em>Global Energy Risk Index — Daily History</em>.
+Retrieved from <a href="https://energyriskiq.com/research/global-energy-risk-index" target="_blank">https://energyriskiq.com/research/global-energy-risk-index</a>
+Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index scale: 0–100.</pre>
+                    <button class="geri-history-cite-copy-btn" id="geriCiteCopyBtn"
+                        onclick="navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Global Energy Risk Index — Daily History. Retrieved from https://energyriskiq.com/research/global-energy-risk-index').then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',2000)})">Copy</button>
+                </div>
+                <div class="geri-history-cite-footer">
+                    Data sourced from: EnergyRiskIQ internal risk scoring pipeline (GERI &mdash; Global Energy Risk Index).
+                    Index computed daily from structured geopolitical, energy supply, and infrastructure intelligence signals.
+                    See <a href="/geri/methodology" target="_blank">GERI Methodology</a> for full scoring detail.
+                    <strong>Not financial advice.</strong>
                 </div>
             </div>
         </div>
@@ -9340,11 +9409,67 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
             });
         }
         
-        // ── GERI History Table ────────────────────────────────────────────────────
-        var _geriHistLoaded = false;
+        // ── GERI History Page (standalone section) ───────────────────────────────
+        var _geriHistAllRows   = [];
+        var _geriHistLoaded    = false;
+        var geriHistCurrentPage = 1;
+        var GERI_HIST_PAGE_SIZE = 20;
+
+        function _geriHistTrendCell(v) {
+            if (v === null || v === undefined) return '<td class="geri-hist-trend-neu">\u2014</td>';
+            var cls  = v > 0 ? 'geri-hist-trend-pos' : v < 0 ? 'geri-hist-trend-neg' : 'geri-hist-trend-neu';
+            var sign = v > 0 ? '+' : '';
+            return '<td class="' + cls + '">' + sign + v.toFixed(1) + '</td>';
+        }
+
+        function _geriHistRenderPage(page) {
+            var rows  = _geriHistAllRows;
+            var total = rows.length;
+            var pages = Math.max(1, Math.ceil(total / GERI_HIST_PAGE_SIZE));
+            page = Math.max(1, Math.min(page, pages));
+            geriHistCurrentPage = page;
+
+            var start = (page - 1) * GERI_HIST_PAGE_SIZE;
+            var end   = Math.min(start + GERI_HIST_PAGE_SIZE, total);
+            var slice = rows.slice(start, end);
+
+            var html = '';
+            slice.forEach(function(r) {
+                var band = (r.band || '').toUpperCase();
+                var cat  = r.computed_at ? r.computed_at.replace('T', ' ').substring(0, 19) + ' UTC' : '\u2014';
+                html += '<tr>'
+                    + '<td><strong>' + (r.date || '') + '</strong></td>'
+                    + '<td><strong>' + (r.value !== null && r.value !== undefined ? r.value.toFixed(0) : '\u2014') + '</strong></td>'
+                    + '<td><span class="geri-hist-band ' + band + '">' + (r.band || '\u2014') + '</span></td>'
+                    + _geriHistTrendCell(r.trend_1d)
+                    + _geriHistTrendCell(r.trend_7d)
+                    + '<td class="geri-hist-computed">' + cat + '</td>'
+                    + '</tr>';
+            });
+
+            var tbody = document.getElementById('geriHistTbody');
+            if (tbody) tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No data</td></tr>';
+
+            var info = document.getElementById('geriHistPgInfo');
+            if (info) info.textContent = 'Page ' + page + ' of ' + pages;
+
+            var prev = document.getElementById('geriHistPgPrev');
+            var next = document.getElementById('geriHistPgNext');
+            if (prev) prev.disabled = (page <= 1);
+            if (next) next.disabled = (page >= pages);
+        }
+
+        function geriHistGoPage(p) {
+            _geriHistRenderPage(p);
+        }
+
         function loadGeriHistoryTable() {
-            if (_geriHistLoaded) return;
+            if (_geriHistLoaded) {
+                _geriHistRenderPage(1);
+                return;
+            }
             _geriHistLoaded = true;
+
             var msgs = [
                 'Connecting to production pipeline\u2026',
                 'Fetching GERI index records\u2026',
@@ -9358,44 +9483,23 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
             }, 2000);
 
             var tok = sessionToken || localStorage.getItem('userToken') || '';
-            fetch('/api/v1/indices/geri/history-table', { headers: { 'X-User-Token': tok } })
+            fetch('/api/v1/indices/geri/history-table?limit=1000', { headers: { 'X-User-Token': tok } })
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     clearInterval(timer);
-                    var rows = (d && d.data) ? d.data : [];
-                    var count = rows.length;
-                    var countEl = document.getElementById('geriHistCount');
-                    if (countEl) countEl.textContent = count;
+                    _geriHistAllRows = (d && d.data) ? d.data : [];
 
-                    var tbody = document.getElementById('geriHistTbody');
-                    if (tbody) {
-                        var html = '';
-                        rows.forEach(function(r) {
-                            var band = (r.band || '').toUpperCase();
-                            var v1d = r.trend_1d, v7d = r.trend_7d;
-                            function trendCell(v) {
-                                if (v === null || v === undefined) return '<td class="geri-hist-trend-neu">—</td>';
-                                var cls = v > 0 ? 'geri-hist-trend-pos' : v < 0 ? 'geri-hist-trend-neg' : 'geri-hist-trend-neu';
-                                var sign = v > 0 ? '+' : '';
-                                return '<td class="' + cls + '">' + sign + v.toFixed(1) + '</td>';
-                            }
-                            var cat = r.computed_at ? r.computed_at.replace('T', ' ').substring(0, 19) + ' UTC' : '—';
-                            html += '<tr>'
-                                + '<td><strong>' + (r.date || '') + '</strong></td>'
-                                + '<td><strong>' + (r.value !== null && r.value !== undefined ? r.value.toFixed(0) : '—') + '</strong></td>'
-                                + '<td><span class="geri-hist-band ' + band + '">' + (r.band || '—') + '</span></td>'
-                                + trendCell(v1d)
-                                + trendCell(v7d)
-                                + '<td class="geri-hist-computed">' + cat + '</td>'
-                                + '</tr>';
-                        });
-                        tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No data available</td></tr>';
-                    }
+                    var countEl = document.getElementById('geriHistCount');
+                    if (countEl) countEl.textContent = _geriHistAllRows.length;
+
+                    _geriHistRenderPage(1);
+
                     document.getElementById('geriHistLoader').classList.add('pl-hidden');
                     document.getElementById('geriHistContent').classList.add('pl-loaded');
                 })
                 .catch(function() {
                     clearInterval(timer);
+                    _geriHistLoaded = false;
                     document.getElementById('geriHistLoader').classList.add('pl-hidden');
                     document.getElementById('geriHistContent').classList.add('pl-loaded');
                     var tbody = document.getElementById('geriHistTbody');
@@ -9408,17 +9512,14 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
             var url = '/api/v1/indices/geri/history-table/download/' + fmt + '?limit=1000';
             var a = document.createElement('a');
             a.style.display = 'none';
-            a.href = url + '&token=' + encodeURIComponent(tok);
             document.body.appendChild(a);
-            // Use fetch + blob so we can pass auth header
             fetch(url, { headers: { 'X-User-Token': tok } })
                 .then(function(r) { return r.blob(); })
                 .then(function(blob) {
                     var burl = URL.createObjectURL(blob);
                     var today = new Date().toISOString().slice(0, 10);
-                    var ext = fmt === 'xlsx' ? 'xlsx' : 'csv';
                     a.href = burl;
-                    a.download = 'GERI_History_' + today + '.' + ext;
+                    a.download = 'GERI_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
                     a.click();
                     setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
                 })
@@ -13143,6 +13244,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
                 loadAlertSettings();
             } else if (sectionId === 'geri') {
                 loadGeriData();
+            } else if (sectionId === 'geri-history') {
                 loadGeriHistoryTable();
             } else if (sectionId === 'eeri-pro') {
                 loadEeriProData();
