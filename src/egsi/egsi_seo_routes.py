@@ -330,8 +330,8 @@ async def egsi_public_page(request: Request):
             <div class="egsi-card-scale">0 = minimal stress · 100 = extreme stress</div>
             {trend_html}
             <div class="egsi-card-meta">
-                <span>Index Date: <strong>{date_str}</strong></span>
-                <span>Computed: <strong>{ca_str}</strong></span>
+                <span>Index Date: <strong>{date.today().isoformat()}</strong></span>
+                <span>Computed at: <strong>{ca_str}</strong></span>
             </div>
             <div class="egsi-delay-badge" style="background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.3);">&#x25CF; Live Data</div>
         </div>'''

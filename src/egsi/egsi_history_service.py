@@ -337,7 +337,7 @@ def get_latest_egsi_m_public() -> Optional[Dict[str, Any]]:
     Get the latest EGSI-M data for public display (fallback when no delayed data).
     """
     query = """
-        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation
+        SELECT index_date, index_value, band, trend_1d, trend_7d, explanation, computed_at
         FROM egsi_m_daily
         ORDER BY index_date DESC
         LIMIT 1
@@ -363,6 +363,7 @@ def get_latest_egsi_m_public() -> Optional[Dict[str, Any]]:
             'explanation': row['explanation'],
             'components': components,
             'drivers': drivers,
+            'computed_at': row['computed_at'].isoformat() if row['computed_at'] else None,
         }
     except Exception as e:
         logger.error(f"Error fetching latest EGSI-M: {e}")
