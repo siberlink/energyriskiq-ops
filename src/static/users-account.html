@@ -1636,6 +1636,140 @@
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
         }
 
+        /* ── GERI History Table Section ── */
+        .geri-history-section {
+            margin-top: 2rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 28px 28px 24px;
+        }
+        .geri-history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .geri-history-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .geri-history-subtitle {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .geri-history-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .geri-dl-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.18s;
+            text-decoration: none;
+        }
+        .geri-dl-btn.csv {
+            background: rgba(34,197,94,0.1);
+            color: #22c55e;
+            border-color: rgba(34,197,94,0.3);
+        }
+        .geri-dl-btn.csv:hover { background: rgba(34,197,94,0.2); }
+        .geri-dl-btn.xlsx {
+            background: rgba(59,130,246,0.1);
+            color: #60a5fa;
+            border-color: rgba(59,130,246,0.3);
+        }
+        .geri-dl-btn.xlsx:hover { background: rgba(59,130,246,0.2); }
+        .geri-history-table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid #1e293b;
+        }
+        .geri-hist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+        .geri-hist-table th {
+            background: #0f172a;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.72rem;
+            padding: 10px 14px;
+            text-align: left;
+            white-space: nowrap;
+            border-bottom: 1px solid #334155;
+        }
+        .geri-hist-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid rgba(51,65,85,0.5);
+            color: #e2e8f0;
+            white-space: nowrap;
+        }
+        .geri-hist-table tr:last-child td { border-bottom: none; }
+        .geri-hist-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .geri-hist-band { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; }
+        .geri-hist-band.LOW      { background: rgba(34,197,94,0.15);  color: #22c55e; }
+        .geri-hist-band.MODERATE { background: rgba(234,179,8,0.15);  color: #facc15; }
+        .geri-hist-band.ELEVATED { background: rgba(249,115,22,0.15); color: #fb923c; }
+        .geri-hist-band.HIGH     { background: rgba(239,68,68,0.15);  color: #f87171; }
+        .geri-hist-band.CRITICAL { background: rgba(168,85,247,0.15); color: #c084fc; }
+        .geri-hist-trend-pos { color: #f87171; }
+        .geri-hist-trend-neg { color: #22c55e; }
+        .geri-hist-trend-neu { color: #64748b; }
+        .geri-hist-computed { color: #64748b; font-size: 0.75rem; }
+        /* Citation block (reuse snap-cite-card pattern) */
+        .geri-history-cite {
+            margin-top: 24px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 22px 24px;
+        }
+        .geri-history-cite h3 {
+            font-size: 0.95rem; font-weight: 700; color: #f1f5f9; margin-bottom: 8px;
+        }
+        .geri-history-cite-desc {
+            font-size: 13px; color: #94a3b8; margin-bottom: 14px; line-height: 1.6;
+        }
+        .geri-history-cite-code-wrap {
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 8px; padding: 14px 18px; position: relative;
+        }
+        .geri-history-cite-code {
+            font-family: 'Courier New', monospace;
+            font-size: 12px; color: #e2e8f0; line-height: 1.9; white-space: pre-wrap;
+        }
+        .geri-history-cite-code a { color: #60a5fa; text-decoration: none; }
+        .geri-history-cite-copy-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(30,41,59,0.9); border: 1px solid #475569;
+            color: #94a3b8; padding: 4px 12px; font-size: 11px; font-weight: 600;
+            border-radius: 6px; cursor: pointer; font-family: inherit;
+        }
+        .geri-history-cite-copy-btn:hover { color: #f1f5f9; border-color: #94a3b8; }
+        .geri-history-cite-footer {
+            margin-top: 12px; font-size: 11px; color: #64748b; line-height: 1.6;
+        }
+        .geri-history-cite-footer a { color: #60a5fa; text-decoration: none; }
+
         @media (max-width: 768px) {
             .geri-details-grid {
                 grid-template-columns: 1fr;
@@ -6222,6 +6356,86 @@
                 </div>
             </div>
 
+            <!-- GERI History Table -->
+            <div class="geri-history-section" id="geriHistorySection">
+                <div class="geri-history-header">
+                    <div>
+                        <div class="geri-history-title">
+                            <span>📊</span> GERI History
+                        </div>
+                        <div class="geri-history-subtitle">Daily index values from production pipeline &mdash; last <span id="geriHistCount">—</span> records</div>
+                    </div>
+                    <div class="geri-history-actions">
+                        <button class="geri-dl-btn csv" onclick="downloadGeriHistory('csv')" title="Download CSV">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download CSV
+                        </button>
+                        <button class="geri-dl-btn xlsx" onclick="downloadGeriHistory('xlsx')" title="Download Excel">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loader -->
+                <div class="snap-panel-loader" id="geriHistLoader">
+                    <div class="pl-ring-wrap">
+                        <div class="pl-ring-bg"></div>
+                        <div class="pl-arc1"></div>
+                        <div class="pl-arc2"></div>
+                        <div class="pl-arc3"></div>
+                        <div class="pl-dot"></div>
+                    </div>
+                    <div class="pl-label-main">Loading GERI history</div>
+                    <div class="pl-label-sub" id="geriHistStatus">Connecting to production pipeline&hellip;</div>
+                    <div class="pl-tags">
+                        <span class="pl-tag">GERI</span>
+                        <span class="pl-tag">intel_indices_daily</span>
+                    </div>
+                    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                </div>
+
+                <!-- Table content -->
+                <div class="snap-panel-content" id="geriHistContent">
+                    <div class="geri-history-table-wrap">
+                        <table class="geri-hist-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Value</th>
+                                    <th>Band</th>
+                                    <th>Trend 1D</th>
+                                    <th>Trend 7D</th>
+                                    <th>Computed At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="geriHistTbody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Citation & Reference -->
+                    <div class="geri-history-cite" style="margin-top: 24px;">
+                        <h3>&#128196; Citation &amp; Reference</h3>
+                        <p class="geri-history-cite-desc">
+                            GERI (Global Energy Risk Index) daily values are computed by EnergyRiskIQ's proprietary risk scoring pipeline from structured geopolitical and energy supply intelligence. To cite this data in research, analysis, or professional reports, use the reference below.
+                        </p>
+                        <div class="geri-history-cite-code-wrap">
+                            <pre class="geri-history-cite-code">EnergyRiskIQ. (2026). <em>Global Energy Risk Index — Daily History</em>.
+Retrieved from <a href="https://energyriskiq.com/research/global-energy-risk-index" target="_blank">https://energyriskiq.com/research/global-energy-risk-index</a>
+Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index scale: 0–100.</pre>
+                            <button class="geri-history-cite-copy-btn" id="geriCiteCopyBtn"
+                                onclick="navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Global Energy Risk Index — Daily History. Retrieved from https://energyriskiq.com/research/global-energy-risk-index').then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',2000)})">Copy</button>
+                        </div>
+                        <div class="geri-history-cite-footer">
+                            Data sourced from: EnergyRiskIQ internal risk scoring pipeline (GERI &mdash; Global Energy Risk Index).
+                            Index computed daily from structured geopolitical, energy supply, and infrastructure intelligence signals.
+                            See <a href="/geri/methodology" target="_blank">GERI Methodology</a> for full scoring detail.
+                            <strong>Not financial advice.</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="eriq-ctx-widget" id="eriqCtxGeri" data-page="geri">
                 <button class="eriq-ctx-toggle" onclick="toggleEriqCtxChat('geri')">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -9126,6 +9340,91 @@
             });
         }
         
+        // ── GERI History Table ────────────────────────────────────────────────────
+        var _geriHistLoaded = false;
+        function loadGeriHistoryTable() {
+            if (_geriHistLoaded) return;
+            _geriHistLoaded = true;
+            var msgs = [
+                'Connecting to production pipeline\u2026',
+                'Fetching GERI index records\u2026',
+                'Loading intel_indices_daily\u2026',
+                'Preparing history table\u2026'
+            ];
+            var idx = 0, el = document.getElementById('geriHistStatus');
+            var timer = setInterval(function() {
+                idx = (idx + 1) % msgs.length;
+                if (el) { el.style.opacity = '0'; setTimeout(function() { el.textContent = msgs[idx]; el.style.opacity = '1'; }, 200); }
+            }, 2000);
+
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            fetch('/api/v1/indices/geri/history-table', { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    clearInterval(timer);
+                    var rows = (d && d.data) ? d.data : [];
+                    var count = rows.length;
+                    var countEl = document.getElementById('geriHistCount');
+                    if (countEl) countEl.textContent = count;
+
+                    var tbody = document.getElementById('geriHistTbody');
+                    if (tbody) {
+                        var html = '';
+                        rows.forEach(function(r) {
+                            var band = (r.band || '').toUpperCase();
+                            var v1d = r.trend_1d, v7d = r.trend_7d;
+                            function trendCell(v) {
+                                if (v === null || v === undefined) return '<td class="geri-hist-trend-neu">—</td>';
+                                var cls = v > 0 ? 'geri-hist-trend-pos' : v < 0 ? 'geri-hist-trend-neg' : 'geri-hist-trend-neu';
+                                var sign = v > 0 ? '+' : '';
+                                return '<td class="' + cls + '">' + sign + v.toFixed(1) + '</td>';
+                            }
+                            var cat = r.computed_at ? r.computed_at.replace('T', ' ').substring(0, 19) + ' UTC' : '—';
+                            html += '<tr>'
+                                + '<td><strong>' + (r.date || '') + '</strong></td>'
+                                + '<td><strong>' + (r.value !== null && r.value !== undefined ? r.value.toFixed(0) : '—') + '</strong></td>'
+                                + '<td><span class="geri-hist-band ' + band + '">' + (r.band || '—') + '</span></td>'
+                                + trendCell(v1d)
+                                + trendCell(v7d)
+                                + '<td class="geri-hist-computed">' + cat + '</td>'
+                                + '</tr>';
+                        });
+                        tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No data available</td></tr>';
+                    }
+                    document.getElementById('geriHistLoader').classList.add('pl-hidden');
+                    document.getElementById('geriHistContent').classList.add('pl-loaded');
+                })
+                .catch(function() {
+                    clearInterval(timer);
+                    document.getElementById('geriHistLoader').classList.add('pl-hidden');
+                    document.getElementById('geriHistContent').classList.add('pl-loaded');
+                    var tbody = document.getElementById('geriHistTbody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Unable to load history. Please refresh the page.</td></tr>';
+                });
+        }
+
+        function downloadGeriHistory(fmt) {
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            var url = '/api/v1/indices/geri/history-table/download/' + fmt + '?limit=1000';
+            var a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url + '&token=' + encodeURIComponent(tok);
+            document.body.appendChild(a);
+            // Use fetch + blob so we can pass auth header
+            fetch(url, { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.blob(); })
+                .then(function(blob) {
+                    var burl = URL.createObjectURL(blob);
+                    var today = new Date().toISOString().slice(0, 10);
+                    var ext = fmt === 'xlsx' ? 'xlsx' : 'csv';
+                    a.href = burl;
+                    a.download = 'GERI_History_' + today + '.' + ext;
+                    a.click();
+                    setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
+                })
+                .catch(function(e) { console.error('Download failed', e); document.body.removeChild(a); });
+        }
+
         function setupOverlayToggles() {
             const plan = currentUser?.plan || 'free';
             const cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
@@ -12844,6 +13143,7 @@
                 loadAlertSettings();
             } else if (sectionId === 'geri') {
                 loadGeriData();
+                loadGeriHistoryTable();
             } else if (sectionId === 'eeri-pro') {
                 loadEeriProData();
             } else if (sectionId === 'digest') {
