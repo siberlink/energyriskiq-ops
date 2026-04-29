@@ -21,7 +21,7 @@ from src.egsi.egsi_history_service import (
     get_egsi_m_adjacent_dates,
     get_egsi_m_monthly_stats,
 )
-from src.egsi.repo import get_egsi_s_delayed
+from src.egsi.repo import get_egsi_s_delayed, get_egsi_s_latest
 from src.egsi.interpretation import generate_egsi_interpretation
 from src.api.seo_routes import get_digest_dark_styles, render_digest_footer
 
@@ -226,13 +226,11 @@ async def egsi_old_redirect():
 async def egsi_public_page(request: Request):
     """
     EGSI Main Public Page - SEO anchor page for Europe Gas Stress Index.
-    Shows 24h delayed EGSI-M and EGSI-S with charts.
+    Shows latest (live) EGSI-M and EGSI-S from production DB.
     """
-    egsi_m = get_egsi_m_delayed(delay_hours=24)
-    if not egsi_m:
-        egsi_m = get_latest_egsi_m_public()
+    egsi_m = get_latest_egsi_m_public()
 
-    egsi_s = get_egsi_s_delayed(delay_days=1)
+    egsi_s = get_egsi_s_latest()
 
     if not egsi_m and not egsi_s:
         no_data_html = f"""
@@ -335,7 +333,7 @@ async def egsi_public_page(request: Request):
                 <span>Index Date: <strong>{date_str}</strong></span>
                 <span>Computed: <strong>{ca_str}</strong></span>
             </div>
-            <div class="egsi-delay-badge">24h Delayed (Free Plan)</div>
+            <div class="egsi-delay-badge" style="background: rgba(34,197,94,0.15); color: #22c55e; border-color: rgba(34,197,94,0.3);">&#x25CF; Live Data</div>
         </div>'''
 
     m_card = _build_card(
