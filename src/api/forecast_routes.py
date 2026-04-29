@@ -445,6 +445,66 @@ _FORECAST_CSS = """
   border-radius: 20px; border: 1px solid currentColor;
   text-transform: uppercase; letter-spacing: 0.06em;
 }
+
+/* ── Forecast summary bar ── */
+.forecast-summary-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 640px) {
+  .forecast-summary-bar {
+    grid-template-columns: 1fr;
+  }
+  .forecast-box {
+    padding: 20px 16px;
+  }
+  .fc-price {
+    font-size: 26px;
+  }
+  .forecast-card-header {
+    padding: 16px 16px 14px;
+  }
+  .forecast-card-body {
+    padding: 16px 16px 20px;
+  }
+  .nav-inner > div a:not(.cta-btn-nav) {
+    display: none;
+  }
+  .snap-cite-card {
+    padding: 18px 16px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .snap-cite-code-wrap {
+    overflow-x: auto;
+    padding: 14px 14px 14px;
+    max-width: 100%;
+  }
+  .snap-cite-code {
+    white-space: pre-wrap !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: 11px;
+  }
+  .snap-cite-copy-btn {
+    position: static !important;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    margin-top: 12px;
+  }
+  .interp-para {
+    font-size: 14px;
+  }
+  body {
+    overflow-x: hidden;
+  }
+}
 """
 
 
@@ -643,7 +703,7 @@ document.body.style.overflow='';
   <div class="section-label" style="margin-bottom:20px;">&#128248; Next 24 Hours Global Energy Risk Forecast &mdash; Downloadable</div>
 
   <!-- Forecast summary bar above infographic -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+  <div class="forecast-summary-bar">
     <div style="background:rgba(249,115,22,0.07);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:16px 20px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#f97316;margin-bottom:6px;">Brent Crude — 24H Forecast</div>
       <div style="font-size:20px;font-weight:800;color:#e2e8f0;font-variant-numeric:tabular-nums;margin-bottom:4px;">
