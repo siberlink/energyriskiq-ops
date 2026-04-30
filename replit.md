@@ -36,6 +36,8 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 - **Global Energy Risk Forecast Page:** A SEO-optimised public page (`/data/global-energy-risk-forecast`) streaming AI-powered 24-hour Brent & TTF price forecasts using GPT-5.1.
 - **JKM LNG Spot Price Page:** A SEO-optimised public page (`/data/jkm-lng-spot-price`) displaying JKM LNG spot prices with charts and historical data.
 - **TTF Gas Price Today Page:** A SEO-optimised public page (`/data/ttf-gas-price-today`) displaying Dutch TTF European natural gas benchmark prices with real-time updates, charts, and market insights.
+- **Data License Page:** A public page (`/data-license`) setting usage terms for all EnergyRiskIQ public dataset pages. Contains a WebPage schema, attribution guidance, permitted/prohibited uses, and links to all covered data pages. Added to sitemap.
+- **GSC Dataset Schema Fix:** All public data pages now include `license`, `isAccessibleForFree`, and `publisher` fields in their Dataset structured data schemas, referencing `https://energyriskiq.com/data-license`. Affected pages: JKM, LNG, gas storage, TTF, GERI index, GERI research, EERI index, EGSI, global-energy-risk-timeline, and global-energy-risk-forecast.
 
 **System Design Choices:**
 - **Database:** PostgreSQL is used for persistence with a single production database.

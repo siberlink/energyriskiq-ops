@@ -582,7 +582,10 @@ def _build_jkm_html(data: dict) -> str:
   "name": "JKM LNG Spot Price Daily Snapshots",
   "description": "Daily JKM LNG spot price snapshots including price, 24-hour change, percentage change, date, and source.",
   "url": "{BASE_URL}/data/jkm-lng-spot-price",
-  "creator": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "license": "{BASE_URL}/data-license",
+  "isAccessibleForFree": true,
   "temporalCoverage": "{_fmt_date_iso(earliest)}/{_fmt_date_iso(stat_latest)}",
   "variableMeasured": ["JKM LNG spot price", "24-hour price change", "24-hour percentage change"],
   "keywords": ["JKM LNG price", "JKM LNG spot price today", "Japan Korea Marker", "LNG spot price", "Asia LNG price"]

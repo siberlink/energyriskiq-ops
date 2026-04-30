@@ -599,6 +599,21 @@ async def eeri_public_page(request: Request):
             <meta name="description" content="Track the European Energy Risk Index (EERI), a public 24-hour delayed measure of geopolitical and supply-chain stress across European gas, power, and energy systems.">
             <link rel="canonical" href="{BASE_URL}/indices/europe-energy-risk-index">
             <link rel="icon" type="image/png" href="/static/favicon.png">
+            <script type="application/ld+json">
+            {{
+                "@context": "https://schema.org",
+                "@type": "Dataset",
+                "name": "European Energy Risk Index (EERI) — Daily Values",
+                "description": "Daily values for the European Energy Risk Index (EERI), measuring geopolitical and supply-chain stress across European gas, power, and energy systems.",
+                "url": "{BASE_URL}/indices/europe-energy-risk-index",
+                "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+                "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+                "license": "{BASE_URL}/data-license",
+                "isAccessibleForFree": true,
+                "spatialCoverage": "Europe",
+                "keywords": ["EERI", "european energy risk index", "European gas risk", "energy escalation risk", "Europe risk index"]
+            }}
+            </script>
             {get_digest_dark_styles()}
         </head>
         <body>
@@ -833,6 +848,21 @@ def _render_eeri_page(eeri: dict):
         <meta property="og:type" content="website">
         
         <link rel="icon" type="image/png" href="/static/favicon.png">
+        <script type="application/ld+json">
+        {{
+            "@context": "https://schema.org",
+            "@type": "Dataset",
+            "name": "European Energy Risk Index (EERI) — Daily Values",
+            "description": "Daily values for the European Energy Risk Index (EERI), measuring geopolitical and supply-chain stress across European gas, power, and energy systems.",
+            "url": "{BASE_URL}/indices/europe-energy-risk-index",
+            "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "license": "{BASE_URL}/data-license",
+            "isAccessibleForFree": true,
+            "spatialCoverage": "Europe",
+            "keywords": ["EERI", "european energy risk index", "European gas risk", "energy escalation risk", "Europe risk index"]
+        }}
+        </script>
         {get_digest_dark_styles()}
         <style>
             .eeri-hero {{

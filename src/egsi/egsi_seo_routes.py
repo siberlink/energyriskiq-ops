@@ -429,7 +429,10 @@ async def egsi_public_page(request: Request):
             "name": "Europe Gas Stress Index (EGSI)",
             "description": "Daily index measuring gas market and system stress across European infrastructure",
             "url": "{BASE_URL}/indices/europe-gas-stress-index",
-            "creator": {{"@type": "Organization", "name": "EnergyRiskIQ"}},
+            "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "license": "{BASE_URL}/data-license",
+            "isAccessibleForFree": true,
             "dateModified": "{m_date_str}"
         }}
         </script>

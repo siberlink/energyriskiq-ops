@@ -660,6 +660,22 @@ var l=document.getElementById('snap-loader');
 if(l){{l.style.display='none';}}
 document.body.style.overflow='';
 </script>
+<script type="application/ld+json">
+{{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "Global Energy Risk Forecast — Daily Brent & TTF Outlook",
+  "description": "Daily 24-hour energy price forecast and risk outlook for Brent crude and TTF natural gas, incorporating GERI, EERI, EGSI, storage, VIX, and LNG signals.",
+  "url": "{BASE_URL}/data/global-energy-risk-forecast",
+  "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "license": "{BASE_URL}/data-license",
+  "isAccessibleForFree": true,
+  "temporalCoverage": "2026-01-01/{today_date}",
+  "spatialCoverage": "Global",
+  "keywords": ["energy risk forecast", "Brent crude price forecast", "TTF gas price forecast", "GERI index", "energy market outlook"]
+}}
+</script>
 <style>
 {_FORECAST_CSS}
 </style>

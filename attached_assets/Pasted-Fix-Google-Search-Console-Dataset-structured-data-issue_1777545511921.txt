@@ -1,0 +1,85 @@
+Fix Google Search Console Dataset structured data issue: Missing field "license" on EnergyRiskIQ pages.
+
+Goal:
+Add a valid `license` property to every Dataset JSON-LD schema on the following pages, without breaking existing SEO schema, canonical tags, metadata, or page rendering.
+
+Pages to update:
+
+DATA PAGES:
+- /data/europe-lng-supply-demand
+- /data/global-energy-risk-forecast
+- /gas-storage-levels-in-europe
+- /data/jkm-lng-spot-price
+- /data/ttf-gas-price-today
+
+INDICES PAGES:
+- /indices/global-energy-risk-index
+- /indices/europe-energy-risk-index
+- /indices/europe-gas-stress-index
+
+RESEARCH PAGES:
+- /research/global-energy-risk-timeline
+- /research/global-energy-risk-index
+
+Required fix:
+For every JSON-LD object where `"@type": "Dataset"`, add:
+
+"license": "https://energyriskiq.com/data-license"
+
+Also add these recommended Dataset fields if missing:
+
+"isAccessibleForFree": true,
+"creator": {
+  "@type": "Organization",
+  "name": "EnergyRiskIQ",
+  "url": "https://energyriskiq.com"
+},
+"publisher": {
+  "@type": "Organization",
+  "name": "EnergyRiskIQ",
+  "url": "https://energyriskiq.com"
+}
+
+Important:
+- Do NOT remove or rewrite existing schema fields.
+- Do NOT create duplicate Dataset schemas on the same page.
+- Do NOT add Dataset schema to pages that do not already use Dataset unless the page clearly represents a dataset.
+- Keep existing Article, WebPage, BreadcrumbList, FAQPage, and Organization schema unchanged.
+- Ensure all JSON-LD remains valid JSON.
+- Ensure each page keeps its correct canonical URL.
+- Use the existing structured data helper/component if one exists.
+- If Dataset schema is repeated manually across pages, refactor carefully into a shared helper if safe.
+
+Create this page if it does not already exist:
+
+Route:
+/data-license
+
+Page title:
+EnergyRiskIQ Data License
+
+Meta description:
+Usage terms for EnergyRiskIQ public datasets, including energy prices, risk indices, gas storage data, and market intelligence pages.
+
+Page content:
+Explain that public EnergyRiskIQ data pages may be referenced and cited with attribution. Users must link back to the original EnergyRiskIQ page when using data, charts, summaries, or derived insights. This license does not grant permission to bulk scrape, resell, or republish the full database without written permission.
+
+Recommended attribution text:
+“Source: EnergyRiskIQ — https://energyriskiq.com”
+
+On the /data-license page, add WebPage schema, not Dataset schema.
+
+Validation checklist:
+1. Inspect each listed page.
+2. Confirm every Dataset JSON-LD includes `"license": "https://energyriskiq.com/data-license"`.
+3. Confirm there are no duplicate Dataset objects.
+4. Confirm JSON-LD validates without syntax errors.
+5. Confirm the page builds successfully.
+6. Confirm `/data-license` is indexable and has canonical:
+   https://energyriskiq.com/data-license
+
+After implementation, provide a concise report:
+- Files changed
+- Pages fixed
+- Whether `/data-license` was created
+- Any pages where Dataset schema was not found

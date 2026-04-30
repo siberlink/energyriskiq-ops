@@ -782,7 +782,10 @@ def _build_gas_storage_html(data: dict, ai_interp: str, today_str: str) -> str:
                 "name": "EU Gas Storage Fill Rate",
                 "description": "Daily European gas storage levels sourced from AGSI+ (GIE). Includes fill rate percentage, seasonal norm comparison, deviation, refill speed, and risk scoring.",
                 "url": f"{BASE_URL}/gas-storage-levels-in-europe",
-                "creator": {"@type": "Organization", "name": "EnergyRiskIQ"},
+                "creator":   {"@type": "Organization", "name": "EnergyRiskIQ", "url": BASE_URL},
+                "publisher": {"@type": "Organization", "name": "EnergyRiskIQ", "url": BASE_URL},
+                "license": f"{BASE_URL}/data-license",
+                "isAccessibleForFree": True,
                 "distribution": {
                     "@type": "DataDownload",
                     "contentUrl": f"{BASE_URL}/gas-storage-levels-in-europe",

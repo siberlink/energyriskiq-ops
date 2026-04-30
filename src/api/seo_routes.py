@@ -1594,6 +1594,7 @@ async def sitemap_research_xml():
         ("https://energyriskiq.com/data/jkm-lng-spot-price", "daily", "0.9"),
         ("https://energyriskiq.com/data/ttf-gas-price-today", "daily", "0.9"),
         ("https://energyriskiq.com/gas-storage-levels-in-europe", "daily", "0.9"),
+        ("https://energyriskiq.com/data-license", "monthly", "0.5"),
     ]
 
     entries = ""
@@ -2061,6 +2062,21 @@ async def geri_page(request: Request):
         <meta property="og:type" content="website">
         
         <link rel="icon" type="image/png" href="/static/favicon.png">
+        <script type="application/ld+json">
+        {{
+            "@context": "https://schema.org",
+            "@type": "Dataset",
+            "name": "Global Energy Risk Index (GERI) — Daily Values",
+            "description": "Daily values for the Global Energy Risk Index (GERI), a quantitative measure of geopolitical and systemic risk across global energy markets, computed by EnergyRiskIQ.",
+            "url": "{BASE_URL}/indices/global-energy-risk-index",
+            "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "license": "{BASE_URL}/data-license",
+            "isAccessibleForFree": true,
+            "spatialCoverage": "Global",
+            "keywords": ["GERI", "global energy risk index", "geopolitical risk", "energy market risk", "risk index"]
+        }}
+        </script>
         {get_digest_dark_styles()}
         <style>
             .geri-hero {{
@@ -6217,6 +6233,21 @@ async def geri_research_page(request: Request):
         <meta property="og:type" content="article">
 
         <link rel="icon" type="image/png" href="/static/favicon.png">
+        <script type="application/ld+json">
+        {{
+            "@context": "https://schema.org",
+            "@type": "Dataset",
+            "name": "Global Energy Risk Index (GERI) — Research Dataset",
+            "description": "Historical GERI values, Brent crude correlation data, and geopolitical event records used in EnergyRiskIQ research into global energy risk quantification.",
+            "url": "{BASE_URL}/research/global-energy-risk-index",
+            "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+            "license": "{BASE_URL}/data-license",
+            "isAccessibleForFree": true,
+            "spatialCoverage": "Global",
+            "keywords": ["GERI methodology", "energy risk research", "geopolitical risk quantification", "energy market index", "risk scoring"]
+        }}
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -8984,11 +9015,13 @@ async def global_energy_risk_timeline_page(request: Request):
         "name": "Global Energy Risk Timeline 2014&#x2013;2026",
         "description": "Chronological record of 18 major geopolitical shocks, supply disruptions, and infrastructure crises that shaped global oil, gas, and LNG markets from 2014 to 2026.",
         "url": "{BASE_URL}/research/global-energy-risk-timeline",
-        "creator": {{"@type":"Organization","name":"EnergyRiskIQ","url":"{BASE_URL}"}},
+        "creator":   {{"@type":"Organization","name":"EnergyRiskIQ","url":"{BASE_URL}"}},
+        "publisher": {{"@type":"Organization","name":"EnergyRiskIQ","url":"{BASE_URL}"}},
+        "license": "{BASE_URL}/data-license",
+        "isAccessibleForFree": true,
         "datePublished": "2026-01-15",
         "dateModified": "2026-03-15",
-        "keywords": ["energy crisis","geopolitical risk","oil market","LNG","energy chokepoints","pipeline sabotage","maritime security"],
-        "license": "https://creativecommons.org/licenses/by/4.0/"
+        "keywords": ["energy crisis","geopolitical risk","oil market","LNG","energy chokepoints","pipeline sabotage","maritime security"]
     }}
     </script>
 
@@ -10965,3 +10998,207 @@ async def global_energy_risk_timeline_page(request: Request):
 """
 
     return HTMLResponse(content=html)
+
+
+# ── Data License Page ─────────────────────────────────────────────────────────
+
+@router.get("/data-license", response_class=HTMLResponse)
+async def data_license_page():
+    """
+    EnergyRiskIQ Data License — usage terms for all public dataset pages.
+    Canonical: https://energyriskiq.com/data-license
+    Schema: WebPage (not Dataset).
+    """
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergyRiskIQ Data License | Usage Terms for Public Datasets</title>
+  <meta name="description" content="Usage terms for EnergyRiskIQ public datasets, including energy prices, risk indices, gas storage data, and market intelligence pages.">
+  <link rel="canonical" href="{BASE_URL}/data-license">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+
+  <meta property="og:title" content="EnergyRiskIQ Data License">
+  <meta property="og:description" content="Usage terms for EnergyRiskIQ public datasets, including energy prices, risk indices, gas storage data, and market intelligence.">
+  <meta property="og:url" content="{BASE_URL}/data-license">
+  <meta property="og:type" content="website">
+
+  <script type="application/ld+json">
+  {{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "EnergyRiskIQ Data License",
+    "description": "Usage terms for EnergyRiskIQ public datasets, including energy prices, risk indices, gas storage data, and market intelligence pages.",
+    "url": "{BASE_URL}/data-license",
+    "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+    "inLanguage": "en"
+  }}
+  </script>
+
+  {get_digest_dark_styles()}
+  <style>
+    .license-wrap {{
+      max-width: 800px; margin: 0 auto; padding: 48px 24px 80px;
+      color: #e2e8f0; font-family: 'Inter', sans-serif;
+    }}
+    .license-badge {{
+      display: inline-block; background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.3); color: #60a5fa;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.6px;
+      text-transform: uppercase; padding: 4px 14px; border-radius: 20px;
+      margin-bottom: 24px;
+    }}
+    .license-wrap h1 {{
+      font-size: clamp(24px, 4vw, 36px); font-weight: 800; color: #f1f5f9;
+      margin: 0 0 12px; line-height: 1.2;
+    }}
+    .license-wrap h2 {{
+      font-size: 17px; font-weight: 700; color: #e2e8f0;
+      margin: 36px 0 12px; border-bottom: 1px solid #1e293b; padding-bottom: 8px;
+    }}
+    .license-wrap p, .license-wrap li {{
+      font-size: 15px; color: #94a3b8; line-height: 1.8; margin-bottom: 12px;
+    }}
+    .license-wrap ul {{ padding-left: 20px; }}
+    .license-wrap li {{ margin-bottom: 8px; }}
+    .license-wrap strong {{ color: #e2e8f0; }}
+    .license-attr-box {{
+      background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+      padding: 20px 24px; margin: 24px 0;
+    }}
+    .license-attr-box .attr-label {{
+      font-size: 10px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase;
+      color: #475569; margin-bottom: 10px;
+    }}
+    .license-attr-box .attr-text {{
+      font-family: 'Courier New', monospace; font-size: 14px; color: #60a5fa;
+      background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+      padding: 10px 16px; word-break: break-all;
+    }}
+    .license-pages-grid {{
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0 24px;
+    }}
+    @media (max-width: 600px) {{ .license-pages-grid {{ grid-template-columns: 1fr; }} }}
+    .license-page-link {{
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 12px 16px; text-decoration: none; color: #94a3b8;
+      font-size: 13px; font-weight: 500; transition: border-color 0.18s, color 0.18s;
+      display: flex; align-items: center; gap: 8px;
+    }}
+    .license-page-link:hover {{ border-color: rgba(59,130,246,0.4); color: #e2e8f0; }}
+    .license-page-link::before {{ content: '\u2197'; color: #3b82f6; flex-shrink: 0; }}
+    .license-footer {{
+      margin-top: 48px; padding-top: 24px; border-top: 1px solid #1e293b;
+      font-size: 12px; color: #334155;
+    }}
+    .license-footer a {{ color: #3b82f6; text-decoration: none; }}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <img src="/static/logo.png" alt="EnergyRiskIQ" style="height:28px">
+        <span>EnergyRiskIQ</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:1.5rem;">
+        <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
+        <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
+        <a href="/data/global-energy-risk-forecast" style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
+        <a href="/users" class="cta-btn-nav">Get Free Access</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="license-wrap">
+      <div class="license-badge">Data License</div>
+      <h1>EnergyRiskIQ Data License</h1>
+      <p style="font-size:16px;color:#cbd5e1;margin-bottom:0;">
+        Usage terms governing EnergyRiskIQ public dataset pages, including energy price data,
+        risk indices, gas storage data, LNG market intelligence, and forecast outputs.
+      </p>
+
+      <h2>1. Attribution Requirement</h2>
+      <p>
+        You may reference and cite EnergyRiskIQ public data pages in articles, research reports,
+        journalism, and professional analysis, provided you include a link back to the original
+        EnergyRiskIQ source page.
+      </p>
+      <div class="license-attr-box">
+        <div class="attr-label">Recommended Attribution Text</div>
+        <div class="attr-text">Source: EnergyRiskIQ &mdash; {BASE_URL}</div>
+      </div>
+      <p>
+        When citing specific pages or datasets, include the full URL of the page used as the data source.
+        For example: &ldquo;TTF gas price data sourced from EnergyRiskIQ
+        (<a href="{BASE_URL}/data/ttf-gas-price-today" style="color:#60a5fa;">{BASE_URL}/data/ttf-gas-price-today</a>).&rdquo;
+      </p>
+
+      <h2>2. Permitted Uses</h2>
+      <ul>
+        <li><strong>Citation in research and journalism</strong> &mdash; with attribution and a link to the source page.</li>
+        <li><strong>Quoting individual data points</strong> (e.g. today&rsquo;s GERI score or TTF price) in your own analysis.</li>
+        <li><strong>Educational use</strong> &mdash; for academic or non-commercial educational purposes with attribution.</li>
+        <li><strong>Internal business use</strong> &mdash; referencing EnergyRiskIQ data internally within your organisation.</li>
+      </ul>
+
+      <h2>3. Prohibited Uses</h2>
+      <ul>
+        <li><strong>Bulk scraping</strong> &mdash; automated large-scale extraction of data from EnergyRiskIQ pages is not permitted without written agreement.</li>
+        <li><strong>Resale or redistribution</strong> &mdash; republishing the full dataset, charts, or intelligence outputs as your own product or service without written permission.</li>
+        <li><strong>Framing or hotlinking</strong> &mdash; embedding EnergyRiskIQ pages or charts within third-party properties in a way that removes attribution.</li>
+        <li><strong>Misleading attribution</strong> &mdash; presenting EnergyRiskIQ data as being sourced from a different provider.</li>
+      </ul>
+
+      <h2>4. Covered Dataset Pages</h2>
+      <p>This license applies to all publicly accessible data pages on EnergyRiskIQ, including:</p>
+      <div class="license-pages-grid">
+        <a href="/data/ttf-gas-price-today" class="license-page-link">TTF Gas Price Today</a>
+        <a href="/data/jkm-lng-spot-price" class="license-page-link">JKM LNG Spot Price</a>
+        <a href="/data/europe-lng-supply-demand" class="license-page-link">Europe LNG Supply &amp; Demand</a>
+        <a href="/gas-storage-levels-in-europe" class="license-page-link">EU Gas Storage Levels</a>
+        <a href="/data/global-energy-risk-forecast" class="license-page-link">Global Energy Risk Forecast</a>
+        <a href="/data/energy-risk-snapshot" class="license-page-link">Energy Risk Snapshot</a>
+        <a href="/indices/global-energy-risk-index" class="license-page-link">Global Energy Risk Index (GERI)</a>
+        <a href="/indices/europe-energy-risk-index" class="license-page-link">Europe Energy Risk Index (EERI)</a>
+        <a href="/indices/europe-gas-stress-index" class="license-page-link">Europe Gas Stress Index (EGSI)</a>
+        <a href="/research/global-energy-risk-timeline" class="license-page-link">Global Energy Risk Timeline</a>
+        <a href="/research/global-energy-risk-index" class="license-page-link">GERI Research</a>
+      </div>
+
+      <h2>5. No Warranty</h2>
+      <p>
+        EnergyRiskIQ data is provided for informational purposes only.
+        <strong>It does not constitute financial advice.</strong>
+        EnergyRiskIQ makes no representations as to the accuracy, completeness, or timeliness of any data.
+        Use of data from EnergyRiskIQ is at your own risk.
+      </p>
+
+      <h2>6. Commercial Licensing</h2>
+      <p>
+        For bulk data access, API integrations, white-label licensing, or commercial redistribution rights,
+        please contact EnergyRiskIQ directly via your
+        <a href="/users" style="color:#60a5fa;">account dashboard</a>.
+      </p>
+
+      <h2>7. Governing Terms</h2>
+      <p>
+        This license is effective from 1 January 2026. EnergyRiskIQ reserves the right to update these
+        terms at any time. Continued use of EnergyRiskIQ data constitutes acceptance of the current
+        license terms.
+      </p>
+
+      <div class="license-footer">
+        &copy; 2026 EnergyRiskIQ &bull;
+        <a href="/">Home</a> &bull;
+        <a href="/indices">Indices</a> &bull;
+        <a href="/sitemap-index.xml">Sitemap</a> &bull;
+        <strong>Not financial advice.</strong>
+      </div>
+    </div>
+  </main>
+</body>
+</html>"""
+    return HTMLResponse(content=html, headers={"Cache-Control": "max-age=86400"})

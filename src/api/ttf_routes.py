@@ -732,7 +732,10 @@ def _build_ttf_html(data: dict) -> str:
   "name": "TTF Gas Prices — Daily Snapshots",
   "description": "Daily Dutch TTF natural gas price snapshots tracked by EnergyRiskIQ from {_fmt_date(earliest)} to {_fmt_date(stat_latest)}.",
   "url": "{BASE_URL}/data/ttf-gas-price-today",
-  "creator": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "creator":   {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "publisher": {{"@type": "Organization", "name": "EnergyRiskIQ", "url": "{BASE_URL}"}},
+  "license": "{BASE_URL}/data-license",
+  "isAccessibleForFree": true,
   "temporalCoverage": "{_fmt_date_iso(earliest)}/{date_iso}",
   "variableMeasured": ["TTF gas price (EUR/MWh)", "Daily price change"],
   "keywords": ["TTF gas price", "TTF gas price today", "Dutch TTF natural gas", "European gas price", "TTF price chart"]
