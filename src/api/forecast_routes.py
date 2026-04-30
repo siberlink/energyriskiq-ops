@@ -881,6 +881,21 @@ document.body.style.overflow='';
       <div class="wheel-link-label">Risk Snapshot</div>
       <div class="wheel-link-desc">Today&rsquo;s downloadable infographic &amp; market overview</div>
     </a>
+    <a href="/data/europe-lng-supply-demand" class="wheel-link">
+      <div class="wheel-link-icon">&#128168;</div>
+      <div class="wheel-link-label">LNG Supply</div>
+      <div class="wheel-link-desc">Europe LNG supply &amp; demand intelligence</div>
+    </a>
+    <a href="/data/jkm-lng-spot-price" class="wheel-link">
+      <div class="wheel-link-icon">&#9875;</div>
+      <div class="wheel-link-label">JKM LNG</div>
+      <div class="wheel-link-desc">Japan Korea Marker spot price &mdash; daily data</div>
+    </a>
+    <a href="/gas-storage-levels-in-europe" class="wheel-link">
+      <div class="wheel-link-icon">&#128200;</div>
+      <div class="wheel-link-label">Gas Storage</div>
+      <div class="wheel-link-desc">Live EU gas storage levels &amp; seasonal risk</div>
+    </a>
   </div>
 
   <!-- CITATION & REFERENCE -->

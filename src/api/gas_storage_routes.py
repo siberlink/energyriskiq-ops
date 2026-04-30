@@ -1213,6 +1213,16 @@ document.body.style.overflow='';
     <div class="gs-wheel-label">Snapshot</div>
     <div class="gs-wheel-desc">Live market risk dashboard</div>
   </a>
+  <a href="/data/europe-lng-supply-demand" class="gs-wheel-link">
+    <div class="gs-wheel-icon">&#128168;</div>
+    <div class="gs-wheel-label">LNG Supply</div>
+    <div class="gs-wheel-desc">Europe LNG supply &amp; demand intelligence</div>
+  </a>
+  <a href="/data/jkm-lng-spot-price" class="gs-wheel-link">
+    <div class="gs-wheel-icon">&#9875;</div>
+    <div class="gs-wheel-label">JKM LNG</div>
+    <div class="gs-wheel-desc">Japan Korea Marker spot price &bull; daily data</div>
+  </a>
   <a href="/users" class="gs-wheel-link">
     <div class="gs-wheel-icon">&#128272;</div>
     <div class="gs-wheel-label">Free Access</div>

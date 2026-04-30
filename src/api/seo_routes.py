@@ -1589,6 +1589,10 @@ async def sitemap_research_xml():
         ("https://energyriskiq.com/research/global-energy-risk-index", "monthly", "0.8"),
         ("https://energyriskiq.com/research/global-energy-risk-timeline", "monthly", "0.8"),
         ("https://energyriskiq.com/data/energy-risk-snapshot", "daily", "0.9"),
+        ("https://energyriskiq.com/data/global-energy-risk-forecast", "daily", "0.9"),
+        ("https://energyriskiq.com/data/europe-lng-supply-demand", "daily", "0.9"),
+        ("https://energyriskiq.com/data/jkm-lng-spot-price", "daily", "0.9"),
+        ("https://energyriskiq.com/gas-storage-levels-in-europe", "daily", "0.9"),
     ]
 
     entries = ""

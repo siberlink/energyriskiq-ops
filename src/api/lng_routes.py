@@ -1370,6 +1370,11 @@ document.body.style.overflow='';
     <div class="lng-wheel-label">Forecast</div>
     <div class="lng-wheel-desc">24H Brent &amp; TTF price outlook</div>
   </a>
+  <a href="/data/jkm-lng-spot-price" class="lng-wheel-link">
+    <div class="lng-wheel-icon">&#9875;</div>
+    <div class="lng-wheel-label">JKM LNG</div>
+    <div class="lng-wheel-desc">Japan Korea Marker spot price &bull; daily data</div>
+  </a>
   <a href="/users" class="lng-wheel-link">
     <div class="lng-wheel-icon">&#128272;</div>
     <div class="lng-wheel-label">Free Access</div>

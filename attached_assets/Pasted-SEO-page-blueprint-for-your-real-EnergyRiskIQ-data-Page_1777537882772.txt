@@ -1,0 +1,340 @@
+SEO page blueprint for your real EnergyRiskIQ data.
+
+Page: /data/jkm-lng-spot-price
+SEO Positioning
+
+Primary keyword:
+JKM LNG spot price today
+
+Secondary keywords:
+JKM LNG price, Japan Korea Marker price, LNG spot price Asia, JKM price chart, JKM LNG price history
+
+Meta Title
+
+JKM LNG Spot Price Today | Japan Korea Marker Chart & Daily Data
+
+Meta Description
+
+Track the JKM LNG spot price today with daily Japan Korea Marker data, 24h change, historical chart, and LNG market risk context from EnergyRiskIQ.
+
+Above-the-Fold Page Design
+H1
+
+JKM LNG Spot Price Today
+
+Subheading
+
+Daily Japan Korea Marker LNG price data, 24-hour change, historical trend, and market risk context for Asia LNG spot markets.
+
+Live Price Card
+
+Show:
+
+JKM LNG Spot Price
+$16.96 / MMBtu
+
+Daily Change:
++$0.41 (+2.48%)
+
+Latest Reading:
+April 29, 2026
+
+Data Coverage:
+97 daily records
+
+History Available:
+Jan 13, 2026 → Apr 29, 2026
+
+Source:
+OilPrice / Firecrawl daily scrape
+
+Add small disclaimer:
+
+EnergyRiskIQ tracks JKM LNG spot price snapshots daily. Data is provided for market intelligence and research purposes, not as investment advice.
+
+Core Page Structure
+Section 1 — Price Chart
+H2
+
+JKM LNG Price Chart
+
+Chart controls:
+
+7D
+30D
+90D
+Since Jan 13, 2026
+
+Do not show 1Y or 5Y yet because you only have 97 rows.
+
+Chart should use:
+
+lng_price_snapshots.date
+lng_price_snapshots.jkm_price
+
+Optional secondary line:
+
+jkm_change_pct
+
+Best UI:
+
+Main line: JKM price
+Small cards above chart:
+Latest price
+24h change
+Highest price in dataset
+Lowest price in dataset
+Average price in dataset
+Section 2 — Today’s Market Snapshot
+H2
+
+Today’s JKM LNG Market Snapshot
+
+Copy:
+
+The latest EnergyRiskIQ JKM LNG snapshot shows the Japan Korea Marker at $16.96/MMBtu on April 29, 2026, up $0.41 on the day, or +2.48%.
+
+This indicates short-term upward pressure in Asian LNG spot pricing, with buyers paying more for flexible LNG cargo exposure.
+
+Data table:
+
+Metric	Value
+Latest price	$16.96/MMBtu
+Daily change	+$0.41
+Daily % change	+2.48%
+Latest date	Apr 29, 2026
+Records tracked	97
+Data start	Jan 13, 2026
+Source	oilprice.firecrawl
+Section 3 — Historical Data Table
+H2
+
+JKM LNG Price History
+
+Table columns:
+
+Date
+JKM Price
+24h Change
+24h Change %
+Source
+
+Features:
+
+Sort by date
+Search/filter
+Pagination: 25 rows
+CSV download
+“Copy data” button
+
+CTA under table:
+
+Need LNG price history with risk context? Create a free EnergyRiskIQ account.
+
+Section 4 — What Is the JKM LNG Price?
+H2
+
+What Is the JKM LNG Spot Price?
+
+Copy:
+
+The JKM LNG price, also known as the Japan Korea Marker, is a key benchmark for spot liquefied natural gas delivered into Northeast Asia. It is widely followed by LNG traders, energy analysts, utilities, and risk teams because it reflects the cost of flexible LNG cargoes in one of the world’s most important demand regions.
+
+Section 5 — What Drives JKM LNG Prices?
+H2
+
+What Moves the JKM LNG Spot Price?
+
+Cards:
+
+Asian demand
+Japan, South Korea, China, Taiwan
+European LNG competition
+JKM often reacts when Europe competes for cargoes
+Weather
+Cold winters and hot summers increase gas demand
+Shipping and freight
+LNG carrier availability and route disruption matter
+Geopolitical risk
+Supply shocks, sanctions, chokepoints, war risk
+Storage and inventory
+Low storage raises spot buying pressure
+Section 6 — EnergyRiskIQ Risk Context
+H2
+
+JKM LNG Price and Energy Risk Context
+
+This is where you differentiate from TradingView/Investing.
+
+Copy:
+
+Price alone does not explain LNG risk. A rising JKM price may reflect normal seasonal demand, but it may also signal tightening supply, regional competition for LNG cargoes, or geopolitical pressure on global gas flows.
+
+EnergyRiskIQ connects JKM price movement with broader energy risk indicators such as European gas stress, global escalation risk, LNG supply disruption alerts, and market volatility.
+
+Show cards:
+
+Current GERI
+Current EERI
+EGSI / European gas storage stress
+Recent LNG-related alerts
+JKM 7-day trend
+Section 7 — JKM vs Other Energy Benchmarks
+H2
+
+JKM LNG vs TTF, Brent and European Gas Risk
+
+Even if you do not have all overlays ready, structure the UI now.
+
+Cards:
+
+JKM vs TTF
+
+Shows Asia-Europe LNG competition.
+
+JKM vs Brent
+
+Useful for broader energy cost comparison.
+
+JKM vs European Gas Storage
+
+Helps identify LNG demand pressure from Europe.
+
+JKM vs EnergyRiskIQ Risk Indices
+
+Adds risk-intelligence context beyond price charts.
+
+Label unavailable datasets honestly:
+
+Coming soon: normalized JKM vs TTF and JKM vs Brent overlays.
+
+Section 8 — FAQ
+
+Use FAQ schema.
+
+Questions
+
+What is the JKM LNG price today?
+The latest EnergyRiskIQ reading shows JKM LNG at $16.96/MMBtu on April 29, 2026.
+
+What does JKM mean in LNG?
+JKM stands for Japan Korea Marker, a benchmark for spot LNG delivered into Northeast Asia.
+
+How often is this page updated?
+EnergyRiskIQ updates the JKM LNG spot price daily.
+
+How much historical data is available?
+EnergyRiskIQ currently tracks 97 daily JKM LNG records from January 13, 2026 to April 29, 2026.
+
+Why does JKM matter?
+JKM is one of the most important LNG price benchmarks because it reflects Asian spot LNG demand and global cargo competition.
+
+Schema Markup
+Dataset Schema
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "JKM LNG Spot Price Daily Snapshots",
+  "description": "Daily JKM LNG spot price snapshots including price, 24-hour change, percentage change, date, and source.",
+  "url": "https://energyriskiq.com/data/jkm-lng-spot-price",
+  "creator": {
+    "@type": "Organization",
+    "name": "EnergyRiskIQ",
+    "url": "https://energyriskiq.com"
+  },
+  "temporalCoverage": "2026-01-13/2026-04-29",
+  "variableMeasured": [
+    "JKM LNG spot price",
+    "24-hour price change",
+    "24-hour percentage change"
+  ],
+  "keywords": [
+    "JKM LNG price",
+    "JKM LNG spot price today",
+    "Japan Korea Marker",
+    "LNG spot price",
+    "Asia LNG price"
+  ]
+}
+FAQ Schema
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the JKM LNG price today?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The latest EnergyRiskIQ reading shows JKM LNG at $16.96/MMBtu on April 29, 2026."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does JKM mean in LNG?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "JKM stands for Japan Korea Marker, a benchmark for spot liquefied natural gas delivered into Northeast Asia."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How often is this page updated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "EnergyRiskIQ updates the JKM LNG spot price daily."
+      }
+    }
+  ]
+}
+Best UI Layout
+[Hero: JKM LNG Spot Price Today]
+
+[Latest Price Card] [24h Change Card] [Records Card] [Date Range Card]
+
+[Main JKM Price Chart]
+
+[Today’s Market Snapshot]
+
+[Historical Data Table]
+
+[What Is JKM LNG?]
+
+[What Drives JKM Prices?]
+
+[EnergyRiskIQ Risk Context]
+
+[JKM vs TTF / Brent / Gas Storage Coming Soon]
+
+[FAQ]
+
+[CTA: Track LNG Risk in EnergyRiskIQ]
+Strong CTA
+H2
+
+Track LNG Price Risk, Not Just LNG Prices
+
+CTA copy:
+
+JKM price tells you where the LNG market is. EnergyRiskIQ helps explain why it is moving — and what risk may come next.
+
+Buttons:
+
+View Energy Risk Dashboard
+Get LNG Market Alerts
+
+Important Recommendation
+
+For now, do not overclaim “live” if the data updates daily.
+
+Use:
+
+“Updated Daily”
+not
+“Live”
+
+Best wording:
+
+JKM LNG Spot Price Today — Updated Daily
+
+That is more accurate and builds trust.
