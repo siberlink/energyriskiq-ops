@@ -1,0 +1,273 @@
+Optimize the EnergyRiskIQ page:
+
+URL:
+https://energyriskiq.com/gas-storage-levels-in-europe
+
+Goal:
+Improve SEO CTR, Google rankings, user engagement, internal linking, and free-account signups.
+
+Primary keyword:
+europe gas storage levels
+
+Secondary keywords:
+gas storage levels in europe
+europe gas storage today
+europe gas storage percentage
+europe gas storage forecast
+EU gas storage levels
+europe winter gas risk
+gas storage levels by country
+
+Tasks:
+
+1. Update SEO metadata
+
+Set title:
+Europe Gas Storage Levels Today (Updated Daily) | EnergyRiskIQ
+
+Set meta description:
+Track Europe gas storage levels today with updated daily data, storage percentage, seasonal context, winter risk signals, and European energy market insights from EnergyRiskIQ.
+
+Set canonical:
+https://energyriskiq.com/gas-storage-levels-in-europe
+
+Add Open Graph and Twitter metadata:
+OG title:
+Europe Gas Storage Levels Today (Updated Daily)
+
+OG description:
+Daily Europe gas storage data, trends, storage risk context, and winter supply outlook from EnergyRiskIQ.
+
+Twitter card:
+summary_large_image
+
+2. Rewrite the H1 and hero section
+
+H1:
+Europe Gas Storage Levels Today
+
+Hero subheading:
+Track current European gas storage levels, daily changes, seasonal progress, and winter supply risk signals — updated daily by EnergyRiskIQ.
+
+Add a small data freshness badge near the hero:
+Updated daily
+Europe gas storage tracker
+Winter risk context
+
+3. Add a top “Today’s Snapshot” card
+
+Place near the top of the page.
+
+Include:
+- Current EU gas storage percentage
+- Daily change
+- Distance to 90% target
+- Days until November 1
+- Required average injection rate to reach target
+- Storage Risk Score, if available
+- Last updated date
+
+If any value is missing, show “Data updating” instead of breaking the page.
+
+4. Add a “What This Means” section
+
+H2:
+What Europe’s Gas Storage Level Means Today
+
+Content should explain:
+- Whether storage is above/below seasonal expectations
+- Why the 90% November 1 target matters
+- Why storage levels affect TTF gas prices, LNG demand, and winter supply risk
+- Why storage alone is not enough; market stress also depends on LNG flows, weather, demand, and geopolitical risk
+
+Keep the language clear, factual, and useful for analysts, traders, journalists, and energy-market readers.
+
+5. Add historical and market context
+
+H2:
+Europe Gas Storage Trend and Winter Risk Outlook
+
+Include:
+- Current storage trend
+- Comparison with seasonal norms if data exists
+- Winter 2026–27 risk interpretation
+- Explanation of what higher/lower storage implies for energy prices and supply security
+
+6. Add internal links section
+
+H2:
+Related EnergyRiskIQ Data and Risk Indices
+
+Add links to:
+
+https://energyriskiq.com/data/ttf-gas-price-today
+Anchor: TTF Gas Price Today
+
+https://energyriskiq.com/data/europe-lng-supply-demand
+Anchor: Europe LNG Supply and Demand
+
+https://energyriskiq.com/data/jkm-lng-spot-price
+Anchor: JKM LNG Spot Price
+
+https://energyriskiq.com/data/global-energy-risk-forecast
+Anchor: Global Energy Risk Forecast
+
+https://energyriskiq.com/indices/europe-energy-risk-index
+Anchor: Europe Energy Risk Index
+
+https://energyriskiq.com/indices/europe-gas-stress-index
+Anchor: Europe Gas Stress Index
+
+https://energyriskiq.com/indices/global-energy-risk-index
+Anchor: Global Energy Risk Index
+
+Use a clean card/grid layout.
+
+7. Add conversion CTA sections
+
+Add one mid-page CTA:
+Title:
+Monitor Europe Gas Risk Before the Market Reacts
+
+Text:
+Create a free EnergyRiskIQ account to follow gas storage trends, European energy risk signals, and market stress indicators in one place.
+
+Button:
+Create Free Account
+
+Link:
+/sign-up or the existing signup route in the app.
+
+Add one bottom CTA:
+Title:
+Turn Gas Storage Data Into Market Risk Intelligence
+
+Text:
+EnergyRiskIQ connects storage levels, LNG flows, TTF gas prices, and European risk indices to help you understand changing energy-market conditions.
+
+Button:
+View Europe Gas Stress Index
+
+Link:
+/indices/europe-gas-stress-index
+
+8. Add FAQ section with visible FAQs
+
+H2:
+Europe Gas Storage Levels FAQ
+
+Add these FAQs:
+
+Q1: What are Europe gas storage levels?
+A: Europe gas storage levels show how full underground natural gas storage facilities are across European countries. They are used to assess winter supply security, injection progress, and potential pressure on gas markets.
+
+Q2: Why is the 90% gas storage target important?
+A: The European Union requires member states to aim for high storage levels before winter. The 90% target by November 1 is widely watched because it indicates whether Europe has enough stored gas entering the peak heating season.
+
+Q3: How often is this page updated?
+A: This page is updated daily when new storage data is available.
+
+Q4: Do gas storage levels affect TTF gas prices?
+A: Yes. Lower-than-expected storage levels can increase concern about winter supply and may support higher TTF gas prices, especially when combined with cold weather, LNG disruptions, or geopolitical risk.
+
+Q5: Are high storage levels enough to remove winter risk?
+A: Not always. Storage is only one part of the European gas-risk picture. Weather, LNG imports, pipeline flows, demand, price volatility, and geopolitical events can still affect market stress.
+
+Q6: What is the difference between gas storage data and the Europe Gas Stress Index?
+A: Gas storage data shows physical inventory levels. The Europe Gas Stress Index combines storage, market pressure, supply stress, transit risk, and policy signals into a broader risk indicator.
+
+9. Add FAQPage schema
+
+Add valid JSON-LD FAQPage schema matching the visible FAQs exactly.
+
+10. Add Dataset structured data
+
+Add or update Dataset schema for this page.
+
+Requirements:
+- Include name
+- description
+- url
+- license
+- creator
+- publisher
+- temporalCoverage if available
+- variableMeasured
+- measurementTechnique
+- isAccessibleForFree
+- dateModified
+
+Use this license unless another license already exists:
+https://creativecommons.org/licenses/by/4.0/
+
+Dataset name:
+Europe Gas Storage Levels Dataset
+
+Dataset description:
+Daily European gas storage level data and risk context used to monitor storage progress, seasonal supply security, and European gas-market stress.
+
+Important:
+Make sure this fixes Google Search Console “Missing field license” for Dataset structured data.
+
+11. Add BreadcrumbList schema
+
+Breadcrumb:
+Home → Data → Europe Gas Storage Levels
+
+12. Add Article or WebPage schema
+
+Use WebPage schema unless Article schema already exists.
+
+Include:
+- headline
+- description
+- url
+- dateModified
+- publisher
+- mainEntity
+- about keywords:
+  Europe gas storage, EU gas storage, natural gas storage, TTF gas price, LNG supply, winter energy risk
+
+13. Improve on-page layout
+
+Use a clean, professional EnergyRiskIQ style:
+- Strong hero
+- Data snapshot cards
+- Chart/table section
+- Market interpretation section
+- Related pages grid
+- FAQ section
+- CTA blocks
+
+Make the page feel like a professional energy-market data page, not just a simple data table.
+
+14. Technical requirements
+
+- Do not remove existing data charts or working API calls.
+- Do not break existing routing.
+- Do not create duplicate canonical URLs.
+- Make the page mobile responsive.
+- Avoid hydration errors.
+- Use safe fallbacks for missing data.
+- Keep all structured data valid JSON-LD.
+- Ensure page title, meta description, H1, and schema are not duplicated incorrectly.
+- Keep all internal links using the app’s existing Link component if available.
+
+15. After implementation
+
+Run checks for:
+- TypeScript/build errors
+- JSON-LD validity
+- Duplicate meta tags
+- Missing license in Dataset schema
+- Mobile layout
+- Broken internal links
+- Lighthouse SEO basics
+
+Expected outcome:
+The page should be optimized for:
+- Higher CTR from Google
+- Better ranking for “europe gas storage levels”
+- Better internal linking
+- More free-account signups
+- Stronger Google structured data compliance

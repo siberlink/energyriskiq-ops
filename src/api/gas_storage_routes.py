@@ -294,13 +294,23 @@ Write with authority and precision. Reference all key numbers. No markdown. No b
 
 _GAS_STORAGE_LOADER = _LOADER_HTML.replace(
     "Global Energy Risk Snapshot | EnergyRiskIQ",
-    "European Gas Storage Levels — Live Data &amp; Risk Intelligence | EnergyRiskIQ",
+    "Europe Gas Storage Levels Today (Updated Daily) | EnergyRiskIQ",
 ).replace(
     'name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices."',
-    'name="description" content="Live European gas storage levels, seasonal comparison, refill trajectory, and proprietary risk intelligence for traders and analysts. Updated daily from AGSI+ GIE."',
+    'name="description" content="Track Europe gas storage levels today with updated daily data, storage percentage, seasonal context, winter risk signals, and European energy market insights from EnergyRiskIQ."',
 ).replace(
     'rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot"',
     'rel="canonical" href="https://energyriskiq.com/gas-storage-levels-in-europe"',
+).replace(
+    '<link rel="icon" type="image/png" href="/static/favicon.png">',
+    '<link rel="icon" type="image/png" href="/static/favicon.png">'
+    '\n<meta property="og:title" content="Europe Gas Storage Levels Today (Updated Daily)">'
+    '\n<meta property="og:description" content="Daily Europe gas storage data, trends, storage risk context, and winter supply outlook from EnergyRiskIQ.">'
+    '\n<meta property="og:url" content="https://energyriskiq.com/gas-storage-levels-in-europe">'
+    '\n<meta property="og:type" content="website">'
+    '\n<meta name="twitter:card" content="summary_large_image">'
+    '\n<meta name="twitter:title" content="Europe Gas Storage Levels Today (Updated Daily)">'
+    '\n<meta name="twitter:description" content="Daily Europe gas storage data, trends, storage risk context, and winter supply outlook from EnergyRiskIQ.">',
 ).replace(
     "Fetching GERI\u00a0&\u00a0EERI indices\u2026",
     "Fetching EU gas storage data\u2026",
@@ -595,6 +605,157 @@ _GAS_STORAGE_CSS = """
     padding-right: 16px;
   }
 }
+
+/* ── Snapshot summary card ── */
+.gs-snapshot-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1a2540 100%);
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 28px 28px 22px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.gs-snapshot-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #d4a017, #3b82f6, #22c55e);
+}
+.gs-snapshot-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.8px;
+  text-transform: uppercase; color: #475569; margin-bottom: 18px;
+}
+.gs-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 12px;
+}
+@media (max-width: 800px) { .gs-snapshot-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .gs-snapshot-grid { grid-template-columns: 1fr; } }
+.gs-snap-item { display: flex; flex-direction: column; gap: 4px; }
+.gs-snap-label { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #475569; }
+.gs-snap-value { font-size: 22px; font-weight: 800; line-height: 1.1; }
+.gs-snap-sub { font-size: 11px; color: #475569; }
+.gs-snapshot-footer { font-size: 11px; color: #334155; border-top: 1px solid #1e293b; margin-top: 14px; padding-top: 12px; }
+
+/* ── What This Means section ── */
+.gs-wtm-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+  margin-bottom: 44px;
+}
+.gs-wtm-section h2 {
+  font-size: 18px; font-weight: 700; color: #f1f5f9; margin-bottom: 16px;
+}
+.gs-wtm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+@media (max-width: 700px) { .gs-wtm-grid { grid-template-columns: 1fr; } }
+.gs-wtm-point {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.gs-wtm-point h3 { font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+.gs-wtm-point p { font-size: 13px; color: #94a3b8; line-height: 1.7; margin: 0; }
+
+/* ── CTA Blocks ── */
+.gs-cta-mid {
+  background: linear-gradient(135deg, #0c1832 0%, #141f35 100%);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 18px;
+  padding: 36px 32px;
+  margin-bottom: 44px;
+  text-align: center;
+}
+.gs-cta-mid h2 { font-size: 20px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+.gs-cta-mid p { font-size: 14px; color: #94a3b8; line-height: 1.7; max-width: 520px; margin: 0 auto 24px; }
+.gs-cta-btn-primary {
+  display: inline-block;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff; font-weight: 700; font-size: 14px;
+  padding: 13px 32px; border-radius: 10px;
+  text-decoration: none; transition: opacity 0.2s;
+}
+.gs-cta-btn-primary:hover { opacity: 0.88; }
+
+.gs-cta-bottom {
+  background: linear-gradient(135deg, #0b1520 0%, #0f1e2e 100%);
+  border: 1px solid rgba(212,160,23,0.2);
+  border-radius: 18px;
+  padding: 36px 32px;
+  margin-bottom: 44px;
+  text-align: center;
+}
+.gs-cta-bottom h2 { font-size: 20px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+.gs-cta-bottom p { font-size: 14px; color: #94a3b8; line-height: 1.7; max-width: 520px; margin: 0 auto 24px; }
+.gs-cta-btn-gold {
+  display: inline-block;
+  background: #d4a017; color: #0a0f1e; font-weight: 700; font-size: 14px;
+  padding: 13px 32px; border-radius: 10px;
+  text-decoration: none; transition: opacity 0.2s;
+}
+.gs-cta-btn-gold:hover { opacity: 0.88; }
+
+/* ── Internal links grid ── */
+.gs-related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 44px;
+}
+@media (max-width: 800px) { .gs-related-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .gs-related-grid { grid-template-columns: 1fr; } }
+.gs-related-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  text-decoration: none;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: border-color 0.18s, background 0.18s;
+}
+.gs-related-card:hover { border-color: rgba(59,130,246,0.4); background: #1e293b; }
+.gs-related-card-tag { font-size: 10px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #3b82f6; }
+.gs-related-card-title { font-size: 14px; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+.gs-related-card-desc { font-size: 12px; color: #475569; }
+
+/* ── FAQ section ── */
+.gs-faq-section { margin-bottom: 44px; }
+.gs-faq-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.gs-faq-q {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px 22px; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: #e2e8f0;
+  gap: 12px;
+}
+.gs-faq-q:hover { color: #f1f5f9; }
+.gs-faq-toggle {
+  font-size: 18px; color: #475569; flex-shrink: 0;
+  transition: transform 0.22s; user-select: none;
+}
+.gs-faq-item.open .gs-faq-toggle { transform: rotate(45deg); color: #3b82f6; }
+.gs-faq-a {
+  display: none;
+  padding: 0 22px 18px;
+  font-size: 13px; color: #94a3b8; line-height: 1.8;
+  border-top: 1px solid #1e293b; padding-top: 14px;
+}
+.gs-faq-item.open .gs-faq-a { display: block; }
 """
 
 
@@ -687,6 +848,32 @@ def _build_gas_storage_html(data: dict, ai_interp: str, today_str: str) -> str:
     risk_band     = (storage_row.get("risk_band") or "ELEVATED").upper()
     storage_date  = storage_row.get("date", "")
 
+    # Daily change from last 2 history rows
+    daily_change  = 0.0
+    if storage_history and len(storage_history) >= 2:
+        daily_change = (
+            _safe_float(storage_history[-1].get("eu_storage_percent", 0))
+            - _safe_float(storage_history[-2].get("eu_storage_percent", 0))
+        )
+    daily_chg_str = f"{_sign(daily_change)}{daily_change:.2f}pp"
+    daily_chg_col = _chg_color(daily_change)
+
+    # Distance to 90% target
+    gap_to_target_str = f"{max(0, 90.0 - storage_pct):.1f}pp to reach 90%"
+
+    # Last updated display
+    last_updated_str = str(storage_date) if storage_date else "Updating…"
+
+    # Pre-computed strings for f-string expressions (no backslash/quote nesting)
+    wtm_position_msg = (
+        "This above-average position improves Europe's winter supply buffer."
+        if storage_dev >= 0
+        else "This below-average position increases pressure on the injection season to recover the deficit."
+    )
+    wtm_above_below   = "above" if storage_dev >= 0 else "below"
+    wtm_pos_neg       = "positive" if storage_dev >= 0 else "concerning"
+    wtm_dev_color     = "#22c55e" if storage_dev >= 0 else "#ef4444"
+
     egsi_val  = round(_safe_float(egsi_row.get("index_value", 0)), 2)
     egsi_band = (egsi_row.get("band") or "LOW").upper()
     egsi_trend= _safe_float(egsi_row.get("trend_7d", 0))
@@ -748,44 +935,73 @@ def _build_gas_storage_html(data: dict, ai_interp: str, today_str: str) -> str:
     ttf_color = _chg_color(ttf_chg)
 
     # ── JSON-LD structured data ──────────────────────────────────────────────
+    today_iso = str(_date.today())
+    faq_entries = [
+        {
+            "q": "What are Europe gas storage levels?",
+            "a": "Europe gas storage levels show how full underground natural gas storage facilities are across European countries. They are used to assess winter supply security, injection progress, and potential pressure on gas markets.",
+        },
+        {
+            "q": "Why is the 90% gas storage target important?",
+            "a": "The European Union requires member states to aim for high storage levels before winter. The 90% target by November 1 is widely watched because it indicates whether Europe has enough stored gas entering the peak heating season.",
+        },
+        {
+            "q": "How often is this page updated?",
+            "a": "This page is updated daily when new storage data is available.",
+        },
+        {
+            "q": "Do gas storage levels affect TTF gas prices?",
+            "a": "Yes. Lower-than-expected storage levels can increase concern about winter supply and may support higher TTF gas prices, especially when combined with cold weather, LNG disruptions, or geopolitical risk.",
+        },
+        {
+            "q": "Are high storage levels enough to remove winter risk?",
+            "a": "Not always. Storage is only one part of the European gas-risk picture. Weather, LNG imports, pipeline flows, demand, price volatility, and geopolitical events can still affect market stress.",
+        },
+        {
+            "q": "What is the difference between gas storage data and the Europe Gas Stress Index?",
+            "a": "Gas storage data shows physical inventory levels. The Europe Gas Stress Index combines storage, market pressure, supply stress, transit risk, and policy signals into a broader risk indicator.",
+        },
+    ]
     json_ld = json.dumps({
         "@context": "https://schema.org",
         "@graph": [
             {
-                "@type": "Article",
-                "headline": "European Gas Storage Levels — Live Data & Risk Intelligence",
+                "@type": "WebPage",
+                "name": "Europe Gas Storage Levels Today (Updated Daily)",
+                "headline": "Europe Gas Storage Levels Today (Updated Daily)",
                 "description": (
-                    f"Live European gas storage fill rate at {storage_pct:.1f}%, "
-                    f"{storage_dev:+.1f}pp vs seasonal norm. "
-                    "Real-time risk intelligence, EGSI correlation, TTF price implications, "
-                    "and proprietary algorithm analysis for energy traders and risk managers."
+                    "Track Europe gas storage levels today with updated daily data, storage percentage, "
+                    "seasonal context, winter risk signals, and European energy market insights from EnergyRiskIQ."
                 ),
                 "url": f"{BASE_URL}/gas-storage-levels-in-europe",
-                "dateModified": str(_date.today()),
+                "dateModified": today_iso,
                 "datePublished": "2025-01-01",
-                "author": {"@type": "Organization", "name": "EnergyRiskIQ"},
                 "publisher": {
                     "@type": "Organization",
                     "name": "EnergyRiskIQ",
+                    "url": BASE_URL,
                     "logo": {"@type": "ImageObject", "url": f"{BASE_URL}/static/logo.png"},
                 },
                 "mainEntityOfPage": {"@type": "WebPage", "@id": f"{BASE_URL}/gas-storage-levels-in-europe"},
                 "about": [
-                    {"@type": "Thing", "name": "European Natural Gas Storage"},
-                    {"@type": "Thing", "name": "TTF Natural Gas Prices"},
-                    {"@type": "Thing", "name": "Energy Risk Management"},
-                    {"@type": "Thing", "name": "Gas Supply Security"},
+                    {"@type": "Thing", "name": "Europe gas storage levels"},
+                    {"@type": "Thing", "name": "EU gas storage"},
+                    {"@type": "Thing", "name": "natural gas storage"},
+                    {"@type": "Thing", "name": "TTF gas price"},
+                    {"@type": "Thing", "name": "LNG supply"},
+                    {"@type": "Thing", "name": "winter energy risk"},
                 ],
             },
             {
                 "@type": "Dataset",
-                "name": "EU Gas Storage Fill Rate",
-                "description": "Daily European gas storage levels sourced from AGSI+ (GIE). Includes fill rate percentage, seasonal norm comparison, deviation, refill speed, and risk scoring.",
+                "name": "Europe Gas Storage Levels Dataset",
+                "description": "Daily European gas storage level data and risk context used to monitor storage progress, seasonal supply security, and European gas-market stress.",
                 "url": f"{BASE_URL}/gas-storage-levels-in-europe",
                 "creator":   {"@type": "Organization", "name": "EnergyRiskIQ", "url": BASE_URL},
                 "publisher": {"@type": "Organization", "name": "EnergyRiskIQ", "url": BASE_URL},
                 "license": f"{BASE_URL}/data-license",
                 "isAccessibleForFree": True,
+                "dateModified": today_iso,
                 "distribution": {
                     "@type": "DataDownload",
                     "contentUrl": f"{BASE_URL}/gas-storage-levels-in-europe",
@@ -793,13 +1009,32 @@ def _build_gas_storage_html(data: dict, ai_interp: str, today_str: str) -> str:
                 },
                 "temporalCoverage": "2026-01-14/..",
                 "spatialCoverage": "Europe",
+                "variableMeasured": [
+                    {"@type": "PropertyValue", "name": "EU gas storage fill rate", "unitText": "percent"},
+                    {"@type": "PropertyValue", "name": "Deviation from seasonal norm", "unitText": "percentage points"},
+                    {"@type": "PropertyValue", "name": "7-day refill speed", "unitText": "GWh/day"},
+                    {"@type": "PropertyValue", "name": "Storage Risk Score", "unitText": "0-100 index"},
+                ],
+                "measurementTechnique": "Daily aggregation of AGSI+ GIE EU storage data combined with EnergyRiskIQ proprietary risk scoring model.",
             },
             {
                 "@type": "BreadcrumbList",
                 "itemListElement": [
                     {"@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL},
-                    {"@type": "ListItem", "position": 2, "name": "Gas Storage Levels in Europe",
+                    {"@type": "ListItem", "position": 2, "name": "Data", "item": f"{BASE_URL}/data"},
+                    {"@type": "ListItem", "position": 3, "name": "Europe Gas Storage Levels",
                      "item": f"{BASE_URL}/gas-storage-levels-in-europe"},
+                ],
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": e["q"],
+                        "acceptedAnswer": {"@type": "Answer", "text": e["a"]},
+                    }
+                    for e in faq_entries
                 ],
             },
         ],
@@ -854,34 +1089,84 @@ document.body.style.overflow='';
 
 <!-- HERO -->
 <header class="hero">
-  <div class="hero-date">&#128200; Updated Daily &nbsp;&bull;&nbsp; {today_str} &nbsp;&bull;&nbsp; Source: AGSI+ / GIE</div>
+  <div class="hero-date">&#128200; {today_str} &nbsp;&bull;&nbsp; Source: AGSI+ / GIE &nbsp;&bull;&nbsp; Updated Daily</div>
   <h1 style="max-width:820px;margin:0 auto 1rem;">
-    European Gas Storage Levels
+    Europe Gas Storage Levels Today
   </h1>
   <h2 style="font-size:1.05rem;font-weight:400;color:#94a3b8;line-height:1.7;
              max-width:680px;margin:0 auto 1.5rem;">
-    EU storage currently at <strong style="color:{rb_color}">{storage_pct:.1f}%</strong>
-    &mdash; <strong style="color:#ef4444">{storage_dev:+.1f}pp below seasonal norm</strong>.
-    Live risk intelligence, TTF price correlation, and custom algorithm analysis
-    for energy traders, analysts, and risk managers.
+    Track current European gas storage levels, daily changes, seasonal progress,
+    and winter supply risk signals &mdash; updated daily by EnergyRiskIQ.
   </h2>
-  <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:1.2rem;">
-    <span style="font-size:12px;font-weight:600;color:{rb_color};
-      border:1px solid {rb_color}33;border-radius:20px;padding:4px 14px;">
-      Storage Risk: {risk_band} &bull; {risk_score}/100
+  <div style="display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;margin-top:1.2rem;">
+    <span style="font-size:12px;font-weight:600;color:#22c55e;
+      border:1px solid #22c55e33;border-radius:20px;padding:4px 14px;background:rgba(34,197,94,0.06);">
+      &#128200; Updated daily
     </span>
-    <span style="font-size:12px;font-weight:600;color:{egsi_color};
-      border:1px solid {egsi_color}33;border-radius:20px;padding:4px 14px;">
-      EGSI-M: {egsi_val}/10 &bull; {egsi_band}
+    <span style="font-size:12px;font-weight:600;color:#3b82f6;
+      border:1px solid #3b82f633;border-radius:20px;padding:4px 14px;background:rgba(59,130,246,0.06);">
+      &#127800; Europe gas storage tracker
     </span>
-    <span style="font-size:12px;font-weight:600;color:{eeri_color};
-      border:1px solid {eeri_color}33;border-radius:20px;padding:4px 14px;">
-      EERI: {eeri_val}/100 &bull; {eeri_band}
+    <span style="font-size:12px;font-weight:600;color:#d4a017;
+      border:1px solid #d4a01733;border-radius:20px;padding:4px 14px;background:rgba(212,160,23,0.06);">
+      &#10052;&#65039; Winter risk context
     </span>
   </div>
 </header>
 
 <main class="page-body">
+
+<!-- ── SECTION: TODAY'S SNAPSHOT ──────────────────────────────────────────── -->
+<div class="gs-snapshot-card">
+  <div class="gs-snapshot-title">&#9646; Today&rsquo;s Snapshot &mdash; {today_str}</div>
+  <div class="gs-snapshot-grid">
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">EU Storage %</div>
+      <div class="gs-snap-value" style="color:{rb_color}">{storage_pct:.1f}<span style="font-size:14px;color:#64748b;">%</span></div>
+      <div class="gs-snap-sub">{risk_band} &bull; {season_label}</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">Daily Change</div>
+      <div class="gs-snap-value" style="color:{daily_chg_col}">{daily_chg_str}</div>
+      <div class="gs-snap-sub">vs prior day</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">To 90% Target</div>
+      <div class="gs-snap-value" style="color:#eab308">{gap_to_target_str}</div>
+      <div class="gs-snap-sub">EU mandate by Nov 1</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">Days to Nov 1</div>
+      <div class="gs-snap-value" style="color:#94a3b8">{days_to_nov1}<span style="font-size:14px;color:#64748b;"> days</span></div>
+      <div class="gs-snap-sub">Injection season window</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">Required Injection</div>
+      <div class="gs-snap-value" style="color:#3b82f6;font-size:17px;">{required_daily_gwh_str}</div>
+      <div class="gs-snap-sub">needed daily to hit 90%</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">Storage Risk Score</div>
+      <div class="gs-snap-value" style="color:{rb_color}">{risk_score}<span style="font-size:14px;color:#64748b;">/100</span></div>
+      <div class="gs-snap-sub">EnergyRiskIQ proprietary</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">Seasonal Norm</div>
+      <div class="gs-snap-value" style="color:#3b82f6">{storage_norm:.1f}<span style="font-size:14px;color:#64748b;">%</span></div>
+      <div class="gs-snap-sub">Deviation: {storage_dev:+.1f}pp</div>
+    </div>
+    <div class="gs-snap-item">
+      <div class="gs-snap-label">Last Updated</div>
+      <div class="gs-snap-value" style="color:#64748b;font-size:15px;">{last_updated_str}</div>
+      <div class="gs-snap-sub">AGSI+ / GIE source</div>
+    </div>
+  </div>
+  <div class="gs-snapshot-footer">
+    Data: AGSI+ / Gas Infrastructure Europe (GIE) &bull;
+    Risk score: EnergyRiskIQ proprietary model &bull;
+    <a href="/data-license" style="color:#475569;">Data License</a>
+  </div>
+</div>
 
 <!-- ── SECTION: LIVE KEY METRICS ─────────────────────────────────────────── -->
 <div class="section-label" style="margin-bottom:20px;">&#128268; Live Storage Metrics &mdash; {today_str}</div>
@@ -925,15 +1210,73 @@ document.body.style.overflow='';
   </div>
 </div>
 
+<!-- ── SECTION: WHAT THIS MEANS ──────────────────────────────────────────── -->
+<div class="gs-wtm-section">
+  <h2>What Europe&rsquo;s Gas Storage Level Means Today</h2>
+  <p style="font-size:14px;color:#94a3b8;line-height:1.8;margin-bottom:4px;">
+    European gas storage levels are one of the most closely watched indicators in global energy markets.
+    Current EU storage at <strong style="color:{rb_color}">{storage_pct:.1f}%</strong> is
+    {wtm_above_below} the {storage_norm:.1f}% seasonal norm
+    &mdash; a {wtm_pos_neg} signal for winter supply security.
+  </p>
+  <div class="gs-wtm-grid">
+    <div class="gs-wtm-point">
+      <h3>&#128506; Seasonal Context</h3>
+      <p>
+        Storage is currently tracking <strong style="color:{wtm_dev_color}">{abs(storage_dev):.1f}pp {wtm_above_below}</strong>
+        the 5-year seasonal norm of {storage_norm:.1f}%.
+        {wtm_position_msg}
+      </p>
+    </div>
+    <div class="gs-wtm-point">
+      <h3>&#127963; The 90% November Target</h3>
+      <p>
+        EU regulation requires member states to aim for <strong style="color:#e2e8f0">90% storage
+        by November 1</strong> each year. With {days_to_nov1} days remaining and storage at {storage_pct:.1f}%,
+        Europe needs to inject approximately <strong style="color:#3b82f6">{required_daily_gwh_str}</strong> on average
+        to reach the mandate.
+      </p>
+    </div>
+    <div class="gs-wtm-point">
+      <h3>&#9883;&#65039; TTF Prices and LNG Demand</h3>
+      <p>
+        Storage levels directly influence <strong style="color:#e2e8f0">TTF natural gas prices</strong>
+        and European LNG demand. Lower-than-expected storage typically supports a supply-security premium
+        in TTF front-month prices and drives higher LNG import competition from Asia.
+      </p>
+    </div>
+    <div class="gs-wtm-point">
+      <h3>&#9888;&#65039; Storage Is Only Part of the Picture</h3>
+      <p>
+        High storage alone does not eliminate winter risk. LNG import flows,
+        Norwegian pipeline exports, weather patterns, industrial demand, and geopolitical
+        disruptions all shape the full risk picture. The
+        <a href="/indices/europe-gas-stress-index" style="color:#3b82f6;">Europe Gas Stress Index (EGSI)</a>
+        combines these signals into one composite risk measure.
+      </p>
+    </div>
+  </div>
+</div>
+
 <!-- ── SECTION: TREND CHART ──────────────────────────────────────────────── -->
 <div class="gs-chart-wrap">
-  <div class="gs-chart-title">&#128200; 90-Day Storage Fill Rate Trend &mdash; Actual vs Seasonal Norm</div>
+  <div class="gs-chart-title">&#128200; Europe Gas Storage Trend and Winter Risk Outlook</div>
   <div style="overflow-x:auto;">{trend_svg}</div>
   <div style="margin-top:14px;font-size:11px;color:#334155;line-height:1.6;">
     Chart shows daily EU aggregate gas storage fill rate (gold line) vs the 5-year seasonal average norm (dashed blue).
     Red circles indicate periods when the storage risk band was CRITICAL.
     Data sourced from AGSI+ (Gas Infrastructure Europe) via EnergyRiskIQ's daily ingestion pipeline.
   </div>
+</div>
+
+<!-- ── SECTION: MID-PAGE CTA ──────────────────────────────────────────────── -->
+<div class="gs-cta-mid">
+  <h2>Monitor Europe Gas Risk Before the Market Reacts</h2>
+  <p>
+    Create a free EnergyRiskIQ account to follow gas storage trends, European energy risk signals,
+    and market stress indicators in one place.
+  </p>
+  <a href="/users" class="gs-cta-btn-primary">Create Free Account</a>
 </div>
 
 <!-- ── SECTION: MARKET IMPLICATIONS ─────────────────────────────────────── -->
@@ -1187,50 +1530,130 @@ document.body.style.overflow='';
   </div>
 </div>
 
-<!-- ── SECTION: INTELLIGENCE WHEEL ────────────────────────────────────────── -->
-<div class="section-label" style="margin-bottom:20px;">&#128279; Explore EnergyRiskIQ Intelligence</div>
+<!-- ── SECTION: RELATED DATA & INDICES ────────────────────────────────────── -->
+<div class="section-label" style="margin-bottom:20px;">&#128279; Related EnergyRiskIQ Data and Risk Indices</div>
 
-<div class="gs-wheel-grid">
-  <a href="/indices/global-energy-risk-index" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#127758;</div>
-    <div class="gs-wheel-label">GERI</div>
-    <div class="gs-wheel-desc">Global Energy Risk Index &bull; {geri_val}/100 &bull; {geri_band}</div>
+<div class="gs-related-grid">
+  <a href="/data/ttf-gas-price-today" class="gs-related-card">
+    <div class="gs-related-card-tag">Price Data</div>
+    <div class="gs-related-card-title">TTF Gas Price Today</div>
+    <div class="gs-related-card-desc">Dutch TTF benchmark &bull; daily updates &bull; charts</div>
   </a>
-  <a href="/indices/europe-energy-risk-index" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#9889;</div>
-    <div class="gs-wheel-label">EERI</div>
-    <div class="gs-wheel-desc">Europe Energy Risk Index &bull; {eeri_val}/100 &bull; {eeri_band}</div>
+  <a href="/data/europe-lng-supply-demand" class="gs-related-card">
+    <div class="gs-related-card-tag">LNG Intelligence</div>
+    <div class="gs-related-card-title">Europe LNG Supply and Demand</div>
+    <div class="gs-related-card-desc">Daily LNG flows &bull; terminal data &bull; risk context</div>
   </a>
-  <a href="/indices/europe-gas-stress-index" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#128168;</div>
-    <div class="gs-wheel-label">EGSI</div>
-    <div class="gs-wheel-desc">Europe Gas Stress Index &bull; {egsi_val}/10 &bull; {egsi_band}</div>
+  <a href="/data/jkm-lng-spot-price" class="gs-related-card">
+    <div class="gs-related-card-tag">LNG Price Data</div>
+    <div class="gs-related-card-title">JKM LNG Spot Price</div>
+    <div class="gs-related-card-desc">Japan Korea Marker &bull; Asia LNG benchmark &bull; daily</div>
   </a>
-  <a href="/data/global-energy-risk-forecast" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#127919;</div>
-    <div class="gs-wheel-label">Forecast</div>
-    <div class="gs-wheel-desc">24H Brent &amp; TTF price outlook</div>
+  <a href="/data/global-energy-risk-forecast" class="gs-related-card">
+    <div class="gs-related-card-tag">Forecast</div>
+    <div class="gs-related-card-title">Global Energy Risk Forecast</div>
+    <div class="gs-related-card-desc">24-hour Brent &amp; TTF outlook &bull; risk signals</div>
   </a>
-  <a href="/data/energy-risk-snapshot" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#128248;</div>
-    <div class="gs-wheel-label">Snapshot</div>
-    <div class="gs-wheel-desc">Live market risk dashboard</div>
+  <a href="/indices/europe-energy-risk-index" class="gs-related-card">
+    <div class="gs-related-card-tag">Risk Index</div>
+    <div class="gs-related-card-title">Europe Energy Risk Index</div>
+    <div class="gs-related-card-desc">EERI &bull; {eeri_val}/100 &bull; {eeri_band}</div>
   </a>
-  <a href="/data/europe-lng-supply-demand" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#128168;</div>
-    <div class="gs-wheel-label">LNG Supply</div>
-    <div class="gs-wheel-desc">Europe LNG supply &amp; demand intelligence</div>
+  <a href="/indices/europe-gas-stress-index" class="gs-related-card">
+    <div class="gs-related-card-tag">Gas Risk Index</div>
+    <div class="gs-related-card-title">Europe Gas Stress Index</div>
+    <div class="gs-related-card-desc">EGSI-M &bull; {egsi_val}/10 &bull; {egsi_band}</div>
   </a>
-  <a href="/data/jkm-lng-spot-price" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#9875;</div>
-    <div class="gs-wheel-label">JKM LNG</div>
-    <div class="gs-wheel-desc">Japan Korea Marker spot price &bull; daily data</div>
+  <a href="/indices/global-energy-risk-index" class="gs-related-card">
+    <div class="gs-related-card-tag">Risk Index</div>
+    <div class="gs-related-card-title">Global Energy Risk Index</div>
+    <div class="gs-related-card-desc">GERI &bull; {geri_val}/100 &bull; {geri_band}</div>
   </a>
-  <a href="/users" class="gs-wheel-link">
-    <div class="gs-wheel-icon">&#128272;</div>
-    <div class="gs-wheel-label">Free Access</div>
-    <div class="gs-wheel-desc">GERI &bull; EERI &bull; EGSI &bull; Alerts dashboard</div>
-  </a>
+</div>
+
+<!-- ── SECTION: FAQ ───────────────────────────────────────────────────────── -->
+<div class="section-label" style="margin-bottom:20px;">&#10067; Europe Gas Storage Levels FAQ</div>
+
+<div class="gs-faq-section">
+
+  <div class="gs-faq-item" onclick="this.classList.toggle('open')">
+    <div class="gs-faq-q">
+      <span>What are Europe gas storage levels?</span>
+      <span class="gs-faq-toggle">+</span>
+    </div>
+    <div class="gs-faq-a">
+      Europe gas storage levels show how full underground natural gas storage facilities are across European
+      countries. They are used to assess winter supply security, injection progress, and potential pressure
+      on gas markets.
+    </div>
+  </div>
+
+  <div class="gs-faq-item" onclick="this.classList.toggle('open')">
+    <div class="gs-faq-q">
+      <span>Why is the 90% gas storage target important?</span>
+      <span class="gs-faq-toggle">+</span>
+    </div>
+    <div class="gs-faq-a">
+      The European Union requires member states to aim for high storage levels before winter. The 90% target
+      by November 1 is widely watched because it indicates whether Europe has enough stored gas entering
+      the peak heating season.
+    </div>
+  </div>
+
+  <div class="gs-faq-item" onclick="this.classList.toggle('open')">
+    <div class="gs-faq-q">
+      <span>How often is this page updated?</span>
+      <span class="gs-faq-toggle">+</span>
+    </div>
+    <div class="gs-faq-a">
+      This page is updated daily when new storage data is available.
+    </div>
+  </div>
+
+  <div class="gs-faq-item" onclick="this.classList.toggle('open')">
+    <div class="gs-faq-q">
+      <span>Do gas storage levels affect TTF gas prices?</span>
+      <span class="gs-faq-toggle">+</span>
+    </div>
+    <div class="gs-faq-a">
+      Yes. Lower-than-expected storage levels can increase concern about winter supply and may support
+      higher TTF gas prices, especially when combined with cold weather, LNG disruptions, or geopolitical risk.
+    </div>
+  </div>
+
+  <div class="gs-faq-item" onclick="this.classList.toggle('open')">
+    <div class="gs-faq-q">
+      <span>Are high storage levels enough to remove winter risk?</span>
+      <span class="gs-faq-toggle">+</span>
+    </div>
+    <div class="gs-faq-a">
+      Not always. Storage is only one part of the European gas-risk picture. Weather, LNG imports,
+      pipeline flows, demand, price volatility, and geopolitical events can still affect market stress.
+    </div>
+  </div>
+
+  <div class="gs-faq-item" onclick="this.classList.toggle('open')">
+    <div class="gs-faq-q">
+      <span>What is the difference between gas storage data and the Europe Gas Stress Index?</span>
+      <span class="gs-faq-toggle">+</span>
+    </div>
+    <div class="gs-faq-a">
+      Gas storage data shows physical inventory levels. The Europe Gas Stress Index combines storage,
+      market pressure, supply stress, transit risk, and policy signals into a broader risk indicator.
+      <a href="/indices/europe-gas-stress-index" style="color:#3b82f6;margin-left:4px;">View EGSI &rarr;</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── SECTION: BOTTOM CTA ────────────────────────────────────────────────── -->
+<div class="gs-cta-bottom">
+  <h2>Turn Gas Storage Data Into Market Risk Intelligence</h2>
+  <p>
+    EnergyRiskIQ connects storage levels, LNG flows, TTF gas prices, and European risk indices
+    to help you understand changing energy-market conditions.
+  </p>
+  <a href="/indices/europe-gas-stress-index" class="gs-cta-btn-gold">View Europe Gas Stress Index</a>
 </div>
 
 <!-- ── SECTION: CITATION BLOCK ────────────────────────────────────────────── -->
