@@ -891,6 +891,11 @@ document.body.style.overflow='';
       <div class="wheel-link-label">JKM LNG</div>
       <div class="wheel-link-desc">Japan Korea Marker spot price &mdash; daily data</div>
     </a>
+    <a href="/data/ttf-gas-price-today" class="wheel-link">
+      <div class="wheel-link-icon">&#127470;&#127489;</div>
+      <div class="wheel-link-label">TTF Gas</div>
+      <div class="wheel-link-desc">European natural gas benchmark &mdash; daily data</div>
+    </a>
     <a href="/gas-storage-levels-in-europe" class="wheel-link">
       <div class="wheel-link-icon">&#128200;</div>
       <div class="wheel-link-label">Gas Storage</div>
@@ -1243,6 +1248,8 @@ async def sitemap_data_xml():
         (f"{BASE_URL}/data/global-energy-risk-forecast",    "daily",  "0.9"),
         (f"{BASE_URL}/gas-storage-levels-in-europe",        "daily",  "0.9"),
         (f"{BASE_URL}/data/europe-lng-supply-demand",        "daily",  "0.9"),
+        (f"{BASE_URL}/data/jkm-lng-spot-price",              "daily",  "0.9"),
+        (f"{BASE_URL}/data/ttf-gas-price-today",             "daily",  "0.9"),
     ]
     urls = ''
     for loc, freq, pri in pages:

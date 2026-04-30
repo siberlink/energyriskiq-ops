@@ -1,0 +1,250 @@
+🔥 PAGE BLUEPRINT
+/data/ttf-gas-price-today
+1. 🔝 HERO SECTION (Above the Fold)
+H1:
+
+TTF Gas Price Today (Live Daily Update – Europe Natural Gas Benchmark)
+
+Subheading:
+
+Track the latest Dutch TTF natural gas price, daily changes, and market trends. Updated every day with historical context, risk signals, and energy market insights.
+
+📊 Price Card (CRITICAL UI ELEMENT)
+
+Display:
+
+Latest TTF Price (€/MWh)
+Daily Change (€ + %)
+Date (last updated)
+Status:
+→ ↑ Bullish
+→ ↓ Bearish
+→ → Neutral
+Micro CTA (high conversion):
+
+👉 Get real-time alerts & risk signals → Create Free Account
+
+Trust Signals:
+Data source (ICE / exchange / aggregator)
+Updated daily
+Used by analysts & traders
+2. 📈 MAIN CHART (Core SEO + UX Asset)
+Chart:
+Daily TTF price (line chart)
+Range toggles:
+7D
+30D
+90D
+YTD
+Since Launch
+🔥 PRO Differentiation (VERY IMPORTANT)
+
+Overlay toggles:
+
+Brent Crude (daily)
+VIX
+Europe Gas Storage
+(later: EERI / EGSI)
+Controls:
+Normalize:
+Raw price
+Indexed (100)
+Smoothing:
+Raw
+3D
+7D
+CTA below chart:
+
+👉 Unlock full overlays & correlations → Free account
+
+3. 📊 MARKET SNAPSHOT (SEO GOLD BLOCK)
+H2:
+
+TTF Gas Market Snapshot – Today
+
+Dynamic text (auto-generated daily):
+
+Example structure:
+
+Current price
+Daily move
+7-day trend
+30-day trend
+Volatility context
+Example:
+
+The TTF gas price today stands at €XX/MWh, up/down X% over the last 24 hours.
+Over the past 7 days, prices have [trend], reflecting [drivers: storage / LNG / weather / geopolitics].
+
+👉 This block is critical for SEO freshness
+
+4. 🔗 QUICK CONTEXT NAVIGATION (Internal Linking Engine)
+H3:
+
+Understand What Moves TTF Prices
+
+Link to your pages:
+
+Europe gas storage
+→ /gas-storage-levels-in-europe
+LNG supply-demand
+→ /data/europe-lng-supply-demand
+JKM LNG price
+→ /data/jkm-lng-spot-price
+Global risk forecast
+→ /data/global-energy-risk-forecast
+5. 📉 WHAT DRIVES TTF GAS PRICE (Authority Section)
+H2:
+
+What Drives the TTF Gas Price Today?
+
+Structured blocks:
+
+1. Storage Levels
+
+Explain impact
+→ Link to storage page
+
+2. LNG Imports (JKM vs TTF spread)
+
+→ Link to JKM page
+
+3. Weather & Demand
+
+(HDD/CDD logic)
+
+4. Geopolitical Risk
+
+→ Link to:
+
+Global Energy Risk Index
+Europe Energy Risk Index
+5. Pipeline Flows & Supply Disruptions
+6. 🧠 RISK INTELLIGENCE BLOCK (YOUR DIFFERENTIATOR)
+H2:
+
+Energy Risk Signals Behind Today’s TTF Price
+
+Display:
+
+Energy Risk Intelligence summary
+Current:
+GERI level
+EERI level
+EGSI level
+Interpretation block:
+
+Example:
+
+Despite [high/low] geopolitical alerts, the TTF price reaction suggests [market interpretation].
+
+CTA:
+
+👉 See full risk breakdown → Pro dashboard
+
+7. 📊 HISTORICAL ANALYSIS
+H2:
+
+TTF Gas Price History
+
+Key levels:
+30-day high/low
+YTD high/low
+Major spikes explanation
+Link:
+
+→ /research/global-energy-risk-timeline
+
+8. 📬 DAILY UPDATE / “TODAY’S INSIGHT”
+H2:
+
+Today’s TTF Gas Market Insight
+
+Auto-generated daily (VERY POWERFUL)
+
+Structure:
+
+What happened
+Why it matters
+What to watch next
+
+👉 This creates:
+
+Daily re-indexing
+Returning users
+9. 🧲 CONVERSION BLOCK (SOFT PAYWALL)
+H2:
+
+Get Ahead of Gas Market Moves
+
+Benefits:
+
+Real-time alerts
+Risk signals before price moves
+Advanced overlays
+CTA:
+
+👉 Create Free Account (25 free credits)
+
+10. 📚 FAQ (SEO WEAPON)
+H2:
+
+TTF Gas Price – FAQs
+
+Include:
+
+What is TTF gas price?
+Why is TTF important?
+How often is it updated?
+What affects TTF prices?
+Difference between TTF and LNG (JKM)?
+Why does TTF spike?
+11. 🔗 INTERNAL LINKING FOOTER (CRAWLER BOOST)
+H3:
+
+Related Pages:
+
+DATA:
+Europe LNG supply-demand
+JKM LNG price
+Gas storage Europe
+INDICES:
+Global Energy Risk Index
+Europe Energy Risk Index
+Europe Gas Stress Index
+RESEARCH:
+Global Energy Risk Timeline
+Risk methodology
+12. 🧱 TECHNICAL SEO STRUCTURE
+URL:
+
+/data/ttf-gas-price-today
+
+Title Tag:
+
+TTF Gas Price Today (Live Daily Update) | Europe Natural Gas Benchmark
+
+Meta Description:
+
+Latest TTF gas price today with daily updates, historical charts, and market insights. Track European natural gas prices and risk signals.
+
+Schema:
+1. Dataset Schema
+name: TTF Gas Prices
+frequency: Daily
+2. FinancialProduct Schema
+3. FAQ Schema
+13. 🔁 RETURN VISIT LOOP (VERY IMPORTANT)
+
+You want users to come back daily.
+
+Add:
+
+Sticky Bar:
+
+📊 “Today’s TTF Price: €XX (+X%) | Updated [time]”
+
+Optional:
+
+Email capture:
+👉 “Get daily TTF update in your inbox”

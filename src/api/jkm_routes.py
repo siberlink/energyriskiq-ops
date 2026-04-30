@@ -949,6 +949,11 @@ Data source: OilPrice / Firecrawl daily scrape. {total_rows} daily records from 
       <div class="jkm-wheel-label">Gas Storage</div>
       <div class="jkm-wheel-desc">Live EU gas storage levels &amp; seasonal risk</div>
     </a>
+    <a href="/data/ttf-gas-price-today" class="jkm-wheel-link">
+      <div class="jkm-wheel-icon">&#127470;&#127489;</div>
+      <div class="jkm-wheel-label">TTF Gas Price</div>
+      <div class="jkm-wheel-desc">European natural gas benchmark &mdash; daily data</div>
+    </a>
   </div>
 
   <!-- CTA -->
@@ -971,6 +976,7 @@ Data source: OilPrice / Firecrawl daily scrape. {total_rows} daily records from 
     <a href="/">Home</a>
     <a href="/indices">Indices</a>
     <a href="/data/jkm-lng-spot-price">JKM LNG Price</a>
+    <a href="/data/ttf-gas-price-today">TTF Gas Price</a>
     <a href="/data/global-energy-risk-forecast">Forecast</a>
     <a href="/data/energy-risk-snapshot">Risk Snapshot</a>
     <a href="/sitemap-index.xml">Sitemap</a>
