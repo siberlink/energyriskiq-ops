@@ -105,11 +105,11 @@ def _build_brent_svg_chart(data_points, color="#f97316", height=160):
     mid_v = (vmin + vmax) / 2
     mid_y = PT + ch / 2
     ax_svg = (
-        f'<line x1="{PL}" y1="{y_bot:.1f}" x2="{W-PR}" y2="{y_bot:.1f}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>'
-        f'<line x1="{PL}" y1="{mid_y:.1f}" x2="{W-PR}" y2="{mid_y:.1f}" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3 3"/>'
-        f'<text x="{PL-4}" y="{y_top+5}" text-anchor="end" font-size="8" fill="#475569" font-family="Inter,sans-serif">${vmax:.0f}</text>'
-        f'<text x="{PL-4}" y="{mid_y+3}" text-anchor="end" font-size="8" fill="#475569" font-family="Inter,sans-serif">${mid_v:.0f}</text>'
-        f'<text x="{PL-4}" y="{y_bot}" text-anchor="end" font-size="8" fill="#475569" font-family="Inter,sans-serif">${vmin:.0f}</text>'
+        f'<line x1="{PL}" y1="{y_bot:.1f}" x2="{W-PR}" y2="{y_bot:.1f}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>'
+        f'<line x1="{PL}" y1="{mid_y:.1f}" x2="{W-PR}" y2="{mid_y:.1f}" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="3 3"/>'
+        f'<text x="{PL-4}" y="{y_top+5}" text-anchor="end" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">${vmax:.0f}</text>'
+        f'<text x="{PL-4}" y="{mid_y+3}" text-anchor="end" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">${mid_v:.0f}</text>'
+        f'<text x="{PL-4}" y="{y_bot}" text-anchor="end" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">${vmin:.0f}</text>'
     )
 
     # X-axis labels — show at most 8 ticks
@@ -122,7 +122,7 @@ def _build_brent_svg_chart(data_points, color="#f97316", height=160):
             lbl = str(pt.get("label", ""))
             tick_svg += (
                 f'<text x="{x:.1f}" y="{y_bot + 20}" text-anchor="middle" '
-                f'font-size="8" fill="#475569" font-family="Inter,sans-serif">{lbl}</text>'
+                f'font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">{lbl}</text>'
             )
 
     # Current price dot
@@ -134,7 +134,7 @@ def _build_brent_svg_chart(data_points, color="#f97316", height=160):
 
     return (
         f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
-        f'style="width:100%;max-width:{W}px;display:block;overflow:visible">'
+        f'style="width:100%;display:block;overflow:visible">'
         f'{ax_svg}{area_svg}{tick_svg}{dot_svg}'
         f'</svg>'
     )
@@ -195,7 +195,7 @@ _BRENT_CSS = """
   margin-bottom: 8px;
 }
 .brent-price-main sup { font-size: 28px; font-weight: 700; vertical-align: top; margin-top: 6px; }
-.brent-price-unit { font-size: 15px; font-weight: 500; color: #64748b; }
+.brent-price-unit { font-size: 15px; font-weight: 500; color: #94a3b8; }
 .brent-price-change {
   font-size: 18px; font-weight: 700; margin-bottom: 12px;
 }
@@ -206,10 +206,10 @@ _BRENT_CSS = """
   text-transform: uppercase;
 }
 .brent-trust-line {
-  font-size: 11px; color: #475569; margin-top: 16px;
+  font-size: 11px; color: #94a3b8; margin-top: 16px;
   display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
 }
-.brent-trust-dot { color: #1e293b; }
+.brent-trust-dot { color: #334155; }
 .brent-hero-cta {
   display: inline-flex; align-items: center; gap: 8px;
   margin-top: 20px;
@@ -229,19 +229,21 @@ _BRENT_CSS = """
   display: flex; align-items: center; justify-content: space-between;
   font-size: 13px;
 }
-.brent-sticky-label { color: #64748b; font-weight: 600; letter-spacing: 0.05em; }
+.brent-sticky-label { color: #94a3b8; font-weight: 600; letter-spacing: 0.05em; }
 .brent-sticky-price { color: #f97316; font-weight: 800; font-size: 15px; margin: 0 8px; }
 .brent-sticky-chg { font-weight: 600; }
-.brent-sticky-time { color: #334155; font-size: 11px; }
+.brent-sticky-time { color: #64748b; font-size: 11px; }
 .brent-sticky-cta {
   padding: 5px 14px; border-radius: 6px;
   background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3);
   color: #f97316; font-size: 11px; font-weight: 700;
-  text-decoration: none; letter-spacing: 0.05em;
+  text-decoration: none; letter-spacing: 0.05em; white-space: nowrap;
 }
-@media (max-width: 600px) {
-  .brent-sticky-bar { padding: 6px 12px; font-size: 12px; }
+@media (max-width: 640px) {
+  .brent-sticky-bar { padding: 6px 10px; font-size: 11px; flex-wrap: wrap; gap: 4px; }
   .brent-sticky-time { display: none; }
+  .brent-sticky-label { display: none; }
+  .brent-sticky-price { font-size: 14px; margin: 0 4px; }
 }
 
 /* ── Chart Section ────────────────────────────────────────────────────── */
@@ -279,12 +281,12 @@ _BRENT_CSS = """
 }
 .brent-overlay-btn.on { background: rgba(96,165,250,0.15); color: #60a5fa; }
 .brent-chart-wrap {
-  width: 100%; overflow-x: auto;
+  width: 100%; overflow-x: hidden;
 }
 .brent-chart-container { display: none; }
 .brent-chart-container.active { display: block; }
 .brent-chart-note {
-  font-size: 11px; color: #334155; margin-top: 8px; text-align: right;
+  font-size: 11px; color: #64748b; margin-top: 8px; text-align: right;
 }
 
 /* ── Market Snapshot Prose ────────────────────────────────────────────── */
@@ -329,7 +331,7 @@ _BRENT_CSS = """
 .brent-context-title {
   font-size: 13px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px;
 }
-.brent-context-desc { font-size: 12px; color: #64748b; line-height: 1.5; }
+.brent-context-desc { font-size: 12px; color: #94a3b8; line-height: 1.5; }
 .brent-context-link {
   font-size: 11px; color: #f97316; font-weight: 600; margin-top: 6px;
   display: inline-flex; align-items: center; gap: 4px;
@@ -366,14 +368,14 @@ _BRENT_CSS = """
 }
 .brent-risk-idx-name {
   font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; color: #64748b; margin-bottom: 6px;
+  text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;
 }
 .brent-risk-value { font-size: 36px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
 .brent-risk-band {
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; margin-bottom: 4px;
 }
-.brent-risk-desc { font-size: 11px; color: #64748b; line-height: 1.5; }
+.brent-risk-desc { font-size: 11px; color: #94a3b8; line-height: 1.5; }
 .brent-risk-interp-card {
   background: linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(15,23,42,0) 100%);
   border: 1px solid rgba(249,115,22,0.15);
@@ -392,10 +394,10 @@ _BRENT_CSS = """
 }
 .brent-hist-label {
   font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-  text-transform: uppercase; color: #64748b; margin-bottom: 6px;
+  text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;
 }
 .brent-hist-value { font-size: 22px; font-weight: 800; color: #e2e8f0; }
-.brent-hist-date { font-size: 10px; color: #475569; margin-top: 3px; }
+.brent-hist-date { font-size: 10px; color: #94a3b8; margin-top: 3px; }
 
 /* ── Cross-Market Section ─────────────────────────────────────────────── */
 .brent-cross-card {
@@ -427,7 +429,7 @@ _BRENT_CSS = """
 .brent-insight-item { margin-bottom: 16px; }
 .brent-insight-item-title {
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-  text-transform: uppercase; color: #475569; margin-bottom: 4px;
+  text-transform: uppercase; color: #94a3b8; margin-bottom: 4px;
 }
 .brent-insight-item-body {
   font-size: 15px; color: #cbd5e1; line-height: 1.75;
@@ -474,7 +476,7 @@ _BRENT_CSS = """
   margin-bottom: 12px; line-height: 1.3;
 }
 .brent-cta-sub {
-  font-size: 14px; color: #64748b; margin-bottom: 24px; max-width: 500px;
+  font-size: 14px; color: #94a3b8; margin-bottom: 24px; max-width: 500px;
   margin-left: auto; margin-right: auto; line-height: 1.7;
 }
 .brent-cta-benefits {
@@ -494,7 +496,7 @@ _BRENT_CSS = """
   transition: all 0.2s;
 }
 .brent-cta-btn-primary:hover { box-shadow: 0 6px 28px rgba(249,115,22,0.45); transform: translateY(-1px); }
-.brent-cta-credits { font-size: 11px; color: #334155; margin-top: 10px; }
+.brent-cta-credits { font-size: 11px; color: #64748b; margin-top: 10px; }
 
 /* ── Link Footer ──────────────────────────────────────────────────────── */
 .brent-link-footer {
@@ -505,7 +507,7 @@ _BRENT_CSS = """
 .brent-link-footer-section:last-child { margin-bottom: 0; }
 .brent-link-footer-title {
   font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  text-transform: uppercase; color: #475569; margin-bottom: 12px;
+  text-transform: uppercase; color: #94a3b8; margin-bottom: 12px;
 }
 .brent-link-footer-grid {
   display: flex; gap: 10px; flex-wrap: wrap;
@@ -524,7 +526,7 @@ _BRENT_CSS = """
   background: var(--card); border: 1px solid var(--border);
   border-radius: 12px; padding: 22px 24px; margin-bottom: 40px;
 }
-.brent-cite-desc { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+.brent-cite-desc { font-size: 13px; color: #94a3b8; margin-bottom: 12px; }
 .brent-cite-code {
   font-size: 12px; font-family: "JetBrains Mono", "Courier New", monospace;
   color: #94a3b8; line-height: 1.7; margin: 0; white-space: pre-wrap;
@@ -535,13 +537,31 @@ _BRENT_CSS = """
 
 /* ── Mobile polishes ──────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .brent-hero-price-card { padding: 22px 18px; }
-  .brent-price-main { font-size: 36px; }
-  .brent-snapshot-card { padding: 20px 18px; }
-  .brent-insight-card { padding: 20px 18px; }
-  .brent-cta-card { padding: 28px 18px; }
-  .brent-link-footer { padding: 20px 18px; }
-  body { padding-bottom: 56px; }
+  .brent-hero-price-card { padding: 22px 16px; margin-bottom: 28px; }
+  .brent-price-main { font-size: 38px; }
+  .brent-price-change { font-size: 15px; }
+  .brent-snapshot-card { padding: 20px 16px; }
+  .brent-insight-card { padding: 20px 16px; }
+  .brent-cta-card { padding: 24px 16px; }
+  .brent-cta-h2 { font-size: 20px; }
+  .brent-cta-benefits { gap: 12px; }
+  .brent-link-footer { padding: 20px 16px; }
+  .brent-chart-card { padding: 16px 14px; }
+  .brent-risk-interp-card { padding: 18px 16px; }
+  .brent-cross-card { padding: 16px 16px; }
+  body { padding-bottom: 60px; }
+  .brent-range-tab { padding: 5px 10px; font-size: 10px; }
+  .brent-hist-grid { grid-template-columns: repeat(2, 1fr); }
+  .brent-trust-line { gap: 10px; font-size: 10px; }
+}
+/* ── Correlation context grid mobile ─────────────────────────────────── */
+@media (max-width: 500px) {
+  .brent-corr-grid { grid-template-columns: 1fr !important; gap: 8px; }
+  .brent-price-main { font-size: 34px; }
+}
+/* ── Nav mobile ───────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .nav-inner > div > a:not(.cta-btn-nav) { display: none; }
 }
 """
 
@@ -1144,20 +1164,20 @@ document.body.style.overflow='';
   <div style="margin-top:20px;padding:16px 18px;background:rgba(255,255,255,0.02);
     border:1px solid rgba(255,255,255,0.06);border-radius:10px;">
     <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-      color:#475569;margin-bottom:10px;">Market Correlation Context</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      color:#94a3b8;margin-bottom:10px;">Market Correlation Context</div>
+    <div class="brent-corr-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
       <div>
-        <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:3px;">WTI CRUDE</div>
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:3px;">WTI CRUDE</div>
         <div style="font-size:15px;font-weight:700;color:#e2e8f0;">${wti_price:.2f}</div>
         <div style="font-size:11px;color:{w_color};">{w_arrow} {wti_chg:+.2f} d/d</div>
       </div>
       <div>
-        <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:3px;">TTF NATURAL GAS</div>
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:3px;">TTF NATURAL GAS</div>
         <div style="font-size:15px;font-weight:700;color:#e2e8f0;">&euro;{ttf_price:.2f}</div>
         <div style="font-size:11px;color:{t_color};">{t_arrow} {ttf_chg:+.2f} d/d</div>
       </div>
       <div>
-        <div style="font-size:10px;color:#64748b;font-weight:600;margin-bottom:3px;">VIX (FEAR GAUGE)</div>
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:3px;">VIX (FEAR GAUGE)</div>
         <div style="font-size:15px;font-weight:700;color:#e2e8f0;">{vix_close:.2f}</div>
         <div style="font-size:11px;color:{v_color};">{v_arrow} {vix_chg:+.2f} d/d</div>
       </div>
@@ -1185,7 +1205,7 @@ document.body.style.overflow='';
   <p class="brent-snapshot-para">{snap_para3}</p>
   <div style="margin-top:18px;padding:14px 18px;background:rgba(249,115,22,0.06);
     border:1px solid rgba(249,115,22,0.12);border-radius:10px;
-    font-size:13px;color:#64748b;">
+    font-size:13px;color:#94a3b8;">
     &#128204; Brent-WTI Spread: <strong style="color:#e2e8f0;">${brent_wti_spread:.2f}/bbl</strong>
     &nbsp;&bull;&nbsp;
     JKM LNG: <strong style="color:#e2e8f0;">${lng_price:.2f}/MMBtu</strong>
@@ -1336,7 +1356,7 @@ document.body.style.overflow='';
 </div>
 <div class="brent-risk-interp-card">
   <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-    color:#f97316;margin-bottom:12px;">&#128204; Proprietary Risk Interpretation</div>
+    color:#f97316;margin-bottom:12px;">&#128204; Risk Interpretation</div>
   <p style="font-size:15px;color:#cbd5e1;line-height:1.8;margin-bottom:12px;">
     {_html.escape(geri_interp)}
   </p>
@@ -1426,28 +1446,28 @@ document.body.style.overflow='';
 <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;
   padding:20px 24px;margin-bottom:40px;">
   <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-    color:#64748b;margin-bottom:14px;">Key Level Analysis</div>
+    color:#94a3b8;margin-bottom:14px;">Key Level Analysis</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
     <div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:3px;">30D Range</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:3px;">30D Range</div>
       <div style="font-size:14px;font-weight:700;color:#e2e8f0;">${low30_val:.2f} &ndash; ${high30_val:.2f}</div>
     </div>
     <div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:3px;">30D Range Width</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:3px;">30D Range Width</div>
       <div style="font-size:14px;font-weight:700;color:#e2e8f0;">${(high30_val - low30_val):.2f}/bbl ({round((high30_val - low30_val) / low30_val * 100, 1) if low30_val else 0:.1f}%)</div>
     </div>
     <div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:3px;">Distance from YTD High</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:3px;">Distance from YTD High</div>
       <div style="font-size:14px;font-weight:700;color:{'#ef4444' if dist_to_ytd_high > 0 else '#22c55e'};">
         {'$' + str(abs(dist_to_ytd_high)) + ' (' + str(abs(dist_to_ytd_high_pct)) + '%) below YTD high' if dist_to_ytd_high > 0 else 'At or above YTD high'}
       </div>
     </div>
     <div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:3px;">Brent-WTI Spread</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:3px;">Brent-WTI Spread</div>
       <div style="font-size:14px;font-weight:700;color:#e2e8f0;">${brent_wti_spread:.2f}/bbl</div>
     </div>
   </div>
-  <div style="margin-top:14px;font-size:12px;color:#475569;">
+  <div style="margin-top:14px;font-size:12px;color:#64748b;">
     &#8594; <a href="/research/global-energy-risk-timeline" style="color:#f97316;text-decoration:none;">Global Energy Risk Timeline — historical events and price correlations</a>
   </div>
 </div>
@@ -1470,7 +1490,7 @@ document.body.style.overflow='';
     <div class="brent-insight-item-title">What to watch next</div>
     <div class="brent-insight-item-body">{_html.escape(insight['what_to_watch'])}</div>
   </div>
-  <div style="margin-top:18px;font-size:10px;color:#334155;">
+  <div style="margin-top:18px;font-size:10px;color:#64748b;">
     Analysis generated by EnergyRiskIQ&rsquo;s proprietary market intelligence engine &bull; {today_str} &bull; Not financial advice.
   </div>
 </div>
