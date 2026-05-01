@@ -1,0 +1,254 @@
+🔥 PAGE BLUEPRINT
+/data/jkm-lng-price-chart
+1. 🔝 HERO SECTION (Above the Fold)
+H1:
+
+JKM LNG Price Chart (Japan Korea Marker – Daily LNG Benchmark)
+
+Subheading:
+
+Track the JKM LNG price chart with daily updates, historical trends, and global LNG market insights. Monitor Asia’s key gas benchmark and its impact on global energy markets.
+
+📊 PRICE CARD
+
+Display:
+
+Latest JKM Price ($/MMBtu)
+Daily change ($ and %)
+Date (last update)
+Benchmark reference:
+Japan Korea Marker (JKM)
+🔥 Micro CTA:
+
+👉 Get LNG price alerts & market signals → Free Account
+
+2. 📈 MAIN CHART (PRIMARY SEO + UX ASSET)
+H2:
+
+JKM LNG Price Chart
+
+Chart Configuration:
+Time Ranges:
+7D
+30D
+90D
+YTD
+1Y
+Since Launch
+🔥 ADVANCED OVERLAYS (YOUR DIFFERENTIATOR)
+
+Add toggles:
+
+TTF Gas
+Brent Crude Oil
+Europe Gas Storage
+VIX Index
+Advanced Mode (Pro):
+Spread view:
+JKM vs TTF
+Normalized index (base 100)
+Correlation toggle
+CTA under chart:
+
+👉 Unlock LNG spreads & correlations → Free account
+
+3. 📊 DAILY MARKET SNAPSHOT (SEO CORE)
+H2:
+
+JKM LNG Market Snapshot – Today
+
+Auto-generated content:
+
+Structure:
+
+Current price
+Daily change
+Weekly trend
+LNG demand/supply signal
+Example:
+
+The JKM LNG price today stands at $XX/MMBtu, moving X% over the past 24 hours. Recent price movements reflect [Asian demand, shipping constraints, European competition, storage dynamics].
+
+👉 This is your ranking engine
+
+4. 🌏 GLOBAL LNG CONTEXT (VERY IMPORTANT)
+H2:
+
+Global LNG Market Overview
+
+Explain:
+
+Asia demand (Japan, Korea, China)
+Europe competition for LNG cargoes
+Shipping constraints
+Link:
+
+→ /data/europe-lng-supply-demand
+
+👉 This gives:
+
+Topical authority
+Context Google loves
+5. 🔗 CROSS-ASSET NAVIGATION (SEO CLUSTER)
+H3:
+
+Related Energy Market Indicators
+
+Link smartly:
+
+TTF Gas
+→ /data/ttf-gas-price-today
+Brent Oil
+→ /data/brent-crude-oil-price-today
+Gas Storage Europe
+→ /gas-storage-levels-in-europe
+Global Forecast
+→ /data/global-energy-risk-forecast
+
+👉 This builds your energy data ecosystem
+
+6. 🧠 WHAT DRIVES JKM LNG PRICES
+H2:
+
+What Drives JKM LNG Prices?
+
+Structured Sections:
+1. Asian Demand
+
+(Japan, Korea, China)
+
+2. European LNG Competition
+
+→ link to TTF page
+
+3. Shipping & Freight Constraints
+4. Weather (winter/summer)
+5. Oil-Linked Contracts
+
+→ link to Brent page
+
+7. ⚠️ ENERGY RISK INTELLIGENCE (YOUR MOAT)
+H2:
+
+Energy Risk Signals Behind LNG Prices
+
+Display:
+
+GERI
+EERI
+EGSI-M / EGSI-S
+Interpretation:
+
+LNG prices are currently influenced by [geopolitical escalation / supply stress / demand spikes], as reflected in EnergyRiskIQ indicators.
+
+CTA:
+
+👉 Access full risk dashboard → Free account
+
+8. 📊 JKM vs TTF (HIGH VALUE DIFFERENTIATOR)
+H2:
+
+JKM vs TTF Gas Price Spread
+
+Explain:
+
+Arbitrage dynamics
+Cargo redirection (Asia vs Europe)
+Market imbalance signals
+
+👉 This is VERY powerful SEO + trader value
+
+9. 📉 HISTORICAL ANALYSIS
+H2:
+
+JKM LNG Price History
+
+Include:
+
+High/low levels
+Major spikes
+Seasonal trends
+Link:
+
+→ /research/global-energy-risk-timeline
+
+10. 📰 TODAY’S LNG MARKET INSIGHT
+H2:
+
+Today’s LNG Market Insight
+
+Auto-generated:
+
+What happened today
+Why it matters
+What to watch
+
+👉 This drives:
+
+Daily indexing
+Return visits
+11. 🧲 CONVERSION BLOCK
+H2:
+
+Get Ahead of LNG Market Moves
+
+Benefits:
+
+LNG alerts
+Spread monitoring
+Risk signals
+CTA:
+
+👉 Create Free Account (25 credits)
+
+12. 📚 FAQ (SEO GOLD)
+H2:
+
+JKM LNG Price – FAQs
+
+Include:
+
+What is JKM LNG?
+How is JKM priced?
+Why is JKM important?
+Difference between JKM and TTF?
+What affects LNG prices?
+Why does LNG spike?
+13. 🔗 INTERNAL LINKING FOOTER
+DATA:
+LNG supply-demand
+TTF gas price
+Brent oil price
+Gas storage
+INDICES:
+Global Energy Risk Index
+Europe Energy Risk Index
+Europe Gas Stress Index
+RESEARCH:
+Global Energy Risk Timeline
+Global Energy Risk Index
+LICENSE:
+
+→ /data-license
+
+14. 🧱 TECHNICAL SEO STRUCTURE
+URL:
+
+/data/jkm-lng-price-chart
+
+Title:
+
+JKM LNG Price Chart (Live Daily Update) | Asia Gas Benchmark
+
+Meta Description:
+
+Track the JKM LNG price chart with daily updates, historical trends, and global LNG market insights. Monitor Asia’s key gas benchmark and market drivers.
+
+Schema:
+Dataset (LNG prices)
+FAQ
+FinancialProduct
+15. 🔁 RETURN VISIT LOOP
+Sticky Bar:
+
+📊 JKM Today: $XX (+X%) | Updated daily

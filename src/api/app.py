@@ -48,6 +48,7 @@ from src.api.lng_routes import router as lng_router
 from src.api.jkm_routes import router as jkm_router
 from src.api.ttf_routes import router as ttf_router
 from src.api.brent_routes import router as brent_router
+from src.api.jkm_chart_routes import router as jkm_chart_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -198,6 +199,7 @@ app.include_router(lng_router)
 app.include_router(jkm_router)
 app.include_router(ttf_router)
 app.include_router(brent_router)
+app.include_router(jkm_chart_router)
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")
