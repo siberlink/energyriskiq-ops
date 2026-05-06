@@ -1,0 +1,329 @@
+🔥 PAGE BLUEPRINT
+/research/what-drives-lng-prices
+1. 🔝 HERO SECTION (Authority First)
+H1:
+What Drives LNG Prices?
+Understanding the Global LNG Market
+Subheading:
+
+Learn what affects LNG prices worldwide — from supply disruptions and weather to geopolitics, shipping, storage, and energy market risk signals.
+
+🔥 Hero CTA:
+
+👉 Track LNG prices & market risks live → Free Account
+
+Trust Layer:
+Updated regularly
+Data-backed analysis
+Powered by EnergyRiskIQ
+2. 📈 QUICK ANSWER BLOCK (SEO FEATURED SNIPPET TARGET)
+H2:
+What Drives LNG Prices?
+VERY IMPORTANT:
+
+This section should answer the query FAST.
+
+Example structure:
+
+LNG prices are driven by global supply and demand, weather conditions, storage levels, shipping constraints, geopolitical risks, and competition between Asia and Europe for LNG cargoes. Key benchmarks such as JKM and TTF also influence regional LNG pricing.
+
+👉 This block is designed for:
+
+Featured snippets
+AI search answers
+Voice search
+3. 🌍 LNG MARKET EXPLAINER (TOPICAL AUTHORITY)
+H2:
+How the Global LNG Market Works
+
+Explain:
+
+LNG liquefaction
+Shipping
+Regasification
+Spot vs contract markets
+Add simple visual blocks:
+Producer → LNG tanker → Import terminal
+Mention:
+Japan Korea Marker
+TTF Gas
+Internal links:
+JKM LNG page
+TTF page
+4. 🔥 CORE SECTION — THE 7 MAIN LNG PRICE DRIVERS
+
+This is the MAIN SEO section.
+
+H2:
+The Main Factors That Drive LNG Prices
+1. 🌡️ Weather & Seasonal Demand
+H3:
+Cold Winters and Hot Summers
+
+Explain:
+
+Heating demand
+Cooling demand
+Asia vs Europe seasonality
+Internal link:
+
+→ Europe gas storage levels
+
+2. 🏭 Global LNG Supply
+H3:
+LNG Production & Export Capacity
+
+Explain:
+
+Export terminals
+Outages
+Maintenance
+New LNG projects
+Mention:
+US LNG
+Qatar
+Australia
+3. 🚢 LNG Shipping & Freight Rates
+H3:
+Tanker Availability and Shipping Costs
+
+Explain:
+
+Vessel shortages
+Canal disruptions
+Freight spikes
+VERY important:
+
+This creates uniqueness vs competitors.
+
+4. ⚠️ Geopolitical Risk
+H3:
+Wars, Sanctions, and Energy Security
+
+Explain:
+
+Russia
+Middle East
+Chokepoints
+Supply disruptions
+Link:
+
+→ Global Energy Risk Index
+
+Add dynamic component:
+
+Current GERI level
+
+5. 🛢️ Oil Prices & Energy Substitution
+H3:
+Brent Crude and LNG Linkage
+
+Explain:
+
+Oil-indexed contracts
+Fuel switching
+Link:
+
+→ Brent crude oil price today
+
+6. 🇪🇺 Europe vs Asia Competition
+H3:
+TTF vs JKM LNG Competition
+
+Explain:
+
+Cargo redirection
+Arbitrage
+Storage competition
+Links:
+JKM page
+TTF page
+7. 📦 Gas Storage Levels
+H3:
+Why Storage Matters
+
+Explain:
+
+Winter preparation
+Supply security
+Panic buying
+Link:
+
+→ Gas storage Europe
+
+5. 📊 INTERACTIVE MARKET CONTEXT SECTION
+H2:
+LNG Market Indicators to Watch
+
+Display mini charts/cards:
+
+JKM LNG
+TTF
+Brent
+Europe Storage
+VIX
+CTA:
+
+👉 Explore live market dashboards
+
+6. ⚠️ ENERGY RISK INTELLIGENCE (YOUR BIG DIFFERENTIATOR)
+H2:
+How Energy Risk Signals Affect LNG Prices
+
+Display:
+
+GERI
+EERI
+EGSI-M
+EGSI-S
+Explain:
+
+How geopolitical escalation impacts:
+
+LNG cargo flows
+Market panic
+Price spikes
+CTA:
+
+👉 Access full energy risk dashboard
+
+7. 📉 HISTORICAL LNG PRICE SHOCKS
+H2:
+Major LNG Price Spikes in History
+
+Timeline format:
+
+2021–2022 Energy Crisis
+Russia–Ukraine War
+European Storage Panic
+Asian Winter Demand Surges
+Link:
+
+→ Global Energy Risk Timeline
+
+👉 This section is HIGHLY LINKABLE.
+
+8. 🧠 TODAY’S LNG MARKET INSIGHT
+H2:
+Today’s LNG Market Insight
+
+Auto-generated daily.
+
+Structure:
+
+Current LNG environment
+Market stress
+Key watchpoints
+
+👉 This creates:
+
+Freshness
+Daily indexing
+Return visitors
+9. 🧲 CONVERSION BLOCK
+H2:
+Stay Ahead of LNG Market Risks
+
+Benefits:
+
+LNG alerts
+Risk indicators
+Market dashboards
+Forecast signals
+CTA:
+
+👉 Create Free Account
+
+10. 📚 FAQ SECTION (VERY IMPORTANT)
+H2:
+LNG Market FAQs
+
+Include:
+
+What affects LNG prices the most?
+Why are LNG prices volatile?
+What is JKM LNG?
+Why do LNG prices spike in winter?
+How does Europe affect LNG prices?
+How are LNG prices linked to oil?
+What is the difference between LNG and natural gas prices?
+11. 🔗 INTERNAL LINKING ARCHITECTURE
+
+This page should become a major internal hub.
+
+DATA LINKS
+LNG:
+Europe LNG supply-demand
+JKM LNG price chart
+GAS:
+TTF gas price today
+Gas storage Europe
+OIL:
+Brent crude oil price today
+INDICES LINKS
+Global Energy Risk Index
+Europe Energy Risk Index
+Europe Gas Stress Index
+RESEARCH LINKS
+Global Energy Risk Timeline
+Global Energy Risk Index
+LICENSE
+
+→ /data-license
+
+12. 🧱 TECHNICAL SEO
+URL:
+
+/research/what-drives-lng-prices
+
+SEO Title:
+
+What Drives LNG Prices? | Global LNG Market Explained
+
+Meta Description:
+
+Learn what drives LNG prices worldwide, including weather, storage, geopolitics, shipping, and supply-demand dynamics. Understand the global LNG market with EnergyRiskIQ.
+
+SCHEMA
+
+Use:
+
+Article schema
+FAQ schema
+Dataset schema
+Breadcrumb schema
+13. 🔁 RETURN VISIT STRATEGY
+Sticky Insight Bar:
+
+📊 LNG Market Risk Level: Elevated | Updated Daily
+
+Newsletter Capture:
+
+👉 “Get daily LNG market insights”
+
+14. 🧠 WHY THIS PAGE IS EXTREMELY IMPORTANT
+
+This page can become:
+
+✅ A backlink magnet
+✅ A topical authority page
+✅ A Google Discover candidate
+✅ A long-tail traffic generator
+✅ A trust-building asset
+
+And most importantly:
+
+👉 It connects ALL your pages together.
+
+This becomes a:
+
+🔥 CENTRAL KNOWLEDGE HUB
+
+for:
+
+LNG
+Gas
+Energy risk
+Oil
+Storage
+Geopolitics
