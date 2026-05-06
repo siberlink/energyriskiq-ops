@@ -1114,7 +1114,7 @@ document.body.style.overflow='';
       <div class="ttf-convert-benefit">Daily TTF risk alerts</div>
       <div class="ttf-convert-benefit">GERI, EERI &amp; EGSI signals</div>
       <div class="ttf-convert-benefit">LNG &amp; storage context</div>
-      <div class="ttf-convert-benefit">25 free credits on sign-up</div>
+      <div class="ttf-convert-benefit">Free plan, no credit card required</div>
     </div>
     <a href="/users" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;margin-top:4px;">
       Create Free Account &rarr;

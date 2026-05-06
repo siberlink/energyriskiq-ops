@@ -1512,7 +1512,7 @@ document.body.style.overflow='';
   <a href="/users" class="brent-cta-btn-primary">
     Create Free Account &rarr;
   </a>
-  <div class="brent-cta-credits">Free tier includes 25 analysis credits monthly</div>
+  <div class="brent-cta-credits">No credit card required &bull; Free plan always available</div>
 </div>
 
 <!-- ── SECTION 11: FAQ ────────────────────────────────────────────────── -->

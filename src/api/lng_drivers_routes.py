@@ -1538,7 +1538,7 @@ document.body.style.overflow='';
     <span class="drv-cta-benefit">Shipping &amp; freight signals</span>
     <span class="drv-cta-benefit">Daily market insight briefing</span>
   </div>
-  <a href="/users" class="drv-cta-btn">&#128275; Create Free Account (25 credits)</a>
+  <a href="/users" class="drv-cta-btn">&#128275; Create Free Account</a>
   <div class="drv-cta-credits">No credit card required &bull; Free plan always available</div>
 </div>
 

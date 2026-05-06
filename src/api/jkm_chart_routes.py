@@ -1626,7 +1626,7 @@ function switchJKM(range) {{
     <span class="jkm-cta-benefit">GERI &amp; EERI risk signals</span>
     <span class="jkm-cta-benefit">Daily market interpretation</span>
   </div>
-  <a href="/users" class="jkm-cta-btn">&#128275; Create Free Account (25 credits)</a>
+  <a href="/users" class="jkm-cta-btn">&#128275; Create Free Account</a>
   <div class="jkm-cta-credits">No credit card required &bull; Free plan available</div>
 </div>
 
