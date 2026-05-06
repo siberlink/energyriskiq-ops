@@ -4,9 +4,10 @@ import asyncio
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
@@ -69,6 +70,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Redirect all 404 Not Found responses to the main landing page."""
+    if exc.status_code == 404:
+        return RedirectResponse(url="/", status_code=302)
+    return JSONResponse(status_code=exc.status_code, content={"detail": str(exc.detail)})
 
 
 class TrailingSlashRedirectMiddleware(BaseHTTPMiddleware):
