@@ -5829,6 +5829,24 @@
                 </span>
                 EGSI Dashboard
             </a>
+            <a class="nav-item" id="egsiMHistoryNavItem" onclick="showSection('egsi-m-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                EGSI-M History
+            </a>
+            <a class="nav-item" id="egsiSHistoryNavItem" onclick="showSection('egsi-s-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                EGSI-S History
+            </a>
             <a class="nav-item" id="digestNavItem" onclick="showSection('digest'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -6644,6 +6662,188 @@ Data source: EnergyRiskIQ proprietary risk pipeline (reri_indices_daily). Index 
                     Data sourced from: EnergyRiskIQ internal risk scoring pipeline (EERI &mdash; European Energy Risk Index).
                     Index computed daily from structured European energy supply, geopolitical, and infrastructure intelligence signals.
                     See <a href="/eeri" target="_blank">EERI Index Page</a> for full detail.
+                    <strong>Not financial advice.</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- EGSI-M History Section -->
+        <div class="section-content" id="section-egsi-m-history">
+            <div class="page-header">
+                <h1 class="page-title">EGSI-M History</h1>
+                <p class="page-subtitle">Europe Gas Stress Index (Market) &mdash; Daily Record Archive</p>
+            </div>
+            <div class="geri-history-section" id="egsiMHistorySection">
+                <div class="geri-history-header">
+                    <div>
+                        <div class="geri-history-title">
+                            <span>📊</span> Index History
+                        </div>
+                        <div class="geri-history-subtitle">Daily values from production pipeline &mdash; <span id="egsiMHistCount">—</span> records &bull; showing 20 per page</div>
+                    </div>
+                    <div class="geri-history-actions">
+                        <button class="geri-dl-btn csv" onclick="downloadEgsiMHistory('csv')" title="Download CSV">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download CSV
+                        </button>
+                        <button class="geri-dl-btn xlsx" onclick="downloadEgsiMHistory('xlsx')" title="Download Excel">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="snap-panel-loader" id="egsiMHistLoader">
+                    <div class="pl-ring-wrap">
+                        <div class="pl-ring-bg"></div>
+                        <div class="pl-arc1"></div>
+                        <div class="pl-arc2"></div>
+                        <div class="pl-arc3"></div>
+                        <div class="pl-dot"></div>
+                    </div>
+                    <div class="pl-label-main">Loading EGSI-M history</div>
+                    <div class="pl-label-sub" id="egsiMHistStatus">Connecting to production pipeline&hellip;</div>
+                    <div class="pl-tags">
+                        <span class="pl-tag">EGSI-M</span>
+                        <span class="pl-tag">egsi_m_daily</span>
+                    </div>
+                    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                </div>
+                <div class="snap-panel-content" id="egsiMHistContent">
+                    <div class="geri-history-table-wrap">
+                        <table class="geri-hist-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Value</th>
+                                    <th>Band</th>
+                                    <th>Trend 1D</th>
+                                    <th>Trend 7D</th>
+                                    <th>Computed At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="egsiMHistTbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="geri-hist-pagination" id="egsiMHistPagination">
+                        <button class="geri-hist-pg-btn" id="egsiMHistPgPrev" onclick="egsiMHistGoPage(egsiMHistCurrentPage - 1)" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                            Prev
+                        </button>
+                        <span class="geri-hist-pg-info" id="egsiMHistPgInfo">Page 1 of 1</span>
+                        <button class="geri-hist-pg-btn" id="egsiMHistPgNext" onclick="egsiMHistGoPage(egsiMHistCurrentPage + 1)" disabled>
+                            Next
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="geri-history-cite" style="margin-top: 24px;">
+                <h3>&#128196; Citation &amp; Reference</h3>
+                <p class="geri-history-cite-desc">
+                    EGSI-M (Europe Gas Stress Index — Market) daily values are computed by EnergyRiskIQ's proprietary risk scoring pipeline from structured European gas market intelligence. To cite this data in research, analysis, or professional reports, use the reference below.
+                </p>
+                <div class="geri-history-cite-code-wrap">
+                    <pre class="geri-history-cite-code">EnergyRiskIQ. (2026). <em>Europe Gas Stress Index (Market) — Daily History</em>.
+Retrieved from <a href="https://energyriskiq.com/egsi" target="_blank">https://energyriskiq.com/egsi</a>
+Data source: EnergyRiskIQ proprietary risk pipeline (egsi_m_daily). Index scale: 0–100.</pre>
+                    <button class="geri-history-cite-copy-btn" id="egsiMCiteCopyBtn"
+                        onclick="navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Europe Gas Stress Index (Market) — Daily History. Retrieved from https://energyriskiq.com/egsi').then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',2000)})">Copy</button>
+                </div>
+                <div class="geri-history-cite-footer">
+                    Data sourced from: EnergyRiskIQ internal risk scoring pipeline (EGSI-M &mdash; Europe Gas Stress Index Market component).
+                    Index computed daily from structured European gas market, supply, and pricing intelligence signals.
+                    See <a href="/egsi" target="_blank">EGSI Index Page</a> for full detail.
+                    <strong>Not financial advice.</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- EGSI-S History Section -->
+        <div class="section-content" id="section-egsi-s-history">
+            <div class="page-header">
+                <h1 class="page-title">EGSI-S History</h1>
+                <p class="page-subtitle">Europe Gas Stress Index (System) &mdash; Daily Record Archive</p>
+            </div>
+            <div class="geri-history-section" id="egsiSHistorySection">
+                <div class="geri-history-header">
+                    <div>
+                        <div class="geri-history-title">
+                            <span>📊</span> Index History
+                        </div>
+                        <div class="geri-history-subtitle">Daily values from production pipeline &mdash; <span id="egsiSHistCount">—</span> records &bull; showing 20 per page</div>
+                    </div>
+                    <div class="geri-history-actions">
+                        <button class="geri-dl-btn csv" onclick="downloadEgsiSHistory('csv')" title="Download CSV">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download CSV
+                        </button>
+                        <button class="geri-dl-btn xlsx" onclick="downloadEgsiSHistory('xlsx')" title="Download Excel">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="snap-panel-loader" id="egsiSHistLoader">
+                    <div class="pl-ring-wrap">
+                        <div class="pl-ring-bg"></div>
+                        <div class="pl-arc1"></div>
+                        <div class="pl-arc2"></div>
+                        <div class="pl-arc3"></div>
+                        <div class="pl-dot"></div>
+                    </div>
+                    <div class="pl-label-main">Loading EGSI-S history</div>
+                    <div class="pl-label-sub" id="egsiSHistStatus">Connecting to production pipeline&hellip;</div>
+                    <div class="pl-tags">
+                        <span class="pl-tag">EGSI-S</span>
+                        <span class="pl-tag">egsi_s_daily</span>
+                    </div>
+                    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                </div>
+                <div class="snap-panel-content" id="egsiSHistContent">
+                    <div class="geri-history-table-wrap">
+                        <table class="geri-hist-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Value</th>
+                                    <th>Band</th>
+                                    <th>Trend 1D</th>
+                                    <th>Trend 7D</th>
+                                    <th>Computed At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="egsiSHistTbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="geri-hist-pagination" id="egsiSHistPagination">
+                        <button class="geri-hist-pg-btn" id="egsiSHistPgPrev" onclick="egsiSHistGoPage(egsiSHistCurrentPage - 1)" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                            Prev
+                        </button>
+                        <span class="geri-hist-pg-info" id="egsiSHistPgInfo">Page 1 of 1</span>
+                        <button class="geri-hist-pg-btn" id="egsiSHistPgNext" onclick="egsiSHistGoPage(egsiSHistCurrentPage + 1)" disabled>
+                            Next
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="geri-history-cite" style="margin-top: 24px;">
+                <h3>&#128196; Citation &amp; Reference</h3>
+                <p class="geri-history-cite-desc">
+                    EGSI-S (Europe Gas Stress Index — System) daily values are computed by EnergyRiskIQ's proprietary risk scoring pipeline from structured European gas infrastructure and system intelligence. To cite this data in research, analysis, or professional reports, use the reference below.
+                </p>
+                <div class="geri-history-cite-code-wrap">
+                    <pre class="geri-history-cite-code">EnergyRiskIQ. (2026). <em>Europe Gas Stress Index (System) — Daily History</em>.
+Retrieved from <a href="https://energyriskiq.com/egsi" target="_blank">https://energyriskiq.com/egsi</a>
+Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale: 0–100.</pre>
+                    <button class="geri-history-cite-copy-btn" id="egsiSCiteCopyBtn"
+                        onclick="navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). Europe Gas Stress Index (System) — Daily History. Retrieved from https://energyriskiq.com/egsi').then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',2000)})">Copy</button>
+                </div>
+                <div class="geri-history-cite-footer">
+                    Data sourced from: EnergyRiskIQ internal risk scoring pipeline (EGSI-S &mdash; Europe Gas Stress Index System component).
+                    Index computed daily from structured European gas infrastructure, storage, and system-level intelligence signals.
+                    See <a href="/egsi" target="_blank">EGSI Index Page</a> for full detail.
                     <strong>Not financial advice.</strong>
                 </div>
             </div>
@@ -9742,6 +9942,190 @@ Data source: EnergyRiskIQ proprietary risk pipeline (reri_indices_daily). Index 
                     var today = new Date().toISOString().slice(0, 10);
                     a.href = burl;
                     a.download = 'EERI_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
+                    a.click();
+                    setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
+                })
+                .catch(function(e) { console.error('Download failed', e); document.body.removeChild(a); });
+        }
+
+        // ── EGSI-M History Page ───────────────────────────────────────────────────
+        var _egsiMHistAllRows    = [];
+        var _egsiMHistLoaded     = false;
+        var egsiMHistCurrentPage = 1;
+        var EGSI_M_HIST_PAGE_SIZE = 20;
+
+        function _egsiMHistRenderPage(page) {
+            var rows  = _egsiMHistAllRows;
+            var total = rows.length;
+            var pages = Math.max(1, Math.ceil(total / EGSI_M_HIST_PAGE_SIZE));
+            page = Math.max(1, Math.min(page, pages));
+            egsiMHistCurrentPage = page;
+            var start = (page - 1) * EGSI_M_HIST_PAGE_SIZE;
+            var slice = rows.slice(start, start + EGSI_M_HIST_PAGE_SIZE);
+            var tbody = document.getElementById('egsiMHistTbody');
+            if (!tbody) return;
+            if (!slice.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No records found.</td></tr>';
+            } else {
+                tbody.innerHTML = slice.map(function(r) {
+                    var band = (r.band || '').toUpperCase();
+                    var bandCell = band ? '<span class="geri-hist-band ' + band + '">' + band + '</span>' : '<span style="color:#64748b;">\u2014</span>';
+                    return '<tr>' +
+                        '<td>' + (r.date || '\u2014') + '</td>' +
+                        '<td><strong>' + (r.value !== null && r.value !== undefined ? r.value.toFixed(1) : '\u2014') + '</strong></td>' +
+                        '<td>' + bandCell + '</td>' +
+                        _geriHistTrendCell(r.trend_1d) +
+                        _geriHistTrendCell(r.trend_7d) +
+                        '<td class="geri-hist-computed">' + (r.computed_at || '\u2014') + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+            var pgInfo = document.getElementById('egsiMHistPgInfo');
+            if (pgInfo) pgInfo.textContent = 'Page ' + page + ' of ' + pages;
+            var prev = document.getElementById('egsiMHistPgPrev');
+            var next = document.getElementById('egsiMHistPgNext');
+            if (prev) prev.disabled = (page <= 1);
+            if (next) next.disabled = (page >= pages);
+        }
+
+        function egsiMHistGoPage(p) { _egsiMHistRenderPage(p); }
+
+        function loadEgsiMHistoryTable() {
+            if (_egsiMHistLoaded) { _egsiMHistRenderPage(1); return; }
+            _egsiMHistLoaded = true;
+            var msgs = ['Connecting to production pipeline\u2026','Fetching EGSI-M index records\u2026','Loading egsi_m_daily\u2026','Preparing history table\u2026'];
+            var idx = 0, el = document.getElementById('egsiMHistStatus');
+            var timer = setInterval(function() {
+                idx = (idx + 1) % msgs.length;
+                if (el) { el.style.opacity = '0'; setTimeout(function() { el.textContent = msgs[idx]; el.style.opacity = '1'; }, 200); }
+            }, 2000);
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            fetch('/api/v1/indices/egsi-m/history-table?limit=1000', { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    clearInterval(timer);
+                    _egsiMHistAllRows = (d && d.data) ? d.data : [];
+                    var countEl = document.getElementById('egsiMHistCount');
+                    if (countEl) countEl.textContent = _egsiMHistAllRows.length;
+                    _egsiMHistRenderPage(1);
+                    document.getElementById('egsiMHistLoader').classList.add('pl-hidden');
+                    document.getElementById('egsiMHistContent').classList.add('pl-loaded');
+                })
+                .catch(function() {
+                    clearInterval(timer);
+                    _egsiMHistLoaded = false;
+                    document.getElementById('egsiMHistLoader').classList.add('pl-hidden');
+                    document.getElementById('egsiMHistContent').classList.add('pl-loaded');
+                    var tbody = document.getElementById('egsiMHistTbody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Unable to load history. Please refresh the page.</td></tr>';
+                });
+        }
+
+        function downloadEgsiMHistory(fmt) {
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            var url = '/api/v1/indices/egsi-m/history-table/download/' + fmt + '?limit=1000';
+            var a = document.createElement('a');
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            fetch(url, { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.blob(); })
+                .then(function(blob) {
+                    var burl = URL.createObjectURL(blob);
+                    var today = new Date().toISOString().slice(0, 10);
+                    a.href = burl;
+                    a.download = 'EGSI_M_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
+                    a.click();
+                    setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
+                })
+                .catch(function(e) { console.error('Download failed', e); document.body.removeChild(a); });
+        }
+
+        // ── EGSI-S History Page ───────────────────────────────────────────────────
+        var _egsiSHistAllRows    = [];
+        var _egsiSHistLoaded     = false;
+        var egsiSHistCurrentPage = 1;
+        var EGSI_S_HIST_PAGE_SIZE = 20;
+
+        function _egsiSHistRenderPage(page) {
+            var rows  = _egsiSHistAllRows;
+            var total = rows.length;
+            var pages = Math.max(1, Math.ceil(total / EGSI_S_HIST_PAGE_SIZE));
+            page = Math.max(1, Math.min(page, pages));
+            egsiSHistCurrentPage = page;
+            var start = (page - 1) * EGSI_S_HIST_PAGE_SIZE;
+            var slice = rows.slice(start, start + EGSI_S_HIST_PAGE_SIZE);
+            var tbody = document.getElementById('egsiSHistTbody');
+            if (!tbody) return;
+            if (!slice.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No records found.</td></tr>';
+            } else {
+                tbody.innerHTML = slice.map(function(r) {
+                    var band = (r.band || '').toUpperCase();
+                    var bandCell = band ? '<span class="geri-hist-band ' + band + '">' + band + '</span>' : '<span style="color:#64748b;">\u2014</span>';
+                    return '<tr>' +
+                        '<td>' + (r.date || '\u2014') + '</td>' +
+                        '<td><strong>' + (r.value !== null && r.value !== undefined ? r.value.toFixed(1) : '\u2014') + '</strong></td>' +
+                        '<td>' + bandCell + '</td>' +
+                        _geriHistTrendCell(r.trend_1d) +
+                        _geriHistTrendCell(r.trend_7d) +
+                        '<td class="geri-hist-computed">' + (r.computed_at || '\u2014') + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+            var pgInfo = document.getElementById('egsiSHistPgInfo');
+            if (pgInfo) pgInfo.textContent = 'Page ' + page + ' of ' + pages;
+            var prev = document.getElementById('egsiSHistPgPrev');
+            var next = document.getElementById('egsiSHistPgNext');
+            if (prev) prev.disabled = (page <= 1);
+            if (next) next.disabled = (page >= pages);
+        }
+
+        function egsiSHistGoPage(p) { _egsiSHistRenderPage(p); }
+
+        function loadEgsiSHistoryTable() {
+            if (_egsiSHistLoaded) { _egsiSHistRenderPage(1); return; }
+            _egsiSHistLoaded = true;
+            var msgs = ['Connecting to production pipeline\u2026','Fetching EGSI-S index records\u2026','Loading egsi_s_daily\u2026','Preparing history table\u2026'];
+            var idx = 0, el = document.getElementById('egsiSHistStatus');
+            var timer = setInterval(function() {
+                idx = (idx + 1) % msgs.length;
+                if (el) { el.style.opacity = '0'; setTimeout(function() { el.textContent = msgs[idx]; el.style.opacity = '1'; }, 200); }
+            }, 2000);
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            fetch('/api/v1/indices/egsi-s/history-table?limit=1000', { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    clearInterval(timer);
+                    _egsiSHistAllRows = (d && d.data) ? d.data : [];
+                    var countEl = document.getElementById('egsiSHistCount');
+                    if (countEl) countEl.textContent = _egsiSHistAllRows.length;
+                    _egsiSHistRenderPage(1);
+                    document.getElementById('egsiSHistLoader').classList.add('pl-hidden');
+                    document.getElementById('egsiSHistContent').classList.add('pl-loaded');
+                })
+                .catch(function() {
+                    clearInterval(timer);
+                    _egsiSHistLoaded = false;
+                    document.getElementById('egsiSHistLoader').classList.add('pl-hidden');
+                    document.getElementById('egsiSHistContent').classList.add('pl-loaded');
+                    var tbody = document.getElementById('egsiSHistTbody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Unable to load history. Please refresh the page.</td></tr>';
+                });
+        }
+
+        function downloadEgsiSHistory(fmt) {
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            var url = '/api/v1/indices/egsi-s/history-table/download/' + fmt + '?limit=1000';
+            var a = document.createElement('a');
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            fetch(url, { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.blob(); })
+                .then(function(blob) {
+                    var burl = URL.createObjectURL(blob);
+                    var today = new Date().toISOString().slice(0, 10);
+                    a.href = burl;
+                    a.download = 'EGSI_S_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
                     a.click();
                     setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
                 })
@@ -13470,6 +13854,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (reri_indices_daily). Index 
                 loadGeriHistoryTable();
             } else if (sectionId === 'eeri-history') {
                 loadEeriHistoryTable();
+            } else if (sectionId === 'egsi-m-history') {
+                loadEgsiMHistoryTable();
+            } else if (sectionId === 'egsi-s-history') {
+                loadEgsiSHistoryTable();
             } else if (sectionId === 'eeri-pro') {
                 loadEeriProData();
             } else if (sectionId === 'digest') {
