@@ -646,6 +646,161 @@ def _fetch_geri_history_rows(limit: int = 500):
     return rows
 
 
+# ── EERI History Table (dashboard) ───────────────────────────────────────────
+
+_EERI_HISTORY_QUERY = """
+    SELECT date, value, band, trend_1d, trend_7d, computed_at
+    FROM reri_indices_daily
+    WHERE index_id = 'europe:eeri'
+    ORDER BY date DESC
+    LIMIT %s
+"""
+
+
+def _fetch_eeri_history_rows(limit: int = 500):
+    from src.db.db import get_production_cursor
+    with get_production_cursor() as cur:
+        cur.execute(_EERI_HISTORY_QUERY, (limit,))
+        rows = cur.fetchall()
+    return rows
+
+
+@router.get("/eeri/history-table")
+async def eeri_history_table(
+    x_user_token: Optional[str] = Header(None),
+    limit: int = Query(default=500, ge=1, le=1000),
+):
+    """Return EERI history rows for the dashboard table."""
+    check_enabled()
+    try:
+        from src.api.user_routes import verify_user_session
+        verify_user_session(x_user_token)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    rows = _fetch_eeri_history_rows(limit)
+    data = [
+        {
+            'date': _fmt_date(r['date']),
+            'value': float(r['value']) if r['value'] is not None else None,
+            'band': r['band'] or '',
+            'trend_1d': float(r['trend_1d']) if r['trend_1d'] is not None else None,
+            'trend_7d': float(r['trend_7d']) if r['trend_7d'] is not None else None,
+            'computed_at': _fmt_date(r['computed_at']),
+        }
+        for r in rows
+    ]
+    return {'success': True, 'count': len(data), 'data': data}
+
+
+@router.get("/eeri/history-table/download/csv")
+async def eeri_history_download_csv(
+    x_user_token: Optional[str] = Header(None),
+    limit: int = Query(default=1000, ge=1, le=1000),
+):
+    """Download full EERI history as CSV."""
+    check_enabled()
+    try:
+        from src.api.user_routes import verify_user_session
+        verify_user_session(x_user_token)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    rows = _fetch_eeri_history_rows(limit)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Date', 'Value', 'Band', 'Trend 1D', 'Trend 7D', 'Computed At'])
+    for r in rows:
+        writer.writerow([
+            _fmt_date(r['date']),
+            _fmt_num(r['value']),
+            r['band'] or '',
+            _fmt_num(r['trend_1d']),
+            _fmt_num(r['trend_7d']),
+            _fmt_date(r['computed_at']),
+        ])
+    output.seek(0)
+    today = date.today().isoformat()
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="EERI_History_{today}.csv"'},
+    )
+
+
+@router.get("/eeri/history-table/download/xlsx")
+async def eeri_history_download_xlsx(
+    x_user_token: Optional[str] = Header(None),
+    limit: int = Query(default=1000, ge=1, le=1000),
+):
+    """Download full EERI history as Excel (.xlsx)."""
+    check_enabled()
+    try:
+        from src.api.user_routes import verify_user_session
+        verify_user_session(x_user_token)
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+
+    rows = _fetch_eeri_history_rows(limit)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'EERI History'
+
+    headers = ['Date', 'Value', 'Band', 'Trend 1D', 'Trend 7D', 'Computed At']
+    header_fill = PatternFill(start_color='1E293B', end_color='1E293B', fill_type='solid')
+    header_font = Font(bold=True, color='F1F5F9')
+
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_idx, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+
+    band_colors = {
+        'LOW': 'D1FAE5',
+        'MODERATE': 'FEF9C3',
+        'ELEVATED': 'FED7AA',
+        'HIGH': 'FECACA',
+        'CRITICAL': 'F3D5FF',
+    }
+
+    for row_idx, r in enumerate(rows, 2):
+        band = r['band'] or ''
+        ws.cell(row=row_idx, column=1, value=_fmt_date(r['date']))
+        ws.cell(row=row_idx, column=2, value=float(r['value']) if r['value'] is not None else None)
+        bc = ws.cell(row=row_idx, column=3, value=band)
+        if band.upper() in band_colors:
+            bc.fill = PatternFill(start_color=band_colors[band.upper()], end_color=band_colors[band.upper()], fill_type='solid')
+        ws.cell(row=row_idx, column=4, value=float(r['trend_1d']) if r['trend_1d'] is not None else None)
+        ws.cell(row=row_idx, column=5, value=float(r['trend_7d']) if r['trend_7d'] is not None else None)
+        ws.cell(row=row_idx, column=6, value=_fmt_date(r['computed_at']))
+
+    col_widths = [14, 10, 12, 12, 12, 28]
+    for col_idx, width in enumerate(col_widths, 1):
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    today = date.today().isoformat()
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={'Content-Disposition': f'attachment; filename="EERI_History_{today}.xlsx"'},
+    )
+
+
 def _fmt_date(v):
     if v is None:
         return ''

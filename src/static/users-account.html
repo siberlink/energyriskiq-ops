@@ -5801,6 +5801,15 @@
                 </span>
                 GERI History
             </a>
+            <a class="nav-item" id="eeriHistoryNavItem" onclick="showSection('eeri-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                EERI History
+            </a>
             <a class="nav-item" id="eeriNavItem" onclick="showSection('eeri-pro'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -6534,6 +6543,107 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
                     Data sourced from: EnergyRiskIQ internal risk scoring pipeline (GERI &mdash; Global Energy Risk Index).
                     Index computed daily from structured geopolitical, energy supply, and infrastructure intelligence signals.
                     See <a href="/geri/methodology" target="_blank">GERI Methodology</a> for full scoring detail.
+                    <strong>Not financial advice.</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- EERI History Section -->
+        <div class="section-content" id="section-eeri-history">
+            <div class="page-header">
+                <h1 class="page-title">EERI History</h1>
+                <p class="page-subtitle" id="eeriHistPageSubtitle">European Energy Risk Index &mdash; Daily Record Archive</p>
+            </div>
+
+            <!-- History container card -->
+            <div class="geri-history-section" id="eeriHistorySection">
+                <div class="geri-history-header">
+                    <div>
+                        <div class="geri-history-title">
+                            <span>📊</span> Index History
+                        </div>
+                        <div class="geri-history-subtitle">Daily values from production pipeline &mdash; <span id="eeriHistCount">—</span> records &bull; showing 20 per page</div>
+                    </div>
+                    <div class="geri-history-actions">
+                        <button class="geri-dl-btn csv" onclick="downloadEeriHistory('csv')" title="Download CSV">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download CSV
+                        </button>
+                        <button class="geri-dl-btn xlsx" onclick="downloadEeriHistory('xlsx')" title="Download Excel">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loader -->
+                <div class="snap-panel-loader" id="eeriHistLoader">
+                    <div class="pl-ring-wrap">
+                        <div class="pl-ring-bg"></div>
+                        <div class="pl-arc1"></div>
+                        <div class="pl-arc2"></div>
+                        <div class="pl-arc3"></div>
+                        <div class="pl-dot"></div>
+                    </div>
+                    <div class="pl-label-main">Loading EERI history</div>
+                    <div class="pl-label-sub" id="eeriHistStatus">Connecting to production pipeline&hellip;</div>
+                    <div class="pl-tags">
+                        <span class="pl-tag">EERI</span>
+                        <span class="pl-tag">reri_indices_daily</span>
+                    </div>
+                    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                </div>
+
+                <!-- Table content -->
+                <div class="snap-panel-content" id="eeriHistContent">
+                    <div class="geri-history-table-wrap">
+                        <table class="geri-hist-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Value</th>
+                                    <th>Band</th>
+                                    <th>Trend 1D</th>
+                                    <th>Trend 7D</th>
+                                    <th>Computed At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eeriHistTbody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="geri-hist-pagination" id="eeriHistPagination">
+                        <button class="geri-hist-pg-btn" id="eeriHistPgPrev" onclick="eeriHistGoPage(eeriHistCurrentPage - 1)" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                            Prev
+                        </button>
+                        <span class="geri-hist-pg-info" id="eeriHistPgInfo">Page 1 of 1</span>
+                        <button class="geri-hist-pg-btn" id="eeriHistPgNext" onclick="eeriHistGoPage(eeriHistCurrentPage + 1)" disabled>
+                            Next
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Citation & Reference -->
+            <div class="geri-history-cite" style="margin-top: 24px;">
+                <h3>&#128196; Citation &amp; Reference</h3>
+                <p class="geri-history-cite-desc">
+                    EERI (European Energy Risk Index) daily values are computed by EnergyRiskIQ's proprietary risk scoring pipeline from structured European energy supply, geopolitical, and infrastructure intelligence. To cite this data in research, analysis, or professional reports, use the reference below.
+                </p>
+                <div class="geri-history-cite-code-wrap">
+                    <pre class="geri-history-cite-code">EnergyRiskIQ. (2026). <em>European Energy Risk Index — Daily History</em>.
+Retrieved from <a href="https://energyriskiq.com/eeri" target="_blank">https://energyriskiq.com/eeri</a>
+Data source: EnergyRiskIQ proprietary risk pipeline (reri_indices_daily). Index scale: 0–100.</pre>
+                    <button class="geri-history-cite-copy-btn" id="eeriCiteCopyBtn"
+                        onclick="navigator.clipboard&&navigator.clipboard.writeText('EnergyRiskIQ. (2026). European Energy Risk Index — Daily History. Retrieved from https://energyriskiq.com/eeri').then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',2000)})">Copy</button>
+                </div>
+                <div class="geri-history-cite-footer">
+                    Data sourced from: EnergyRiskIQ internal risk scoring pipeline (EERI &mdash; European Energy Risk Index).
+                    Index computed daily from structured European energy supply, geopolitical, and infrastructure intelligence signals.
+                    See <a href="/eeri" target="_blank">EERI Index Page</a> for full detail.
                     <strong>Not financial advice.</strong>
                 </div>
             </div>
@@ -9520,6 +9630,118 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
                     var today = new Date().toISOString().slice(0, 10);
                     a.href = burl;
                     a.download = 'GERI_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
+                    a.click();
+                    setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
+                })
+                .catch(function(e) { console.error('Download failed', e); document.body.removeChild(a); });
+        }
+
+        // ── EERI History Page (standalone section) ───────────────────────────────
+        var _eeriHistAllRows   = [];
+        var _eeriHistLoaded    = false;
+        var eeriHistCurrentPage = 1;
+        var EERI_HIST_PAGE_SIZE = 20;
+
+        function _eeriHistRenderPage(page) {
+            var rows  = _eeriHistAllRows;
+            var total = rows.length;
+            var pages = Math.max(1, Math.ceil(total / EERI_HIST_PAGE_SIZE));
+            page = Math.max(1, Math.min(page, pages));
+            eeriHistCurrentPage = page;
+
+            var start  = (page - 1) * EERI_HIST_PAGE_SIZE;
+            var slice  = rows.slice(start, start + EERI_HIST_PAGE_SIZE);
+            var tbody  = document.getElementById('eeriHistTbody');
+            if (!tbody) return;
+
+            if (!slice.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No records found.</td></tr>';
+            } else {
+                tbody.innerHTML = slice.map(function(r) {
+                    var band = (r.band || '').toUpperCase();
+                    var bandCell = band
+                        ? '<span class="geri-hist-band ' + band + '">' + band + '</span>'
+                        : '<span style="color:#64748b;">\u2014</span>';
+                    return '<tr>' +
+                        '<td>' + (r.date || '\u2014') + '</td>' +
+                        '<td><strong>' + (r.value !== null && r.value !== undefined ? r.value.toFixed(1) : '\u2014') + '</strong></td>' +
+                        '<td>' + bandCell + '</td>' +
+                        _geriHistTrendCell(r.trend_1d) +
+                        _geriHistTrendCell(r.trend_7d) +
+                        '<td class="geri-hist-computed">' + (r.computed_at || '\u2014') + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+
+            var pgInfo = document.getElementById('eeriHistPgInfo');
+            if (pgInfo) pgInfo.textContent = 'Page ' + page + ' of ' + pages;
+            var prev = document.getElementById('eeriHistPgPrev');
+            var next = document.getElementById('eeriHistPgNext');
+            if (prev) prev.disabled = (page <= 1);
+            if (next) next.disabled = (page >= pages);
+        }
+
+        function eeriHistGoPage(p) {
+            _eeriHistRenderPage(p);
+        }
+
+        function loadEeriHistoryTable() {
+            if (_eeriHistLoaded) {
+                _eeriHistRenderPage(1);
+                return;
+            }
+            _eeriHistLoaded = true;
+
+            var msgs = [
+                'Connecting to production pipeline\u2026',
+                'Fetching EERI index records\u2026',
+                'Loading reri_indices_daily\u2026',
+                'Preparing history table\u2026'
+            ];
+            var idx = 0, el = document.getElementById('eeriHistStatus');
+            var timer = setInterval(function() {
+                idx = (idx + 1) % msgs.length;
+                if (el) { el.style.opacity = '0'; setTimeout(function() { el.textContent = msgs[idx]; el.style.opacity = '1'; }, 200); }
+            }, 2000);
+
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            fetch('/api/v1/indices/eeri/history-table?limit=1000', { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    clearInterval(timer);
+                    _eeriHistAllRows = (d && d.data) ? d.data : [];
+
+                    var countEl = document.getElementById('eeriHistCount');
+                    if (countEl) countEl.textContent = _eeriHistAllRows.length;
+
+                    _eeriHistRenderPage(1);
+
+                    document.getElementById('eeriHistLoader').classList.add('pl-hidden');
+                    document.getElementById('eeriHistContent').classList.add('pl-loaded');
+                })
+                .catch(function() {
+                    clearInterval(timer);
+                    _eeriHistLoaded = false;
+                    document.getElementById('eeriHistLoader').classList.add('pl-hidden');
+                    document.getElementById('eeriHistContent').classList.add('pl-loaded');
+                    var tbody = document.getElementById('eeriHistTbody');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Unable to load history. Please refresh the page.</td></tr>';
+                });
+        }
+
+        function downloadEeriHistory(fmt) {
+            var tok = sessionToken || localStorage.getItem('userToken') || '';
+            var url = '/api/v1/indices/eeri/history-table/download/' + fmt + '?limit=1000';
+            var a = document.createElement('a');
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            fetch(url, { headers: { 'X-User-Token': tok } })
+                .then(function(r) { return r.blob(); })
+                .then(function(blob) {
+                    var burl = URL.createObjectURL(blob);
+                    var today = new Date().toISOString().slice(0, 10);
+                    a.href = burl;
+                    a.download = 'EERI_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
                     a.click();
                     setTimeout(function() { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
                 })
@@ -13246,6 +13468,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (intel_indices_daily). Index
                 loadGeriData();
             } else if (sectionId === 'geri-history') {
                 loadGeriHistoryTable();
+            } else if (sectionId === 'eeri-history') {
+                loadEeriHistoryTable();
             } else if (sectionId === 'eeri-pro') {
                 loadEeriProData();
             } else if (sectionId === 'digest') {
