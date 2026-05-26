@@ -1,0 +1,1 @@
+- [Latest-row queries on timeseries tables](latest-row-queries.md) — always ORDER BY date DESC LIMIT N + reverse in Python; ASC LIMIT silently truncates the *latest* once tables grow past N.
