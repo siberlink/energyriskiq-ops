@@ -358,6 +358,43 @@ _NATGAS_CSS = f"""
   padding: 0 20px 18px; font-size: 13.5px; color: #94a3b8; line-height: 1.7;
 }}
 
+/* ── Related-intelligence wheel grid ──────────────────────────────────────── */
+.wheel-grid {{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 40px;
+}}
+@media (max-width: 980px) {{ .wheel-grid {{ grid-template-columns: repeat(3, 1fr); }} }}
+@media (max-width: 720px) {{ .wheel-grid {{ grid-template-columns: 1fr 1fr; }} }}
+@media (max-width: 420px) {{ .wheel-grid {{ grid-template-columns: 1fr; }} }}
+.wheel-link {{
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  text-align: center; gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 14px 18px;
+  text-decoration: none !important;
+  color: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  min-height: 130px;
+}}
+.wheel-link:hover {{
+  border-color: rgba(96,165,250,0.45);
+  box-shadow: 0 4px 22px rgba(96,165,250,0.10);
+  transform: translateY(-2px);
+}}
+.wheel-link-icon {{ font-size: 1.7rem; line-height: 1; }}
+.wheel-link-label {{
+  font-size: 11px; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: {TTF_COLOR};
+}}
+.wheel-link-desc {{
+  font-size: 11.5px; color: #94a3b8; line-height: 1.45;
+  text-decoration: none;
+}}
+
 /* ── License block ───────────────────────────────────────────────────────── */
 .ng-license {{
   background: rgba(255,255,255,0.02);
