@@ -7785,7 +7785,24 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     <span id="wpwStatusBadge" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#334155;color:#cbd5e1;">Loading…</span>
                 </div>
                 <div class="card-body" id="wpwBody">
-                    <div id="wpwLoading" style="text-align:center;color:#94a3b8;padding:30px;font-size:13px;">Loading widget…</div>
+                    <!-- Fancy concentric-ring loader (matches public data pages) -->
+                    <div class="snap-panel-loader" id="wpwLoading" style="display:block;">
+                        <div class="pl-ring-wrap">
+                            <div class="pl-ring-bg"></div>
+                            <div class="pl-arc1"></div>
+                            <div class="pl-arc2"></div>
+                            <div class="pl-arc3"></div>
+                            <div class="pl-dot"></div>
+                        </div>
+                        <div class="pl-label-main">Initialising Pro Widget</div>
+                        <div class="pl-label-sub" id="wpwLoaderStatus">Connecting to subscription engine&hellip;</div>
+                        <div class="pl-tags">
+                            <span class="pl-tag">WTI</span>
+                            <span class="pl-tag">Stripe</span>
+                            <span class="pl-tag">user_pro_widgets</span>
+                        </div>
+                        <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                    </div>
 
                     <!-- INACTIVE STATE: Subscribe pitch -->
                     <div id="wpwInactive" style="display:none;">
@@ -14064,13 +14081,64 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         let wpwState = { active:false, embed_token:'', config:null, base_url:'',
                          size_presets:{compact:{w:350,h:380},medium:{w:450,h:520},large:{w:700,h:640}} };
         let wpwConfigSaveTimer = null;
+        let wpwLoaderStatusTimer = null;
+        const WPW_LOADER_MESSAGES = [
+            'Connecting to subscription engine…',
+            'Verifying widget licence…',
+            'Loading customisation profile…',
+            'Pulling live WTI market signals…',
+            'Preparing embed preview…'
+        ];
 
-        async function wpwLoadStatus() {
-            const token = localStorage.getItem('userToken');
-            if (!token) return;
+        function wpwStartLoaderCycle() {
+            const el = document.getElementById('wpwLoaderStatus');
+            if (!el) return;
+            let i = 0;
+            if (wpwLoaderStatusTimer) clearInterval(wpwLoaderStatusTimer);
+            wpwLoaderStatusTimer = setInterval(() => {
+                i = (i + 1) % WPW_LOADER_MESSAGES.length;
+                el.style.opacity = '0';
+                setTimeout(() => { el.textContent = WPW_LOADER_MESSAGES[i]; el.style.opacity = '1'; }, 180);
+            }, 1500);
+        }
+        function wpwStopLoaderCycle() {
+            if (wpwLoaderStatusTimer) { clearInterval(wpwLoaderStatusTimer); wpwLoaderStatusTimer = null; }
+        }
+        function wpwGetAuthToken() {
+            try {
+                if (typeof sessionToken !== 'undefined' && sessionToken) return sessionToken;
+            } catch (e) {}
+            return localStorage.getItem('userToken') || localStorage.getItem('sessionToken') || '';
+        }
+
+        async function wpwLoadStatus(_retry) {
+            const loader = document.getElementById('wpwLoading');
+            if (loader) loader.style.display = 'block';
+            document.getElementById('wpwInactive').style.display = 'none';
+            document.getElementById('wpwActive').style.display = 'none';
+            wpwStartLoaderCycle();
+
+            const token = wpwGetAuthToken();
+            if (!token) {
+                // sessionToken may still be loading from initial session fetch; retry up to ~3s
+                const attempts = (_retry || 0) + 1;
+                if (attempts < 15) {
+                    setTimeout(() => wpwLoadStatus(attempts), 200);
+                    return;
+                }
+                wpwStopLoaderCycle();
+                if (loader) {
+                    loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Please <a href="/users" style="color:#22d3ee;">sign in</a> to manage your Pro Widget.</div>';
+                }
+                return;
+            }
             try {
                 const r = await fetch('/api/widgets/wti-pro/status', { headers:{ 'x-user-token': token }});
-                if (r.status === 401) { window.location.href = '/users'; return; }
+                if (r.status === 401) {
+                    wpwStopLoaderCycle();
+                    if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Session expired — please <a href="/users" style="color:#22d3ee;">sign in again</a>.</div>';
+                    return;
+                }
                 const data = await r.json();
                 wpwState.active = !!data.active;
                 wpwState.embed_token = data.embed_token || '';
@@ -14078,15 +14146,18 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 wpwState.base_url = data.base_url || (location.protocol + '//' + location.host);
                 wpwState.size_presets = data.size_presets || wpwState.size_presets;
                 wpwState.status = data.status;
+                wpwStopLoaderCycle();
                 wpwRenderShell(data);
             } catch (e) {
                 console.error('wpwLoadStatus', e);
-                document.getElementById('wpwLoading').textContent = 'Failed to load widget status.';
+                wpwStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;font-size:13px;">Failed to load widget status. <button onclick="wpwLoadStatus()" style="background:#22d3ee;color:#0b1220;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;margin-left:8px;">Retry</button></div>';
             }
         }
 
         function wpwRenderShell(data) {
-            document.getElementById('wpwLoading').style.display = 'none';
+            const loader = document.getElementById('wpwLoading');
+            if (loader) loader.style.display = 'none';
             const badge = document.getElementById('wpwStatusBadge');
             if (wpwState.active) {
                 badge.textContent = (data.status === 'canceling') ? 'Active · Cancelling' :
