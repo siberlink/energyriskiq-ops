@@ -1,0 +1,386 @@
+🔥 PRO WIDGET BLUEPRINT
+WTI Crude Oil Price Pro Widget
+(€1.49/month)
+
+This widget must feel:
+
+❌ NOT like “same widget without branding”
+
+It must feel like:
+
+“Professional embedded oil market intelligence”
+
+That distinction is critical.
+
+🎯 CORE OBJECTIVE
+
+The Pro widget should help users:
+
+✅ make their site/app look more premium
+✅ provide actual market intelligence
+✅ increase visitor engagement
+✅ provide recurring daily value
+
+🧠 POSITIONING
+FREE Widget
+
+“Basic embeddable oil price widget”
+
+PRO Widget
+
+“Professional oil market intelligence widget”
+
+🔥 MOST IMPORTANT DIFFERENCE
+
+The value is NOT:
+❌ removing branding
+
+The value is:
+✅ intelligence + context + professional presentation
+
+🏗️ PRO WIDGET STRUCTURE
+🔝 1. HEADER
+
+Minimal + premium.
+
+WTI Crude Oil
+Live Market Intelligence
+⚠️ NO BRANDING
+
+No EnergyRiskIQ logo.
+
+This alone creates:
+👉 premium perception
+
+📊 2. PRIMARY PRICE BLOCK
+
+Large center focus.
+
+Example:
+
+$74.82
++1.44 (+1.96%)
+
+Include:
+
+directional arrow
+color state
+intraday movement
+⏱️ LIVE STATUS
+
+Example:
+
+Updated 2 min ago
+
+Uses:
+
+intraday_wti
+📈 3. 7-DAY PRICE CHART (CORE VALUE)
+Title
+7-Day Trend
+
+Uses:
+
+oil_price_snapshots
+intraday_wti
+Purpose:
+
+Quick momentum visualization.
+
+Include:
+trend direction
+weekly performance %
+Example:
+7D Performance: +4.8%
+📉 4. 30-DAY PRICE CHART (HIGH VALUE)
+Title
+30-Day Oil Trend
+
+This is VERY important psychologically.
+
+Why?
+
+It transforms:
+❌ “price widget”
+
+Into:
+✅ “market intelligence module”
+
+Show:
+30-day movement
+volatility
+support/resistance visual feel
+Example:
+30D Range: $68.20 → $76.10
+🔥 CHART STYLE (IMPORTANT)
+
+Charts must feel:
+✅ professional
+✅ lightweight
+✅ modern finance UI
+
+RECOMMENDED STYLE
+
+Dark theme:
+
+thin lines
+smooth gradients
+subtle glow
+
+Think:
+
+Bloomberg-lite
+modern TradingView feel
+🧠 5. AI MARKET INTELLIGENCE SECTION (MOST IMPORTANT FEATURE)
+
+THIS is the REAL value.
+
+TITLE
+Market Intelligence
+AI SUMMARY EXAMPLE
+WTI crude oil remains supported by elevated geopolitical tensions and tighter supply expectations. Recent volatility has increased following stronger-than-expected demand signals and declining inventories.
+WHY THIS MATTERS
+
+This turns the widget into:
+
+“daily market analysis”
+
+NOT just data.
+
+DATA SOURCES
+
+Use:
+
+geri_live
+intraday_brent
+vix_snapshots
+WTI momentum
+🔥 6. MARKET SIGNALS PANEL
+
+Small but powerful.
+
+Example:
+Market Regime: Bullish
+Energy Risk: Elevated
+Volatility: Moderate
+WHY IT MATTERS
+
+Humans want:
+❌ raw numbers
+
+They want:
+✅ interpretation
+
+📊 7. OPTIONAL OVERLAYS (VERY HIGH VALUE)
+
+User-configurable.
+
+Available Toggles
+
+✅ Brent Spread
+✅ GERI Signal
+✅ VIX Context
+✅ Natural Gas Trend
+
+WHY THIS IS IMPORTANT
+
+This dramatically increases:
+👉 perceived sophistication
+
+🎨 8. VISUAL CUSTOMIZATION
+
+VERY important for €1.49 value perception.
+
+THEMES
+
+✅ Dark
+✅ Light
+✅ Glass
+✅ Transparent
+
+CUSTOMIZATION
+
+✅ Accent color
+✅ Border radius
+✅ Compact/Expanded mode
+
+📱 9. RESPONSIVE MODES
+
+Users choose:
+
+Compact
+Medium
+Full-width
+Recommended Sizes
+Compact
+
+350x280
+
+Medium
+
+450x380
+
+Large
+
+700x500
+
+🔥 10. “NO CITATION REQUIRED” (HUGE SELLING POINT)
+
+This must be VERY visible inside account.
+
+Example:
+Professional License Included
+No attribution or citation required.
+🧩 11. EMBED GENERATOR
+
+This is where user configures widget.
+
+OPTIONS PANEL
+
+User selects:
+
+theme
+size
+overlays
+compact/full
+transparent mode
+GENERATED CODE
+<script src="https://energyriskiq.com/widgets/wti-pro.js"></script>
+<div data-eriq-widget="wti-pro"></div>
+🔥 12. ACCOUNT PAGE STRUCTURE
+
+Inside user account:
+
+TITLE
+Professional WTI Oil Widget
+Sections
+Widget Preview
+
+Live preview updates instantly.
+
+Customization
+
+Theme + options.
+
+Embed Code
+
+Copy/paste section.
+
+Intelligence Settings
+
+Choose:
+
+concise analysis
+trader mode
+macro mode
+🔥 13. “INTELLIGENCE MODES” (EXTREMELY SMART FEATURE)
+
+This massively increases perceived value.
+
+OPTIONS
+Macro Mode
+
+Focus:
+
+geopolitics
+risk
+macro
+Trader Mode
+
+Focus:
+
+momentum
+volatility
+short-term trend
+Energy Mode
+
+Focus:
+
+supply
+inventories
+LNG
+💰 WHY €1.49 IS GENIUS
+
+Low enough:
+✅ impulse purchase
+
+High enough:
+✅ perceived value
+
+REAL GOAL
+
+NOT:
+€1.49 revenue
+
+REAL GOAL:
+
+thousands of embeds + distribution + authority
+📈 WHAT USERS ARE REALLY BUYING
+
+They are buying:
+
+✅ professionalism
+✅ convenience
+✅ market context
+✅ better-looking websites/apps
+
+🔥 MOST IMPORTANT PSYCHOLOGICAL DIFFERENCE
+
+FREE widget:
+
+“embedded data”
+
+PRO widget:
+
+“embedded intelligence”
+
+🚀 FUTURE FEATURES (VERY POWERFUL)
+
+Later add:
+
+1. ALERT DOTS
+
+Example:
+
+🔴 High Volatility
+2. AI Forecast Bias
+
+Example:
+
+Short-Term Bias: Bullish
+3. Event Impact Timeline
+
+Mini list:
+
+OPEC
+inventories
+geopolitical events
+📊 DATABASE MAPPING
+CORE DATA
+intraday_wti
+live price
+intraday trend
+DAILY HISTORY
+oil_price_snapshots
+7D / 30D charts
+RISK SIGNALS
+geri_live
+energy risk level
+MARKET CONTEXT
+intraday_brent
+Brent spread
+vix_snapshots
+volatility
+OPTIONAL FUTURE
+intraday_natgas
+energy complex context
+🔥 FINAL STRATEGIC INSIGHT
+
+This widget is NOT:
+❌ “cheap embed tool”
+
+It becomes:
+
+embeddable premium market intelligence
+
+That positioning is EVERYTHING.

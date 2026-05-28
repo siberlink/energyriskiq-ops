@@ -217,6 +217,12 @@ app.include_router(lng_drivers_router)
 app.include_router(natgas_router)
 app.include_router(wti_router)
 app.include_router(wti_widget_router)
+from src.api.wti_pro_widget_routes import router as wti_pro_widget_router, run_wti_pro_widget_migration
+app.include_router(wti_pro_widget_router)
+try:
+    run_wti_pro_widget_migration()
+except Exception as _e:
+    logger.error(f"wti_pro_widget migration error: {_e}")
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")

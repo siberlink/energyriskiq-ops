@@ -5860,6 +5860,16 @@
                 Daily Digest
                 <span class="pro-badge-nav" id="digestBadge" style="background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 9px; padding: 2px 6px;">NEW</span>
             </a>
+            <a class="nav-item" id="wtiProWidgetNavItem" onclick="showSection('wti-pro-widget'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="14" rx="2"/>
+                        <path d="M7 14l3-4 3 3 4-6"/>
+                    </svg>
+                </span>
+                Pro Widget — WTI
+                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9);font-size:9px;padding:2px 6px;">€1.49</span>
+            </a>
         </div>
 
         <div class="sidebar-section" style="display:none;">
@@ -7758,6 +7768,182 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 </div>
             </div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             WTI Crude Oil Pro Widget — €1.49/month
+             ═══════════════════════════════════════════════════════════════ -->
+        <div class="section-content" id="section-wti-pro-widget">
+            <div class="content-card">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(14,165,233,.04));">
+                    <div>
+                        <div class="card-title" style="display:flex;align-items:center;gap:10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 14l3-4 3 3 4-6"/></svg>
+                            Professional WTI Oil Widget
+                        </div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Embeddable WTI crude oil intelligence · €1.49/month · No attribution required</div>
+                    </div>
+                    <span id="wpwStatusBadge" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#334155;color:#cbd5e1;">Loading…</span>
+                </div>
+                <div class="card-body" id="wpwBody">
+                    <div id="wpwLoading" style="text-align:center;color:#94a3b8;padding:30px;font-size:13px;">Loading widget…</div>
+
+                    <!-- INACTIVE STATE: Subscribe pitch -->
+                    <div id="wpwInactive" style="display:none;">
+                        <div style="background:linear-gradient(135deg,#0f172a,#0b1220);border:1px solid #1e293b;border-radius:12px;padding:24px;margin-bottom:18px;">
+                            <div style="font-size:11px;font-weight:700;color:#22d3ee;letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;">EnergyRiskIQ Pro Widget</div>
+                            <div style="font-size:22px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Embeddable WTI market intelligence — not just a price ticker</div>
+                            <div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:18px;">Add a professional-grade WTI crude oil widget to your site or app. Live price, 7D &amp; 30D charts, custom-algorithm market commentary, risk signals, and overlay context (Brent, GERI, VIX, NatGas) — all auto-updating, fully themable, with no EnergyRiskIQ branding and zero attribution requirement.</div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:20px;">
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#22d3ee;font-weight:700;margin-bottom:4px;">✓ NO BRANDING</div><div style="font-size:11px;color:#cbd5e1;">Premium, unbranded look for your site</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#22d3ee;font-weight:700;margin-bottom:4px;">✓ NO CITATION</div><div style="font-size:11px;color:#cbd5e1;">Professional license included</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#22d3ee;font-weight:700;margin-bottom:4px;">✓ MARKET INTELLIGENCE</div><div style="font-size:11px;color:#cbd5e1;">Daily custom-algorithm commentary</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#22d3ee;font-weight:700;margin-bottom:4px;">✓ LIVE UPDATES</div><div style="font-size:11px;color:#cbd5e1;">Auto-refresh every 60 seconds</div></div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                                <button id="wpwSubscribeBtn" onclick="wpwStartCheckout()" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9);color:#fff;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;">Subscribe — €1.49/month</button>
+                                <a href="/widgets/wti-crude-oil-price" target="_blank" style="color:#22d3ee;text-decoration:none;font-size:13px;font-weight:600;">See public preview →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVE STATE: Configure + embed -->
+                    <div id="wpwActive" style="display:none;">
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,400px);gap:20px;align-items:start;" id="wpwGrid">
+
+                            <!-- LEFT: Customization controls -->
+                            <div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#22d3ee;letter-spacing:.6px;text-transform:uppercase;margin-bottom:14px;">Customization</div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Theme</label>
+                                        <div class="wpw-pill-group" data-cfg="theme">
+                                            <button type="button" class="wpw-pill" data-val="dark">Dark</button>
+                                            <button type="button" class="wpw-pill" data-val="light">Light</button>
+                                            <button type="button" class="wpw-pill" data-val="glass">Glass</button>
+                                            <button type="button" class="wpw-pill" data-val="transparent">Transparent</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Size</label>
+                                        <div class="wpw-pill-group" data-cfg="size">
+                                            <button type="button" class="wpw-pill" data-val="compact">Compact (350×380)</button>
+                                            <button type="button" class="wpw-pill" data-val="medium">Medium (450×520)</button>
+                                            <button type="button" class="wpw-pill" data-val="large">Large (700×640)</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Intelligence Mode</label>
+                                        <div class="wpw-pill-group" data-cfg="mode">
+                                            <button type="button" class="wpw-pill" data-val="macro" title="Geopolitics, risk, macro">Macro</button>
+                                            <button type="button" class="wpw-pill" data-val="trader" title="Momentum, volatility, short-term">Trader</button>
+                                            <button type="button" class="wpw-pill" data-val="energy" title="Supply, inventories, LNG">Energy</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Overlays</label>
+                                        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="wpwOverlays">
+                                            <label class="wpw-check"><input type="checkbox" data-overlay="brent">Brent Spread</label>
+                                            <label class="wpw-check"><input type="checkbox" data-overlay="geri">GERI Signal</label>
+                                            <label class="wpw-check"><input type="checkbox" data-overlay="vix">VIX Context</label>
+                                            <label class="wpw-check"><input type="checkbox" data-overlay="natgas">Natural Gas Trend</label>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;">
+                                        <div>
+                                            <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Accent Color</label>
+                                            <input type="color" id="wpwAccent" value="#22d3ee" style="width:100%;height:34px;background:#0f172a;border:1px solid #334155;border-radius:8px;cursor:pointer;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Border Radius (<span id="wpwRadiusVal">12</span>px)</label>
+                                            <input type="range" id="wpwRadius" min="0" max="32" value="12" style="width:100%;margin-top:8px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- License badge -->
+                                <div style="background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(14,165,233,.04));border:1px solid rgba(34,211,238,.25);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;gap:12px;align-items:center;">
+                                    <div style="background:#22d3ee;color:#0b1220;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">✓</div>
+                                    <div>
+                                        <div style="font-size:12px;font-weight:700;color:#22d3ee;margin-bottom:2px;">Professional License Included</div>
+                                        <div style="font-size:11px;color:#cbd5e1;line-height:1.4;">No attribution or citation required. Use on any number of your sites and apps.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Embed code -->
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#22d3ee;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;">Embed Code — iframe</div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Paste anywhere in your HTML. Updates live every 60 s.</div>
+                                    <textarea id="wpwEmbedIframe" readonly rows="3" style="width:100%;background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical;box-sizing:border-box;"></textarea>
+                                    <button onclick="wpwCopy('wpwEmbedIframe', this)" style="margin-top:8px;background:#22d3ee;color:#0b1220;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:12px;">Copy iframe code</button>
+                                </div>
+
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#22d3ee;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;">Embed Code — JS loader</div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Alternative pattern with auto-sizing div.</div>
+                                    <textarea id="wpwEmbedJs" readonly rows="3" style="width:100%;background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical;box-sizing:border-box;"></textarea>
+                                    <button onclick="wpwCopy('wpwEmbedJs', this)" style="margin-top:8px;background:#0ea5e9;color:#fff;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:12px;">Copy JS embed code</button>
+                                </div>
+
+                                <!-- Subscription management -->
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                                    <div>
+                                        <div style="font-size:12px;color:#cbd5e1;font-weight:600;">Subscription</div>
+                                        <div style="font-size:11px;color:#94a3b8;margin-top:2px;" id="wpwBillingMeta">€1.49 / month</div>
+                                    </div>
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <button onclick="wpwRotateToken()" style="background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid #334155;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:11px;">Rotate Embed Token</button>
+                                        <button onclick="wpwCancel()" id="wpwCancelBtn" style="background:transparent;color:#ef4444;border:1px solid #ef444455;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:11px;">Cancel Subscription</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT: Live preview -->
+                            <div style="position:sticky;top:20px;">
+                                <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                                    <span>Live Preview</span>
+                                    <span id="wpwPreviewSize" style="font-size:10px;color:#64748b;font-weight:500;text-transform:none;letter-spacing:0;"></span>
+                                </div>
+                                <div style="background:#020617;border:1px dashed #334155;border-radius:12px;padding:14px;min-height:300px;display:flex;justify-content:center;align-items:flex-start;">
+                                    <iframe id="wpwPreviewIframe" src="about:blank" style="border:0;display:block;width:100%;max-width:450px;height:520px;background:transparent;" allowtransparency="true" title="WTI Pro Widget preview"></iframe>
+                                </div>
+                                <div style="font-size:10.5px;color:#64748b;margin-top:8px;text-align:center;">Preview refreshes when you change a setting. Embedded widgets auto-refresh every 60 s.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* WTI Pro Widget account UI */
+            .wpw-pill-group { display:flex; flex-wrap:wrap; gap:6px; }
+            .wpw-pill {
+                background:#0f172a; color:#94a3b8; border:1px solid #334155;
+                padding:7px 12px; border-radius:8px; cursor:pointer; font-size:12px;
+                font-weight:600; transition:all .15s;
+            }
+            .wpw-pill:hover { color:#e2e8f0; border-color:#475569; }
+            .wpw-pill.active {
+                background:rgba(34,211,238,.12); color:#22d3ee;
+                border-color:#22d3ee66;
+            }
+            .wpw-check {
+                display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+                font-size:12px; color:#cbd5e1; background:#0f172a;
+                border:1px solid #334155; padding:6px 10px; border-radius:8px;
+                font-weight:500;
+            }
+            .wpw-check input { accent-color:#22d3ee; cursor:pointer; }
+            @media (max-width:880px) {
+                #wpwGrid { grid-template-columns:1fr !important; }
+                #wpwGrid > div:nth-child(2) { position:static !important; }
+            }
+        </style>
 
     </main>
 
@@ -13869,8 +14055,273 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } else if (sectionId === 'geri-live') {
                 loadGeriLive();
                 loadTraderIntel();
+            } else if (sectionId === 'wti-pro-widget') {
+                wpwLoadStatus();
             }
         }
+
+        /* ════════════════ WTI Pro Widget — Account UI ════════════════ */
+        let wpwState = { active:false, embed_token:'', config:null, base_url:'',
+                         size_presets:{compact:{w:350,h:380},medium:{w:450,h:520},large:{w:700,h:640}} };
+        let wpwConfigSaveTimer = null;
+
+        async function wpwLoadStatus() {
+            const token = localStorage.getItem('userToken');
+            if (!token) return;
+            try {
+                const r = await fetch('/api/widgets/wti-pro/status', { headers:{ 'x-user-token': token }});
+                if (r.status === 401) { window.location.href = '/users'; return; }
+                const data = await r.json();
+                wpwState.active = !!data.active;
+                wpwState.embed_token = data.embed_token || '';
+                wpwState.config = data.config || {};
+                wpwState.base_url = data.base_url || (location.protocol + '//' + location.host);
+                wpwState.size_presets = data.size_presets || wpwState.size_presets;
+                wpwState.status = data.status;
+                wpwRenderShell(data);
+            } catch (e) {
+                console.error('wpwLoadStatus', e);
+                document.getElementById('wpwLoading').textContent = 'Failed to load widget status.';
+            }
+        }
+
+        function wpwRenderShell(data) {
+            document.getElementById('wpwLoading').style.display = 'none';
+            const badge = document.getElementById('wpwStatusBadge');
+            if (wpwState.active) {
+                badge.textContent = (data.status === 'canceling') ? 'Active · Cancelling' :
+                                    (data.status === 'trialing'  ? 'Trial Active' : 'Active');
+                badge.style.background = (data.status === 'canceling') ? '#f59e0b' : '#10b981';
+                badge.style.color = '#0b1220';
+                document.getElementById('wpwInactive').style.display = 'none';
+                document.getElementById('wpwActive').style.display = 'block';
+                wpwApplyConfigToUI();
+                wpwUpdatePreviewAndCode();
+                const meta = document.getElementById('wpwBillingMeta');
+                if (data.current_period_end) {
+                    const d = new Date(data.current_period_end);
+                    meta.textContent = '€1.49 / month · ' +
+                        (data.status === 'canceling' ? 'Ends ' : 'Renews ') +
+                        d.toLocaleDateString();
+                }
+                if (data.status === 'canceling') {
+                    const btn = document.getElementById('wpwCancelBtn');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Cancellation Scheduled'; btn.style.opacity = 0.5; btn.style.cursor = 'default'; }
+                }
+            } else {
+                badge.textContent = 'Inactive';
+                badge.style.background = '#334155';
+                badge.style.color = '#cbd5e1';
+                document.getElementById('wpwInactive').style.display = 'block';
+                document.getElementById('wpwActive').style.display = 'none';
+            }
+        }
+
+        function wpwApplyConfigToUI() {
+            const cfg = wpwState.config || {};
+            document.querySelectorAll('.wpw-pill-group').forEach(grp => {
+                const key = grp.getAttribute('data-cfg');
+                grp.querySelectorAll('.wpw-pill').forEach(p => {
+                    p.classList.toggle('active', p.getAttribute('data-val') === cfg[key]);
+                });
+            });
+            document.querySelectorAll('#wpwOverlays input[type=checkbox]').forEach(cb => {
+                const k = cb.getAttribute('data-overlay');
+                cb.checked = !!((cfg.overlays || {})[k]);
+            });
+            const acc = document.getElementById('wpwAccent');
+            if (acc) acc.value = cfg.accent || '#22d3ee';
+            const rad = document.getElementById('wpwRadius');
+            if (rad) { rad.value = cfg.radius != null ? cfg.radius : 12;
+                       document.getElementById('wpwRadiusVal').textContent = rad.value; }
+        }
+
+        function wpwReadConfigFromUI() {
+            const cfg = { overlays:{} };
+            document.querySelectorAll('.wpw-pill-group').forEach(grp => {
+                const key = grp.getAttribute('data-cfg');
+                const active = grp.querySelector('.wpw-pill.active');
+                if (active) cfg[key] = active.getAttribute('data-val');
+            });
+            document.querySelectorAll('#wpwOverlays input[type=checkbox]').forEach(cb => {
+                cfg.overlays[cb.getAttribute('data-overlay')] = cb.checked;
+            });
+            const acc = document.getElementById('wpwAccent');
+            if (acc) cfg.accent = acc.value;
+            const rad = document.getElementById('wpwRadius');
+            if (rad) cfg.radius = parseInt(rad.value, 10);
+            cfg.transparent = (cfg.theme === 'transparent');
+            return cfg;
+        }
+
+        function wpwBuildEmbedUrl(cfg) {
+            const params = new URLSearchParams();
+            params.set('t', wpwState.embed_token);
+            if (cfg.theme)  params.set('theme',  cfg.theme);
+            if (cfg.size)   params.set('size',   cfg.size);
+            if (cfg.mode)   params.set('mode',   cfg.mode);
+            if (cfg.accent) params.set('accent', cfg.accent);
+            if (cfg.transparent) params.set('transparent', '1');
+            const ovs = Object.keys(cfg.overlays || {}).filter(k => cfg.overlays[k]);
+            params.set('overlays', ovs.join(','));
+            return wpwState.base_url + '/embed/wti-pro-widget?' + params.toString();
+        }
+
+        function wpwBuildEmbedCodeIframe(cfg, url) {
+            const dims = wpwState.size_presets[cfg.size] || wpwState.size_presets.medium;
+            return '<iframe src="' + url + '" style="border:0;width:100%;max-width:' + dims.w + 'px;height:' + dims.h + 'px;" loading="lazy" allowtransparency="true" title="WTI Crude Oil Pro Widget"></iframe>';
+        }
+
+        function wpwBuildEmbedCodeJs(cfg) {
+            const attrs = [
+                'data-eriq-widget="wti-pro"',
+                'data-token="' + wpwState.embed_token + '"',
+                'data-theme="' + cfg.theme + '"',
+                'data-size="' + cfg.size + '"',
+                'data-mode="' + cfg.mode + '"',
+                'data-accent="' + cfg.accent + '"'
+            ];
+            const ovs = Object.keys(cfg.overlays || {}).filter(k => cfg.overlays[k]);
+            if (ovs.length) attrs.push('data-overlays="' + ovs.join(',') + '"');
+            if (cfg.transparent) attrs.push('data-transparent="1"');
+            return '<script src="' + wpwState.base_url + '/widgets/wti-pro.js" async><\/script>\n<div ' + attrs.join(' ') + '></div>';
+        }
+
+        function wpwUpdatePreviewAndCode() {
+            const cfg = wpwReadConfigFromUI();
+            const url = wpwBuildEmbedUrl(cfg);
+            const iframe = document.getElementById('wpwPreviewIframe');
+            const dims = wpwState.size_presets[cfg.size] || wpwState.size_presets.medium;
+            if (iframe) {
+                iframe.style.maxWidth = dims.w + 'px';
+                iframe.style.height = dims.h + 'px';
+                iframe.src = url;
+            }
+            const sz = document.getElementById('wpwPreviewSize');
+            if (sz) sz.textContent = dims.w + ' × ' + dims.h + ' px';
+            const ti = document.getElementById('wpwEmbedIframe');
+            if (ti) ti.value = wpwBuildEmbedCodeIframe(cfg, url);
+            const tj = document.getElementById('wpwEmbedJs');
+            if (tj) tj.value = wpwBuildEmbedCodeJs(cfg);
+        }
+
+        async function wpwSaveConfig() {
+            const token = localStorage.getItem('userToken');
+            if (!token) return;
+            const cfg = wpwReadConfigFromUI();
+            try {
+                const r = await fetch('/api/widgets/wti-pro/config', {
+                    method:'POST',
+                    headers:{ 'Content-Type':'application/json', 'x-user-token': token },
+                    body: JSON.stringify({ config: cfg })
+                });
+                const data = await r.json();
+                if (data.config) wpwState.config = data.config;
+            } catch (e) { console.error('wpwSaveConfig', e); }
+        }
+
+        function wpwBindControls() {
+            document.querySelectorAll('.wpw-pill-group').forEach(grp => {
+                grp.addEventListener('click', e => {
+                    const b = e.target.closest('.wpw-pill');
+                    if (!b) return;
+                    grp.querySelectorAll('.wpw-pill').forEach(p => p.classList.remove('active'));
+                    b.classList.add('active');
+                    wpwUpdatePreviewAndCode();
+                    wpwQueueSave();
+                });
+            });
+            document.querySelectorAll('#wpwOverlays input[type=checkbox]').forEach(cb => {
+                cb.addEventListener('change', () => { wpwUpdatePreviewAndCode(); wpwQueueSave(); });
+            });
+            const acc = document.getElementById('wpwAccent');
+            if (acc) acc.addEventListener('input', () => { wpwUpdatePreviewAndCode(); wpwQueueSave(); });
+            const rad = document.getElementById('wpwRadius');
+            if (rad) rad.addEventListener('input', () => {
+                document.getElementById('wpwRadiusVal').textContent = rad.value;
+                wpwUpdatePreviewAndCode(); wpwQueueSave();
+            });
+        }
+
+        function wpwQueueSave() {
+            if (wpwConfigSaveTimer) clearTimeout(wpwConfigSaveTimer);
+            wpwConfigSaveTimer = setTimeout(wpwSaveConfig, 600);
+        }
+
+        async function wpwStartCheckout() {
+            const token = localStorage.getItem('userToken');
+            if (!token) { window.location.href = '/users'; return; }
+            const btn = document.getElementById('wpwSubscribeBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
+            try {
+                const r = await fetch('/api/widgets/wti-pro/checkout', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json();
+                if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                if (data.already_active) { wpwLoadStatus(); return; }
+                alert('Could not start checkout. Please try again.');
+            } catch (e) {
+                alert('Checkout failed. Please try again.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Subscribe — €1.49/month'; }
+            }
+        }
+
+        async function wpwRotateToken() {
+            if (!confirm('Generate a new embed token? Any embeds using the current token will stop working until you update them.')) return;
+            const token = localStorage.getItem('userToken');
+            try {
+                const r = await fetch('/api/widgets/wti-pro/rotate-token', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json();
+                if (data.embed_token) {
+                    wpwState.embed_token = data.embed_token;
+                    wpwUpdatePreviewAndCode();
+                    alert('New embed token generated. Update your embed code on all sites.');
+                }
+            } catch (e) { alert('Failed to rotate token.'); }
+        }
+
+        async function wpwCancel() {
+            if (!confirm('Cancel your WTI Pro Widget subscription? You will keep access until the end of your billing period.')) return;
+            const token = localStorage.getItem('userToken');
+            try {
+                const r = await fetch('/api/widgets/wti-pro/cancel', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                if (r.ok) { wpwLoadStatus(); }
+                else { alert('Could not cancel. Please try again.'); }
+            } catch (e) { alert('Cancel failed.'); }
+        }
+
+        function wpwCopy(textareaId, btn) {
+            const ta = document.getElementById(textareaId);
+            if (!ta) return;
+            ta.select();
+            try {
+                navigator.clipboard.writeText(ta.value);
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 1600);
+            } catch (e) {
+                document.execCommand('copy');
+            }
+        }
+
+        // Bind controls once DOM is ready
+        document.addEventListener('DOMContentLoaded', function(){
+            wpwBindControls();
+            // Auto-open section if returning from Stripe checkout success
+            try {
+                const qp = new URLSearchParams(location.search);
+                if (qp.get('widget') === 'wti_pro_active') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('wtiProWidgetNavItem');
+                        if (nav) nav.click();
+                    }, 300);
+                }
+            } catch (e) {}
+        });
+        /* ════════════════ End WTI Pro Widget ════════════════ */
 
         async function loadPlans() {
             try {

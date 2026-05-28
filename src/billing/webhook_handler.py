@@ -73,6 +73,11 @@ async def handle_checkout_session_completed(session: dict):
         handle_token_purchase_webhook(session)
         return
 
+    if session.get("metadata", {}).get("type") == "wti_pro_widget":
+        from src.api.wti_pro_widget_routes import handle_widget_checkout_completed
+        handle_widget_checkout_completed(session)
+        return
+
     subscription_id = session.get("subscription")
     
     if subscription_id:
@@ -105,7 +110,14 @@ async def handle_checkout_session_completed(session: dict):
 
 async def handle_subscription_updated(subscription: dict):
     logger.info(f"Processing customer.subscription.updated: {subscription['id']}")
-    
+
+    try:
+        from src.api.wti_pro_widget_routes import handle_widget_subscription_event
+        if handle_widget_subscription_event(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Widget subscription event handler error: {e}")
+
     customer_id = subscription.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -136,7 +148,14 @@ async def handle_subscription_updated(subscription: dict):
 
 async def handle_subscription_deleted(subscription: dict):
     logger.info(f"Processing customer.subscription.deleted: {subscription['id']}")
-    
+
+    try:
+        from src.api.wti_pro_widget_routes import handle_widget_subscription_deleted
+        if handle_widget_subscription_deleted(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Widget subscription deleted handler error: {e}")
+
     customer_id = subscription.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -162,7 +181,21 @@ async def handle_invoice_paid(invoice: dict):
     subscription_id = invoice.get("subscription")
     if not subscription_id:
         return
-    
+
+    # Widget invoices must never touch main user subscription state
+    try:
+        from src.db.db import get_cursor as _gc
+        with _gc(commit=False) as _cur:
+            _cur.execute(
+                "SELECT 1 FROM user_pro_widgets WHERE stripe_subscription_id = %s",
+                (subscription_id,)
+            )
+            if _cur.fetchone():
+                logger.info(f"invoice.paid {invoice['id']} is for a widget subscription — skipping main user_plans logic")
+                return
+    except Exception as e:
+        logger.error(f"Widget invoice-isolation check failed: {e}")
+
     customer_id = invoice.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -190,7 +223,22 @@ async def handle_invoice_paid(invoice: dict):
 
 async def handle_invoice_payment_failed(invoice: dict):
     logger.info(f"Processing invoice.payment_failed: {invoice['id']}")
-    
+
+    subscription_id = invoice.get("subscription")
+    if subscription_id:
+        try:
+            from src.db.db import get_cursor as _gc
+            with _gc(commit=False) as _cur:
+                _cur.execute(
+                    "SELECT 1 FROM user_pro_widgets WHERE stripe_subscription_id = %s",
+                    (subscription_id,)
+                )
+                if _cur.fetchone():
+                    logger.info(f"invoice.payment_failed {invoice['id']} is for a widget subscription — skipping main user_plans logic")
+                    return
+        except Exception as e:
+            logger.error(f"Widget invoice-isolation check failed: {e}")
+
     customer_id = invoice.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
