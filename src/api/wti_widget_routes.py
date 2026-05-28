@@ -63,28 +63,37 @@ def _fetch_widget_data():
         "ORDER BY date DESC, hour DESC LIMIT 1"
     )
 
+    # Daily history (for Pro widget 7D / 30D charts)
+    daily_hist = execute_production_query(
+        "SELECT date, wti_price FROM oil_price_snapshots "
+        "WHERE wti_price IS NOT NULL "
+        "ORDER BY date DESC LIMIT 30"
+    ) or []
+    daily_hist = list(reversed(daily_hist))
+
     return {
         'intraday': intraday,
         'daily': daily,
         'geri_live': geri_live,
         'intraday_brent': intraday_brent,
+        'daily_hist': daily_hist,
     }
 
 
-def _build_mini_chart_svg(rows, color=WTI_COLOR, height=80, width=320):
-    """Compact intraday sparkline for the widget."""
+def _build_mini_chart_svg(rows, color=WTI_COLOR, height=80, width=320, price_key='price', empty_msg='Awaiting intraday data'):
+    """Compact sparkline for the widget. Works for intraday or daily rows."""
     if not rows or len(rows) < 2:
         return (
             f'<svg viewBox="0 0 {width} {height}" '
             f'xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">'
             f'<text x="{width/2}" y="{height/2+4}" text-anchor="middle" font-size="11" '
-            f'fill="#64748b" font-family="Inter,system-ui,sans-serif">Awaiting intraday data</text>'
+            f'fill="#64748b" font-family="Inter,system-ui,sans-serif">{empty_msg}</text>'
             f'</svg>'
         )
     PAD_L, PAD_R, PAD_T, PAD_B = 8, 8, 6, 6
     cw = width - PAD_L - PAD_R
     ch = height - PAD_T - PAD_B
-    vals = [float(r['price']) for r in rows if r.get('price') is not None]
+    vals = [float(r[price_key]) for r in rows if r.get(price_key) is not None]
     vmin, vmax = min(vals), max(vals)
     if vmin == vmax:
         vmax = vmin * 1.001 + 0.0001
@@ -93,16 +102,20 @@ def _build_mini_chart_svg(rows, color=WTI_COLOR, height=80, width=320):
     pts = []
     for i, r in enumerate(rows):
         x = PAD_L + (i / max(n - 1, 1)) * cw
-        y = PAD_T + ch - ((float(r['price']) - vmin) / rng) * ch
+        y = PAD_T + ch - ((float(r[price_key]) - vmin) / rng) * ch
         pts.append((x, y))
     path_d = 'M ' + ' L '.join(f'{p[0]:.1f} {p[1]:.1f}' for p in pts)
     area_d = path_d + f' L {pts[-1][0]:.1f} {PAD_T+ch:.1f} L {pts[0][0]:.1f} {PAD_T+ch:.1f} Z'
+    # Axis labels: first & last values, low/high range hint
+    label_first = f'${vals[0]:.2f}'
+    label_last  = f'${vals[-1]:.2f}'
     return (
         f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="none" '
         f'xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">'
         f'<path d="{area_d}" fill="{color}" opacity="0.14"/>'
         f'<path d="{path_d}" fill="none" stroke="{color}" stroke-width="1.8" '
         f'stroke-linejoin="round" stroke-linecap="round"/>'
+        f'<circle cx="{pts[-1][0]:.1f}" cy="{pts[-1][1]:.1f}" r="2.5" fill="{color}"/>'
         f'</svg>'
     )
 
@@ -116,6 +129,7 @@ def _render_widget_html(data, *, pro=False):
     daily    = data['daily']
     geri     = data['geri_live']
     brent    = data['intraday_brent']
+    daily_hist = data.get('daily_hist') or []
 
     # Price: prefer intraday, fall back to daily
     if intraday:
@@ -156,6 +170,25 @@ def _render_widget_html(data, *, pro=False):
     geri_color = BAND_COLORS.get(geri_band, '#f97316')
 
     mini = _build_mini_chart_svg(intraday)
+
+    # Pro-only: 7D and 30D daily charts from oil_price_snapshots
+    if pro:
+        hist_30 = daily_hist[-30:] if daily_hist else []
+        hist_7  = daily_hist[-7:]  if daily_hist else []
+        chart_30_svg = _build_mini_chart_svg(hist_30, color=WTI_COLOR, height=70, price_key='wti_price', empty_msg='Awaiting daily data')
+        chart_7_svg  = _build_mini_chart_svg(hist_7,  color=WTI_COLOR, height=70, price_key='wti_price', empty_msg='Awaiting daily data')
+        def _range_meta(rows):
+            if not rows: return ('—','—','—')
+            vals = [float(r['wti_price']) for r in rows]
+            lo, hi = min(vals), max(vals)
+            first, last = vals[0], vals[-1]
+            chg_p = ((last - first) / first * 100) if first else 0.0
+            return (f'${lo:.2f}', f'${hi:.2f}', f'{chg_p:+.2f}%')
+        lo7, hi7, ch7 = _range_meta(hist_7)
+        lo30, hi30, ch30 = _range_meta(hist_30)
+    else:
+        chart_30_svg = chart_7_svg = ''
+        lo7=hi7=ch7=lo30=hi30=ch30='—'
 
     # Pro styling vs Free styling
     if pro:
@@ -279,6 +312,39 @@ def _render_widget_html(data, *, pro=False):
     padding:2px 8px; border-radius:10px;
   }}
   .erq-ts{{font-size:9.5px; color:#64748b; margin-top:2px;}}
+  .erq-daily-panel{{
+    margin-top:12px; padding-top:10px;
+    border-top:1px dashed rgba(255,255,255,0.08);
+  }}
+  .erq-daily-head{{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:6px;
+  }}
+  .erq-daily-label{{
+    font-size:9.5px; font-weight:800; letter-spacing:1.2px;
+    text-transform:uppercase; color:#94a3b8;
+  }}
+  .erq-range-toggle{{display:inline-flex; gap:0;}}
+  .erq-range-toggle button{{
+    background:rgba(255,255,255,0.04); color:#64748b;
+    border:1px solid rgba(255,255,255,0.08);
+    font-size:9.5px; font-weight:700; padding:3px 9px;
+    cursor:pointer; font-family:inherit; letter-spacing:0.5px;
+  }}
+  .erq-range-toggle button:first-child{{border-radius:5px 0 0 5px;}}
+  .erq-range-toggle button:last-child{{border-radius:0 5px 5px 0; border-left:none;}}
+  .erq-range-toggle button.active{{
+    background:{accent}22; color:{accent};
+    border-color:{accent}55;
+  }}
+  .erq-daily-stats{{
+    display:flex; justify-content:space-between; gap:10px;
+    font-size:10px; color:#94a3b8; margin-top:4px;
+    font-variant-numeric:tabular-nums;
+  }}
+  .erq-daily-stats b{{color:#cbd5e1; font-weight:700;}}
+  .erq-chart-pane{{display:none;}}
+  .erq-chart-pane.active{{display:block;}}
   @media (max-width:340px){{
     .erq-price{{font-size:24px;}}
     .erq-widget{{padding:12px 14px;}}
@@ -312,11 +378,45 @@ def _render_widget_html(data, *, pro=False):
 
   <div class="erq-ts">Snapshot: {ts_str}</div>
 
+  {('''
+  <div class="erq-daily-panel">
+    <div class="erq-daily-head">
+      <span class="erq-daily-label">Daily Price Chart</span>
+      <span class="erq-range-toggle">
+        <button type="button" data-range="7"  class="active" id="erqR7">7D</button>
+        <button type="button" data-range="30"                id="erqR30">30D</button>
+      </span>
+    </div>
+    <div class="erq-chart-pane active" id="erqPane7">''' + chart_7_svg + f'''
+      <div class="erq-daily-stats">
+        <span><b>Low</b> {lo7}</span>
+        <span><b>High</b> {hi7}</span>
+        <span><b>7D Chg</b> {ch7}</span>
+      </div>
+    </div>
+    <div class="erq-chart-pane" id="erqPane30">''' + chart_30_svg + f'''
+      <div class="erq-daily-stats">
+        <span><b>Low</b> {lo30}</span>
+        <span><b>High</b> {hi30}</span>
+        <span><b>30D Chg</b> {ch30}</span>
+      </div>
+    </div>
+  </div>
+  ''') if pro else ''}
+
   {cite_block}
   {brand_block}
 </div>
 <script>
   document.addEventListener('contextmenu',function(e){{e.preventDefault();}});
+  (function(){{
+    var b7=document.getElementById('erqR7'),b30=document.getElementById('erqR30');
+    var p7=document.getElementById('erqPane7'),p30=document.getElementById('erqPane30');
+    if(b7&&b30&&p7&&p30){{
+      b7.addEventListener('click',function(){{b7.classList.add('active');b30.classList.remove('active');p7.classList.add('active');p30.classList.remove('active');}});
+      b30.addEventListener('click',function(){{b30.classList.add('active');b7.classList.remove('active');p30.classList.add('active');p7.classList.remove('active');}});
+    }}
+  }})();
 </script>
 </body>
 </html>"""
@@ -851,6 +951,7 @@ document.body.style.overflow='';
       <tbody>
         <tr><td>Live WTI Price</td><td><span class="tick">&#10003;</span></td><td><span class="tick">&#10003;</span></td></tr>
         <tr><td>Intraday Chart</td><td><span class="tick">&#10003;</span></td><td><span class="tick">&#10003;</span></td></tr>
+        <tr><td>7-Day &amp; 30-Day Daily Price Chart</td><td><span class="cross">&#10005;</span></td><td><span class="tick">&#10003;</span></td></tr>
         <tr><td>EnergyRiskIQ Branding</td><td>Required</td><td><span class="cross">Removed</span></td></tr>
         <tr><td>Citation Required</td><td>Required</td><td><span class="cross">Not Required</span></td></tr>
         <tr><td>Premium Themes</td><td><span class="cross">&#10005;</span></td><td><span class="tick">&#10003;</span></td></tr>
