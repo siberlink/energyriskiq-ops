@@ -1,0 +1,324 @@
+🔥 PUBLIC PAGE BLUEPRINT
+/widgets/wti-crude-oil-price
+
+This page has 5 simultaneous goals:
+
+Rank on Google
+Generate backlinks
+Generate embeds
+Convert visitors into accounts
+Convert accounts into €1.49/month users
+
+This is NOT just a widget page.
+
+It is:
+
+SEO + Distribution + SaaS Landing Page
+🧱 PAGE STRUCTURE
+🔝 1. HERO SECTION (ABOVE THE FOLD)
+H1
+Free WTI Crude Oil Price Widget for Websites
+Subtitle
+
+Embed a live WTI crude oil price widget on your website, app, dashboard, or financial blog. Automatically updated with intraday oil market data and EnergyRiskIQ signals.
+
+HERO CTA BUTTONS
+Primary CTA
+
+👉 Get Free Widget Code
+
+(scrolls to embed section)
+
+Secondary CTA
+
+👉 Unlock Unbranded Professional Widget (€1.49/month)
+
+🔥 TRUST MICRO-BAR
+
+Small icons/text:
+
+✅ Intraday WTI Updates
+✅ Free Commercial Use
+✅ Mobile Responsive
+✅ Fast Embed
+✅ Energy Market Signals
+
+📊 2. LIVE WIDGET PREVIEW (VERY IMPORTANT)
+
+This is the MOST important section.
+
+Visitors must immediately:
+
+see the widget
+imagine it on their site
+understand the value
+SECTION TITLE
+Live WTI Oil Widget Preview
+FREE PUBLIC WIDGET STRUCTURE
+┌──────────────────────────────┐
+│ WTI Crude Oil Price Today    │
+│ Updated Live • EnergyRiskIQ │
+├──────────────────────────────┤
+│                              │
+│ $74.82                       │
+│ +1.44 (+1.96%) ↑            │
+│                              │
+│ [ Mini Intraday Chart ]     │
+│                              │
+│ 🔴 Elevated Energy Risk      │
+│                              │
+│ Brent Spread: +$4.12         │
+│                              │
+│ View Full Oil Analysis →     │
+└──────────────────────────────┘
+INCLUDED DATA SOURCES
+
+Use:
+
+intraday_wti
+geri_live
+intraday_brent
+🔥 IMPORTANT DESIGN RULES
+The widget must:
+
+✅ load instantly
+✅ look premium
+✅ feel “Bloomberg-lite”
+✅ be clean and minimal
+
+Avoid:
+
+❌ too many indicators
+❌ clutter
+❌ giant legends
+
+🧩 3. EMBED SECTION (CRITICAL)
+Title
+Copy & Paste This Widget Into Your Site
+EMBED CODE BOX
+<iframe
+  src="https://energyriskiq.com/embed/wti-crude-oil-widget"
+  width="100%"
+  height="260"
+  frameborder="0">
+</iframe>
+COPY BUTTON
+
+VERY important.
+
+MICRO TEXT
+Free to use with EnergyRiskIQ attribution.
+🔥 4. “WHY THIS WIDGET?” SECTION (SEO + PERSUASION)
+Title
+Why Publishers & Analysts Use This WTI Widget
+4 CARDS
+📈 Live Intraday Oil Data
+
+Powered by continuously updated WTI market data.
+
+Uses:
+
+intraday_wti
+⚠️ Energy Risk Context
+
+Includes real-time EnergyRiskIQ market signals powered by GERI.
+
+Uses:
+
+geri_live
+⚡ Fast Lightweight Embed
+
+Optimized for:
+
+blogs
+dashboards
+finance apps
+📱 Mobile Responsive
+
+Automatically adapts to:
+
+desktop
+tablet
+mobile
+💰 5. FREE VS PRO COMPARISON (MOST IMPORTANT SALES SECTION)
+Title
+Free vs Professional Widget
+Feature	Free Widget	Pro Widget (€1.49/mo)
+Live WTI Price	✅	✅
+Intraday Chart	✅	✅
+EnergyRiskIQ Branding	✅ Required	❌ Removed
+Citation Required	✅	❌
+Premium Themes	❌	✅
+Custom Colors	❌	✅
+Transparent Background	❌	✅
+Overlay Options	❌	✅
+Advanced Layouts	❌	✅
+White-label Usage	❌	✅
+CTA UNDER TABLE
+
+👉 Create Free Account & Unlock Pro Widget
+
+🔥 6. PROFESSIONAL WIDGET PREVIEW (VERY IMPORTANT)
+
+This section sells the upgrade.
+
+TITLE
+Professional Unbranded Oil Widget
+Show:
+cleaner version
+no branding
+transparent background
+more premium chart
+IMPORTANT:
+
+The difference must be VISUAL.
+
+People buy visually.
+
+CTA
+
+👉 Upgrade for €1.49/month
+
+🧠 7. SEO CONTENT SECTION (EXTREMELY IMPORTANT)
+
+This section ranks the page.
+
+TITLE
+WTI Crude Oil Price Today
+Content Topics
+What is WTI Crude Oil?
+
+Explain:
+
+US oil benchmark
+importance in markets
+Why Oil Prices Matter
+
+Discuss:
+
+inflation
+fuel prices
+markets
+economy
+What Moves WTI Prices?
+
+Mention:
+
+geopolitical risk
+inventories
+OPEC+
+volatility
+INTERNAL LINKS (VERY IMPORTANT)
+
+Link naturally to:
+
+WTI Crude Oil Price Today Data Page
+Brent Crude Oil Price Today
+Natural Gas Price Today Europe
+Global Energy Risk Index (GERI)
+Global Energy Risk Timeline
+🔥 8. USE CASES SECTION
+TITLE
+Perfect For
+
+Cards:
+
+✅ Financial blogs
+✅ Trading communities
+✅ Market dashboards
+✅ Investment newsletters
+✅ Energy companies
+✅ Economic research websites
+
+🔗 9. BACKLINK ENGINE SECTION
+TITLE
+Powered by EnergyRiskIQ
+
+Explain:
+
+free use allowed
+attribution required
+helps visitors access deeper market analysis
+IMPORTANT:
+
+The branding must link back to:
+
+https://energyriskiq.com/data/wti-crude-oil-price-today
+
+NOT homepage.
+
+This is critical for topical authority.
+
+❓ 10. FAQ SECTION (FEATURED SNIPPETS)
+
+Questions:
+
+How do I embed the WTI oil widget?
+Is the widget free?
+How often is WTI data updated?
+Can I use the widget commercially?
+Can I remove EnergyRiskIQ branding?
+Is there an unbranded version?
+💰 11. FINAL CONVERSION BLOCK
+TITLE
+Upgrade to the Professional Oil Widget
+Copy
+
+Remove branding, customize appearance, and integrate a premium oil market widget into your website, app, or trading dashboard.
+
+CTA BUTTON
+
+👉 Create Free Account
+
+📜 12. FOOTER / LICENSE
+
+Include:
+
+Data disclaimer
+Link to:
+Data License
+🔥 SEO STRUCTURE
+URL
+/widgets/wti-crude-oil-price
+META TITLE
+
+Free WTI Crude Oil Price Widget for Websites | EnergyRiskIQ
+
+META DESCRIPTION
+
+Embed a live WTI crude oil price widget on your website or app. Free oil price widget with intraday updates, charts, and energy risk signals.
+
+PRIMARY KEYWORDS
+wti crude oil price widget
+oil price widget
+wti widget
+live oil price widget
+embed oil price chart
+SECONDARY KEYWORDS
+crude oil widget
+wti price today
+oil market widget
+oil chart widget
+🔥 DATABASE MAPPING
+Main Data
+intraday_wti
+current price
+intraday chart
+Supporting Data
+geri_live
+risk signal
+intraday_brent
+Brent spread
+Optional Future
+vix_snapshots
+volatility regime
+🚀 MOST IMPORTANT STRATEGIC INSIGHT
+
+This page is NOT:
+❌ “download widget”
+
+It is:
+
+SEO Landing Page + Distribution Engine + SaaS Funnel
+
+That distinction is extremely important.

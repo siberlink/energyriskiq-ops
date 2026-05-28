@@ -1270,6 +1270,7 @@ async def sitemap_data_xml():
         (f"{BASE_URL}/data/ttf-gas-price-today",             "daily",  "0.9"),
         (f"{BASE_URL}/data/natural-gas-price-today-europe",  "daily",  "0.9"),
         (f"{BASE_URL}/data/wti-crude-oil-price-today",       "daily",  "0.9"),
+        (f"{BASE_URL}/widgets/wti-crude-oil-price",          "weekly", "0.8"),
     ]
     urls = ''
     for loc, freq, pri in pages:
