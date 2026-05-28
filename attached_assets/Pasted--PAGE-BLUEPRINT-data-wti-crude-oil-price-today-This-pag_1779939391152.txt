@@ -1,0 +1,341 @@
+🔥 PAGE BLUEPRINT
+/data/wti-crude-oil-price-today
+
+This page has HUGE potential because:
+
+👉 “WTI crude oil price today” is:
+
+high search intent
+global audience
+finance + macro + trader traffic
+daily recurring demand
+
+But to compete, you cannot build:
+❌ another generic oil chart page
+
+You must build:
+✅ oil price + risk intelligence + market context
+
+That’s your edge.
+
+🔝 1. HERO SECTION (ABOVE THE FOLD)
+H1:
+
+WTI Crude Oil Price Today (West Texas Intermediate)
+
+Subheading:
+
+Track the latest WTI crude oil price, intraday market moves, volatility, and global energy risk signals. Updated continuously with market context and analysis.
+
+PRIMARY PRICE CARD
+
+Display:
+
+Current WTI Price
+Daily Change ($)
+Daily Change (%)
+Intraday status
+Last updated timestamp
+
+Example:
+
+WTI Crude Oil
+$74.82
++1.44 (+1.96%)
+Updated 5 min ago
+CTA BLOCK
+Primary CTA:
+
+👉 Get Free Daily Oil & Energy Risk Alerts
+
+Secondary CTA:
+
+👉 Unlock Real-Time Market Signals (Pro)
+
+📈 2. MAIN WTI PRICE CHART (CORE ENGAGEMENT)
+Title:
+
+WTI Crude Oil Price Chart
+
+Timeframes:
+
+1D
+5D
+1M
+3M
+YTD
+1Y
+🔥 OVERLAYS (VERY IMPORTANT)
+
+This is where EnergyRiskIQ becomes unique.
+
+Allow overlays:
+
+Brent Crude
+VIX
+GERI
+Natural Gas
+TTF Gas
+Why this matters:
+
+You transform:
+❌ “price chart”
+
+Into:
+✅ “macro energy intelligence”
+
+⚡ 3. MARKET SNAPSHOT BLOCK
+Title:
+
+Oil Market Snapshot
+
+Display:
+
+WTI Trend
+Brent Spread
+VIX Level
+GERI Risk Level
+Risk Regime
+
+Example:
+
+WTI Trend: Bullish
+Brent-WTI Spread: +$4.12
+GERI: Elevated
+VIX: Stable
+Internal Links:
+Brent page
+GERI page
+Forecast page
+🧠 4. WHY WTI OIL PRICE MATTERS (SEO GOLD)
+Title:
+
+Why WTI Crude Oil Prices Matter
+
+SEO-focused educational content:
+
+Topics:
+
+WTI as US benchmark
+Inflation impact
+Fuel prices
+Global economy
+Freight & logistics
+Energy markets
+Internal Links:
+
+👉 /indices/global-energy-risk-index
+👉 /data/brent-crude-oil-price-today
+
+🔥 5. WHAT DRIVES WTI OIL PRICES? (HIGH SEO VALUE)
+Title:
+
+What Moves WTI Crude Oil Prices?
+
+Break into sections:
+
+1. OPEC+ Decisions
+supply cuts
+production targets
+2. Geopolitical Risk
+
+Link:
+👉 /research/global-energy-risk-timeline
+👉 /indices/global-energy-risk-index
+
+3. US Inventory Data
+
+Explain:
+
+EIA inventories
+shale production
+4. Global Demand
+China demand
+industrial activity
+recession fears
+5. Financial Markets
+USD
+VIX
+risk sentiment
+6. Natural Gas & LNG
+
+Link:
+👉 /data/natural-gas-price-today-europe
+👉 /data/jkm-lng-spot-price
+
+🚨 6. GLOBAL ENERGY RISK SECTION (YOUR MOAT)
+Title:
+
+Oil Prices & Energy Risk Signals
+
+Display:
+
+GERI
+latest risk level
+recent high-impact events
+Explain:
+
+“Oil prices often react to geopolitical disruptions before traditional economic indicators.”
+
+CTA:
+
+👉 Unlock Real-Time Risk Signals
+
+📉 7. BRENT VS WTI COMPARISON (VERY STRONG)
+Title:
+
+Brent vs WTI Crude Oil
+
+Display:
+
+current spread
+historical spread chart
+explanation
+Why it matters:
+
+This creates:
+✅ stickiness
+✅ SEO
+✅ trader relevance
+
+Internal Link:
+
+👉 /data/brent-crude-oil-price-today
+
+🧾 8. DAILY MARKET COMMENTARY (RETENTION ENGINE)
+Title:
+
+Today’s WTI Oil Market Analysis
+
+Auto-generated:
+
+2–3 sentence summary
+directional outlook
+key drivers
+
+Example:
+
+WTI crude oil moved higher today as geopolitical tensions and declining US inventories supported bullish sentiment...
+
+👉 This is what keeps people coming back daily.
+
+📊 9. HISTORICAL DATA TABLE
+Title:
+
+WTI Historical Prices
+
+Columns:
+
+Date
+Price
+Change
+% Change
+CTA:
+
+👉 Download CSV (Lead Capture or Pro)
+
+🔗 10. INTERNAL LINKING STRATEGY (VERY IMPORTANT)
+DATA CLUSTER
+
+Link naturally to:
+
+Brent page
+TTF page
+LNG page
+Europe gas price page
+forecast page
+INDEX CLUSTER
+
+Link:
+
+GERI
+EERI
+EGSI
+RESEARCH CLUSTER
+
+Link:
+
+global energy risk timeline
+LNG drivers
+
+👉 You are building:
+
+“Energy Market Topical Authority”
+💰 11. CONVERSION BLOCK
+Title:
+
+Don’t Just Track Oil Prices — Understand What Drives Them
+
+Copy:
+Most platforms show price charts.
+EnergyRiskIQ connects oil prices with:
+
+geopolitical risk
+volatility
+LNG markets
+global energy stress
+CTA:
+
+👉 Get Free Daily Oil & Energy Alerts
+
+❓ 12. FAQ SECTION (FEATURED SNIPPETS)
+
+Questions:
+
+What is WTI crude oil?
+Why is WTI oil important?
+What affects oil prices today?
+Difference between Brent and WTI?
+Will oil prices go up?
+📜 13. DATA LICENSE BLOCK
+
+Link:
+👉 /data-license
+
+🔥 SEO STRUCTURE
+Meta Title:
+
+WTI Crude Oil Price Today | Live Oil Chart & Market Analysis
+
+Meta Description:
+
+Track the latest WTI crude oil price with live charts, historical data, volatility analysis, and global energy risk signals from EnergyRiskIQ.
+
+🎯 TARGET KEYWORDS
+Primary:
+wti crude oil price today
+Secondary:
+wti oil price
+crude oil price today
+oil price chart
+wti price live
+Long-tail:
+why oil prices are rising
+brent vs wti
+what affects oil prices today
+🔥 WHAT MAKES THIS PAGE DIFFERENT
+
+Most pages:
+❌ chart only
+
+Your page:
+✅ chart + macro context + risk intelligence
+
+That’s the moat.
+
+🚀 HIGH-IMPACT ADDITIONS (VERY RECOMMENDED)
+1. Oil vs GERI Overlay
+
+EXTREMELY powerful
+
+2. Oil vs VIX Overlay
+
+Macro traders love this
+
+3. “Risk Events Affecting Oil”
+
+Mini timeline
+
+4. “Oil Market Regime”
+
+Bullish / Bearish / Risk-Off
