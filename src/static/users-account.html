@@ -14277,7 +14277,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         }
 
         async function wpwSaveConfig() {
-            const token = localStorage.getItem('userToken');
+            const token = wpwGetAuthToken();
             if (!token) return;
             const cfg = wpwReadConfigFromUI();
             try {
@@ -14320,18 +14320,27 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         }
 
         async function wpwStartCheckout() {
-            const token = localStorage.getItem('userToken');
-            if (!token) { window.location.href = '/users'; return; }
+            const token = wpwGetAuthToken();
             const btn = document.getElementById('wpwSubscribeBtn');
+            if (!token) {
+                alert('Please sign in again to subscribe.');
+                return;
+            }
             if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
             try {
                 const r = await fetch('/api/widgets/wti-pro/checkout', {
                     method:'POST', headers:{ 'x-user-token': token }});
-                const data = await r.json();
+                if (r.status === 401) {
+                    alert('Your session expired. Please sign in again.');
+                    return;
+                }
+                let data = {};
+                try { data = await r.json(); } catch (e) {}
                 if (data.checkout_url) { window.location.href = data.checkout_url; return; }
                 if (data.already_active) { wpwLoadStatus(); return; }
-                alert('Could not start checkout. Please try again.');
+                alert((data && data.detail) ? ('Could not start checkout: ' + data.detail) : 'Could not start checkout. Please try again.');
             } catch (e) {
+                console.error('wpwStartCheckout', e);
                 alert('Checkout failed. Please try again.');
             } finally {
                 if (btn) { btn.disabled = false; btn.textContent = 'Subscribe — €1.49/month'; }
@@ -14340,7 +14349,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         async function wpwRotateToken() {
             if (!confirm('Generate a new embed token? Any embeds using the current token will stop working until you update them.')) return;
-            const token = localStorage.getItem('userToken');
+            const token = wpwGetAuthToken();
             try {
                 const r = await fetch('/api/widgets/wti-pro/rotate-token', {
                     method:'POST', headers:{ 'x-user-token': token }});
@@ -14355,7 +14364,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         async function wpwCancel() {
             if (!confirm('Cancel your WTI Pro Widget subscription? You will keep access until the end of your billing period.')) return;
-            const token = localStorage.getItem('userToken');
+            const token = wpwGetAuthToken();
             try {
                 const r = await fetch('/api/widgets/wti-pro/cancel', {
                     method:'POST', headers:{ 'x-user-token': token }});
