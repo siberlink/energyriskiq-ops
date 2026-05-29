@@ -350,6 +350,93 @@ async def widget_checkout(x_user_token: Optional[str] = Header(None)):
     return {"checkout_url": session.url}
 
 
+@router.post("/api/widgets/wti-pro/confirm")
+async def widget_confirm(x_user_token: Optional[str] = Header(None)):
+    """Activate the widget by checking Stripe directly (webhook-independent).
+
+    Called by the account page when the user returns from Stripe Checkout. Looks
+    up the user's Stripe customer subscriptions and activates the widget row if a
+    matching live subscription is found. This makes activation reliable even when
+    the Stripe webhook is delayed or misconfigured.
+    """
+    user = _get_user_from_token(x_user_token)
+    if not user:
+        raise HTTPException(401, "Authentication required")
+    row = _get_or_create_widget_row(user["id"])
+
+    if _widget_is_active(row) and row.get("stripe_subscription_id"):
+        return {"active": True, "status": row["status"]}
+
+    init_stripe()
+
+    # Resolve the Stripe customer for the *current* mode. The stored customer_id
+    # may belong to the other Stripe mode (live vs sandbox) — validate it, and if
+    # it is not usable in this mode, fall back to looking the customer up by the
+    # user_id metadata we set at customer creation.
+    customer_id = user.get("stripe_customer_id")
+    if customer_id:
+        try:
+            cust = stripe.Customer.retrieve(customer_id)
+            if cust.get("deleted"):
+                customer_id = None
+        except Exception:
+            customer_id = None
+    if not customer_id:
+        try:
+            found = stripe.Customer.search(
+                query=f"metadata['user_id']:'{user['id']}'", limit=1
+            )
+            if found.get("data"):
+                customer_id = found["data"][0]["id"]
+        except Exception as e:
+            logger.error(f"Widget confirm: customer search failed: {e}")
+    if not customer_id:
+        return {"active": False, "status": row["status"]}
+
+    try:
+        subs = stripe.Subscription.list(
+            customer=customer_id, status="all", limit=100
+        )
+    except Exception as e:
+        logger.error(f"Widget confirm: could not list subscriptions: {e}")
+        return {"active": False, "status": row["status"]}
+
+    matched = None
+    for sub in subs.get("data", []):
+        meta = sub.get("metadata") or {}
+        if meta.get("type") == "wti_pro_widget" and sub.get("status") in (
+            "active", "trialing",
+        ):
+            matched = sub
+            break
+
+    if not matched:
+        return {"active": False, "status": row["status"]}
+
+    subscription_id = matched.get("id")
+    period_end = matched.get("current_period_end")
+    period_end_dt = datetime.utcfromtimestamp(period_end) if period_end else None
+    cancel_at_end = matched.get("cancel_at_period_end")
+    stripe_status = matched.get("status", "active")
+    local_status = "canceling" if cancel_at_end else stripe_status
+
+    with get_cursor() as cur:
+        cur.execute("""
+            UPDATE user_pro_widgets
+            SET stripe_subscription_id = %s,
+                stripe_customer_id = %s,
+                status = %s,
+                current_period_end = %s,
+                updated_at = NOW()
+            WHERE id = %s
+        """, (subscription_id, customer_id, local_status, period_end_dt, row["id"]))
+    logger.info(f"WTI Pro Widget activated via confirm for user {user['id']}")
+    return {
+        "active": local_status in ("active", "trialing", "canceling"),
+        "status": local_status,
+    }
+
+
 @router.post("/api/widgets/wti-pro/config")
 async def widget_config_update(body: ConfigUpdate,
                                x_user_token: Optional[str] = Header(None)):

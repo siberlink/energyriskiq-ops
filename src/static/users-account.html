@@ -14387,6 +14387,27 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
         }
 
+        // After returning from Stripe checkout, confirm activation directly with
+        // Stripe (webhook-independent) and retry briefly until the sub is active.
+        async function wpwConfirmAfterCheckout(_attempt) {
+            const attempt = (_attempt || 0) + 1;
+            const token = wpwGetAuthToken();
+            if (!token) {
+                if (attempt < 15) { setTimeout(() => wpwConfirmAfterCheckout(attempt), 300); return; }
+                wpwLoadStatus();
+                return;
+            }
+            try {
+                const r = await fetch('/api/widgets/wti-pro/confirm', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json().catch(() => ({}));
+                if (data && data.active) { wpwLoadStatus(); return; }
+            } catch (e) { console.error('wpwConfirmAfterCheckout', e); }
+            // Stripe may take a moment to finalize the subscription — retry a few times
+            if (attempt < 8) { setTimeout(() => wpwConfirmAfterCheckout(attempt), 1500); return; }
+            wpwLoadStatus();
+        }
+
         // Bind controls once DOM is ready
         document.addEventListener('DOMContentLoaded', function(){
             wpwBindControls();
@@ -14397,6 +14418,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     setTimeout(() => {
                         const nav = document.getElementById('wtiProWidgetNavItem');
                         if (nav) nav.click();
+                        wpwConfirmAfterCheckout();
                     }, 300);
                 }
             } catch (e) {}
