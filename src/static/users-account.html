@@ -5870,6 +5870,17 @@
                 Pro Widget — WTI
                 <span class="pro-badge-nav" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9);font-size:9px;padding:2px 6px;">€1.49</span>
             </a>
+            <a class="nav-item" id="indicesHistoryNavItem" onclick="showSection('indices-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3v18h18"/>
+                        <path d="M7 14l3-3 3 2 4-5"/>
+                        <path d="M21 21l-4-2"/>
+                    </svg>
+                </span>
+                Download Indices History
+                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);font-size:9px;padding:2px 6px;">€1.85</span>
+            </a>
         </div>
 
         <div class="sidebar-section" style="display:none;">
@@ -7772,6 +7783,120 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         <!-- ═══════════════════════════════════════════════════════════════
              WTI Crude Oil Pro Widget — €1.49/month
              ═══════════════════════════════════════════════════════════════ -->
+        <div class="section-content" id="section-indices-history">
+            <div class="content-card">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(124,58,237,.04));">
+                    <div>
+                        <div class="card-title" style="display:flex;align-items:center;gap:10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-5"/><path d="M21 21l-4-2"/></svg>
+                            Download Indices History
+                        </div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Full GERI, EERI, EGSI-M &amp; EGSI-S history · CSV &amp; Excel · €1.85/month</div>
+                    </div>
+                    <span id="ihStatusBadge" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#334155;color:#cbd5e1;">Loading…</span>
+                </div>
+                <div class="card-body" id="ihBody">
+                    <!-- Loader -->
+                    <div class="snap-panel-loader" id="ihLoading" style="display:block;">
+                        <div class="pl-ring-wrap">
+                            <div class="pl-ring-bg"></div>
+                            <div class="pl-arc1"></div>
+                            <div class="pl-arc2"></div>
+                            <div class="pl-arc3"></div>
+                            <div class="pl-dot"></div>
+                        </div>
+                        <div class="pl-label-main">Loading Indices History Access</div>
+                        <div class="pl-label-sub" id="ihLoaderStatus">Connecting to subscription engine&hellip;</div>
+                        <div class="pl-tags">
+                            <span class="pl-tag">GERI</span>
+                            <span class="pl-tag">EERI</span>
+                            <span class="pl-tag">EGSI</span>
+                        </div>
+                        <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                    </div>
+
+                    <!-- INACTIVE STATE: persuasive subscribe pitch -->
+                    <div id="ihInactive" style="display:none;">
+                        <div style="background:linear-gradient(135deg,#0f172a,#0b1220);border:1px solid #1e293b;border-radius:12px;padding:24px;margin-bottom:18px;">
+                            <div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;">EnergyRiskIQ Data Export</div>
+                            <div style="font-size:22px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Own the full risk-index history — download anytime</div>
+                            <div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:18px;">Unlock complete, ready-to-analyse exports of every EnergyRiskIQ risk index — GERI, EERI, EGSI-M and EGSI-S — as clean CSV and formatted Excel files. Stop screenshotting dashboards. Build your own back-tests, correlation studies, board reports and trading models on the same data our intelligence runs on. One simple subscription, unlimited downloads, cancel anytime.</div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:20px;">
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px;">✓ FULL HISTORY</div><div style="font-size:11px;color:#cbd5e1;">Every recorded daily value, not just the latest</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px;">✓ CSV + EXCEL</div><div style="font-size:11px;color:#cbd5e1;">Drop straight into Python, R, Excel or BI tools</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px;">✓ 4 RISK INDICES</div><div style="font-size:11px;color:#cbd5e1;">GERI, EERI, EGSI-M &amp; EGSI-S in one place</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px;">✓ UNLIMITED &amp; FRESH</div><div style="font-size:11px;color:#cbd5e1;">Re-download as often as you like, always current</div></div>
+                            </div>
+                            <div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.22);border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+                                <div style="font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px;">What you can do with it</div>
+                                <div style="font-size:12px;color:#cbd5e1;line-height:1.6;">Back-test how energy-risk regimes moved before major price swings · quantify correlation between GERI and Brent/TTF · feed bands &amp; trends into your own alerting · produce defensible charts for investment committees and clients · maintain an auditable local archive of risk levels over time.</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                                <button id="ihSubscribeBtn" onclick="ihStartCheckout()" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;">Subscribe — €1.85/month</button>
+                                <span style="color:#64748b;font-size:12px;">Secure checkout via Stripe · cancel anytime</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVE STATE: download cards -->
+                    <div id="ihActive" style="display:none;">
+                        <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04));border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                            <div style="background:#10b981;color:#0b1220;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">✓</div>
+                            <div style="flex:1;min-width:200px;">
+                                <div style="font-size:12px;font-weight:700;color:#34d399;margin-bottom:2px;">Your downloads are unlocked</div>
+                                <div style="font-size:11px;color:#cbd5e1;line-height:1.4;" id="ihBillingMeta">€1.85 / month</div>
+                            </div>
+                            <button id="ihCancelBtn" onclick="ihCancel()" style="background:transparent;border:1px solid #475569;color:#cbd5e1;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">Cancel subscription</button>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+                            <!-- GERI -->
+                            <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;">
+                                <div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">GERI History</div>
+                                <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Global Energy Risk Index</div>
+                                <div style="font-size:11.5px;color:#94a3b8;line-height:1.5;margin-bottom:14px;">Daily GERI value, risk band, 1-day &amp; 7-day trend, and computation timestamp — full recorded history.</div>
+                                <div style="display:flex;gap:8px;">
+                                    <button onclick="ihDownload('geri','csv',this)" style="flex:1;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;border:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">CSV</button>
+                                    <button onclick="ihDownload('geri','xlsx',this)" style="flex:1;background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">Excel</button>
+                                </div>
+                            </div>
+                            <!-- EERI -->
+                            <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;">
+                                <div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">EERI History</div>
+                                <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">European Energy Risk Index</div>
+                                <div style="font-size:11.5px;color:#94a3b8;line-height:1.5;margin-bottom:14px;">Daily EERI value, risk band, 1-day &amp; 7-day trend, and computation timestamp — full recorded history.</div>
+                                <div style="display:flex;gap:8px;">
+                                    <button onclick="ihDownload('eeri','csv',this)" style="flex:1;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;border:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">CSV</button>
+                                    <button onclick="ihDownload('eeri','xlsx',this)" style="flex:1;background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">Excel</button>
+                                </div>
+                            </div>
+                            <!-- EGSI-M -->
+                            <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;">
+                                <div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">EGSI-M History</div>
+                                <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">European Gas Storage Index — Macro</div>
+                                <div style="font-size:11.5px;color:#94a3b8;line-height:1.5;margin-bottom:14px;">Daily EGSI-M value, risk band, 1-day &amp; 7-day trend, and computation timestamp — full recorded history.</div>
+                                <div style="display:flex;gap:8px;">
+                                    <button onclick="ihDownload('egsi-m','csv',this)" style="flex:1;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;border:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">CSV</button>
+                                    <button onclick="ihDownload('egsi-m','xlsx',this)" style="flex:1;background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">Excel</button>
+                                </div>
+                            </div>
+                            <!-- EGSI-S -->
+                            <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;">
+                                <div style="font-size:11px;font-weight:700;color:#a78bfa;letter-spacing:.6px;text-transform:uppercase;margin-bottom:4px;">EGSI-S History</div>
+                                <div style="font-size:15px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">European Gas Storage Index — Supply</div>
+                                <div style="font-size:11.5px;color:#94a3b8;line-height:1.5;margin-bottom:14px;">Daily EGSI-S value, risk band, 1-day &amp; 7-day trend, and computation timestamp — full recorded history.</div>
+                                <div style="display:flex;gap:8px;">
+                                    <button onclick="ihDownload('egsi-s','csv',this)" style="flex:1;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;border:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">CSV</button>
+                                    <button onclick="ihDownload('egsi-s','xlsx',this)" style="flex:1;background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;">Excel</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size:11px;color:#64748b;margin-top:16px;line-height:1.5;">Files include up to the most recent 1,000 daily records per index. Data is provided under the EnergyRiskIQ <a href="/data-license" target="_blank" style="color:#a78bfa;">data license</a>.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="section-content" id="section-wti-pro-widget">
             <div class="content-card">
                 <div class="card-header" style="background:linear-gradient(135deg,rgba(34,211,238,.08),rgba(14,165,233,.04));">
@@ -14074,6 +14199,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 loadTraderIntel();
             } else if (sectionId === 'wti-pro-widget') {
                 wpwLoadStatus();
+            } else if (sectionId === 'indices-history') {
+                ihLoadStatus();
             }
         }
 
@@ -14424,6 +14551,193 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } catch (e) {}
         });
         /* ════════════════ End WTI Pro Widget ════════════════ */
+
+        /* ════════════════ Download Indices History — Account UI ════════════════ */
+        let ihState = { active:false, status:'' };
+        let ihLoaderTimer = null;
+        const IH_LOADER_MESSAGES = [
+            'Connecting to subscription engine…',
+            'Verifying download access…',
+            'Checking billing status…',
+            'Preparing your data exports…'
+        ];
+
+        function ihStartLoaderCycle() {
+            const el = document.getElementById('ihLoaderStatus');
+            if (!el) return;
+            let i = 0;
+            if (ihLoaderTimer) clearInterval(ihLoaderTimer);
+            ihLoaderTimer = setInterval(() => {
+                i = (i + 1) % IH_LOADER_MESSAGES.length;
+                el.style.opacity = '0';
+                setTimeout(() => { el.textContent = IH_LOADER_MESSAGES[i]; el.style.opacity = '1'; }, 180);
+            }, 1500);
+        }
+        function ihStopLoaderCycle() {
+            if (ihLoaderTimer) { clearInterval(ihLoaderTimer); ihLoaderTimer = null; }
+        }
+        function ihGetAuthToken() {
+            try { if (typeof sessionToken !== 'undefined' && sessionToken) return sessionToken; } catch (e) {}
+            return localStorage.getItem('userToken') || localStorage.getItem('sessionToken') || '';
+        }
+
+        async function ihLoadStatus(_retry) {
+            const loader = document.getElementById('ihLoading');
+            if (loader) loader.style.display = 'block';
+            document.getElementById('ihInactive').style.display = 'none';
+            document.getElementById('ihActive').style.display = 'none';
+            ihStartLoaderCycle();
+
+            const token = ihGetAuthToken();
+            if (!token) {
+                const attempts = (_retry || 0) + 1;
+                if (attempts < 15) { setTimeout(() => ihLoadStatus(attempts), 200); return; }
+                ihStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Please <a href="/users" style="color:#a78bfa;">sign in</a> to manage your downloads.</div>';
+                return;
+            }
+            try {
+                const r = await fetch('/api/indices-history/status', { headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    ihStopLoaderCycle();
+                    if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Session expired — please <a href="/users" style="color:#a78bfa;">sign in again</a>.</div>';
+                    return;
+                }
+                const data = await r.json();
+                ihState.active = !!data.active;
+                ihState.status = data.status;
+                ihStopLoaderCycle();
+                ihRenderShell(data);
+            } catch (e) {
+                console.error('ihLoadStatus', e);
+                ihStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;font-size:13px;">Failed to load status. <button onclick="ihLoadStatus()" style="background:#a78bfa;color:#0b1220;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;margin-left:8px;">Retry</button></div>';
+            }
+        }
+
+        function ihRenderShell(data) {
+            const loader = document.getElementById('ihLoading');
+            if (loader) loader.style.display = 'none';
+            const badge = document.getElementById('ihStatusBadge');
+            if (ihState.active) {
+                badge.textContent = (data.status === 'canceling') ? 'Active · Cancelling' :
+                                    (data.status === 'trialing' ? 'Trial Active' : 'Active');
+                badge.style.background = (data.status === 'canceling') ? '#f59e0b' : '#10b981';
+                badge.style.color = '#0b1220';
+                document.getElementById('ihInactive').style.display = 'none';
+                document.getElementById('ihActive').style.display = 'block';
+                const meta = document.getElementById('ihBillingMeta');
+                if (meta) {
+                    if (data.current_period_end) {
+                        const d = new Date(data.current_period_end);
+                        meta.textContent = '€1.85 / month · ' +
+                            (data.status === 'canceling' ? 'Ends ' : 'Renews ') + d.toLocaleDateString();
+                    } else {
+                        meta.textContent = '€1.85 / month';
+                    }
+                }
+                if (data.status === 'canceling') {
+                    const btn = document.getElementById('ihCancelBtn');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Cancellation Scheduled'; btn.style.opacity = 0.5; btn.style.cursor = 'default'; }
+                }
+            } else {
+                badge.textContent = 'Inactive';
+                badge.style.background = '#334155';
+                badge.style.color = '#cbd5e1';
+                document.getElementById('ihInactive').style.display = 'block';
+                document.getElementById('ihActive').style.display = 'none';
+            }
+        }
+
+        async function ihStartCheckout() {
+            const token = ihGetAuthToken();
+            const btn = document.getElementById('ihSubscribeBtn');
+            if (!token) { alert('Please sign in again to subscribe.'); return; }
+            if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
+            try {
+                const r = await fetch('/api/indices-history/checkout', { method:'POST', headers:{ 'x-user-token': token }});
+                if (r.status === 401) { alert('Your session expired. Please sign in again.'); return; }
+                let data = {};
+                try { data = await r.json(); } catch (e) {}
+                if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                if (data.already_active) { ihLoadStatus(); return; }
+                alert((data && data.detail) ? ('Could not start checkout: ' + data.detail) : 'Could not start checkout. Please try again.');
+            } catch (e) {
+                console.error('ihStartCheckout', e);
+                alert('Checkout failed. Please try again.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Subscribe — €1.85/month'; }
+            }
+        }
+
+        async function ihCancel() {
+            if (!confirm('Cancel your Indices History subscription? You will keep download access until the end of your billing period.')) return;
+            const token = ihGetAuthToken();
+            try {
+                const r = await fetch('/api/indices-history/cancel', { method:'POST', headers:{ 'x-user-token': token }});
+                if (r.ok) { ihLoadStatus(); }
+                else { alert('Could not cancel. Please try again.'); }
+            } catch (e) { alert('Cancel failed.'); }
+        }
+
+        async function ihDownload(index, fmt, btn) {
+            const token = ihGetAuthToken();
+            if (!token) { alert('Please sign in again to download.'); return; }
+            const orig = btn ? btn.textContent : '';
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+            try {
+                const url = '/api/indices-history/download?index=' + encodeURIComponent(index) + '&fmt=' + encodeURIComponent(fmt) + '&limit=1000';
+                const r = await fetch(url, { headers:{ 'x-user-token': token }});
+                if (r.status === 402) { alert('Your subscription is required to download. Please subscribe.'); ihLoadStatus(); return; }
+                if (!r.ok) { alert('Download failed. Please try again.'); return; }
+                const blob = await r.blob();
+                const burl = URL.createObjectURL(blob);
+                const today = new Date().toISOString().slice(0, 10);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = burl;
+                a.download = index.toUpperCase().replace('-', '_') + '_History_' + today + '.' + (fmt === 'xlsx' ? 'xlsx' : 'csv');
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { URL.revokeObjectURL(burl); document.body.removeChild(a); }, 1000);
+            } catch (e) {
+                console.error('ihDownload', e);
+                alert('Download failed. Please try again.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = orig; }
+            }
+        }
+
+        async function ihConfirmAfterCheckout(_attempt) {
+            const attempt = (_attempt || 0) + 1;
+            const token = ihGetAuthToken();
+            if (!token) {
+                if (attempt < 15) { setTimeout(() => ihConfirmAfterCheckout(attempt), 300); return; }
+                ihLoadStatus();
+                return;
+            }
+            try {
+                const r = await fetch('/api/indices-history/confirm', { method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json().catch(() => ({}));
+                if (data && data.active) { ihLoadStatus(); return; }
+            } catch (e) { console.error('ihConfirmAfterCheckout', e); }
+            if (attempt < 8) { setTimeout(() => ihConfirmAfterCheckout(attempt), 1500); return; }
+            ihLoadStatus();
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            try {
+                const qp = new URLSearchParams(location.search);
+                if (qp.get('indices_history') === 'active') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('indicesHistoryNavItem');
+                        if (nav) nav.click();
+                        ihConfirmAfterCheckout();
+                    }, 300);
+                }
+            } catch (e) {}
+        });
+        /* ════════════════ End Download Indices History ════════════════ */
 
         async function loadPlans() {
             try {
