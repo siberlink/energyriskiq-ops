@@ -27,7 +27,7 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 - **SEO Growth System:** Generates SEO-optimized daily alert pages and manages sitemap.
 - **Billing & Subscription:** Integrates with Stripe.
 - **Plan-Tiered Dashboards:** Provides progressive intelligence depth across five subscription tiers.
-- **Daily Geo-Energy Intelligence Digest:** An AI-powered daily briefing on the user dashboard.
+- **Daily Geo-Energy Intelligence Digest:** An AI-powered daily briefing on the user dashboard. The account-page view ("Daily Intelligence Report" in the left nav) is gated behind a standalone €2.99/month EUR Stripe subscription (mirrors the WTI Pro Widget / Indices History technique: `src/api/daily_report_routes.py`, table `user_daily_report_subs`, metadata.type `daily_report`). Non-subscribers see a persuasive paywall; the full digest API `/api/v1/digest/daily` is enforced server-side (402 without an active sub).
 - **ERIQ Expert Analyst:** An AI-powered interpretation intelligence bot with context-awareness and RAG.
 - **ERIQ Token Economy:** Manages plan-based monthly token allowances.
 - **ELSA Marketing Bot:** An AI-powered marketing and business intelligence advisor for the admin dashboard.

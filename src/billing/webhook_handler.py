@@ -83,6 +83,11 @@ async def handle_checkout_session_completed(session: dict):
         handle_index_history_checkout_completed(session)
         return
 
+    if session.get("metadata", {}).get("type") == "daily_report":
+        from src.api.daily_report_routes import handle_daily_report_checkout_completed
+        handle_daily_report_checkout_completed(session)
+        return
+
     subscription_id = session.get("subscription")
     
     if subscription_id:
@@ -130,6 +135,13 @@ async def handle_subscription_updated(subscription: dict):
     except Exception as e:
         logger.error(f"Indices history subscription event handler error: {e}")
 
+    try:
+        from src.api.daily_report_routes import handle_daily_report_subscription_event
+        if handle_daily_report_subscription_event(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Daily report subscription event handler error: {e}")
+
     customer_id = subscription.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -175,6 +187,13 @@ async def handle_subscription_deleted(subscription: dict):
     except Exception as e:
         logger.error(f"Indices history subscription deleted handler error: {e}")
 
+    try:
+        from src.api.daily_report_routes import handle_daily_report_subscription_deleted
+        if handle_daily_report_subscription_deleted(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Daily report subscription deleted handler error: {e}")
+
     customer_id = subscription.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -218,6 +237,13 @@ async def handle_invoice_paid(invoice: dict):
             )
             if _cur.fetchone():
                 logger.info(f"invoice.paid {invoice['id']} is for an indices-history subscription — skipping main user_plans logic")
+                return
+            _cur.execute(
+                "SELECT 1 FROM user_daily_report_subs WHERE stripe_subscription_id = %s",
+                (subscription_id,)
+            )
+            if _cur.fetchone():
+                logger.info(f"invoice.paid {invoice['id']} is for a daily-report subscription — skipping main user_plans logic")
                 return
     except Exception as e:
         logger.error(f"Widget invoice-isolation check failed: {e}")
@@ -268,6 +294,13 @@ async def handle_invoice_payment_failed(invoice: dict):
                 )
                 if _cur.fetchone():
                     logger.info(f"invoice.payment_failed {invoice['id']} is for an indices-history subscription — skipping main user_plans logic")
+                    return
+                _cur.execute(
+                    "SELECT 1 FROM user_daily_report_subs WHERE stripe_subscription_id = %s",
+                    (subscription_id,)
+                )
+                if _cur.fetchone():
+                    logger.info(f"invoice.payment_failed {invoice['id']} is for a daily-report subscription — skipping main user_plans logic")
                     return
         except Exception as e:
             logger.error(f"Widget invoice-isolation check failed: {e}")

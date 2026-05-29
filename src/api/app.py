@@ -229,6 +229,12 @@ try:
     run_indices_history_migration()
 except Exception as _e:
     logger.error(f"indices_history migration error: {_e}")
+from src.api.daily_report_routes import router as daily_report_router, run_daily_report_migration
+app.include_router(daily_report_router)
+try:
+    run_daily_report_migration()
+except Exception as _e:
+    logger.error(f"daily_report migration error: {_e}")
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")

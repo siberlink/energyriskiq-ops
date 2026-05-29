@@ -5857,8 +5857,8 @@
                         <polyline points="10 9 9 9 8 9"/>
                     </svg>
                 </span>
-                Daily Digest
-                <span class="pro-badge-nav" id="digestBadge" style="background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 9px; padding: 2px 6px;">NEW</span>
+                Daily Intelligence Report
+                <span class="pro-badge-nav" id="digestBadge" style="background: linear-gradient(135deg, #f59e0b, #d97706); font-size: 9px; padding: 2px 6px;">PRO</span>
             </a>
             <a class="nav-item" id="wtiProWidgetNavItem" onclick="showSection('wti-pro-widget'); closeMobileMenu();">
                 <span class="nav-icon">
@@ -7472,16 +7472,75 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             </div>
         </div>
 
-        <!-- Daily Digest Section -->
+        <!-- Daily Intelligence Report Section -->
         <div class="section-content" id="section-digest">
             <div class="page-header">
-                <h1 class="page-title">Daily Geo-Energy Intelligence Digest</h1>
+                <h1 class="page-title">Daily Intelligence Report</h1>
                 <p class="page-subtitle">AI-powered daily briefing synthesizing global energy risk into actionable intelligence</p>
             </div>
-            <div id="digestContent">
-                <div style="text-align: center; padding: 60px 20px;">
-                    <div style="width: 40px; height: 40px; border: 3px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
-                    <p style="color: #94a3b8;">Loading your daily intelligence digest...</p>
+
+            <!-- Loader (while checking subscription) -->
+            <div id="drLoading" style="display:none;">
+                <div class="snap-panel-loader" style="display:block;">
+                    <div class="pl-ring-wrap">
+                        <div class="pl-ring-bg"></div>
+                        <div class="pl-arc1"></div>
+                        <div class="pl-arc2"></div>
+                        <div class="pl-arc3"></div>
+                        <div class="pl-dot"></div>
+                    </div>
+                    <div class="pl-label-main">Loading Daily Intelligence Report</div>
+                    <div class="pl-label-sub" id="drLoaderStatus">Connecting to subscription engine&hellip;</div>
+                    <div class="pl-tags">
+                        <span class="pl-tag">GERI</span>
+                        <span class="pl-tag">EERI</span>
+                        <span class="pl-tag">EGSI</span>
+                    </div>
+                    <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                </div>
+            </div>
+
+            <!-- INACTIVE STATE: persuasive subscribe pitch -->
+            <div id="drInactive" style="display:none;">
+                <div style="background:linear-gradient(135deg,#0f172a,#0b1220);border:1px solid #1e293b;border-radius:12px;padding:26px;margin-bottom:18px;">
+                    <div style="font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;">EnergyRiskIQ Premium Intelligence</div>
+                    <div style="font-size:24px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Your daily edge in global energy markets</div>
+                    <div style="font-size:13px;color:#94a3b8;line-height:1.65;margin-bottom:20px;">The Daily Intelligence Report is an AI-generated briefing that synthesises every signal we track — geopolitical events, risk indices, gas storage, oil &amp; gas prices, volatility and market regime — into one clear, decision-ready read. Instead of scanning a dozen dashboards, you get the full picture of what changed overnight and what it means for the day ahead. <strong style="color:#cbd5e1;">Refreshed every single day with new intelligence.</strong></div>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:22px;">
+                        <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:13px;"><div style="font-size:11px;color:#60a5fa;font-weight:700;margin-bottom:4px;">✓ EXECUTIVE SNAPSHOT</div><div style="font-size:11px;color:#cbd5e1;line-height:1.5;">A concise, AI-written read of today's global energy risk picture</div></div>
+                        <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:13px;"><div style="font-size:11px;color:#60a5fa;font-weight:700;margin-bottom:4px;">✓ RISK INDICES &amp; TONE</div><div style="font-size:11px;color:#cbd5e1;line-height:1.5;">GERI, EERI &amp; EGSI levels, bands and trend direction at a glance</div></div>
+                        <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:13px;"><div style="font-size:11px;color:#60a5fa;font-weight:700;margin-bottom:4px;">✓ ASSET MOVES &amp; ALERTS</div><div style="font-size:11px;color:#cbd5e1;line-height:1.5;">Key Brent, TTF &amp; storage moves plus the top risk events of the day</div></div>
+                        <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:13px;"><div style="font-size:11px;color:#60a5fa;font-weight:700;margin-bottom:4px;">✓ REGIME &amp; OUTLOOK</div><div style="font-size:11px;color:#cbd5e1;line-height:1.5;">Current risk regime, correlations, probability scoring &amp; volatility outlook</div></div>
+                    </div>
+
+                    <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.22);border-radius:10px;padding:15px 17px;margin-bottom:22px;">
+                        <div style="font-size:12px;font-weight:700;color:#93c5fd;margin-bottom:6px;">Why traders &amp; analysts rely on it</div>
+                        <div style="font-size:12px;color:#cbd5e1;line-height:1.65;">Start your day already briefed · understand <em>why</em> markets are moving, not just that they moved · spot escalating risk before it hits prices · save hours of manual research · walk into every meeting with a defensible, data-backed view. All for less than the price of a coffee per month.</div>
+                    </div>
+
+                    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                        <button id="drSubscribeBtn" onclick="drStartCheckout()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;padding:13px 24px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;">Unlock the Daily Report — €2.99/month</button>
+                        <span style="color:#64748b;font-size:12px;">Secure checkout via Stripe · updated daily · cancel anytime</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVE STATE: live report -->
+            <div id="drActive" style="display:none;">
+                <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04));border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                    <div style="background:#10b981;color:#0b1220;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">✓</div>
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:12px;font-weight:700;color:#34d399;margin-bottom:2px;">Daily Intelligence Report unlocked</div>
+                        <div style="font-size:11px;color:#cbd5e1;line-height:1.4;" id="drBillingMeta">€2.99 / month · updated daily</div>
+                    </div>
+                    <button id="drCancelBtn" onclick="drCancel()" style="background:transparent;border:1px solid #475569;color:#cbd5e1;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">Cancel subscription</button>
+                </div>
+                <div id="digestContent">
+                    <div style="text-align: center; padding: 60px 20px;">
+                        <div style="width: 40px; height: 40px; border: 3px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+                        <p style="color: #94a3b8;">Loading your daily intelligence report...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -8426,6 +8485,11 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 const resp = await fetch('/api/v1/digest/daily', {
                     headers: { 'X-User-Token': sessionToken }
                 });
+                if (resp.status === 402) {
+                    body.innerHTML = '<div class="snapshot-card-detail">Unlock the Daily Intelligence Report — €2.99/mo</div>' +
+                        '<div class="snapshot-card-meta">Updated daily · click to subscribe</div>';
+                    return;
+                }
                 if (!resp.ok) {
                     body.innerHTML = '<div class="snapshot-card-detail">No digest available yet</div>';
                     return;
@@ -14189,7 +14253,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } else if (sectionId === 'eeri-pro') {
                 loadEeriProData();
             } else if (sectionId === 'digest') {
-                loadDailyDigest();
+                drLoadStatus();
             } else if (sectionId === 'egsi') {
                 loadEgsiDashboard();
             } else if (sectionId === 'tickets') {
@@ -14738,6 +14802,157 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } catch (e) {}
         });
         /* ════════════════ End Download Indices History ════════════════ */
+
+        /* ════════════════ Daily Intelligence Report — Account UI ════════════════ */
+        let drState = { active:false, status:'' };
+        let drLoaderTimer = null;
+        const DR_LOADER_MESSAGES = [
+            'Connecting to subscription engine…',
+            'Verifying report access…',
+            'Checking billing status…',
+            'Preparing today\u2019s intelligence…'
+        ];
+
+        function drStartLoaderCycle() {
+            const el = document.getElementById('drLoaderStatus');
+            if (!el) return;
+            let i = 0;
+            if (drLoaderTimer) clearInterval(drLoaderTimer);
+            drLoaderTimer = setInterval(() => {
+                i = (i + 1) % DR_LOADER_MESSAGES.length;
+                el.style.opacity = '0';
+                setTimeout(() => { el.textContent = DR_LOADER_MESSAGES[i]; el.style.opacity = '1'; }, 180);
+            }, 1500);
+        }
+        function drStopLoaderCycle() {
+            if (drLoaderTimer) { clearInterval(drLoaderTimer); drLoaderTimer = null; }
+        }
+        function drGetAuthToken() {
+            try { if (typeof sessionToken !== 'undefined' && sessionToken) return sessionToken; } catch (e) {}
+            return localStorage.getItem('userToken') || localStorage.getItem('sessionToken') || '';
+        }
+
+        async function drLoadStatus(_retry) {
+            const loader = document.getElementById('drLoading');
+            if (loader) loader.style.display = 'block';
+            const inactive = document.getElementById('drInactive');
+            const active = document.getElementById('drActive');
+            if (inactive) inactive.style.display = 'none';
+            if (active) active.style.display = 'none';
+            drStartLoaderCycle();
+
+            const token = drGetAuthToken();
+            if (!token) {
+                const attempts = (_retry || 0) + 1;
+                if (attempts < 15) { setTimeout(() => drLoadStatus(attempts), 200); return; }
+                drStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Please <a href="/users" style="color:#60a5fa;">sign in</a> to access your Daily Intelligence Report.</div>';
+                return;
+            }
+            try {
+                const r = await fetch('/api/daily-report/status', { headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    drStopLoaderCycle();
+                    if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Session expired — please <a href="/users" style="color:#60a5fa;">sign in again</a>.</div>';
+                    return;
+                }
+                const data = await r.json();
+                drState.active = !!data.active;
+                drState.status = data.status;
+                drStopLoaderCycle();
+                drRenderShell(data);
+            } catch (e) {
+                console.error('drLoadStatus', e);
+                drStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;font-size:13px;">Failed to load status. <button onclick="drLoadStatus()" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;margin-left:8px;">Retry</button></div>';
+            }
+        }
+
+        function drRenderShell(data) {
+            const loader = document.getElementById('drLoading');
+            if (loader) loader.style.display = 'none';
+            const inactive = document.getElementById('drInactive');
+            const active = document.getElementById('drActive');
+            if (drState.active) {
+                if (inactive) inactive.style.display = 'none';
+                if (active) active.style.display = 'block';
+                const meta = document.getElementById('drBillingMeta');
+                if (meta) {
+                    if (data.status === 'canceling' && data.current_period_end) {
+                        const d = new Date(data.current_period_end);
+                        meta.textContent = 'Access until ' + d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) + ' · cancelling';
+                    } else {
+                        meta.textContent = '€2.99 / month · updated daily';
+                    }
+                }
+                const cancelBtn = document.getElementById('drCancelBtn');
+                if (cancelBtn) cancelBtn.style.display = (data.status === 'canceling') ? 'none' : '';
+                loadDailyDigest();
+            } else {
+                if (active) active.style.display = 'none';
+                if (inactive) inactive.style.display = 'block';
+            }
+        }
+
+        async function drStartCheckout() {
+            const token = drGetAuthToken();
+            if (!token) { window.location.href = '/users'; return; }
+            const btn = document.getElementById('drSubscribeBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Starting secure checkout…'; }
+            try {
+                const r = await fetch('/api/daily-report/checkout', { method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json();
+                if (data.already_active) { drLoadStatus(); return; }
+                if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                throw new Error('No checkout URL');
+            } catch (e) {
+                console.error('drStartCheckout', e);
+                if (btn) { btn.disabled = false; btn.textContent = 'Unlock the Daily Report — €2.99/month'; }
+                alert('Unable to start checkout. Please try again.');
+            }
+        }
+
+        async function drCancel() {
+            if (!confirm('Cancel your Daily Intelligence Report subscription? You\u2019ll keep access until the end of the current billing period.')) return;
+            const token = drGetAuthToken();
+            if (!token) return;
+            try {
+                const r = await fetch('/api/daily-report/cancel', { method:'POST', headers:{ 'x-user-token': token }});
+                if (r.ok) { drLoadStatus(); }
+                else { alert('Unable to cancel right now. Please try again.'); }
+            } catch (e) { console.error('drCancel', e); alert('Unable to cancel right now. Please try again.'); }
+        }
+
+        async function drConfirmAfterCheckout(_attempt) {
+            const attempt = (_attempt || 0) + 1;
+            const token = drGetAuthToken();
+            if (!token) {
+                if (attempt < 15) { setTimeout(() => drConfirmAfterCheckout(attempt), 300); return; }
+                drLoadStatus();
+                return;
+            }
+            try {
+                const r = await fetch('/api/daily-report/confirm', { method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json().catch(() => ({}));
+                if (data && data.active) { drLoadStatus(); return; }
+            } catch (e) { console.error('drConfirmAfterCheckout', e); }
+            if (attempt < 8) { setTimeout(() => drConfirmAfterCheckout(attempt), 1500); return; }
+            drLoadStatus();
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            try {
+                const qp = new URLSearchParams(location.search);
+                if (qp.get('daily_report') === 'active') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('digestNavItem');
+                        if (nav) nav.click();
+                        drConfirmAfterCheckout();
+                    }, 300);
+                }
+            } catch (e) {}
+        });
+        /* ════════════════ End Daily Intelligence Report ════════════════ */
 
         async function loadPlans() {
             try {
