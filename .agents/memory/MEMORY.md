@@ -1,1 +1,2 @@
-- [Latest-row queries on timeseries tables](latest-row-queries.md) — always ORDER BY date DESC LIMIT N + reverse in Python; ASC LIMIT silently truncates the *latest* once tables grow past N.
+- [Data store reality](data-store.md) — app reads/writes the external Neon DB via PRODUCTION_DATABASE_URL, NOT the Replit-managed dev DB; psql "$PRODUCTION_DATABASE_URL" is the real data.
+- [Stripe mode awareness](stripe-mode-awareness.md) — admin-switchable global live/sandbox toggle; tag rows by mode from Stripe livemode truth, split embed-runtime vs management checks.

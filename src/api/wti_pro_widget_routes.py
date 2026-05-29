@@ -110,6 +110,13 @@ def run_wti_pro_widget_migration():
                 "CREATE INDEX IF NOT EXISTS idx_user_pro_widgets_sub "
                 "ON user_pro_widgets(stripe_subscription_id)"
             )
+            # Stripe mode the current subscription belongs to (live | sandbox).
+            # Lets the account flow distinguish a real live subscription from a
+            # throwaway sandbox test on the same account.
+            cur.execute(
+                "ALTER TABLE user_pro_widgets "
+                "ADD COLUMN IF NOT EXISTS stripe_mode TEXT"
+            )
         logger.info("user_pro_widgets migration complete")
     except Exception as e:
         logger.error(f"user_pro_widgets migration failed: {e}")
@@ -252,9 +259,26 @@ def _get_or_create_widget_row(user_id: int):
 
 
 def _widget_is_active(row) -> bool:
+    """Status-only check — used by the public embed runtime so a live customer's
+    widget keeps rendering regardless of the admin's current Stripe mode toggle."""
     if not row:
         return False
     return row.get("status") in ("active", "trialing", "canceling")
+
+
+def _widget_active_for_mode(row) -> bool:
+    """Mode-aware check — used by the account management flow. A subscription only
+    counts as active here if it belongs to the Stripe mode that is currently
+    selected, so a throwaway sandbox test does not block a real live purchase
+    (and vice versa)."""
+    if not _widget_is_active(row):
+        return False
+    row_mode = row.get("stripe_mode")
+    # Legacy rows created before the mode column existed have NULL mode — treat
+    # them as belonging to the current mode so they are not orphaned.
+    if not row_mode:
+        return True
+    return row_mode == get_stripe_mode()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -273,7 +297,7 @@ async def widget_status(x_user_token: Optional[str] = Header(None)):
     row = _get_or_create_widget_row(user["id"])
     cfg = _merge_config(row["config_json"])
     return {
-        "active": _widget_is_active(row),
+        "active": _widget_active_for_mode(row),
         "status": row["status"],
         "embed_token": row["embed_token"],
         "config": cfg,
@@ -291,7 +315,7 @@ async def widget_checkout(x_user_token: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_widget_row(user["id"])
-    if _widget_is_active(row) and row.get("stripe_subscription_id"):
+    if _widget_active_for_mode(row) and row.get("stripe_subscription_id"):
         return {"already_active": True}
 
     init_stripe()
@@ -364,7 +388,7 @@ async def widget_confirm(x_user_token: Optional[str] = Header(None)):
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_widget_row(user["id"])
 
-    if _widget_is_active(row) and row.get("stripe_subscription_id"):
+    if _widget_active_for_mode(row) and row.get("stripe_subscription_id"):
         return {"active": True, "status": row["status"]}
 
     init_stripe()
@@ -419,6 +443,10 @@ async def widget_confirm(x_user_token: Optional[str] = Header(None)):
     cancel_at_end = matched.get("cancel_at_period_end")
     stripe_status = matched.get("status", "active")
     local_status = "canceling" if cancel_at_end else stripe_status
+    # Persist the mode the subscription actually belongs to, derived from Stripe's
+    # own livemode flag rather than the mutable admin toggle, so the row stays
+    # correctly tagged even if the admin flips modes after checkout.
+    matched_mode = "live" if matched.get("livemode") else "sandbox"
 
     with get_cursor() as cur:
         cur.execute("""
@@ -427,9 +455,11 @@ async def widget_confirm(x_user_token: Optional[str] = Header(None)):
                 stripe_customer_id = %s,
                 status = %s,
                 current_period_end = %s,
+                stripe_mode = %s,
                 updated_at = NOW()
             WHERE id = %s
-        """, (subscription_id, customer_id, local_status, period_end_dt, row["id"]))
+        """, (subscription_id, customer_id, local_status, period_end_dt,
+              matched_mode, row["id"]))
     logger.info(f"WTI Pro Widget activated via confirm for user {user['id']}")
     return {
         "active": local_status in ("active", "trialing", "canceling"),
@@ -502,6 +532,14 @@ async def widget_cancel(x_user_token: Optional[str] = Header(None)):
     row = _get_or_create_widget_row(user["id"])
     if not row["stripe_subscription_id"]:
         raise HTTPException(400, "No active subscription")
+    # Only allow cancelling a subscription that belongs to the current Stripe
+    # mode — attempting to cancel a sub from the other mode would call Stripe
+    # with the wrong API key and fail. The UI already hides the button in this
+    # case; this guards against direct API calls.
+    if not _widget_active_for_mode(row):
+        raise HTTPException(
+            400, "No active subscription in the current billing mode"
+        )
     init_stripe()
     try:
         sub = await stripe_cancel_subscription(row["stripe_subscription_id"],
@@ -553,6 +591,8 @@ def handle_widget_checkout_completed(session: dict) -> bool:
             (user_id, WIDGET_CODE)
         )
         existing = cur.fetchone()
+        # Derive mode from Stripe's livemode flag, not the mutable admin toggle.
+        mode = "live" if sub.get("livemode") else "sandbox"
         if existing:
             cur.execute("""
                 UPDATE user_pro_widgets
@@ -560,19 +600,20 @@ def handle_widget_checkout_completed(session: dict) -> bool:
                     stripe_customer_id = %s,
                     status = %s,
                     current_period_end = %s,
+                    stripe_mode = %s,
                     updated_at = NOW()
                 WHERE id = %s
-            """, (subscription_id, customer_id, status, period_end_dt, existing["id"]))
+            """, (subscription_id, customer_id, status, period_end_dt, mode, existing["id"]))
         else:
             token = secrets.token_urlsafe(24)
             cur.execute("""
                 INSERT INTO user_pro_widgets
                     (user_id, widget_code, embed_token, config_json,
                      stripe_subscription_id, stripe_customer_id,
-                     status, current_period_end)
-                VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s)
+                     status, current_period_end, stripe_mode)
+                VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s)
             """, (user_id, WIDGET_CODE, token, json.dumps(DEFAULT_CONFIG),
-                  subscription_id, customer_id, status, period_end_dt))
+                  subscription_id, customer_id, status, period_end_dt, mode))
     logger.info(f"WTI Pro Widget activated for user {user_id}")
     return True
 
