@@ -434,7 +434,6 @@ async def wti_widget_embed():
         content=html,
         headers={
             "Cache-Control": "public, max-age=120",
-            "X-Frame-Options": "ALLOWALL",
             "Content-Security-Policy": "frame-ancestors *;",
         },
     )
@@ -452,7 +451,6 @@ async def wti_widget_embed_pro():
         content=html,
         headers={
             "Cache-Control": "public, max-age=120",
-            "X-Frame-Options": "ALLOWALL",
             "Content-Security-Policy": "frame-ancestors *;",
         },
     )

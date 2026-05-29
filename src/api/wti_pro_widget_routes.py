@@ -73,7 +73,6 @@ SIZE_PRESETS = {
 }
 
 EMBED_HEADERS = {
-    "X-Frame-Options": "ALLOWALL",
     "Content-Security-Policy": "frame-ancestors *;",
     "Cache-Control": "public, max-age=60",
 }
