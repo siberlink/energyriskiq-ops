@@ -1323,6 +1323,38 @@ document.body.style.overflow='';
   }})();
   </script>
 
+  <!-- ── WTI WIDGET AD BANNER ───────────────────────────────────── -->
+  <a href="/widgets/wti-crude-oil-price"
+     style="display:block;text-decoration:none;margin:8px 0 28px;border-radius:16px;
+            background:linear-gradient(135deg,rgba(34,211,238,0.12),rgba(15,23,42,0.6));
+            border:1px solid rgba(34,211,238,0.35);padding:22px 24px;
+            box-shadow:0 4px 24px rgba(34,211,238,0.08);transition:transform .15s ease,box-shadow .15s ease;"
+     onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 32px rgba(34,211,238,0.18)';"
+     onmouseout="this.style.transform='';this.style.boxShadow='0 4px 24px rgba(34,211,238,0.08)';">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:18px;flex:1;min-width:240px;">
+        <div style="font-size:34px;line-height:1;">&#128202;</div>
+        <div>
+          <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;
+                      text-transform:uppercase;color:#22d3ee;background:rgba(34,211,238,0.12);
+                      border:1px solid rgba(34,211,238,0.3);border-radius:999px;padding:3px 10px;margin-bottom:8px;">
+            Free Embeddable Widget
+          </div>
+          <div style="font-size:19px;font-weight:700;color:#f1f5f9;margin-bottom:4px;">
+            Add the live WTI Crude Oil price to your website
+          </div>
+          <div style="font-size:13px;color:#94a3b8;line-height:1.5;">
+            Drop a real-time WTI price widget into any site in one line of code &mdash; live price, daily change and risk signal, auto-updating.
+          </div>
+        </div>
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;
+                  color:#0f172a;background:#22d3ee;border-radius:10px;padding:12px 20px;white-space:nowrap;">
+        Get the Widget &rarr;
+      </div>
+    </div>
+  </a>
+
   <!-- ── 4. MARKET SNAPSHOT ─────────────────────────────────────── -->
   <div class="section-label" style="margin-bottom:20px;">&#9889; Oil Market Snapshot (Today)</div>
   <div class="wti-snap-grid">
