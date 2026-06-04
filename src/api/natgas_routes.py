@@ -39,10 +39,10 @@ TTF_COLOR_DIM = "rgba(96,165,250,0.18)"
 
 _NATGAS_LOADER_HTML = _LOADER_HTML.replace(
     'Global Energy Risk Snapshot | EnergyRiskIQ',
-    'Natural Gas Price Today Europe (TTF) | Live Chart &amp; Market Trends | EnergyRiskIQ'
+    'Natural Gas Price Today Europe | Live TTF Chart, Storage Levels &amp; Analysis'
 ).replace(
     'name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices."',
-    'name="description" content="Track the latest natural gas price in Europe (TTF benchmark). Daily updates, price charts, storage levels, risk signals and market drivers."'
+    'name="description" content="Track the latest natural gas price in Europe with live TTF charts, European gas storage levels, daily market analysis, energy risk signals, and key price drivers. Updated daily."'
 ).replace(
     'rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot"',
     'rel="canonical" href="https://energyriskiq.com/data/natural-gas-price-today-europe"'
