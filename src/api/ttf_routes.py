@@ -535,7 +535,7 @@ _TTF_CSS = """
 
 _TTF_LOADER = _LOADER_HTML.replace(
     "Global Energy Risk Snapshot | EnergyRiskIQ",
-    "TTF Gas Price Today (Live Daily Update) | Europe Natural Gas Benchmark | EnergyRiskIQ",
+    "TTF Gas Price Today | Live Chart, Storage Levels & Analysis",
 ).replace(
     'name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices."',
     'name="description" content="Latest TTF gas price today with daily updates, historical charts, and market insights. Track European natural gas prices and risk signals."',
