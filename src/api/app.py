@@ -54,6 +54,7 @@ from src.api.lng_drivers_routes import router as lng_drivers_router
 from src.api.natgas_routes import router as natgas_router
 from src.api.wti_routes import router as wti_router
 from src.api.wti_widget_routes import router as wti_widget_router
+from src.api.gas_storage_widget_routes import router as gas_storage_widget_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -217,6 +218,7 @@ app.include_router(lng_drivers_router)
 app.include_router(natgas_router)
 app.include_router(wti_router)
 app.include_router(wti_widget_router)
+app.include_router(gas_storage_widget_router)
 from src.api.wti_pro_widget_routes import router as wti_pro_widget_router, run_wti_pro_widget_migration
 app.include_router(wti_pro_widget_router)
 try:

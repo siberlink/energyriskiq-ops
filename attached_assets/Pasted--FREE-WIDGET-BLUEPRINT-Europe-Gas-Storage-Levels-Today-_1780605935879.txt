@@ -1,0 +1,289 @@
+🔥 FREE WIDGET BLUEPRINT
+Europe Gas Storage Levels Today Widget
+
+Before designing the widget itself, let's define the goal.
+
+This widget is NOT a storage widget.
+
+It is a:
+
+Winter Readiness & Gas Risk Widget
+
+That's what visitors actually care about.
+
+Nobody remembers:
+
+EU Storage = 63.4%
+
+People remember:
+
+Winter Readiness = GOOD
+
+🎯 FREE WIDGET OBJECTIVES
+
+The free widget should:
+
+✅ Get embedded on websites
+
+✅ Drive clicks to EnergyRiskIQ
+
+✅ Create backlinks
+
+✅ Generate account signups
+
+✅ Create curiosity about the Pro version
+
+✅ Provide real value
+
+📐 RECOMMENDED SIZE
+Default Embed
+420 x 320
+
+This is the sweet spot.
+
+Large enough to show value.
+
+Small enough to embed anywhere.
+
+🏗️ WIDGET STRUCTURE
+HEADER
+EUROPE GAS STORAGE TODAY
+
+Subheader:
+
+Updated Daily
+PRIMARY METRIC
+
+Large center metric.
+
+63.4%
+
+Label:
+
+EU Storage Filled
+
+Source:
+
+gas_storage_snapshots
+STORAGE TREND
+
+Immediately below.
+
+Example:
+
+▲ +1.4% vs Last Month
+
+or
+
+▼ -0.8% vs Last Month
+
+Simple.
+
+Visual.
+
+Understandable.
+
+WINTER READINESS SCORE
+
+This becomes the signature element.
+
+Example:
+
+WINTER READINESS
+
+GOOD
+
+86 / 100
+
+Color coded:
+
+🟢 Good
+
+🟡 Moderate
+
+🔴 Elevated Risk
+
+This is far more memorable than storage %.
+
+STORAGE RISK SIGNAL
+
+Directly below.
+
+Example:
+
+Storage Risk
+
+LOW
+
+Logic:
+
+Calculated from:
+
+storage %
+seasonal average
+EERI
+EGSI
+TOP COUNTRIES BLOCK
+
+This is where your data advantage appears.
+
+Show:
+
+Top Storage Countries
+
+🇮🇹 IT 70%
+🇫🇷 FR 67%
+🇩🇪 DE 61%
+
+Only 3 countries.
+
+Do NOT clutter.
+
+Reason:
+
+Creates curiosity for Pro.
+
+MICRO INSIGHT BLOCK
+
+This is extremely powerful.
+
+One sentence.
+
+Generated daily.
+
+Example:
+
+Storage remains above seasonal norms,
+reducing near-term winter supply risk.
+
+This is what transforms:
+
+❌ Data
+
+into
+
+✅ Intelligence
+
+CTA BLOCK
+
+Most important part.
+
+Button:
+
+View Full Storage Analysis →
+
+Links to:
+
+Gas Storage Levels in Europe
+
+BRANDING FOOTER
+
+Mandatory.
+
+Powered by EnergyRiskIQ
+
+Link to:
+
+Gas Storage Levels in Europe
+
+NOT homepage.
+
+This builds topical authority.
+
+VISUAL WIREFRAME
+┌─────────────────────────────┐
+│ EUROPE GAS STORAGE TODAY    │
+│ Updated Daily               │
+├─────────────────────────────┤
+│                             │
+│           63.4%             │
+│      EU Storage Filled      │
+│                             │
+│ ▲ +1.4% vs Last Month       │
+│                             │
+│ WINTER READINESS            │
+│ GOOD • 86/100              │
+│                             │
+│ STORAGE RISK               │
+│ LOW                        │
+│                             │
+│ Top Countries              │
+│ 🇮🇹 IT 70%                 │
+│ 🇫🇷 FR 67%                 │
+│ 🇩🇪 DE 61%                 │
+│                             │
+│ Storage remains above      │
+│ seasonal norms...          │
+│                             │
+│ View Full Analysis →       │
+│                             │
+│ Powered by EnergyRiskIQ    │
+└─────────────────────────────┘
+🔥 FREE WIDGET LINKING STRATEGY
+
+The widget should only have ONE visible CTA.
+
+Too many links reduce CTR.
+
+PRIMARY LINK
+
+CTA Button:
+
+Gas Storage Levels in Europe
+
+SECONDARY LINK
+
+Branding footer:
+
+same page
+
+🔥 WIDGET LANDING PAGE CROSS-LINKS
+
+The widget page itself (not widget) should heavily link to:
+
+Highest Priority
+Gas Storage Levels in Europe
+TTF Gas Price Today
+Natural Gas Price Today Europe
+
+Reason:
+
+Storage directly impacts gas prices.
+
+Second Priority
+Europe LNG Supply & Demand
+JKM LNG Spot Price
+What Drives LNG Prices?
+
+Reason:
+
+Storage + LNG are inseparable.
+
+Third Priority
+Europe Energy Risk Index (EERI)
+Europe Gas Stress Index (EGSI)
+Global Energy Risk Forecast
+
+Reason:
+
+Risk context.
+
+🚀 CONVERSION STRATEGY
+
+The free widget should leave visitors wondering:
+
+Which countries are driving the storage trend?
+
+How does storage compare to last year?
+
+What does this mean for TTF prices?
+
+That curiosity is what sells the Pro widget.
+
+The free widget should answer:
+
+"What is happening?"
+
+The Pro widget should answer:
+
+"Why is it happening and what happens next?"
