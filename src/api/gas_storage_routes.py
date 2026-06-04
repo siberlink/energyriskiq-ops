@@ -1774,3 +1774,52 @@ async def gas_storage_levels_in_europe():
         yield html_body
 
     return StreamingResponse(generate(), media_type="text/html")
+
+
+@router.get("/api/gas-storage-by-country")
+async def gas_storage_by_country():
+    """
+    JSON API: latest per-country EU gas storage breakdown.
+
+    Returns the most recent country-level snapshot for each country, sorted by
+    fill percentage ascending (lowest/most-at-risk first).
+    """
+    rows = execute_production_query(
+        """
+        SELECT DISTINCT ON (country_code)
+            date, country_code, country_name, storage_percent,
+            gas_in_storage_twh, working_gas_volume_twh,
+            injection_twh, withdrawal_twh, trend
+        FROM gas_storage_country_snapshots
+        WHERE level = 'country'
+        ORDER BY country_code, date DESC
+        """
+    ) or []
+
+    def _f(v):
+        return float(v) if v is not None else None
+
+    countries = sorted(
+        [
+            {
+                "date": str(r["date"]),
+                "country_code": r["country_code"],
+                "country_name": r["country_name"],
+                "storage_percent": _f(r["storage_percent"]),
+                "gas_in_storage_twh": _f(r["gas_in_storage_twh"]),
+                "working_gas_volume_twh": _f(r["working_gas_volume_twh"]),
+                "injection_twh": _f(r["injection_twh"]),
+                "withdrawal_twh": _f(r["withdrawal_twh"]),
+                "trend": _f(r["trend"]),
+            }
+            for r in rows
+        ],
+        key=lambda c: (c["storage_percent"] is None, c["storage_percent"]),
+    )
+
+    latest_date = max((c["date"] for c in countries), default=None)
+
+    return Response(
+        content=json.dumps({"as_of": latest_date, "count": len(countries), "countries": countries}),
+        media_type="application/json",
+    )

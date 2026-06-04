@@ -11,6 +11,7 @@ Data Source: https://agsi.gie.eu/
 """
 
 import os
+import json
 import logging
 import requests
 from datetime import datetime, timedelta
@@ -41,6 +42,28 @@ SEASONAL_NORMS = {
 }
 
 MAJOR_EU_COUNTRIES = ["DE", "IT", "FR", "AT", "NL", "PL", "CZ", "HU", "SK", "BE"]
+
+COUNTRY_NAMES = {
+    "DE": "Germany",
+    "IT": "Italy",
+    "FR": "France",
+    "AT": "Austria",
+    "NL": "Netherlands",
+    "PL": "Poland",
+    "CZ": "Czechia",
+    "HU": "Hungary",
+    "SK": "Slovakia",
+    "BE": "Belgium",
+    "ES": "Spain",
+    "PT": "Portugal",
+    "RO": "Romania",
+    "BG": "Bulgaria",
+    "HR": "Croatia",
+    "DK": "Denmark",
+    "SE": "Sweden",
+    "LV": "Latvia",
+    "UA": "Ukraine",
+}
 
 
 @dataclass
@@ -133,13 +156,18 @@ def fetch_eu_storage_data(date_str: Optional[str] = None) -> Optional[Dict[str, 
 
 
 def fetch_country_storage_data(country_code: str, date_str: Optional[str] = None) -> Optional[Dict]:
-    """Fetch storage data for a specific country."""
-    if not date_str:
-        params = None
-    else:
-        params = {"date": date_str}
-    
-    data = _make_api_request(country_code.lower(), params)
+    """
+    Fetch storage data for a specific country.
+
+    Note: AGSI+ requires the country as a query parameter (?country=DE). The
+    path-style endpoint (/api/de) silently returns the EU aggregate instead, so
+    we always pass `country` as a query param here.
+    """
+    params = {"country": country_code.upper()}
+    if date_str:
+        params["date"] = date_str
+
+    data = _make_api_request("", params)
     
     if not data or "data" not in data:
         return None
@@ -156,6 +184,8 @@ def fetch_country_storage_data(country_code: str, date_str: Optional[str] = None
         "full_percent": float(entry.get("full", 0) or 0),
         "injection_twh": float(entry.get("injection", 0) or 0),
         "withdrawal_twh": float(entry.get("withdrawal", 0) or 0),
+        "working_gas_volume_twh": float(entry.get("workingGasVolume", 0) or 0),
+        "trend": float(entry.get("trend", 0) or 0),
     }
 
 
@@ -410,6 +440,91 @@ def generate_storage_alert(metrics: StorageMetrics) -> Optional[Dict[str, Any]]:
             "risk_band": metrics.risk_band
         }
     }
+
+
+def ingest_country_storage(date_str: Optional[str] = None, countries: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    Fetch per-country EU gas storage from AGSI+ and upsert into
+    gas_storage_country_snapshots.
+
+    Iterates the requested countries (defaults to MAJOR_EU_COUNTRIES), one AGSI+
+    request per country, and persists each as a 'country'-level row. Designed to
+    run daily alongside the EU-aggregate storage ingestion.
+
+    Args:
+        date_str: Gas day in YYYY-MM-DD format. Defaults to AGSI+'s latest (T-1).
+        countries: Optional explicit country-code list. Defaults to MAJOR_EU_COUNTRIES.
+
+    Returns:
+        Dict with success/failed/skipped counts and the resolved data date.
+    """
+    import time as _time
+    from src.db.db import get_cursor
+
+    target_countries = countries or MAJOR_EU_COUNTRIES
+    results = {"success": 0, "failed": 0, "skipped": 0, "data_date": None, "countries": []}
+
+    if not GIE_API_KEY:
+        logger.info("GIE_API_KEY not configured - skipping per-country storage ingestion")
+        return {**results, "error": "api_key_not_configured"}
+
+    for code in target_countries:
+        try:
+            data = fetch_country_storage_data(code, date_str)
+            if not data:
+                logger.warning(f"No per-country storage data for {code} ({date_str or 'latest'})")
+                results["skipped"] += 1
+                continue
+
+            data_date = data.get("date")
+            if not data_date:
+                results["skipped"] += 1
+                continue
+            results["data_date"] = data_date
+
+            with get_cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO gas_storage_country_snapshots
+                    (date, level, country_code, country_name, operator_code, facility_code,
+                     storage_percent, gas_in_storage_twh, working_gas_volume_twh,
+                     injection_twh, withdrawal_twh, trend, raw_data)
+                    VALUES (%s, 'country', %s, %s, '', '', %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (date, level, country_code, operator_code, facility_code)
+                    DO UPDATE SET
+                        country_name = EXCLUDED.country_name,
+                        storage_percent = EXCLUDED.storage_percent,
+                        gas_in_storage_twh = EXCLUDED.gas_in_storage_twh,
+                        working_gas_volume_twh = EXCLUDED.working_gas_volume_twh,
+                        injection_twh = EXCLUDED.injection_twh,
+                        withdrawal_twh = EXCLUDED.withdrawal_twh,
+                        trend = EXCLUDED.trend,
+                        raw_data = EXCLUDED.raw_data
+                """, (
+                    data_date,
+                    code.upper(),
+                    COUNTRY_NAMES.get(code.upper(), code.upper()),
+                    data.get("full_percent"),
+                    data.get("gas_in_storage_twh"),
+                    data.get("working_gas_volume_twh"),
+                    data.get("injection_twh"),
+                    data.get("withdrawal_twh"),
+                    data.get("trend"),
+                    json.dumps(data),
+                ))
+
+            results["success"] += 1
+            results["countries"].append(code.upper())
+            logger.info(f"  {code}: {data.get('full_percent')}% full")
+            _time.sleep(0.3)
+        except Exception as e:
+            logger.error(f"Failed per-country storage ingest for {code}: {e}")
+            results["failed"] += 1
+
+    logger.info(
+        f"Per-country storage ingestion: {results['success']} ok, "
+        f"{results['failed']} failed, {results['skipped']} skipped"
+    )
+    return results
 
 
 def run_storage_check() -> Optional[Dict[str, Any]]:

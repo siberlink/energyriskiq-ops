@@ -1345,6 +1345,53 @@ def run_gas_storage_migration():
     logger.info("Gas storage migration complete.")
 
 
+def run_gas_storage_country_migration():
+    """
+    Create gas_storage_country_snapshots table for per-country EU gas storage.
+
+    Future-proofed with a `level` dimension (eu/country/operator/facility) plus
+    optional operator_code/facility_code columns so the same table can later hold
+    AGSI+ per-operator and per-facility granularity without a schema change.
+    operator_code/facility_code default to '' (not NULL) so the composite UNIQUE
+    constraint and ON CONFLICT upsert behave correctly for country-level rows.
+    """
+    logger.info("Running gas storage country migration...")
+
+    with get_cursor() as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS gas_storage_country_snapshots (
+                id SERIAL PRIMARY KEY,
+                date DATE NOT NULL,
+                level TEXT NOT NULL DEFAULT 'country',
+                country_code TEXT NOT NULL,
+                country_name TEXT,
+                operator_code TEXT NOT NULL DEFAULT '',
+                facility_code TEXT NOT NULL DEFAULT '',
+                storage_percent NUMERIC(5,2),
+                gas_in_storage_twh NUMERIC(12,4),
+                working_gas_volume_twh NUMERIC(12,4),
+                injection_twh NUMERIC(12,4),
+                withdrawal_twh NUMERIC(12,4),
+                trend NUMERIC(8,4),
+                raw_data JSONB,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                UNIQUE(date, level, country_code, operator_code, facility_code)
+            );
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_gas_storage_country_date
+            ON gas_storage_country_snapshots(date DESC);
+        """)
+
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_gas_storage_country_code
+            ON gas_storage_country_snapshots(country_code);
+        """)
+
+    logger.info("Gas storage country migration complete.")
+
+
 def run_oil_price_migration():
     """Create oil_price_snapshots table for crude oil price monitoring."""
     logger.info("Running oil price migration...")
@@ -1609,6 +1656,7 @@ if __name__ == "__main__":
     run_pro_delivery_migration()
     run_reri_migration()
     run_gas_storage_migration()
+    run_gas_storage_country_migration()
     run_oil_price_migration()
     run_lng_price_migration()
     run_gas_storage_migration()

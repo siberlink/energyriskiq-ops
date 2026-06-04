@@ -521,6 +521,19 @@ def generate_storage_risk_events() -> Dict:
         logger.warning("No date in storage data response")
         return {'created': [], 'skipped': 0, 'error': 'no_date_in_response'}
     
+    # Per-country storage ingestion is independent of the EU-aggregate alert flow
+    # and idempotent (upsert), so run it up-front — before the EU duplicate-date
+    # early return below — so country data still ingests on EU re-runs/backfills.
+    try:
+        from src.ingest.gie_agsi import ingest_country_storage
+        country_result = ingest_country_storage(date_str=data_date)
+        logger.info(
+            f"Per-country storage ingested for {data_date}: "
+            f"{country_result.get('success', 0)} countries"
+        )
+    except Exception as e:
+        logger.error(f"Failed to ingest per-country storage: {e}")
+    
     existing_check = execute_one(
         "SELECT id FROM gas_storage_snapshots WHERE date = %s",
         (data_date,)
