@@ -640,6 +640,52 @@ _GAS_STORAGE_CSS = """
 .gs-snap-sub { font-size: 11px; color: #475569; }
 .gs-snapshot-footer { font-size: 11px; color: #334155; border-top: 1px solid #1e293b; margin-top: 14px; padding-top: 12px; }
 
+/* ── FREE Widget promo banner ── */
+.gs-widget-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  background: linear-gradient(135deg, #15110a 0%, #1c1608 45%, #0f172a 100%);
+  border: 1px solid rgba(212,160,23,0.35);
+  border-radius: 16px;
+  padding: 22px 26px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.gs-widget-banner::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #d4a017, #f59e0b);
+}
+.gs-widget-banner-glow {
+  position: absolute; top: -40%; right: -10%; width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(212,160,23,0.16) 0%, transparent 70%);
+  pointer-events: none;
+}
+.gs-widget-banner-text { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }
+.gs-widget-banner-tag {
+  display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; color: #0a0f1e;
+  background: linear-gradient(135deg, #d4a017, #f59e0b);
+  padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+}
+.gs-widget-banner-title { font-size: 19px; font-weight: 800; color: #f8fafc; line-height: 1.3; margin: 0 0 6px; }
+.gs-widget-banner-title span { color: #d4a017; }
+.gs-widget-banner-desc { font-size: 13.5px; color: #94a3b8; line-height: 1.6; margin: 0; max-width: 620px; }
+.gs-widget-banner-desc strong { color: #cbd5e1; font-weight: 700; }
+.gs-widget-banner-cta {
+  position: relative; z-index: 1; flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #d4a017, #f59e0b); color: #0a0f1e !important;
+  text-decoration: none; font-weight: 800; font-size: 14px; white-space: nowrap;
+  padding: 13px 24px; border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(212,160,23,0.22);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.gs-widget-banner-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(212,160,23,0.32); }
+@media (max-width: 720px) {
+  .gs-widget-banner { flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }
+  .gs-widget-banner-cta { width: 100%; justify-content: center; }
+}
+
 /* ── What This Means section ── */
 .gs-wtm-section {
   background: var(--card);
@@ -1115,6 +1161,23 @@ document.body.style.overflow='';
 </header>
 
 <main class="page-body">
+
+<!-- ── FREE WIDGET PROMO BANNER ───────────────────────────────────────────── -->
+<aside class="gs-widget-banner" aria-label="Free Europe gas storage widget for websites">
+  <div class="gs-widget-banner-glow"></div>
+  <div class="gs-widget-banner-text">
+    <span class="gs-widget-banner-tag">&#9889; Free Embeddable Widget</span>
+    <h2 class="gs-widget-banner-title">Put the <span>Europe Gas Storage Widget</span> on Your Own Website &mdash; Free</h2>
+    <p class="gs-widget-banner-desc">
+      Embed a <strong>live Europe gas storage levels widget</strong> on your blog, app or dashboard in one line of code.
+      Show EU storage %, <strong>winter readiness</strong>, top country storage data and gas market risk signals &mdash;
+      updated daily, mobile-responsive and free for commercial use.
+    </p>
+  </div>
+  <a href="/widgets/europe-gas-storage-levels" class="gs-widget-banner-cta">
+    Get the Free Widget &rarr;
+  </a>
+</aside>
 
 <!-- ── SECTION: TODAY'S SNAPSHOT ──────────────────────────────────────────── -->
 <div class="gs-snapshot-card">
