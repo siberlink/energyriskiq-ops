@@ -282,6 +282,12 @@ try:
     run_daily_report_migration()
 except Exception as _e:
     logger.error(f"daily_report migration error: {_e}")
+from src.api.widget_embed_tracking_routes import router as widget_embed_tracking_router, run_widget_embed_tracking_migration
+app.include_router(widget_embed_tracking_router)
+try:
+    run_widget_embed_tracking_migration()
+except Exception as _e:
+    logger.error(f"widget_embed_tracking migration error: {_e}")
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")

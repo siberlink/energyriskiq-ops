@@ -1232,6 +1232,14 @@
                     </span>
                     Alerts
                 </div>
+                <div class="nav-item" onclick="showSection('embeds')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                    </span>
+                    Widget Embeds
+                </div>
             </div>
 
             <div class="sidebar-section">
@@ -1503,6 +1511,33 @@
                         Alert monitoring features coming soon.
                     </div>
                 </div>
+            </div>
+
+            <!-- Widget Embeds Section -->
+            <div class="section-content" id="section-embeds">
+                <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <h1 class="page-title">Widget Embeds</h1>
+                        <p class="page-subtitle">External websites embedding the free WTI &amp; Europe Gas Storage widgets</p>
+                    </div>
+                    <button class="fh-refresh-btn" onclick="loadWidgetEmbeds()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="stats-grid" id="embedSummaryGrid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Embedding Pages</div>
+                        <div class="stat-value" id="emb-total-pages">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Loads Tracked</div>
+                        <div class="stat-value" id="emb-total-hits" style="color:#60a5fa;">--</div>
+                    </div>
+                </div>
+
+                <div id="embedWidgetsContainer"></div>
             </div>
 
             <!-- Feed Health Section -->
@@ -2291,6 +2326,8 @@
                 loadPlanSettings();
             } else if (sectionId === 'feeds') {
                 loadFeedHealth();
+            } else if (sectionId === 'embeds') {
+                loadWidgetEmbeds();
             } else if (sectionId === 'stripe') {
                 loadStripeSettings();
             } else if (sectionId === 'banner') {
@@ -2492,6 +2529,75 @@
             fhExpandedRow = null;
             document.querySelectorAll('.fh-pill').forEach(p => p.classList.toggle('active', p.dataset.fhFilter === f));
             renderFeedsTable();
+        }
+
+        function escHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        function fmtEmbedDate(iso) {
+            if (!iso) return '--';
+            try {
+                const d = new Date(iso);
+                return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) +
+                    ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            } catch (e) { return iso; }
+        }
+
+        async function loadWidgetEmbeds() {
+            const container = document.getElementById('embedWidgetsContainer');
+            container.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;">Loading embed data…</div>';
+            try {
+                const res = await fetch('/admin/widget-embeds', {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+                const data = await res.json();
+
+                document.getElementById('emb-total-pages').textContent =
+                    (data.summary.total_unique_pages || 0).toLocaleString();
+                document.getElementById('emb-total-hits').textContent =
+                    (data.summary.total_hits || 0).toLocaleString();
+
+                let html = '';
+                (data.widgets || []).forEach(w => {
+                    html += '<div class="content-card" style="margin-bottom:20px;">';
+                    html += '<div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">';
+                    html += '<h2 class="card-title">' + escHtml(w.label) + '</h2>';
+                    html += '<span style="font-size:12px;color:#94a3b8;">' +
+                        (w.unique_pages || 0).toLocaleString() + ' page(s) · ' +
+                        (w.total_hits || 0).toLocaleString() + ' loads</span>';
+                    html += '</div>';
+
+                    if (!w.pages || w.pages.length === 0) {
+                        html += '<div style="padding:32px;text-align:center;color:#64748b;">No embeds detected yet for this widget.</div>';
+                    } else {
+                        html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+                        html += '<thead><tr style="text-align:left;color:#94a3b8;border-bottom:1px solid #334155;">' +
+                            '<th style="padding:10px 12px;">Page URL</th>' +
+                            '<th style="padding:10px 12px;">Loads</th>' +
+                            '<th style="padding:10px 12px;">First Seen</th>' +
+                            '<th style="padding:10px 12px;">Last Seen</th>' +
+                            '</tr></thead><tbody>';
+                        w.pages.forEach(p => {
+                            const url = escHtml(p.page_url);
+                            html += '<tr style="border-bottom:1px solid #1e293b;">' +
+                                '<td style="padding:10px 12px;"><a href="' + url + '" target="_blank" rel="noopener noreferrer" style="color:#60a5fa;text-decoration:none;word-break:break-all;">' + url + '</a></td>' +
+                                '<td style="padding:10px 12px;color:#e2e8f0;">' + (p.hit_count || 0).toLocaleString() + '</td>' +
+                                '<td style="padding:10px 12px;color:#94a3b8;">' + fmtEmbedDate(p.first_seen) + '</td>' +
+                                '<td style="padding:10px 12px;color:#94a3b8;">' + fmtEmbedDate(p.last_seen) + '</td>' +
+                                '</tr>';
+                        });
+                        html += '</tbody></table></div>';
+                    }
+                    html += '</div>';
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#f87171;">Failed to load embed data: ' + escHtml(e.message) + '</div>';
+            }
         }
 
         async function loadFeedHealth() {

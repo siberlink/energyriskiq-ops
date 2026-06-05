@@ -422,6 +422,13 @@ def _render_widget_html(data, *, pro=False):
 </html>"""
 
 
+_EMBED_TRACK_BEACON = (
+    "<script>(function(){try{var r=document.referrer||'';if(!r)return;"
+    "var d=new URLSearchParams();d.set('widget','wti-free');d.set('url',r);"
+    "navigator.sendBeacon('/api/widget-embeds/track',d);}catch(e){}})();</script>"
+)
+
+
 @router.get("/embed/wti-crude-oil-widget")
 async def wti_widget_embed():
     try:
@@ -430,6 +437,7 @@ async def wti_widget_embed():
         logger.error(f"Widget data fetch failed: {exc}", exc_info=True)
         data = {'intraday': [], 'daily': [], 'geri_live': None, 'intraday_brent': None}
     html = _render_widget_html(data, pro=False)
+    html = html.replace("</body>", _EMBED_TRACK_BEACON + "</body>", 1)
     return HTMLResponse(
         content=html,
         headers={
