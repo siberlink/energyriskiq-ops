@@ -2,4 +2,5 @@
 - [Stripe mode awareness](stripe-mode-awareness.md) — admin-switchable global live/sandbox toggle; tag rows by mode from Stripe livemode truth, split embed-runtime vs management checks.
 - [Stripe payments doc](../../docs/STRIPE_PAYMENTS.md) — full payment architecture: admin live/sandbox switch, plans (plan_settings dual-mode IDs), checkout/portal/webhooks, new-feature checklist. Read before any payment work.
 - [Stripe sub-product mode-awareness](stripe-subproduct-mode-awareness.md) — standalone €-sub products: mode-aware for account mgmt, mode-agnostic for runtime entitlement; isolate in BOTH invoice handlers.
+- [Widget iframe embedding](widget-iframe-embedding.md) — /embed/* widgets must send NO X-Frame-Options and NO CSP frame-ancestors; `frame-ancestors *` blocks file:// test pages.
 - [AGSI+ per-country query](agsi-country-query.md) — AGSI+ returns EU aggregate unless country passed as query param (?country=DE); path form /api/de silently gives EU data for all countries.
