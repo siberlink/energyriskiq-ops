@@ -5870,6 +5870,18 @@
                 Pro Widget — WTI
                 <span class="pro-badge-nav" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9);font-size:9px;padding:2px 6px;">€1.49</span>
             </a>
+            <a class="nav-item" id="gasProWidgetNavItem" onclick="showSection('gas-pro-widget'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 20h16"/>
+                        <rect x="6" y="10" width="3" height="8" rx="1"/>
+                        <rect x="11" y="6" width="3" height="12" rx="1"/>
+                        <rect x="16" y="13" width="3" height="5" rx="1"/>
+                    </svg>
+                </span>
+                Pro Widget — Gas Storage
+                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#d4a017,#b8860b);font-size:9px;padding:2px 6px;">€1.49</span>
+            </a>
             <a class="nav-item" id="indicesHistoryNavItem" onclick="showSection('indices-history'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -8143,6 +8155,196 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             @media (max-width:880px) {
                 #wpwGrid { grid-template-columns:1fr !important; }
                 #wpwGrid > div:nth-child(2) { position:static !important; }
+            }
+        </style>
+
+        <div class="section-content" id="section-gas-pro-widget">
+            <div class="content-card">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(212,160,23,.10),rgba(184,134,11,.04));">
+                    <div>
+                        <div class="card-title" style="display:flex;align-items:center;gap:10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2"><path d="M4 20h16"/><rect x="6" y="10" width="3" height="8" rx="1"/><rect x="11" y="6" width="3" height="12" rx="1"/><rect x="16" y="13" width="3" height="5" rx="1"/></svg>
+                            Professional Europe Gas Storage Widget
+                        </div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Embeddable Europe gas storage intelligence · €1.49/month · No attribution required</div>
+                    </div>
+                    <span id="gpwStatusBadge" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#334155;color:#cbd5e1;">Loading…</span>
+                </div>
+                <div class="card-body" id="gpwBody">
+                    <!-- Fancy concentric-ring loader -->
+                    <div class="snap-panel-loader" id="gpwLoading" style="display:block;">
+                        <div class="pl-ring-wrap">
+                            <div class="pl-ring-bg"></div>
+                            <div class="pl-arc1"></div>
+                            <div class="pl-arc2"></div>
+                            <div class="pl-arc3"></div>
+                            <div class="pl-dot"></div>
+                        </div>
+                        <div class="pl-label-main">Initialising Pro Widget</div>
+                        <div class="pl-label-sub" id="gpwLoaderStatus">Connecting to subscription engine&hellip;</div>
+                        <div class="pl-tags">
+                            <span class="pl-tag">Gas Storage</span>
+                            <span class="pl-tag">Stripe</span>
+                            <span class="pl-tag">user_pro_widgets</span>
+                        </div>
+                        <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                    </div>
+
+                    <!-- INACTIVE STATE: Subscribe pitch -->
+                    <div id="gpwInactive" style="display:none;">
+                        <div style="background:linear-gradient(135deg,#0f172a,#0b1220);border:1px solid #1e293b;border-radius:12px;padding:24px;margin-bottom:18px;">
+                            <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;">EnergyRiskIQ Pro Widget</div>
+                            <div style="font-size:22px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Embeddable Europe gas storage intelligence — not just a fill gauge</div>
+                            <div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:18px;">Add a professional-grade Europe gas storage widget to your site or app. Live EU storage %, winter-readiness scoring, 7D &amp; 30D trend charts, country leaderboard &amp; comparison, custom-algorithm market commentary, TTF connection, and seasonal comparison — all auto-updating, fully themable, with no EnergyRiskIQ branding and zero attribution requirement.</div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:20px;">
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ NO BRANDING</div><div style="font-size:11px;color:#cbd5e1;">Premium, unbranded look for your site</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ NO CITATION</div><div style="font-size:11px;color:#cbd5e1;">Professional license included</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ MARKET INTELLIGENCE</div><div style="font-size:11px;color:#cbd5e1;">Daily custom-algorithm commentary</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ LIVE UPDATES</div><div style="font-size:11px;color:#cbd5e1;">Auto-refresh every 60 seconds</div></div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                                <button id="gpwSubscribeBtn" onclick="gpwStartCheckout()" style="background:linear-gradient(135deg,#d4a017,#b8860b);color:#fff;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;">Subscribe — €1.49/month</button>
+                                <a href="/widgets/europe-gas-storage-levels" target="_blank" style="color:#d4a017;text-decoration:none;font-size:13px;font-weight:600;">See public preview →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVE STATE: Configure + embed -->
+                    <div id="gpwActive" style="display:none;">
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,400px);gap:20px;align-items:start;" id="gpwGrid">
+
+                            <!-- LEFT: Customization controls -->
+                            <div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.6px;text-transform:uppercase;margin-bottom:14px;">Customization</div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Theme</label>
+                                        <div class="gpw-pill-group" data-cfg="theme">
+                                            <button type="button" class="gpw-pill" data-val="dark">Dark</button>
+                                            <button type="button" class="gpw-pill" data-val="light">Light</button>
+                                            <button type="button" class="gpw-pill" data-val="glass">Glass</button>
+                                            <button type="button" class="gpw-pill" data-val="transparent">Transparent</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Size</label>
+                                        <div class="gpw-pill-group" data-cfg="size">
+                                            <button type="button" class="gpw-pill" data-val="compact">Compact (360×560)</button>
+                                            <button type="button" class="gpw-pill" data-val="medium">Medium (460×740)</button>
+                                            <button type="button" class="gpw-pill" data-val="large">Large (720×880)</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Intelligence Mode</label>
+                                        <div class="gpw-pill-group" data-cfg="mode">
+                                            <button type="button" class="gpw-pill" data-val="macro" title="Geopolitics, risk, macro">Macro</button>
+                                            <button type="button" class="gpw-pill" data-val="trader" title="Momentum, TTF, short-term">Trader</button>
+                                            <button type="button" class="gpw-pill" data-val="energy" title="Supply, injections, LNG">Energy</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Sections</label>
+                                        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="gpwSections">
+                                            <label class="gpw-check"><input type="checkbox" data-section="countries">Country Leaderboard</label>
+                                            <label class="gpw-check"><input type="checkbox" data-section="comparison">Country Comparison</label>
+                                            <label class="gpw-check"><input type="checkbox" data-section="seasonal">Seasonal Comparison</label>
+                                            <label class="gpw-check"><input type="checkbox" data-section="context">Market Context</label>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;">
+                                        <div>
+                                            <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Accent Color</label>
+                                            <input type="color" id="gpwAccent" value="#d4a017" style="width:100%;height:34px;background:#0f172a;border:1px solid #334155;border-radius:8px;cursor:pointer;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Border Radius (<span id="gpwRadiusVal">14</span>px)</label>
+                                            <input type="range" id="gpwRadius" min="0" max="32" value="14" style="width:100%;margin-top:8px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- License badge -->
+                                <div style="background:linear-gradient(135deg,rgba(212,160,23,.10),rgba(184,134,11,.04));border:1px solid rgba(212,160,23,.25);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;gap:12px;align-items:center;">
+                                    <div style="background:#d4a017;color:#0b1220;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">✓</div>
+                                    <div>
+                                        <div style="font-size:12px;font-weight:700;color:#d4a017;margin-bottom:2px;">Professional License Included</div>
+                                        <div style="font-size:11px;color:#cbd5e1;line-height:1.4;">No attribution or citation required. Use on any number of your sites and apps.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Embed code -->
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;">Embed Code — iframe</div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Paste anywhere in your HTML. Updates live every 60 s.</div>
+                                    <textarea id="gpwEmbedIframe" readonly rows="3" style="width:100%;background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical;box-sizing:border-box;"></textarea>
+                                    <button onclick="gpwCopy('gpwEmbedIframe', this)" style="margin-top:8px;background:#d4a017;color:#0b1220;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:12px;">Copy iframe code</button>
+                                </div>
+
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;">Embed Code — JS loader</div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Alternative pattern with auto-sizing div.</div>
+                                    <textarea id="gpwEmbedJs" readonly rows="3" style="width:100%;background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical;box-sizing:border-box;"></textarea>
+                                    <button onclick="gpwCopy('gpwEmbedJs', this)" style="margin-top:8px;background:#b8860b;color:#fff;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:12px;">Copy JS embed code</button>
+                                </div>
+
+                                <!-- Subscription management -->
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                                    <div>
+                                        <div style="font-size:12px;color:#cbd5e1;font-weight:600;">Subscription</div>
+                                        <div style="font-size:11px;color:#94a3b8;margin-top:2px;" id="gpwBillingMeta">€1.49 / month</div>
+                                    </div>
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <button onclick="gpwRotateToken()" style="background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid #334155;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:11px;">Rotate Embed Token</button>
+                                        <button onclick="gpwCancel()" id="gpwCancelBtn" style="background:transparent;color:#ef4444;border:1px solid #ef444455;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:11px;">Cancel Subscription</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT: Live preview -->
+                            <div style="position:sticky;top:20px;">
+                                <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                                    <span>Live Preview</span>
+                                    <span id="gpwPreviewSize" style="font-size:10px;color:#64748b;font-weight:500;text-transform:none;letter-spacing:0;"></span>
+                                </div>
+                                <div style="background:#020617;border:1px dashed #334155;border-radius:12px;padding:14px;min-height:300px;display:flex;justify-content:center;align-items:flex-start;">
+                                    <iframe id="gpwPreviewIframe" src="about:blank" style="border:0;display:block;width:100%;max-width:460px;height:740px;background:transparent;" allowtransparency="true" title="Europe Gas Storage Pro Widget preview"></iframe>
+                                </div>
+                                <div style="font-size:10.5px;color:#64748b;margin-top:8px;text-align:center;">Preview refreshes when you change a setting. Embedded widgets auto-refresh every 60 s.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* Gas Storage Pro Widget account UI */
+            .gpw-pill-group { display:flex; flex-wrap:wrap; gap:6px; }
+            .gpw-pill {
+                background:#0f172a; color:#94a3b8; border:1px solid #334155;
+                padding:7px 12px; border-radius:8px; cursor:pointer; font-size:12px;
+                font-weight:600; transition:all .15s;
+            }
+            .gpw-pill:hover { color:#e2e8f0; border-color:#475569; }
+            .gpw-pill.active {
+                background:rgba(212,160,23,.14); color:#d4a017;
+                border-color:#d4a01766;
+            }
+            .gpw-check {
+                display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+                font-size:12px; color:#cbd5e1; background:#0f172a;
+                border:1px solid #334155; padding:6px 10px; border-radius:8px;
+                font-weight:500;
+            }
+            .gpw-check input { accent-color:#d4a017; cursor:pointer; }
+            @media (max-width:880px) {
+                #gpwGrid { grid-template-columns:1fr !important; }
+                #gpwGrid > div:nth-child(2) { position:static !important; }
             }
         </style>
 
@@ -14263,6 +14465,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 loadTraderIntel();
             } else if (sectionId === 'wti-pro-widget') {
                 wpwLoadStatus();
+            } else if (sectionId === 'gas-pro-widget') {
+                gpwLoadStatus();
             } else if (sectionId === 'indices-history') {
                 ihLoadStatus();
             }
@@ -14615,6 +14819,348 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } catch (e) {}
         });
         /* ════════════════ End WTI Pro Widget ════════════════ */
+
+        /* ════════════════ Gas Storage Pro Widget — Account UI ════════════════ */
+        let gpwState = { active:false, embed_token:'', config:null, base_url:'',
+                         size_presets:{compact:{w:360,h:560},medium:{w:460,h:740},large:{w:720,h:880}} };
+        let gpwConfigSaveTimer = null;
+        let gpwLoaderStatusTimer = null;
+        const GPW_LOADER_MESSAGES = [
+            'Connecting to subscription engine…',
+            'Verifying widget licence…',
+            'Loading customisation profile…',
+            'Pulling live gas-storage signals…',
+            'Preparing embed preview…'
+        ];
+
+        function gpwStartLoaderCycle() {
+            const el = document.getElementById('gpwLoaderStatus');
+            if (!el) return;
+            let i = 0;
+            if (gpwLoaderStatusTimer) clearInterval(gpwLoaderStatusTimer);
+            gpwLoaderStatusTimer = setInterval(() => {
+                i = (i + 1) % GPW_LOADER_MESSAGES.length;
+                el.style.opacity = '0';
+                setTimeout(() => { el.textContent = GPW_LOADER_MESSAGES[i]; el.style.opacity = '1'; }, 180);
+            }, 1500);
+        }
+        function gpwStopLoaderCycle() {
+            if (gpwLoaderStatusTimer) { clearInterval(gpwLoaderStatusTimer); gpwLoaderStatusTimer = null; }
+        }
+        function gpwGetAuthToken() {
+            try {
+                if (typeof sessionToken !== 'undefined' && sessionToken) return sessionToken;
+            } catch (e) {}
+            return localStorage.getItem('userToken') || localStorage.getItem('sessionToken') || '';
+        }
+
+        async function gpwLoadStatus(_retry) {
+            const loader = document.getElementById('gpwLoading');
+            if (loader) loader.style.display = 'block';
+            document.getElementById('gpwInactive').style.display = 'none';
+            document.getElementById('gpwActive').style.display = 'none';
+            gpwStartLoaderCycle();
+
+            const token = gpwGetAuthToken();
+            if (!token) {
+                const attempts = (_retry || 0) + 1;
+                if (attempts < 15) {
+                    setTimeout(() => gpwLoadStatus(attempts), 200);
+                    return;
+                }
+                gpwStopLoaderCycle();
+                if (loader) {
+                    loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Please <a href="/users" style="color:#d4a017;">sign in</a> to manage your Pro Widget.</div>';
+                }
+                return;
+            }
+            try {
+                const r = await fetch('/api/widgets/gas-storage-pro/status', { headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    gpwStopLoaderCycle();
+                    if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Session expired — please <a href="/users" style="color:#d4a017;">sign in again</a>.</div>';
+                    return;
+                }
+                const data = await r.json();
+                gpwState.active = !!data.active;
+                gpwState.embed_token = data.embed_token || '';
+                gpwState.config = data.config || {};
+                gpwState.base_url = data.base_url || (location.protocol + '//' + location.host);
+                gpwState.size_presets = data.size_presets || gpwState.size_presets;
+                gpwState.status = data.status;
+                gpwStopLoaderCycle();
+                gpwRenderShell(data);
+            } catch (e) {
+                console.error('gpwLoadStatus', e);
+                gpwStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;font-size:13px;">Failed to load widget status. <button onclick="gpwLoadStatus()" style="background:#d4a017;color:#0b1220;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;margin-left:8px;">Retry</button></div>';
+            }
+        }
+
+        function gpwRenderShell(data) {
+            const loader = document.getElementById('gpwLoading');
+            if (loader) loader.style.display = 'none';
+            const badge = document.getElementById('gpwStatusBadge');
+            if (gpwState.active) {
+                badge.textContent = (data.status === 'canceling') ? 'Active · Cancelling' :
+                                    (data.status === 'trialing'  ? 'Trial Active' : 'Active');
+                badge.style.background = (data.status === 'canceling') ? '#f59e0b' : '#10b981';
+                badge.style.color = '#0b1220';
+                document.getElementById('gpwInactive').style.display = 'none';
+                document.getElementById('gpwActive').style.display = 'block';
+                gpwApplyConfigToUI();
+                gpwUpdatePreviewAndCode();
+                const meta = document.getElementById('gpwBillingMeta');
+                if (data.current_period_end) {
+                    const d = new Date(data.current_period_end);
+                    meta.textContent = '€1.49 / month · ' +
+                        (data.status === 'canceling' ? 'Ends ' : 'Renews ') +
+                        d.toLocaleDateString();
+                }
+                if (data.status === 'canceling') {
+                    const btn = document.getElementById('gpwCancelBtn');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Cancellation Scheduled'; btn.style.opacity = 0.5; btn.style.cursor = 'default'; }
+                }
+            } else {
+                badge.textContent = 'Inactive';
+                badge.style.background = '#334155';
+                badge.style.color = '#cbd5e1';
+                document.getElementById('gpwInactive').style.display = 'block';
+                document.getElementById('gpwActive').style.display = 'none';
+            }
+        }
+
+        function gpwApplyConfigToUI() {
+            const cfg = gpwState.config || {};
+            document.querySelectorAll('.gpw-pill-group').forEach(grp => {
+                const key = grp.getAttribute('data-cfg');
+                grp.querySelectorAll('.gpw-pill').forEach(p => {
+                    p.classList.toggle('active', p.getAttribute('data-val') === cfg[key]);
+                });
+            });
+            document.querySelectorAll('#gpwSections input[type=checkbox]').forEach(cb => {
+                const k = cb.getAttribute('data-section');
+                cb.checked = !!((cfg.sections || {})[k]);
+            });
+            const acc = document.getElementById('gpwAccent');
+            if (acc) acc.value = cfg.accent || '#d4a017';
+            const rad = document.getElementById('gpwRadius');
+            if (rad) { rad.value = cfg.radius != null ? cfg.radius : 14;
+                       document.getElementById('gpwRadiusVal').textContent = rad.value; }
+        }
+
+        function gpwReadConfigFromUI() {
+            const cfg = { sections:{} };
+            document.querySelectorAll('.gpw-pill-group').forEach(grp => {
+                const key = grp.getAttribute('data-cfg');
+                const active = grp.querySelector('.gpw-pill.active');
+                if (active) cfg[key] = active.getAttribute('data-val');
+            });
+            document.querySelectorAll('#gpwSections input[type=checkbox]').forEach(cb => {
+                cfg.sections[cb.getAttribute('data-section')] = cb.checked;
+            });
+            const acc = document.getElementById('gpwAccent');
+            if (acc) cfg.accent = acc.value;
+            const rad = document.getElementById('gpwRadius');
+            if (rad) cfg.radius = parseInt(rad.value, 10);
+            cfg.transparent = (cfg.theme === 'transparent');
+            return cfg;
+        }
+
+        function gpwBuildEmbedUrl(cfg) {
+            const params = new URLSearchParams();
+            params.set('t', gpwState.embed_token);
+            if (cfg.theme)  params.set('theme',  cfg.theme);
+            if (cfg.size)   params.set('size',   cfg.size);
+            if (cfg.mode)   params.set('mode',   cfg.mode);
+            if (cfg.accent) params.set('accent', cfg.accent);
+            if (cfg.transparent) params.set('transparent', '1');
+            const secs = Object.keys(cfg.sections || {}).filter(k => cfg.sections[k]);
+            params.set('sections', secs.join(','));
+            return gpwState.base_url + '/embed/gas-storage-pro-widget?' + params.toString();
+        }
+
+        function gpwBuildEmbedCodeIframe(cfg, url) {
+            const dims = gpwState.size_presets[cfg.size] || gpwState.size_presets.medium;
+            return '<iframe src="' + url + '" style="border:0;width:100%;max-width:' + dims.w + 'px;height:' + dims.h + 'px;" loading="lazy" allowtransparency="true" title="Europe Gas Storage Pro Widget"></iframe>';
+        }
+
+        function gpwBuildEmbedCodeJs(cfg) {
+            const attrs = [
+                'data-eriq-widget="gas-storage-pro"',
+                'data-token="' + gpwState.embed_token + '"',
+                'data-theme="' + cfg.theme + '"',
+                'data-size="' + cfg.size + '"',
+                'data-mode="' + cfg.mode + '"',
+                'data-accent="' + cfg.accent + '"'
+            ];
+            const secs = Object.keys(cfg.sections || {}).filter(k => cfg.sections[k]);
+            if (secs.length) attrs.push('data-sections="' + secs.join(',') + '"');
+            if (cfg.transparent) attrs.push('data-transparent="1"');
+            return '<script src="' + gpwState.base_url + '/widgets/gas-storage-pro.js" async><\/script>\n<div ' + attrs.join(' ') + '></div>';
+        }
+
+        function gpwUpdatePreviewAndCode() {
+            const cfg = gpwReadConfigFromUI();
+            const url = gpwBuildEmbedUrl(cfg);
+            const iframe = document.getElementById('gpwPreviewIframe');
+            const dims = gpwState.size_presets[cfg.size] || gpwState.size_presets.medium;
+            if (iframe) {
+                iframe.style.maxWidth = dims.w + 'px';
+                iframe.style.height = dims.h + 'px';
+                iframe.src = url;
+            }
+            const sz = document.getElementById('gpwPreviewSize');
+            if (sz) sz.textContent = dims.w + ' × ' + dims.h + ' px';
+            const ti = document.getElementById('gpwEmbedIframe');
+            if (ti) ti.value = gpwBuildEmbedCodeIframe(cfg, url);
+            const tj = document.getElementById('gpwEmbedJs');
+            if (tj) tj.value = gpwBuildEmbedCodeJs(cfg);
+        }
+
+        async function gpwSaveConfig() {
+            const token = gpwGetAuthToken();
+            if (!token) return;
+            const cfg = gpwReadConfigFromUI();
+            try {
+                const r = await fetch('/api/widgets/gas-storage-pro/config', {
+                    method:'POST',
+                    headers:{ 'Content-Type':'application/json', 'x-user-token': token },
+                    body: JSON.stringify({ config: cfg })
+                });
+                const data = await r.json();
+                if (data.config) gpwState.config = data.config;
+            } catch (e) { console.error('gpwSaveConfig', e); }
+        }
+
+        function gpwBindControls() {
+            document.querySelectorAll('.gpw-pill-group').forEach(grp => {
+                grp.addEventListener('click', e => {
+                    const b = e.target.closest('.gpw-pill');
+                    if (!b) return;
+                    grp.querySelectorAll('.gpw-pill').forEach(p => p.classList.remove('active'));
+                    b.classList.add('active');
+                    gpwUpdatePreviewAndCode();
+                    gpwQueueSave();
+                });
+            });
+            document.querySelectorAll('#gpwSections input[type=checkbox]').forEach(cb => {
+                cb.addEventListener('change', () => { gpwUpdatePreviewAndCode(); gpwQueueSave(); });
+            });
+            const acc = document.getElementById('gpwAccent');
+            if (acc) acc.addEventListener('input', () => { gpwUpdatePreviewAndCode(); gpwQueueSave(); });
+            const rad = document.getElementById('gpwRadius');
+            if (rad) rad.addEventListener('input', () => {
+                document.getElementById('gpwRadiusVal').textContent = rad.value;
+                gpwUpdatePreviewAndCode(); gpwQueueSave();
+            });
+        }
+
+        function gpwQueueSave() {
+            if (gpwConfigSaveTimer) clearTimeout(gpwConfigSaveTimer);
+            gpwConfigSaveTimer = setTimeout(gpwSaveConfig, 600);
+        }
+
+        async function gpwStartCheckout() {
+            const token = gpwGetAuthToken();
+            const btn = document.getElementById('gpwSubscribeBtn');
+            if (!token) {
+                alert('Please sign in again to subscribe.');
+                return;
+            }
+            if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
+            try {
+                const r = await fetch('/api/widgets/gas-storage-pro/checkout', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    alert('Your session expired. Please sign in again.');
+                    return;
+                }
+                let data = {};
+                try { data = await r.json(); } catch (e) {}
+                if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                if (data.already_active) { gpwLoadStatus(); return; }
+                alert((data && data.detail) ? ('Could not start checkout: ' + data.detail) : 'Could not start checkout. Please try again.');
+            } catch (e) {
+                console.error('gpwStartCheckout', e);
+                alert('Checkout failed. Please try again.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Subscribe — €1.49/month'; }
+            }
+        }
+
+        async function gpwRotateToken() {
+            if (!confirm('Generate a new embed token? Any embeds using the current token will stop working until you update them.')) return;
+            const token = gpwGetAuthToken();
+            try {
+                const r = await fetch('/api/widgets/gas-storage-pro/rotate-token', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json();
+                if (data.embed_token) {
+                    gpwState.embed_token = data.embed_token;
+                    gpwUpdatePreviewAndCode();
+                    alert('New embed token generated. Update your embed code on all sites.');
+                }
+            } catch (e) { alert('Failed to rotate token.'); }
+        }
+
+        async function gpwCancel() {
+            if (!confirm('Cancel your Gas Storage Pro Widget subscription? You will keep access until the end of your billing period.')) return;
+            const token = gpwGetAuthToken();
+            try {
+                const r = await fetch('/api/widgets/gas-storage-pro/cancel', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                if (r.ok) { gpwLoadStatus(); }
+                else { alert('Could not cancel. Please try again.'); }
+            } catch (e) { alert('Cancel failed.'); }
+        }
+
+        function gpwCopy(textareaId, btn) {
+            const ta = document.getElementById(textareaId);
+            if (!ta) return;
+            ta.select();
+            try {
+                navigator.clipboard.writeText(ta.value);
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 1600);
+            } catch (e) {
+                document.execCommand('copy');
+            }
+        }
+
+        async function gpwConfirmAfterCheckout(_attempt) {
+            const attempt = (_attempt || 0) + 1;
+            const token = gpwGetAuthToken();
+            if (!token) {
+                if (attempt < 15) { setTimeout(() => gpwConfirmAfterCheckout(attempt), 300); return; }
+                gpwLoadStatus();
+                return;
+            }
+            try {
+                const r = await fetch('/api/widgets/gas-storage-pro/confirm', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json().catch(() => ({}));
+                if (data && data.active) { gpwLoadStatus(); return; }
+            } catch (e) { console.error('gpwConfirmAfterCheckout', e); }
+            if (attempt < 8) { setTimeout(() => gpwConfirmAfterCheckout(attempt), 1500); return; }
+            gpwLoadStatus();
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            gpwBindControls();
+            try {
+                const qp = new URLSearchParams(location.search);
+                if (qp.get('widget') === 'gas_pro_active') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('gasProWidgetNavItem');
+                        if (nav) nav.click();
+                        gpwConfirmAfterCheckout();
+                    }, 300);
+                }
+            } catch (e) {}
+        });
+        /* ════════════════ End Gas Storage Pro Widget ════════════════ */
 
         /* ════════════════ Download Indices History — Account UI ════════════════ */
         let ihState = { active:false, status:'' };

@@ -1,0 +1,411 @@
+🔥 PRO WIDGET BLUEPRINT
+Europe Gas Storage Intelligence Widget
+€1.49/month
+
+The biggest mistake would be to make this:
+
+❌ Free Widget + No Branding
+
+Nobody pays for that.
+
+Instead, the Pro Widget must become:
+
+"Europe Gas Storage Intelligence"
+🎯 POSITIONING
+Free Widget
+
+Answers:
+
+What are Europe's gas storage levels today?
+
+Pro Widget
+
+Answers:
+
+What do storage levels mean for Europe, TTF prices, and winter risk?
+
+That's what people pay for.
+
+🏗️ WIDGET OBJECTIVE
+
+The Pro Widget should help users:
+
+✅ increase visitor engagement
+
+✅ keep users returning
+
+✅ provide meaningful market context
+
+✅ look professional
+
+✅ justify a paid upgrade
+
+📐 RECOMMENDED SIZE
+
+Default:
+
+600 x 500
+
+This gives enough space for charts + intelligence.
+
+🔝 SECTION 1
+PRIMARY STORAGE BLOCK
+
+Large metric.
+
+Example:
+
+EUROPE GAS STORAGE
+
+63.4%
+
+Subtext:
+
++1.2% vs Last Week
+WINTER READINESS
+
+Displayed prominently.
+
+Example:
+
+WINTER READINESS
+
+86 / 100
+
+GOOD
+STORAGE RISK
+
+Example:
+
+Storage Risk
+
+LOW
+DATA SOURCES
+
+Uses:
+
+gas_storage_snapshots
+EERI
+EGSI
+📈 SECTION 2
+7-DAY STORAGE CHART
+
+This is the first major differentiator.
+
+Title:
+
+7-Day Storage Trend
+
+Data:
+
+gas_storage_snapshots
+
+Show:
+
+storage %
+trend
+weekly movement
+
+Example:
+
+63.4% → 64.1%
+📉 SECTION 3
+30-DAY STORAGE CHART
+
+This is where users begin seeing real value.
+
+Title:
+
+30-Day Storage Trend
+
+Show:
+
+accumulation trend
+withdrawal trend
+monthly movement
+
+Example:
+
+61.0% → 63.4%
+WHY THIS MATTERS
+
+This turns:
+
+❌ snapshot
+
+into
+
+✅ trend intelligence
+
+🌍 SECTION 4
+COUNTRY STORAGE LEADERBOARD
+
+This is one of your strongest assets.
+
+Data:
+
+gas_storage_country_snapshots
+
+Display:
+
+Germany     61%
+France      67%
+Italy       70%
+Austria     65%
+Poland      59%
+Belgium     72%
+
+Countries:
+
+DE
+FR
+NL
+IT
+AT
+PL
+CZ
+HU
+SK
+BE
+Why it sells
+
+Because no free widget should show this.
+
+This becomes a premium feature.
+
+📊 SECTION 5
+COUNTRY COMPARISON CHART
+
+Very powerful.
+
+Show:
+
+Horizontal bar chart.
+
+Example:
+
+BE 72%
+IT 70%
+FR 67%
+AT 65%
+DE 61%
+PL 59%
+
+This creates:
+
+✅ engagement
+
+✅ professionalism
+
+🔥 SECTION 6
+STORAGE INTELLIGENCE
+
+This is the REAL value.
+
+Example:
+
+European storage remains above
+seasonal norms and continues to
+build ahead of winter.
+
+Current storage conditions suggest
+reduced near-term supply stress,
+although elevated geopolitical
+risk remains a factor.
+
+Generated from:
+
+storage
+EERI
+EGSI
+LNG conditions
+WHY THIS MATTERS
+
+People pay for:
+
+❌ data
+
+No.
+
+People pay for:
+
+✅ interpretation
+
+⚠️ SECTION 7
+MARKET CONTEXT
+
+Mini signals.
+
+Example:
+
+TTF Impact:
+Bearish
+
+Storage Risk:
+Low
+
+Supply Stress:
+Moderate
+
+Energy Risk:
+Elevated
+
+Data:
+
+EERI
+EGSI
+GERI
+🔥 SECTION 8
+TTF CONNECTION
+
+This is huge.
+
+Example:
+
+Storage vs TTF
+
+Current storage remains above
+seasonal averages, reducing
+near-term upside pressure
+on TTF prices.
+
+Internal intelligence.
+
+Uses:
+
+storage
+TTF
+📊 SECTION 9
+SEASONAL COMPARISON
+
+Very valuable.
+
+Display:
+
+Current:
+63.4%
+
+5-Year Avg:
+58.1%
+
+Difference:
++5.3%
+
+This creates:
+
+real context
+
+because:
+
+63%
+
+means nothing.
+
+63%
+
+vs
+
+58%
+
+means something.
+
+🎨 SECTION 10
+CUSTOMIZATION
+
+Included with Pro.
+
+Themes:
+
+Dark
+Light
+Glass
+Transparent
+
+Sizes:
+
+Compact
+Medium
+Large
+
+Custom Accent Color
+
+🔗 SECTION 11
+WHITE-LABEL LICENSE
+
+Display prominently.
+
+Commercial License Included
+
+No branding required.
+No attribution required.
+
+Huge perceived value.
+
+🛠️ ACCOUNT CONFIGURATION PANEL
+
+User can choose:
+
+Theme
+
+Size
+
+Show Country Table
+
+ON/OFF
+
+Show Intelligence
+
+ON/OFF
+
+Show Seasonal Comparison
+
+ON/OFF
+
+Show Market Context
+
+ON/OFF
+
+GENERATED EMBED
+<script src="https://energyriskiq.com/widgets/gas-storage-pro.js"></script>
+
+<div data-eriq-widget="eu-gas-storage"></div>
+💰 WHY €1.49 WORKS
+
+For this widget:
+
+The value isn't the chart.
+
+The value is:
+
+country storage data
+seasonal comparison
+intelligence analysis
+white-label usage
+
+That is easily worth €1.49/month.
+
+🚀 FUTURE PREMIUM FEATURES
+
+Later you can add:
+
+Storage Forecast
+30-Day Outlook:
+Improving
+Winter Risk Forecast
+Winter Supply Risk:
+Moderate
+Country Alerts
+Germany storage below seasonal average.
+🎯 MOST IMPORTANT INSIGHT
+
+The Pro widget should not compete with the Free widget.
+
+The Free widget should answer:
+
+What is Europe's storage level today?
+
+The Pro widget should answer:
+
+Is Europe prepared for winter, which countries matter most, and what does this mean for gas markets?
+
+That's the distinction that will drive upgrades at €1.49/month.

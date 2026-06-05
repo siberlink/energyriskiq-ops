@@ -264,6 +264,12 @@ try:
     run_wti_pro_widget_migration()
 except Exception as _e:
     logger.error(f"wti_pro_widget migration error: {_e}")
+from src.api.gas_storage_pro_widget_routes import router as gas_storage_pro_widget_router, run_gas_storage_pro_widget_migration
+app.include_router(gas_storage_pro_widget_router)
+try:
+    run_gas_storage_pro_widget_migration()
+except Exception as _e:
+    logger.error(f"gas_storage_pro_widget migration error: {_e}")
 from src.api.indices_history_routes import router as indices_history_router, run_indices_history_migration
 app.include_router(indices_history_router)
 try:
