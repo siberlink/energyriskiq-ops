@@ -478,7 +478,6 @@ async def gas_storage_widget_embed():
         headers={
             "Cache-Control": "public, max-age=120",
             "Content-Security-Policy": "frame-ancestors *;",
-            "X-Frame-Options": "ALLOWALL",
         },
     )
 
@@ -496,7 +495,6 @@ async def gas_storage_widget_embed_pro():
         headers={
             "Cache-Control": "public, max-age=120",
             "Content-Security-Policy": "frame-ancestors *;",
-            "X-Frame-Options": "ALLOWALL",
         },
     )
 
