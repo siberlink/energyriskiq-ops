@@ -102,6 +102,45 @@ class TrailingSlashRedirectMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(TrailingSlashRedirectMiddleware)
 
+
+_FRAME_PROTECTED_PREFIXES = (
+    "/admin",
+    "/dashboard",
+    "/settings",
+    "/users",
+    "/tokens",
+    "/billing",
+)
+
+# Sensitive HTML served directly from the public /static mount must be protected
+# too, otherwise framing protection is bypassed by hitting the static URL directly.
+_FRAME_PROTECTED_STATIC = (
+    "/static/admin.html",
+    "/static/users.html",
+    "/static/users-account.html",
+)
+
+
+class ClickjackingProtectionMiddleware(BaseHTTPMiddleware):
+    """Block third-party framing of sensitive authenticated pages (admin, account,
+    dashboard, settings, token/payment flows) to prevent clickjacking. Public
+    embeddable widgets under /embed/* are intentionally left framable."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        path = request.url.path
+        protected = (
+            any(path == p or path.startswith(p + "/") for p in _FRAME_PROTECTED_PREFIXES)
+            or path in _FRAME_PROTECTED_STATIC
+        )
+        if protected:
+            response.headers["X-Frame-Options"] = "SAMEORIGIN"
+            response.headers["Content-Security-Policy"] = "frame-ancestors 'self';"
+        return response
+
+
+app.add_middleware(ClickjackingProtectionMiddleware)
+
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
