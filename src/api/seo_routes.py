@@ -1429,6 +1429,34 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
+# Allow AI search & training crawlers to crawl everything
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
 # Block known scrapers and data miners
 User-agent: Scrapy
 Disallow: /
@@ -1458,15 +1486,6 @@ User-agent: DotBot
 Disallow: /geri
 
 User-agent: PetalBot
-Disallow: /geri
-
-User-agent: GPTBot
-Disallow: /geri
-
-User-agent: ClaudeBot
-Disallow: /geri
-
-User-agent: CCBot
 Disallow: /geri
 
 User-agent: ByteSpider
