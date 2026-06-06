@@ -45,6 +45,7 @@ from src.blog.routes import router as blog_router
 from src.api.snapshot_routes import router as snapshot_router
 from src.api.forecast_routes import router as forecast_router
 from src.api.gas_storage_routes import router as gas_storage_router
+from src.api.gas_storage_germany_routes import router as gas_storage_germany_router
 from src.api.lng_routes import router as lng_router
 from src.api.jkm_routes import router as jkm_router
 from src.api.ttf_routes import router as ttf_router
@@ -248,6 +249,7 @@ app.include_router(blog_router)
 app.include_router(snapshot_router)
 app.include_router(forecast_router)
 app.include_router(gas_storage_router)
+app.include_router(gas_storage_germany_router)
 app.include_router(lng_router)
 app.include_router(jkm_router)
 app.include_router(ttf_router)
