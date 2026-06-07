@@ -868,13 +868,35 @@ def run_gas_storage_capture(
     
     def gas_storage_job():
         date_str = capture_date.strftime("%Y-%m-%d")
-        
+
+        # Per-country storage ingestion (gas_storage_country_snapshots).
+        # Runs independently of and up-front from the EU-aggregate capture so it
+        # still ingests even when the EU snapshot already exists or is unavailable.
+        # ingest_country_storage is idempotent (upsert) and self-corrects the row
+        # date from AGSI+'s gasDayStart, so passing the requested date is safe.
+        country_result = None
+        try:
+            from src.ingest.gie_agsi import ingest_country_storage
+            country_result = ingest_country_storage(date_str=date_str)
+            logger.info(
+                "Per-country storage capture for %s: %s ok / %s skipped / %s failed (data_date=%s)",
+                date_str,
+                country_result.get("success", 0),
+                country_result.get("skipped", 0),
+                country_result.get("failed", 0),
+                country_result.get("data_date"),
+            )
+        except Exception as e:
+            logger.error("Per-country storage capture failed: %s", e)
+            country_result = {"error": str(e)}
+
         gas_data = fetch_gas_storage_for_date(date_str)
         if not gas_data:
             return {
                 "status": "skipped",
                 "date": date_str,
-                "message": "No gas storage data available from AGSI+"
+                "message": "No EU-aggregate gas storage data available from AGSI+",
+                "country_capture": country_result,
             }
         
         metrics = compute_gas_metrics(gas_data, capture_date.month)
@@ -886,13 +908,15 @@ def run_gas_storage_capture(
                     "date": date_str,
                     "eu_storage_percent": metrics["eu_storage_percent"],
                     "risk_band": metrics["risk_band"],
-                    "interpretation": metrics["interpretation"]
+                    "interpretation": metrics["interpretation"],
+                    "country_capture": country_result,
                 }
             else:
                 return {
                     "status": "error",
                     "date": date_str,
-                    "message": "Failed to save gas storage snapshot"
+                    "message": "Failed to save gas storage snapshot",
+                    "country_capture": country_result,
                 }
     
     response, status_code = run_job_with_lock('gas_storage_capture', gas_storage_job)
