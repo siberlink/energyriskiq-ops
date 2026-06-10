@@ -1561,7 +1561,18 @@
                         <h1 class="page-title">User Activity <span style="font-size:12px;color:#22c55e;font-weight:600;vertical-align:middle;margin-left:8px;">● LIVE</span></h1>
                         <p class="page-subtitle">First-party behavior intelligence — logins, page &amp; section views, engaged time</p>
                     </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <label style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px;">From
+                            <input type="date" id="act-date-from" onchange="onActivityRangeChange()" style="background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:5px 8px;border-radius:6px;font-size:12px;">
+                        </label>
+                        <label style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:5px;">To
+                            <input type="date" id="act-date-to" onchange="onActivityRangeChange()" style="background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:5px 8px;border-radius:6px;font-size:12px;">
+                        </label>
+                        <button class="fh-refresh-btn" onclick="clearActivityRange()" title="Clear date filter (last 30 days)" style="padding:6px 10px;">Clear</button>
+                        <button class="fh-refresh-btn" onclick="exportActivityCsv()" title="Export filtered events as CSV" style="padding:6px 10px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            Export CSV
+                        </button>
                         <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px;cursor:pointer;">
                             <input type="checkbox" id="activityAutoRefresh" checked onchange="toggleActivityAutoRefresh()"> Auto-refresh
                         </label>
@@ -2432,6 +2443,36 @@
         let activityTimer = null;
         let activityUsersTimer = null;
         function actHeaders() { return { 'X-Admin-Token': sessionToken }; }
+        function actRangeParams() {
+            const f = (document.getElementById('act-date-from') || {}).value || '';
+            const t = (document.getElementById('act-date-to') || {}).value || '';
+            const p = [];
+            if (f) p.push('from=' + encodeURIComponent(f));
+            if (t) p.push('to=' + encodeURIComponent(t));
+            return p.join('&');
+        }
+        function onActivityRangeChange() { loadActivityPages(); loadActivityUsers(); }
+        function clearActivityRange() {
+            const f = document.getElementById('act-date-from'); if (f) f.value = '';
+            const t = document.getElementById('act-date-to'); if (t) t.value = '';
+            loadActivityPages(); loadActivityUsers();
+        }
+        async function exportActivityCsv() {
+            try {
+                const rp = actRangeParams();
+                const url = '/admin/activity/export.csv' + (rp ? ('?' + rp) : '');
+                const r = await fetch(url, { headers: actHeaders() });
+                if (!r.ok) { alert('Export failed (' + r.status + ')'); return; }
+                const blob = await r.blob();
+                const dl = document.createElement('a');
+                const dispo = r.headers.get('Content-Disposition') || '';
+                const m = dispo.match(/filename="?([^"]+)"?/);
+                dl.href = URL.createObjectURL(blob);
+                dl.download = m ? m[1] : 'user-activity.csv';
+                document.body.appendChild(dl); dl.click(); dl.remove();
+                URL.revokeObjectURL(dl.href);
+            } catch (e) { alert('Export failed'); }
+        }
         function fmtDuration(ms) {
             if (!ms || ms < 0) return '0s';
             const s = Math.round(ms / 1000);
@@ -2523,7 +2564,8 @@
 
         async function loadActivityPages() {
             try {
-                const r = await fetch('/admin/activity/pages', { headers: actHeaders() });
+                const rp = actRangeParams();
+                const r = await fetch('/admin/activity/pages' + (rp ? ('?' + rp) : ''), { headers: actHeaders() });
                 if (!r.ok) return;
                 const d = await r.json();
                 const secEl = document.getElementById('act-sections');
@@ -2552,7 +2594,8 @@
         async function loadActivityUsers() {
             try {
                 const q = (document.getElementById('act-user-search').value || '').trim();
-                const url = '/admin/activity/users?limit=50' + (q ? ('&search=' + encodeURIComponent(q)) : '');
+                const rp = actRangeParams();
+                const url = '/admin/activity/users?limit=50' + (q ? ('&search=' + encodeURIComponent(q)) : '') + (rp ? ('&' + rp) : '');
                 const r = await fetch(url, { headers: actHeaders() });
                 if (!r.ok) return;
                 const d = await r.json();

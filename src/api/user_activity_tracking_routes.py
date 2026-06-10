@@ -16,12 +16,16 @@ Design notes:
 - The ingestion endpoint always returns 204 and never raises, by design.
 """
 
+import csv
+import hashlib
+import io
 import json
 import logging
 import random
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Header, HTTPException, Request, Response
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
 
 from src.db.db import get_cursor
@@ -29,6 +33,36 @@ from src.db.db import get_cursor
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _hash_token(token: Optional[str]) -> Optional[str]:
+    """Non-reversible session fingerprint so raw bearer tokens are never stored
+    in analytics rows, while still distinguishing distinct sessions."""
+    if not token:
+        return None
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _date_bounds(date_from: Optional[str], date_to: Optional[str], default_days: int = 30):
+    """Return tz-aware UTC (start, end) bounds. Dates are 'YYYY-MM-DD'; `end` is
+    exclusive (the day after `date_to`). Falls back to the last `default_days`."""
+    start = end = None
+    try:
+        if date_from:
+            start = datetime.strptime(date_from, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except (ValueError, TypeError):
+        start = None
+    try:
+        if date_to:
+            end = (datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)).replace(tzinfo=timezone.utc)
+    except (ValueError, TypeError):
+        end = None
+    now = datetime.now(timezone.utc)
+    if end is None:
+        end = now + timedelta(days=1)
+    if start is None:
+        start = now - timedelta(days=default_days)
+    return start, end
 
 # Event types we accept from the browser tracker. Server-side events (login) are
 # recorded directly via record_activity_event().
@@ -179,7 +213,7 @@ def record_activity_event(
                 (
                     user_id,
                     email,
-                    session_token,
+                    _hash_token(session_token),
                     event_type,
                     page_path,
                     section,
@@ -207,6 +241,7 @@ def _persist_events(token, events, ua, ip):
     device = _parse_device(ua)
     browser = _parse_browser(ua)
 
+    token_hash = _hash_token(token)
     rows = []
     for ev in events[:_MAX_EVENTS_PER_BATCH]:
         if not isinstance(ev, dict):
@@ -232,7 +267,7 @@ def _persist_events(token, events, ua, ip):
         referrer = (str(ev.get("referrer")) if ev.get("referrer") else "")[:500]
         rows.append(
             (
-                user_id, email, token, etype, path, section, duration,
+                user_id, email, token_hash, etype, path, section, duration,
                 meta_json, ua, device, browser, ip, referrer,
             )
         )
@@ -491,8 +526,14 @@ def admin_activity_logins(x_admin_token: Optional[str] = Header(None)):
 
 
 @router.get("/admin/activity/pages")
-def admin_activity_pages(x_admin_token: Optional[str] = Header(None)):
+def admin_activity_pages(
+    x_admin_token: Optional[str] = Header(None),
+    date_from: Optional[str] = Query(None, alias="from"),
+    date_to: Optional[str] = Query(None, alias="to"),
+):
     _require_admin(x_admin_token)
+    start, end = _date_bounds(date_from, date_to)
+    rng = (start, end)
     try:
         with get_cursor(commit=False) as cur:
             cur.execute(
@@ -500,9 +541,10 @@ def admin_activity_pages(x_admin_token: Optional[str] = Header(None)):
                 SELECT page_path, COUNT(*) AS views
                 FROM user_activity_events
                 WHERE event_type='page_view' AND page_path IS NOT NULL
-                  AND created_at > NOW() - INTERVAL '30 days'
+                  AND created_at >= %s AND created_at < %s
                 GROUP BY page_path ORDER BY views DESC LIMIT 20
-                """
+                """,
+                rng,
             )
             top_pages = [{"page_path": r["page_path"], "views": r["views"]} for r in cur.fetchall()]
 
@@ -514,9 +556,10 @@ def admin_activity_pages(x_admin_token: Optional[str] = Header(None)):
                 FROM user_activity_events
                 WHERE event_type='page_time' AND duration_ms IS NOT NULL
                   AND page_path IS NOT NULL
-                  AND created_at > NOW() - INTERVAL '30 days'
+                  AND created_at >= %s AND created_at < %s
                 GROUP BY page_path ORDER BY avg_ms DESC LIMIT 20
-                """
+                """,
+                rng,
             )
             time_pages = [
                 {
@@ -534,9 +577,10 @@ def admin_activity_pages(x_admin_token: Optional[str] = Header(None)):
                        ROUND(AVG(NULLIF(duration_ms,0))) AS avg_ms
                 FROM user_activity_events
                 WHERE event_type='section_view' AND section IS NOT NULL
-                  AND created_at > NOW() - INTERVAL '30 days'
+                  AND created_at >= %s AND created_at < %s
                 GROUP BY section ORDER BY opens DESC LIMIT 30
-                """
+                """,
+                rng,
             )
             sections = [
                 {
@@ -552,9 +596,10 @@ def admin_activity_pages(x_admin_token: Optional[str] = Header(None)):
                 SELECT COALESCE(section, page_path) AS label, COUNT(*) AS clicks
                 FROM user_activity_events
                 WHERE event_type='cta_click'
-                  AND created_at > NOW() - INTERVAL '30 days'
+                  AND created_at >= %s AND created_at < %s
                 GROUP BY label ORDER BY clicks DESC LIMIT 20
-                """
+                """,
+                rng,
             )
             ctas = [{"label": r["label"], "clicks": r["clicks"]} for r in cur.fetchall()]
 
@@ -574,11 +619,14 @@ def admin_activity_users(
     x_admin_token: Optional[str] = Header(None),
     search: Optional[str] = None,
     limit: int = 50,
+    date_from: Optional[str] = Query(None, alias="from"),
+    date_to: Optional[str] = Query(None, alias="to"),
 ):
     _require_admin(x_admin_token)
     limit = max(1, min(limit, 200))
-    params = []
-    where = "WHERE user_id IS NOT NULL"
+    start, end = _date_bounds(date_from, date_to)
+    params = [start, end]
+    where = "WHERE user_id IS NOT NULL AND created_at >= %s AND created_at < %s"
     if search:
         where += " AND LOWER(email) LIKE %s"
         params.append(f"%{search.lower()}%")
@@ -712,4 +760,63 @@ def admin_activity_user_detail(
         }
     except Exception as e:
         logger.error(f"activity user detail failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+_CSV_MAX_ROWS = 50_000
+
+
+@router.get("/admin/activity/export.csv")
+def admin_activity_export_csv(
+    x_admin_token: Optional[str] = Header(None),
+    date_from: Optional[str] = Query(None, alias="from"),
+    date_to: Optional[str] = Query(None, alias="to"),
+):
+    """Export raw activity events within a date range as CSV (admin only).
+    Capped at _CSV_MAX_ROWS most-recent rows. Session tokens are never exported."""
+    _require_admin(x_admin_token)
+    start, end = _date_bounds(date_from, date_to)
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                """
+                SELECT created_at, user_id, email, event_type, page_path,
+                       section, duration_ms, device, browser, referrer
+                FROM user_activity_events
+                WHERE created_at >= %s AND created_at < %s
+                ORDER BY id DESC
+                LIMIT %s
+                """,
+                (start, end, _CSV_MAX_ROWS),
+            )
+            rows = cur.fetchall()
+
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow([
+            "created_at", "user_id", "email", "event_type", "page_path",
+            "section", "duration_ms", "device", "browser", "referrer",
+        ])
+        for r in rows:
+            writer.writerow([
+                r["created_at"].isoformat() if r["created_at"] else "",
+                r["user_id"] if r["user_id"] is not None else "",
+                r["email"] or "",
+                r["event_type"] or "",
+                r["page_path"] or "",
+                r["section"] or "",
+                r["duration_ms"] if r["duration_ms"] is not None else "",
+                r["device"] or "",
+                r["browser"] or "",
+                r["referrer"] or "",
+            ])
+
+        fname = f"user-activity_{start.strftime('%Y%m%d')}_{(end - timedelta(days=1)).strftime('%Y%m%d')}.csv"
+        return Response(
+            content=buf.getvalue(),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        )
+    except Exception as e:
+        logger.error(f"activity export failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
