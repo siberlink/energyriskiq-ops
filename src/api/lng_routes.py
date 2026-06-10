@@ -1071,6 +1071,66 @@ document.body.style.overflow='';
   </div>
 </div>
 
+<!-- ── WIDGET ADVERTISE BANNER ─────────────────────────────────────────────── -->
+<style>
+.jkm-w-banner {{
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  background: linear-gradient(135deg, #15110a 0%, #1c1608 45%, #0f172a 100%);
+  border: 1px solid rgba(212,160,23,0.35);
+  border-radius: 16px; padding: 22px 26px; margin-bottom: 32px;
+  position: relative; overflow: hidden;
+}}
+.jkm-w-banner::before {{
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #d4a017, #f59e0b);
+}}
+.jkm-w-banner-glow {{
+  position: absolute; top: -40%; right: -10%; width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(212,160,23,0.16) 0%, transparent 70%);
+  pointer-events: none;
+}}
+.jkm-w-banner-text {{ position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; }}
+.jkm-w-banner-tag {{
+  display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; color: #0a0f1e;
+  background: linear-gradient(135deg, #d4a017, #f59e0b);
+  padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+}}
+.jkm-w-banner-title {{ font-size: 19px; font-weight: 800; color: #f8fafc; line-height: 1.3; margin: 0 0 6px; }}
+.jkm-w-banner-title span {{ color: #d4a017; }}
+.jkm-w-banner-desc {{ font-size: 13.5px; color: #94a3b8; line-height: 1.6; margin: 0; max-width: 640px; }}
+.jkm-w-banner-desc strong {{ color: #cbd5e1; font-weight: 700; }}
+.jkm-w-banner-cta {{
+  position: relative; z-index: 1; flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #d4a017, #f59e0b); color: #0a0f1e !important;
+  text-decoration: none; font-weight: 800; font-size: 14px; white-space: nowrap;
+  padding: 13px 24px; border-radius: 10px;
+  box-shadow: 0 6px 22px rgba(212,160,23,0.22);
+  transition: transform .15s ease, box-shadow .15s ease;
+}}
+.jkm-w-banner-cta:hover {{ transform: translateY(-2px); box-shadow: 0 10px 28px rgba(212,160,23,0.32); }}
+@media (max-width: 720px) {{
+  .jkm-w-banner {{ flex-direction: column; align-items: flex-start; gap: 16px; padding: 20px; }}
+  .jkm-w-banner-cta {{ width: 100%; justify-content: center; }}
+}}
+</style>
+<aside class="jkm-w-banner" aria-label="Free JKM LNG price widget for websites">
+  <div class="jkm-w-banner-glow"></div>
+  <div class="jkm-w-banner-text">
+    <span class="jkm-w-banner-tag">&#9889; Free Embeddable Widget</span>
+    <h2 class="jkm-w-banner-title">Put the <span>JKM LNG Price Widget</span> on Your Own Website &mdash; Free</h2>
+    <p class="jkm-w-banner-desc">
+      Embed a <strong>live JKM LNG price widget</strong> on your blog, app or dashboard in one line of code.
+      Show real-time Asian LNG spot prices, <strong>market trend signals</strong>, energy-risk levels and the
+      JKM&ndash;TTF spread &mdash; updated daily, mobile-responsive and free for commercial use.
+    </p>
+  </div>
+  <a href="/widgets/jkm-lng-price" class="jkm-w-banner-cta">
+    Get the Free Widget &rarr;
+  </a>
+</aside>
+
 <!-- ── SECTION: JKM–TTF SPREAD INTELLIGENCE ───────────────────────────────── -->
 <div class="section-label" style="margin-bottom:20px;">&#128257; JKM–TTF Spread — The Arbitrage Signal That Drives European Imports</div>
 
