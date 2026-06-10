@@ -1,0 +1,374 @@
+🎯 POSITIONING
+
+Do NOT position this as:
+
+LNG Price Widget
+
+Position it as:
+
+Global LNG Market Intelligence Widget
+
+That sounds dramatically more valuable.
+
+URL
+Recommended
+/widgets/jkm-lng-price
+
+Short.
+
+SEO friendly.
+
+Future proof.
+
+SEO STRATEGY
+Primary Keyword
+
+JKM LNG Price Widget
+
+Secondary Keywords
+LNG price widget
+JKM LNG price today
+LNG spot price widget
+LNG market widget
+JKM widget
+Long Tail
+free LNG price widget
+embed LNG price widget
+LNG market data widget
+LNG spot market widget
+META TITLE
+Recommended
+
+JKM LNG Price Today Widget | Free LNG Market Widget
+
+META DESCRIPTION
+
+Embed a free JKM LNG price widget on your website. Live LNG prices, market signals, LNG supply trends, and energy risk intelligence from EnergyRiskIQ.
+
+PAGE STRUCTURE
+1. HERO SECTION
+H1
+
+Free JKM LNG Price Widget for Websites
+
+Subtitle
+
+Embed live LNG market intelligence on your website, newsletter, dashboard, or research portal.
+
+Track JKM LNG prices, market trends, and energy risk signals with a free embeddable widget.
+
+CTA
+
+Primary:
+
+👉 Get Free Widget Code
+
+Secondary:
+
+👉 Unlock Pro LNG Widget (€1.95/month)
+
+Trust Bar
+
+✅ LNG Market Data
+
+✅ Daily Updates
+
+✅ Energy Risk Signals
+
+✅ Mobile Responsive
+
+✅ Free Commercial Use
+
+2. LIVE WIDGET PREVIEW
+
+Most important section.
+
+FREE LNG WIDGET STRUCTURE
+GLOBAL LNG MARKET
+
+JKM LNG
+
+$12.84/MMBtu
+
+▲ +2.3%
+
+LNG Market Trend:
+BULLISH
+
+Energy Risk:
+ELEVATED
+
+TTF Spread:
++$1.42
+
+View Full LNG Analysis →
+
+Powered by EnergyRiskIQ
+DATA SOURCES
+
+Primary:
+
+lng_price_snapshots
+
+Supporting:
+
+geri_live
+
+ttf_gas_snapshots
+
+WHY THIS IS BETTER
+
+Most LNG sites show:
+
+JKM
+$12.84
+
+Boring.
+
+This shows:
+
+Market Trend
+
+Bullish
+
+And:
+
+Energy Risk
+
+Elevated
+
+Now it's intelligence.
+
+3. EMBED SECTION
+Title
+
+Copy & Paste This Widget Into Your Website
+
+<iframe
+ src="https://energyriskiq.com/embed/jkm-lng-widget"
+ width="100%"
+ height="300"
+ frameborder="0">
+</iframe>
+
+Copy button.
+
+Mandatory.
+
+4. WHY PUBLISHERS USE THIS WIDGET
+Card 1
+LNG Market Intelligence
+
+Provides LNG context beyond price.
+
+Card 2
+Asia-Europe LNG Monitoring
+
+Tracks LNG benchmark pricing.
+
+Card 3
+Energy Risk Signals
+
+Links LNG prices with market risk.
+
+Card 4
+Fast Lightweight Embed
+
+Perfect for blogs and dashboards.
+
+5. FREE VS PRO COMPARISON
+
+Conversion engine.
+
+Feature	Free	Pro
+JKM LNG Price	✅	✅
+Daily Trend	✅	✅
+LNG Market Signal	✅	✅
+EnergyRiskIQ Branding	Required	Removed
+Citation Required	Required	Not Required
+7-Day LNG Chart	❌	✅
+30-Day LNG Chart	❌	✅
+JKM vs TTF Spread	❌	✅
+LNG Intelligence Analysis	❌	✅
+LNG Supply Context	❌	✅
+Energy Risk Overlay	❌	✅
+White Label Usage	❌	✅
+Transparent Background	❌	✅
+CTA
+
+Create Free Account & Unlock Pro LNG Widget
+
+6. PRO WIDGET PREVIEW
+
+Show significantly more value.
+
+Example:
+
+JKM LNG
+
+$12.84/MMBtu
+
+7-Day Chart
+
+30-Day Chart
+
+JKM vs TTF Spread
+
++$1.42
+
+Market Intelligence
+
+Current LNG prices remain
+supported by tighter Asian
+demand and elevated energy
+risk conditions.
+
+This sells the upgrade.
+
+7. SEO CONTENT BLOCK
+
+Huge opportunity.
+
+H2
+
+What Is JKM LNG?
+
+Explain:
+
+benchmark LNG price
+Asia LNG market
+global LNG pricing
+H2
+
+Why LNG Prices Matter
+
+Explain:
+
+European gas markets
+LNG imports
+energy security
+global energy flows
+H2
+
+What Drives LNG Prices?
+
+Perfect internal link opportunity.
+
+Link heavily to:
+
+What Drives LNG Prices
+
+8. LNG MARKET INSIGHT SECTION
+Title
+
+Today's LNG Market Analysis
+
+Example:
+
+LNG markets remain supported by steady Asian demand and continued competition for cargoes between Europe and Asia.
+
+Daily generated.
+
+Creates habit traffic.
+
+9. USE CASES
+
+Perfect For:
+
+✅ LNG News Sites
+
+✅ Energy Blogs
+
+✅ Commodity Research
+
+✅ Trading Communities
+
+✅ LNG Shipping Portals
+
+✅ Energy Consultancies
+
+10. INTERNAL LINKING STRATEGY
+
+This is where SEO wins happen.
+
+Tier 1 Links
+
+Must be prominent.
+
+LNG Cluster
+JKM LNG Spot Price
+Europe LNG Supply Demand
+
+These are the strongest topical matches.
+
+Tier 2 Links
+Gas Storage Cluster
+Gas Storage Levels in Europe
+Germany Gas Storage Levels
+
+Reason:
+
+Storage and LNG are tightly connected.
+
+Tier 3 Links
+Gas Price Cluster
+Natural Gas Price Today Europe
+TTF Gas Price Today
+
+Reason:
+
+JKM influences LNG flows which influence TTF.
+
+Tier 4 Links
+Risk Cluster
+Europe Energy Risk Index
+Europe Gas Stress Index
+Global Energy Risk Index
+Tier 5 Links
+Research
+What Drives LNG Prices
+Global Energy Risk Timeline
+11. WIDGET ECOSYSTEM SECTION
+
+Promote other widgets.
+
+Related Energy Widgets
+WTI Crude Oil Widget
+Europe Gas Storage Widget
+
+This creates a widget network.
+
+12. FAQ SECTION
+
+Questions:
+
+What is JKM LNG?
+How often is the LNG widget updated?
+Is the LNG widget free?
+Can I use it commercially?
+Can I remove EnergyRiskIQ branding?
+What is the difference between JKM and TTF?
+13. FINAL CONVERSION BLOCK
+Title
+
+Upgrade to the Professional LNG Market Widget
+
+Copy:
+
+Unlock 7-day and 30-day LNG charts, JKM-TTF spread analysis, LNG intelligence signals, and white-label usage for your website or application.
+
+CTA:
+
+👉 Create Free Account
+
+🔥 MOST IMPORTANT DIFFERENTIATOR
+
+The free widget should answer:
+
+What is LNG doing today?
+
+The Pro widget should answer:
+
+Why is LNG moving, what is the Asia-Europe spread, and what does it mean for global gas markets?
+
+That distinction will make the €1.95/month upgrade feel like a genuine intelligence product rather than a branding removal fee.
