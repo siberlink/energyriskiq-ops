@@ -457,8 +457,6 @@ _LANDING_CSS = f"""
 .lng-w-preview-col h3{{font-size:13px; font-weight:800; color:#cbd5e1; margin:0 0 14px; letter-spacing:0.5px; text-align:center;}}
 .lng-w-iframe-shell{{background:linear-gradient(135deg,#020617,#0a0f1d); border-radius:12px; padding:14px;}}
 .lng-w-preview-note{{font-size:11px; color:#64748b; margin-top:12px; text-align:center;}}
-.lng-w-preview-pro{{position:relative; background:linear-gradient(135deg,{LNG_COLOR} 0%,{LNG_COLOR2} 100%); padding:1px; border-radius:17px;}}
-.lng-w-preview-pro .lng-w-preview-col{{margin:0; border:none;}}
 
 /* Embed code box */
 .lng-w-embed-box{{background:#020617; border:1px solid rgba(212,160,23,0.25); border-radius:12px; padding:0; max-width:780px; margin:0 auto 14px; overflow:hidden;}}
@@ -814,17 +812,15 @@ document.body.style.overflow='';
   <h2>Professional LNG Market Widget</h2>
   <p>Significantly more value &mdash; 7-day and 30-day LNG charts, the JKM&ndash;TTF spread, and a daily LNG market intelligence read, fully unbranded with a transparent background.</p>
   <div class="lng-w-preview-wrap">
-    <div class="lng-w-preview-pro">
-      <div class="lng-w-preview-col" style="background:transparent;">
-        <h3 style="color:#fff;">PRO WIDGET &middot; UNBRANDED PREVIEW</h3>
-        <div class="lng-w-iframe-shell" style="background:#020617;">
-          <iframe src="/embed/jkm-lng-widget-pro" width="100%" height="420" frameborder="0"
-                  style="border:0;display:block;border-radius:10px;background:transparent;"
-                  loading="lazy" title="Pro LNG Widget Preview"></iframe>
-        </div>
-        <div class="lng-w-preview-note" style="color:#94a3b8;">
-          No branding &middot; transparent background &middot; white-label ready
-        </div>
+    <div class="lng-w-preview-col">
+      <h3>PRO WIDGET &middot; UNBRANDED PREVIEW</h3>
+      <div class="lng-w-iframe-shell" style="background:#020617;">
+        <iframe src="/embed/jkm-lng-widget-pro" width="100%" height="420" frameborder="0"
+                style="border:0;display:block;border-radius:10px;background:transparent;"
+                loading="lazy" title="Pro LNG Widget Preview"></iframe>
+      </div>
+      <div class="lng-w-preview-note">
+        No branding &middot; transparent background &middot; white-label ready
       </div>
     </div>
   </div>
