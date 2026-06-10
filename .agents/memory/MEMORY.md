@@ -5,3 +5,4 @@
 - [Gas storage ingestion paths](gas-storage-ingestion-paths.md) — EU-aggregate & per-country tables have SEPARATE daily writers; EU current ≠ country current; fetch percent key is full_percent; AGSI+ lags 1-2d.
 - [Widget iframe embedding](widget-iframe-embedding.md) — /embed/* widgets must send NO X-Frame-Options and NO CSP frame-ancestors; `frame-ancestors *` blocks file:// test pages.
 - [AGSI+ per-country query](agsi-country-query.md) — AGSI+ returns EU aggregate unless country passed as query param (?country=DE); path form /api/de silently gives EU data for all countries.
+- [sessions table naive-UTC](sessions-table-naive-utc.md) — sessions.expires_at is timestamp WITHOUT tz storing utcnow(); in SQL compare against (NOW() AT TIME ZONE 'UTC'), not NOW().

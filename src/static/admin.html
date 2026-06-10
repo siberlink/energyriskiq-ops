@@ -741,6 +741,11 @@
             to { transform: rotate(360deg); }
         }
 
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
         /* Toast */
         .toast {
             position: fixed;
@@ -1240,6 +1245,15 @@
                     </span>
                     Widget Embeds
                 </div>
+                <div class="nav-item" onclick="showSection('activity')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                    </span>
+                    User Activity
+                    <span id="activityLiveDot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;margin-left:auto;box-shadow:0 0 6px #22c55e;animation:pulse 1.6s infinite;"></span>
+                </div>
             </div>
 
             <div class="sidebar-section">
@@ -1538,6 +1552,73 @@
                 </div>
 
                 <div id="embedWidgetsContainer"></div>
+            </div>
+
+            <!-- User Activity Section -->
+            <div class="section-content" id="section-activity">
+                <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <h1 class="page-title">User Activity <span style="font-size:12px;color:#22c55e;font-weight:600;vertical-align:middle;margin-left:8px;">● LIVE</span></h1>
+                        <p class="page-subtitle">First-party behavior intelligence — logins, page &amp; section views, engaged time</p>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <label style="font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="checkbox" id="activityAutoRefresh" checked onchange="toggleActivityAutoRefresh()"> Auto-refresh
+                        </label>
+                        <button class="fh-refresh-btn" onclick="loadActivityAll()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-label">Active Now <span id="act-window" style="color:#64748b;font-size:10px;"></span></div><div class="stat-value" id="act-active-now" style="color:#22c55e;">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Active Today</div><div class="stat-value" id="act-active-today">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Logins Today</div><div class="stat-value" id="act-logins-today" style="color:#60a5fa;">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Logins (7d)</div><div class="stat-value" id="act-logins-7d">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Page Views Today</div><div class="stat-value" id="act-pv-today">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Engaged Time Today</div><div class="stat-value" id="act-engaged-today" style="color:#f59e0b;">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Returning Users</div><div class="stat-value" id="act-returning">--</div></div>
+                    <div class="stat-card"><div class="stat-label">One-time Users</div><div class="stat-value" id="act-onetime">--</div></div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+                    <div class="stat-card" style="display:block;"><div class="stat-label" style="margin-bottom:10px;">Devices (30d)</div><div id="act-devices" style="font-size:13px;color:#cbd5e1;">--</div></div>
+                    <div class="stat-card" style="display:block;"><div class="stat-label" style="margin-bottom:10px;">Browsers (30d)</div><div id="act-browsers" style="font-size:13px;color:#cbd5e1;">--</div></div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px;align-items:start;">
+                    <div class="stat-card" style="display:block;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="stat-label">Live Activity Feed</div><span style="font-size:10px;color:#22c55e;">● streaming</span></div>
+                        <div id="act-live-feed" style="max-height:420px;overflow-y:auto;font-size:12px;font-family:ui-monospace,monospace;">Loading…</div>
+                    </div>
+                    <div class="stat-card" style="display:block;">
+                        <div class="stat-label" style="margin-bottom:10px;">Most Active Users (by logins)</div>
+                        <div id="act-login-leaders" style="font-size:13px;">Loading…</div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start;">
+                    <div class="stat-card" style="display:block;">
+                        <div class="stat-label" style="margin-bottom:10px;">Top Account Sections (30d)</div>
+                        <div id="act-sections" style="font-size:13px;">Loading…</div>
+                    </div>
+                    <div class="stat-card" style="display:block;">
+                        <div class="stat-label" style="margin-bottom:10px;">Top Pages &amp; CTA Clicks (30d)</div>
+                        <div id="act-pages" style="font-size:13px;">Loading…</div>
+                    </div>
+                </div>
+
+                <div class="stat-card" style="display:block;margin-top:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap;">
+                        <div class="stat-label">Per-User Behavior</div>
+                        <input type="text" id="act-user-search" placeholder="Search by email…" oninput="debouncedActivityUsers()" style="background:#0f172a;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:6px;font-size:12px;min-width:220px;">
+                    </div>
+                    <div id="act-users-table" style="font-size:13px;overflow-x:auto;">Loading…</div>
+                </div>
+
+                <div id="act-user-detail" style="display:none;margin-top:16px;"></div>
             </div>
 
             <!-- Feed Health Section -->
@@ -2328,6 +2409,8 @@
                 loadFeedHealth();
             } else if (sectionId === 'embeds') {
                 loadWidgetEmbeds();
+            } else if (sectionId === 'activity') {
+                startActivityLive();
             } else if (sectionId === 'stripe') {
                 loadStripeSettings();
             } else if (sectionId === 'banner') {
@@ -2342,6 +2425,225 @@
             } else if (sectionId === 'blog') {
                 loadAdminBlogPosts();
                 loadAdminBlogStats();
+            }
+        }
+
+        /* ════════════════ User Activity (LIVE) ════════════════ */
+        let activityTimer = null;
+        let activityUsersTimer = null;
+        function actHeaders() { return { 'X-Admin-Token': sessionToken }; }
+        function fmtDuration(ms) {
+            if (!ms || ms < 0) return '0s';
+            const s = Math.round(ms / 1000);
+            if (s < 60) return s + 's';
+            const m = Math.floor(s / 60), rs = s % 60;
+            if (m < 60) return m + 'm ' + rs + 's';
+            const h = Math.floor(m / 60), rm = m % 60;
+            return h + 'h ' + rm + 'm';
+        }
+        function fmtTime(iso) {
+            if (!iso) return '--';
+            try { return new Date(iso).toLocaleString(); } catch (e) { return iso; }
+        }
+        function fmtAgo(iso) {
+            if (!iso) return '--';
+            const diff = Date.now() - new Date(iso).getTime();
+            const s = Math.round(diff / 1000);
+            if (s < 60) return s + 's ago';
+            const m = Math.floor(s / 60);
+            if (m < 60) return m + 'm ago';
+            const h = Math.floor(m / 60);
+            if (h < 24) return h + 'h ago';
+            return Math.floor(h / 24) + 'd ago';
+        }
+        function esc(t) {
+            return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+        }
+
+        async function loadActivityOverview() {
+            try {
+                const r = await fetch('/admin/activity/overview', { headers: actHeaders() });
+                if (!r.ok) return;
+                const d = await r.json();
+                document.getElementById('act-active-now').textContent = d.active_now;
+                document.getElementById('act-window').textContent = '(' + d.active_window_minutes + 'm)';
+                document.getElementById('act-active-today').textContent = d.active_today;
+                document.getElementById('act-logins-today').textContent = d.logins_today;
+                document.getElementById('act-logins-7d').textContent = d.logins_7d;
+                document.getElementById('act-pv-today').textContent = d.page_views_today;
+                document.getElementById('act-engaged-today').textContent = fmtDuration(d.engaged_ms_today);
+                document.getElementById('act-returning').textContent = d.returning_users;
+                document.getElementById('act-onetime').textContent = d.one_time_users;
+                const tot = (d.devices || []).reduce((a, x) => a + x.count, 0) || 1;
+                document.getElementById('act-devices').innerHTML = (d.devices || []).map(x =>
+                    `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span>${esc(x.device)}</span><span style="color:#94a3b8;">${x.count} (${Math.round(x.count/tot*100)}%)</span></div>`).join('') || '<span style="color:#64748b;">No data</span>';
+                const btot = (d.browsers || []).reduce((a, x) => a + x.count, 0) || 1;
+                document.getElementById('act-browsers').innerHTML = (d.browsers || []).map(x =>
+                    `<div style="display:flex;justify-content:space-between;padding:3px 0;"><span>${esc(x.browser)}</span><span style="color:#94a3b8;">${x.count} (${Math.round(x.count/btot*100)}%)</span></div>`).join('') || '<span style="color:#64748b;">No data</span>';
+            } catch (e) {}
+        }
+
+        const ACT_COLORS = { login:'#22c55e', page_view:'#60a5fa', section_view:'#a78bfa', page_time:'#f59e0b', cta_click:'#ef4444', heartbeat:'#475569' };
+        async function loadActivityLive() {
+            try {
+                const r = await fetch('/admin/activity/live?limit=60', { headers: actHeaders() });
+                if (!r.ok) return;
+                const d = await r.json();
+                const el = document.getElementById('act-live-feed');
+                if (!d.events || !d.events.length) { el.innerHTML = '<span style="color:#64748b;">No activity yet</span>'; return; }
+                el.innerHTML = d.events.map(e => {
+                    const c = ACT_COLORS[e.event_type] || '#94a3b8';
+                    const what = e.event_type === 'section_view' ? ('§ ' + esc(e.section || ''))
+                        : e.event_type === 'page_time' ? ('⏱ ' + fmtDuration(e.duration_ms))
+                        : esc(e.page_path || e.section || '');
+                    return `<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #1e293b;">
+                        <span style="color:#64748b;min-width:70px;">${fmtAgo(e.created_at)}</span>
+                        <span style="color:${c};min-width:90px;font-weight:600;">${esc(e.event_type)}</span>
+                        <span style="color:#cbd5e1;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${what}</span>
+                        <span style="color:#7dd3fc;min-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.email || ('#'+e.user_id))}</span>
+                    </div>`;
+                }).join('');
+            } catch (e) {}
+        }
+
+        async function loadActivityLogins() {
+            try {
+                const r = await fetch('/admin/activity/logins', { headers: actHeaders() });
+                if (!r.ok) return;
+                const d = await r.json();
+                const el = document.getElementById('act-login-leaders');
+                if (!d.leaders || !d.leaders.length) { el.innerHTML = '<span style="color:#64748b;">No logins yet</span>'; return; }
+                el.innerHTML = d.leaders.map(u =>
+                    `<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #1e293b;cursor:pointer;" onclick="loadActivityUserDetail(${u.user_id})">
+                        <span style="color:#7dd3fc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(u.email || ('#'+u.user_id))}</span>
+                        <span style="color:#94a3b8;white-space:nowrap;"><b style="color:#60a5fa;">${u.login_count}×</b> · ${fmtAgo(u.last_login)}</span>
+                    </div>`).join('');
+            } catch (e) {}
+        }
+
+        async function loadActivityPages() {
+            try {
+                const r = await fetch('/admin/activity/pages', { headers: actHeaders() });
+                if (!r.ok) return;
+                const d = await r.json();
+                const secEl = document.getElementById('act-sections');
+                secEl.innerHTML = (d.sections && d.sections.length) ? d.sections.map(s =>
+                    `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e293b;">
+                        <span style="color:#a78bfa;">${esc(s.section)}</span>
+                        <span style="color:#94a3b8;">${s.opens} opens · avg ${fmtDuration(s.avg_ms)}</span>
+                    </div>`).join('') : '<span style="color:#64748b;">No section views yet</span>';
+                const pgEl = document.getElementById('act-pages');
+                let html = (d.top_pages && d.top_pages.length) ? d.top_pages.map(p =>
+                    `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e293b;">
+                        <span style="color:#60a5fa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.page_path)}</span>
+                        <span style="color:#94a3b8;">${p.views}</span>
+                    </div>`).join('') : '<span style="color:#64748b;">No page views yet</span>';
+                if (d.ctas && d.ctas.length) {
+                    html += '<div style="margin-top:10px;color:#ef4444;font-weight:600;font-size:11px;">CTA CLICKS</div>' + d.ctas.map(c =>
+                        `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e293b;">
+                            <span style="color:#fca5a5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(c.label)}</span>
+                            <span style="color:#94a3b8;">${c.clicks}</span>
+                        </div>`).join('');
+                }
+                pgEl.innerHTML = html;
+            } catch (e) {}
+        }
+
+        async function loadActivityUsers() {
+            try {
+                const q = (document.getElementById('act-user-search').value || '').trim();
+                const url = '/admin/activity/users?limit=50' + (q ? ('&search=' + encodeURIComponent(q)) : '');
+                const r = await fetch(url, { headers: actHeaders() });
+                if (!r.ok) return;
+                const d = await r.json();
+                const el = document.getElementById('act-users-table');
+                if (!d.users || !d.users.length) { el.innerHTML = '<span style="color:#64748b;">No users found</span>'; return; }
+                el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+                    '<thead><tr style="text-align:left;color:#64748b;font-size:11px;border-bottom:1px solid #334155;">' +
+                    '<th style="padding:6px 8px;">User</th><th style="padding:6px 8px;">Logins</th><th style="padding:6px 8px;">Page Views</th><th style="padding:6px 8px;">Sections</th><th style="padding:6px 8px;">Engaged</th><th style="padding:6px 8px;">Last Seen</th></tr></thead><tbody>' +
+                    d.users.map(u =>
+                        `<tr style="border-bottom:1px solid #1e293b;cursor:pointer;" onclick="loadActivityUserDetail(${u.user_id})">
+                            <td style="padding:6px 8px;color:#7dd3fc;">${esc(u.email || ('#'+u.user_id))}</td>
+                            <td style="padding:6px 8px;color:#60a5fa;">${u.logins}</td>
+                            <td style="padding:6px 8px;">${u.page_views}</td>
+                            <td style="padding:6px 8px;">${u.sections_used}</td>
+                            <td style="padding:6px 8px;color:#f59e0b;">${fmtDuration(u.engaged_ms)}</td>
+                            <td style="padding:6px 8px;color:#94a3b8;">${fmtAgo(u.last_seen)}</td>
+                        </tr>`).join('') + '</tbody></table>';
+            } catch (e) {}
+        }
+        let actUserSearchTimer = null;
+        function debouncedActivityUsers() {
+            clearTimeout(actUserSearchTimer);
+            actUserSearchTimer = setTimeout(loadActivityUsers, 350);
+        }
+
+        async function loadActivityUserDetail(userId) {
+            try {
+                const r = await fetch('/admin/activity/user/' + userId, { headers: actHeaders() });
+                if (!r.ok) return;
+                const d = await r.json();
+                const el = document.getElementById('act-user-detail');
+                el.style.display = 'block';
+                el.innerHTML = `<div class="stat-card" style="display:block;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <div class="stat-label" style="font-size:15px;color:#e2e8f0;">${esc(d.email || ('User #'+d.user_id))}</div>
+                        <button class="fh-refresh-btn" onclick="document.getElementById('act-user-detail').style.display='none'">Close</button>
+                    </div>
+                    <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;">
+                        <div><span style="color:#64748b;">Logins:</span> <b style="color:#60a5fa;">${d.logins}</b></div>
+                        <div><span style="color:#64748b;">Page Views:</span> <b>${d.page_views}</b></div>
+                        <div><span style="color:#64748b;">Engaged:</span> <b style="color:#f59e0b;">${fmtDuration(d.engaged_ms)}</b></div>
+                        <div><span style="color:#64748b;">First Seen:</span> <b>${fmtTime(d.first_seen)}</b></div>
+                        <div><span style="color:#64748b;">Last Seen:</span> <b>${fmtAgo(d.last_seen)}</b></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+                        <div>
+                            <div class="stat-label" style="margin-bottom:8px;">Sections Viewed</div>
+                            ${(d.sections && d.sections.length) ? d.sections.map(s =>
+                                `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e293b;font-size:12px;"><span style="color:#a78bfa;">${esc(s.section)}</span><span style="color:#94a3b8;">${s.opens}× · ${fmtDuration(s.avg_ms)}</span></div>`).join('') : '<span style="color:#64748b;font-size:12px;">None</span>'}
+                            <div class="stat-label" style="margin:12px 0 8px;">Recent Logins</div>
+                            ${(d.login_history && d.login_history.length) ? d.login_history.map(t => `<div style="font-size:12px;color:#cbd5e1;padding:2px 0;">${fmtTime(t)}</div>`).join('') : '<span style="color:#64748b;font-size:12px;">None</span>'}
+                        </div>
+                        <div>
+                            <div class="stat-label" style="margin-bottom:8px;">Recent Timeline</div>
+                            <div style="max-height:340px;overflow-y:auto;font-family:ui-monospace,monospace;font-size:11px;">
+                            ${(d.timeline && d.timeline.length) ? d.timeline.map(e => {
+                                const c = ACT_COLORS[e.event_type] || '#94a3b8';
+                                const what = e.event_type === 'section_view' ? ('§ ' + esc(e.section || '')) : e.event_type === 'page_time' ? ('⏱ ' + fmtDuration(e.duration_ms)) : esc(e.page_path || e.section || '');
+                                return `<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid #1e293b;"><span style="color:#64748b;min-width:62px;">${fmtAgo(e.created_at)}</span><span style="color:${c};min-width:80px;">${esc(e.event_type)}</span><span style="color:#cbd5e1;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${what}</span></div>`;
+                            }).join('') : '<span style="color:#64748b;">No events</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (e) {}
+        }
+
+        function loadActivityAll() {
+            loadActivityOverview();
+            loadActivityLive();
+            loadActivityLogins();
+            loadActivityPages();
+            loadActivityUsers();
+        }
+        function startActivityLive() {
+            loadActivityAll();
+            if (activityTimer) clearInterval(activityTimer);
+            if (document.getElementById('activityAutoRefresh').checked) {
+                activityTimer = setInterval(function () {
+                    loadActivityOverview();
+                    loadActivityLive();
+                }, 5000);
+            }
+        }
+        function toggleActivityAutoRefresh() {
+            if (document.getElementById('activityAutoRefresh').checked) {
+                startActivityLive();
+            } else if (activityTimer) {
+                clearInterval(activityTimer);
+                activityTimer = null;
             }
         }
 

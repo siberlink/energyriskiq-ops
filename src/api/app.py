@@ -292,6 +292,12 @@ try:
     run_widget_embed_tracking_migration()
 except Exception as _e:
     logger.error(f"widget_embed_tracking migration error: {_e}")
+from src.api.user_activity_tracking_routes import router as user_activity_tracking_router, run_user_activity_migration
+app.include_router(user_activity_tracking_router)
+try:
+    run_user_activity_migration()
+except Exception as _e:
+    logger.error(f"user_activity migration error: {_e}")
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")

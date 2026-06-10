@@ -3,7 +3,7 @@ import secrets
 import bcrypt
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Request
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
@@ -261,7 +261,7 @@ def set_password(body: SetPasswordRequest):
 
 
 @router.post("/signin")
-def signin(body: SigninRequest):
+def signin(body: SigninRequest, request: Request = None):
     email = body.email.lower().strip()
     
     with get_cursor() as cursor:
@@ -305,6 +305,17 @@ def signin(body: SigninRequest):
             INSERT INTO sessions (token, user_id, expires_at)
             VALUES (%s, %s, %s)
         """, (session_token, user_id, expires_at))
+    
+    try:
+        from src.api.user_activity_tracking_routes import record_activity_event
+        record_activity_event(
+            user_id, user_email, "login",
+            page_path="/users/signin",
+            request=request,
+            session_token=session_token,
+        )
+    except Exception as _e:
+        logger.debug(f"login activity record failed: {_e}")
     
     return {
         "success": True,
