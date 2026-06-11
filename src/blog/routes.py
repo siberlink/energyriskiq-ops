@@ -110,11 +110,15 @@ def _render_markdown_basic(text):
             return f'<a href="{url}" target="_blank" rel="noopener">{label}</a>'
         return label
     text = re.sub(r'\[(.+?)\]\((.+?)\)', _safe_link, text)
+    _hr_re = re.compile(r'^\s*(?:-\s*){3,}$|^\s*(?:\*\s*){3,}$|^\s*(?:_\s*){3,}$')
     paragraphs = text.split('\n\n')
     result = []
     for p in paragraphs:
         p = p.strip()
         if not p:
+            continue
+        if _hr_re.match(p):
+            result.append('<hr style="border:0;border-top:1px solid var(--blog-card-border);margin:32px 0;" />')
             continue
         if p.startswith('<h') or p.startswith('<ul') or p.startswith('<ol') or p.startswith('<img'):
             result.append(p)
