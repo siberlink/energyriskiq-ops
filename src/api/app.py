@@ -272,6 +272,12 @@ try:
     run_wti_pro_widget_migration()
 except Exception as _e:
     logger.error(f"wti_pro_widget migration error: {_e}")
+from src.api.lng_pro_widget_routes import router as lng_pro_widget_router, run_lng_pro_widget_migration
+app.include_router(lng_pro_widget_router)
+try:
+    run_lng_pro_widget_migration()
+except Exception as _e:
+    logger.error(f"lng_pro_widget migration error: {_e}")
 from src.api.gas_storage_pro_widget_routes import router as gas_storage_pro_widget_router, run_gas_storage_pro_widget_migration
 app.include_router(gas_storage_pro_widget_router)
 try:

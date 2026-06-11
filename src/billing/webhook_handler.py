@@ -78,6 +78,11 @@ async def handle_checkout_session_completed(session: dict):
         handle_widget_checkout_completed(session)
         return
 
+    if session.get("metadata", {}).get("type") == "lng_pro_widget":
+        from src.api.lng_pro_widget_routes import handle_widget_checkout_completed as handle_lng_widget_checkout_completed
+        handle_lng_widget_checkout_completed(session)
+        return
+
     if session.get("metadata", {}).get("type") == "gas_storage_pro_widget":
         from src.api.gas_storage_pro_widget_routes import handle_widget_checkout_completed as handle_gas_widget_checkout_completed
         handle_gas_widget_checkout_completed(session)
@@ -132,6 +137,13 @@ async def handle_subscription_updated(subscription: dict):
             return
     except Exception as e:
         logger.error(f"Widget subscription event handler error: {e}")
+
+    try:
+        from src.api.lng_pro_widget_routes import handle_widget_subscription_event as handle_lng_widget_subscription_event
+        if handle_lng_widget_subscription_event(subscription):
+            return
+    except Exception as e:
+        logger.error(f"LNG widget subscription event handler error: {e}")
 
     try:
         from src.api.gas_storage_pro_widget_routes import handle_widget_subscription_event as handle_gas_widget_subscription_event
@@ -191,6 +203,13 @@ async def handle_subscription_deleted(subscription: dict):
             return
     except Exception as e:
         logger.error(f"Widget subscription deleted handler error: {e}")
+
+    try:
+        from src.api.lng_pro_widget_routes import handle_widget_subscription_deleted as handle_lng_widget_subscription_deleted
+        if handle_lng_widget_subscription_deleted(subscription):
+            return
+    except Exception as e:
+        logger.error(f"LNG widget subscription deleted handler error: {e}")
 
     try:
         from src.api.gas_storage_pro_widget_routes import handle_widget_subscription_deleted as handle_gas_widget_subscription_deleted

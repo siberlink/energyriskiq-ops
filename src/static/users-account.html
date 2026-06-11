@@ -5870,6 +5870,16 @@
                 Pro Widget — WTI
                 <span class="pro-badge-nav" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9);font-size:9px;padding:2px 6px;">€1.49</span>
             </a>
+            <a class="nav-item" id="lngProWidgetNavItem" onclick="showSection('lng-pro-widget'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 17l5-5 4 4 8-9"/>
+                        <path d="M14 7h6v6"/>
+                    </svg>
+                </span>
+                Pro Widget — LNG
+                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#d4a017,#f59e0b);font-size:9px;padding:2px 6px;">€1.95</span>
+            </a>
             <a class="nav-item" id="gasProWidgetNavItem" onclick="showSection('gas-pro-widget'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -8155,6 +8165,197 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             @media (max-width:880px) {
                 #wpwGrid { grid-template-columns:1fr !important; }
                 #wpwGrid > div:nth-child(2) { position:static !important; }
+            }
+        </style>
+
+        <!-- ════════════════ LNG Pro Widget section ════════════════ -->
+        <div class="section-content" id="section-lng-pro-widget">
+            <div class="content-card">
+                <div class="card-header" style="background:linear-gradient(135deg,rgba(212,160,23,.08),rgba(245,158,11,.04));">
+                    <div>
+                        <div class="card-title" style="display:flex;align-items:center;gap:10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4a017" stroke-width="2"><path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h6v6"/></svg>
+                            Professional Global LNG Widget
+                        </div>
+                        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Embeddable Global LNG (JKM) market intelligence · €1.95/month · No attribution required</div>
+                    </div>
+                    <span id="lpwStatusBadge" style="font-size:11px;font-weight:700;padding:5px 10px;border-radius:999px;background:#334155;color:#cbd5e1;">Loading…</span>
+                </div>
+                <div class="card-body" id="lpwBody">
+                    <!-- Fancy concentric-ring loader (matches public data pages) -->
+                    <div class="snap-panel-loader" id="lpwLoading" style="display:block;">
+                        <div class="pl-ring-wrap">
+                            <div class="pl-ring-bg"></div>
+                            <div class="pl-arc1"></div>
+                            <div class="pl-arc2"></div>
+                            <div class="pl-arc3"></div>
+                            <div class="pl-dot"></div>
+                        </div>
+                        <div class="pl-label-main">Initialising Pro Widget</div>
+                        <div class="pl-label-sub" id="lpwLoaderStatus">Connecting to subscription engine&hellip;</div>
+                        <div class="pl-tags">
+                            <span class="pl-tag">LNG · JKM</span>
+                            <span class="pl-tag">Stripe</span>
+                            <span class="pl-tag">user_pro_widgets</span>
+                        </div>
+                        <div class="pl-bar-wrap"><div class="pl-bar-fill"></div></div>
+                    </div>
+
+                    <!-- INACTIVE STATE: Subscribe pitch -->
+                    <div id="lpwInactive" style="display:none;">
+                        <div style="background:linear-gradient(135deg,#0f172a,#0b1220);border:1px solid #1e293b;border-radius:12px;padding:24px;margin-bottom:18px;">
+                            <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;">EnergyRiskIQ Pro Widget</div>
+                            <div style="font-size:22px;font-weight:700;color:#f1f5f9;margin-bottom:6px;">Embeddable Global LNG market intelligence — not just a price ticker</div>
+                            <div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:18px;">Add a professional-grade Global LNG (JKM) widget to your site or app. Live JKM price, 7D &amp; 30D charts, custom-algorithm market commentary, cargo-flow direction, and overlay context (JKM–TTF spread, GERI, VIX, EU storage) — all auto-updating, fully themable, with no EnergyRiskIQ branding and zero attribution requirement.</div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:20px;">
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ NO BRANDING</div><div style="font-size:11px;color:#cbd5e1;">Premium, unbranded look for your site</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ NO CITATION</div><div style="font-size:11px;color:#cbd5e1;">Professional license included</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ MARKET INTELLIGENCE</div><div style="font-size:11px;color:#cbd5e1;">Daily custom-algorithm commentary</div></div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:12px;"><div style="font-size:11px;color:#d4a017;font-weight:700;margin-bottom:4px;">✓ LIVE UPDATES</div><div style="font-size:11px;color:#cbd5e1;">Auto-refresh every 60 seconds</div></div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                                <button id="lpwSubscribeBtn" onclick="lpwStartCheckout()" style="background:linear-gradient(135deg,#d4a017,#f59e0b);color:#0b1220;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;">Subscribe — €1.95/month</button>
+                                <a href="/widgets/jkm-lng-price" target="_blank" style="color:#d4a017;text-decoration:none;font-size:13px;font-weight:600;">See public preview →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVE STATE: Configure + embed -->
+                    <div id="lpwActive" style="display:none;">
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,400px);gap:20px;align-items:start;" id="lpwGrid">
+
+                            <!-- LEFT: Customization controls -->
+                            <div>
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.6px;text-transform:uppercase;margin-bottom:14px;">Customization</div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Theme</label>
+                                        <div class="lpw-pill-group" data-cfg="theme">
+                                            <button type="button" class="lpw-pill" data-val="dark">Dark</button>
+                                            <button type="button" class="lpw-pill" data-val="light">Light</button>
+                                            <button type="button" class="lpw-pill" data-val="glass">Glass</button>
+                                            <button type="button" class="lpw-pill" data-val="transparent">Transparent</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Size</label>
+                                        <div class="lpw-pill-group" data-cfg="size">
+                                            <button type="button" class="lpw-pill" data-val="compact">Compact (350×440)</button>
+                                            <button type="button" class="lpw-pill" data-val="medium">Medium (450×580)</button>
+                                            <button type="button" class="lpw-pill" data-val="large">Large (700×700)</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Intelligence Mode</label>
+                                        <div class="lpw-pill-group" data-cfg="mode">
+                                            <button type="button" class="lpw-pill" data-val="macro" title="Geopolitics, risk, macro">Macro</button>
+                                            <button type="button" class="lpw-pill" data-val="trader" title="Momentum, volatility, short-term">Trader</button>
+                                            <button type="button" class="lpw-pill" data-val="energy" title="Supply, cargoes, storage">Energy</button>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-bottom:14px;">
+                                        <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Overlays</label>
+                                        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="lpwOverlays">
+                                            <label class="lpw-check"><input type="checkbox" data-overlay="spread">JKM–TTF Spread</label>
+                                            <label class="lpw-check"><input type="checkbox" data-overlay="geri">GERI Signal</label>
+                                            <label class="lpw-check"><input type="checkbox" data-overlay="vix">VIX Context</label>
+                                            <label class="lpw-check"><input type="checkbox" data-overlay="storage">EU Storage</label>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:6px;">
+                                        <div>
+                                            <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Accent Color</label>
+                                            <input type="color" id="lpwAccent" value="#d4a017" style="width:100%;height:34px;background:#0f172a;border:1px solid #334155;border-radius:8px;cursor:pointer;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:6px;font-weight:600;">Border Radius (<span id="lpwRadiusVal">12</span>px)</label>
+                                            <input type="range" id="lpwRadius" min="0" max="32" value="12" style="width:100%;margin-top:8px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- License badge -->
+                                <div style="background:linear-gradient(135deg,rgba(212,160,23,.08),rgba(245,158,11,.04));border:1px solid rgba(212,160,23,.25);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;gap:12px;align-items:center;">
+                                    <div style="background:#d4a017;color:#0b1220;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">✓</div>
+                                    <div>
+                                        <div style="font-size:12px;font-weight:700;color:#d4a017;margin-bottom:2px;">Professional License Included</div>
+                                        <div style="font-size:11px;color:#cbd5e1;line-height:1.4;">No attribution or citation required. Use on any number of your sites and apps.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Embed code -->
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;">Embed Code — iframe</div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Paste anywhere in your HTML. Updates live every 60 s.</div>
+                                    <textarea id="lpwEmbedIframe" readonly rows="3" style="width:100%;background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical;box-sizing:border-box;"></textarea>
+                                    <button onclick="lpwCopy('lpwEmbedIframe', this)" style="margin-top:8px;background:#d4a017;color:#0b1220;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:12px;">Copy iframe code</button>
+                                </div>
+
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:16px;">
+                                    <div style="font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px;">Embed Code — JS loader</div>
+                                    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Alternative pattern with auto-sizing div.</div>
+                                    <textarea id="lpwEmbedJs" readonly rows="3" style="width:100%;background:#020617;color:#e2e8f0;border:1px solid #1e293b;border-radius:8px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;resize:vertical;box-sizing:border-box;"></textarea>
+                                    <button onclick="lpwCopy('lpwEmbedJs', this)" style="margin-top:8px;background:#f59e0b;color:#0b1220;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-weight:700;font-size:12px;">Copy JS embed code</button>
+                                </div>
+
+                                <!-- Subscription management -->
+                                <div style="background:#0b1220;border:1px solid #1e293b;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                                    <div>
+                                        <div style="font-size:12px;color:#cbd5e1;font-weight:600;">Subscription</div>
+                                        <div style="font-size:11px;color:#94a3b8;margin-top:2px;" id="lpwBillingMeta">€1.95 / month</div>
+                                    </div>
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <button onclick="lpwRotateToken()" style="background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid #334155;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:11px;">Rotate Embed Token</button>
+                                        <button onclick="lpwCancel()" id="lpwCancelBtn" style="background:transparent;color:#ef4444;border:1px solid #ef444455;padding:7px 12px;border-radius:7px;cursor:pointer;font-weight:600;font-size:11px;">Cancel Subscription</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT: Live preview -->
+                            <div style="position:sticky;top:20px;">
+                                <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                                    <span>Live Preview</span>
+                                    <span id="lpwPreviewSize" style="font-size:10px;color:#64748b;font-weight:500;text-transform:none;letter-spacing:0;"></span>
+                                </div>
+                                <div style="background:#020617;border:1px dashed #334155;border-radius:12px;padding:14px;min-height:300px;display:flex;justify-content:center;align-items:flex-start;">
+                                    <iframe id="lpwPreviewIframe" src="about:blank" style="border:0;display:block;width:100%;max-width:450px;height:580px;background:transparent;" allowtransparency="true" title="LNG Pro Widget preview"></iframe>
+                                </div>
+                                <div style="font-size:10.5px;color:#64748b;margin-top:8px;text-align:center;">Preview refreshes when you change a setting. Embedded widgets auto-refresh every 60 s.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* LNG Pro Widget account UI */
+            .lpw-pill-group { display:flex; flex-wrap:wrap; gap:6px; }
+            .lpw-pill {
+                background:#0f172a; color:#94a3b8; border:1px solid #334155;
+                padding:7px 12px; border-radius:8px; cursor:pointer; font-size:12px;
+                font-weight:600; transition:all .15s;
+            }
+            .lpw-pill:hover { color:#e2e8f0; border-color:#475569; }
+            .lpw-pill.active {
+                background:rgba(212,160,23,.12); color:#d4a017;
+                border-color:#d4a01766;
+            }
+            .lpw-check {
+                display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+                font-size:12px; color:#cbd5e1; background:#0f172a;
+                border:1px solid #334155; padding:6px 10px; border-radius:8px;
+                font-weight:500;
+            }
+            .lpw-check input { accent-color:#d4a017; cursor:pointer; }
+            @media (max-width:880px) {
+                #lpwGrid { grid-template-columns:1fr !important; }
+                #lpwGrid > div:nth-child(2) { position:static !important; }
             }
         </style>
 
@@ -14465,6 +14666,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 loadTraderIntel();
             } else if (sectionId === 'wti-pro-widget') {
                 wpwLoadStatus();
+            } else if (sectionId === 'lng-pro-widget') {
+                lpwLoadStatus();
             } else if (sectionId === 'gas-pro-widget') {
                 gpwLoadStatus();
             } else if (sectionId === 'indices-history') {
@@ -14819,6 +15022,348 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } catch (e) {}
         });
         /* ════════════════ End WTI Pro Widget ════════════════ */
+
+        /* ════════════════ LNG Pro Widget — Account UI ════════════════ */
+        let lpwState = { active:false, embed_token:'', config:null, base_url:'',
+                         size_presets:{compact:{w:350,h:440},medium:{w:450,h:580},large:{w:700,h:700}} };
+        let lpwConfigSaveTimer = null;
+        let lpwLoaderStatusTimer = null;
+        const LPW_LOADER_MESSAGES = [
+            'Connecting to subscription engine…',
+            'Verifying widget licence…',
+            'Loading customisation profile…',
+            'Pulling live LNG market signals…',
+            'Preparing embed preview…'
+        ];
+
+        function lpwStartLoaderCycle() {
+            const el = document.getElementById('lpwLoaderStatus');
+            if (!el) return;
+            let i = 0;
+            if (lpwLoaderStatusTimer) clearInterval(lpwLoaderStatusTimer);
+            lpwLoaderStatusTimer = setInterval(() => {
+                i = (i + 1) % LPW_LOADER_MESSAGES.length;
+                el.style.opacity = '0';
+                setTimeout(() => { el.textContent = LPW_LOADER_MESSAGES[i]; el.style.opacity = '1'; }, 180);
+            }, 1500);
+        }
+        function lpwStopLoaderCycle() {
+            if (lpwLoaderStatusTimer) { clearInterval(lpwLoaderStatusTimer); lpwLoaderStatusTimer = null; }
+        }
+        function lpwGetAuthToken() {
+            try {
+                if (typeof sessionToken !== 'undefined' && sessionToken) return sessionToken;
+            } catch (e) {}
+            return localStorage.getItem('userToken') || localStorage.getItem('sessionToken') || '';
+        }
+
+        async function lpwLoadStatus(_retry) {
+            const loader = document.getElementById('lpwLoading');
+            if (loader) loader.style.display = 'block';
+            document.getElementById('lpwInactive').style.display = 'none';
+            document.getElementById('lpwActive').style.display = 'none';
+            lpwStartLoaderCycle();
+
+            const token = lpwGetAuthToken();
+            if (!token) {
+                const attempts = (_retry || 0) + 1;
+                if (attempts < 15) {
+                    setTimeout(() => lpwLoadStatus(attempts), 200);
+                    return;
+                }
+                lpwStopLoaderCycle();
+                if (loader) {
+                    loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Please <a href="/users" style="color:#d4a017;">sign in</a> to manage your Pro Widget.</div>';
+                }
+                return;
+            }
+            try {
+                const r = await fetch('/api/widgets/lng-pro/status', { headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    lpwStopLoaderCycle();
+                    if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Session expired — please <a href="/users" style="color:#d4a017;">sign in again</a>.</div>';
+                    return;
+                }
+                const data = await r.json();
+                lpwState.active = !!data.active;
+                lpwState.embed_token = data.embed_token || '';
+                lpwState.config = data.config || {};
+                lpwState.base_url = data.base_url || (location.protocol + '//' + location.host);
+                lpwState.size_presets = data.size_presets || lpwState.size_presets;
+                lpwState.status = data.status;
+                lpwStopLoaderCycle();
+                lpwRenderShell(data);
+            } catch (e) {
+                console.error('lpwLoadStatus', e);
+                lpwStopLoaderCycle();
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;font-size:13px;">Failed to load widget status. <button onclick="lpwLoadStatus()" style="background:#d4a017;color:#0b1220;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;margin-left:8px;">Retry</button></div>';
+            }
+        }
+
+        function lpwRenderShell(data) {
+            const loader = document.getElementById('lpwLoading');
+            if (loader) loader.style.display = 'none';
+            const badge = document.getElementById('lpwStatusBadge');
+            if (lpwState.active) {
+                badge.textContent = (data.status === 'canceling') ? 'Active · Cancelling' :
+                                    (data.status === 'trialing'  ? 'Trial Active' : 'Active');
+                badge.style.background = (data.status === 'canceling') ? '#f59e0b' : '#10b981';
+                badge.style.color = '#0b1220';
+                document.getElementById('lpwInactive').style.display = 'none';
+                document.getElementById('lpwActive').style.display = 'block';
+                lpwApplyConfigToUI();
+                lpwUpdatePreviewAndCode();
+                const meta = document.getElementById('lpwBillingMeta');
+                if (data.current_period_end) {
+                    const d = new Date(data.current_period_end);
+                    meta.textContent = '€1.95 / month · ' +
+                        (data.status === 'canceling' ? 'Ends ' : 'Renews ') +
+                        d.toLocaleDateString();
+                }
+                if (data.status === 'canceling') {
+                    const btn = document.getElementById('lpwCancelBtn');
+                    if (btn) { btn.disabled = true; btn.textContent = 'Cancellation Scheduled'; btn.style.opacity = 0.5; btn.style.cursor = 'default'; }
+                }
+            } else {
+                badge.textContent = 'Inactive';
+                badge.style.background = '#334155';
+                badge.style.color = '#cbd5e1';
+                document.getElementById('lpwInactive').style.display = 'block';
+                document.getElementById('lpwActive').style.display = 'none';
+            }
+        }
+
+        function lpwApplyConfigToUI() {
+            const cfg = lpwState.config || {};
+            document.querySelectorAll('.lpw-pill-group').forEach(grp => {
+                const key = grp.getAttribute('data-cfg');
+                grp.querySelectorAll('.lpw-pill').forEach(p => {
+                    p.classList.toggle('active', p.getAttribute('data-val') === cfg[key]);
+                });
+            });
+            document.querySelectorAll('#lpwOverlays input[type=checkbox]').forEach(cb => {
+                const k = cb.getAttribute('data-overlay');
+                cb.checked = !!((cfg.overlays || {})[k]);
+            });
+            const acc = document.getElementById('lpwAccent');
+            if (acc) acc.value = cfg.accent || '#d4a017';
+            const rad = document.getElementById('lpwRadius');
+            if (rad) { rad.value = cfg.radius != null ? cfg.radius : 12;
+                       document.getElementById('lpwRadiusVal').textContent = rad.value; }
+        }
+
+        function lpwReadConfigFromUI() {
+            const cfg = { overlays:{} };
+            document.querySelectorAll('.lpw-pill-group').forEach(grp => {
+                const key = grp.getAttribute('data-cfg');
+                const active = grp.querySelector('.lpw-pill.active');
+                if (active) cfg[key] = active.getAttribute('data-val');
+            });
+            document.querySelectorAll('#lpwOverlays input[type=checkbox]').forEach(cb => {
+                cfg.overlays[cb.getAttribute('data-overlay')] = cb.checked;
+            });
+            const acc = document.getElementById('lpwAccent');
+            if (acc) cfg.accent = acc.value;
+            const rad = document.getElementById('lpwRadius');
+            if (rad) cfg.radius = parseInt(rad.value, 10);
+            cfg.transparent = (cfg.theme === 'transparent');
+            return cfg;
+        }
+
+        function lpwBuildEmbedUrl(cfg) {
+            const params = new URLSearchParams();
+            params.set('t', lpwState.embed_token);
+            if (cfg.theme)  params.set('theme',  cfg.theme);
+            if (cfg.size)   params.set('size',   cfg.size);
+            if (cfg.mode)   params.set('mode',   cfg.mode);
+            if (cfg.accent) params.set('accent', cfg.accent);
+            if (cfg.transparent) params.set('transparent', '1');
+            const ovs = Object.keys(cfg.overlays || {}).filter(k => cfg.overlays[k]);
+            params.set('overlays', ovs.join(','));
+            return lpwState.base_url + '/embed/lng-pro-widget?' + params.toString();
+        }
+
+        function lpwBuildEmbedCodeIframe(cfg, url) {
+            const dims = lpwState.size_presets[cfg.size] || lpwState.size_presets.medium;
+            return '<iframe src="' + url + '" style="border:0;width:100%;max-width:' + dims.w + 'px;height:' + dims.h + 'px;" loading="lazy" allowtransparency="true" title="Global LNG Pro Widget"></iframe>';
+        }
+
+        function lpwBuildEmbedCodeJs(cfg) {
+            const attrs = [
+                'data-eriq-widget="lng-pro"',
+                'data-token="' + lpwState.embed_token + '"',
+                'data-theme="' + cfg.theme + '"',
+                'data-size="' + cfg.size + '"',
+                'data-mode="' + cfg.mode + '"',
+                'data-accent="' + cfg.accent + '"'
+            ];
+            const ovs = Object.keys(cfg.overlays || {}).filter(k => cfg.overlays[k]);
+            if (ovs.length) attrs.push('data-overlays="' + ovs.join(',') + '"');
+            if (cfg.transparent) attrs.push('data-transparent="1"');
+            return '<script src="' + lpwState.base_url + '/widgets/lng-pro.js" async><\/script>\n<div ' + attrs.join(' ') + '></div>';
+        }
+
+        function lpwUpdatePreviewAndCode() {
+            const cfg = lpwReadConfigFromUI();
+            const url = lpwBuildEmbedUrl(cfg);
+            const iframe = document.getElementById('lpwPreviewIframe');
+            const dims = lpwState.size_presets[cfg.size] || lpwState.size_presets.medium;
+            if (iframe) {
+                iframe.style.maxWidth = dims.w + 'px';
+                iframe.style.height = dims.h + 'px';
+                iframe.src = url;
+            }
+            const sz = document.getElementById('lpwPreviewSize');
+            if (sz) sz.textContent = dims.w + ' × ' + dims.h + ' px';
+            const ti = document.getElementById('lpwEmbedIframe');
+            if (ti) ti.value = lpwBuildEmbedCodeIframe(cfg, url);
+            const tj = document.getElementById('lpwEmbedJs');
+            if (tj) tj.value = lpwBuildEmbedCodeJs(cfg);
+        }
+
+        async function lpwSaveConfig() {
+            const token = lpwGetAuthToken();
+            if (!token) return;
+            const cfg = lpwReadConfigFromUI();
+            try {
+                const r = await fetch('/api/widgets/lng-pro/config', {
+                    method:'POST',
+                    headers:{ 'Content-Type':'application/json', 'x-user-token': token },
+                    body: JSON.stringify({ config: cfg })
+                });
+                const data = await r.json();
+                if (data.config) lpwState.config = data.config;
+            } catch (e) { console.error('lpwSaveConfig', e); }
+        }
+
+        function lpwBindControls() {
+            document.querySelectorAll('.lpw-pill-group').forEach(grp => {
+                grp.addEventListener('click', e => {
+                    const b = e.target.closest('.lpw-pill');
+                    if (!b) return;
+                    grp.querySelectorAll('.lpw-pill').forEach(p => p.classList.remove('active'));
+                    b.classList.add('active');
+                    lpwUpdatePreviewAndCode();
+                    lpwQueueSave();
+                });
+            });
+            document.querySelectorAll('#lpwOverlays input[type=checkbox]').forEach(cb => {
+                cb.addEventListener('change', () => { lpwUpdatePreviewAndCode(); lpwQueueSave(); });
+            });
+            const acc = document.getElementById('lpwAccent');
+            if (acc) acc.addEventListener('input', () => { lpwUpdatePreviewAndCode(); lpwQueueSave(); });
+            const rad = document.getElementById('lpwRadius');
+            if (rad) rad.addEventListener('input', () => {
+                document.getElementById('lpwRadiusVal').textContent = rad.value;
+                lpwUpdatePreviewAndCode(); lpwQueueSave();
+            });
+        }
+
+        function lpwQueueSave() {
+            if (lpwConfigSaveTimer) clearTimeout(lpwConfigSaveTimer);
+            lpwConfigSaveTimer = setTimeout(lpwSaveConfig, 600);
+        }
+
+        async function lpwStartCheckout() {
+            const token = lpwGetAuthToken();
+            const btn = document.getElementById('lpwSubscribeBtn');
+            if (!token) {
+                alert('Please sign in again to subscribe.');
+                return;
+            }
+            if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
+            try {
+                const r = await fetch('/api/widgets/lng-pro/checkout', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    alert('Your session expired. Please sign in again.');
+                    return;
+                }
+                let data = {};
+                try { data = await r.json(); } catch (e) {}
+                if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                if (data.already_active) { lpwLoadStatus(); return; }
+                alert((data && data.detail) ? ('Could not start checkout: ' + data.detail) : 'Could not start checkout. Please try again.');
+            } catch (e) {
+                console.error('lpwStartCheckout', e);
+                alert('Checkout failed. Please try again.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Subscribe — €1.95/month'; }
+            }
+        }
+
+        async function lpwRotateToken() {
+            if (!confirm('Generate a new embed token? Any embeds using the current token will stop working until you update them.')) return;
+            const token = lpwGetAuthToken();
+            try {
+                const r = await fetch('/api/widgets/lng-pro/rotate-token', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json();
+                if (data.embed_token) {
+                    lpwState.embed_token = data.embed_token;
+                    lpwUpdatePreviewAndCode();
+                    alert('New embed token generated. Update your embed code on all sites.');
+                }
+            } catch (e) { alert('Failed to rotate token.'); }
+        }
+
+        async function lpwCancel() {
+            if (!confirm('Cancel your LNG Pro Widget subscription? You will keep access until the end of your billing period.')) return;
+            const token = lpwGetAuthToken();
+            try {
+                const r = await fetch('/api/widgets/lng-pro/cancel', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                if (r.ok) { lpwLoadStatus(); }
+                else { alert('Could not cancel. Please try again.'); }
+            } catch (e) { alert('Cancel failed.'); }
+        }
+
+        function lpwCopy(textareaId, btn) {
+            const ta = document.getElementById(textareaId);
+            if (!ta) return;
+            ta.select();
+            try {
+                navigator.clipboard.writeText(ta.value);
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 1600);
+            } catch (e) {
+                document.execCommand('copy');
+            }
+        }
+
+        async function lpwConfirmAfterCheckout(_attempt) {
+            const attempt = (_attempt || 0) + 1;
+            const token = lpwGetAuthToken();
+            if (!token) {
+                if (attempt < 15) { setTimeout(() => lpwConfirmAfterCheckout(attempt), 300); return; }
+                lpwLoadStatus();
+                return;
+            }
+            try {
+                const r = await fetch('/api/widgets/lng-pro/confirm', {
+                    method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json().catch(() => ({}));
+                if (data && data.active) { lpwLoadStatus(); return; }
+            } catch (e) { console.error('lpwConfirmAfterCheckout', e); }
+            if (attempt < 8) { setTimeout(() => lpwConfirmAfterCheckout(attempt), 1500); return; }
+            lpwLoadStatus();
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            lpwBindControls();
+            try {
+                const qp = new URLSearchParams(location.search);
+                if (qp.get('widget') === 'lng_pro_active') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('lngProWidgetNavItem');
+                        if (nav) nav.click();
+                        lpwConfirmAfterCheckout();
+                    }, 300);
+                }
+            } catch (e) {}
+        });
+        /* ════════════════ End LNG Pro Widget ════════════════ */
 
         /* ════════════════ Gas Storage Pro Widget — Account UI ════════════════ */
         let gpwState = { active:false, embed_token:'', config:null, base_url:'',

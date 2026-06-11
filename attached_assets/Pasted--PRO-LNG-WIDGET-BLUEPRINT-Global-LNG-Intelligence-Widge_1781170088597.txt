@@ -1,0 +1,417 @@
+🔥 PRO LNG WIDGET BLUEPRINT
+Global LNG Intelligence Widget
+€1.95/month
+
+This widget should become one of the most valuable widgets in the entire EnergyRiskIQ ecosystem.
+
+Why?
+
+Because LNG sits at the intersection of:
+
+Europe
+Asia
+TTF
+JKM
+Storage
+LNG shipping
+Geopolitical risk
+
+Most sites only show:
+
+JKM LNG
+$12.84/MMBtu
+
+That's not worth paying for.
+
+The Pro widget must deliver:
+
+LNG Intelligence
+🎯 POSITIONING
+Free Widget
+
+Answers:
+
+What is LNG doing today?
+
+Pro Widget
+
+Answers:
+
+Why is LNG moving, where is LNG heading, and what does it mean for Europe and Asia?
+
+💰 PRICE
+
+€1.95/month
+
+VALUE PROPOSITION
+
+Professional LNG market intelligence for:
+
+✅ Energy websites
+
+✅ LNG consultancies
+
+✅ Commodity research
+
+✅ Trading communities
+
+✅ Shipping & logistics portals
+
+✅ Market dashboards
+
+📐 RECOMMENDED SIZE
+
+Default:
+
+600 × 500
+
+Enough space for charts + intelligence.
+
+🏗️ PRO WIDGET STRUCTURE
+SECTION 1
+PRIMARY LNG CARD
+
+Large focus.
+
+JKM LNG
+
+$12.84/MMBtu
+
+Subtext:
+
++2.3% Today
+
+Daily movement.
+
+SECTION 2
+7-DAY LNG CHART
+
+Huge differentiator.
+
+Title:
+
+7-Day LNG Trend
+
+Data:
+
+lng_price_snapshots
+
+Display:
+
+$12.10 → $12.84
+
+Purpose:
+
+Short-term momentum.
+
+SECTION 3
+30-DAY LNG CHART
+
+One of the biggest reasons to upgrade.
+
+Title:
+
+30-Day LNG Trend
+
+Display:
+
+30D Performance
+
++8.6%
+
+Purpose:
+
+Trend analysis.
+
+This is where users begin seeing value.
+
+SECTION 4
+JKM VS TTF SPREAD
+
+This is your biggest premium differentiator.
+
+Data:
+
+lng_price_snapshots
+
+ttf_gas_snapshots
+
+Display:
+
+JKM–TTF Spread
+
++$1.42/MMBtu
+
+Interpretation:
+
+Europe Attractive
+
+or
+
+Asia Attractive
+
+Why?
+
+Because LNG cargoes follow spreads.
+
+Nobody else will give this in a simple widget.
+
+SECTION 5
+LNG MARKET SIGNAL
+
+This becomes a signature feature.
+
+Example:
+
+LNG Market Signal
+
+BULLISH
+
+or
+
+NEUTRAL
+
+or
+
+BEARISH
+
+Derived from:
+
+LNG momentum
+TTF
+storage
+risk
+SECTION 6
+LNG INTELLIGENCE
+
+The single most valuable feature.
+
+Example:
+
+Current LNG prices remain
+supported by stronger Asian
+demand and elevated geopolitical
+risk.
+
+Europe continues to compete
+for LNG cargoes despite
+comfortable storage levels.
+
+Generated from:
+
+LNG
+Storage
+TTF
+EERI
+GERI
+
+This transforms:
+
+❌ chart
+
+into
+
+✅ intelligence
+
+SECTION 7
+EUROPE LNG CONTEXT
+
+Very valuable.
+
+Display:
+
+Europe Storage
+
+63.4%
+
+Winter Readiness
+
+GOOD
+
+Data:
+
+gas_storage_snapshots
+
+Reason:
+
+Storage directly affects LNG demand.
+
+SECTION 8
+ENERGY RISK CONTEXT
+
+Display:
+
+GERI
+
+28
+
+LOW
+EERI
+
+33
+
+MODERATE
+
+Data:
+
+GERI
+EERI
+
+Reason:
+
+Risk drives LNG volatility.
+
+SECTION 9
+LNG FLOW DIRECTION
+
+Very unique.
+
+Display:
+
+Current LNG Flow Bias
+
+Europe
+
+or
+
+Asia
+
+Generated from:
+
+JKM
+TTF
+
+This is highly valuable.
+
+SECTION 10
+LNG MARKET REGIME
+
+Simple interpretation.
+
+Example:
+
+Market Regime
+
+TIGHT
+
+or
+
+BALANCED
+
+or
+
+OVERSUPPLIED
+
+Generated from:
+
+LNG
+storage
+spreads
+SECTION 11
+WHITE-LABEL LICENSE
+
+Very visible.
+
+Display:
+
+Professional License Included
+
+No attribution required.
+
+No branding required.
+
+Huge value perception.
+
+SECTION 12
+CUSTOMIZATION
+
+Themes:
+
+Dark
+Light
+Glass
+Transparent
+
+Accent Colors
+
+Widget Sizes
+
+Compact
+Medium
+Large
+SECTION 13
+EMBED GENERATOR
+
+Options:
+
+Show:
+
+✅ 7D Chart
+
+✅ 30D Chart
+
+✅ LNG Intelligence
+
+✅ Storage Context
+
+✅ Risk Signals
+
+Generate:
+
+<script src="https://energyriskiq.com/widgets/lng-pro.js"></script>
+
+<div data-eriq-widget="lng-pro"></div>
+🔥 FUTURE PREMIUM FEATURES
+
+Phase 2.
+
+LNG Forecast Bias
+7-Day Bias
+
+Bullish
+LNG Shipping Risk
+Shipping Risk
+
+Moderate
+Asia-Europe Competition Score
+Competition Score
+
+78/100
+LNG Cargo Flow Indicator
+Cargo Flow
+
+Europe Favored
+🔗 DATA SOURCES
+Primary
+
+lng_price_snapshots
+
+LNG Context
+
+gas_storage_snapshots
+
+TTF Context
+
+ttf_gas_snapshots
+
+Risk Context
+
+geri_live
+
+intel_indices_daily
+
+reri_indices_daily
+
+egsi_m_daily
+
+🎯 MOST IMPORTANT DIFFERENCE
+
+The Free Widget answers:
+
+What is the LNG price today?
+
+The Pro Widget answers:
+
+What is LNG doing, why is it moving, where are cargoes likely to go, and what does this mean for Europe and Asia?
+
+That distinction makes €1.95/month feel like an intelligence subscription rather than a cosmetic upgrade.
