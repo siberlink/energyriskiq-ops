@@ -425,6 +425,13 @@ def _blog_base_styles():
         .bw-tbtn { padding: 6px 11px; border: none; border-radius: 5px; background: var(--blog-theme-toggle-bg); color: var(--blog-text-secondary); font-size: 13px; cursor: pointer; line-height: 1; transition: background .15s, color .15s; }
         .bw-tbtn:hover { background: var(--blog-nav-link-hover-bg); color: var(--blog-text-primary); }
         .bw-tbtn-disabled, .bw-tbtn-disabled:hover { opacity: 0.35; cursor: not-allowed; background: var(--blog-theme-toggle-bg); color: var(--blog-text-secondary); }
+        .bw-profile-banner { display: flex; align-items: center; gap: 14px; padding: 16px 18px; margin-bottom: 24px; border-radius: 12px; background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.12)); border: 1px solid rgba(96,165,250,0.35); }
+        .bw-profile-banner-icon { font-size: 24px; flex-shrink: 0; }
+        .bw-profile-banner-text { flex: 1; font-size: 13px; color: var(--blog-text-secondary); line-height: 1.5; }
+        .bw-profile-banner-text strong { display: block; color: var(--blog-text-primary); font-size: 14px; margin-bottom: 2px; }
+        .bw-profile-banner-btn { flex-shrink: 0; padding: 10px 18px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+        .bw-profile-banner-btn:hover { opacity: 0.9; }
+        @media (max-width: 640px) { .bw-profile-banner { flex-direction: column; align-items: flex-start; } }
         .bw-tsep { width: 1px; background: var(--blog-input-border); margin: 2px 4px; }
         .bw-content { border-radius: 0 0 10px 10px !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important; min-height: 360px !important; }
         .bw-toolbar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -531,9 +538,14 @@ def _blog_nav_html(user=None):
     if user:
         initial = (user.get('display_name') or 'U')[0].upper()
         color = user.get('avatar_color', '#3b82f6')
+        avatar_img = (user.get('avatar_image') or '').strip()
+        if avatar_img:
+            avatar_html = f'<img class="blog-user-avatar" src="{_esc(avatar_img)}" alt="{_esc(initial)}" style="object-fit:cover;" />'
+        else:
+            avatar_html = f'<div class="blog-user-avatar" style="background:{_esc(color)}">{_esc(initial)}</div>'
         user_section = f"""
             <div class="blog-user-badge">
-                <div class="blog-user-avatar" style="background:{_esc(color)}">{_esc(initial)}</div>
+                {avatar_html}
                 <span>{_esc(user.get('display_name',''))}</span>
             </div>
             <a href="/blog/my-posts">My Posts</a>
@@ -1183,10 +1195,25 @@ async def blog_write_page(request: Request):
     categories = blog_db.get_blog_category_names()
     cat_options = ''.join(f'<option>{_esc(c)}</option>' for c in categories) if categories else '<option>General</option>'
 
+    profile_incomplete = not (user.get('website') and user.get('bio') and user.get('avatar_image'))
+    profile_banner = ""
+    if profile_incomplete:
+        profile_banner = """
+        <div class="bw-profile-banner">
+            <span class="bw-profile-banner-icon">&#128100;</span>
+            <div class="bw-profile-banner-text">
+                <strong>Complete your profile to promote your website or business.</strong>
+                Add your photo, a short bio and a link to your site &mdash; they appear at the bottom of every article you publish, so readers can find you.
+            </div>
+            <a href="/blog/account" class="bw-profile-banner-btn">Complete Profile</a>
+        </div>
+        """
+
     body_html = f"""
     <div class="blog-write-page">
         <h1>Write a New Article</h1>
         <p style="color:var(--blog-text-faint);margin-bottom:24px;font-size:14px;">Your article will be reviewed by our editors before publishing.</p>
+        {profile_banner}
         <div class="blog-write-form-group">
             <label>Title</label>
             <input type="text" id="writeTitle" placeholder="Enter article title" />
@@ -1253,7 +1280,7 @@ async def blog_write_page(request: Request):
                 <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;" id="writeEmojiTabs"></div>
                 <div style="display:flex;flex-wrap:wrap;gap:2px;" id="writeEmojiGrid"></div>
             </div>
-            <textarea id="writeContent" class="bw-content" placeholder="Write your article here. You can use Markdown formatting: **bold**, *italic*, ## headings, - lists, [links](url)"></textarea>
+            <textarea id="writeContent" class="bw-content" placeholder="Write your article here. You can use Markdown formatting: **bold**, *italic*, ## headings, - lists. Add your website link in your Profile bio."></textarea>
         </div>
         <div id="writeImageSection" class="bw-section" style="display:none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
