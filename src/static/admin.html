@@ -2016,8 +2016,20 @@
                             </div>
                         </div>
                         <div style="margin-bottom:14px;">
-                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Cover Image URL (optional)</label>
-                            <input type="text" id="adminBlogCover" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
+                            <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px;">Cover Image (optional)</label>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+                                <label style="padding:8px 16px;border-radius:8px;border:1px dashed rgba(139,92,246,0.4);background:rgba(139,92,246,0.06);color:#a78bfa;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                                    &#128247; Upload Cover Image
+                                    <input type="file" id="adminBlogCoverFileInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="handleCoverImageSelect(this)" />
+                                </label>
+                                <span style="font-size:11px;color:#64748b;">Max 1.5 MB &middot; JPEG, PNG, GIF, WebP</span>
+                                <span id="adminBlogCoverStatus" style="font-size:12px;display:none;"></span>
+                            </div>
+                            <div id="adminBlogCoverPreview" style="display:none;margin-bottom:8px;position:relative;width:200px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;">
+                                <img id="adminBlogCoverPreviewImg" src="" alt="Cover preview" style="display:block;width:100%;height:auto;" />
+                                <button type="button" onclick="removeCoverImage()" title="Remove cover image" style="position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:6px;border:none;background:rgba(15,23,42,0.85);color:#f87171;font-size:14px;line-height:1;cursor:pointer;">&times;</button>
+                            </div>
+                            <input type="text" id="adminBlogCover" placeholder="…or paste an image URL (https://...)" oninput="syncCoverPreview()" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#e2e8f0;font-size:14px;outline:none;" />
                         </div>
                         <div style="margin-bottom:14px;">
                             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -4208,6 +4220,75 @@
         var _blogUploadedImages = [];
         var _editingPostId = null;
 
+        function syncCoverPreview() {
+            var url = document.getElementById('adminBlogCover').value.trim();
+            var wrap = document.getElementById('adminBlogCoverPreview');
+            var img = document.getElementById('adminBlogCoverPreviewImg');
+            if (url) {
+                img.onerror = function() { showCoverUploadStatus('Could not load image from that URL', true); };
+                img.src = url;
+                wrap.style.display = 'block';
+            } else {
+                img.onerror = null;
+                img.src = '';
+                wrap.style.display = 'none';
+            }
+        }
+
+        function removeCoverImage() {
+            document.getElementById('adminBlogCover').value = '';
+            syncCoverPreview();
+            var input = document.getElementById('adminBlogCoverFileInput');
+            if (input) input.value = '';
+        }
+
+        function showCoverUploadStatus(msg, isError) {
+            var el = document.getElementById('adminBlogCoverStatus');
+            el.style.display = 'inline';
+            el.style.color = isError ? '#f87171' : '#34d399';
+            el.textContent = msg;
+            if (!isError) setTimeout(function() { el.style.display = 'none'; }, 3000);
+        }
+
+        async function handleCoverImageSelect(input) {
+            if (!input.files || !input.files[0]) return;
+            var file = input.files[0];
+
+            if (file.size > 1572864) {
+                showCoverUploadStatus('Image must be under 1.5 MB (this file is ' + (file.size / 1048576).toFixed(1) + ' MB)', true);
+                input.value = '';
+                return;
+            }
+            if (!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)) {
+                showCoverUploadStatus('Only JPEG, PNG, GIF, and WebP allowed', true);
+                input.value = '';
+                return;
+            }
+
+            showCoverUploadStatus('Uploading...', false);
+            var formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                var resp = await fetch('/api/blog/admin/upload-image', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Token': sessionToken },
+                    body: formData
+                });
+                var data = await resp.json();
+                if (data.success) {
+                    document.getElementById('adminBlogCover').value = data.url;
+                    syncCoverPreview();
+                    showCoverUploadStatus('Cover image uploaded!', false);
+                } else {
+                    showCoverUploadStatus(data.error || 'Upload failed', true);
+                }
+            } catch(e) {
+                showCoverUploadStatus('Upload failed — connection error', true);
+            }
+            input.value = '';
+        }
+
         function openBlogImageUpload() {
             var section = document.getElementById('blogImageUploadSection');
             section.style.display = section.style.display === 'none' ? 'block' : 'none';
@@ -4638,6 +4719,10 @@
             document.getElementById('adminBlogTags').value = '';
             document.getElementById('adminBlogTags').dataset.manual = 'false';
             document.getElementById('adminBlogCover').value = '';
+            syncCoverPreview();
+            var coverInput = document.getElementById('adminBlogCoverFileInput');
+            if (coverInput) coverInput.value = '';
+            document.getElementById('adminBlogCoverStatus').style.display = 'none';
             document.getElementById('adminBlogWriteError').textContent = '';
             document.getElementById('adminBlogSlugRow').style.display = 'none';
             document.getElementById('adminBlogSlugPreview').textContent = '';
@@ -4669,6 +4754,7 @@
                 document.getElementById('adminBlogExcerpt').value = p.excerpt || '';
                 document.getElementById('adminBlogContent').value = p.content || '';
                 document.getElementById('adminBlogCover').value = p.cover_image || '';
+                syncCoverPreview();
 
                 if (p.tags) {
                     document.getElementById('adminBlogTags').value = p.tags;
