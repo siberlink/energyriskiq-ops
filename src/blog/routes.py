@@ -411,6 +411,7 @@ def _blog_base_styles():
         .blog-write-form-group input:focus, .blog-write-form-group textarea:focus { border-color: #3b82f6; }
         .blog-write-form-group textarea { min-height: 400px; resize: vertical; line-height: 1.7; }
         .blog-write-form-group select { appearance: auto; -webkit-appearance: auto; }
+        .blog-write-form-group select option { background: var(--blog-input-bg); color: var(--blog-input-text); }
         .blog-write-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .blog-write-actions { display: flex; gap: 12px; margin-top: 24px; }
         .blog-write-btn { padding: 14px 28px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
