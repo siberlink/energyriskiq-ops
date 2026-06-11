@@ -376,6 +376,27 @@ def _blog_base_styles():
         .blog-write-btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; }
         .blog-write-btn-secondary { background: var(--blog-filter-bg); color: var(--blog-text-secondary); border: 1px solid var(--blog-filter-border); }
         .blog-write-btn:hover { opacity: 0.9; }
+        .bw-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px; background: var(--blog-filter-bg); border: 1px solid var(--blog-input-border); border-bottom: none; border-radius: 10px 10px 0 0; }
+        .bw-tbtn { padding: 6px 11px; border: none; border-radius: 5px; background: var(--blog-theme-toggle-bg); color: var(--blog-text-secondary); font-size: 13px; cursor: pointer; line-height: 1; transition: background .15s, color .15s; }
+        .bw-tbtn:hover { background: var(--blog-nav-link-hover-bg); color: var(--blog-text-primary); }
+        .bw-tsep { width: 1px; background: var(--blog-input-border); margin: 2px 4px; }
+        .bw-content { border-radius: 0 0 10px 10px !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important; min-height: 360px !important; }
+        .bw-toolbar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .bw-preview-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); color: #60a5fa; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .bw-upload-label { padding: 8px 16px; border-radius: 8px; border: 1px dashed rgba(139,92,246,0.45); background: rgba(139,92,246,0.08); color: #a78bfa; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .bw-img-label { padding: 8px 16px; border-radius: 8px; border: 1px dashed rgba(59,130,246,0.45); background: rgba(59,130,246,0.08); color: #60a5fa; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .bw-hint { font-size: 11px; color: var(--blog-text-faint); }
+        .bw-cover-preview { display: none; margin-bottom: 8px; position: relative; width: 220px; border: 1px solid var(--blog-input-border); border-radius: 10px; overflow: hidden; }
+        .bw-cover-preview img { display: block; width: 100%; height: auto; }
+        .bw-x { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 6px; border: none; background: rgba(15,23,42,0.85); color: #f87171; font-size: 15px; line-height: 1; cursor: pointer; }
+        .bw-section { margin-bottom: 20px; padding: 16px; background: var(--blog-filter-bg); border: 1px solid var(--blog-input-border); border-radius: 12px; }
+        .bw-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .bw-emoji-panel { display: none; padding: 8px; background: var(--blog-card-bg); border: 1px solid var(--blog-input-border); border-top: none; max-height: 180px; overflow-y: auto; }
+        .bw-emoji-tab { padding: 3px 8px; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; background: var(--blog-theme-toggle-bg); color: var(--blog-text-secondary); }
+        .bw-emoji-tab.active { background: rgba(59,130,246,0.2); color: #60a5fa; font-weight: 600; }
+        .bw-emoji-btn { padding: 4px; border: none; background: none; font-size: 20px; cursor: pointer; border-radius: 4px; line-height: 1; }
+        .bw-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; overflow-y: auto; }
+        .bw-modal-inner { max-width: 800px; margin: 40px auto; background: var(--blog-bg); border: 1px solid var(--blog-card-border); border-radius: 16px; padding: 32px; position: relative; }
 
         .blog-my-posts { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
         .blog-my-posts h1 { font-size: 28px; font-weight: 700; color: var(--blog-text-primary); margin-bottom: 24px; }
@@ -839,6 +860,267 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
 
 
 
+_BLOG_WRITE_SCRIPT = r"""
+<script>
+var _bwImages = [];
+var _bwReplaceIdx = null;
+var _bwEmojiCat = 'Smileys';
+var _bwEmoji = {
+    'Smileys': ['\u{1F600}','\u{1F603}','\u{1F604}','\u{1F601}','\u{1F606}','\u{1F605}','\u{1F602}','\u{1F923}','\u{1F60A}','\u{1F607}','\u{1F642}','\u{1F643}','\u{1F609}','\u{1F60C}','\u{1F60D}','\u{1F618}','\u{1F617}','\u{1F61A}','\u{1F60B}','\u{1F61B}','\u{1F914}','\u{1F928}','\u{1F610}','\u{1F611}','\u{1F636}','\u{1F60F}','\u{1F612}','\u{1F644}','\u{1F62E}','\u{1F627}','\u{1F622}','\u{1F62D}','\u{1F624}','\u{1F620}','\u{1F621}'],
+    'Gestures': ['\u{1F44D}','\u{1F44E}','\u{1F44C}','\u{270C}\u{FE0F}','\u{1F91E}','\u{1F44A}','\u{270A}','\u{1F91B}','\u{1F91C}','\u{1F44F}','\u{1F64C}','\u{1F450}','\u{1F932}','\u{1F91D}','\u{1F64F}','\u{270D}\u{FE0F}','\u{1F4AA}','\u{1F44B}','\u{1F590}\u{FE0F}','\u{270B}','\u{1F596}','\u{1F44E}','\u{1F446}','\u{1F447}','\u{1F448}','\u{1F449}','\u{261D}\u{FE0F}'],
+    'Objects': ['\u{1F4A1}','\u{1F4D6}','\u{1F4DD}','\u{1F4CA}','\u{1F4C8}','\u{1F4C9}','\u{1F4B0}','\u{1F4B5}','\u{1F4B3}','\u{1F4B8}','\u{26A1}','\u{1F525}','\u{1F4A7}','\u{1F30A}','\u{2699}\u{FE0F}','\u{1F527}','\u{1F528}','\u{1F6E0}\u{FE0F}','\u{1F4CC}','\u{1F4CE}','\u{1F517}','\u{1F4C5}','\u{23F0}','\u{231B}','\u{1F50B}','\u{1F4F1}','\u{1F4BB}','\u{1F5A5}\u{FE0F}','\u{2709}\u{FE0F}','\u{1F4E7}'],
+    'Energy': ['\u{26FD}','\u{1F6E2}\u{FE0F}','\u{1F3ED}','\u{26A1}','\u{1F50C}','\u{1F50B}','\u{2600}\u{FE0F}','\u{1F30D}','\u{1F30E}','\u{1F30F}','\u{1F4A8}','\u{1F525}','\u{2744}\u{FE0F}','\u{1F321}\u{FE0F}','\u{2693}','\u{1F6A2}','\u{2708}\u{FE0F}','\u{1F69B}','\u{1F3D7}\u{FE0F}','\u{1F4E6}'],
+    'Symbols': ['\u{2705}','\u{274C}','\u{26A0}\u{FE0F}','\u{2757}','\u{2753}','\u{1F4AF}','\u{1F53A}','\u{1F53B}','\u{2B06}\u{FE0F}','\u{2B07}\u{FE0F}','\u{27A1}\u{FE0F}','\u{2B05}\u{FE0F}','\u{1F504}','\u{267B}\u{FE0F}','\u{2728}','\u{2B50}','\u{1F31F}','\u{1F4A5}','\u{1F3AF}','\u{1F6A8}','\u{2696}\u{FE0F}','\u{1F536}','\u{1F537}'],
+    'Flags': ['\u{1F1FA}\u{1F1F8}','\u{1F1EA}\u{1F1FA}','\u{1F1EC}\u{1F1E7}','\u{1F1F7}\u{1F1FA}','\u{1F1E8}\u{1F1F3}','\u{1F1F8}\u{1F1E6}','\u{1F1EF}\u{1F1F5}','\u{1F1E9}\u{1F1EA}','\u{1F1EB}\u{1F1F7}','\u{1F3F3}\u{FE0F}','\u{1F3F4}','\u{1F6A9}']
+};
+
+function bwEsc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function bwMdInsert(type) {
+    var ta = document.getElementById('writeContent');
+    var start = ta.selectionStart, end = ta.selectionEnd;
+    var text = ta.value;
+    var sel = text.substring(start, end);
+    var before = text.substring(0, start);
+    var after = text.substring(end);
+    var insert = '', cursorOffset = 0;
+    switch(type) {
+        case 'bold': insert = '**' + (sel || 'bold text') + '**'; cursorOffset = sel ? insert.length : 2; break;
+        case 'italic': insert = '*' + (sel || 'italic text') + '*'; cursorOffset = sel ? insert.length : 1; break;
+        case 'underline': insert = '<u>' + (sel || 'underlined text') + '</u>'; cursorOffset = sel ? insert.length : 3; break;
+        case 'h1': insert = '\n# ' + (sel || 'Heading 1') + '\n'; cursorOffset = insert.length; break;
+        case 'h2': insert = '\n## ' + (sel || 'Heading 2') + '\n'; cursorOffset = insert.length; break;
+        case 'h3': insert = '\n### ' + (sel || 'Heading 3') + '\n'; cursorOffset = insert.length; break;
+        case 'ul': insert = '\n- ' + (sel || 'List item') + '\n'; cursorOffset = insert.length; break;
+        case 'ol': insert = '\n1. ' + (sel || 'List item') + '\n'; cursorOffset = insert.length; break;
+        case 'indent': insert = '    ' + (sel || ''); cursorOffset = insert.length; break;
+        case 'link': insert = '[' + (sel || 'link text') + '](https://)'; cursorOffset = insert.length; break;
+        case 'quote': insert = '\n> ' + (sel || 'Quote') + '\n'; cursorOffset = insert.length; break;
+        case 'code': insert = '\n```\n' + (sel || 'code') + '\n```\n'; cursorOffset = insert.length; break;
+        case 'hr': insert = '\n\n---\n\n'; cursorOffset = insert.length; break;
+    }
+    ta.value = before + insert + after;
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + cursorOffset;
+}
+
+function bwSyncCover() {
+    var url = document.getElementById('writeCover').value.trim();
+    var wrap = document.getElementById('writeCoverPreview');
+    var img = document.getElementById('writeCoverPreviewImg');
+    if (url) {
+        img.onerror = function() { bwCoverStatus('Could not load image from that URL', true); };
+        img.src = url;
+        wrap.style.display = 'block';
+    } else {
+        img.onerror = null; img.src = ''; wrap.style.display = 'none';
+    }
+}
+function bwRemoveCover() {
+    document.getElementById('writeCover').value = '';
+    bwSyncCover();
+    var inp = document.getElementById('writeCoverFile'); if (inp) inp.value = '';
+}
+function bwCoverStatus(msg, isErr) {
+    var el = document.getElementById('writeCoverStatus');
+    el.style.display = 'inline'; el.style.color = isErr ? '#f87171' : '#34d399'; el.textContent = msg;
+    if (!isErr) setTimeout(function(){ el.style.display='none'; }, 3000);
+}
+async function bwHandleCoverSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (file.size > 1572864) { bwCoverStatus('Image must be under 1.5 MB', true); input.value=''; return; }
+    if (['image/jpeg','image/png','image/gif','image/webp'].indexOf(file.type) === -1) { bwCoverStatus('Only JPEG, PNG, GIF, WebP allowed', true); input.value=''; return; }
+    bwCoverStatus('Uploading...', false);
+    var fd = new FormData(); fd.append('file', file);
+    try {
+        var resp = await fetch('/api/blog/upload-image', { method:'POST', body: fd });
+        var data = await resp.json();
+        if (data.success) { document.getElementById('writeCover').value = data.url; bwSyncCover(); bwCoverStatus('Cover image uploaded!', false); }
+        else { bwCoverStatus(data.error || 'Upload failed', true); }
+    } catch(e) { bwCoverStatus('Upload failed - connection error', true); }
+    input.value = '';
+}
+
+function bwToggleImageUpload() {
+    var s = document.getElementById('writeImageSection');
+    s.style.display = (s.style.display === 'none' || !s.style.display) ? 'block' : 'none';
+}
+function bwImageStatus(msg, isErr) {
+    var el = document.getElementById('writeImageStatus');
+    el.style.display='block'; el.style.color = isErr ? '#f87171' : '#34d399'; el.textContent = msg;
+    if (!isErr) setTimeout(function(){ el.style.display='none'; }, 3000);
+}
+async function bwHandleImageSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (_bwReplaceIdx === null && _bwImages.length >= 3) { bwImageStatus('Maximum 3 images per article', true); input.value=''; return; }
+    if (file.size > 1572864) { bwImageStatus('Image must be under 1.5 MB', true); input.value=''; return; }
+    if (['image/jpeg','image/png','image/gif','image/webp'].indexOf(file.type) === -1) { bwImageStatus('Only JPEG, PNG, GIF, WebP allowed', true); input.value=''; return; }
+    bwImageStatus('Uploading...', false);
+    var fd = new FormData(); fd.append('file', file);
+    try {
+        var resp = await fetch('/api/blog/upload-image', { method:'POST', body: fd });
+        var data = await resp.json();
+        if (data.success) {
+            if (_bwReplaceIdx !== null && _bwReplaceIdx < _bwImages.length) {
+                var old = _bwImages[_bwReplaceIdx];
+                var ta = document.getElementById('writeContent');
+                ta.value = ta.value.split('![image](' + old.url + ')').join('![image](' + data.url + ')');
+                _bwImages[_bwReplaceIdx] = { url: data.url, filename: data.filename };
+                _bwReplaceIdx = null;
+                bwImageStatus('Image replaced!', false);
+            } else {
+                _bwImages.push({ url: data.url, filename: data.filename });
+                bwImageStatus('Uploaded! Click "Insert" to add it to your article.', false);
+            }
+            bwRenderImages();
+        } else { bwImageStatus(data.error || 'Upload failed', true); }
+    } catch(e) { bwImageStatus('Upload failed - connection error', true); }
+    input.value = '';
+}
+function bwRenderImages() {
+    var c = document.getElementById('writeImageList');
+    document.getElementById('writeImageCount').textContent = _bwImages.length + ' / 3 images';
+    var html = '';
+    _bwImages.forEach(function(img, idx) {
+        html += '<div style="position:relative;border:1px solid var(--blog-input-border);border-radius:8px;overflow:hidden;width:120px;">';
+        html += '<img src="' + img.url + '" style="width:120px;height:80px;object-fit:cover;display:block;" />';
+        html += '<div style="display:flex;gap:2px;padding:4px;">';
+        html += '<button type="button" onclick="bwInsertImage(' + idx + ')" style="flex:1;padding:3px;border:none;border-radius:4px;background:rgba(59,130,246,0.2);color:#60a5fa;font-size:10px;cursor:pointer;">Insert</button>';
+        html += '<button type="button" onclick="bwReplaceImage(' + idx + ')" style="padding:3px 6px;border:none;border-radius:4px;background:rgba(234,179,8,0.2);color:#eab308;font-size:10px;cursor:pointer;">Replace</button>';
+        html += '<button type="button" onclick="bwRemoveImage(' + idx + ')" style="padding:3px 6px;border:none;border-radius:4px;background:rgba(239,68,68,0.2);color:#f87171;font-size:10px;cursor:pointer;">&times;</button>';
+        html += '</div></div>';
+    });
+    c.innerHTML = html;
+}
+function bwInsertImage(idx) {
+    var img = _bwImages[idx]; if (!img) return;
+    var ta = document.getElementById('writeContent');
+    var pos = ta.selectionStart; var text = ta.value;
+    var insert = '\n![image](' + img.url + ')\n';
+    ta.value = text.substring(0,pos) + insert + text.substring(pos);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = pos + insert.length;
+    bwImageStatus('Image inserted into article.', false);
+}
+function bwReplaceImage(idx) {
+    _bwReplaceIdx = idx;
+    document.getElementById('writeImageFile').click();
+}
+function bwRemoveImage(idx) {
+    var img = _bwImages[idx];
+    if (img) {
+        var ta = document.getElementById('writeContent');
+        ta.value = ta.value.split('![image](' + img.url + ')').join('');
+        while (ta.value.indexOf('\n\n\n') !== -1) { ta.value = ta.value.split('\n\n\n').join('\n\n'); }
+    }
+    _bwImages.splice(idx,1); bwRenderImages();
+}
+
+function bwToggleEmoji() {
+    var p = document.getElementById('writeEmojiPanel');
+    if (p.style.display === 'none' || !p.style.display) { p.style.display='block'; bwRenderEmoji(); }
+    else { p.style.display='none'; }
+}
+function bwRenderEmoji() {
+    var tabsEl = document.getElementById('writeEmojiTabs');
+    var gridEl = document.getElementById('writeEmojiGrid');
+    var cats = Object.keys(_bwEmoji);
+    var th = '';
+    cats.forEach(function(cat){ var a = cat===_bwEmojiCat; th += '<button type="button" class="bw-emoji-tab' + (a?' active':'') + '" onclick="_bwEmojiCat=\'' + cat + '\';bwRenderEmoji();">' + cat + '</button>'; });
+    tabsEl.innerHTML = th;
+    var ems = _bwEmoji[_bwEmojiCat] || [];
+    var gh = '';
+    ems.forEach(function(em){ gh += '<button type="button" class="bw-emoji-btn" onclick="bwInsertEmoji(\'' + em + '\')">' + em + '</button>'; });
+    gridEl.innerHTML = gh;
+}
+function bwInsertEmoji(em) {
+    var ta = document.getElementById('writeContent');
+    var pos = ta.selectionStart; var text = ta.value;
+    ta.value = text.substring(0,pos) + em + text.substring(pos);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = pos + em.length;
+}
+
+function bwRenderMd(md) {
+    var html = bwEsc(md);
+    html = html.replace(/```([\s\S]*?)```/g, function(m, code){ return '<pre style="background:var(--blog-content-code-bg,rgba(0,0,0,0.3));padding:12px;border-radius:8px;overflow-x:auto;"><code>' + code.trim() + '</code></pre>'; });
+    html = html.replace(/!\[image\]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;margin:12px 0;" />');
+    html = html.replace(/^######\s+(.*)$/gm, '<h6 style="color:var(--blog-text-primary);">$1</h6>');
+    html = html.replace(/^#####\s+(.*)$/gm, '<h5 style="color:var(--blog-text-primary);">$1</h5>');
+    html = html.replace(/^####\s+(.*)$/gm, '<h4 style="color:var(--blog-text-primary);">$1</h4>');
+    html = html.replace(/^###\s+(.*)$/gm, '<h3 style="color:var(--blog-text-primary);">$1</h3>');
+    html = html.replace(/^##\s+(.*)$/gm, '<h2 style="color:var(--blog-text-primary);">$1</h2>');
+    html = html.replace(/^#\s+(.*)$/gm, '<h1 style="color:var(--blog-text-primary);">$1</h1>');
+    html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--blog-card-border);margin:20px 0;" />');
+    html = html.replace(/^&gt;\s+(.*)$/gm, '<blockquote style="border-left:3px solid #3b82f6;padding-left:14px;color:var(--blog-text-muted);margin:12px 0;">$1</blockquote>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/`([^`]+?)`/g, '<code style="background:var(--blog-content-code-bg,rgba(0,0,0,0.3));padding:2px 6px;border-radius:4px;">$1</code>');
+    html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" style="color:#60a5fa;">$1</a>');
+    html = html.replace(/^\s*[-*]\s+(.*)$/gm, '<li>$1</li>');
+    html = html.replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul style="padding-left:22px;margin:12px 0;">$1</ul>');
+    html = html.replace(/\n{2,}/g, '</p><p style="margin:12px 0;">');
+    html = html.replace(/\n/g, '<br>');
+    return '<p style="margin:12px 0;">' + html + '</p>';
+}
+function bwPreview() {
+    var content = document.getElementById('writeContent').value;
+    var title = document.getElementById('writeTitle').value.trim();
+    var cover = document.getElementById('writeCover').value.trim();
+    var html = '';
+    if (title) html += '<h1 style="color:var(--blog-text-primary);font-size:30px;margin-bottom:16px;">' + bwEsc(title) + '</h1>';
+    if (cover) html += '<img src="' + bwEsc(cover) + '" style="max-width:100%;border-radius:12px;margin-bottom:20px;" />';
+    html += bwRenderMd(content);
+    document.getElementById('writePreviewBody').innerHTML = html;
+    document.getElementById('writePreviewModal').style.display = 'block';
+}
+function bwClosePreview() {
+    document.getElementById('writePreviewModal').style.display = 'none';
+}
+
+async function submitArticle() {
+    var title = document.getElementById('writeTitle').value.trim();
+    var content = document.getElementById('writeContent').value.trim();
+    var excerpt = document.getElementById('writeExcerpt').value.trim();
+    var category = document.getElementById('writeCategory').value;
+    var tags = document.getElementById('writeTags').value.trim();
+    var cover = document.getElementById('writeCover').value.trim();
+
+    if (!title || !content) {
+        document.getElementById('writeError').textContent = 'Title and content are required';
+        return;
+    }
+    if (content.length < 100) {
+        document.getElementById('writeError').textContent = 'Content must be at least 100 characters';
+        return;
+    }
+
+    try {
+        var resp = await fetch('/api/blog/posts', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({title:title, content:content, excerpt:excerpt, category:category, tags:tags, cover_image:cover})
+        });
+        var data = await resp.json();
+        if (data.success) {
+            document.getElementById('writeError').textContent = '';
+            document.getElementById('writeSuccess').style.display = 'block';
+            document.getElementById('writeSuccess').textContent = 'Article submitted for review! Redirecting...';
+            setTimeout(function() { location.href = '/blog/my-posts'; }, 2000);
+        } else {
+            document.getElementById('writeError').textContent = data.error || 'Failed to submit';
+        }
+    } catch(e) {
+        document.getElementById('writeError').textContent = 'Connection error';
+    }
+}
+</script>
+"""
+
+
 @router.get("/blog/write", response_class=HTMLResponse)
 async def blog_write_page(request: Request):
     user = _get_blog_user(request)
@@ -854,10 +1136,10 @@ async def blog_write_page(request: Request):
     categories = blog_db.get_blog_category_names()
     cat_options = ''.join(f'<option>{_esc(c)}</option>' for c in categories) if categories else '<option>General</option>'
 
-    body = f"""
+    body_html = f"""
     <div class="blog-write-page">
         <h1>Write a New Article</h1>
-        <p style="color:#64748b;margin-bottom:24px;font-size:14px;">Your article will be reviewed by our editors before publishing.</p>
+        <p style="color:var(--blog-text-faint);margin-bottom:24px;font-size:14px;">Your article will be reviewed by our editors before publishing.</p>
         <div class="blog-write-form-group">
             <label>Title</label>
             <input type="text" id="writeTitle" placeholder="Enter article title" />
@@ -879,12 +1161,68 @@ async def blog_write_page(request: Request):
             </div>
         </div>
         <div class="blog-write-form-group">
-            <label>Cover Image URL (optional)</label>
-            <input type="text" id="writeCover" placeholder="https://..." />
+            <label>Cover Image (optional)</label>
+            <div class="bw-row" style="margin-bottom:8px;">
+                <label class="bw-upload-label">
+                    &#128247; Upload Cover Image
+                    <input type="file" id="writeCoverFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="bwHandleCoverSelect(this)" />
+                </label>
+                <span class="bw-hint">Max 1.5 MB &middot; JPEG, PNG, GIF, WebP</span>
+                <span id="writeCoverStatus" style="font-size:12px;display:none;"></span>
+            </div>
+            <div id="writeCoverPreview" class="bw-cover-preview">
+                <img id="writeCoverPreviewImg" src="" alt="Cover preview" />
+                <button type="button" class="bw-x" onclick="bwRemoveCover()" title="Remove cover image">&times;</button>
+            </div>
+            <input type="text" id="writeCover" placeholder="…or paste an image URL (https://...)" oninput="bwSyncCover()" />
         </div>
         <div class="blog-write-form-group">
-            <label>Content (Markdown supported)</label>
-            <textarea id="writeContent" placeholder="Write your article here. You can use Markdown formatting: **bold**, *italic*, ## headings, - lists, [links](url), \`code\`"></textarea>
+            <div class="bw-toolbar-head">
+                <label style="margin:0;">Content (Markdown supported)</label>
+                <button type="button" class="bw-preview-btn" onclick="bwPreview()">Preview</button>
+            </div>
+            <div class="bw-toolbar">
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('bold')" title="Bold" style="font-weight:700;">B</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('italic')" title="Italic" style="font-style:italic;">I</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('underline')" title="Underline" style="text-decoration:underline;">U</button>
+                <span class="bw-tsep"></span>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('h1')" title="Heading 1" style="font-weight:700;">H1</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('h2')" title="Heading 2" style="font-weight:700;">H2</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('h3')" title="Heading 3" style="font-weight:700;">H3</button>
+                <span class="bw-tsep"></span>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('ul')" title="Bullet List">&#8226; List</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('ol')" title="Numbered List">1. List</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('indent')" title="Indent">&#8677; Indent</button>
+                <span class="bw-tsep"></span>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('link')" title="Link">&#128279;</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('quote')" title="Blockquote">&#10077;</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('code')" title="Code Block" style="font-family:monospace;">&lt;/&gt;</button>
+                <button type="button" class="bw-tbtn" onclick="bwMdInsert('hr')" title="Horizontal Rule">&#8213;</button>
+                <span class="bw-tsep"></span>
+                <button type="button" class="bw-tbtn" onclick="bwToggleImageUpload()" title="Insert Image">&#128247;</button>
+                <button type="button" class="bw-tbtn" onclick="bwToggleEmoji()" title="Insert Emoji">&#128522;</button>
+            </div>
+            <div id="writeEmojiPanel" class="bw-emoji-panel">
+                <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;" id="writeEmojiTabs"></div>
+                <div style="display:flex;flex-wrap:wrap;gap:2px;" id="writeEmojiGrid"></div>
+            </div>
+            <textarea id="writeContent" class="bw-content" placeholder="Write your article here. You can use Markdown formatting: **bold**, *italic*, ## headings, - lists, [links](url)"></textarea>
+        </div>
+        <div id="writeImageSection" class="bw-section" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span style="font-size:13px;color:var(--blog-text-secondary);font-weight:500;">Upload Image</span>
+                <span style="font-size:11px;color:var(--blog-text-faint);" id="writeImageCount">0 / 3 images</span>
+            </div>
+            <div class="bw-row" style="margin-bottom:10px;">
+                <label class="bw-img-label">
+                    &#128193; Choose File
+                    <input type="file" id="writeImageFile" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="bwHandleImageSelect(this)" />
+                </label>
+                <span class="bw-hint">Max 1.5 MB &middot; up to 3 images</span>
+                <button type="button" onclick="bwToggleImageUpload()" style="margin-left:auto;padding:5px 12px;border-radius:6px;border:1px solid var(--blog-input-border);background:var(--blog-theme-toggle-bg);color:var(--blog-text-secondary);font-size:12px;cursor:pointer;">Close</button>
+            </div>
+            <div id="writeImageStatus" style="font-size:12px;margin-bottom:8px;display:none;"></div>
+            <div id="writeImageList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
         <div class="blog-write-actions">
             <button class="blog-write-btn blog-write-btn-primary" onclick="submitArticle()">Submit for Review</button>
@@ -893,45 +1231,17 @@ async def blog_write_page(request: Request):
         <div id="writeError" style="color:#f87171;font-size:14px;margin-top:12px;"></div>
         <div id="writeSuccess" style="color:#34d399;font-size:14px;margin-top:12px;display:none;"></div>
     </div>
-    <script>
-        async function submitArticle() {{
-            var title = document.getElementById('writeTitle').value.trim();
-            var content = document.getElementById('writeContent').value.trim();
-            var excerpt = document.getElementById('writeExcerpt').value.trim();
-            var category = document.getElementById('writeCategory').value;
-            var tags = document.getElementById('writeTags').value.trim();
-            var cover = document.getElementById('writeCover').value.trim();
-
-            if (!title || !content) {{
-                document.getElementById('writeError').textContent = 'Title and content are required';
-                return;
-            }}
-            if (content.length < 100) {{
-                document.getElementById('writeError').textContent = 'Content must be at least 100 characters';
-                return;
-            }}
-
-            try {{
-                var resp = await fetch('/api/blog/posts', {{
-                    method: 'POST',
-                    headers: {{'Content-Type':'application/json'}},
-                    body: JSON.stringify({{title:title, content:content, excerpt:excerpt, category:category, tags:tags, cover_image:cover}})
-                }});
-                var data = await resp.json();
-                if (data.success) {{
-                    document.getElementById('writeError').textContent = '';
-                    document.getElementById('writeSuccess').style.display = 'block';
-                    document.getElementById('writeSuccess').textContent = 'Article submitted for review! Redirecting...';
-                    setTimeout(function() {{ location.href = '/blog/my-posts'; }}, 2000);
-                }} else {{
-                    document.getElementById('writeError').textContent = data.error || 'Failed to submit';
-                }}
-            }} catch(e) {{
-                document.getElementById('writeError').textContent = 'Connection error';
-            }}
-        }}
-    </script>
+    <div id="writePreviewModal" class="bw-modal">
+        <div class="bw-modal-inner">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid var(--blog-card-border);padding-bottom:16px;">
+                <h3 style="color:var(--blog-text-primary);font-size:18px;margin:0;">Article Preview</h3>
+                <button style="padding:6px 14px;border-radius:6px;border:1px solid var(--blog-input-border);background:var(--blog-theme-toggle-bg);color:var(--blog-text-secondary);font-size:13px;cursor:pointer;" onclick="bwClosePreview()">Close</button>
+            </div>
+            <div id="writePreviewBody" style="color:var(--blog-content-text);font-size:15px;line-height:1.8;"></div>
+        </div>
+    </div>
     """
+    body = body_html + _BLOG_WRITE_SCRIPT
     return HTMLResponse(_blog_page("Write Article", body, request))
 
 
@@ -1302,6 +1612,43 @@ async def blog_create_post(request: Request):
         return JSONResponse({"success": False, "error": "Failed to create post"})
 
 
+@router.post("/api/blog/upload-image")
+async def blog_user_upload_image(request: Request, file: UploadFile = File(...)):
+    user = _get_blog_user(request)
+    if not user:
+        return JSONResponse({"success": False, "error": "Sign in required"}, status_code=401)
+    try:
+        if not _check_upload_rate(f"user:{user['id']}"):
+            return JSONResponse({"success": False, "error": "Upload rate limit reached (max 15 images per hour)"})
+
+        if file.content_type not in ALLOWED_IMAGE_TYPES:
+            return JSONResponse({"success": False, "error": "Only JPEG, PNG, GIF, and WebP images are allowed"})
+
+        contents = await file.read()
+        if len(contents) > MAX_IMAGE_SIZE:
+            return JSONResponse({"success": False, "error": "Image size must be under 1.5 MB"})
+
+        if not _validate_image_magic(contents):
+            return JSONResponse({"success": False, "error": "File does not appear to be a valid image"})
+
+        ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'jpg'
+        if ext not in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+            ext = 'jpg'
+        filename = f"{uuid.uuid4().hex[:12]}.{ext}"
+        content_type = CONTENT_TYPE_MAP.get(ext, 'image/png')
+
+        blog_db.execute_one(
+            "INSERT INTO blog_images (filename, content_type, image_data) VALUES (%s, %s, %s) RETURNING id",
+            (filename, content_type, contents)
+        )
+
+        url = f"/blog/uploads/{filename}"
+        return JSONResponse({"success": True, "url": url, "filename": filename})
+    except Exception as e:
+        logger.error(f"Blog user image upload error: {e}")
+        return JSONResponse({"success": False, "error": "Upload failed"})
+
+
 @router.post("/api/blog/posts/{post_id}/comments")
 async def blog_add_comment(post_id: int, request: Request):
     try:
@@ -1629,10 +1976,9 @@ CONTENT_TYPE_MAP = {
 _upload_tracker = {}
 
 
-def _check_upload_rate():
+def _check_upload_rate(key='admin'):
     import time
     now = time.time()
-    key = 'admin'
     if key not in _upload_tracker:
         _upload_tracker[key] = []
     _upload_tracker[key] = [t for t in _upload_tracker[key] if now - t < 3600]
