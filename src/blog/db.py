@@ -30,6 +30,8 @@ def run_blog_migrations():
                     password_hash VARCHAR(255) NOT NULL,
                     avatar_color VARCHAR(7) DEFAULT '#3b82f6',
                     bio TEXT DEFAULT '',
+                    website VARCHAR(500) DEFAULT '',
+                    avatar_image TEXT DEFAULT '',
                     is_active BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT NOW()
                 );
@@ -99,6 +101,10 @@ def run_blog_migrations():
                     created_at TIMESTAMP DEFAULT NOW()
                 );
                 CREATE INDEX IF NOT EXISTS idx_blog_images_filename ON blog_images(filename);
+
+                ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
+                ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS website VARCHAR(500) DEFAULT '';
+                ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS avatar_image TEXT DEFAULT '';
             """)
         _seed_default_categories()
         logger.info("Blog migrations completed")
@@ -248,6 +254,13 @@ def create_blog_user(display_name, email, password_hash):
     )
 
 
+def update_blog_profile(user_id, bio, website, avatar_image):
+    return execute_one(
+        "UPDATE blog_users SET bio=%s, website=%s, avatar_image=%s WHERE id=%s RETURNING *",
+        (bio, website, avatar_image, user_id)
+    )
+
+
 def get_blog_categories():
     rows = execute_query(
         "SELECT id, name, slug, description, color, sort_order, is_active, post_count FROM blog_categories WHERE is_active = TRUE ORDER BY sort_order, name",
@@ -353,7 +366,8 @@ def create_blog_session(token, user_id, expires_at):
 
 def get_blog_session(token):
     return execute_one(
-        """SELECT bs.token, bs.expires_at, bu.id, bu.display_name, bu.email, bu.avatar_color, bu.is_active
+        """SELECT bs.token, bs.expires_at, bu.id, bu.display_name, bu.email, bu.avatar_color,
+                  bu.bio, bu.website, bu.avatar_image, bu.is_active
            FROM blog_sessions bs
            JOIN blog_users bu ON bs.user_id = bu.id
            WHERE bs.token = %s AND bs.expires_at > NOW()""",

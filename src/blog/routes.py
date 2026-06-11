@@ -1,4 +1,5 @@
 import logging
+import json
 import bcrypt
 import secrets
 import re
@@ -48,7 +49,10 @@ def _get_blog_user(request: Request):
         'id': session['id'],
         'display_name': session['display_name'],
         'email': session['email'],
-        'avatar_color': session['avatar_color']
+        'avatar_color': session['avatar_color'],
+        'bio': session.get('bio') or '',
+        'website': session.get('website') or '',
+        'avatar_image': session.get('avatar_image') or ''
     }
 
 
@@ -84,6 +88,34 @@ def _get_reading_time(content):
     words = len(re.findall(r'\w+', content or ''))
     minutes = max(1, round(words / 200))
     return f"{minutes} min read"
+
+
+def _strip_user_links(text):
+    """Remove hyperlinks from user-authored article content.
+    Converts markdown links [label](url) -> label (leaving ![alt](url) images intact)
+    and neutralises raw <a> tags. Bare URLs are left as plain (non-clickable) text."""
+    if not text:
+        return text
+    text = re.sub(r'(?<!!)\[([^\]]*)\]\(([^)]+)\)', r'\1', text)
+    text = re.sub(r'</?a\b[^>]*>', '', text, flags=re.IGNORECASE)
+    return text
+
+
+def _linkify_bio(text):
+    """Escape bio text, then turn bare http(s) URLs into safe clickable links.
+    Used for the author bio box where links ARE allowed."""
+    if not text:
+        return ''
+    escaped = _esc(text)
+    def _repl(m):
+        url = m.group(0)
+        trail = ''
+        while url and url[-1] in '.,;:)]}\'"':
+            trail = url[-1] + trail
+            url = url[:-1]
+        return f'<a href="{url}" target="_blank" rel="noopener nofollow">{url}</a>{trail}'
+    escaped = re.sub(r'https?://[^\s<]+', _repl, escaped)
+    return escaped.replace('\n', '<br/>')
 
 
 def _render_markdown_basic(text):
@@ -345,6 +377,15 @@ def _blog_base_styles():
         .blog-comment-author { font-weight: 600; color: var(--blog-text); font-size: 14px; }
         .blog-comment-date { font-size: 12px; color: var(--blog-text-faint); }
         .blog-comment-text { font-size: 14px; color: var(--blog-text-secondary); line-height: 1.6; }
+        .blog-author-bio { display: flex; gap: 18px; align-items: flex-start; margin-top: 40px; padding: 24px; border-radius: 16px; background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); }
+        .blog-author-bio-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--blog-card-border); }
+        .blog-author-bio-initial { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .blog-author-bio-body { flex: 1; min-width: 0; }
+        .blog-author-bio-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--blog-text-faint); font-weight: 600; margin-bottom: 4px; }
+        .blog-author-bio-name { font-size: 18px; font-weight: 700; color: var(--blog-text-primary); margin-bottom: 8px; }
+        .blog-author-bio-text { font-size: 14px; color: var(--blog-text-secondary); line-height: 1.6; margin: 0 0 10px 0; word-break: break-word; }
+        .blog-author-bio-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #60a5fa; text-decoration: none; }
+        .blog-author-bio-link:hover { text-decoration: underline; }
 
         .blog-modal-overlay { display: none; position: fixed; inset: 0; background: var(--blog-modal-overlay); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .blog-modal-overlay.active { display: flex; }
@@ -376,9 +417,14 @@ def _blog_base_styles():
         .blog-write-btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; }
         .blog-write-btn-secondary { background: var(--blog-filter-bg); color: var(--blog-text-secondary); border: 1px solid var(--blog-filter-border); }
         .blog-write-btn:hover { opacity: 0.9; }
+        .bp-avatar-row { display: flex; gap: 20px; align-items: center; margin-bottom: 24px; }
+        .bp-avatar-wrap { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+        .bp-avatar-initial { width: 88px; height: 88px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 34px; font-weight: 700; color: #fff; }
+        .bp-avatar-preview { position: absolute; inset: 0; width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blog-card-border); }
         .bw-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px; background: var(--blog-filter-bg); border: 1px solid var(--blog-input-border); border-bottom: none; border-radius: 10px 10px 0 0; }
         .bw-tbtn { padding: 6px 11px; border: none; border-radius: 5px; background: var(--blog-theme-toggle-bg); color: var(--blog-text-secondary); font-size: 13px; cursor: pointer; line-height: 1; transition: background .15s, color .15s; }
         .bw-tbtn:hover { background: var(--blog-nav-link-hover-bg); color: var(--blog-text-primary); }
+        .bw-tbtn-disabled, .bw-tbtn-disabled:hover { opacity: 0.35; cursor: not-allowed; background: var(--blog-theme-toggle-bg); color: var(--blog-text-secondary); }
         .bw-tsep { width: 1px; background: var(--blog-input-border); margin: 2px 4px; }
         .bw-content { border-radius: 0 0 10px 10px !important; font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important; min-height: 360px !important; }
         .bw-toolbar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -492,6 +538,7 @@ def _blog_nav_html(user=None):
             </div>
             <a href="/blog/my-posts">My Posts</a>
             <a href="/blog/write">Write</a>
+            <a href="/blog/account">Profile</a>
             <button onclick="blogLogout()">Logout</button>
         """
     else:
@@ -896,7 +943,7 @@ function bwMdInsert(type) {
         case 'ul': insert = '\n- ' + (sel || 'List item') + '\n'; cursorOffset = insert.length; break;
         case 'ol': insert = '\n1. ' + (sel || 'List item') + '\n'; cursorOffset = insert.length; break;
         case 'indent': insert = '    ' + (sel || ''); cursorOffset = insert.length; break;
-        case 'link': insert = '[' + (sel || 'link text') + '](https://)'; cursorOffset = insert.length; break;
+        case 'link': return;
         case 'quote': insert = '\n> ' + (sel || 'Quote') + '\n'; cursorOffset = insert.length; break;
         case 'code': insert = '\n```\n' + (sel || 'code') + '\n```\n'; cursorOffset = insert.length; break;
         case 'hr': insert = '\n\n---\n\n'; cursorOffset = insert.length; break;
@@ -1194,7 +1241,7 @@ async def blog_write_page(request: Request):
                 <button type="button" class="bw-tbtn" onclick="bwMdInsert('ol')" title="Numbered List">1. List</button>
                 <button type="button" class="bw-tbtn" onclick="bwMdInsert('indent')" title="Indent">&#8677; Indent</button>
                 <span class="bw-tsep"></span>
-                <button type="button" class="bw-tbtn" onclick="bwMdInsert('link')" title="Link">&#128279;</button>
+                <button type="button" class="bw-tbtn bw-tbtn-disabled" disabled title="Links are not allowed in articles. Add your website link in your Profile bio instead.">&#128279;</button>
                 <button type="button" class="bw-tbtn" onclick="bwMdInsert('quote')" title="Blockquote">&#10077;</button>
                 <button type="button" class="bw-tbtn" onclick="bwMdInsert('code')" title="Code Block" style="font-family:monospace;">&lt;/&gt;</button>
                 <button type="button" class="bw-tbtn" onclick="bwMdInsert('hr')" title="Horizontal Rule">&#8213;</button>
@@ -1296,6 +1343,141 @@ async def blog_my_posts_page(request: Request):
     return HTMLResponse(_blog_page("My Posts", body, request))
 
 
+@router.get("/blog/account", response_class=HTMLResponse)
+async def blog_account_page(request: Request):
+    user = _get_blog_user(request)
+    if not user:
+        return HTMLResponse(_blog_page("My Profile", """
+        <div class="blog-container blog-empty">
+            <div class="blog-empty-icon">&#x1f512;</div>
+            <h3>Sign in to edit your profile</h3>
+            <p><a href="#" onclick="openBlogAuth(); return false;">Sign in or create an account</a></p>
+        </div>
+        """, request))
+
+    bio = user.get('bio') or ''
+    website = user.get('website') or ''
+    avatar_image = user.get('avatar_image') or ''
+    initial = (user.get('display_name') or 'U')[0].upper()
+    color = user.get('avatar_color', '#3b82f6')
+
+    if avatar_image:
+        preview = f'<img id="bpAvatarImg" src="{_esc(avatar_image)}" alt="" class="bp-avatar-preview" />'
+        preview_initial_style = 'display:none;'
+    else:
+        preview = ''
+        preview_initial_style = ''
+
+    body = f"""
+    <div class="blog-write-page">
+        <h1 style="margin-bottom:6px;">My Profile</h1>
+        <p style="color:var(--blog-text-muted);font-size:14px;margin-bottom:24px;">Add a photo and a short bio. These appear at the bottom of every article you publish. You may include a link to your website or business below.</p>
+
+        <div class="bp-avatar-row">
+            <div class="bp-avatar-wrap">
+                <div class="bp-avatar-initial" id="bpAvatarInitial" style="background:{_esc(color)};{preview_initial_style}">{_esc(initial)}</div>
+                {preview}
+            </div>
+            <div>
+                <input type="file" id="bpAvatarFile" accept="image/*" style="display:none;" onchange="bpUploadAvatar(this)" />
+                <button type="button" class="blog-write-btn blog-write-btn-secondary" onclick="document.getElementById('bpAvatarFile').click()">Upload Photo</button>
+                <button type="button" class="blog-write-btn blog-write-btn-secondary" id="bpRemoveBtn" onclick="bpRemoveAvatar()" style="{'' if avatar_image else 'display:none;'}">Remove</button>
+                <div id="bpAvatarStatus" style="font-size:12px;color:var(--blog-text-muted);margin-top:8px;">JPG, PNG, GIF or WebP. Square images look best.</div>
+            </div>
+        </div>
+
+        <div class="blog-write-form-group">
+            <label>Bio</label>
+            <textarea id="bpBio" maxlength="600" placeholder="Tell readers a little about yourself..." style="min-height:120px;">{_esc(bio)}</textarea>
+            <div style="font-size:12px;color:var(--blog-text-muted);margin-top:4px;">Up to 600 characters.</div>
+        </div>
+
+        <div class="blog-write-form-group">
+            <label>Website / Business Link</label>
+            <input type="url" id="bpWebsite" placeholder="https://your-website.com" value="{_esc(website)}" />
+            <div style="font-size:12px;color:var(--blog-text-muted);margin-top:4px;">Shown as a clickable link in your author box.</div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+            <button type="button" class="blog-write-btn blog-write-btn-primary" id="bpSaveBtn" onclick="bpSaveProfile()">Save Profile</button>
+            <span id="bpSaveMsg" style="font-size:14px;"></span>
+        </div>
+    </div>
+    <script>
+        var bpAvatarUrl = {json.dumps(avatar_image)};
+        async function bpUploadAvatar(input) {{
+            var file = input.files[0];
+            if (!file) return;
+            var status = document.getElementById('bpAvatarStatus');
+            status.textContent = 'Uploading...';
+            var fd = new FormData();
+            fd.append('file', file);
+            try {{
+                var resp = await fetch('/api/blog/upload-image', {{ method: 'POST', body: fd }});
+                var data = await resp.json();
+                if (data.success && data.url) {{
+                    bpAvatarUrl = data.url;
+                    var wrap = document.querySelector('.bp-avatar-wrap');
+                    var img = document.getElementById('bpAvatarImg');
+                    if (!img) {{
+                        img = document.createElement('img');
+                        img.id = 'bpAvatarImg';
+                        img.className = 'bp-avatar-preview';
+                        wrap.appendChild(img);
+                    }}
+                    img.src = data.url;
+                    document.getElementById('bpAvatarInitial').style.display = 'none';
+                    document.getElementById('bpRemoveBtn').style.display = '';
+                    status.textContent = 'Photo ready. Click Save Profile to apply.';
+                }} else {{
+                    status.textContent = data.error || 'Upload failed';
+                }}
+            }} catch(e) {{ status.textContent = 'Upload failed'; }}
+            input.value = '';
+        }}
+        function bpRemoveAvatar() {{
+            bpAvatarUrl = '';
+            var img = document.getElementById('bpAvatarImg');
+            if (img) img.remove();
+            document.getElementById('bpAvatarInitial').style.display = '';
+            document.getElementById('bpRemoveBtn').style.display = 'none';
+            document.getElementById('bpAvatarStatus').textContent = 'Photo removed. Click Save Profile to apply.';
+        }}
+        async function bpSaveProfile() {{
+            var btn = document.getElementById('bpSaveBtn');
+            var msg = document.getElementById('bpSaveMsg');
+            btn.disabled = true;
+            msg.style.color = 'var(--blog-text-muted)';
+            msg.textContent = 'Saving...';
+            try {{
+                var resp = await fetch('/api/blog/profile', {{
+                    method: 'POST',
+                    headers: {{'Content-Type':'application/json'}},
+                    body: JSON.stringify({{
+                        bio: document.getElementById('bpBio').value,
+                        website: document.getElementById('bpWebsite').value,
+                        avatar_image: bpAvatarUrl
+                    }})
+                }});
+                var data = await resp.json();
+                if (data.success) {{
+                    msg.style.color = '#34d399';
+                    msg.textContent = 'Profile saved!';
+                }} else {{
+                    msg.style.color = '#f87171';
+                    msg.textContent = data.error || 'Failed to save';
+                }}
+            }} catch(e) {{
+                msg.style.color = '#f87171';
+                msg.textContent = 'Failed to save';
+            }}
+            btn.disabled = false;
+        }}
+    </script>
+    """
+    return HTMLResponse(_blog_page("My Profile", body, request))
+
+
 @router.get("/blog/{cat_slug}/{article_slug}", response_class=HTMLResponse)
 async def blog_article_page(cat_slug: str, article_slug: str, request: Request):
     post = blog_db.get_post_by_slug(article_slug)
@@ -1331,6 +1513,38 @@ async def blog_article_page(cat_slug: str, article_slug: str, request: Request):
         tags_html = '<div class="blog-article-tags">' + ''.join(f'<span class="blog-article-tag">{_esc(t)}</span>' for t in tags_list) + '</div>'
 
     content_html = _render_markdown_basic(post.get('content', ''))
+
+    author_bio_html = ""
+    if post.get('author_type') == 'user' and post.get('author_id'):
+        author = blog_db.get_blog_user_by_id(post['author_id'])
+        if author:
+            a_bio = (author.get('bio') or '').strip()
+            a_website = (author.get('website') or '').strip()
+            a_image = (author.get('avatar_image') or '').strip()
+            if a_bio or a_website or a_image:
+                a_name = author.get('display_name') or post.get('author_name') or 'Author'
+                a_color = author.get('avatar_color') or '#3b82f6'
+                if a_image:
+                    avatar_block = f'<img class="blog-author-bio-img" src="{_esc(a_image)}" alt="{_esc(a_name)}" loading="lazy" />'
+                else:
+                    avatar_block = f'<div class="blog-author-bio-initial" style="background:{_esc(a_color)}">{_esc(a_name[0].upper())}</div>'
+                bio_para = f'<p class="blog-author-bio-text">{_linkify_bio(a_bio)}</p>' if a_bio else ''
+                website_link = ""
+                if a_website:
+                    href = a_website if a_website.lower().startswith(('http://', 'https://')) else 'https://' + a_website
+                    label = re.sub(r'^https?://', '', a_website).rstrip('/')
+                    website_link = f'<a class="blog-author-bio-link" href="{_esc(href)}" target="_blank" rel="noopener nofollow">&#128279; {_esc(label)}</a>'
+                author_bio_html = f"""
+                <div class="blog-author-bio">
+                    {avatar_block}
+                    <div class="blog-author-bio-body">
+                        <div class="blog-author-bio-label">About the author</div>
+                        <div class="blog-author-bio-name">{_esc(a_name)}</div>
+                        {bio_para}
+                        {website_link}
+                    </div>
+                </div>
+                """
 
     comments_html = ""
     for c in comments:
@@ -1397,6 +1611,7 @@ async def blog_article_page(cat_slug: str, article_slug: str, request: Request):
             {content_html}
         </div>
         {tags_html}
+        {author_bio_html}
     </article>
     <section class="blog-comments">
         <div class="blog-comments-header">
@@ -1589,6 +1804,7 @@ async def blog_create_post(request: Request):
 
         if not title or not content:
             return JSONResponse({"success": False, "error": "Title and content are required"})
+        content = _strip_user_links(content)
         if len(content) < 100:
             return JSONResponse({"success": False, "error": "Content must be at least 100 characters"})
 
@@ -1610,6 +1826,29 @@ async def blog_create_post(request: Request):
     except Exception as e:
         logger.error(f"Blog create post error: {e}")
         return JSONResponse({"success": False, "error": "Failed to create post"})
+
+
+@router.post("/api/blog/profile")
+async def blog_update_profile(request: Request):
+    user = _get_blog_user(request)
+    if not user:
+        return JSONResponse({"success": False, "error": "Sign in required"}, status_code=401)
+    try:
+        body = await request.json()
+        bio = (body.get('bio') or '').strip()[:600]
+        website = (body.get('website') or '').strip()[:500]
+        avatar_image = (body.get('avatar_image') or '').strip()[:1000]
+
+        if website and not website.lower().startswith(('http://', 'https://')):
+            website = 'https://' + website
+        if avatar_image and not avatar_image.startswith(('http://', 'https://', '/')):
+            return JSONResponse({"success": False, "error": "Invalid image URL"})
+
+        blog_db.update_blog_profile(user['id'], bio, website, avatar_image)
+        return JSONResponse({"success": True})
+    except Exception as e:
+        logger.error(f"Blog update profile error: {e}")
+        return JSONResponse({"success": False, "error": "Failed to save profile"})
 
 
 @router.post("/api/blog/upload-image")
