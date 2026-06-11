@@ -39,10 +39,10 @@ TTF_COLOR_DIM = "rgba(96,165,250,0.18)"
 
 _NATGAS_LOADER_HTML = _LOADER_HTML.replace(
     'Global Energy Risk Snapshot | EnergyRiskIQ',
-    'Natural Gas Price Today Europe | Live TTF Chart, Storage Levels &amp; Analysis'
+    'Natural Gas Price Today Europe{{TTF_TITLE}} | Live TTF Chart &amp; Storage Levels'
 ).replace(
     'name="description" content="Live global energy risk snapshot. Current GERI, EERI and EGSI-M index values with Brent crude, TTF gas, VIX and LNG market prices."',
-    'name="description" content="Track the latest natural gas price in Europe with live TTF charts, European gas storage levels, daily market analysis, energy risk signals, and key price drivers. Updated daily."'
+    'name="description" content="Today\'s European natural gas price (TTF){{TTF_DESC}}. Track live TTF charts, EU gas storage levels, LNG market signals and daily risk analysis. Updated every day."'
 ).replace(
     'rel="canonical" href="https://energyriskiq.com/data/energy-risk-snapshot"',
     'rel="canonical" href="https://energyriskiq.com/data/natural-gas-price-today-europe"'
@@ -1101,7 +1101,7 @@ document.body.style.overflow='';
 <!-- ── HERO ─────────────────────────────────────────────────────────── -->
 <header class="hero">
   <div class="hero-date">&#128337; Updated Daily &nbsp;&bull;&nbsp; {today_str}</div>
-  <h1>Natural Gas Price Today in Europe<br><span style="font-size:0.65em;color:#94a3b8;font-style:italic;">(TTF Benchmark)</span></h1>
+  <h1>Natural Gas Price Today in Europe (TTF)<br><span style="font-size:0.65em;color:#94a3b8;font-style:italic;">&amp; EU Storage Levels</span></h1>
   <p class="hero-sub">
     Track the latest European natural gas price (TTF), daily changes and market trends.
     Updated daily with risk signals, storage levels and energy-market context &mdash;
@@ -1537,7 +1537,25 @@ Custom Algorithm interpretation. Data sources: TTF settlement prices, AGSI+ / GI
 @router.get("/data/natural-gas-price-today-europe")
 async def natural_gas_price_today_europe():
     async def generate():
-        yield _NATGAS_LOADER_HTML
+        # Cheap latest-price lookup so the live TTF value can be server-rendered
+        # into the <title>/meta description (SEO) before the loader streams.
+        try:
+            _latest = await asyncio.to_thread(
+                execute_production_one,
+                "SELECT ttf_price FROM ttf_gas_snapshots "
+                "WHERE ttf_price IS NOT NULL ORDER BY date DESC LIMIT 1"
+            )
+            _ttf_latest = _safe_float(_latest['ttf_price']) if _latest else 0.0
+        except Exception:
+            _ttf_latest = 0.0
+        if _ttf_latest > 0:
+            _p = f"\u20ac{_ttf_latest:.2f}/MWh"
+            _title_price, _desc_price = f" ({_p})", f" is {_p}"
+        else:
+            _title_price, _desc_price = "", ""
+        yield _NATGAS_LOADER_HTML.replace(
+            "{{TTF_TITLE}}", _title_price
+        ).replace("{{TTF_DESC}}", _desc_price)
         try:
             data = await asyncio.to_thread(_compute_natgas_data)
         except Exception as exc:
