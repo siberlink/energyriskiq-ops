@@ -6,6 +6,7 @@ import re
 import os
 import uuid
 import unicodedata
+import requests
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Request, Header, Query, UploadFile, File
@@ -1015,6 +1016,45 @@ async def serve_blog_image(filename: str):
         return JSONResponse({"error": "Image not found"}, status_code=404)
 
 
+try:
+    BLOG_NEWSLETTER_LIST_ID = int(os.environ.get('BREVO_BLOG_LIST_ID', '7'))
+except (TypeError, ValueError):
+    logger.warning("BREVO_BLOG_LIST_ID is not a valid integer; defaulting to 7")
+    BLOG_NEWSLETTER_LIST_ID = 7
+
+
+def _add_to_brevo_list(email, list_id):
+    """Add/update a contact on a Brevo list. Returns (ok, already_subscribed)."""
+    api_key = os.environ.get('BREVO_API_KEY')
+    if not api_key:
+        logger.error("BREVO_API_KEY not configured; skipping Brevo subscribe")
+        return False, False
+    try:
+        resp = requests.post(
+            "https://api.brevo.com/v3/contacts",
+            json={"email": email, "listIds": [list_id], "updateEnabled": True},
+            headers={"api-key": api_key, "Content-Type": "application/json", "Accept": "application/json"},
+            timeout=20,
+        )
+        if resp.status_code in (200, 201, 204):
+            return True, False
+        if resp.status_code == 400:
+            msg = ""
+            try:
+                msg = (resp.json() or {}).get("message", "")
+            except Exception:
+                msg = resp.text or ""
+            if "already exist" in msg.lower() or "duplicate" in msg.lower():
+                return True, True
+            logger.error(f"Brevo contact add 400: {resp.text}")
+            return False, False
+        logger.error(f"Brevo contact add {resp.status_code}: {resp.text}")
+        return False, False
+    except requests.RequestException as e:
+        logger.error(f"Brevo contact add request failed: {e}")
+        return False, False
+
+
 @router.post("/api/blog/subscribe")
 async def blog_subscribe(request: Request):
     try:
@@ -1022,7 +1062,15 @@ async def blog_subscribe(request: Request):
         email = (body.get('email') or '').strip().lower()
         if not email or len(email) > 255 or not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
             return JSONResponse({"success": False, "error": "Please enter a valid email"}, status_code=400)
-        blog_db.add_blog_subscriber(email, 'blog')
+        ok, already = _add_to_brevo_list(email, BLOG_NEWSLETTER_LIST_ID)
+        if not ok:
+            return JSONResponse({"success": False, "error": "Subscription service is temporarily unavailable. Please try again later."}, status_code=502)
+        try:
+            blog_db.add_blog_subscriber(email, 'blog')
+        except Exception as e:
+            logger.error(f"Blog subscriber DB store failed (Brevo ok): {e}")
+        if already:
+            return JSONResponse({"success": True, "message": "You're already subscribed! Watch your inbox."})
         return JSONResponse({"success": True})
     except Exception as e:
         logger.error(f"Blog subscribe error: {e}")
@@ -1366,19 +1414,8 @@ def _render_blog_landing(request: Request):
         <div class="bh-products">{product_cards}</div>
     </section>"""
 
-    # ---- Sponsored (placeholder) ----
-    sponsored_html = """
-    <section class="bh-section">
-        <div class="bh-section-head">
-            <div><div class="bh-section-title">Sponsored Intelligence</div><div class="bh-section-sub">Reach a qualified audience of energy professionals</div></div>
-            <a class="bh-section-link" href="/">Partner with us &rarr;</a>
-        </div>
-        <div class="bh-sponsored-grid">
-            <div class="bh-sponsor-card"><div class="bh-sponsor-tag">Sponsorship slot</div><h4>Your Brand Here</h4><p>Feature your firm, research or product alongside trusted energy-risk analysis.</p></div>
-            <div class="bh-sponsor-card"><div class="bh-sponsor-tag">Sponsored article</div><h4>Thought Leadership</h4><p>Publish a sponsored deep-dive seen by traders, analysts and risk managers.</p></div>
-            <div class="bh-sponsor-card"><div class="bh-sponsor-tag">Newsletter placement</div><h4>Inbox Reach</h4><p>Get in front of our subscriber base of engaged energy-market readers.</p></div>
-        </div>
-    </section>"""
+    # ---- Sponsored (hidden for now — to be implemented later) ----
+    sponsored_html = ""
 
     # ---- Final CTA ----
     final_html = f"""
@@ -1417,7 +1454,7 @@ def _render_blog_landing(request: Request):
             try {{
                 var r = await fetch('/api/blog/subscribe', {{ method: 'POST', headers: {{'Content-Type':'application/json'}}, body: JSON.stringify({{email: email}}) }});
                 var d = await r.json();
-                if (d.success) {{ msg.style.color = '#34d399'; msg.textContent = "You're subscribed! Watch your inbox."; document.getElementById('bhNewsEmail').value = ''; }}
+                if (d.success) {{ msg.style.color = '#34d399'; msg.textContent = d.message || "You're subscribed! Watch your inbox."; document.getElementById('bhNewsEmail').value = ''; }}
                 else {{ msg.style.color = '#f87171'; msg.textContent = d.error || 'Subscription failed'; }}
             }} catch (err) {{ msg.style.color = '#f87171'; msg.textContent = 'Connection error'; }}
         }}
