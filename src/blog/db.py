@@ -114,6 +114,9 @@ def run_blog_migrations():
                 ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
                 ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS website VARCHAR(500) DEFAULT '';
                 ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS avatar_image TEXT DEFAULT '';
+
+                ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS newsletter_auto_send BOOLEAN DEFAULT TRUE;
+                ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS newsletter_sent_at TIMESTAMP;
             """)
         _seed_default_categories()
         _sync_managed_db_additive()
@@ -145,6 +148,8 @@ def _sync_managed_db_additive():
                 created_at TIMESTAMP DEFAULT NOW()
             );
             CREATE INDEX IF NOT EXISTS idx_blog_subscribers_email ON blog_subscribers(email);
+            ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS newsletter_auto_send BOOLEAN DEFAULT TRUE;
+            ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS newsletter_sent_at TIMESTAMP;
         """)
         conn.commit()
         cur.close()
@@ -240,6 +245,40 @@ def update_post_status(post_id, status, rejection_reason=''):
     return execute_one(
         f"UPDATE blog_posts SET status=%s, rejection_reason=%s{published_at_clause}, updated_at=NOW() WHERE id=%s RETURNING *",
         (status, rejection_reason, post_id)
+    )
+
+
+def should_send_newsletter_for_author(author_id):
+    """Gating for the new-article newsletter. Admin-authored posts (no blog_users
+    author_id) always send. For registered authors, respect their
+    newsletter_auto_send flag (default TRUE = send). Lets us later restrict
+    auto-send to selected authors by toggling the flag off."""
+    if not author_id:
+        return True
+    row = execute_one(
+        "SELECT newsletter_auto_send FROM blog_users WHERE id = %s", (author_id,)
+    )
+    if not row:
+        return True
+    val = row.get('newsletter_auto_send')
+    return True if val is None else bool(val)
+
+
+def mark_post_newsletter_sent(post_id):
+    """Stamp newsletter_sent_at only if not already set (idempotent send-once
+    guard). Returns the row when this call claimed the send, else None."""
+    return execute_one(
+        """UPDATE blog_posts SET newsletter_sent_at = NOW()
+           WHERE id = %s AND newsletter_sent_at IS NULL RETURNING id""",
+        (post_id,)
+    )
+
+
+def clear_post_newsletter_sent(post_id):
+    """Release the send-once guard so a failed send can be retried."""
+    execute_query(
+        "UPDATE blog_posts SET newsletter_sent_at = NULL WHERE id = %s",
+        (post_id,), fetch=False
     )
 
 

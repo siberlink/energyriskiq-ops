@@ -7,3 +7,5 @@
 - [AGSI+ per-country query](agsi-country-query.md) — AGSI+ returns EU aggregate unless country passed as query param (?country=DE); path form /api/de silently gives EU data for all countries.
 - [Republish column-drop warnings](deploy-schema-migration.md) — Publish diffs the Replit-managed DB (not Neon); runtime ALTERs only hit Neon so managed dev DB drifts → DROP proposed. Fix: additively ALTER $DATABASE_URL too.
 - [sessions table naive-UTC](sessions-table-naive-utc.md) — sessions.expires_at is timestamp WITHOUT tz storing utcnow(); in SQL compare against (NOW() AT TIME ZONE 'UTC'), not NOW().
+- [Brevo email patterns](brevo-email-patterns.md) — transactional /v3/smtp/email (sender from EMAIL_FROM) is the canonical send; list sends fetch contacts + use messageVersions (never shared to[]); list #7 = Energy Intelligence.
+- [Blog new-article newsletter](blog-article-newsletter.md) — publish auto-sends excerpt email once; gated by blog_users.newsletter_auto_send, guarded by blog_posts.newsletter_sent_at; fires from all 3 publish endpoints via BackgroundTasks.

@@ -9,7 +9,7 @@ import unicodedata
 import requests
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Request, Header, Query, UploadFile, File
+from fastapi import APIRouter, Request, Header, Query, UploadFile, File, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from src.blog import db as blog_db
@@ -1053,6 +1053,186 @@ def _add_to_brevo_list(email, list_id):
     except requests.RequestException as e:
         logger.error(f"Brevo contact add request failed: {e}")
         return False, False
+
+
+def _brevo_sender():
+    """Sender dict parsed from EMAIL_FROM ('Name <addr>' or 'addr'),
+    matching the admin Users send-email pattern."""
+    email_from = os.environ.get("EMAIL_FROM", "EnergyRiskIQ <alerts@energyriskiq.com>")
+    m = re.match(r'^(.+?)<(.+?)>$', email_from.strip())
+    if m:
+        return {"name": m.group(1).strip(), "email": m.group(2).strip()}
+    return {"email": email_from.strip()}
+
+
+def _fetch_brevo_list_emails(list_id):
+    """Return non-blacklisted contact emails on a Brevo list (paginated)."""
+    api_key = os.environ.get('BREVO_API_KEY')
+    if not api_key:
+        logger.error("BREVO_API_KEY not configured; cannot fetch list contacts")
+        return []
+    emails, offset, limit = [], 0, 500
+    try:
+        while True:
+            resp = requests.get(
+                f"https://api.brevo.com/v3/contacts/lists/{list_id}/contacts",
+                headers={"api-key": api_key, "Accept": "application/json"},
+                params={"limit": limit, "offset": offset},
+                timeout=30,
+            )
+            if resp.status_code != 200:
+                logger.error(f"Brevo list fetch {resp.status_code}: {resp.text}")
+                break
+            contacts = (resp.json() or {}).get('contacts', []) or []
+            for c in contacts:
+                if c.get('emailBlacklisted'):
+                    continue
+                em = (c.get('email') or '').strip()
+                if em:
+                    emails.append(em)
+            if len(contacts) < limit:
+                break
+            offset += limit
+            if offset > 100000:
+                logger.warning("Brevo list fetch hit safety cap")
+                break
+    except requests.RequestException as e:
+        logger.error(f"Brevo list fetch failed: {e}")
+    return emails
+
+
+def _absolute_media_url(src):
+    src = (src or '').strip()
+    if not src:
+        return ''
+    if src.startswith('http://') or src.startswith('https://'):
+        return src
+    if not src.startswith('/'):
+        src = '/' + src
+    return 'https://energyriskiq.com' + src
+
+
+def _build_article_email_html(post):
+    """Excerpt email: title, cover image, excerpt, Read Article button."""
+    title = _esc(post.get('title', '') or 'New Article')
+    excerpt = _esc((post.get('excerpt', '') or '').strip())
+    cat_slug = _get_cat_slug_for_post(post)
+    url = f"https://energyriskiq.com/blog/{cat_slug}/{post.get('slug', '')}"
+    cover = _absolute_media_url(post.get('cover_image', ''))
+    cover_block = ""
+    if cover:
+        cover_block = (
+            f'<tr><td style="padding:0 0 24px 0;">'
+            f'<a href="{_esc(url)}" style="text-decoration:none;">'
+            f'<img src="{_esc(cover)}" alt="{title}" width="552" '
+            f'style="display:block;width:100%;max-width:552px;height:auto;border-radius:10px;" /></a>'
+            f'</td></tr>'
+        )
+    excerpt_block = ""
+    if excerpt:
+        excerpt_block = (
+            f'<tr><td style="padding:0 0 28px 0;font-size:16px;line-height:1.6;color:#cbd5e1;">'
+            f'{excerpt}</td></tr>'
+        )
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#0b1120;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b1120;padding:32px 16px;">
+<tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#111827;border:1px solid #1f2937;border-radius:14px;overflow:hidden;">
+<tr><td style="padding:24px 24px 8px 24px;">
+<span style="font-size:13px;font-weight:700;letter-spacing:1px;color:#f59e0b;text-transform:uppercase;">EnergyRiskIQ &middot; Energy Intelligence</span>
+</td></tr>
+<tr><td style="padding:8px 24px 16px 24px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr><td style="padding:0 0 16px 0;font-size:24px;line-height:1.3;font-weight:800;color:#ffffff;">
+<a href="{_esc(url)}" style="color:#ffffff;text-decoration:none;">{title}</a>
+</td></tr>
+{cover_block}
+{excerpt_block}
+<tr><td style="padding:0 0 8px 0;">
+<a href="{_esc(url)}" style="display:inline-block;background:#f59e0b;color:#0b1120;font-size:15px;font-weight:700;text-decoration:none;padding:13px 28px;border-radius:8px;">Read Article &rarr;</a>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:20px 24px 24px 24px;border-top:1px solid #1f2937;font-size:12px;line-height:1.6;color:#64748b;">
+You're receiving this because you subscribed to EnergyRiskIQ Energy Intelligence updates.<br>
+<a href="https://energyriskiq.com/blog" style="color:#94a3b8;">Visit the blog</a>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+
+def _send_article_newsletter(post):
+    """Send the excerpt email to the Energy Intelligence Brevo list, reusing the
+    transactional /v3/smtp/email pattern with per-recipient messageVersions so
+    recipients are not exposed to each other. Returns True if any batch sent."""
+    api_key = os.environ.get('BREVO_API_KEY')
+    if not api_key:
+        logger.error("BREVO_API_KEY not configured; cannot send article newsletter")
+        return False
+    emails = _fetch_brevo_list_emails(BLOG_NEWSLETTER_LIST_ID)
+    if not emails:
+        logger.warning(f"Article newsletter: no recipients on list {BLOG_NEWSLETTER_LIST_ID}")
+        return False
+    sender = _brevo_sender()
+    subject = "New Energy Intelligence Article Available"
+    html = _build_article_email_html(post)
+    batches = batches_ok = 0
+    for i in range(0, len(emails), 500):
+        batches += 1
+        versions = [{"to": [{"email": e}]} for e in emails[i:i + 500]]
+        try:
+            resp = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={"api-key": api_key, "Content-Type": "application/json", "Accept": "application/json"},
+                json={"sender": sender, "subject": subject, "htmlContent": html, "messageVersions": versions},
+                timeout=60,
+            )
+            if resp.status_code in (200, 201, 202):
+                batches_ok += 1
+            else:
+                logger.error(f"Article newsletter batch failed {resp.status_code}: {resp.text}")
+        except requests.RequestException as e:
+            logger.error(f"Article newsletter batch request failed: {e}")
+    all_ok = batches > 0 and batches_ok == batches
+    logger.info(
+        f"Article newsletter delivery: recipients={len(emails)} "
+        f"batches={batches} succeeded={batches_ok} all_ok={all_ok}"
+    )
+    return all_ok
+
+
+def _maybe_send_article_newsletter(post_id):
+    """Auto-send the new-article excerpt email once, when a post is published and
+    its author is allowed to auto-send. Safe to call from every publish path."""
+    try:
+        post = blog_db.get_post_by_id(post_id)
+        if not post:
+            return
+        if post.get('status') != 'published':
+            return
+        if not blog_db.should_send_newsletter_for_author(post.get('author_id')):
+            logger.info(f"Article newsletter skipped for post {post_id}: author auto-send disabled")
+            return
+        claimed = blog_db.mark_post_newsletter_sent(post_id)
+        if not claimed:
+            return
+        ok = _send_article_newsletter(post)
+        if ok:
+            logger.info(f"Article newsletter sent for post {post_id}")
+        else:
+            blog_db.clear_post_newsletter_sent(post_id)
+            logger.error(f"Article newsletter send failed for post {post_id}; guard released")
+    except Exception as e:
+        logger.error(f"Article newsletter error for post {post_id}: {e}")
+        try:
+            blog_db.clear_post_newsletter_sent(post_id)
+        except Exception:
+            pass
 
 
 @router.post("/api/blog/subscribe")
@@ -2610,7 +2790,7 @@ async def admin_blog_stats(request: Request, x_admin_token: Optional[str] = Head
 
 
 @router.post("/api/blog/admin/posts")
-async def admin_blog_create_post(request: Request, x_admin_token: Optional[str] = Header(None)):
+async def admin_blog_create_post(request: Request, background_tasks: BackgroundTasks, x_admin_token: Optional[str] = Header(None)):
     from src.api.admin_routes import verify_admin_token
     verify_admin_token(x_admin_token)
     try:
@@ -2645,6 +2825,8 @@ async def admin_blog_create_post(request: Request, x_admin_token: Optional[str] 
             author_id=None, author_name='EnergyRiskIQ',
             author_type='admin', status=status
         )
+        if post and status == 'published':
+            background_tasks.add_task(_maybe_send_article_newsletter, post['id'])
         return JSONResponse({"success": True, "post_id": post['id']})
     except Exception as e:
         logger.error(f"Admin blog create error: {e}")
@@ -2652,7 +2834,7 @@ async def admin_blog_create_post(request: Request, x_admin_token: Optional[str] 
 
 
 @router.put("/api/blog/admin/posts/{post_id}")
-async def admin_blog_update_post(post_id: int, request: Request, x_admin_token: Optional[str] = Header(None)):
+async def admin_blog_update_post(post_id: int, request: Request, background_tasks: BackgroundTasks, x_admin_token: Optional[str] = Header(None)):
     from src.api.admin_routes import verify_admin_token
     verify_admin_token(x_admin_token)
     try:
@@ -2690,6 +2872,8 @@ async def admin_blog_update_post(post_id: int, request: Request, x_admin_token: 
         post = blog_db.update_post(post_id, title, slug, excerpt, content, cover_image, category, tags)
         if post:
             post = blog_db.update_post_status(post_id, status)
+        if post and status == 'published':
+            background_tasks.add_task(_maybe_send_article_newsletter, post_id)
         return JSONResponse({"success": True, "post_id": post['id'] if post else post_id})
     except Exception as e:
         logger.error(f"Admin blog update error: {e}")
@@ -2697,7 +2881,7 @@ async def admin_blog_update_post(post_id: int, request: Request, x_admin_token: 
 
 
 @router.put("/api/blog/admin/posts/{post_id}/status")
-async def admin_blog_update_status(post_id: int, request: Request, x_admin_token: Optional[str] = Header(None)):
+async def admin_blog_update_status(post_id: int, request: Request, background_tasks: BackgroundTasks, x_admin_token: Optional[str] = Header(None)):
     from src.api.admin_routes import verify_admin_token
     verify_admin_token(x_admin_token)
     try:
@@ -2707,6 +2891,8 @@ async def admin_blog_update_status(post_id: int, request: Request, x_admin_token
         if status not in ('published', 'rejected', 'pending', 'draft'):
             return JSONResponse({"success": False, "error": "Invalid status"})
         post = blog_db.update_post_status(post_id, status, rejection_reason)
+        if post and status == 'published':
+            background_tasks.add_task(_maybe_send_article_newsletter, post_id)
         return JSONResponse({"success": True, "post_id": post['id'] if post else None})
     except Exception as e:
         logger.error(f"Admin blog status error: {e}")
