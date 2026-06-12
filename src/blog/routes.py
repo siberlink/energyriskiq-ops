@@ -911,6 +911,7 @@ def _blog_page(title, body_html, request: Request, meta_description=None, head_e
     {body_html}
     <footer class="blog-footer">
         <p>&copy; 2026 <a href="/">EnergyRiskIQ</a>. All rights reserved.</p>
+        <p style="margin-top:8px;"><a href="/privacy">Privacy Policy</a> &middot; <a href="/terms">Terms of Service</a></p>
     </footer>
     {_blog_auth_modal_html()}
     {_blog_scripts()}
