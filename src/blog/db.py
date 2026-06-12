@@ -102,14 +102,57 @@ def run_blog_migrations():
                 );
                 CREATE INDEX IF NOT EXISTS idx_blog_images_filename ON blog_images(filename);
 
+                CREATE TABLE IF NOT EXISTS blog_subscribers (
+                    id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    source VARCHAR(60) DEFAULT 'blog',
+                    is_active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+                CREATE INDEX IF NOT EXISTS idx_blog_subscribers_email ON blog_subscribers(email);
+
                 ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
                 ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS website VARCHAR(500) DEFAULT '';
                 ALTER TABLE blog_users ADD COLUMN IF NOT EXISTS avatar_image TEXT DEFAULT '';
             """)
         _seed_default_categories()
+        _sync_managed_db_additive()
         logger.info("Blog migrations completed")
     except Exception as e:
         logger.error(f"Blog migration error: {e}")
+
+
+def _sync_managed_db_additive():
+    """Mirror newly-added blog objects to the Replit-managed DATABASE_URL so the
+    publish schema diff does not propose dropping objects that live only on Neon.
+    No-op when there is a single database (URLs match) or managed DB is absent."""
+    import os
+    prod = os.environ.get("PRODUCTION_DATABASE_URL")
+    managed = os.environ.get("DATABASE_URL")
+    if not managed or not prod or managed == prod:
+        return
+    import psycopg2
+    conn = None
+    try:
+        conn = psycopg2.connect(managed)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS blog_subscribers (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                source VARCHAR(60) DEFAULT 'blog',
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_blog_subscribers_email ON blog_subscribers(email);
+        """)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        logger.error(f"Managed DB additive sync skipped: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 
 def _seed_default_categories():
@@ -216,6 +259,71 @@ def get_posts_by_author(author_id):
     return execute_query(
         "SELECT * FROM blog_posts WHERE author_id=%s ORDER BY created_at DESC", (author_id,), fetch=True
     ) or []
+
+
+def get_published_posts_by_author(author_id, limit=24):
+    return execute_query(
+        """SELECT * FROM blog_posts WHERE author_id=%s AND status='published'
+           ORDER BY published_at DESC NULLS LAST, created_at DESC LIMIT %s""",
+        (author_id, limit), fetch=True
+    ) or []
+
+
+def get_most_viewed_posts(limit=4):
+    return execute_query(
+        """SELECT * FROM blog_posts WHERE status='published'
+           ORDER BY view_count DESC, published_at DESC NULLS LAST, created_at DESC LIMIT %s""",
+        (limit,), fetch=True
+    ) or []
+
+
+def get_top_contributors(limit=6):
+    return execute_query(
+        """SELECT bu.id, bu.display_name, bu.avatar_color, bu.avatar_image, bu.bio, bu.website,
+                  COUNT(bp.id) AS post_count,
+                  COALESCE(SUM(bp.view_count), 0) AS total_views,
+                  MAX(bp.published_at) AS last_published
+           FROM blog_users bu
+           JOIN blog_posts bp ON bp.author_id = bu.id AND bp.status = 'published'
+           WHERE bu.is_active = TRUE
+           GROUP BY bu.id, bu.display_name, bu.avatar_color, bu.avatar_image, bu.bio, bu.website
+           ORDER BY post_count DESC, total_views DESC, last_published DESC NULLS LAST
+           LIMIT %s""",
+        (limit,), fetch=True
+    ) or []
+
+
+def get_all_contributors():
+    """All active authors who have at least one published post (unranked, complete).
+    Used for deterministic /author/{slug} resolution."""
+    return execute_query(
+        """SELECT bu.id, bu.display_name, bu.avatar_color, bu.avatar_image, bu.bio, bu.website,
+                  COUNT(bp.id) AS post_count
+           FROM blog_users bu
+           JOIN blog_posts bp ON bp.author_id = bu.id AND bp.status = 'published'
+           WHERE bu.is_active = TRUE
+           GROUP BY bu.id, bu.display_name, bu.avatar_color, bu.avatar_image, bu.bio, bu.website""",
+        fetch=True
+    ) or []
+
+
+def get_blog_home_stats():
+    return execute_one("""
+        SELECT
+            (SELECT COUNT(*) FROM blog_posts WHERE status='published') AS articles,
+            (SELECT COUNT(DISTINCT author_id) FROM blog_posts WHERE status='published' AND author_id IS NOT NULL) AS contributors,
+            (SELECT COUNT(*) FROM blog_categories WHERE is_active=TRUE) AS categories,
+            (SELECT COALESCE(SUM(view_count), 0) FROM blog_posts WHERE status='published') AS total_views
+    """)
+
+
+def add_blog_subscriber(email, source='blog'):
+    return execute_one(
+        """INSERT INTO blog_subscribers (email, source) VALUES (%s, %s)
+           ON CONFLICT (email) DO UPDATE SET is_active = TRUE
+           RETURNING *""",
+        (email, source)
+    )
 
 
 def get_comments_for_post(post_id):

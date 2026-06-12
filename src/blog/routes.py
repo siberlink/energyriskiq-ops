@@ -36,6 +36,19 @@ def _slugify(text):
     return text[:200]
 
 
+def _jsonld(obj):
+    """Serialize an object to JSON safe for embedding inside an HTML <script> tag.
+
+    Escapes characters that could break out of the script context or be
+    misinterpreted by the HTML parser (prevents stored XSS via user/DB content)."""
+    return (json.dumps(obj)
+            .replace('<', '\\u003c')
+            .replace('>', '\\u003e')
+            .replace('&', '\\u0026')
+            .replace('\u2028', '\\u2028')
+            .replace('\u2029', '\\u2029'))
+
+
 def _get_blog_user(request: Request):
     token = request.cookies.get('blog_token')
     if not token:
@@ -524,6 +537,124 @@ def _blog_base_styles():
             .blog-footer { padding: 24px 16px; }
             .blog-logo { font-size: 16px; }
         }
+
+        /* ===== Blog homepage redesign ===== */
+        .bh-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 64px; }
+        .bh-hero { text-align: center; padding: 64px 0 36px; }
+        .bh-hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 20px; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); color: #60a5fa; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 20px; }
+        .bh-hero h1 { font-size: 46px; line-height: 1.1; font-weight: 800; background: var(--blog-hero-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 16px; letter-spacing: -0.02em; }
+        .bh-hero p { font-size: 19px; color: var(--blog-text-muted); max-width: 680px; margin: 0 auto 28px; line-height: 1.6; }
+        .bh-cta-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .bh-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; font-family: inherit; }
+        .bh-btn-primary { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; }
+        .bh-btn-primary:hover { opacity: 0.92; transform: translateY(-2px); color: #fff; }
+        .bh-btn-ghost { background: var(--blog-filter-bg); color: var(--blog-text-secondary); border: 1px solid var(--blog-filter-border); }
+        .bh-btn-ghost:hover { border-color: #3b82f6; color: var(--blog-text-primary); }
+
+        .bh-search-bar { display: flex; justify-content: center; margin-top: 28px; }
+        .bh-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 36px; }
+        .bh-stat { min-width: 130px; padding: 16px 22px; border-radius: 14px; background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); }
+        .bh-stat-num { font-size: 26px; font-weight: 800; color: var(--blog-text-primary); }
+        .bh-stat-label { font-size: 12px; color: var(--blog-text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+        .bh-section { margin-top: 64px; }
+        .bh-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .bh-section-title { font-size: 26px; font-weight: 800; color: var(--blog-text-primary); letter-spacing: -0.01em; }
+        .bh-section-sub { font-size: 14px; color: var(--blog-text-muted); margin-top: 4px; }
+        .bh-section-link { font-size: 14px; font-weight: 600; color: #60a5fa; white-space: nowrap; }
+
+        .bh-featured { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; }
+        .bh-feat-main { border-radius: 20px; overflow: hidden; border: 1px solid var(--blog-card-border); background: var(--blog-card-bg); cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; }
+        .bh-feat-main:hover { border-color: var(--blog-card-hover-border); transform: translateY(-4px); box-shadow: var(--blog-card-hover-shadow); }
+        .bh-feat-cover { height: 260px; background: var(--blog-card-cover-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .bh-feat-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .bh-feat-cover-ph { font-size: 64px; opacity: 0.25; }
+        .bh-feat-body { padding: 26px 28px 28px; display: flex; flex-direction: column; flex: 1; }
+        .bh-feat-main h3 { font-size: 27px; line-height: 1.25; font-weight: 800; color: var(--blog-text-primary); margin: 12px 0 10px; }
+        .bh-feat-main p { font-size: 15px; color: var(--blog-text-muted); line-height: 1.6; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .bh-feat-side { display: flex; flex-direction: column; gap: 16px; }
+        .bh-mini { display: flex; gap: 14px; padding: 14px; border-radius: 14px; background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); cursor: pointer; transition: all 0.2s; }
+        .bh-mini:hover { border-color: var(--blog-card-hover-border); transform: translateX(3px); }
+        .bh-mini-cover { width: 84px; height: 84px; border-radius: 10px; flex-shrink: 0; background: var(--blog-card-cover-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .bh-mini-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .bh-mini-cover-ph { font-size: 28px; opacity: 0.25; }
+        .bh-mini-body { min-width: 0; }
+        .bh-mini h4 { font-size: 15px; line-height: 1.35; font-weight: 700; color: var(--blog-text-primary); margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .bh-mini-meta { font-size: 12px; color: var(--blog-text-faint); }
+        .bh-pill { display: inline-block; padding: 4px 12px; border-radius: 12px; background: var(--blog-cat-bg); color: var(--blog-cat-color); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .bh-cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+        .bh-cat-tile { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 14px; background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); transition: all 0.2s; }
+        .bh-cat-tile:hover { border-color: var(--blog-card-hover-border); transform: translateY(-3px); background: rgba(59,130,246,0.05); }
+        .bh-cat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .bh-cat-name { font-size: 15px; font-weight: 700; color: var(--blog-text-primary); }
+        .bh-cat-count { font-size: 12px; color: var(--blog-text-faint); margin-top: 2px; }
+
+        .bh-panel { padding: 40px; border-radius: 20px; border: 1px solid var(--blog-card-border); background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08)); }
+        .bh-contrib { display: grid; grid-template-columns: 1.2fr 1fr; gap: 36px; align-items: center; }
+        .bh-contrib h2 { font-size: 30px; font-weight: 800; color: var(--blog-text-primary); margin-bottom: 12px; letter-spacing: -0.01em; }
+        .bh-contrib p { font-size: 15px; color: var(--blog-text-secondary); line-height: 1.7; margin-bottom: 20px; }
+        .bh-benefits { list-style: none; display: grid; gap: 12px; }
+        .bh-benefit { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--blog-text-secondary); line-height: 1.5; }
+        .bh-benefit-ic { width: 26px; height: 26px; border-radius: 8px; background: rgba(59,130,246,0.15); color: #60a5fa; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        .bh-benefit strong { color: var(--blog-text-primary); }
+
+        .bh-contrib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        .bh-author-card { padding: 22px; border-radius: 16px; background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); text-align: center; transition: all 0.2s; display: block; }
+        .bh-author-card:hover { border-color: var(--blog-card-hover-border); transform: translateY(-3px); }
+        .bh-author-av { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #fff; object-fit: cover; }
+        .bh-author-name { font-size: 16px; font-weight: 700; color: var(--blog-text-primary); }
+        .bh-author-meta { font-size: 12px; color: var(--blog-text-faint); margin-top: 3px; }
+        .bh-author-bio { font-size: 13px; color: var(--blog-text-muted); margin-top: 10px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        .bh-news { text-align: center; }
+        .bh-news h2 { font-size: 28px; font-weight: 800; color: var(--blog-text-primary); margin-bottom: 10px; }
+        .bh-news p { font-size: 15px; color: var(--blog-text-secondary); max-width: 560px; margin: 0 auto 22px; line-height: 1.6; }
+        .bh-news-form { display: flex; gap: 10px; max-width: 480px; margin: 0 auto; flex-wrap: wrap; }
+        .bh-news-input { flex: 1; min-width: 220px; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--blog-input-border); background: var(--blog-input-bg); color: var(--blog-input-text); font-size: 15px; outline: none; }
+        .bh-news-input:focus { border-color: #3b82f6; }
+        .bh-news-msg { font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+        .bh-sponsored-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        .bh-sponsor-card { padding: 24px; border-radius: 16px; background: var(--blog-card-bg); border: 1px dashed var(--blog-card-border); }
+        .bh-sponsor-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--blog-text-faint); margin-bottom: 10px; }
+        .bh-sponsor-card h4 { font-size: 16px; font-weight: 700; color: var(--blog-text-primary); margin-bottom: 6px; }
+        .bh-sponsor-card p { font-size: 13px; color: var(--blog-text-muted); line-height: 1.5; }
+
+        .bh-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+        .bh-product { display: block; padding: 22px; border-radius: 16px; background: var(--blog-card-bg); border: 1px solid var(--blog-card-border); transition: all 0.2s; }
+        .bh-product:hover { border-color: var(--blog-card-hover-border); transform: translateY(-3px); }
+        .bh-product-ic { font-size: 24px; margin-bottom: 10px; }
+        .bh-product h4 { font-size: 16px; font-weight: 700; color: var(--blog-text-primary); margin-bottom: 6px; }
+        .bh-product p { font-size: 13px; color: var(--blog-text-muted); line-height: 1.5; }
+
+        .bh-final { text-align: center; padding: 56px 40px; border-radius: 24px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); margin-top: 64px; }
+        .bh-final h2 { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+        .bh-final p { font-size: 16px; color: rgba(255,255,255,0.92); max-width: 560px; margin: 0 auto 24px; }
+        .bh-final .bh-btn-primary { background: #fff; color: #1e293b; }
+        .bh-final .bh-btn-primary:hover { background: #f1f5f9; color: #1e293b; }
+        .bh-final .bh-btn-ghost { background: rgba(255,255,255,0.14); color: #fff; border-color: rgba(255,255,255,0.4); }
+        .bh-final .bh-btn-ghost:hover { background: rgba(255,255,255,0.24); color: #fff; }
+
+        @media (max-width: 860px) {
+            .bh-featured { grid-template-columns: 1fr; }
+            .bh-contrib { grid-template-columns: 1fr; gap: 24px; }
+        }
+        @media (max-width: 768px) {
+            .bh-wrap { padding: 0 16px 48px; }
+            .bh-hero { padding: 44px 0 24px; }
+            .bh-hero h1 { font-size: 32px; }
+            .bh-hero p { font-size: 16px; }
+            .bh-section { margin-top: 48px; }
+            .bh-section-title { font-size: 22px; }
+            .bh-feat-main h3 { font-size: 22px; }
+            .bh-panel { padding: 26px; }
+            .bh-contrib h2 { font-size: 24px; }
+            .bh-final { padding: 40px 24px; }
+            .bh-final h2 { font-size: 24px; }
+            .bh-stat { min-width: 100px; padding: 12px 16px; }
+            .bh-stat-num { font-size: 22px; }
+        }
     </style>
     <script>
         (function() {
@@ -556,6 +687,7 @@ def _blog_nav_html(user=None):
         """
     else:
         user_section = """
+            <a href="/blog/write" onclick="closeBlogMenu()">Write for Us</a>
             <button onclick="openBlogAuth()" class="blog-nav-btn-primary">Sign In</button>
         """
 
@@ -632,6 +764,10 @@ def _blog_scripts():
         function closeBlogAuth() {
             document.getElementById('blogAuthModal').classList.remove('active');
             document.getElementById('blogAuthError').textContent = '';
+        }
+        function openBlogAuthRegister() {
+            openBlogAuth();
+            switchBlogAuthTab('register');
         }
         document.addEventListener('click', function(e) {
             var modal = document.getElementById('blogAuthModal');
@@ -743,15 +879,30 @@ def _blog_scripts():
     """
 
 
-def _blog_page(title, body_html, request: Request):
+def _blog_page(title, body_html, request: Request, meta_description=None, head_extra="",
+               canonical=None, title_suffix=True, og_image=None):
     user = _get_blog_user(request)
+    desc = meta_description or "Educational articles on energy risk, geopolitics, and market intelligence from EnergyRiskIQ."
+    title_full = f"{_esc(title)} - EnergyRiskIQ Blog" if title_suffix else _esc(title)
+    canonical_tag = f'\n    <link rel="canonical" href="{_esc(canonical)}"/>' if canonical else ""
+    og_img = og_image or "https://energyriskiq.com/static/logo.png"
+    social_tags = f"""
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="EnergyRiskIQ"/>
+    <meta property="og:title" content="{_esc(title_full)}"/>
+    <meta property="og:description" content="{_esc(desc)}"/>
+    <meta property="og:image" content="{_esc(og_img)}"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="{_esc(title_full)}"/>
+    <meta name="twitter:description" content="{_esc(desc)}"/>
+    <meta name="twitter:image" content="{_esc(og_img)}"/>"""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{_esc(title)} - EnergyRiskIQ Blog</title>
-    <meta name="description" content="Educational articles on energy risk, geopolitics, and market intelligence from EnergyRiskIQ."/>
+    <title>{title_full}</title>
+    <meta name="description" content="{_esc(desc)}"/>{canonical_tag}{social_tags}{head_extra}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     {_blog_base_styles()}
 </head>
@@ -863,9 +1014,456 @@ async def serve_blog_image(filename: str):
         return JSONResponse({"error": "Image not found"}, status_code=404)
 
 
+@router.post("/api/blog/subscribe")
+async def blog_subscribe(request: Request):
+    try:
+        body = await request.json()
+        email = (body.get('email') or '').strip().lower()
+        if not email or len(email) > 255 or not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+            return JSONResponse({"success": False, "error": "Please enter a valid email"}, status_code=400)
+        blog_db.add_blog_subscriber(email, 'blog')
+        return JSONResponse({"success": True})
+    except Exception as e:
+        logger.error(f"Blog subscribe error: {e}")
+        return JSONResponse({"success": False, "error": "Subscription failed"}, status_code=500)
+
+
+@router.get("/author/{author_slug}", response_class=HTMLResponse)
+async def blog_author_page(author_slug: str, request: Request):
+    import json
+    candidates = blog_db.get_all_contributors()
+    target = None
+    for c in candidates:
+        if _slugify(c.get('display_name') or '') == author_slug:
+            target = c
+            break
+
+    if not target:
+        body = """
+        <div class="blog-container blog-empty">
+            <div class="blog-empty-icon">&#128100;</div>
+            <h3>Author not found</h3>
+            <p>This contributor has no published articles yet. <a href="/blog">Back to the blog</a>.</p>
+        </div>
+        """
+        return HTMLResponse(_blog_page("Author not found", body, request), status_code=404)
+
+    name = target.get('display_name') or 'Contributor'
+    initial = name[0].upper()
+    posts = blog_db.get_published_posts_by_author(target['id'])
+    cat_slug_map = blog_db.get_category_slug_map()
+    cards = _render_blog_cards(posts, cat_slug_map)
+    if not cards:
+        cards = '<div class="blog-empty" style="grid-column:1/-1;"><h3>No published articles yet</h3></div>'
+
+    if (target.get('avatar_image') or '').strip():
+        av = f'<img class="bh-author-av" style="width:96px;height:96px;font-size:36px;" src="{_esc(target["avatar_image"])}" alt="{_esc(name)}" />'
+    else:
+        av = f'<div class="bh-author-av" style="width:96px;height:96px;font-size:36px;background:{_esc(target.get("avatar_color") or "#3b82f6")}">{_esc(initial)}</div>'
+
+    bio = (target.get('bio') or '').strip()
+    bio_html = f'<p style="font-size:15px;color:var(--blog-text-secondary);line-height:1.7;margin-top:12px;max-width:640px;">{_linkify_bio(bio)}</p>' if bio else ''
+
+    website = (target.get('website') or '').strip()
+    web_html = ''
+    if website:
+        url = website if website.startswith(('http://', 'https://')) else 'https://' + website
+        web_html = f'<a href="{_esc(url)}" target="_blank" rel="noopener nofollow" class="bh-btn bh-btn-ghost" style="margin-top:16px;padding:10px 18px;font-size:14px;">&#128279; Visit website</a>'
+
+    pc = int(target.get('post_count') or 0)
+    body = f"""
+    <div class="bh-wrap">
+        <a class="bh-section-link" href="/blog" style="display:inline-block;margin-top:24px;">&larr; Back to Blog</a>
+        <section class="bh-panel" style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;margin-top:16px;">
+            {av}
+            <div style="flex:1;min-width:240px;">
+                <div class="bh-author-meta" style="text-transform:uppercase;letter-spacing:0.08em;">EnergyRiskIQ Contributor</div>
+                <h1 style="font-size:30px;font-weight:800;color:var(--blog-text-primary);margin:4px 0 8px;">{_esc(name)}</h1>
+                <div class="bh-author-meta">{pc} published article{'s' if pc != 1 else ''}</div>
+                {bio_html}
+                {web_html}
+            </div>
+        </section>
+        <section class="bh-section">
+            <div class="bh-section-head"><div class="bh-section-title">Articles by {_esc(name)}</div></div>
+            <div class="blog-grid">{cards}</div>
+        </section>
+    </div>"""
+
+    seo_desc = (bio[:155] if bio else f"Energy market analysis and insights by {name}, contributor at EnergyRiskIQ.")
+    ld = {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "url": f"https://energyriskiq.com/author/{author_slug}",
+        "mainEntity": {
+            "@type": "Person",
+            "name": name,
+            "description": (bio or seo_desc),
+            "url": f"https://energyriskiq.com/author/{author_slug}",
+            **({"sameAs": [website if website.startswith(('http://', 'https://')) else 'https://' + website]} if website else {}),
+        },
+    }
+    head_extra = f'\n    <script type="application/ld+json">{_jsonld(ld)}</script>'
+    return HTMLResponse(_blog_page(f"{name} \u2014 Energy Analyst & Contributor", body, request,
+                                   meta_description=seo_desc, head_extra=head_extra,
+                                   canonical=f"https://energyriskiq.com/author/{author_slug}",
+                                   title_suffix=False))
+
+
+_BLOG_CAT_ICONS = {
+    'energy-markets': '\U0001F4CA', 'geopolitics': '\U0001F30D', 'risk-management': '\U0001F6E1\uFE0F',
+    'oil-gas': '\U0001F6E2\uFE0F', 'renewables': '\u267B\uFE0F', 'climate-esg': '\U0001F331',
+    'trading-strategies': '\U0001F4C8', 'industry-analysis': '\U0001F3ED',
+    'regulation-policy': '\u2696\uFE0F', 'lng-natural-gas': '\U0001F525', 'nuclear-energy': '\u269B\uFE0F',
+    'general': '\U0001F4F0',
+}
+
+
+def _contrib_btn(user, label, classes):
+    if user:
+        return f'<a class="{classes}" href="/blog/write">{label}</a>'
+    return f'<a class="{classes}" href="#" onclick="openBlogAuthRegister(); return false;">{label}</a>'
+
+
+def _render_featured_main(post, cat_slug_map):
+    c_slug = _get_cat_slug_for_post(post, cat_slug_map)
+    href = f"/blog/{_esc(c_slug)}/{_esc(post['slug'])}"
+    if post.get('cover_image'):
+        cover = f'<img src="{_esc(post["cover_image"])}" alt="{_esc(post["title"])}" />'
+    else:
+        cover = '<div class="bh-feat-cover-ph">&#x1f4f0;</div>'
+    initial = (post.get('author_name') or 'A')[0].upper()
+    return f"""
+    <article class="bh-feat-main" onclick="location.href='{href}'">
+        <div class="bh-feat-cover">{cover}</div>
+        <div class="bh-feat-body">
+            <div><span class="bh-pill">{_esc(post.get('category','General'))}</span></div>
+            <h3>{_esc(post['title'])}</h3>
+            <p>{_esc(post.get('excerpt',''))}</p>
+            <div class="blog-card-meta" style="margin-top:auto;">
+                <div class="blog-card-author">
+                    <div class="blog-card-author-avatar" style="background:#3b82f6">{initial}</div>
+                    {_esc(post.get('author_name','Admin'))}
+                </div>
+                <div class="blog-card-dot"></div>
+                <span>{_format_date_short(post.get('published_at') or post.get('created_at'))}</span>
+                <div class="blog-card-dot"></div>
+                <span>{_get_reading_time(post.get('content',''))}</span>
+            </div>
+        </div>
+    </article>"""
+
+
+def _render_mini(post, cat_slug_map):
+    c_slug = _get_cat_slug_for_post(post, cat_slug_map)
+    href = f"/blog/{_esc(c_slug)}/{_esc(post['slug'])}"
+    if post.get('cover_image'):
+        cover = f'<img src="{_esc(post["cover_image"])}" alt="" />'
+    else:
+        cover = '<div class="bh-mini-cover-ph">&#x1f4f0;</div>'
+    return f"""
+    <article class="bh-mini" onclick="location.href='{href}'">
+        <div class="bh-mini-cover">{cover}</div>
+        <div class="bh-mini-body">
+            <h4>{_esc(post['title'])}</h4>
+            <div class="bh-mini-meta">{_esc(post.get('category','General'))} &middot; {_format_date_short(post.get('published_at') or post.get('created_at'))}</div>
+        </div>
+    </article>"""
+
+
+def _render_contributor_card(c):
+    slug = _slugify(c.get('display_name') or '')
+    name = c.get('display_name') or 'Contributor'
+    initial = name[0].upper()
+    if (c.get('avatar_image') or '').strip():
+        av = f'<img class="bh-author-av" src="{_esc(c["avatar_image"])}" alt="{_esc(name)}" />'
+    else:
+        av = f'<div class="bh-author-av" style="background:{_esc(c.get("avatar_color") or "#3b82f6")}">{_esc(initial)}</div>'
+    pc = int(c.get('post_count') or 0)
+    bio = _esc((c.get('bio') or '').strip())
+    bio_html = f'<p class="bh-author-bio">{bio}</p>' if bio else ''
+    return f"""
+    <a class="bh-author-card" href="/author/{_esc(slug)}">
+        {av}
+        <div class="bh-author-name">{_esc(name)}</div>
+        <div class="bh-author-meta">{pc} article{'s' if pc != 1 else ''}</div>
+        {bio_html}
+    </a>"""
+
+
+def _render_blog_landing(request: Request):
+    import json
+    user = _get_blog_user(request)
+    cat_slug_map = blog_db.get_category_slug_map()
+    categories = blog_db.get_blog_categories()
+    posts, total = blog_db.get_published_posts(page=1, per_page=13)
+    stats = blog_db.get_blog_home_stats() or {}
+    contributors = blog_db.get_top_contributors(limit=8)
+
+    articles_n = int(stats.get('articles') or 0)
+    contributors_n = int(stats.get('contributors') or 0)
+    categories_n = int(stats.get('categories') or len(categories))
+    views_n = int(stats.get('total_views') or 0)
+
+    # ---- Hero ----
+    if posts:
+        hero_primary = '<a class="bh-btn bh-btn-primary" href="#bh-latest">&#128218; Explore Latest Analysis</a>'
+        hero_secondary = _contrib_btn(user, '&#9998; Write for Us', 'bh-btn bh-btn-ghost')
+    else:
+        hero_primary = _contrib_btn(user, '&#9998; Become a Contributor', 'bh-btn bh-btn-primary')
+        hero_secondary = '<a class="bh-btn bh-btn-ghost" href="/">Explore the Platform</a>'
+
+    stats_cells = f"""
+        <div class="bh-stat"><div class="bh-stat-num">{articles_n}</div><div class="bh-stat-label">Articles</div></div>
+        <div class="bh-stat"><div class="bh-stat-num">{contributors_n}</div><div class="bh-stat-label">Contributors</div></div>
+        <div class="bh-stat"><div class="bh-stat-num">{categories_n}</div><div class="bh-stat-label">Topics</div></div>"""
+    if views_n > 0:
+        stats_cells += f'\n        <div class="bh-stat"><div class="bh-stat-num">{views_n:,}</div><div class="bh-stat-label">Reads</div></div>'
+
+    hero_html = f"""
+    <section class="bh-hero">
+        <div class="bh-hero-badge">&#9889; Energy Risk Intelligence</div>
+        <h1>Energy Intelligence Blog</h1>
+        <p>Expert analysis on LNG, crude oil, natural gas and geopolitical risk &mdash; written by traders, analysts and risk managers who live and breathe energy markets.</p>
+        <div class="bh-cta-row">{hero_primary}{hero_secondary}</div>
+        <div class="bh-search-bar">
+            <input class="blog-search" type="text" placeholder="Search analysis &mdash; LNG, Brent, sanctions, storage..." onkeydown="if(event.key==='Enter')searchBlog(this.value)" />
+        </div>
+        <div class="bh-stats">{stats_cells}</div>
+    </section>"""
+
+    # ---- Featured ----
+    if posts:
+        featured = posts[0]
+        side = posts[1:4]
+        side_html = "".join(_render_mini(p, cat_slug_map) for p in side)
+        if not side_html:
+            side_html = '<div class="bh-mini" style="cursor:default;color:var(--blog-text-faint);justify-content:center;">More articles coming soon.</div>'
+        featured_html = f"""
+        <section class="bh-section" id="bh-latest">
+            <div class="bh-section-head">
+                <div><div class="bh-section-title">Featured Intelligence</div><div class="bh-section-sub">Our latest in-depth energy market analysis</div></div>
+            </div>
+            <div class="bh-featured">
+                {_render_featured_main(featured, cat_slug_map)}
+                <div class="bh-feat-side">{side_html}</div>
+            </div>
+        </section>"""
+    else:
+        featured_html = """
+        <section class="bh-section" id="bh-latest">
+            <div class="blog-empty">
+                <div class="blog-empty-icon">&#x1f4dd;</div>
+                <h3>No articles published yet</h3>
+                <p>Be the first to publish energy market analysis on EnergyRiskIQ.</p>
+            </div>
+        </section>"""
+
+    # ---- Browse by category ----
+    cats_sorted = sorted(categories, key=lambda c: (-(c.get('post_count') or 0), c.get('sort_order') or 0))[:8]
+    tiles = ""
+    for c in cats_sorted:
+        icon = _BLOG_CAT_ICONS.get(c.get('slug'), '\U0001F4F0')
+        color = c.get('color') or '#3b82f6'
+        pc = int(c.get('post_count') or 0)
+        countlbl = f"{pc} article{'s' if pc != 1 else ''}" if pc else "Explore topic"
+        tiles += f"""
+        <a class="bh-cat-tile" href="/blog/{_esc(c.get('slug',''))}">
+            <div class="bh-cat-icon" style="background:{_esc(color)}22;">{icon}</div>
+            <div><div class="bh-cat-name">{_esc(c.get('name',''))}</div><div class="bh-cat-count">{countlbl}</div></div>
+        </a>"""
+    categories_html = f"""
+    <section class="bh-section">
+        <div class="bh-section-head">
+            <div><div class="bh-section-title">Browse by Topic</div><div class="bh-section-sub">Find the energy markets and risk themes that matter to you</div></div>
+        </div>
+        <div class="bh-cat-grid">{tiles}</div>
+    </section>""" if tiles else ""
+
+    # ---- Latest grid ----
+    grid_posts = posts[4:13]
+    latest_html = ""
+    if grid_posts:
+        latest_html = f"""
+        <section class="bh-section">
+            <div class="bh-section-head">
+                <div><div class="bh-section-title">Latest Analysis</div><div class="bh-section-sub">Fresh perspectives across global energy markets</div></div>
+                <a class="bh-section-link" href="/blog?all=1">View all articles &rarr;</a>
+            </div>
+            <div class="blog-grid">{_render_blog_cards(grid_posts, cat_slug_map)}</div>
+        </section>"""
+
+    # ---- Become a contributor ----
+    contrib_html = f"""
+    <section class="bh-section">
+        <div class="bh-panel">
+            <div class="bh-contrib">
+                <div>
+                    <div class="bh-pill" style="margin-bottom:14px;">For Analysts, Traders &amp; Risk Managers</div>
+                    <h2>Publish Your Energy Market Insights</h2>
+                    <p>Join the EnergyRiskIQ contributor network and put your analysis in front of energy professionals, traders and decision-makers worldwide. Build your reputation, grow your audience, and drive traffic to your own business.</p>
+                    {_contrib_btn(user, '&#9998; Become a Contributor', 'bh-btn bh-btn-primary')}
+                </div>
+                <ul class="bh-benefits">
+                    <li class="bh-benefit"><span class="bh-benefit-ic">&#128100;</span><span><strong>Author profile &amp; backlink.</strong> Every article carries your bio, photo and a link to your site or business.</span></li>
+                    <li class="bh-benefit"><span class="bh-benefit-ic">&#128200;</span><span><strong>Built-in distribution.</strong> Reach our newsletter, search traffic and energy-professional audience.</span></li>
+                    <li class="bh-benefit"><span class="bh-benefit-ic">&#9889;</span><span><strong>Authority &amp; credibility.</strong> Get associated with a trusted energy-risk intelligence brand.</span></li>
+                    <li class="bh-benefit"><span class="bh-benefit-ic">&#127919;</span><span><strong>Editorial support.</strong> Our editors review every submission so your work looks its best.</span></li>
+                </ul>
+            </div>
+        </div>
+    </section>"""
+
+    # ---- Top contributors ----
+    top_contrib_html = ""
+    if contributors:
+        cards = "".join(_render_contributor_card(c) for c in contributors)
+        top_contrib_html = f"""
+        <section class="bh-section">
+            <div class="bh-section-head">
+                <div><div class="bh-section-title">Top Contributors</div><div class="bh-section-sub">Meet the analysts behind our intelligence</div></div>
+            </div>
+            <div class="bh-contrib-grid">{cards}</div>
+        </section>"""
+
+    # ---- Newsletter ----
+    news_html = """
+    <section class="bh-section">
+        <div class="bh-panel bh-news">
+            <h2>Energy Intelligence, Straight to Your Inbox</h2>
+            <p>Get the week's most important energy market moves, risk signals and expert analysis. No spam &mdash; unsubscribe anytime.</p>
+            <form class="bh-news-form" onsubmit="subscribeNewsletter(event)">
+                <input class="bh-news-input" type="email" id="bhNewsEmail" placeholder="you@company.com" required />
+                <button class="bh-btn bh-btn-primary" type="submit">Subscribe Free</button>
+            </form>
+            <div class="bh-news-msg" id="bhNewsMsg"></div>
+        </div>
+    </section>"""
+
+    # ---- Products ----
+    products = [
+        ('\U0001F6F0\uFE0F', 'EnergyRiskIQ Platform', 'Real-time energy risk intelligence, alerts and daily AI briefings.', '/'),
+        ('\U0001F52E', 'Global Energy Risk Forecast', 'AI-powered 24-hour Brent &amp; TTF price forecasts.', '/data/global-energy-risk-forecast'),
+        ('\U0001F6E2\uFE0F', 'Brent Crude Oil Price', 'Live Brent benchmark prices, charts and market drivers.', '/data/brent-crude-oil-price-today'),
+        ('\U0001F525', 'European Gas (TTF)', 'Dutch TTF natural gas prices and EU storage levels.', '/data/natural-gas-price-today-europe'),
+        ('\U0001F30A', 'JKM LNG Spot Price', 'Asian LNG benchmark prices, charts and historical data.', '/data/jkm-lng-spot-price'),
+        ('\U0001F3ED', 'Europe Gas Storage', 'Daily EU gas storage levels, trends and risk scoring.', '/gas-storage-levels-in-europe'),
+    ]
+    product_cards = "".join(
+        f"""
+        <a class="bh-product" href="{href}">
+            <div class="bh-product-ic">{ic}</div>
+            <h4>{name}</h4>
+            <p>{desc}</p>
+        </a>""" for ic, name, desc, href in products
+    )
+    products_html = f"""
+    <section class="bh-section">
+        <div class="bh-section-head">
+            <div><div class="bh-section-title">Explore EnergyRiskIQ</div><div class="bh-section-sub">Live data, indices and intelligence that power our analysis</div></div>
+        </div>
+        <div class="bh-products">{product_cards}</div>
+    </section>"""
+
+    # ---- Sponsored (placeholder) ----
+    sponsored_html = """
+    <section class="bh-section">
+        <div class="bh-section-head">
+            <div><div class="bh-section-title">Sponsored Intelligence</div><div class="bh-section-sub">Reach a qualified audience of energy professionals</div></div>
+            <a class="bh-section-link" href="/">Partner with us &rarr;</a>
+        </div>
+        <div class="bh-sponsored-grid">
+            <div class="bh-sponsor-card"><div class="bh-sponsor-tag">Sponsorship slot</div><h4>Your Brand Here</h4><p>Feature your firm, research or product alongside trusted energy-risk analysis.</p></div>
+            <div class="bh-sponsor-card"><div class="bh-sponsor-tag">Sponsored article</div><h4>Thought Leadership</h4><p>Publish a sponsored deep-dive seen by traders, analysts and risk managers.</p></div>
+            <div class="bh-sponsor-card"><div class="bh-sponsor-tag">Newsletter placement</div><h4>Inbox Reach</h4><p>Get in front of our subscriber base of engaged energy-market readers.</p></div>
+        </div>
+    </section>"""
+
+    # ---- Final CTA ----
+    final_html = f"""
+    <section class="bh-final">
+        <h2>Share Your Edge. Grow Your Audience.</h2>
+        <p>Whether you're an analyst, trader or risk manager &mdash; publish on EnergyRiskIQ and reach energy professionals who value sharp thinking.</p>
+        <div class="bh-cta-row">
+            {_contrib_btn(user, 'Start Writing Today', 'bh-btn bh-btn-primary')}
+            <a class="bh-btn bh-btn-ghost" href="/">Explore the Platform</a>
+        </div>
+    </section>"""
+
+    body = f"""
+    <div class="bh-wrap">
+        {hero_html}
+        {featured_html}
+        {categories_html}
+        {latest_html}
+        {contrib_html}
+        {top_contrib_html}
+        {news_html}
+        {products_html}
+        {sponsored_html}
+        {final_html}
+    </div>
+    <script>
+        function searchBlog(q) {{
+            if (!q || !q.trim()) return;
+            location.href = '/blog?all=1&search=' + encodeURIComponent(q.trim());
+        }}
+        async function subscribeNewsletter(e) {{
+            e.preventDefault();
+            var email = (document.getElementById('bhNewsEmail').value || '').trim();
+            var msg = document.getElementById('bhNewsMsg');
+            if (!email) {{ msg.style.color = '#f87171'; msg.textContent = 'Please enter your email'; return; }}
+            try {{
+                var r = await fetch('/api/blog/subscribe', {{ method: 'POST', headers: {{'Content-Type':'application/json'}}, body: JSON.stringify({{email: email}}) }});
+                var d = await r.json();
+                if (d.success) {{ msg.style.color = '#34d399'; msg.textContent = "You're subscribed! Watch your inbox."; document.getElementById('bhNewsEmail').value = ''; }}
+                else {{ msg.style.color = '#f87171'; msg.textContent = d.error || 'Subscription failed'; }}
+            }} catch (err) {{ msg.style.color = '#f87171'; msg.textContent = 'Connection error'; }}
+        }}
+    </script>"""
+
+    # ---- SEO ----
+    seo_title = "Energy Intelligence Blog | LNG, Oil, Geopolitical Risk & Energy Market Analysis"
+    seo_desc = ("Expert energy market analysis on LNG, crude oil, natural gas and geopolitical risk. "
+                "Read daily intelligence from traders, analysts and risk managers \u2014 or become a contributor.")
+    ld_items = []
+    for i, p in enumerate(posts[:10]):
+        c_slug = _get_cat_slug_for_post(p, cat_slug_map)
+        ld_items.append({
+            "@type": "ListItem", "position": i + 1,
+            "url": f"https://energyriskiq.com/blog/{c_slug}/{p['slug']}",
+            "name": p['title'],
+        })
+    ld = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "Blog", "@id": "https://energyriskiq.com/blog",
+             "name": "EnergyRiskIQ Energy Intelligence Blog", "description": seo_desc,
+             "url": "https://energyriskiq.com/blog",
+             "publisher": {"@type": "Organization", "name": "EnergyRiskIQ",
+                           "logo": {"@type": "ImageObject", "url": "https://energyriskiq.com/static/logo.png"}}},
+            {"@type": "ItemList", "itemListElement": ld_items},
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://energyriskiq.com/"},
+                {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://energyriskiq.com/blog"},
+            ]},
+        ],
+    }
+    head_extra = f'\n    <script type="application/ld+json">{_jsonld(ld)}</script>'
+
+    return HTMLResponse(_blog_page(seo_title, body, request, meta_description=seo_desc,
+                                   head_extra=head_extra, canonical="https://energyriskiq.com/blog",
+                                   title_suffix=False))
+
+
 @router.get("/blog", response_class=HTMLResponse)
-async def blog_home(request: Request, page: int = Query(1, ge=1), category: str = Query(None), search: str = Query(None)):
+async def blog_home(request: Request, page: int = Query(1, ge=1), category: str = Query(None),
+                    search: str = Query(None), all_: str = Query(None, alias="all")):
     blog_db.refresh_category_post_counts()
+
+    if page == 1 and not category and not search and not all_:
+        return _render_blog_landing(request)
+
     posts, total = blog_db.get_published_posts(page=page, per_page=9, category=category, search=search)
     categories = blog_db.get_blog_categories()
     total_pages = max(1, (total + 8) // 9)
@@ -877,19 +1475,24 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
         cards = """
         <div class="blog-empty" style="grid-column:1/-1;">
             <div class="blog-empty-icon">&#x1f4dd;</div>
-            <h3>No articles yet</h3>
-            <p>Check back soon for educational content on energy risk and geopolitics.</p>
+            <h3>No articles found</h3>
+            <p>Try a different topic or search term, or <a href="/blog">browse the latest analysis</a>.</p>
         </div>
         """
 
     search_val = _esc(search) if search else ''
+    heading = "Energy Intelligence Blog"
+    subheading = "Expert analysis, educational articles, and insights on geopolitical energy risk"
+    if search:
+        heading = f'Search: "{search_val}"'
+        subheading = f"{total} result{'s' if total != 1 else ''} found"
     pagination = _render_pagination(page, total_pages)
 
     body = f"""
     <div class="blog-container">
         <div class="blog-hero">
-            <h1>Energy Intelligence Blog</h1>
-            <p>Expert analysis, educational articles, and insights on geopolitical energy risk</p>
+            <h1>{heading}</h1>
+            <p>{subheading}</p>
         </div>
         <div class="blog-search-bar">
             <input class="blog-search" type="text" placeholder="Search articles..." value="{search_val}" onkeydown="if(event.key==='Enter')searchBlog(this.value)" />
@@ -904,7 +1507,7 @@ async def blog_home(request: Request, page: int = Query(1, ge=1), category: str 
     </div>
     <script>
         function searchBlog(q) {{
-            var url = '/blog?search=' + encodeURIComponent(q);
+            var url = '/blog?all=1&search=' + encodeURIComponent(q);
             location.href = url;
         }}
         function goPage(p) {{
@@ -1432,7 +2035,7 @@ async def blog_account_page(request: Request):
         </div>
     </div>
     <script>
-        var bpAvatarUrl = {json.dumps(avatar_image)};
+        var bpAvatarUrl = {_jsonld(avatar_image)};
         async function bpUploadAvatar(input) {{
             var file = input.files[0];
             if (!file) return;
@@ -1562,14 +2165,16 @@ async def blog_article_page(cat_slug: str, article_slug: str, request: Request):
                     href = a_website if a_website.lower().startswith(('http://', 'https://')) else 'https://' + a_website
                     label = re.sub(r'^https?://', '', a_website).rstrip('/')
                     website_link = f'<a class="blog-author-bio-link" href="{_esc(href)}" target="_blank" rel="noopener nofollow">&#128279; {_esc(label)}</a>'
+                a_slug = _slugify(a_name)
+                profile_link = f'<a class="blog-author-bio-link" href="/author/{_esc(a_slug)}" style="margin-left:12px;">&#128214; More articles</a>' if a_slug else ''
                 author_bio_html = f"""
                 <div class="blog-author-bio">
                     {avatar_block}
                     <div class="blog-author-bio-body">
                         <div class="blog-author-bio-label">About the author</div>
-                        <div class="blog-author-bio-name">{_esc(a_name)}</div>
+                        <div class="blog-author-bio-name"><a href="/author/{_esc(a_slug)}" style="color:inherit;text-decoration:none;">{_esc(a_name)}</a></div>
                         {bio_para}
-                        {website_link}
+                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">{website_link}{profile_link}</div>
                     </div>
                 </div>
                 """

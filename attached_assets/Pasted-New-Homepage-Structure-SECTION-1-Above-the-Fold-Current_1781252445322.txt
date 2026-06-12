@@ -1,0 +1,335 @@
+New Homepage Structure
+SECTION 1 (Above the Fold)
+
+Current:
+
+"Energy Intelligence Blog"
+
+Replace with:
+
+Energy Intelligence From Traders, Analysts & Risk Professionals
+
+Stay ahead of:
+
+✓ Energy Markets
+
+✓ LNG & Natural Gas
+
+✓ Geopolitical Risk
+
+✓ Commodity Trading
+
+✓ Energy Security
+
+✓ Market Intelligence
+
+Join a growing community of analysts, traders and researchers sharing actionable energy insights.
+
+[ Read Articles ]
+
+[ Become a Contributor ]
+
+Social Proof Bar
+
+Immediately below:
+
+12+ Articles Published
+
+Growing Community
+
+Energy Markets • LNG • Oil • Risk Intelligence
+
+SECTION 2 (Featured Article)
+
+Large hero card.
+
+Not 3 equal cards.
+
+1 dominant article.
+
+Example:
+
+🔥 Featured Analysis
+
+"Why Successful LNG Traders Focus on Risk Before Price"
+
+Large image.
+
+Large CTA.
+
+Read Analysis →
+
+Under it:
+
+3 smaller articles.
+
+This improves CTR dramatically.
+
+SECTION 3 (Most Popular Categories)
+
+Visual tiles:
+
+🛢 Oil Markets
+
+🔥 LNG & Gas
+
+⚡ Power Markets
+
+🌍 Geopolitics
+
+📊 Risk Analytics
+
+🏭 Energy Industry
+
+Each tile:
+
+Article count
+Follow Category
+
+This helps internal linking.
+
+Huge SEO benefit.
+
+SECTION 4 (Why Write For EnergyRiskIQ)
+
+This section does not exist today.
+
+Yet it may become your biggest growth engine.
+
+Become an EnergyRiskIQ Contributor
+
+Publish your expertise.
+
+Build your reputation.
+
+Promote your business.
+
+Reach energy professionals worldwide.
+
+Benefits:
+
+✓ Author profile page
+
+✓ Bio & company links
+
+✓ Promote your consulting
+
+✓ Promote your software
+
+✓ Backlinks to your website
+
+✓ Build authority in your niche
+
+✓ Free publishing
+
+[ Create Contributor Account ]
+
+This alone could attract:
+
+Energy consultants
+Commodity traders
+LNG analysts
+Risk managers
+Economists
+SaaS founders
+SECTION 5 (Top Contributors)
+
+Like Medium.
+
+Example:
+
+Featured Contributors
+
+Christina Siber
+
+LNG Analyst
+
+12 Articles
+
+John Smith
+
+Commodity Trader
+
+8 Articles
+
+EnergyRiskIQ Research
+
+25 Articles
+
+Every contributor gets:
+
+Author page:
+
+/author/christina-siber
+
+SEO gold.
+
+SECTION 6 (Newsletter)
+
+This is currently missing.
+
+Huge mistake.
+
+Free Energy Risk Briefing
+
+Receive:
+
+✓ Geopolitical risk updates
+
+✓ LNG market intelligence
+
+✓ Energy market analysis
+
+✓ New contributor articles
+
+✓ Weekly GERI insights
+
+Join free.
+
+Email box.
+
+CTA:
+
+Get Free Briefing
+
+SECTION 7 (Latest Articles)
+
+Only here.
+
+Current article grid moves lower.
+
+Visitors first understand:
+
+Why
+
+Then
+
+What
+
+SECTION 8 (Sponsored Intelligence)
+
+Monetization.
+
+Very important.
+
+Example:
+
+Sponsored Resources
+
+Energy Trading Software
+
+LNG Analytics Tools
+
+Market Data Providers
+
+Risk Management Platforms
+
+Energy Consultancies
+
+You can charge:
+
+€49–€299/month
+
+for placement.
+
+SECTION 9 (EnergyRiskIQ Products)
+
+Promote your assets.
+
+Current blog doesn't sell anything.
+
+It should.
+
+Explore EnergyRiskIQ
+
+GERI Index
+
+EERI Index
+
+Risk Forecast
+
+LNG Price Widget
+
+Gas Storage Widget
+
+Energy Alerts
+
+Pro Dashboard
+
+Every article reader becomes a potential user.
+
+SECTION 10 (Contributor CTA Footer)
+
+Before footer:
+
+Share Your Energy Expertise
+
+Publish articles.
+
+Build authority.
+
+Promote your business.
+
+Join EnergyRiskIQ Contributors.
+
+[ Become a Contributor ]
+
+SEO Improvements
+
+Current title:
+
+Energy Intelligence Blog
+
+Too generic.
+
+I would use:
+
+Energy Intelligence Blog | LNG, Oil, Geopolitical Risk & Energy Market Analysis
+
+Meta Description:
+
+Expert analysis from energy traders, LNG specialists, risk managers, and market analysts. Read energy market insights, geopolitical risk intelligence, and commodity trading research.
+
+Monetization Roadmap
+Level 1
+
+Free
+
+Publish article
+Author profile
+Level 2
+
+€9/month Contributor Pro
+
+Featured author badge
+Featured article placement
+Company profile
+DoFollow company links
+Newsletter inclusion
+Level 3
+
+€49/month Business Profile
+
+Company page
+Product page
+Sponsored article
+Lead generation CTA
+Level 4
+
+€199–499/month Sponsored Intelligence
+
+Energy companies can sponsor:
+
+Category pages
+Newsletter
+Homepage blocks
+Widgets
+What I would implement first
+Featured Hero Article
+"Become a Contributor" section
+Newsletter signup block
+Top Contributors block
+EnergyRiskIQ Products block
+Sponsored Intelligence block
+
+Those 6 changes would transform the page from a simple blog into a growth and monetization engine for EnergyRiskIQ while also helping attract the exact audience you want: analysts, traders, consultants, researchers, and energy-tech founders.
