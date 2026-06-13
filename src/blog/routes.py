@@ -902,6 +902,14 @@ def _blog_page(title, body_html, request: Request, meta_description=None, head_e
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CZQZYP5138"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-CZQZYP5138');
+    </script>
     <title>{title_full}</title>
     <meta name="description" content="{_esc(desc)}"/>{canonical_tag}{social_tags}{head_extra}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
