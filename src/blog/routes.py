@@ -104,6 +104,36 @@ def _get_reading_time(content):
     return f"{minutes} min read"
 
 
+def _clean_meta_desc(text, limit=160):
+    """Strip markdown/HTML to a clean, plain-text meta description capped at
+    `limit` chars (word-boundary truncation with an ellipsis)."""
+    if not text:
+        return ''
+    t = re.sub(r'!\[[^\]]*\]\([^)]*\)', '', text)        # images
+    t = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', t)        # links -> label
+    t = re.sub(r'<[^>]+>', '', t)                          # html tags
+    t = re.sub(r'[#*`_>~|]', '', t)                        # md symbols
+    t = re.sub(r'\s+', ' ', t).strip()
+    if len(t) > limit:
+        t = t[:limit].rsplit(' ', 1)[0].rstrip() + '\u2026'
+    return t
+
+
+def _iso_date(dt):
+    """Return an ISO-8601 string for datetime/ISO-string input, else None."""
+    if not dt:
+        return None
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt)
+        except Exception:
+            return None
+    try:
+        return dt.isoformat()
+    except Exception:
+        return None
+
+
 def _strip_user_links(text):
     """Remove hyperlinks from user-authored article content.
     Converts markdown links [label](url) -> label (leaving ![alt](url) images intact)
@@ -881,14 +911,14 @@ def _blog_scripts():
 
 
 def _blog_page(title, body_html, request: Request, meta_description=None, head_extra="",
-               canonical=None, title_suffix=True, og_image=None):
+               canonical=None, title_suffix=True, og_image=None, og_type="website"):
     user = _get_blog_user(request)
     desc = meta_description or "Educational articles on energy risk, geopolitics, and market intelligence from EnergyRiskIQ."
     title_full = f"{_esc(title)} - EnergyRiskIQ Blog" if title_suffix else _esc(title)
     canonical_tag = f'\n    <link rel="canonical" href="{_esc(canonical)}"/>' if canonical else ""
     og_img = og_image or "https://energyriskiq.com/static/logo.png"
     social_tags = f"""
-    <meta property="og:type" content="website"/>
+    <meta property="og:type" content="{_esc(og_type)}"/>
     <meta property="og:site_name" content="EnergyRiskIQ"/>
     <meta property="og:title" content="{_esc(title_full)}"/>
     <meta property="og:description" content="{_esc(desc)}"/>
@@ -2513,7 +2543,75 @@ async def blog_article_page(cat_slug: str, article_slug: str, request: Request):
     </script>
     """
 
-    return HTMLResponse(_blog_page(post['title'], body, request))
+    # ---- Per-article SEO ----
+    article_url = f"https://energyriskiq.com/blog/{expected_cat_slug}/{post['slug']}"
+    category_name = post.get('category', 'General')
+    meta_desc = _clean_meta_desc(post.get('excerpt') or '') or _clean_meta_desc(post.get('content') or '')
+    if not meta_desc:
+        meta_desc = f"{post['title']} \u2014 energy market analysis and intelligence from EnergyRiskIQ."
+    og_image = _absolute_media_url(post.get('cover_image') or '') or "https://energyriskiq.com/static/logo.png"
+    pub_iso = _iso_date(post.get('published_at') or post.get('created_at'))
+    mod_iso = _iso_date(post.get('updated_at')) or pub_iso
+    word_count = len(re.findall(r'\w+', post.get('content') or ''))
+
+    if post.get('author_type') == 'user' and post.get('author_id'):
+        a_name = post.get('author_name') or 'Author'
+        author_node = {"@type": "Person", "name": a_name,
+                       "url": f"https://energyriskiq.com/author/{_slugify(a_name)}"}
+    else:
+        author_node = {"@type": "Organization", "name": "EnergyRiskIQ",
+                       "url": "https://energyriskiq.com/"}
+
+    article_ld = {
+        "@type": "BlogPosting",
+        "@id": f"{article_url}#article",
+        "mainEntityOfPage": {"@type": "WebPage", "@id": article_url},
+        "headline": post['title'][:110],
+        "description": meta_desc,
+        "image": [og_image],
+        "datePublished": pub_iso,
+        "dateModified": mod_iso,
+        "author": author_node,
+        "publisher": {"@type": "Organization", "name": "EnergyRiskIQ",
+                      "logo": {"@type": "ImageObject", "url": "https://energyriskiq.com/static/logo.png"}},
+        "articleSection": category_name,
+        "url": article_url,
+    }
+    if word_count:
+        article_ld["wordCount"] = word_count
+    if tags_list:
+        article_ld["keywords"] = ", ".join(tags_list)
+
+    breadcrumb_ld = {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://energyriskiq.com/"},
+            {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://energyriskiq.com/blog"},
+            {"@type": "ListItem", "position": 3, "name": category_name,
+             "item": f"https://energyriskiq.com/blog/{expected_cat_slug}"},
+            {"@type": "ListItem", "position": 4, "name": post['title'], "item": article_url},
+        ],
+    }
+    ld = {"@context": "https://schema.org", "@graph": [article_ld, breadcrumb_ld]}
+
+    article_meta = ""
+    if pub_iso:
+        article_meta += f'\n    <meta property="article:published_time" content="{_esc(pub_iso)}"/>'
+    if mod_iso:
+        article_meta += f'\n    <meta property="article:modified_time" content="{_esc(mod_iso)}"/>'
+    article_meta += f'\n    <meta property="article:section" content="{_esc(category_name)}"/>'
+    for t in tags_list:
+        article_meta += f'\n    <meta property="article:tag" content="{_esc(t)}"/>'
+    head_extra = article_meta + f'\n    <script type="application/ld+json">{_jsonld(ld)}</script>'
+
+    return HTMLResponse(_blog_page(
+        post['title'], body, request,
+        meta_description=meta_desc,
+        head_extra=head_extra,
+        canonical=article_url,
+        og_image=og_image,
+        og_type="article",
+    ))
 
 
 @router.get("/blog/{cat_slug}", response_class=HTMLResponse)
@@ -2576,7 +2674,24 @@ async def blog_category_page(cat_slug: str, request: Request, page: int = Query(
     </script>
     """
 
-    return HTMLResponse(_blog_page(f"{cat_name} - Blog", body, request))
+    cat_canonical = f"https://energyriskiq.com/blog/{cat_slug}"
+    cat_meta = _clean_meta_desc(cat_desc) or f"{cat_name} \u2014 energy market analysis, news and insights from EnergyRiskIQ."
+    cat_ld = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "CollectionPage", "@id": cat_canonical, "url": cat_canonical,
+             "name": f"{cat_name} - EnergyRiskIQ Blog", "description": cat_meta},
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://energyriskiq.com/"},
+                {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://energyriskiq.com/blog"},
+                {"@type": "ListItem", "position": 3, "name": cat_name, "item": cat_canonical},
+            ]},
+        ],
+    }
+    cat_head = f'\n    <script type="application/ld+json">{_jsonld(cat_ld)}</script>'
+    return HTMLResponse(_blog_page(f"{cat_name} - Blog", body, request,
+                                   meta_description=cat_meta, canonical=cat_canonical,
+                                   head_extra=cat_head))
 
 
 # ===== API ENDPOINTS =====
