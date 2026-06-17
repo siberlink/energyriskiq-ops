@@ -1502,6 +1502,15 @@ Sitemap: {BASE_URL}/sitemap-index.xml
     return PlainTextResponse(content=robots_content, headers={"Cache-Control": "public, max-age=86400"})
 
 
+@router.get("/ads.txt", response_class=PlainTextResponse)
+async def ads_txt():
+    """
+    Ads.txt - Authorized digital sellers declaration.
+    """
+    ads_content = "google.com, pub-4464205455860668, DIRECT, f08c47fec0942fa0\n"
+    return PlainTextResponse(content=ads_content, headers={"Cache-Control": "public, max-age=86400"})
+
+
 def _render_urlset_xml(entries: List[dict]) -> str:
     xml_entries = ""
     for e in entries:
