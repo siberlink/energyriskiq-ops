@@ -843,11 +843,28 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
         if len(geri_values) >= 3:
             avg_7d = sum(geri_values) / len(geri_values)
             std_7d = (sum((v - avg_7d) ** 2 for v in geri_values) / len(geri_values)) ** 0.5
+            esc_p = min(95, max(5, int(geri_val * 0.8 + std_7d * 5)))
+            de_esc_p = min(95, max(5, int(100 - geri_val * 0.8)))
+            stab_p = min(95, max(5, int(60 - std_7d * 10))) if std_7d < 5 else max(5, int(30 - std_7d * 3))
+            # Mutually exclusive dominant scenarios (probabilities sum to exactly 100%)
+            trend_dev = geri_values[0] - avg_7d  # >0 => GERI rising vs 7d average
+            esc_w = max(3.0, geri_val * 0.9 + std_7d * 4.0 + max(0.0, trend_dev) * 3.0)
+            vol_w = max(3.0, std_7d * 8.0 + max(0.0, vix_val - 18.0) * 2.0)
+            stab_w = max(3.0, (100.0 - geri_val) * 0.9 + max(0.0, -trend_dev) * 3.0 + max(0.0, 10.0 - std_7d))
+            _tot = esc_w + vol_w + stab_w
+            p_esc = int(round(esc_w / _tot * 100))
+            p_vol = int(round(vol_w / _tot * 100))
+            p_stab = max(0, 100 - p_esc - p_vol)
             probability_scoring = {
-                "escalation_probability": min(95, max(5, int(geri_val * 0.8 + std_7d * 5))),
-                "de_escalation_probability": min(95, max(5, int(100 - geri_val * 0.8))),
-                "stability_probability": min(95, max(5, int(60 - std_7d * 10))) if std_7d < 5 else max(5, int(30 - std_7d * 3)),
-                "methodology": "Based on GERI level, 7-day volatility, and trend direction"
+                "escalation_probability": esc_p,
+                "de_escalation_probability": de_esc_p,
+                "stability_probability": stab_p,
+                "scenarios": [
+                    {"name": "Continued Stabilization", "probability": p_stab},
+                    {"name": "Regional Escalation", "probability": p_esc},
+                    {"name": "Energy Volatility Spike", "probability": p_vol},
+                ],
+                "methodology": "Mutually exclusive scenario probabilities from GERI level, 7-day volatility and trend (sums to 100%)."
             }
             vol_regime = "low" if std_7d < 2 else "moderate" if std_7d < 5 else "high" if std_7d < 10 else "extreme"
             volatility_outlook = {
@@ -873,25 +890,41 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
 
     scenario_forecasts = None
     if plan_level >= 3:
+        brent_cur = asset_changes.get("brent", {}).get("current")
+        ttf_cur = asset_changes.get("ttf", {}).get("current")
+        vix_cur = vix_val
+
+        def _impact(brent_lo, brent_hi, ttf_lo, ttf_hi, vix_lo, vix_hi):
+            mi = {}
+            if brent_cur:
+                mi["brent"] = f"${brent_cur * brent_lo:.0f}\u2013${brent_cur * brent_hi:.0f}/bbl"
+            if ttf_cur:
+                mi["ttf"] = f"\u20ac{ttf_cur * ttf_lo:.0f}\u2013\u20ac{ttf_cur * ttf_hi:.0f}/MWh"
+            mi["vix"] = f"{max(10.0, vix_cur + vix_lo):.0f}\u2013{max(12.0, vix_cur + vix_hi):.0f}"
+            return mi
+
         scenarios = []
         base_geri = geri_val
         scenarios.append({
             "scenario": "Base Case",
             "probability": probability_scoring["stability_probability"] if probability_scoring else 50,
             "geri_forecast": round(base_geri, 1),
-            "description": "Current trajectory maintained with no major disruptions"
+            "description": "Current trajectory maintained with no major disruptions",
+            "market_impact": _impact(0.98, 1.02, 0.97, 1.03, -2, 2)
         })
         scenarios.append({
             "scenario": "Escalation",
             "probability": probability_scoring["escalation_probability"] if probability_scoring else 30,
             "geri_forecast": round(min(100, base_geri * 1.15), 1),
-            "description": "Risk drivers intensify, supply disruptions or geopolitical escalation"
+            "description": "Risk drivers intensify, supply disruptions or geopolitical escalation",
+            "market_impact": _impact(1.04, 1.12, 1.05, 1.18, 3, 9)
         })
         scenarios.append({
             "scenario": "De-escalation",
             "probability": probability_scoring["de_escalation_probability"] if probability_scoring else 20,
             "geri_forecast": round(max(0, base_geri * 0.85), 1),
-            "description": "Risk factors ease, diplomatic progress or supply normalization"
+            "description": "Risk factors ease, diplomatic progress or supply normalization",
+            "market_impact": _impact(0.90, 0.97, 0.85, 0.96, -6, -1)
         })
         scenario_forecasts = scenarios
 

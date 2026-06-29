@@ -13516,7 +13516,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 <div class="digest-card">
                     <div class="digest-card-header">
                         <span class="digest-section-icon">\u{1F3AF}</span>
-                        <h3>Probability Scoring</h3>
+                        <h3>Dominant Scenario Probabilities</h3>
                         <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
                     </div>
                     <div class="digest-card-body">
@@ -13535,17 +13535,32 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     </div>
                 </div>`;
             }
+            const scColors = {
+                'Continued Stabilization': '#22c55e',
+                'Regional Escalation': '#ef4444',
+                'Energy Volatility Spike': '#f59e0b'
+            };
+            let scenarioRows;
+            if (Array.isArray(ps.scenarios) && ps.scenarios.length) {
+                scenarioRows = ps.scenarios.map(s => probBar(s.name, s.probability, scColors[s.name] || '#60a5fa')).join('');
+            } else {
+                scenarioRows = probBar('Escalation', ps.escalation_probability, '#ef4444')
+                    + probBar('Stability', ps.stability_probability, '#22c55e')
+                    + probBar('De-escalation', ps.de_escalation_probability, '#3b82f6');
+            }
             return `
                 <div class="digest-card">
                     <div class="digest-card-header">
                         <span class="digest-section-icon">\u{1F3AF}</span>
-                        <h3>Probability Scoring</h3>
+                        <h3>Dominant Scenario Probabilities</h3>
                         <span style="background: rgba(249,115,22,0.2); color: #f97316; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">TRADER+</span>
                     </div>
                     <div class="digest-card-body">
-                        ${probBar('Escalation', ps.escalation_probability, '#ef4444')}
-                        ${probBar('Stability', ps.stability_probability, '#22c55e')}
-                        ${probBar('De-escalation', ps.de_escalation_probability, '#3b82f6')}
+                        ${scenarioRows}
+                        <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(100,116,139,0.25); margin-top: 6px; padding-top: 8px;">
+                            <span style="color: #94a3b8; font-size: 12px; font-weight: 600;">Total</span>
+                            <span style="color: #f1f5f9; font-size: 12px; font-weight: 700;">100%</span>
+                        </div>
                         <p style="color: #64748b; font-size: 11px; margin-top: 8px;">${ps.methodology}</p>
                     </div>
                 </div>`;
@@ -13614,13 +13629,26 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             let cards = '';
             for (const s of scenarios) {
                 const color = scenarioColors[s.scenario] || '#94a3b8';
-                cards += `<div style="flex: 1; background: rgba(30,41,59,0.5); border-radius: 8px; padding: 14px; border-left: 3px solid ${color};">
+                let impactHtml = '';
+                if (s.market_impact) {
+                    const mi = s.market_impact;
+                    const rows = [];
+                    if (mi.brent) rows.push(['Brent', mi.brent]);
+                    if (mi.ttf) rows.push(['TTF', mi.ttf]);
+                    if (mi.vix) rows.push(['VIX', mi.vix]);
+                    impactHtml = `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(100,116,139,0.25);">
+                        <div style="color: #94a3b8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">Expected Market Impact</div>
+                        ${rows.map(r => `<div style="display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 2px;"><span style="color: #94a3b8;">${r[0]}</span><span style="color: #f1f5f9; font-weight: 600;">${r[1]}</span></div>`).join('')}
+                    </div>`;
+                }
+                cards += `<div style="flex: 1; min-width: 200px; background: rgba(30,41,59,0.5); border-radius: 8px; padding: 14px; border-left: 3px solid ${color};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="color: ${color}; font-weight: 700; font-size: 14px;">${s.scenario}</span>
                         <span style="color: #f1f5f9; font-weight: 600;">${s.probability}%</span>
                     </div>
                     <div style="color: #94a3b8; font-size: 12px; margin-bottom: 6px;">GERI Forecast: <span style="color: #f1f5f9; font-weight: 600;">${s.geri_forecast}</span></div>
                     <div style="color: #cbd5e1; font-size: 12px;">${s.description}</div>
+                    ${impactHtml}
                 </div>`;
             }
             return `
@@ -13666,10 +13694,27 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         <span style="background: rgba(59,130,246,0.2); color: #60a5fa; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: auto;">Custom Algorithms</span>
                     </div>
                     <div class="digest-card-body">
-                        <div class="digest-narrative">${narrative}</div>
+                        ${planLevel >= 4
+                            ? `<p id="enterpriseReportTeaser" style="color: #94a3b8; font-size: 13px; margin: 0 0 12px;">Advanced analysis generated by EnergyRiskIQ algorithms.</p>
+                        <div id="enterpriseReportBody" style="display: none;">
+                            <div class="digest-narrative">${narrative}</div>
+                        </div>
+                        <button id="enterpriseReportToggle" onclick="toggleEnterpriseReport()" style="background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Expand Full Report</button>`
+                            : `<div class="digest-narrative">${narrative}</div>`}
                     </div>
                 </div>
             `;
+        }
+
+        function toggleEnterpriseReport() {
+            const body = document.getElementById('enterpriseReportBody');
+            const btn = document.getElementById('enterpriseReportToggle');
+            const teaser = document.getElementById('enterpriseReportTeaser');
+            if (!body || !btn) return;
+            const open = body.style.display !== 'none';
+            body.style.display = open ? 'none' : 'block';
+            btn.textContent = open ? 'Expand Full Report' : 'Collapse Report';
+            if (teaser) teaser.style.display = open ? 'block' : 'none';
         }
 
         function renderLockedSection(title, desc, plan, price) {
