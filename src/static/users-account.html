@@ -4998,6 +4998,18 @@
             50% { opacity: 0.5; }
         }
 
+        .new-badge-nav {
+            background: #ef4444;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+            letter-spacing: 0.5px;
+            animation: geriLivePulseNav 2s ease-in-out infinite;
+        }
+
         .geri-live-pulse-badge {
             display: inline-flex;
             align-items: center;
@@ -5858,6 +5870,7 @@
                     </svg>
                 </span>
                 Daily Intelligence Report
+                <span class="new-badge-nav">NEW</span>
             </a>
             <a class="nav-item" id="wtiProWidgetNavItem" onclick="showSection('wti-pro-widget'); closeMobileMenu();">
                 <span class="nav-icon">
@@ -5867,7 +5880,6 @@
                     </svg>
                 </span>
                 Pro Widget — WTI
-                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#22d3ee,#0ea5e9);font-size:9px;padding:2px 6px;">€1.49</span>
             </a>
             <a class="nav-item" id="lngProWidgetNavItem" onclick="showSection('lng-pro-widget'); closeMobileMenu();">
                 <span class="nav-icon">
@@ -5877,7 +5889,6 @@
                     </svg>
                 </span>
                 Pro Widget — LNG
-                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#d4a017,#f59e0b);font-size:9px;padding:2px 6px;">€1.95</span>
             </a>
             <a class="nav-item" id="gasProWidgetNavItem" onclick="showSection('gas-pro-widget'); closeMobileMenu();">
                 <span class="nav-icon">
@@ -5889,7 +5900,6 @@
                     </svg>
                 </span>
                 Pro Widget — Gas Storage
-                <span class="pro-badge-nav" style="background:linear-gradient(135deg,#d4a017,#b8860b);font-size:9px;padding:2px 6px;">€1.49</span>
             </a>
             <a class="nav-item" id="indicesHistoryNavItem" onclick="showSection('indices-history'); closeMobileMenu();">
                 <span class="nav-icon">
