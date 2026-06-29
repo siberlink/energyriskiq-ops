@@ -757,25 +757,7 @@ def set_cached_ai_narrative(cache_key: str, narrative: str):
         logger.error(f"AI narrative cache write failed: {e}")
 
 
-@router.get("/daily")
-def get_daily_digest(x_user_token: Optional[str] = Header(None)):
-    session = verify_user_session(x_user_token)
-    user_id = session["user_id"]
-
-    # Gate the full Daily Intelligence Report behind its €2.99/mo subscription.
-    try:
-        from src.api.daily_report_routes import user_has_daily_report
-        if not user_has_daily_report(user_id):
-            raise HTTPException(402, "Daily Intelligence Report subscription required")
-    except HTTPException:
-        raise
-    except Exception as _e:
-        logger.error(f"Daily report entitlement check failed: {_e}")
-        raise HTTPException(402, "Daily Intelligence Report subscription required")
-
-    plan = get_user_plan(user_id)
-    plan_level = PLAN_LEVELS.get(plan, 0)
-
+def compute_daily_digest(plan: str, plan_level: int) -> dict:
     is_delayed = plan_level == 0
     alerts = get_alerts(limit=20, is_delayed=is_delayed)
 
@@ -998,6 +980,33 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
     }
 
     return result
+
+
+@router.get("/daily")
+def get_daily_digest(x_user_token: Optional[str] = Header(None)):
+    session = verify_user_session(x_user_token)
+    user_id = session["user_id"]
+
+    # Gate the full Daily Intelligence Report behind its €2.99/mo subscription.
+    try:
+        from src.api.daily_report_routes import user_has_daily_report
+        if not user_has_daily_report(user_id):
+            raise HTTPException(402, "Daily Intelligence Report subscription required")
+    except HTTPException:
+        raise
+    except Exception as _e:
+        logger.error(f"Daily report entitlement check failed: {_e}")
+        raise HTTPException(402, "Daily Intelligence Report subscription required")
+
+    plan = get_user_plan(user_id)
+    plan_level = PLAN_LEVELS.get(plan, 0)
+    return compute_daily_digest(plan, plan_level)
+
+
+def get_linkedin_report_data() -> dict:
+    """Full Daily Intelligence Report data (enterprise level) for server-side
+    use by the LinkedIn Posts Builder. Not gated behind a user subscription."""
+    return compute_daily_digest("enterprise", 4)
 
 
 def get_upgrade_hints(plan_level: int):

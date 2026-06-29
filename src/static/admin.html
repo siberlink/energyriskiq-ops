@@ -1313,6 +1313,16 @@
                     Blog
                     <span id="adminBlogPendingBadge" style="background:#f59e0b;color:#000;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:auto;display:none;min-width:18px;text-align:center;">0</span>
                 </div>
+                <div class="nav-item" onclick="showSection('linkedin')">
+                    <span class="nav-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                            <rect x="2" y="9" width="4" height="12"/>
+                            <circle cx="4" cy="4" r="2"/>
+                        </svg>
+                    </span>
+                    LinkedIn Posts
+                </div>
             </div>
 
             <div class="sidebar-section">
@@ -2228,6 +2238,23 @@
                 </div>
             </div>
 
+            <div class="section-content" id="section-linkedin">
+                <div class="page-header">
+                    <h1 class="page-title">LinkedIn Posts</h1>
+                </div>
+                <p style="color:#94a3b8;font-size:14px;margin:-8px 0 20px;max-width:760px;">
+                    Daily LinkedIn-ready drafts generated from the latest Daily Intelligence Report.
+                    Hooks and CTAs rotate automatically. Posts are created as drafts only — review,
+                    edit and approve before publishing manually on LinkedIn.
+                </p>
+                <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:center;">
+                    <button id="liGenerateBtn" onclick="generateLinkedInPost()" style="background:#0a66c2;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Generate Today's LinkedIn Post</button>
+                    <button onclick="loadLinkedInPosts()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:10px 16px;border-radius:8px;font-size:14px;cursor:pointer;">Refresh</button>
+                    <span id="liStatusMsg" style="color:#64748b;font-size:13px;"></span>
+                </div>
+                <div id="linkedinPostsList"></div>
+            </div>
+
             <div class="section-content" id="section-tickets">
                 <div class="page-header">
                     <h1 class="page-title">Support Tickets</h1>
@@ -2508,7 +2535,156 @@
             } else if (sectionId === 'blog') {
                 loadAdminBlogPosts();
                 loadAdminBlogStats();
+            } else if (sectionId === 'linkedin') {
+                loadLinkedInPosts();
             }
+        }
+
+        /* ════════════════ LinkedIn Posts Builder ════════════════ */
+        function liEscapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function liStatusBadge(status) {
+            const map = {
+                draft: ['#f59e0b', '#1f1505', 'Draft'],
+                approved: ['#22c55e', '#052012', 'Approved'],
+                published: ['#0a66c2', '#04152b', 'Published']
+            };
+            const [bg, , label] = map[status] || map.draft;
+            return `<span style="background:${bg};color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;letter-spacing:0.4px;">${label}</span>`;
+        }
+
+        async function loadLinkedInPosts() {
+            const list = document.getElementById('linkedinPostsList');
+            const statusMsg = document.getElementById('liStatusMsg');
+            if (!list) return;
+            list.innerHTML = '<div style="color:#64748b;padding:20px;">Loading…</div>';
+            try {
+                const res = await fetch('/admin/linkedin/posts', { headers: actHeaders() });
+                const data = await res.json();
+                const posts = data.posts || [];
+                const today = new Date().toISOString().slice(0, 10);
+                const hasToday = posts.some(p => String(p.post_date).slice(0, 10) === today);
+                if (statusMsg) {
+                    statusMsg.textContent = hasToday ? '' : 'No post generated for today yet.';
+                    statusMsg.style.color = hasToday ? '#64748b' : '#f59e0b';
+                }
+                if (!posts.length) {
+                    list.innerHTML = '<div style="color:#64748b;padding:24px;background:#0f172a;border:1px solid #1e293b;border-radius:10px;">No posts yet. Click “Generate Today’s LinkedIn Post”.</div>';
+                    return;
+                }
+                list.innerHTML = posts.map(renderLinkedInPost).join('');
+            } catch (e) {
+                list.innerHTML = '<div style="color:#ef4444;padding:20px;">Failed to load posts.</div>';
+            }
+        }
+
+        function renderLinkedInPost(p) {
+            const cc = p.char_count || (p.post_body || '').length;
+            const ccColor = (cc >= 1200 && cc <= 1800) ? '#22c55e' : '#f59e0b';
+            const postDate = String(p.post_date).slice(0, 10);
+            const theme = (p.selected_theme || '').replace(/_/g, ' ');
+            const btn = 'border:none;padding:7px 13px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;';
+            return `
+            <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:18px;">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                    <strong style="color:#e2e8f0;font-size:15px;">${liEscapeHtml(postDate)}</strong>
+                    ${liStatusBadge(p.status)}
+                    ${theme ? `<span style="background:#1e293b;color:#94a3b8;font-size:11px;padding:3px 9px;border-radius:6px;text-transform:capitalize;">${liEscapeHtml(theme)}</span>` : ''}
+                    <span style="margin-left:auto;color:${ccColor};font-size:12px;font-weight:600;">${cc} chars</span>
+                </div>
+                ${p.selected_hook ? `<div style="color:#64748b;font-size:12px;margin-bottom:10px;">Hook: ${liEscapeHtml(p.selected_hook)}</div>` : ''}
+                <textarea id="li-body-${p.id}" style="width:100%;min-height:280px;background:#0b1220;color:#e2e8f0;border:1px solid #334155;border-radius:8px;padding:12px;font-size:13px;line-height:1.5;font-family:inherit;resize:vertical;box-sizing:border-box;">${liEscapeHtml(p.post_body)}</textarea>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                    <button onclick="copyLinkedInPost(${p.id})" style="${btn}background:#0a66c2;color:#fff;">Copy LinkedIn Post</button>
+                    <button onclick="saveLinkedInPost(${p.id})" style="${btn}background:#334155;color:#e2e8f0;">Save Edits</button>
+                    <button onclick="regenerateLinkedInPost(${p.id})" style="${btn}background:#7c3aed;color:#fff;">Regenerate with different hook</button>
+                    <button onclick="setLinkedInStatus(${p.id},'approved')" style="${btn}background:#16a34a;color:#fff;">Approve</button>
+                    <button onclick="setLinkedInStatus(${p.id},'published')" style="${btn}background:#1e293b;color:#cbd5e1;border:1px solid #334155;">Mark Published</button>
+                    <button onclick="setLinkedInStatus(${p.id},'draft')" style="${btn}background:#1e293b;color:#cbd5e1;border:1px solid #334155;">Revert to Draft</button>
+                    <button onclick="deleteLinkedInPost(${p.id})" style="${btn}background:#7f1d1d;color:#fee2e2;margin-left:auto;">Delete</button>
+                </div>
+            </div>`;
+        }
+
+        async function generateLinkedInPost() {
+            const btn = document.getElementById('liGenerateBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; btn.style.opacity = '0.7'; }
+            try {
+                const res = await fetch('/admin/linkedin/generate', { method: 'POST', headers: actHeaders() });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert((data && data.detail) || 'Generation failed.');
+                } else {
+                    await loadLinkedInPosts();
+                }
+            } catch (e) {
+                alert('Generation failed.');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = "Generate Today's LinkedIn Post"; btn.style.opacity = '1'; }
+            }
+        }
+
+        async function regenerateLinkedInPost(id) {
+            try {
+                const res = await fetch(`/admin/linkedin/${id}/regenerate`, { method: 'POST', headers: actHeaders() });
+                const data = await res.json();
+                if (!res.ok) { alert((data && data.detail) || 'Regeneration failed.'); return; }
+                await loadLinkedInPosts();
+            } catch (e) { alert('Regeneration failed.'); }
+        }
+
+        async function copyLinkedInPost(id) {
+            const ta = document.getElementById('li-body-' + id);
+            if (!ta) return;
+            try {
+                await navigator.clipboard.writeText(ta.value);
+            } catch (e) {
+                ta.select();
+                document.execCommand('copy');
+            }
+            const msg = document.getElementById('liStatusMsg');
+            if (msg) { msg.textContent = 'Post copied to clipboard.'; msg.style.color = '#22c55e'; setTimeout(() => { msg.textContent = ''; }, 2500); }
+        }
+
+        async function saveLinkedInPost(id) {
+            const ta = document.getElementById('li-body-' + id);
+            if (!ta) return;
+            try {
+                const res = await fetch(`/admin/linkedin/${id}`, {
+                    method: 'PUT',
+                    headers: { ...actHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ post_body: ta.value })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert((data && data.detail) || 'Save failed.'); return; }
+                await loadLinkedInPosts();
+            } catch (e) { alert('Save failed.'); }
+        }
+
+        async function setLinkedInStatus(id, status) {
+            try {
+                const res = await fetch(`/admin/linkedin/${id}/status`, {
+                    method: 'POST',
+                    headers: { ...actHeaders(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert((data && data.detail) || 'Update failed.'); return; }
+                await loadLinkedInPosts();
+            } catch (e) { alert('Update failed.'); }
+        }
+
+        async function deleteLinkedInPost(id) {
+            if (!confirm('Delete this LinkedIn post?')) return;
+            try {
+                const res = await fetch(`/admin/linkedin/${id}`, { method: 'DELETE', headers: actHeaders() });
+                if (!res.ok) { const d = await res.json().catch(() => ({})); alert((d && d.detail) || 'Delete failed.'); return; }
+                await loadLinkedInPosts();
+            } catch (e) { alert('Delete failed.'); }
         }
 
         /* ════════════════ User Activity (LIVE) ════════════════ */

@@ -1,0 +1,39 @@
+name: Daily LinkedIn Post Generator
+
+on:
+  schedule:
+    # Every 10 minutes between 05:00 and 06:50 UTC. This covers ~07:00-08:00
+    # Europe/Amsterdam across both CEST (UTC+2) and CET (UTC+1). The job is
+    # idempotent (skips if today's post already exists) and retries within the
+    # window until the Daily Intelligence Report is available.
+    - cron: '*/10 5-6 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  generate-linkedin-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger LinkedIn post generation
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/internal/run/linkedin-post" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "LinkedIn post generation failed with HTTP $http_code"
+            exit 1
+          fi
+
+          echo "LinkedIn post generation step completed"
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}

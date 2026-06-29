@@ -597,6 +597,7 @@ def run_migrations():
     logger.info("Running digest tables migration...")
     run_digest_tables_migration()
     run_digest_ai_cache_migration()
+    run_linkedin_posts_migration()
     
     logger.info("Running engine observability migration...")
     run_engine_observability_migration()
@@ -925,6 +926,53 @@ def run_digest_ai_cache_migration():
             logger.warning(f"Local dev DB digest AI cache migration skipped: {exc}")
 
     logger.info("Digest AI cache migration complete.")
+
+
+_LINKEDIN_POSTS_DDL = """
+CREATE TABLE IF NOT EXISTS linkedin_posts (
+    id SERIAL PRIMARY KEY,
+    post_date DATE NOT NULL,
+    report_date DATE,
+    selected_theme TEXT,
+    selected_hook TEXT,
+    selected_cta TEXT,
+    post_body TEXT NOT NULL,
+    char_count INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','approved','published')),
+    source TEXT NOT NULL DEFAULT 'manual',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_linkedin_posts_post_date ON linkedin_posts (post_date);
+CREATE INDEX IF NOT EXISTS idx_linkedin_posts_created_at ON linkedin_posts (created_at DESC);
+"""
+
+
+def run_linkedin_posts_migration():
+    """LinkedIn Posts Builder storage. Created in BOTH the production/primary DB
+    and the local dev DB (when they differ) to keep schemas in sync and avoid
+    Replit's deploy tool proposing a destructive migration on every publish."""
+    import psycopg2
+
+    logger.info("Running LinkedIn posts migration...")
+    with get_cursor() as cursor:
+        cursor.execute(_LINKEDIN_POSTS_DDL)
+
+    prod_url = os.environ.get("PRODUCTION_DATABASE_URL", "")
+    local_url = os.environ.get("DATABASE_URL", "")
+    if local_url and local_url != prod_url:
+        try:
+            logger.info("Running LinkedIn posts migration (local dev DB)...")
+            conn = psycopg2.connect(local_url)
+            cur = conn.cursor()
+            cur.execute(_LINKEDIN_POSTS_DDL)
+            conn.commit()
+            conn.close()
+            logger.info("LinkedIn posts migration complete (local dev DB).")
+        except Exception as exc:
+            logger.warning(f"Local dev DB LinkedIn posts migration skipped: {exc}")
+
+    logger.info("LinkedIn posts migration complete.")
 
 
 def run_engine_observability_migration():
@@ -1702,6 +1750,7 @@ if __name__ == "__main__":
     run_gas_storage_migration()
     run_signal_quality_migration()
     run_public_digest_migration()
+    run_linkedin_posts_migration()
     _recalculate_stale_bands()
 
 

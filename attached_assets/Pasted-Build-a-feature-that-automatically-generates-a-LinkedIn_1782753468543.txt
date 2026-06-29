@@ -1,0 +1,171 @@
+Build a feature that automatically generates a LinkedIn post every day before 08:00 based on the latest “Daily Intelligence Report”.
+
+Goal:
+Create a daily LinkedIn-ready post for EnergyRiskIQ using the existing Daily Intelligence Report data. The post should follow a consistent structure, but the hook, angle, wording, and CTA should rotate daily so the content does not feel repetitive.
+
+Core output:
+Generate one LinkedIn post per day with this structure:
+
+EnergyRiskIQ Daily Intelligence | [Current Date]
+
+[Rotating strong hook]
+
+[Analysis and insights]
+
+Today's key takeaways:
+
+• [Takeaway 1]
+• [Takeaway 2]
+• [Takeaway 3]
+• [Optional Takeaway 4]
+
+[CTA / Question]
+
+#EnergyMarkets #EnergyRisk #OilMarkets #NaturalGas #LNG #CommodityTrading #RiskManagement #EnergyRiskIQ
+
+Data source:
+Use the latest generated Daily Intelligence Report as the source of truth.
+
+Extract and summarize from these report sections:
+
+* Executive One-Line Summary
+* Today's Actionable Takeaways
+* Brent Outlook
+* Natural Gas Outlook
+* LNG Outlook
+* Forward Watchlist
+* Scenario Forecasts
+* Key Geopolitical Developments
+* Energy Market Implications
+
+Logic:
+
+1. Fetch the latest Daily Intelligence Report generated for the current day.
+2. Identify the dominant market theme:
+
+   * Geopolitical risk
+   * Oil / Brent
+   * Natural gas
+   * LNG
+   * European gas storage
+   * Supply disruption
+   * Market volatility
+   * Risk premium fading
+   * Risk underpricing
+3. Select a hook category based on the dominant theme.
+4. Rotate hooks so the same hook is not repeated within the last 14 days.
+5. Generate 2–4 short insight paragraphs explaining:
+
+   * What changed
+   * Why it matters
+   * What markets may be underpricing
+   * What energy professionals should monitor next
+6. Generate 3–4 key takeaways from the report.
+7. Select a CTA question based on the dominant theme.
+8. Keep the tone professional, analytical, clear, and LinkedIn-native.
+9. Avoid sounding promotional or exaggerated.
+10. Do not invent data. Only use data available in the report.
+11. If no fresh report exists, do not generate a post. Show a warning: “No Daily Intelligence Report available for today.”
+
+Hook rotation examples:
+
+Geopolitical risk:
+
+* Markets may be underpricing geopolitical risk.
+* Risk often moves before headlines.
+* Energy markets rarely wait for tomorrow's headlines.
+* Political risk can move faster than prices.
+
+Oil / Brent:
+
+* Brent's risk premium is shifting again.
+* Oil markets are calm, but risk signals are still moving.
+* Brent prices do not always reflect the full risk picture.
+* The oil market may be pricing today, not tomorrow.
+
+Natural gas:
+
+* European gas storage is improving, but vulnerabilities remain.
+* Gas market comfort can disappear quickly.
+* Storage levels alone do not guarantee winter security.
+* Natural gas risk is rarely visible in one headline number.
+
+LNG:
+
+* LNG markets can change direction faster than most expect.
+* LNG prices can remain stable right until they suddenly don't.
+* One LNG disruption can reshape regional pricing quickly.
+* LNG risk is often global before it becomes local.
+
+Contrarian:
+
+* The biggest energy market risks are often invisible in today's prices.
+* Calm prices do not always mean low risk.
+* Stability can be misleading in energy markets.
+* The market may be quiet, but the risk picture is not.
+
+Volatility:
+
+* Volatility often begins long before prices react.
+* Market stress usually builds before it becomes visible.
+* Risk indicators can move before volatility appears.
+* Low volatility does not always mean low uncertainty.
+
+CTA question rotation examples:
+
+* What risk do you believe energy markets are currently underpricing?
+* Which energy risk are you watching most closely today?
+* Do current prices fully reflect the risk picture?
+* Which indicator would you monitor first this week?
+* What could trigger the next major move in energy markets?
+* Are markets too comfortable with current supply conditions?
+
+Requirements:
+
+* Create a stored table or collection for generated LinkedIn posts.
+* Store: date, report_id, selected_theme, selected_hook, post_body, status, created_at.
+* Status options: draft, approved, published.
+* The system should generate the post as draft only. Do not auto-publish.
+* Add a simple admin UI section where I can view, copy, edit, approve, or delete each generated post.
+* Add a button: “Generate Today’s LinkedIn Post”.
+* Add another button: “Regenerate with different hook”.
+* Add another button: “Copy LinkedIn Post”.
+* Add validation to keep the post concise and readable.
+* Target length: 1,200–1,800 characters.
+* Avoid more than 8 hashtags.
+* Keep paragraphs short.
+* Do not use emojis except bullet points.
+* Do not use hype language such as “game-changing”, “explosive”, “must-read”, or “shocking”.
+
+Scheduling:
+Automatically generate the draft every day before 08:00 Europe/Amsterdam time, ideally between 07:00 and 07:30, after the Daily Intelligence Report has been created.
+
+Fallback logic:
+If the Daily Intelligence Report is not available by 07:30, retry every 10 minutes until 08:00.
+If still unavailable, do not generate the post and show an error in the admin UI.
+
+Example output:
+
+EnergyRiskIQ Daily Intelligence | 29 June 2026
+
+Markets may be underpricing geopolitical risk.
+
+Over the past 24 hours, geopolitical tensions, supply disruption signals, and energy market stress indicators have continued to evolve beneath the surface.
+
+Energy prices remain relatively stable, but underlying risk indicators suggest that some developments may not yet be fully reflected in market pricing.
+
+For energy professionals, the key question is not only what happened, but what could happen next.
+
+Today's key takeaways:
+
+• Brent remains sensitive to geopolitical risk shifts.
+• Natural gas markets continue to monitor storage, flows, and weather signals.
+• LNG remains exposed to supply disruption and regional demand changes.
+• Forward risk indicators suggest volatility could increase if tensions escalate.
+
+What risk do you believe energy markets are currently underpricing?
+
+#EnergyMarkets #EnergyRisk #OilMarkets #NaturalGas #LNG #CommodityTrading #RiskManagement #EnergyRiskIQ
+
+Important:
+The post should read like a human energy market analyst wrote it, not like an AI summary.

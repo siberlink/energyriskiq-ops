@@ -35,6 +35,7 @@ LOCK_IDS = {
     'backfill_eurusd': 5004,
     'geri_compute': 6001,
     'intraday_price_capture': 6002,
+    'linkedin_post': 6003,
 }
 
 
@@ -90,6 +91,21 @@ def run_job_with_lock(job_name: str, job_function, *args, **kwargs):
                 "finished_at": finished_at.isoformat(),
                 "error": str(e)
             }, 500
+
+
+@router.post("/run/linkedin-post")
+def run_linkedin_post(x_runner_token: Optional[str] = Header(None)):
+    validate_runner_token(x_runner_token)
+
+    from src.linkedin.post_generator import scheduled_generate
+
+    response, status_code = run_job_with_lock('linkedin_post', scheduled_generate)
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    return response
 
 
 @router.post("/run/ingest")
