@@ -687,6 +687,7 @@ Be concise, trader-oriented, and quantify relationships when data is provided.
 If you state a probability, base it on provided data patterns, not guesses.
 Always separate: Facts / Interpretation / Watchlist.
 Use professional, analytical tone. No promotional language.
+Never describe yourself as an AI, language model, assistant, or chatbot, and never mention artificial intelligence. If attribution is required, refer only to "EnergyRiskIQ Custom Algorithms".
 Format output with clear section headers using markdown (## for sections).
 Use bullet points for lists. Use bold for key metrics.
 End with one line: "Informational only. Not financial advice."
@@ -834,33 +835,7 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
     if plan_level >= 2 and len(eeri) > 1:
         eeri_history = [{"date": e.get("date").isoformat() if e.get("date") else None, "value": e.get("value")} for e in eeri[:min(len(eeri), days_for_assets)]]
 
-    forward_watchlist = None
-    if plan_level >= 2:
-        watchlist_items = []
-        for a in alerts[:5]:
-            if a.get("severity", 0) >= 7:
-                watchlist_items.append({
-                    "headline": a["headline"],
-                    "region": a["region"],
-                    "severity": a["severity"],
-                    "watch_reason": "High severity event requiring monitoring"
-                })
-        if geri and geri[0].get("value", 0) > 60:
-            watchlist_items.append({
-                "headline": "GERI elevated above 60",
-                "region": "Global",
-                "severity": 8,
-                "watch_reason": "Global risk index in elevated territory"
-            })
-        if storage_pct < 40:
-            watchlist_items.append({
-                "headline": f"EU gas storage at {storage_pct:.1f}%",
-                "region": "Europe",
-                "severity": 7,
-                "watch_reason": "Storage below seasonal comfort level"
-            })
-        forward_watchlist = watchlist_items[:5]
-
+    # ── Probability scoring & volatility outlook (feed summary/takeaways/watchlist) ──
     probability_scoring = None
     volatility_outlook = None
     if plan_level >= 2:
@@ -881,6 +856,20 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
                 "vix_level": vix_val,
                 "outlook": f"{'Calm conditions' if vol_regime == 'low' else 'Moderate fluctuations' if vol_regime == 'moderate' else 'Elevated volatility' if vol_regime == 'high' else 'Extreme market stress'} expected in near term"
             }
+
+    esc_prob = probability_scoring["escalation_probability"] if probability_scoring else 50
+    de_esc_prob = probability_scoring["de_escalation_probability"] if probability_scoring else 50
+
+    # ── Executive one-line summary + actionable takeaways (Custom Algorithms) ──
+    executive_summary = build_executive_summary(geri, eeri, asset_changes, regime, esc_prob, de_esc_prob)
+    actionable_takeaways = build_actionable_takeaways(
+        geri, eeri, egsi, asset_changes, alerts, regime, storage_pct, esc_prob, de_esc_prob
+    )
+
+    # ── Forward watchlist: deterministic, prioritised 3-5 items (title/priority/reason) ──
+    forward_watchlist = build_forward_watchlist(
+        geri, eeri, egsi, asset_changes, alerts, storage_pct, esc_prob, de_esc_prob
+    )
 
     scenario_forecasts = None
     if plan_level >= 3:
@@ -928,6 +917,8 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
             "current": storage_pct,
             "risk_band": assets["storage"][0].get("risk_band", "") if assets.get("storage") else None
         } if plan_level >= 1 else None,
+        "executive_summary": executive_summary,
+        "actionable_takeaways": actionable_takeaways,
         "forward_watchlist": forward_watchlist,
         "probability_scoring": probability_scoring,
         "volatility_outlook": volatility_outlook,
