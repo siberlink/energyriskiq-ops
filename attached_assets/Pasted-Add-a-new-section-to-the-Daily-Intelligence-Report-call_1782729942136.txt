@@ -1,0 +1,94 @@
+Add a new section to the Daily Intelligence Report called:
+
+Executive One-Line Summary
+
+Purpose:
+This section should give the user the most important conclusion from the entire report in one clear sentence.
+
+Placement:
+Show this immediately below the Global Risk Tone section and above the “Today's Actionable Takeaways” section.
+
+Goal:
+A user should understand the daily market message in less than 10 seconds.
+
+Content rules:
+- Generate only one sentence.
+- Keep it between 18 and 30 words.
+- Make it practical, not generic.
+- Mention the overall risk direction.
+- Mention the main market implication.
+- Mention at least one key affected market when possible: Brent, TTF, LNG, European gas, oil, or broader energy markets.
+- Avoid vague phrases like “markets remain uncertain” unless supported by the data.
+- Do not repeat the exact same wording every day.
+
+Example output:
+
+Executive One-Line Summary
+
+Global energy risk continues to ease, reducing geopolitical support for Brent while leaving European gas exposed to winter-related stress.
+
+Logic guidance:
+
+If GERI is falling and de-escalation probability is high:
+Summarize that global risk is easing and oil risk premium is declining.
+
+Example:
+Global energy risk is easing, reducing upside pressure on Brent while keeping attention on European gas and winter supply risks.
+
+If GERI is rising and escalation probability is high:
+Summarize that global risk is increasing and energy markets face stronger upside risk.
+
+Example:
+Global energy risk is rising, increasing upside pressure on Brent and LNG as supply disruption risks return to focus.
+
+If EERI or EGSI-M is rising while GERI is stable or falling:
+Summarize that European energy stress is diverging from the global risk picture.
+
+Example:
+Global risk remains stable, but European gas stress is increasing as TTF and winter supply risks diverge from broader market calm.
+
+If Brent is falling while risk indices are falling:
+Summarize that oil downside pressure remains dominant due to easing geopolitical premium.
+
+Example:
+Easing geopolitical risk continues to weigh on Brent, with oil markets pricing out part of the recent risk premium.
+
+If TTF is rising while risk indices are falling:
+Summarize the divergence.
+
+Example:
+TTF strength is diverging from easing global risk, suggesting European gas fundamentals are currently more important than geopolitics.
+
+If LNG risk is elevated:
+Summarize shipping, Asian demand, or maritime disruption risks.
+
+Example:
+LNG risk remains elevated as shipping and Asian demand signals keep the market sensitive despite a calmer global risk backdrop.
+
+If the regime is Calm:
+Use language such as:
+- risk remains contained
+- no immediate escalation signal
+- markets are stabilizing
+
+If the regime is Elevated:
+Use language such as:
+- risk pressure is building
+- markets face renewed upside exposure
+- hedging attention should increase
+
+If the regime is Crisis:
+Use language such as:
+- acute disruption risk
+- defensive positioning is justified
+- high-impact energy market moves remain possible
+
+Tone:
+Professional, concise, direct, and useful for energy traders, analysts, risk managers, and procurement teams.
+
+Important:
+Use only the data already available in the Daily Intelligence Report.
+Do not invent market events.
+Do not generate multiple summaries.
+Do not make investment advice claims.
+The sentence should sound like a professional morning briefing headline.

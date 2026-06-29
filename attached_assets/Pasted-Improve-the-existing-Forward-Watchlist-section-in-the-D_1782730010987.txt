@@ -1,0 +1,102 @@
+Improve the existing Forward Watchlist section in the Daily Intelligence Report.
+
+Purpose:
+The Forward Watchlist should tell users what to monitor over the next 24 hours based on the report’s current risk signals, market moves, events, and scenario outlook.
+
+Goal:
+Never show an empty or generic message such as “No high-priority items.”
+The section should always provide 3–5 relevant watchlist items.
+
+Placement:
+Keep this section in the existing Forward Watchlist area, preferably after Top Risk Events and before Scenario Forecasts.
+
+Section title:
+Forward Watchlist — Next 24h
+
+Structure:
+Each watchlist item should include:
+- A short title
+- A priority level
+- A one-sentence reason why it matters
+
+Priority levels:
+- High
+- Medium
+- Low
+
+Example output:
+
+Forward Watchlist — Next 24h
+
+1. Iraq OPEC quota discussions
+Priority: High
+Why it matters: Any change in production policy could affect Brent risk premium and short-term oil positioning.
+
+2. Strait of Hormuz shipping flows
+Priority: Medium
+Why it matters: Normalizing flows would reduce geopolitical premium, while renewed disruption would increase upside risk for oil and LNG.
+
+3. Ukraine winter power system risks
+Priority: Medium
+Why it matters: Grid stress can increase European gas sensitivity and support TTF during colder demand periods.
+
+4. EU gas storage injections
+Priority: Medium
+Why it matters: Storage trends influence winter supply confidence and European gas price risk.
+
+5. Asian LNG freight developments
+Priority: Low
+Why it matters: Freight or shipping stress can affect LNG pricing and regional supply flexibility.
+
+Logic guidance:
+
+If Middle East, Hormuz, Iran, Iraq, Israel, Red Sea, maritime, or sanctions events are present:
+Include at least one oil or shipping-related watchlist item.
+
+If Brent is moving strongly:
+Include a Brent-specific watchlist item explaining whether the move confirms or contradicts the risk indices.
+
+If GERI is rising:
+Prioritize geopolitical escalation, oil supply disruption, maritime security, and Brent risk premium.
+
+If GERI is falling:
+Prioritize confirmation signals such as shipping normalization, lower volatility, Brent downside follow-through, and de-escalation durability.
+
+If EERI or EGSI-M is rising:
+Include European gas, TTF, storage, LNG imports, Ukraine grid, winter demand, or pipeline flow risks.
+
+If TTF is rising while GERI is falling:
+Include a divergence item explaining that European gas fundamentals may be outweighing global risk easing.
+
+If LNG risk is elevated:
+Include Asian LNG demand, freight rates, shipping disruption, Panama/Suez/Red Sea route risk, or TTF-to-LNG spillover.
+
+If the risk regime is Calm:
+Items should focus on confirmation and early warning signals, not crisis language.
+
+If the risk regime is Elevated:
+Items should focus on escalation triggers, hedging signals, and assets most exposed to price spikes.
+
+If the risk regime is Crisis:
+Items should focus on immediate disruption indicators, emergency policy actions, shipping flows, and supply availability.
+
+Fallback logic:
+If there are no strong events, generate a conservative watchlist based on:
+- Brent trend confirmation
+- TTF trend confirmation
+- EU gas storage movement
+- GERI direction
+- LNG freight or shipping conditions
+
+Tone:
+Professional, concise, practical, and forward-looking.
+Avoid generic language.
+Avoid repeating the same watchlist every day unless the same risk is still active.
+Each item should help the user know what to monitor next.
+
+Important:
+Use only data already available in the Daily Intelligence Report.
+Do not invent unrelated events.
+Do not create investment advice.
+Do not exceed 5 watchlist items.
+Do not leave the section empty.

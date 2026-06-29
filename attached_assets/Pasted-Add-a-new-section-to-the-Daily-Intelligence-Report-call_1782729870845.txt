@@ -1,0 +1,118 @@
+Add a new section to the Daily Intelligence Report called:
+
+🎯 Today's Actionable Takeaways
+
+Purpose:
+This section should translate the report’s risk signals into practical, easy-to-understand market implications. It should appear near the top of the report, immediately after the Global Risk Tone section and before the Index Movement Summary.
+
+The section should be concise, decision-focused, and useful for users who only have 2–3 minutes to read the report.
+
+Structure:
+Create four subsections:
+
+1. Oil
+2. European Gas
+3. LNG
+4. Risk Management
+
+Each asset section should include:
+- A clear directional bias
+- 2–3 short actionable bullet points
+- The bias should be derived from the existing risk indices, market reaction data, top risk events, correlations, regime classification, and scenario probabilities.
+
+Use simple bias labels:
+- Bearish
+- Neutral
+- Bullish
+- Neutral to Bullish
+- Neutral to Bearish
+
+Example output:
+
+🎯 Today's Actionable Takeaways
+
+Oil
+
+Bias: Bearish
+
+- Brent downside pressure remains dominant.
+- Easing Middle East tensions reduce geopolitical premium.
+- Watch Iraq OPEC quota discussions.
+
+European Gas
+
+Bias: Neutral to Bullish
+
+- TTF diverges from declining risk indices.
+- Winter grid concerns continue to support prices.
+- Monitor EU gas storage and Ukraine power system risks.
+
+LNG
+
+Bias: Neutral
+
+- Shipping normalization limits upside.
+- Monitor Asian freight and shipping developments.
+- LNG remains sensitive to TTF moves and regional demand signals.
+
+Risk Management
+
+- Current regime remains Calm.
+- No immediate need for aggressive hedging.
+- Keep monitoring geopolitical escalation risk and storage-related stress.
+
+Logic guidance:
+
+Oil bias should become more bearish when:
+- GERI is falling
+- Middle East risk is easing
+- Brent is already declining
+- De-escalation probability is high
+- Hormuz shipping flows normalize
+
+Oil bias should become more bullish when:
+- GERI is rising
+- Middle East escalation probability increases
+- Top risk events mention Hormuz, OPEC disruption, sanctions, war, or supply disruption
+- Brent rises while risk indices rise
+
+European Gas bias should become more bullish when:
+- TTF rises despite declining global risk
+- EU storage is moderate or low
+- Europe-related events mention Ukraine grid risk, winter demand, supply stress, LNG constraints, or cold weather
+- EGSI-M or EERI rises
+
+European Gas bias should become more bearish when:
+- TTF falls
+- EU storage improves
+- EERI and EGSI-M decline
+- no Europe-specific risk events are present
+
+LNG bias should become more bullish when:
+- shipping disruption risk increases
+- Asian demand or freight stress rises
+- TTF rises strongly
+- Middle East or maritime risk increases
+
+LNG bias should become more bearish or neutral when:
+- shipping flows normalize
+- tanker rates fall
+- global supply risk eases
+- demand indicators weaken
+
+Risk Management guidance:
+- If regime is Calm and de-escalation probability is high, say aggressive hedging is not needed.
+- If regime is Stabilizing, recommend selective hedging only.
+- If regime is Elevated, recommend maintaining protection against price spikes.
+- If regime is Crisis, recommend defensive hedging and close monitoring of exposed assets.
+
+Tone:
+Use professional but simple language.
+Avoid long paragraphs.
+Avoid generic text.
+Each bullet should explain what the user should watch, reduce, maintain, or be aware of.
+
+Important:
+Do not invent unrelated assets.
+Use only data already available in the Daily Intelligence Report.
+Keep the section short enough to fit above the fold.
