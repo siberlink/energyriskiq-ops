@@ -248,6 +248,330 @@ def determine_regime(geri_val, eeri_val, storage_pct, vix_val):
     return "Moderate"
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Deterministic "Custom Algorithms" sections
+# (Executive One-Line Summary, Today's Actionable Takeaways, Forward Watchlist)
+# All derived only from data already present in the Daily Intelligence Report.
+# ─────────────────────────────────────────────────────────────────────────────
+
+OIL_EVENT_KEYWORDS = [
+    "hormuz", "opec", "sanction", "war", "supply disruption", "iran", "iraq",
+    "israel", "strait", "pipeline", "embargo", "attack", "military", "tanker",
+    "saudi", "russia", "crude", "refinery"
+]
+SHIP_EVENT_KEYWORDS = [
+    "red sea", "suez", "panama", "tanker", "freight", "shipping", "maritime",
+    "vessel", "houthi", "blockade", "canal", "route"
+]
+EUROPE_EVENT_KEYWORDS = [
+    "ukraine", "grid", "winter", "cold", "storage", "ttf", "norway", "demand",
+    "europe", "european", "eu ", "lng terminal", "power", "pipeline", "gas"
+]
+
+
+def _num(x, default=0.0):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return default
+
+
+def _events_match(alerts, keywords):
+    matched = []
+    for a in alerts or []:
+        text = " ".join([
+            str(a.get("headline", "") or ""),
+            str(a.get("category", "") or ""),
+            str(a.get("region", "") or ""),
+        ]).lower()
+        if any(kw in text for kw in keywords):
+            matched.append(a)
+    return matched
+
+
+def _bias_label(score):
+    score = max(-2, min(2, score))
+    if score <= -2:
+        return "Bearish"
+    if score == -1:
+        return "Neutral to Bearish"
+    if score == 0:
+        return "Neutral"
+    if score == 1:
+        return "Neutral to Bullish"
+    return "Bullish"
+
+
+def build_executive_summary(geri, eeri, asset_changes, regime, esc_prob, de_esc_prob):
+    geri_trend = _num(geri[0].get("trend_1d", 0)) if geri else 0
+    eeri_trend = _num(eeri[0].get("trend_1d", 0)) if eeri else 0
+    brent = asset_changes.get("brent", {})
+    ttf = asset_changes.get("ttf", {})
+    brent_pct = brent.get("change_pct")
+    ttf_pct = ttf.get("change_pct")
+
+    geri_rising = geri_trend > 0
+    geri_falling = geri_trend < 0
+    esc_high = esc_prob >= 55
+    de_esc_high = de_esc_prob >= 55
+    ttf_up = ttf_pct is not None and ttf_pct > 0
+    brent_down = brent_pct is not None and brent_pct < 0
+    eeri_rising = eeri_trend > 0
+
+    if geri_rising and esc_high:
+        return ("Global energy risk is rising, increasing upside pressure on Brent and LNG "
+                "as supply disruption and geopolitical escalation risks return to market focus today.")
+    if eeri_rising and not geri_rising:
+        return ("Global risk remains broadly stable while European gas stress increases, as TTF "
+                "and winter supply concerns diverge from the calmer overall geopolitical backdrop.")
+    if ttf_up and geri_falling:
+        return ("TTF strength is diverging from easing global risk, suggesting European gas "
+                "fundamentals and winter supply dynamics now matter more than the geopolitical premium.")
+    if brent_down and geri_falling:
+        return ("Easing geopolitical risk continues to weigh on Brent, with oil markets pricing "
+                "out part of the recent risk premium amid steadier supply expectations.")
+    if geri_falling and de_esc_high:
+        return ("Global energy risk continues to ease, reducing geopolitical support for Brent "
+                "while leaving European gas exposed to winter demand and storage-related supply risks.")
+
+    if regime == "Calm":
+        return ("Energy risk remains contained with no immediate escalation signal, keeping Brent "
+                "and European gas broadly stable while markets monitor geopolitical and supply developments.")
+    if regime == "Shock":
+        return ("Acute energy disruption risk is elevated, justifying defensive positioning as Brent, "
+                "LNG and European gas remain exposed to high-impact supply and geopolitical shocks.")
+    return ("Energy risk pressure is building, keeping Brent and European gas exposed to renewed "
+            "upside as geopolitical and supply signals warrant closer hedging attention this session.")
+
+
+def build_actionable_takeaways(geri, eeri, egsi, asset_changes, alerts, regime,
+                               storage_pct, esc_prob, de_esc_prob):
+    geri_trend = _num(geri[0].get("trend_1d", 0)) if geri else 0
+    eeri_trend = _num(eeri[0].get("trend_1d", 0)) if eeri else 0
+    egsi_trend = _num(egsi[0].get("trend_1d", 0)) if egsi else 0
+    brent_pct = asset_changes.get("brent", {}).get("change_pct")
+    ttf_pct = asset_changes.get("ttf", {}).get("change_pct")
+    storage_delta = asset_changes.get("storage", {}).get("change_delta")
+
+    geri_rising = geri_trend > 0
+    geri_falling = geri_trend < 0
+    de_esc_high = de_esc_prob >= 55
+    esc_high = esc_prob >= 55
+
+    oil_events = _events_match(alerts, OIL_EVENT_KEYWORDS)
+    ship_events = _events_match(alerts, SHIP_EVENT_KEYWORDS)
+    europe_events = _events_match(alerts, EUROPE_EVENT_KEYWORDS)
+
+    # ── Oil ──
+    oil_score = 0
+    if geri_falling:
+        oil_score -= 1
+    elif geri_rising:
+        oil_score += 1
+    if brent_pct is not None and brent_pct < -0.3:
+        oil_score -= 1
+    elif brent_pct is not None and brent_pct > 0.3:
+        oil_score += 1
+    if de_esc_high:
+        oil_score -= 1
+    if esc_high:
+        oil_score += 1
+    if oil_events:
+        oil_score += 1
+    oil_points = []
+    if brent_pct is not None and brent_pct < -0.3:
+        oil_points.append("Brent downside pressure remains in play as the geopolitical premium fades.")
+    elif brent_pct is not None and brent_pct > 0.3:
+        oil_points.append("Brent is firmer as supply-risk concerns regain attention.")
+    else:
+        oil_points.append("Brent is holding steady with no decisive directional catalyst today.")
+    if oil_events:
+        oil_points.append("Middle East and supply-related events keep oil sensitive to headline risk.")
+    elif de_esc_high:
+        oil_points.append("Easing tensions reduce the geopolitical risk premium on crude.")
+    else:
+        oil_points.append("Geopolitical risk is contained but worth monitoring for surprises.")
+    oil_points.append("Watch OPEC+ policy signals and Strait of Hormuz shipping flows.")
+
+    # ── European Gas ──
+    gas_score = 0
+    if ttf_pct is not None and ttf_pct > 0:
+        gas_score += 1
+    elif ttf_pct is not None and ttf_pct < 0:
+        gas_score -= 1
+    if storage_delta is not None and storage_delta > 0:
+        gas_score -= 1
+    if storage_pct < 45:
+        gas_score += 1
+    if eeri_trend > 0:
+        gas_score += 1
+    elif eeri_trend < 0:
+        gas_score -= 1
+    if egsi_trend > 0:
+        gas_score += 1
+    elif egsi_trend < 0:
+        gas_score -= 1
+    if europe_events:
+        gas_score += 1
+    gas_points = []
+    if (ttf_pct is not None and ttf_pct > 0) and geri_falling:
+        gas_points.append("TTF diverges from easing global risk, driven by European fundamentals.")
+    elif ttf_pct is not None and ttf_pct > 0:
+        gas_points.append("TTF is firmer on winter supply and demand concerns.")
+    elif ttf_pct is not None and ttf_pct < 0:
+        gas_points.append("TTF softens as supply concerns ease.")
+    else:
+        gas_points.append("TTF is broadly stable with balanced supply and demand signals.")
+    if storage_pct < 45:
+        gas_points.append(f"EU storage near {storage_pct:.0f}% keeps the supply buffer in focus.")
+    else:
+        gas_points.append(f"EU storage around {storage_pct:.0f}% offers a reasonable seasonal buffer.")
+    gas_points.append("Monitor EU gas storage, Ukraine grid risk and cold-weather demand.")
+
+    # ── LNG ──
+    lng_score = 0
+    if ttf_pct is not None and ttf_pct >= 2:
+        lng_score += 1
+    if ship_events:
+        lng_score += 1
+    if oil_events:
+        lng_score += 1
+    if geri_falling:
+        lng_score -= 1
+    if de_esc_high:
+        lng_score -= 1
+    lng_points = []
+    if ship_events:
+        lng_points.append("Shipping and maritime risk keeps LNG freight sensitive to disruption.")
+    else:
+        lng_points.append("Shipping normalization limits near-term LNG upside.")
+    if ttf_pct is not None and ttf_pct >= 2:
+        lng_points.append("Strong TTF gains spill over into LNG pricing sensitivity.")
+    else:
+        lng_points.append("LNG remains tied to TTF moves and regional demand signals.")
+    lng_points.append("Monitor Asian demand, freight rates and Red Sea / Suez routing.")
+
+    # ── Risk Management ──
+    rm_map = {
+        "Calm": [
+            "Current regime remains calm.",
+            "No immediate need for aggressive hedging.",
+            "Keep monitoring geopolitical escalation and storage-related stress.",
+        ],
+        "Moderate": [
+            "Regime is moderate and broadly stable.",
+            "Selective, low-cost hedging is sufficient for now.",
+            "Watch for shifts in GERI and European gas stress.",
+        ],
+        "Elevated Uncertainty": [
+            "Regime shows elevated uncertainty.",
+            "Maintain protection against sudden price spikes.",
+            "Track escalation triggers and the most exposed assets closely.",
+        ],
+        "Risk Build": [
+            "Risk is building across the complex.",
+            "Maintain protection against price spikes and add selective hedges.",
+            "Track escalation triggers and the most exposed assets closely.",
+        ],
+        "Gas-Storage Stress": [
+            "Gas-storage stress regime is active.",
+            "Maintain protection on European gas exposure.",
+            "Monitor storage draws, LNG imports and winter demand.",
+        ],
+        "Shock": [
+            "Regime signals acute disruption risk.",
+            "Defensive hedging is justified.",
+            "Closely monitor exposed assets and supply availability.",
+        ],
+    }
+    rm_points = rm_map.get(regime, rm_map["Moderate"])
+
+    return {
+        "oil": {"bias": _bias_label(oil_score), "points": oil_points[:3]},
+        "gas": {"bias": _bias_label(gas_score), "points": gas_points[:3]},
+        "lng": {"bias": _bias_label(lng_score), "points": lng_points[:3]},
+        "risk_management": {"points": rm_points[:3]},
+    }
+
+
+def build_forward_watchlist(geri, eeri, egsi, asset_changes, alerts,
+                            storage_pct, esc_prob, de_esc_prob):
+    geri_trend = _num(geri[0].get("trend_1d", 0)) if geri else 0
+    eeri_trend = _num(eeri[0].get("trend_1d", 0)) if eeri else 0
+    egsi_trend = _num(egsi[0].get("trend_1d", 0)) if egsi else 0
+    brent_pct = asset_changes.get("brent", {}).get("change_pct")
+    ttf_pct = asset_changes.get("ttf", {}).get("change_pct")
+
+    geri_rising = geri_trend > 0
+    geri_falling = geri_trend < 0
+    ttf_up = ttf_pct is not None and ttf_pct > 0
+    brent_strong = brent_pct is not None and abs(brent_pct) >= 1.0
+
+    oil_events = _events_match(alerts, OIL_EVENT_KEYWORDS)
+    ship_events = _events_match(alerts, SHIP_EVENT_KEYWORDS)
+    europe_events = _events_match(alerts, EUROPE_EVENT_KEYWORDS)
+
+    items = []
+
+    def add(title, priority, reason):
+        if not any(i["title"] == title for i in items):
+            items.append({"title": title, "priority": priority, "reason": reason})
+
+    if oil_events:
+        add("OPEC and Middle East oil supply signals",
+            "High" if geri_rising else "Medium",
+            "Production-policy or geopolitical shifts could move Brent's risk premium and short-term oil positioning.")
+    if ship_events or oil_events:
+        add("Strait of Hormuz and Red Sea shipping flows",
+            "Medium",
+            "Normalizing flows would reduce the geopolitical premium, while renewed disruption raises upside risk for oil and LNG.")
+    if brent_strong:
+        direction = "higher" if brent_pct > 0 else "lower"
+        add(f"Brent {direction} move confirmation",
+            "Medium",
+            f"Brent moved {brent_pct:+.1f}% today; watch whether follow-through confirms or contradicts the current risk-index direction.")
+    if geri_rising:
+        add("Geopolitical escalation and oil supply risk",
+            "High",
+            "Rising GERI points to building escalation risk; monitor supply disruption, maritime security and Brent risk premium.")
+    elif geri_falling:
+        add("De-escalation durability and risk confirmation",
+            "Low",
+            "With GERI easing, watch shipping normalization, lower volatility and Brent downside follow-through to confirm the trend.")
+    if eeri_trend > 0 or egsi_trend > 0 or europe_events:
+        add("European gas: storage, TTF and Ukraine grid risk",
+            "Medium",
+            "European stress indicators are firm; monitor EU storage, TTF moves, LNG imports and winter demand.")
+    if ttf_up and geri_falling:
+        add("European gas divergence from global risk",
+            "Medium",
+            "TTF is rising while global risk eases, suggesting European fundamentals may be outweighing geopolitical de-escalation.")
+    if storage_pct < 50:
+        add("EU gas storage injections and draws",
+            "Medium",
+            "Storage trends shape winter supply confidence and European gas price risk.")
+    add("Asian LNG demand and freight developments",
+        "Medium" if ship_events else "Low",
+        "Freight or shipping stress can affect LNG pricing and regional supply flexibility.")
+
+    fallback = [
+        ("Brent trend confirmation", "Low",
+         "Track whether Brent follow-through aligns with the current GERI direction and risk tone."),
+        ("TTF and European gas trend", "Low",
+         "Monitor TTF movement against storage levels and winter demand for direction confirmation."),
+        ("GERI direction and volatility", "Low",
+         "Watch GERI's daily path and volatility for early signals of a regime change."),
+    ]
+    for title, priority, reason in fallback:
+        if len(items) >= 3:
+            break
+        add(title, priority, reason)
+
+    order = {"High": 0, "Medium": 1, "Low": 2}
+    items.sort(key=lambda i: order.get(i["priority"], 3))
+    return items[:5]
+
+
 def generate_ai_digest(plan: str, alerts, geri, eeri, egsi, asset_changes, correlations, betas, risk_tone, regime):
     try:
         import os
