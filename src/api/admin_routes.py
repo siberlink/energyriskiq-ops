@@ -4,7 +4,7 @@ import hashlib
 import time
 import logging
 import requests
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, HTTPException, Header, Query, BackgroundTasks
 from typing import Optional, List
 from pydantic import BaseModel
 
@@ -47,6 +47,51 @@ def _init_admin_sessions_table():
             """)
     except Exception as e:
         logger.warning(f"Could not create admin_sessions table: {e}")
+
+
+_BULK_EMAIL_DDL = """
+    CREATE TABLE IF NOT EXISTS admin_bulk_email_campaigns (
+        id SERIAL PRIMARY KEY,
+        subject TEXT NOT NULL,
+        content_type TEXT NOT NULL DEFAULT 'html',
+        total INTEGER NOT NULL DEFAULT 0,
+        sent INTEGER NOT NULL DEFAULT 0,
+        failed INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'pending',
+        error TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+"""
+
+
+def _init_bulk_email_table():
+    """Create the bulk-email campaign progress table on the primary (Neon) DB and
+    mirror it to the Replit-managed DATABASE_URL so the publish schema diff does
+    not propose dropping a Neon-only table."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(_BULK_EMAIL_DDL)
+    except Exception as e:
+        logger.warning(f"Could not create admin_bulk_email_campaigns table: {e}")
+
+    prod = os.environ.get("PRODUCTION_DATABASE_URL")
+    managed = os.environ.get("DATABASE_URL")
+    if not managed or not prod or managed == prod:
+        return
+    conn = None
+    try:
+        import psycopg2
+        conn = psycopg2.connect(managed)
+        cur = conn.cursor()
+        cur.execute(_BULK_EMAIL_DDL)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        logger.warning(f"Managed DB bulk-email table sync skipped: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 
 def _db_session_valid(token: str) -> bool:
@@ -599,3 +644,188 @@ def admin_send_email(body: SendEmailRequest, x_admin_token: Optional[str] = Head
     except Exception as e:
         logger.error(f"Admin email send failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Bulk email / newsletter to ALL platform users
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SendBulkEmailRequest(BaseModel):
+    subject: str
+    body: str
+    content_type: str = "html"  # 'html' or 'text'
+
+
+def _email_sender():
+    email_from = os.environ.get("EMAIL_FROM", "EnergyRiskIQ <alerts@energyriskiq.com>")
+    import re
+    match = re.match(r'^(.+?)<(.+?)>$', email_from.strip())
+    if match:
+        return {"name": match.group(1).strip(), "email": match.group(2).strip()}
+    return {"email": email_from.strip()}
+
+
+def _get_all_user_emails() -> List[str]:
+    with get_cursor(commit=False) as cur:
+        cur.execute(
+            "SELECT DISTINCT LOWER(email) AS email FROM users "
+            "WHERE email IS NOT NULL AND email LIKE '%@%' ORDER BY email"
+        )
+        return [r["email"] for r in cur.fetchall() if r.get("email")]
+
+
+def _update_campaign(campaign_id: int, **fields):
+    if not fields:
+        return
+    sets = ", ".join(f"{k} = %s" for k in fields)
+    vals = list(fields.values())
+    vals.append(campaign_id)
+    try:
+        with get_cursor() as cur:
+            cur.execute(
+                f"UPDATE admin_bulk_email_campaigns SET {sets}, updated_at = NOW() WHERE id = %s",
+                tuple(vals),
+            )
+    except Exception as e:
+        logger.error(f"Bulk email campaign {campaign_id} update failed: {e}")
+
+
+def _run_bulk_email(campaign_id: int, subject: str, body: str,
+                    content_type: str, emails: List[str]):
+    brevo_api_key = os.environ.get("BREVO_API_KEY")
+    if not brevo_api_key:
+        _update_campaign(campaign_id, status="failed", error="BREVO_API_KEY not configured")
+        return
+
+    sender = _email_sender()
+    is_text = (content_type == "text")
+    if is_text:
+        content_field = {"textContent": body}
+    else:
+        html = (
+            f'<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'
+            f'padding:20px;color:#1e293b;line-height:1.6;">{body}'
+            f'<hr style="border:1px solid #e2e8f0;margin:24px 0 12px;">'
+            f'<p style="color:#94a3b8;font-size:11px;">Sent from EnergyRiskIQ. '
+            f'You are receiving this because you have an EnergyRiskIQ account.</p></div>'
+        )
+        content_field = {"htmlContent": html}
+
+    sent = 0
+    failed = 0
+    batch_size = 500
+    max_attempts = 4
+    last_error = None
+    _update_campaign(campaign_id, status="sending")
+    for i in range(0, len(emails), batch_size):
+        chunk = emails[i:i + batch_size]
+        payload = {
+            "sender": sender,
+            "subject": subject,
+            "messageVersions": [{"to": [{"email": e}]} for e in chunk],
+        }
+        payload.update(content_field)
+
+        chunk_ok = False
+        for attempt in range(1, max_attempts + 1):
+            try:
+                resp = requests.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    headers={"api-key": brevo_api_key, "Content-Type": "application/json"},
+                    json=payload,
+                    timeout=60,
+                )
+                if resp.status_code in (200, 201, 202):
+                    chunk_ok = True
+                    break
+                last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+                logger.error(
+                    f"Bulk email campaign {campaign_id} chunk attempt {attempt}/{max_attempts} "
+                    f"failed: {last_error}"
+                )
+                # 4xx other than 429 are not retryable
+                if 400 <= resp.status_code < 500 and resp.status_code != 429:
+                    break
+            except Exception as e:
+                last_error = str(e)
+                logger.error(
+                    f"Bulk email campaign {campaign_id} chunk attempt {attempt}/{max_attempts} "
+                    f"exception: {e}"
+                )
+            if attempt < max_attempts:
+                time.sleep(min(2 ** attempt, 30))
+
+        if chunk_ok:
+            sent += len(chunk)
+        else:
+            failed += len(chunk)
+        _update_campaign(campaign_id, sent=sent, failed=failed)
+
+    final_status = "completed" if failed == 0 else ("completed_with_errors" if sent > 0 else "failed")
+    _update_campaign(
+        campaign_id, status=final_status, sent=sent, failed=failed,
+        error=(last_error if failed else None),
+    )
+    logger.info(
+        f"Bulk email campaign {campaign_id} finished: status={final_status}, "
+        f"sent={sent}, failed={failed}, total={len(emails)}"
+    )
+
+
+@router.post("/users/send-bulk-email")
+def admin_send_bulk_email(body: SendBulkEmailRequest, background_tasks: BackgroundTasks,
+                          x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+
+    subject = (body.subject or "").strip()
+    content = (body.body or "").strip()
+    content_type = body.content_type if body.content_type in ("html", "text") else "html"
+    if not subject or not content:
+        raise HTTPException(status_code=400, detail="Subject and body are required")
+
+    if not os.environ.get("BREVO_API_KEY"):
+        raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
+
+    emails = _get_all_user_emails()
+    if not emails:
+        raise HTTPException(status_code=400, detail="No platform users to email")
+
+    try:
+        with get_cursor() as cur:
+            cur.execute(
+                "INSERT INTO admin_bulk_email_campaigns (subject, content_type, total, status) "
+                "VALUES (%s, %s, %s, 'sending') RETURNING id",
+                (subject, content_type, len(emails)),
+            )
+            campaign_id = cur.fetchone()["id"]
+    except Exception as e:
+        logger.error(f"Could not create bulk email campaign: {e}")
+        raise HTTPException(status_code=500, detail="Could not start campaign")
+
+    background_tasks.add_task(_run_bulk_email, campaign_id, subject, content, content_type, emails)
+    logger.info(f"Bulk email campaign {campaign_id} queued for {len(emails)} recipients")
+    return {"success": True, "campaign_id": campaign_id, "total": len(emails)}
+
+
+@router.get("/users/bulk-email-status/{campaign_id}")
+def admin_bulk_email_status(campaign_id: int, x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    with get_cursor(commit=False) as cur:
+        cur.execute(
+            "SELECT id, subject, content_type, total, sent, failed, status, error "
+            "FROM admin_bulk_email_campaigns WHERE id = %s",
+            (campaign_id,),
+        )
+        row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    return {
+        "id": row["id"],
+        "subject": row["subject"],
+        "content_type": row["content_type"],
+        "total": row["total"],
+        "sent": row["sent"],
+        "failed": row["failed"],
+        "status": row["status"],
+        "error": row["error"],
+    }

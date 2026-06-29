@@ -1436,6 +1436,7 @@
                                 <option value="enterprise">Enterprise</option>
                             </select>
                             <button onclick="loadAdminUsers()" style="background:#3b82f6;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Search</button>
+                            <button onclick="openBulkEmailComposer()" style="background:#8b5cf6;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">&#9993; Email All Users</button>
                         </div>
                     </div>
 
@@ -1505,6 +1506,65 @@
                             <div style="display:flex;gap:10px;justify-content:flex-end;">
                                 <button onclick="closeEmailComposer()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;">Cancel</button>
                                 <button onclick="sendAdminEmail()" id="sendEmailBtn" style="background:#3b82f6;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Send Email</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bulk Email / Newsletter Composer Modal -->
+                <div id="bulkEmailModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1002;overflow-y:auto;">
+                    <div style="max-width:720px;margin:30px auto;background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:0;">
+                        <div style="padding:20px 24px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;">
+                            <h3 style="margin:0;color:#e2e8f0;font-size:16px;">&#9993; Email All Platform Users</h3>
+                            <button onclick="closeBulkEmailComposer()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">&times;</button>
+                        </div>
+                        <div style="padding:24px;">
+                            <div id="bulkRecipientNote" style="background:#1e293b;border:1px solid #334155;border-radius:6px;padding:10px 12px;margin-bottom:14px;color:#a78bfa;font-size:12px;">Loading recipient count…</div>
+                            <div style="margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Format</label>
+                                <select id="bulkContentType" onchange="bulkToggleFormat()" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;box-sizing:border-box;">
+                                    <option value="html">HTML (rich formatting + images)</option>
+                                    <option value="text">Plain Text</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Subject</label>
+                                <input type="text" id="bulkSubject" placeholder="Newsletter subject..." style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;box-sizing:border-box;">
+                            </div>
+                            <div id="bulkToolbar" style="margin-bottom:8px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Formatting</label>
+                                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                                    <button type="button" onclick="bulkFormat('bold')" title="Bold" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;">B</button>
+                                    <button type="button" onclick="bulkFormat('italic')" title="Italic" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-style:italic;">I</button>
+                                    <button type="button" onclick="bulkFormat('underline')" title="Underline" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;text-decoration:underline;">U</button>
+                                    <button type="button" onclick="bulkFormat('h2')" title="Heading" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">H</button>
+                                    <button type="button" onclick="bulkFormat('ul')" title="Bullet List" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#8226; List</button>
+                                    <button type="button" onclick="bulkFormat('link')" title="Insert Link" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#128279; Link</button>
+                                    <button type="button" onclick="bulkFormat('hr')" title="Divider" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&mdash; Line</button>
+                                    <button type="button" onclick="bulkFormat('color')" title="Text Color" style="background:#1e293b;border:1px solid #334155;color:#3b82f6;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">A</button>
+                                    <button type="button" onclick="document.getElementById('bulkImageFile').click()" title="Insert Image" style="background:#1e293b;border:1px solid #334155;color:#22c55e;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">&#128247; Image</button>
+                                    <button type="button" onclick="toggleBulkPreview()" title="Preview" style="background:#1e293b;border:1px solid #334155;color:#22c55e;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;">Preview</button>
+                                </div>
+                                <input type="file" id="bulkImageFile" accept="image/*" style="display:none;" onchange="bulkUploadImage(this)">
+                                <span id="bulkImageStatus" style="display:block;margin-top:6px;font-size:12px;color:#94a3b8;"></span>
+                            </div>
+                            <div style="margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Body</label>
+                                <textarea id="bulkBody" rows="14" placeholder="Write your newsletter content here..." style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;font-family:monospace;resize:vertical;box-sizing:border-box;line-height:1.5;"></textarea>
+                            </div>
+                            <div id="bulkPreviewContainer" style="display:none;margin-bottom:14px;">
+                                <label style="color:#94a3b8;font-size:12px;display:block;margin-bottom:4px;">Preview</label>
+                                <div id="bulkPreviewBox" style="background:#ffffff;color:#1e293b;padding:20px;border-radius:6px;border:1px solid #334155;font-size:14px;line-height:1.6;max-height:300px;overflow-y:auto;"></div>
+                            </div>
+                            <div id="bulkProgress" style="display:none;margin-bottom:14px;background:#0b1220;border:1px solid #1e293b;border-radius:6px;padding:14px;">
+                                <div style="height:8px;background:#1e293b;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+                                    <div id="bulkProgressBar" style="height:100%;width:0%;background:#8b5cf6;transition:width 0.3s;"></div>
+                                </div>
+                                <div id="bulkProgressText" style="color:#cbd5e1;font-size:12px;">Starting…</div>
+                            </div>
+                            <div style="display:flex;gap:10px;justify-content:flex-end;">
+                                <button onclick="closeBulkEmailComposer()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;">Close</button>
+                                <button onclick="sendBulkEmail()" id="sendBulkEmailBtn" style="background:#8b5cf6;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Send to All Users</button>
                             </div>
                         </div>
                     </div>
@@ -5316,6 +5376,211 @@
                 btn.disabled = false;
                 btn.textContent = 'Send Email';
             }
+        }
+
+        // ===== Bulk Email / Newsletter to all users =====
+        let bulkPollTimer = null;
+
+        function openBulkEmailComposer() {
+            document.getElementById('bulkSubject').value = '';
+            document.getElementById('bulkBody').value = '';
+            document.getElementById('bulkContentType').value = 'html';
+            document.getElementById('bulkPreviewContainer').style.display = 'none';
+            document.getElementById('bulkProgress').style.display = 'none';
+            document.getElementById('bulkImageStatus').textContent = '';
+            document.getElementById('bulkRecipientNote').textContent = 'Loading recipient count…';
+            bulkToggleFormat();
+            const btn = document.getElementById('sendBulkEmailBtn');
+            btn.disabled = false;
+            btn.textContent = 'Send to All Users';
+            document.getElementById('bulkEmailModal').style.display = 'block';
+            loadBulkRecipientCount();
+        }
+
+        function closeBulkEmailComposer() {
+            if (bulkPollTimer) { clearInterval(bulkPollTimer); bulkPollTimer = null; }
+            document.getElementById('bulkEmailModal').style.display = 'none';
+        }
+
+        async function loadBulkRecipientCount() {
+            try {
+                const res = await fetch('/admin/users?page=1&page_size=1', {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                const data = await res.json();
+                const total = data.total != null ? data.total : '?';
+                document.getElementById('bulkRecipientNote').innerHTML =
+                    '&#128226; This email will be sent to <strong>all ' + total + ' platform users</strong> in batches.';
+            } catch (e) {
+                document.getElementById('bulkRecipientNote').innerHTML =
+                    '&#128226; This email will be sent to <strong>all platform users</strong> in batches.';
+            }
+        }
+
+        function bulkToggleFormat() {
+            const isHtml = document.getElementById('bulkContentType').value === 'html';
+            document.getElementById('bulkToolbar').style.display = isHtml ? 'block' : 'none';
+            if (!isHtml) document.getElementById('bulkPreviewContainer').style.display = 'none';
+        }
+
+        function bulkFormat(type) {
+            const textarea = document.getElementById('bulkBody');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selected = textarea.value.substring(start, end);
+            let insert = '';
+            switch (type) {
+                case 'bold': insert = `<strong>${selected || 'bold text'}</strong>`; break;
+                case 'italic': insert = `<em>${selected || 'italic text'}</em>`; break;
+                case 'underline': insert = `<u>${selected || 'underlined text'}</u>`; break;
+                case 'h2': insert = `<h2 style="color:#1e293b;margin:16px 0 8px;">${selected || 'Heading'}</h2>`; break;
+                case 'ul':
+                    const items = selected ? selected.split('\n').map(l => `  <li>${l}</li>`).join('\n') : '  <li>Item 1</li>\n  <li>Item 2</li>';
+                    insert = `<ul style="margin:8px 0;padding-left:20px;">\n${items}\n</ul>`;
+                    break;
+                case 'link':
+                    const url = prompt('Enter URL:', 'https://');
+                    if (!url) return;
+                    insert = `<a href="${url}" style="color:#3b82f6;">${selected || url}</a>`;
+                    break;
+                case 'hr': insert = `<hr style="border:1px solid #e2e8f0;margin:16px 0;">`; break;
+                case 'color':
+                    const color = prompt('Enter color (hex or name):', '#3b82f6');
+                    if (!color) return;
+                    insert = `<span style="color:${color};">${selected || 'colored text'}</span>`;
+                    break;
+            }
+            textarea.value = textarea.value.substring(0, start) + insert + textarea.value.substring(end);
+            textarea.focus();
+            textarea.selectionStart = start;
+            textarea.selectionEnd = start + insert.length;
+        }
+
+        async function bulkUploadImage(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const status = document.getElementById('bulkImageStatus');
+            status.style.color = '#94a3b8';
+            status.textContent = 'Uploading image…';
+            const fd = new FormData();
+            fd.append('file', file);
+            try {
+                const res = await fetch('/api/blog/admin/upload-image', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Token': sessionToken },
+                    body: fd
+                });
+                const data = await res.json();
+                if (data.success && data.url) {
+                    const absUrl = window.location.origin + data.url;
+                    const textarea = document.getElementById('bulkBody');
+                    const pos = textarea.selectionStart;
+                    const img = `\n<img src="${absUrl}" alt="" style="max-width:100%;height:auto;border-radius:8px;margin:12px 0;">\n`;
+                    textarea.value = textarea.value.substring(0, pos) + img + textarea.value.substring(pos);
+                    status.style.color = '#22c55e';
+                    status.textContent = 'Image inserted into body.';
+                } else {
+                    status.style.color = '#f87171';
+                    status.textContent = data.error || 'Upload failed';
+                }
+            } catch (e) {
+                status.style.color = '#f87171';
+                status.textContent = 'Upload failed - connection error';
+            }
+            input.value = '';
+        }
+
+        function toggleBulkPreview() {
+            const container = document.getElementById('bulkPreviewContainer');
+            const box = document.getElementById('bulkPreviewBox');
+            if (container.style.display === 'none') {
+                const body = document.getElementById('bulkBody').value;
+                box.innerHTML = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">${convertNewlinesToBr(body)}</div>`;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        async function sendBulkEmail() {
+            const subject = document.getElementById('bulkSubject').value.trim();
+            const rawBody = document.getElementById('bulkBody').value.trim();
+            const contentType = document.getElementById('bulkContentType').value;
+
+            if (!subject) { showToast('Subject is required', 'error'); return; }
+            if (!rawBody) { showToast('Body is required', 'error'); return; }
+
+            const total = document.getElementById('bulkRecipientNote').textContent;
+            if (!confirm('Send this email to ALL platform users? This cannot be undone.')) return;
+
+            const body = contentType === 'html' ? convertNewlinesToBr(rawBody) : rawBody;
+
+            const btn = document.getElementById('sendBulkEmailBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            const progress = document.getElementById('bulkProgress');
+            progress.style.display = 'block';
+            document.getElementById('bulkProgressBar').style.width = '0%';
+            document.getElementById('bulkProgressText').textContent = 'Queuing campaign…';
+
+            try {
+                const res = await fetch('/admin/users/send-bulk-email', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Token': sessionToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subject, body: body, content_type: contentType })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Failed to start campaign');
+                showToast('Campaign started for ' + data.total + ' users', 'success');
+                pollBulkStatus(data.campaign_id);
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Send to All Users';
+            }
+        }
+
+        function pollBulkStatus(campaignId) {
+            const bar = document.getElementById('bulkProgressBar');
+            const text = document.getElementById('bulkProgressText');
+            const btn = document.getElementById('sendBulkEmailBtn');
+            if (bulkPollTimer) clearInterval(bulkPollTimer);
+            bulkPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch('/admin/users/bulk-email-status/' + campaignId, {
+                        headers: { 'X-Admin-Token': sessionToken }
+                    });
+                    const d = await res.json();
+                    if (!res.ok) throw new Error(d.detail || 'status error');
+                    const done = d.sent + d.failed;
+                    const pct = d.total ? Math.round((done / d.total) * 100) : 0;
+                    bar.style.width = pct + '%';
+                    text.textContent = `Sent ${d.sent} / ${d.total}` + (d.failed ? ` (${d.failed} failed)` : '') + ` — ${pct}%`;
+                    if (d.status === 'completed' || d.status === 'completed_with_errors' || d.status === 'failed') {
+                        clearInterval(bulkPollTimer); bulkPollTimer = null;
+                        btn.disabled = false;
+                        btn.textContent = 'Send to All Users';
+                        if (d.status === 'completed') {
+                            bar.style.background = '#22c55e';
+                            text.innerHTML = `&#9989; All emails sent successfully — ${d.sent} of ${d.total} delivered.`;
+                            showToast('All emails sent (' + d.sent + ')', 'success');
+                        } else if (d.status === 'completed_with_errors') {
+                            bar.style.background = '#f59e0b';
+                            text.innerHTML = `&#9888; Finished: ${d.sent} sent, ${d.failed} failed.`;
+                            showToast('Finished with ' + d.failed + ' failures', 'error');
+                        } else {
+                            bar.style.background = '#ef4444';
+                            text.innerHTML = `&#10060; Sending failed${d.error ? ': ' + d.error : ''}.`;
+                            showToast('Bulk send failed', 'error');
+                        }
+                    }
+                } catch (e) {
+                    clearInterval(bulkPollTimer); bulkPollTimer = null;
+                    btn.disabled = false;
+                    btn.textContent = 'Send to All Users';
+                    text.textContent = 'Lost connection to status updates.';
+                }
+            }, 1500);
         }
 
         checkSession();

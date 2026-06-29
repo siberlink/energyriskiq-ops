@@ -340,8 +340,9 @@ async def startup_event():
                 logger.info(f"Ticket maintenance: {closed} auto-closed, {archived} auto-archived")
         except Exception as e:
             logger.warning(f"Ticket auto-maintenance skipped: {e}")
-        from src.api.admin_routes import _init_admin_sessions_table
+        from src.api.admin_routes import _init_admin_sessions_table, _init_bulk_email_table
         _init_admin_sessions_table()
+        _init_bulk_email_table()
         logger.info("Database migrations completed")
         app_url = os.environ.get("APP_URL", "")
         if app_url and os.environ.get("TELEGRAM_BOT_TOKEN"):
