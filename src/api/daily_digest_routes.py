@@ -729,6 +729,34 @@ ASSET MOVES:
         return None
 
 
+def get_cached_ai_narrative(cache_key: str):
+    try:
+        row = execute_one(
+            "SELECT narrative FROM daily_digest_ai_cache WHERE cache_key = %s",
+            (cache_key,),
+        )
+        return row["narrative"] if row and row.get("narrative") else None
+    except Exception as e:
+        logger.error(f"AI narrative cache read failed: {e}")
+        return None
+
+
+def set_cached_ai_narrative(cache_key: str, narrative: str):
+    try:
+        execute_query(
+            """
+            INSERT INTO daily_digest_ai_cache (cache_key, narrative, created_at)
+            VALUES (%s, %s, NOW())
+            ON CONFLICT (cache_key)
+            DO UPDATE SET narrative = EXCLUDED.narrative, created_at = NOW()
+            """,
+            (cache_key, narrative),
+            fetch=False,
+        )
+    except Exception as e:
+        logger.error(f"AI narrative cache write failed: {e}")
+
+
 @router.get("/daily")
 def get_daily_digest(x_user_token: Optional[str] = Header(None)):
     session = verify_user_session(x_user_token)
@@ -775,7 +803,16 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
     if plan_level >= 3:
         betas = compute_rolling_betas(assets, geri)
 
-    ai_narrative = generate_ai_digest(plan, alerts, geri, eeri, egsi, asset_changes, correlations, betas, risk_tone, regime)
+    # The AI narrative is the single slow part of this endpoint (a multi-second
+    # LLM call). It is a daily briefing, so cache it per plan-level/day and reuse
+    # it for every subsequent view that day instead of regenerating each load.
+    digest_day = (date.today() - timedelta(days=2)).isoformat() if is_delayed else (date.today() - timedelta(days=1)).isoformat()
+    ai_cache_key = f"v1:{plan_level}:{digest_day}:{'d' if is_delayed else 'l'}"
+    ai_narrative = get_cached_ai_narrative(ai_cache_key)
+    if ai_narrative is None:
+        ai_narrative = generate_ai_digest(plan, alerts, geri, eeri, egsi, asset_changes, correlations, betas, risk_tone, regime)
+        if ai_narrative:
+            set_cached_ai_narrative(ai_cache_key, ai_narrative)
 
     alert_limit = 2 if plan_level == 0 else 5 if plan_level <= 2 else 10
     visible_alerts = []

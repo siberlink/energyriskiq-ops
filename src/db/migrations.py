@@ -596,6 +596,7 @@ def run_migrations():
     
     logger.info("Running digest tables migration...")
     run_digest_tables_migration()
+    run_digest_ai_cache_migration()
     
     logger.info("Running engine observability migration...")
     run_engine_observability_migration()
@@ -885,6 +886,45 @@ def run_digest_tables_migration():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_alert_digest_items_delivery ON user_alert_digest_items(delivery_id);")
     
     logger.info("Digest tables migration complete.")
+
+
+_DIGEST_AI_CACHE_DDL = """
+    CREATE TABLE IF NOT EXISTS daily_digest_ai_cache (
+        cache_key TEXT PRIMARY KEY,
+        narrative TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    );
+"""
+
+
+def run_digest_ai_cache_migration():
+    """Cache table for the Daily Intelligence Report AI narrative (one entry per plan-level/day).
+
+    Created in the production/primary DB AND the local dev DB (when they differ)
+    so the schemas stay in sync and Replit's deploy tool does not flag the table
+    as a phantom and propose a destructive migration on every publish.
+    """
+    import psycopg2
+
+    logger.info("Running digest AI cache migration...")
+    with get_cursor() as cursor:
+        cursor.execute(_DIGEST_AI_CACHE_DDL)
+
+    prod_url = os.environ.get("PRODUCTION_DATABASE_URL", "")
+    local_url = os.environ.get("DATABASE_URL", "")
+    if local_url and local_url != prod_url:
+        try:
+            logger.info("Running digest AI cache migration (local dev DB)...")
+            conn = psycopg2.connect(local_url)
+            cur = conn.cursor()
+            cur.execute(_DIGEST_AI_CACHE_DDL)
+            conn.commit()
+            conn.close()
+            logger.info("Digest AI cache migration complete (local dev DB).")
+        except Exception as exc:
+            logger.warning(f"Local dev DB digest AI cache migration skipped: {exc}")
+
+    logger.info("Digest AI cache migration complete.")
 
 
 def run_engine_observability_migration():
