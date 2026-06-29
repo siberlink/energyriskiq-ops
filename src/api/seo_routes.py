@@ -2702,7 +2702,7 @@ async def geri_page(request: Request):
                     <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                    <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
                 </div>
             </div>
         </nav>
@@ -4781,7 +4781,7 @@ def render_digest_nav() -> str:
                 <a href="/alerts">Alerts</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
             </div>
         </div>
     </nav>
@@ -5364,7 +5364,7 @@ async def indices_hub_page(request: Request):
                     <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                    <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
                 </div>
             </div>
         </nav>
@@ -7093,7 +7093,7 @@ async def geri_research_page(request: Request):
                     <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
                     EnergyRiskIQ
                 </a>
-                <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
             </div>
         </nav>
         <main>
@@ -9403,7 +9403,7 @@ async def global_energy_risk_timeline_page(request: Request):
                 <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right:0.5rem;">
                 EnergyRiskIQ
             </a>
-            <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+            <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
         </div>
     </nav>
 
@@ -11136,7 +11136,7 @@ async def data_license_page():
         <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
         <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
         <a href="/data/global-energy-risk-forecast" style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
-        <a href="/users" class="cta-btn-nav">Get Free Access</a>
+        <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
       </div>
     </div>
   </nav>

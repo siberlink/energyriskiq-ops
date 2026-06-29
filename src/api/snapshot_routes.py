@@ -1545,7 +1545,7 @@ def _build_snapshot_html(
       <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36">
       EnergyRiskIQ
     </a>
-    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+    <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
   </div>
 </nav>
 

@@ -830,7 +830,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/data/energy-risk-snapshot" style="font-size:13px;color:#94a3b8;text-decoration:none;">Snapshot</a>
       <a href="/research/global-energy-risk-timeline" style="font-size:13px;color:#94a3b8;text-decoration:none;">Timeline</a>
-      <a href="/users" class="cta-btn-nav">Get Free Access</a>
+      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>

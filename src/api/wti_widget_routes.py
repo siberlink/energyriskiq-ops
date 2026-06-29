@@ -844,7 +844,7 @@ document.body.style.overflow='';
       <a href="/data/wti-crude-oil-price-today" style="font-size:13px;color:#94a3b8;text-decoration:none;">WTI</a>
       <a href="/data/brent-crude-oil-price-today" style="font-size:13px;color:#94a3b8;text-decoration:none;">Brent</a>
       <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
-      <a href="/users" class="cta-btn-nav">Get Free Access</a>
+      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>

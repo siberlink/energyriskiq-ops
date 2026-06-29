@@ -569,7 +569,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/indices/europe-gas-stress-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/gas-storage-levels-in-europe" style="font-size:13px;color:#94a3b8;text-decoration:none;">EU Storage</a>
-      <a href="/users" class="cta-btn-nav">Get Free Access</a>
+      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>

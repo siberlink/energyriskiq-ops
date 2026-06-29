@@ -677,7 +677,7 @@ document.body.style.overflow='';
       <a href="/data/jkm-lng-spot-price" style="font-size:13px;color:#94a3b8;text-decoration:none;">JKM LNG</a>
       <a href="/data/ttf-gas-price-today" style="font-size:13px;color:#94a3b8;text-decoration:none;">TTF</a>
       <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
-      <a href="/users" class="cta-btn-nav">Get Free Access</a>
+      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>

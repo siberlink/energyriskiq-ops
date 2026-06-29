@@ -628,7 +628,7 @@ async def eeri_public_page(request: Request):
                     <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                    <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                    <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
                 </div>
             </div></nav>
             <main>
@@ -1340,7 +1340,7 @@ def _render_eeri_page(eeri: dict):
                 <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                <a href="/users" class="cta-btn-nav">Get FREE Access</a>
+                <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
             </div>
         </div></nav>
         
