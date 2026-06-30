@@ -1,0 +1,183 @@
+Let's improve the "Daily Intelligence Report" page inside user account ("/users/account") -- the one Users see before subscribing (image attached).
+
+=== VERY IMPORTANT ===
+- make sure is fully mobile responsive
+- implement a "killer" design
+- make sure it creates urgency
+- make sure is modern and professional
+
+
+1) Replace Head Line "Your daily edge in global energy markets" with "Start every trading day already briefed."
+Subheadline:
+"EnergyRiskIQ transforms global energy risk, geopolitics, storage, volatility and market signals into a single decision-ready morning briefing."
+
+
+2. Add a "What You Get Every Morning" section
+
+People buy routines.
+
+Add immediately below hero.
+
+What you'll receive every day
+
+✓ Executive summary of the global energy risk environment
+
+✓ Oil, gas and LNG market implications
+
+✓ Actionable trading and risk takeaways
+
+✓ Top risk events ranked by importance
+
+✓ Forward watchlist for the next 24 hours
+
+✓ Probability-based scenario forecasts
+
+✓ Cross-asset correlations and risk signals
+
+✓ Strategic interpretation from EnergyRiskIQ algorithms
+
+
+
+3. Add "Who Is This For?" section
+
+Very important.
+
+People convert when they identify themselves.
+
+Who uses the Daily Intelligence Report?
+- Commodity traders
+- Energy analysts
+- LNG market professionals
+- Risk managers
+- Utilities
+- Energy procurement teams
+- Energy consultants
+- Investors following oil and gas markets
+
+
+
+4. Add social proof section
+
+Even if small.
+
+Example:
+
+Trusted by professionals monitoring:
+
+✓ Oil Markets
+
+✓ European Gas
+
+✓ LNG
+
+✓ Energy Security
+
+✓ Geopolitical Risk
+
+
+
+5. Add a "Why users subscribe" section
+
+Current:
+
+Why traders & analysts rely on it
+
+Expand.
+
+Why professionals rely on it
+
+✓ Understand why markets are moving — not just that they moved.
+
+✓ Identify emerging risks before they are fully reflected in prices.
+
+✓ Save hours of manual research every morning.
+
+✓ Walk into meetings already briefed.
+
+✓ Monitor geopolitical, supply and volatility risks in one place.
+
+✓ Spot divergences between market pricing and risk signals.
+
+
+
+6. Add preview screenshots section (leave empty spot for image -- I'll provide later) 
+
+Huge conversion opportunity.
+
+Show:
+
+Inside today's report
+
+Screenshot cards:
+
+Executive Summary
+Actionable Takeaways
+Forward Watchlist
+Scenario Forecasts
+
+Underneath:
+
+Updated every day before markets open.
+
+
+
+
+7. Create urgency and scarcity -- section (Nicely designed Scarcity Banner)
+
+Current page lacks urgency.
+
+Add:
+
+Introductory offer
+
+14-day free trial available for a limited time.
+
+Early subscribers lock in the €2.99/month price.
+
+or
+
+Founding subscriber pricing: €2.99/month.
+
+
+Bellow "Lock Your Early Subscription Today" CTA 
+..add "Pricing may increase as new intelligence features are added."
+
+
+
+8. Add risk reversal section
+
+People fear subscriptions.
+
+Add near CTA:
+
+✓ Cancel anytime
+
+✓ No long-term commitment
+
+✓ No charge during free trial
+
+✓ Secure checkout via Stripe
+
+
+
+9. Add "What Happens After You Subscribe?" section
+
+Remove uncertainty.
+
+After subscribing
+
+Every day you'll receive:
+
+Daily Intelligence Report updated before market open.
+Access to the latest energy assets data.
+Custom-generated strategic interpretation.
+Continuous updates as new intelligence features are released.
+
+
+
+10. Add FOMO section
+
+Example banner:
+
+🚀 Founding Subscriber Offer
+Start your 14-day free trial today and lock in the €2.99/month price. As new intelligence capabilities are added, pricing for new subscribers may increase.
