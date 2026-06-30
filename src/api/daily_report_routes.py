@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 SUB_CODE = "daily-report"
 PLAN_CODE = "daily_report"             # Stripe product metadata key
 PRICE_EUR_CENTS = 299                  # €2.99
+TRIAL_DAYS = 14                        # 14-day free trial (once per user)
 SUB_NAME = "EnergyRiskIQ — Daily Intelligence Report"
 SUB_DESC = ("Full access to the AI-powered Daily Geo-Energy Intelligence Digest — "
             "updated daily with new intelligence. €2.99/month.")
@@ -66,6 +67,10 @@ def run_daily_report_migration():
             cur.execute(
                 "CREATE INDEX IF NOT EXISTS idx_daily_report_subs_sub "
                 "ON user_daily_report_subs(stripe_subscription_id)"
+            )
+            cur.execute(
+                "ALTER TABLE user_daily_report_subs "
+                "ADD COLUMN IF NOT EXISTS trial_used BOOLEAN NOT NULL DEFAULT FALSE"
             )
         logger.info("user_daily_report_subs migration complete")
     except Exception as e:
@@ -210,6 +215,18 @@ def _active_for_mode(row) -> bool:
     return row_mode == get_stripe_mode()
 
 
+def _trial_eligible(row) -> bool:
+    """A user may start the 14-day free trial only if they have never had a
+    subscription (no Stripe sub on record) and have not already used a trial."""
+    if not row:
+        return True
+    if row.get("trial_used"):
+        return False
+    if row.get("stripe_subscription_id"):
+        return False
+    return True
+
+
 def user_has_daily_report(user_id: int) -> bool:
     """Mode-agnostic entitlement check for the gated digest content."""
     try:
@@ -240,6 +257,9 @@ async def status(x_user_token: Optional[str] = Header(None)):
         "current_period_end": (row["current_period_end"].isoformat()
                                if row.get("current_period_end") else None),
         "price_eur": PRICE_EUR_CENTS / 100.0,
+        "trial_eligible": _trial_eligible(row),
+        "trial_days": TRIAL_DAYS,
+        "trialing": row["status"] == "trialing",
     }
 
 
@@ -280,6 +300,15 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
             )
 
     base = _base_url()
+    subscription_data = {
+        "metadata": {
+            "user_id": str(user["id"]),
+            "type": "daily_report",
+        }
+    }
+    trial_granted = _trial_eligible(row)
+    if trial_granted:
+        subscription_data["trial_period_days"] = TRIAL_DAYS
     try:
         session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -292,18 +321,13 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
                 "user_id": str(user["id"]),
                 "type": "daily_report",
             },
-            subscription_data={
-                "metadata": {
-                    "user_id": str(user["id"]),
-                    "type": "daily_report",
-                }
-            },
+            subscription_data=subscription_data,
         )
     except Exception as e:
         logger.error(f"Daily report checkout creation failed: {e}", exc_info=True)
         raise HTTPException(500, "Failed to start checkout")
 
-    return {"checkout_url": session.url}
+    return {"checkout_url": session.url, "trial_granted": trial_granted}
 
 
 @router.post("/api/daily-report/confirm")
@@ -376,6 +400,7 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
                 status = %s,
                 current_period_end = %s,
                 stripe_mode = %s,
+                trial_used = TRUE,
                 updated_at = NOW()
             WHERE id = %s
         """, (subscription_id, customer_id, local_status, period_end_dt,
@@ -455,6 +480,7 @@ def handle_daily_report_checkout_completed(session: dict) -> bool:
                     status = %s,
                     current_period_end = %s,
                     stripe_mode = %s,
+                    trial_used = TRUE,
                     updated_at = NOW()
                 WHERE id = %s
             """, (subscription_id, customer_id, status_val, period_end_dt,
@@ -463,8 +489,8 @@ def handle_daily_report_checkout_completed(session: dict) -> bool:
             cur.execute("""
                 INSERT INTO user_daily_report_subs
                     (user_id, status, stripe_subscription_id, stripe_customer_id,
-                     current_period_end, stripe_mode)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                     current_period_end, stripe_mode, trial_used)
+                VALUES (%s, %s, %s, %s, %s, %s, TRUE)
             """, (user_id, status_val, subscription_id, customer_id,
                   period_end_dt, mode))
     logger.info(f"Daily report subscription activated for user {user_id}")
