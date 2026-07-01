@@ -68,4 +68,4 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 - **Gas Price Data:** OilPriceAPI
 - **Oil Price Data:** OilPriceAPI
 - **VIX Data:** Yahoo Finance (yfinance), FRED
-- **FX Data:** Oanda
+- **FX Data:** FRED (DEXUSEU, primary) with Yahoo Finance (EURUSD=X) fallback — replaced Oanda

@@ -10,3 +10,4 @@
 - [Daily report narrative cache](daily-digest-narrative-cache.md) — /api/v1/digest/daily LLM narrative cached per plan-level/day in daily_digest_ai_cache; within-day prose staleness intentional, numeric panels stay fresh.
 - [Brevo email patterns](brevo-email-patterns.md) — transactional /v3/smtp/email (sender from EMAIL_FROM) is the canonical send; list sends fetch contacts + use messageVersions (never shared to[]); list #7 = Energy Intelligence.
 - [Blog new-article newsletter](blog-article-newsletter.md) — publish auto-sends excerpt email once; gated by blog_users.newsletter_auto_send, guarded by blog_posts.newsletter_sent_at; fires from all 3 publish endpoints via BackgroundTasks.
+- [EUR/USD data source](eurusd-source.md) — OANDA retired; now FRED DEXUSEU primary + Yahoo EURUSD=X fallback; FRED lags ~2-4d so Yahoo fills fresh daily, FRED is authoritative for backfill.
