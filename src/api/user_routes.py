@@ -26,6 +26,7 @@ WELCOME_EMAIL_SUBJECT = "Welcome to EnergyRiskIQ – Your Energy Risk Intelligen
 
 def _build_welcome_email():
     login_link = f"{APP_URL}/users"
+    logo_url = f"{APP_URL}/static/logo.png"
 
     text_body = f"""Hi,
 
@@ -94,15 +95,24 @@ You can reply directly to this email at any time. We read every message and are 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{WELCOME_EMAIL_SUBJECT}</title>
 </head>
-<body style="margin:0; padding:0; background-color:#0b0f19; font-family:Arial, Helvetica, sans-serif; color:#1a1a1a; -webkit-text-size-adjust:100%;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0f19; padding:24px 0;">
+<body style="margin:0; padding:0; background-color:#0f172a; font-family:Arial, Helvetica, sans-serif; color:#1a1a1a; -webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f172a; padding:24px 0;">
     <tr>
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
           <tr>
-            <td style="background-color:#0b0f19; padding:28px 32px; text-align:center;">
-              <h1 style="margin:0; color:#d4a017; font-size:22px; letter-spacing:0.5px;">EnergyRiskIQ</h1>
-              <p style="margin:6px 0 0; color:#94a3b8; font-size:13px;">Energy Risk Intelligence</p>
+            <td style="background-color:#0f172a; padding:28px 32px; text-align:center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
+                <tr>
+                  <td style="vertical-align:middle; padding-right:12px;">
+                    <img src="{logo_url}" alt="EnergyRiskIQ" width="40" height="40" style="display:block; border:0; outline:none; text-decoration:none;">
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <span style="color:#d4a017; font-size:22px; font-weight:bold; letter-spacing:0.5px;">EnergyRiskIQ</span>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:12px 0 0; color:#94a3b8; font-size:13px;">Energy Risk Intelligence</p>
             </td>
           </tr>
           <tr>
@@ -112,7 +122,7 @@ You can reply directly to this email at any time. We read every message and are 
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Energy markets don't move on headlines alone. They move on changes in risk, supply, demand, and market sentiment.</p>
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Our mission is to help traders, analysts, risk managers, procurement teams, and energy professionals understand those risks before they are fully reflected in market prices.</p>
 
-              <h2 style="margin:28px 0 12px; font-size:18px; color:#0b0f19;">What you'll find inside your account</h2>
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0f172a;">What you'll find inside your account</h2>
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Your dashboard gives you access to a growing set of intelligence tools designed to help you monitor global energy markets, including:</p>
               <ul style="margin:0 0 16px; padding-left:20px; font-size:16px; line-height:1.7;">
                 <li><strong>GERI (Global Energy Risk Index)</strong> – Track global geopolitical and energy risk.</li>
@@ -123,13 +133,13 @@ You can reply directly to this email at any time. We read every message and are 
               </ul>
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Whether you're following Brent crude, European gas, LNG, or broader energy security, EnergyRiskIQ helps turn information overload into structured market intelligence.</p>
 
-              <h2 style="margin:28px 0 12px; font-size:18px; color:#0b0f19;">Where to begin</h2>
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0f172a;">Where to begin</h2>
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">We recommend starting with these three steps:</p>
               <p style="margin:0 0 12px; font-size:16px; line-height:1.6;"><strong>1. Open your dashboard</strong><br>See today's risk indicators, market overview, and intelligence updates.</p>
               <p style="margin:0 0 12px; font-size:16px; line-height:1.6;"><strong>2. Explore GERI</strong><br>Discover how geopolitical developments are quantified into a daily risk score that helps put today's headlines into context.</p>
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;"><strong>3. Ask ERIQ AI a question</strong><br>Want to understand why a risk indicator changed? Curious about an energy market event? ERIQ is available to help explain it.</p>
 
-              <h2 style="margin:28px 0 12px; font-size:18px; color:#0b0f19;">Over the next two weeks</h2>
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0f172a;">Over the next two weeks</h2>
               <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">We'll send a few short emails showing you how to get the most from your account, including:</p>
               <ul style="margin:0 0 16px; padding-left:20px; font-size:16px; line-height:1.7;">
                 <li>Understanding GERI and EERI</li>
@@ -143,7 +153,7 @@ You can reply directly to this email at any time. We read every message and are 
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
                 <tr>
                   <td align="center" style="border-radius:8px; background-color:#d4a017;">
-                    <a href="{login_link}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0b0f19; text-decoration:none; border-radius:8px;">👉 Log in now and explore your dashboard</a>
+                    <a href="{login_link}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0f172a; text-decoration:none; border-radius:8px;">👉 Log in now and explore your dashboard</a>
                   </td>
                 </tr>
               </table>
