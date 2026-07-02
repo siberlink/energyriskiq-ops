@@ -1,0 +1,59 @@
+Hi {{first_name}},
+
+Welcome to **EnergyRiskIQ**—and thank you for creating your free account.
+
+Energy markets don't move on headlines alone. They move on changes in risk, supply, demand, and market sentiment.
+
+Our mission is to help traders, analysts, risk managers, procurement teams, and energy professionals understand those risks before they are fully reflected in market prices.
+
+## What you'll find inside your account
+
+Your dashboard gives you access to a growing set of intelligence tools designed to help you monitor global energy markets, including:
+
+* **GERI (Global Energy Risk Index)** – Track global geopolitical and energy risk.
+* **EERI (Europe Energy Risk Index)** – Monitor risks affecting European energy markets.
+* **EGSI** – Follow European gas storage and supply conditions.
+* **Daily Intelligence** – Structured analysis of the events shaping oil, natural gas, LNG, and electricity markets.
+* **EnergyRiskIQ AI (ERIQ)** – Your AI analyst, ready to explain indicators, geopolitical developments, and market events in plain English.
+
+Whether you're following Brent crude, European gas, LNG, or broader energy security, EnergyRiskIQ helps turn information overload into structured market intelligence.
+
+## Where to begin
+
+We recommend starting with these three steps:
+
+**1. Open your dashboard**
+See today's risk indicators, market overview, and intelligence updates.
+
+**2. Explore GERI**
+Discover how geopolitical developments are quantified into a daily risk score that helps put today's headlines into context.
+
+**3. Ask ERIQ AI a question**
+Want to understand why a risk indicator changed? Curious about an energy market event? ERIQ is available to help explain it.
+
+## Over the next two weeks
+
+We'll send a few short emails showing you how to get the most from your account, including:
+
+* Understanding GERI and EERI
+* Reading energy risk signals
+* Using ERIQ AI effectively
+* Interpreting Daily Intelligence Reports
+* Unlocking additional professional features
+
+Our goal is simple: help you make better-informed decisions through structured energy risk intelligence.
+
+**👉 Log in now and explore your dashboard.**
+
+Thank you for joining the EnergyRiskIQ community.
+
+Kind regards,
+
+**Emil Constantinescu**
+Founder, EnergyRiskIQ
+
+---
+
+**Need assistance?**
+
+You can reply directly to this email at any time. We read every message and are always happy to help. You can also submit a support request from inside your EnergyRiskIQ account if you need technical assistance.

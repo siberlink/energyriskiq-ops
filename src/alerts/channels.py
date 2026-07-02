@@ -16,23 +16,32 @@ TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
 
 
-def send_email(to_email: str, subject: str, body: str) -> tuple:
+def send_email(to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> tuple:
     if not to_email:
         return False, "No email address provided", None
     
     if EMAIL_PROVIDER == 'resend':
-        return _send_resend(to_email, subject, body)
+        return _send_resend(to_email, subject, body, html_body)
     elif EMAIL_PROVIDER == 'brevo':
-        return _send_brevo(to_email, subject, body)
+        return _send_brevo(to_email, subject, body, html_body)
     else:
         logger.error(f"Email provider '{EMAIL_PROVIDER}' not recognized - cannot send email")
         return False, f"Unknown email provider: {EMAIL_PROVIDER}", None
 
 
-def _send_resend(to_email: str, subject: str, body: str) -> tuple:
+def _send_resend(to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> tuple:
     if not RESEND_API_KEY:
         logger.error("RESEND_API_KEY not set - cannot send email")
         return False, "RESEND_API_KEY not configured", None
+    
+    payload = {
+        "from": EMAIL_FROM,
+        "to": [to_email],
+        "subject": subject,
+        "text": body
+    }
+    if html_body:
+        payload["html"] = html_body
     
     try:
         response = requests.post(
@@ -41,12 +50,7 @@ def _send_resend(to_email: str, subject: str, body: str) -> tuple:
                 "Authorization": f"Bearer {RESEND_API_KEY}",
                 "Content-Type": "application/json"
             },
-            json={
-                "from": EMAIL_FROM,
-                "to": [to_email],
-                "subject": subject,
-                "text": body
-            },
+            json=payload,
             timeout=30
         )
         
@@ -74,12 +78,21 @@ def _parse_email_from(email_from: str) -> dict:
     return {"email": email_from.strip()}
 
 
-def _send_brevo(to_email: str, subject: str, body: str) -> tuple:
+def _send_brevo(to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> tuple:
     if not BREVO_API_KEY:
         logger.error("BREVO_API_KEY not set - cannot send email")
         return False, "BREVO_API_KEY not configured", None
     
     sender = _parse_email_from(EMAIL_FROM)
+    
+    payload = {
+        "sender": sender,
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": body
+    }
+    if html_body:
+        payload["htmlContent"] = html_body
     
     try:
         response = requests.post(
@@ -88,12 +101,7 @@ def _send_brevo(to_email: str, subject: str, body: str) -> tuple:
                 "api-key": BREVO_API_KEY,
                 "Content-Type": "application/json"
             },
-            json={
-                "sender": sender,
-                "to": [{"email": to_email}],
-                "subject": subject,
-                "textContent": body
-            },
+            json=payload,
             timeout=30
         )
         

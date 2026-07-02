@@ -21,6 +21,153 @@ SESSION_DURATION = 7 * 24 * 60 * 60
 
 APP_URL = os.environ.get("APP_URL", "https://energyriskiq.replit.app")
 
+WELCOME_EMAIL_SUBJECT = "Welcome to EnergyRiskIQ – Your Energy Risk Intelligence Dashboard"
+
+
+def _build_welcome_email():
+    login_link = f"{APP_URL}/users"
+
+    text_body = f"""Hi,
+
+Welcome to EnergyRiskIQ—and thank you for creating your free account.
+
+Energy markets don't move on headlines alone. They move on changes in risk, supply, demand, and market sentiment.
+
+Our mission is to help traders, analysts, risk managers, procurement teams, and energy professionals understand those risks before they are fully reflected in market prices.
+
+What you'll find inside your account
+
+Your dashboard gives you access to a growing set of intelligence tools designed to help you monitor global energy markets, including:
+
+* GERI (Global Energy Risk Index) – Track global geopolitical and energy risk.
+* EERI (Europe Energy Risk Index) – Monitor risks affecting European energy markets.
+* EGSI – Follow European gas storage and supply conditions.
+* Daily Intelligence – Structured analysis of the events shaping oil, natural gas, LNG, and electricity markets.
+* EnergyRiskIQ AI (ERIQ) – Your AI analyst, ready to explain indicators, geopolitical developments, and market events in plain English.
+
+Whether you're following Brent crude, European gas, LNG, or broader energy security, EnergyRiskIQ helps turn information overload into structured market intelligence.
+
+Where to begin
+
+We recommend starting with these three steps:
+
+1. Open your dashboard
+See today's risk indicators, market overview, and intelligence updates.
+
+2. Explore GERI
+Discover how geopolitical developments are quantified into a daily risk score that helps put today's headlines into context.
+
+3. Ask ERIQ AI a question
+Want to understand why a risk indicator changed? Curious about an energy market event? ERIQ is available to help explain it.
+
+Over the next two weeks
+
+We'll send a few short emails showing you how to get the most from your account, including:
+
+* Understanding GERI and EERI
+* Reading energy risk signals
+* Using ERIQ AI effectively
+* Interpreting Daily Intelligence Reports
+* Unlocking additional professional features
+
+Our goal is simple: help you make better-informed decisions through structured energy risk intelligence.
+
+Log in now and explore your dashboard: {login_link}
+
+Thank you for joining the EnergyRiskIQ community.
+
+Kind regards,
+
+Emil Constantinescu
+Founder, EnergyRiskIQ
+
+---
+
+Need assistance?
+
+You can reply directly to this email at any time. We read every message and are always happy to help. You can also submit a support request from inside your EnergyRiskIQ account if you need technical assistance."""
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{WELCOME_EMAIL_SUBJECT}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#0b0f19; font-family:Arial, Helvetica, sans-serif; color:#1a1a1a; -webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0b0f19; padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+          <tr>
+            <td style="background-color:#0b0f19; padding:28px 32px; text-align:center;">
+              <h1 style="margin:0; color:#d4a017; font-size:22px; letter-spacing:0.5px;">EnergyRiskIQ</h1>
+              <p style="margin:6px 0 0; color:#94a3b8; font-size:13px;">Energy Risk Intelligence</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Hi,</p>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Welcome to <strong>EnergyRiskIQ</strong>—and thank you for creating your free account.</p>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Energy markets don't move on headlines alone. They move on changes in risk, supply, demand, and market sentiment.</p>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Our mission is to help traders, analysts, risk managers, procurement teams, and energy professionals understand those risks before they are fully reflected in market prices.</p>
+
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0b0f19;">What you'll find inside your account</h2>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Your dashboard gives you access to a growing set of intelligence tools designed to help you monitor global energy markets, including:</p>
+              <ul style="margin:0 0 16px; padding-left:20px; font-size:16px; line-height:1.7;">
+                <li><strong>GERI (Global Energy Risk Index)</strong> – Track global geopolitical and energy risk.</li>
+                <li><strong>EERI (Europe Energy Risk Index)</strong> – Monitor risks affecting European energy markets.</li>
+                <li><strong>EGSI</strong> – Follow European gas storage and supply conditions.</li>
+                <li><strong>Daily Intelligence</strong> – Structured analysis of the events shaping oil, natural gas, LNG, and electricity markets.</li>
+                <li><strong>EnergyRiskIQ AI (ERIQ)</strong> – Your AI analyst, ready to explain indicators, geopolitical developments, and market events in plain English.</li>
+              </ul>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Whether you're following Brent crude, European gas, LNG, or broader energy security, EnergyRiskIQ helps turn information overload into structured market intelligence.</p>
+
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0b0f19;">Where to begin</h2>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">We recommend starting with these three steps:</p>
+              <p style="margin:0 0 12px; font-size:16px; line-height:1.6;"><strong>1. Open your dashboard</strong><br>See today's risk indicators, market overview, and intelligence updates.</p>
+              <p style="margin:0 0 12px; font-size:16px; line-height:1.6;"><strong>2. Explore GERI</strong><br>Discover how geopolitical developments are quantified into a daily risk score that helps put today's headlines into context.</p>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;"><strong>3. Ask ERIQ AI a question</strong><br>Want to understand why a risk indicator changed? Curious about an energy market event? ERIQ is available to help explain it.</p>
+
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0b0f19;">Over the next two weeks</h2>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">We'll send a few short emails showing you how to get the most from your account, including:</p>
+              <ul style="margin:0 0 16px; padding-left:20px; font-size:16px; line-height:1.7;">
+                <li>Understanding GERI and EERI</li>
+                <li>Reading energy risk signals</li>
+                <li>Using ERIQ AI effectively</li>
+                <li>Interpreting Daily Intelligence Reports</li>
+                <li>Unlocking additional professional features</li>
+              </ul>
+              <p style="margin:0 0 24px; font-size:16px; line-height:1.6;">Our goal is simple: help you make better-informed decisions through structured energy risk intelligence.</p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+                <tr>
+                  <td align="center" style="border-radius:8px; background-color:#d4a017;">
+                    <a href="{login_link}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0b0f19; text-decoration:none; border-radius:8px;">👉 Log in now and explore your dashboard</a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Thank you for joining the EnergyRiskIQ community.</p>
+              <p style="margin:0 0 4px; font-size:16px; line-height:1.6;">Kind regards,</p>
+              <p style="margin:0; font-size:16px; line-height:1.6;"><strong>Emil Constantinescu</strong><br>Founder, EnergyRiskIQ</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f1f5f9; padding:20px 32px; font-size:13px; line-height:1.6; color:#64748b;">
+              <p style="margin:0 0 6px;"><strong>Need assistance?</strong></p>
+              <p style="margin:0;">You can reply directly to this email at any time. We read every message and are always happy to help. You can also submit a support request from inside your EnergyRiskIQ account if you need technical assistance.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+    return text_body, html_body
+
 
 class SignupRequest(BaseModel):
     email: EmailStr
@@ -248,6 +395,14 @@ def set_password(body: SetPasswordRequest):
             INSERT INTO sessions (token, user_id, expires_at)
             VALUES (%s, %s, %s)
         """, (session_token, user_id, expires_at))
+    
+    try:
+        welcome_text, welcome_html = _build_welcome_email()
+        success, error, _ = send_email(email, WELCOME_EMAIL_SUBJECT, welcome_text, html_body=welcome_html)
+        if not success:
+            logger.error(f"Failed to send welcome email to {email}: {error}")
+    except Exception as e:
+        logger.error(f"Error sending welcome email to {email}: {e}")
     
     return {
         "success": True,
