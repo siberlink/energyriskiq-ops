@@ -1009,6 +1009,68 @@ def get_linkedin_report_data() -> dict:
     return compute_daily_digest("enterprise", 4)
 
 
+def warm_daily_digest_cache() -> dict:
+    """Pre-generate and cache the Daily Intelligence Report AI narrative for every
+    distinct plan level. Intended to run right after the daily indices (GERI/EERI/
+    EGSI) are computed, so the report is ready the moment a user opens it instead of
+    triggering a multi-second LLM call on first access.
+
+    Only the AI narrative is expensive; it is cached per plan-level/day in
+    daily_digest_ai_cache. This mirrors exactly what GET /api/v1/digest/daily does
+    (plan -> plan_level via PLAN_LEVELS -> compute_daily_digest), so the cache keys
+    it warms are the same ones the endpoint reads. Idempotent: a level already
+    cached for the day is reused rather than regenerated."""
+    results = []
+    seen_levels = set()
+    for plan_name, plan_level in PLAN_LEVELS.items():
+        if plan_level in seen_levels:
+            continue
+        seen_levels.add(plan_level)
+
+        is_delayed = plan_level == 0
+        digest_day = (
+            (date.today() - timedelta(days=2)).isoformat()
+            if is_delayed
+            else (date.today() - timedelta(days=1)).isoformat()
+        )
+        cache_key = f"v1:{plan_level}:{digest_day}:{'d' if is_delayed else 'l'}"
+        was_cached = get_cached_ai_narrative(cache_key) is not None
+
+        try:
+            digest = compute_daily_digest(plan_name, plan_level)
+            narrative = digest.get("ai_narrative") or ""
+            results.append({
+                "plan_level": plan_level,
+                "cache_key": cache_key,
+                "was_cached": was_cached,
+                "generated": (not was_cached) and bool(narrative),
+                "narrative_chars": len(narrative),
+                "ok": True,
+            })
+        except Exception as e:
+            logger.error(f"Daily digest warm failed for plan_level {plan_level}: {e}")
+            results.append({
+                "plan_level": plan_level,
+                "cache_key": cache_key,
+                "ok": False,
+                "error": str(e),
+            })
+
+    failed = [r for r in results if not r.get("ok")]
+    if failed:
+        # Surface failures so the caller (run_job_with_lock -> 500) and the daily
+        # workflow step report a real failure instead of a false-green run.
+        levels = ", ".join(str(r.get("plan_level")) for r in failed)
+        raise RuntimeError(f"Daily digest warm failed for plan level(s): {levels}")
+
+    return {
+        "levels_warmed": sorted(seen_levels),
+        "generated": sum(1 for r in results if r.get("generated")),
+        "reused": sum(1 for r in results if r.get("was_cached")),
+        "results": results,
+    }
+
+
 def get_upgrade_hints(plan_level: int):
     hints = []
     if plan_level < 1:

@@ -151,6 +151,29 @@ jobs:
             echo "status=failed" >> $GITHUB_OUTPUT
           fi
 
+      - name: Pre-generate Daily Intelligence Report
+        id: daily_report
+        if: always()
+        run: |
+          echo "Warming Daily Intelligence Report cache after indices are computed..."
+          response=$(curl -s -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/daily-report" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "Daily Intelligence Report pre-generation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Daily Intelligence Report pre-generation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deliver Index & Digest to Users
         id: delivery
         if: steps.geri.outputs.status == 'success'
@@ -191,4 +214,5 @@ jobs:
           echo "| LNG Price | ${{ steps.lng_price.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EGSI-M | ${{ steps.egsi_m.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EGSI-S | ${{ steps.egsi_s.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Daily Report | ${{ steps.daily_report.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Delivery | ${{ steps.delivery.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY

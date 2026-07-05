@@ -36,6 +36,7 @@ LOCK_IDS = {
     'geri_compute': 6001,
     'intraday_price_capture': 6002,
     'linkedin_post': 6003,
+    'daily_report': 6004,
 }
 
 
@@ -100,6 +101,26 @@ def run_linkedin_post(x_runner_token: Optional[str] = Header(None)):
     from src.linkedin.post_generator import scheduled_generate
 
     response, status_code = run_job_with_lock('linkedin_post', scheduled_generate)
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+    return response
+
+
+@router.post("/run/daily-report")
+def run_daily_report(x_runner_token: Optional[str] = Header(None)):
+    """Pre-generate (warm) the Daily Intelligence Report AI narrative cache for all
+    plan levels. Meant to run right after GERI/EERI/EGSI are computed by the daily
+    index workflow, so the report is ready instantly on first user access instead of
+    being generated lazily. Idempotent (advisory-locked; already-cached levels are
+    reused)."""
+    validate_runner_token(x_runner_token)
+
+    from src.api.daily_digest_routes import warm_daily_digest_cache
+
+    response, status_code = run_job_with_lock('daily_report', warm_daily_digest_cache)
 
     if status_code == 409:
         raise HTTPException(status_code=409, detail=response)
