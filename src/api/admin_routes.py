@@ -1,4 +1,5 @@
 import os
+import html as _html
 import secrets
 import hashlib
 import time
@@ -18,6 +19,8 @@ from src.plans.plan_helpers import (
 )
 from src.db.db import get_cursor
 from src.billing.stripe_client import get_stripe_mode, set_stripe_mode, get_free_trial_days, set_free_trial_days, get_banner_settings, set_banner_settings
+
+APP_URL = os.environ.get("APP_URL", "https://energyriskiq.replit.app")
 
 logger = logging.getLogger(__name__)
 
@@ -690,6 +693,70 @@ def _update_campaign(campaign_id: int, **fields):
         logger.error(f"Bulk email campaign {campaign_id} update failed: {e}")
 
 
+def _bulk_body_to_html(body: str, content_type: str) -> str:
+    """Normalise the composer body into HTML fit for the branded template.
+    HTML bodies are inserted as-is; plain-text bodies are escaped and newlines
+    converted to line breaks."""
+    if content_type == "text":
+        return _html.escape(body).replace("\n", "<br>\n")
+    return body
+
+
+def _build_bulk_email_html(subject: str, body_html: str) -> str:
+    """Wrap an admin newsletter subject + body in the branded EnergyRiskIQ
+    template (navy background, logo header, footer with founder signature).
+    Mirrors the welcome email styling in src/api/user_routes.py."""
+    logo_url = f"{APP_URL}/static/logo.png"
+    safe_subject = _html.escape(subject, quote=True)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{safe_subject}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#0f172a; font-family:Arial, Helvetica, sans-serif; color:#1a1a1a; -webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f172a; padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+          <tr>
+            <td style="background-color:#0f172a; padding:28px 32px; text-align:center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
+                <tr>
+                  <td style="vertical-align:middle; padding-right:12px;">
+                    <img src="{logo_url}" alt="EnergyRiskIQ" width="40" height="40" style="display:block; border:0; outline:none; text-decoration:none;">
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <span style="color:#d4a017; font-size:22px; font-weight:bold; letter-spacing:0.5px;">EnergyRiskIQ</span>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:12px 0 0; color:#94a3b8; font-size:13px;">Energy Risk Intelligence</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="margin:0 0 20px; font-size:22px; line-height:1.35; color:#0f172a;">{safe_subject}</h1>
+              <div style="font-size:16px; line-height:1.6; color:#1a1a1a;">{body_html}</div>
+              <p style="margin:28px 0 4px; font-size:16px; line-height:1.6;">Kind regards,</p>
+              <p style="margin:0; font-size:16px; line-height:1.6;"><strong>Emil C</strong><br>Founder, EnergyRiskIQ</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f1f5f9; padding:20px 32px; font-size:13px; line-height:1.6; color:#64748b;">
+              <p style="margin:0 0 6px;"><strong>EnergyRiskIQ</strong> — Energy Risk Intelligence</p>
+              <p style="margin:0;">You are receiving this email because you have an EnergyRiskIQ account. You can reply directly to this email at any time.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+
 def _run_bulk_email(campaign_id: int, subject: str, body: str,
                     content_type: str, emails: List[str]):
     brevo_api_key = os.environ.get("BREVO_API_KEY")
@@ -698,18 +765,9 @@ def _run_bulk_email(campaign_id: int, subject: str, body: str,
         return
 
     sender = _email_sender()
-    is_text = (content_type == "text")
-    if is_text:
-        content_field = {"textContent": body}
-    else:
-        html = (
-            f'<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'
-            f'padding:20px;color:#1e293b;line-height:1.6;">{body}'
-            f'<hr style="border:1px solid #e2e8f0;margin:24px 0 12px;">'
-            f'<p style="color:#94a3b8;font-size:11px;">Sent from EnergyRiskIQ. '
-            f'You are receiving this because you have an EnergyRiskIQ account.</p></div>'
-        )
-        content_field = {"htmlContent": html}
+    body_html = _bulk_body_to_html(body, content_type)
+    full_html = _build_bulk_email_html(subject, body_html)
+    content_field = {"htmlContent": full_html}
 
     sent = 0
     failed = 0
@@ -829,3 +887,59 @@ def admin_bulk_email_status(campaign_id: int, x_admin_token: Optional[str] = Hea
         "status": row["status"],
         "error": row["error"],
     }
+
+
+class SendBulkEmailTestRequest(BaseModel):
+    subject: str
+    body: str
+    content_type: str = "html"
+    to_email: str
+
+
+@router.post("/users/send-bulk-email-test")
+def admin_send_bulk_email_test(body: SendBulkEmailTestRequest, x_admin_token: Optional[str] = Header(None)):
+    """Send a single test copy of a bulk email, rendered with the exact same
+    branded template used for the full send, so admins can review before blasting."""
+    verify_admin_token(x_admin_token)
+
+    subject = (body.subject or "").strip()
+    content = (body.body or "").strip()
+    to_email = (body.to_email or "").strip()
+    content_type = body.content_type if body.content_type in ("html", "text") else "html"
+    if not subject or not content:
+        raise HTTPException(status_code=400, detail="Subject and body are required")
+    if not to_email or "@" not in to_email:
+        raise HTTPException(status_code=400, detail="A valid test recipient email is required")
+
+    brevo_api_key = os.environ.get("BREVO_API_KEY")
+    if not brevo_api_key:
+        raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
+
+    body_html = _bulk_body_to_html(content, content_type)
+    full_html = _build_bulk_email_html(subject, body_html)
+    sender = _email_sender()
+
+    try:
+        resp = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={"api-key": brevo_api_key, "Content-Type": "application/json"},
+            json={
+                "sender": sender,
+                "to": [{"email": to_email}],
+                "subject": f"[TEST] {subject}",
+                "htmlContent": full_html,
+            },
+            timeout=30,
+        )
+        if resp.status_code in (200, 201, 202):
+            message_id = resp.json().get("messageId")
+            logger.info(f"Bulk email TEST sent to {to_email}, subject='{subject}', messageId={message_id}")
+            return {"success": True, "message": f"Test email sent to {to_email}", "message_id": message_id}
+        error = f"Brevo API error: {resp.status_code} - {resp.text}"
+        logger.error(f"Bulk email test send failed: {error}")
+        raise HTTPException(status_code=500, detail=error)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Bulk email test send failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

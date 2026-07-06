@@ -1572,6 +1572,11 @@
                                 </div>
                                 <div id="bulkProgressText" style="color:#cbd5e1;font-size:12px;">Starting…</div>
                             </div>
+                            <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;padding-top:14px;border-top:1px solid #1e293b;">
+                                <span style="color:#94a3b8;font-size:12px;white-space:nowrap;">Send a test to:</span>
+                                <input type="email" id="bulkTestEmail" value="emilconstantin22@gmail.com" placeholder="test@example.com" style="flex:1;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px 12px;border-radius:6px;font-size:13px;box-sizing:border-box;">
+                                <button onclick="sendBulkTest()" id="sendBulkTestBtn" style="background:#0ea5e9;color:white;border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">Send Test</button>
+                            </div>
                             <div style="display:flex;gap:10px;justify-content:flex-end;">
                                 <button onclick="closeBulkEmailComposer()" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;">Close</button>
                                 <button onclick="sendBulkEmail()" id="sendBulkEmailBtn" style="background:#8b5cf6;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Send to All Users</button>
@@ -5713,6 +5718,38 @@
                 showToast('Error: ' + e.message, 'error');
                 btn.disabled = false;
                 btn.textContent = 'Send to All Users';
+            }
+        }
+
+        async function sendBulkTest() {
+            const subject = document.getElementById('bulkSubject').value.trim();
+            const rawBody = document.getElementById('bulkBody').value.trim();
+            const contentType = document.getElementById('bulkContentType').value;
+            const toEmail = document.getElementById('bulkTestEmail').value.trim();
+
+            if (!subject) { showToast('Subject is required', 'error'); return; }
+            if (!rawBody) { showToast('Body is required', 'error'); return; }
+            if (!toEmail) { showToast('Test recipient email is required', 'error'); return; }
+
+            const body = contentType === 'html' ? convertNewlinesToBr(rawBody) : rawBody;
+
+            const btn = document.getElementById('sendBulkTestBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            try {
+                const res = await fetch('/admin/users/send-bulk-email-test', {
+                    method: 'POST',
+                    headers: { 'X-Admin-Token': sessionToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subject, body: body, content_type: contentType, to_email: toEmail })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Failed to send test');
+                showToast('Test email sent to ' + toEmail, 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Test';
             }
         }
 
