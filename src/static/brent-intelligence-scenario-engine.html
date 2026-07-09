@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Brent Intelligence Scenario Engine™ | EnergyRiskIQ</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #0e1422;
+      --bg-panel: #111a2c;
+      --card: rgba(255, 255, 255, 0.02);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --gold: #d4a017;
+      --gold-dim: rgba(212, 160, 23, 0.2);
+      --cyan: #22d3ee;
+      --cyan-dim: rgba(34, 211, 238, 0.15);
+      --red: #ef4444;
+      --green: #10b981;
+      --font-main: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      line-height: 1.5;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input, select { font-family: inherit; }
+
+    /* Layout */
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    /* Auth Overlay */
+    #auth-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(14, 20, 34, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .auth-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--gold-dim);
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .auth-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--gold); }
+    .auth-desc { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+    .auth-field { margin-bottom: 16px; }
+    .auth-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .auth-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 6px; outline: none; }
+    .auth-input:focus { border-color: var(--gold); }
+    .auth-btn { width: 100%; background: var(--gold); color: #000; font-weight: 800; padding: 14px; border-radius: 6px; font-size: 14px; margin-top: 8px; transition: opacity 0.2s; }
+    .auth-btn:hover { opacity: 0.9; }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .auth-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
+    .auth-links { margin-top: 24px; text-align: center; font-size: 13px; }
+
+    /* App content */
+    #app-content {
+      transition: filter 0.3s ease;
+    }
+    .blurred { filter: blur(5px); pointer-events: none; user-select: none; }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand { font-size: 18px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 12px; }
+    .brand-gold { color: var(--gold); }
+    .live-pill { background: var(--cyan-dim); border: 1px solid var(--cyan); color: var(--cyan); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+    .live-pill::before { content: ''; width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 8px var(--cyan); }
+    .user-nav { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); }
+    .logout-btn { color: var(--text-faint); cursor: pointer; }
+    .logout-btn:hover { color: var(--text); }
+
+    /* Welcome Banner */
+    #welcome-banner { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--green); color: #fff; padding: 16px 20px; border-radius: 8px; margin-bottom: 30px; display: none; justify-content: space-between; align-items: center; }
+    .wb-close { color: var(--text-muted); cursor: pointer; font-size: 20px; line-height: 1; }
+    .wb-close:hover { color: #fff; }
+
+    /* Section titles */
+    .section-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-faint); display: flex; align-items: center; gap: 10px; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Snapshot Grid */
+    .snap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .snap-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .snap-label { font-size: 11px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .snap-val { font-size: 20px; font-weight: 800; font-family: var(--font-mono); }
+    .snap-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+
+    /* Main split */
+    .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 30px; margin-bottom: 40px; }
+    @media(max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    /* Controls Panel */
+    .controls-panel { background: var(--bg-panel); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 24px; position: relative; }
+    .controls-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), transparent); border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    
+    .control-group { margin-bottom: 24px; }
+    .control-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; }
+    .control-val-disp { font-family: var(--font-mono); color: var(--gold); }
+    
+    input[type=range] { width: 100%; appearance: none; background: transparent; cursor: pointer; margin-top: 8px; }
+    input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; }
+    input[type=range]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: var(--gold); border-radius: 50%; margin-top: -6px; }
+    input[type=range]:focus { outline: none; }
+    
+    .select-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 6px; font-size: 14px; appearance: none; }
+    .select-input:focus { border-color: var(--gold); outline: none; }
+
+    .run-btn { width: 100%; background: var(--gold); color: #000; font-weight: 800; padding: 16px; border-radius: 8px; font-size: 15px; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
+    .run-btn:hover { opacity: 0.9; }
+    .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Results Area */
+    .results-area { display: flex; flex-direction: column; gap: 30px; }
+    
+    /* Horizons */
+    .horizons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .hz-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .hz-card.primary { border-color: var(--gold-dim); background: linear-gradient(180deg, rgba(212,160,23,0.05) 0%, transparent 100%); }
+    .hz-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .hz-range { font-size: 24px; font-weight: 800; font-family: var(--font-mono); margin-bottom: 4px; }
+    .hz-mid { font-size: 14px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 16px; }
+    .hz-meta { display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+    .badge-bullish { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+    .badge-bearish { background: rgba(239, 68, 68, 0.15); color: var(--red); }
+    .badge-neutral { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
+
+    /* Attribution & Interpretation */
+    .attr-interp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width: 768px) { .attr-interp-grid { grid-template-columns: 1fr; } }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .panel-title { font-size: 13px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    
+    .attr-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 13px; }
+    .attr-label { width: 100px; color: var(--text-muted); }
+    .attr-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; position: relative; }
+    .attr-bar { position: absolute; height: 100%; border-radius: 3px; }
+    .attr-bar.pos { background: var(--green); left: 50%; }
+    .attr-bar.neg { background: var(--red); right: 50%; }
+    .attr-val { width: 50px; text-align: right; font-family: var(--font-mono); font-weight: 700; }
+
+    .interp-text { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .interp-text strong { color: var(--text); }
+
+    /* Analogs */
+    .analogs-list { display: flex; flex-direction: column; gap: 12px; }
+    .analog-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 16px; border-radius: 8px; }
+    .analog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .analog-title { font-weight: 700; font-size: 14px; }
+    .analog-meta { font-family: var(--font-mono); font-size: 12px; color: var(--gold); }
+    .analog-desc { font-size: 13px; color: var(--text-muted); }
+
+    /* Risk Score */
+    .risk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    @media(max-width: 600px) { .risk-grid { grid-template-columns: 1fr 1fr; } }
+    .risk-gauge { text-align: center; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border); }
+    .rg-val { font-size: 24px; font-weight: 800; font-family: var(--font-mono); margin-bottom: 4px; }
+    .rg-label { font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Regional */
+    .regional-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media(max-width: 600px) { .regional-grid { grid-template-columns: 1fr 1fr; } }
+    .reg-card { padding: 12px; background: rgba(255,255,255,0.02); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; }
+
+    /* Confidence Reasons */
+    .conf-list { list-style: none; }
+    .conf-list li { position: relative; padding-left: 20px; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
+    .conf-list li::before { content: '→'; position: absolute; left: 0; color: var(--gold); }
+
+    /* Saved Scenarios & Footer */
+    .footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 40px; }
+    @media(max-width: 768px) { .footer-grid { grid-template-columns: 1fr; } }
+
+    .saved-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; max-height: 200px; overflow-y: auto; }
+    .saved-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+    .saved-item-actions { display: flex; gap: 8px; }
+    .btn-sm { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+    .btn-sm:hover { background: rgba(255,255,255,0.1); }
+    
+    .save-form { display: flex; gap: 10px; margin-top: 16px; }
+    .save-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+    
+    .ref-box { background: rgba(212, 160, 23, 0.05); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 16px; margin-top: 16px; }
+    .ref-link-wrap { display: flex; gap: 8px; margin: 12px 0; }
+    .ref-link { flex: 1; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); overflow-x: auto; white-space: nowrap; }
+    .stats-row { display: flex; gap: 20px; font-size: 13px; margin-top: 12px; }
+    .stats-row strong { color: var(--text); }
+
+    .small-print { margin-top: 40px; font-size: 11px; color: var(--text-faint); text-align: center; }
+    .small-print a { color: var(--text-muted); }
+
+    .loader { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="auth-overlay" style="display: none;">
+    <div class="auth-card">
+      <h1 class="auth-title">Sign in to Scenario Engine™</h1>
+      <p class="auth-desc">Enter your credentials to access the premium dashboard.</p>
+      
+      <div id="auth-error" class="auth-error"></div>
+      
+      <form id="login-form">
+        <div class="auth-field">
+          <label class="auth-label">Email Address</label>
+          <input type="email" id="login-email" class="auth-input" required>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Password</label>
+          <input type="password" id="login-password" class="auth-input" required>
+        </div>
+        <button type="submit" class="auth-btn" id="login-btn">Sign In</button>
+      </form>
+      
+      <div class="auth-links">
+        <span style="color: var(--text-muted)">Not a member yet?</span> 
+        <a href="#" id="trial-link">Start your 14-day free trial</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-content" class="blurred">
+    <div class="app-container">
+      
+      <!-- Header -->
+      <header class="header">
+        <div class="brand">
+          <span class="brand-gold">EnergyRiskIQ</span>
+          <span>Brent Intelligence Scenario Engine™</span>
+        </div>
+        <div class="user-nav">
+          <span class="live-pill" id="hdr-live-pill">GERI LIVE: --</span>
+          <span id="hdr-email">--</span>
+          <button class="logout-btn" id="logout-btn">Sign out</button>
+        </div>
+      </header>
+
+      <div id="welcome-banner">
+        <span id="wb-text"></span>
+        <span class="wb-close" id="wb-close">&times;</span>
+      </div>
+
+      <!-- Snapshot -->
+      <div class="section-title">Current Market Environment</div>
+      <div class="snap-grid" id="market-grid">
+        <div class="loader">Loading market data...</div>
+      </div>
+
+      <!-- Main Engine -->
+      <div class="main-grid">
+        
+        <!-- Controls -->
+        <aside class="controls-panel">
+          <div class="section-title" style="margin-bottom: 24px;">Scenario Parameters</div>
+          
+          <div class="control-group">
+            <div class="control-label">
+              <span>Geopolitical Risk (GERI)</span>
+              <span class="control-val-disp" id="val-geri">0%</span>
+            </div>
+            <input type="range" id="ctrl-geri" min="-50" max="100" value="0" step="5">
+          </div>
+          
+          <div class="control-group">
+            <div class="control-label">
+              <span>Financial Stress (VIX)</span>
+              <span class="control-val-disp" id="val-vix">0%</span>
+            </div>
+            <input type="range" id="ctrl-vix" min="-50" max="100" value="0" step="5">
+          </div>
+          
+          <div class="control-group">
+            <div class="control-label">
+              <span>European Gas Stress</span>
+              <span class="control-val-disp" id="val-gas">0%</span>
+            </div>
+            <input type="range" id="ctrl-gas" min="-50" max="100" value="0" step="5">
+          </div>
+          
+          <div class="control-group">
+            <div class="control-label"><span>Supply Scenario</span></div>
+            <select id="ctrl-supply" class="select-input">
+              <option value="normal">Normal / Status Quo</option>
+              <option value="opec_cut">OPEC+ Surprise Cut</option>
+              <option value="hormuz">Hormuz Disruption</option>
+              <option value="pipeline_attack">Major Pipeline Attack</option>
+              <option value="sanctions">New Tight Sanctions</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <div class="control-label"><span>Demand Outlook</span></div>
+            <select id="ctrl-demand" class="select-input">
+              <option value="weak">Weak (Recessionary)</option>
+              <option value="neutral" selected>Neutral</option>
+              <option value="strong">Strong (Growth Surprise)</option>
+            </select>
+          </div>
+
+          <button id="run-btn" class="run-btn">Run Scenario Analysis</button>
+          
+          <div style="margin-top: 16px; font-size: 11px; color: var(--text-faint); text-align: center;">
+            Base Brent: $<span id="base-brent">--</span>
+          </div>
+        </aside>
+
+        <!-- Results -->
+        <main class="results-area" id="results-area" style="opacity: 0.5; pointer-events: none;">
+          
+          <div class="horizons-grid" id="res-horizons">
+            <!-- Populated via JS -->
+            <div class="loader">Run a scenario to see projections.</div>
+          </div>
+
+          <div class="attr-interp-grid">
+            <div class="panel">
+              <div class="panel-title">Driver Attribution</div>
+              <div id="res-attr"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">AI Interpretation</div>
+              <div class="interp-text" id="res-interp"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Historical Analogs</div>
+            <div class="analogs-list" id="res-analogs"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Oil Market Risk Score</div>
+            <div class="risk-grid" id="res-risk-score"></div>
+            <div class="panel-title" style="margin-top: 20px;">Regional Risk Context</div>
+            <div class="regional-grid" id="res-regional"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Confidence Factors</div>
+            <ul class="conf-list" id="res-conf"></ul>
+            <div style="margin-top: 16px; font-size: 11px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 12px;" id="res-intel-footer">
+              Intelligence Footer
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      <!-- Footer Sections -->
+      <div class="footer-grid">
+        <div class="panel">
+          <div class="panel-title">Saved Scenarios</div>
+          <div class="save-form">
+            <input type="text" id="save-name" class="save-input" placeholder="Scenario name...">
+            <button class="btn-sm" id="save-btn" style="background: var(--gold); color: #000;">Save Current</button>
+            <button class="btn-sm" id="export-btn">Export .TXT</button>
+          </div>
+          <div class="saved-list" id="saved-list">
+            <div style="font-size: 13px; color: var(--text-muted);">Loading saved scenarios...</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Partner Referral Program</div>
+          <p style="font-size: 13px; color: var(--text-muted);">Share your link. Earn 40% recurring commission (€3.20/month) per active professional referral.</p>
+          <div class="ref-box">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase;">Your Referral Link</div>
+            <div class="ref-link-wrap">
+              <div class="ref-link" id="ref-url">--</div>
+              <button class="btn-sm" id="copy-ref-btn">Copy</button>
+            </div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; margin-top: 12px;">Embed Widget Code (with your referral)</div>
+            <div class="ref-link-wrap">
+              <div class="ref-link" id="ref-embed" style="white-space: pre-wrap; word-break: break-all;">--</div>
+              <button class="btn-sm" id="copy-embed-btn">Copy</button>
+            </div>
+            <div class="stats-row">
+              <div>Referrals: <strong id="ref-count">0</strong></div>
+              <div>Earned: <strong id="ref-earned">€0.00</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="small-print">
+        EnergyRiskIQ Brent Intelligence Scenario Engine™ is an analytical decision-support tool, not financial advice.<br>
+        Information provided is for educational and strategic planning purposes only. <a href="/data-license">Data License & Terms</a>.
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- State ---
+    let API_TOKEN = localStorage.getItem('brent_token');
+    let marketData = null;
+    let currentScenarioResult = null;
+
+    const DOM = {
+      overlay: document.getElementById('auth-overlay'),
+      content: document.getElementById('app-content'),
+      loginForm: document.getElementById('login-form'),
+      loginEmail: document.getElementById('login-email'),
+      loginPass: document.getElementById('login-password'),
+      loginBtn: document.getElementById('login-btn'),
+      authError: document.getElementById('auth-error'),
+      trialLink: document.getElementById('trial-link'),
+      logoutBtn: document.getElementById('logout-btn'),
+      
+      wb: document.getElementById('welcome-banner'),
+      wbText: document.getElementById('wb-text'),
+      wbClose: document.getElementById('wb-close'),
+      
+      hdrEmail: document.getElementById('hdr-email'),
+      hdrLive: document.getElementById('hdr-live-pill'),
+      marketGrid: document.getElementById('market-grid'),
+      
+      ctrlGeri: document.getElementById('ctrl-geri'),
+      ctrlVix: document.getElementById('ctrl-vix'),
+      ctrlGas: document.getElementById('ctrl-gas'),
+      ctrlSupply: document.getElementById('ctrl-supply'),
+      ctrlDemand: document.getElementById('ctrl-demand'),
+      valGeri: document.getElementById('val-geri'),
+      valVix: document.getElementById('val-vix'),
+      valGas: document.getElementById('val-gas'),
+      baseBrent: document.getElementById('base-brent'),
+      runBtn: document.getElementById('run-btn'),
+      
+      resArea: document.getElementById('results-area'),
+      resHorizons: document.getElementById('res-horizons'),
+      resAttr: document.getElementById('res-attr'),
+      resInterp: document.getElementById('res-interp'),
+      resAnalogs: document.getElementById('res-analogs'),
+      resRiskScore: document.getElementById('res-risk-score'),
+      resRegional: document.getElementById('res-regional'),
+      resConf: document.getElementById('res-conf'),
+      resIntelFooter: document.getElementById('res-intel-footer'),
+
+      saveName: document.getElementById('save-name'),
+      saveBtn: document.getElementById('save-btn'),
+      exportBtn: document.getElementById('export-btn'),
+      savedList: document.getElementById('saved-list'),
+
+      refUrl: document.getElementById('ref-url'),
+      refCount: document.getElementById('ref-count'),
+      refEarned: document.getElementById('ref-earned'),
+      copyRefBtn: document.getElementById('copy-ref-btn'),
+      refEmbed: document.getElementById('ref-embed'),
+      copyEmbedBtn: document.getElementById('copy-embed-btn')
+    };
+
+    // --- Helpers ---
+    const headers = () => ({ 'Content-Type': 'application/json', 'X-Brent-Token': API_TOKEN || '' });
+    const fmt = (n) => typeof n === 'number' ? n.toFixed(2) : '--';
+    const sign = (n) => n > 0 ? '+' : '';
+    
+    // --- Init ---
+    async function init() {
+      // Check for Stripe redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('session_id');
+      
+      if (sessionId) {
+        try {
+          const res = await fetch(`/api/brent-forecast/confirm?session_id=${sessionId}`);
+          const data = await res.json();
+          if (data.success && data.token) {
+            API_TOKEN = data.token;
+            localStorage.setItem('brent_token', API_TOKEN);
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            if (data.created) {
+              DOM.wbText.textContent = `Welcome! Your login credentials have been emailed to ${data.email}. Keep them safe.`;
+              DOM.wb.style.display = 'flex';
+            }
+          }
+        } catch (err) { console.error('Confirm error', err); }
+      }
+
+      checkAuth();
+    }
+
+    // --- Auth ---
+    async function checkAuth() {
+      if (!API_TOKEN) return showLogin();
+      
+      try {
+        const res = await fetch('/api/brent-forecast/me', { headers: headers() });
+        if (res.status === 402) return showLogin("Your subscription is not active.");
+        if (!res.ok) return showLogin();
+        
+        const data = await res.json();
+        if (!data.success || !data.active) return showLogin("Your subscription is not active.");
+        
+        // Authenticated
+        DOM.overlay.style.display = 'none';
+        DOM.content.classList.remove('blurred');
+        DOM.hdrEmail.textContent = data.email;
+        
+        if (data.welcome_banner_seen === false && DOM.wb.style.display === 'none') {
+          DOM.wbText.textContent = "Welcome! Your login credentials have been emailed. Keep them safe.";
+          DOM.wb.style.display = 'flex';
+        }
+
+        // Setup referral info
+        if (data.ref_code) {
+          DOM.refUrl.textContent = `https://energyriskiq.com/tools/brent-oil-risk-forecast?ref=${data.ref_code}`;
+          DOM.refEmbed.textContent = `<iframe src="https://energyriskiq.com/embed/brent-risk-widget?ref=${data.ref_code}" width="340" height="240" frameborder="0" title="Brent Oil Risk Forecast Widget"></iframe>`;
+          DOM.refCount.textContent = data.referrals || 0;
+          DOM.refEarned.textContent = `€${(data.commission_earned_eur || 0).toFixed(2)}`;
+        }
+
+        loadDashboard();
+      } catch (err) {
+        showLogin("Connection error. Please try again.");
+      }
+    }
+
+    function showLogin(msg = "") {
+      DOM.overlay.style.display = 'flex';
+      DOM.content.classList.add('blurred');
+      if (msg) {
+        DOM.authError.textContent = msg;
+        DOM.authError.style.display = 'block';
+      }
+    }
+
+    DOM.loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      DOM.authError.style.display = 'none';
+      DOM.loginBtn.disabled = true;
+      DOM.loginBtn.textContent = "Signing in...";
+      
+      try {
+        const res = await fetch('/api/brent-forecast/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: DOM.loginEmail.value, password: DOM.loginPass.value })
+        });
+        const data = await res.json();
+        
+        if (data.success && data.token) {
+          API_TOKEN = data.token;
+          localStorage.setItem('brent_token', API_TOKEN);
+          checkAuth();
+        } else {
+          showLogin(data.detail || "Invalid credentials");
+        }
+      } catch (err) {
+        showLogin("Login failed");
+      } finally {
+        DOM.loginBtn.disabled = false;
+        DOM.loginBtn.textContent = "Sign In";
+      }
+    };
+
+    DOM.logoutBtn.onclick = async () => {
+      if (API_TOKEN) {
+        await fetch('/api/brent-forecast/logout', { method: 'POST', headers: headers() });
+      }
+      API_TOKEN = null;
+      localStorage.removeItem('brent_token');
+      showLogin();
+    };
+
+    DOM.trialLink.onclick = async (e) => {
+      e.preventDefault();
+      try {
+        const refCode = localStorage.getItem('brent_ref') || undefined;
+        const res = await fetch('/api/brent-forecast/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(refCode ? { ref: refCode } : {})
+        });
+        const data = await res.json();
+        if (res.ok && data.checkout_url) window.location.href = data.checkout_url;
+        else alert("Could not initiate checkout. Please try again.");
+      } catch (err) { alert("Could not initiate checkout."); }
+    };
+
+    DOM.wbClose.onclick = async () => {
+      DOM.wb.style.display = 'none';
+      await fetch('/api/brent-forecast/welcome-seen', { method: 'POST', headers: headers() });
+    };
+
+    // --- Dashboard Data ---
+    async function loadDashboard() {
+      // 1. Market Data
+      try {
+        const res = await fetch('/api/brent-forecast/market', { headers: headers() });
+        const data = await res.json();
+        if (data.success && data.market) {
+          marketData = data.market;
+          renderMarketSnapshot(marketData);
+          DOM.baseBrent.textContent = fmt(marketData.brent_intraday || marketData.brent);
+          if (marketData.geri_live) DOM.hdrLive.textContent = `GERI LIVE: ${fmt(marketData.geri_live)}`;
+        }
+      } catch (err) { console.error('Market err', err); }
+
+      // 2. Load Scenarios
+      loadSavedScenarios();
+    }
+
+    function renderMarketSnapshot(m) {
+      const items = [
+        { label: 'Brent Crude', val: `$${fmt(m.brent_intraday || m.brent)}`, sub: m.brent_intraday ? 'Intraday Live' : 'Daily Close' },
+        { label: 'WTI Crude', val: `$${fmt(m.wti)}`, sub: 'Daily Close' },
+        { label: 'GERI Daily', val: fmt(m.geri), sub: m.geri_band || '' },
+        { label: 'GERI Live', val: fmt(m.geri_live), sub: `${m.geri_live_alerts || 0} alerts processed` },
+        { label: 'VIX Volatility', val: fmt(m.vix), sub: 'Financial Stress' },
+        { label: 'EERI', val: fmt(m.eeri), sub: m.eeri_band || 'European Energy Risk' },
+        { label: 'EGSI-M', val: fmt(m.egsi_m), sub: m.egsi_m_band || 'EU Gas Stress' },
+        { label: 'TTF Gas', val: `€${fmt(m.ttf)}`, sub: '/MWh' },
+        { label: 'JKM LNG', val: `$${fmt(m.lng)}`, sub: '/MMBtu' },
+        { label: 'EU Gas Storage', val: `${fmt(m.gas_storage)}%`, sub: 'Fullness' }
+      ];
+
+      DOM.marketGrid.innerHTML = items.map(i => `
+        <div class="snap-card">
+          <div class="snap-label">${i.label}</div>
+          <div class="snap-val">${i.val}</div>
+          <div class="snap-sub">${i.sub}</div>
+        </div>
+      `).join('');
+    }
+
+    // --- Controls ---
+    const updateDisplay = (el, val) => el.textContent = (val > 0 ? '+' : '') + val + '%';
+    DOM.ctrlGeri.oninput = (e) => updateDisplay(DOM.valGeri, e.target.value);
+    DOM.ctrlVix.oninput = (e) => updateDisplay(DOM.valVix, e.target.value);
+    DOM.ctrlGas.oninput = (e) => updateDisplay(DOM.valGas, e.target.value);
+
+    DOM.runBtn.onclick = async () => {
+      DOM.runBtn.disabled = true;
+      DOM.runBtn.textContent = "Running...";
+      
+      const payload = {
+        brent: marketData ? (marketData.brent_intraday || marketData.brent) : null,
+        geri_change_pct: parseFloat(DOM.ctrlGeri.value),
+        vix_change_pct: parseFloat(DOM.ctrlVix.value),
+        gas_stress_pct: parseFloat(DOM.ctrlGas.value),
+        supply_scenario: DOM.ctrlSupply.value,
+        demand_outlook: DOM.ctrlDemand.value
+      };
+
+      try {
+        const res = await fetch('/api/brent-forecast/scenario/advanced', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          currentScenarioResult = { params: payload, ...data };
+          renderResults(data);
+        } else {
+          alert("Error running scenario: " + (data.detail || "Unknown"));
+        }
+      } catch (err) {
+        alert("Connection error running scenario.");
+      } finally {
+        DOM.runBtn.disabled = false;
+        DOM.runBtn.textContent = "Run Scenario Analysis";
+      }
+    };
+
+    function renderResults(data) {
+      DOM.resArea.style.opacity = '1';
+      DOM.resArea.style.pointerEvents = 'auto';
+
+      // Horizons
+      const hNames = { "0_24h": "0–24 Hours (Live)", "24_48h": "24–48 Hours", "72h": "72 Hours", "7d": "7 Days" };
+      let hHtml = '';
+      for (const [key, name] of Object.entries(hNames)) {
+        if (!data.horizons[key]) continue;
+        const h = data.horizons[key];
+        const isPrimary = key === "0_24h";
+        const badgeCls = h.bias.toLowerCase() === 'bullish' ? 'badge-bullish' : h.bias.toLowerCase() === 'bearish' ? 'badge-bearish' : 'badge-neutral';
+        
+        hHtml += `
+          <div class="hz-card ${isPrimary ? 'primary' : ''}">
+            <div class="hz-label">${name} ${isPrimary ? '<span style="color:var(--gold)">Primary</span>' : ''}</div>
+            <div class="hz-range">$${fmt(h.expected_low)} – $${fmt(h.expected_high)}</div>
+            <div class="hz-mid">Modeled: $${fmt(h.most_likely)} (${sign(h.move_pct)}${fmt(h.move_pct)}%)</div>
+            <div class="hz-meta">
+              <span class="badge ${badgeCls}">${h.bias}</span>
+              <span>Conf: ${h.confidence}%</span>
+            </div>
+          </div>
+        `;
+      }
+      DOM.resHorizons.innerHTML = hHtml;
+
+      // Attribution
+      if (data.attribution) {
+        const a = data.attribution;
+        const maxAbs = Math.max(0.1, ...Object.values(a).map(v => Math.abs(v)));
+        
+        const renderBar = (lbl, val) => {
+          const w = (Math.abs(val) / maxAbs) * 100;
+          const cls = val >= 0 ? 'pos' : 'neg';
+          return `
+            <div class="attr-row">
+              <div class="attr-label">${lbl}</div>
+              <div class="attr-bar-wrap"><div class="attr-bar ${cls}" style="width:${w}%"></div></div>
+              <div class="attr-val" style="color: ${val >= 0 ? 'var(--green)' : 'var(--red)'}">${sign(val)}${fmt(val)}</div>
+            </div>
+          `;
+        };
+        
+        DOM.resAttr.innerHTML = `
+          ${renderBar('GERI Risk', a.geri)}
+          ${renderBar('Supply Shock', a.supply)}
+          ${renderBar('EU Gas Stress', a.gas_stress)}
+          ${renderBar('Financial VIX', a.vix)}
+          ${renderBar('Demand Outlook', a.demand)}
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);" class="attr-row">
+            <div class="attr-label" style="color: var(--text); font-weight: 800;">Total Impact</div>
+            <div class="attr-bar-wrap"></div>
+            <div class="attr-val" style="color: var(--text);">${sign(a.total)}${fmt(a.total)}%</div>
+          </div>
+        `;
+      }
+
+      // Interpretation
+      DOM.resInterp.innerHTML = data.interpretation || "No interpretation generated.";
+
+      // Analogs
+      if (data.analogs && data.analogs.length) {
+        DOM.resAnalogs.innerHTML = data.analogs.map(a => `
+          <div class="analog-item">
+            <div class="analog-header">
+              <div class="analog-title">${a.label}</div>
+              <div class="analog-meta">${a.match_pct}% Match</div>
+            </div>
+            <div class="analog-desc"><strong>Move:</strong> ${a.brent_move} | <strong>Duration:</strong> ${a.duration}<br>${a.outcome}</div>
+          </div>
+        `).join('');
+      } else {
+        DOM.resAnalogs.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">No strong historical analogs found for this exact parameter combination.</div>';
+      }
+
+      // Risk Score
+      if (data.risk_score) {
+        const rs = data.risk_score;
+        DOM.resRiskScore.innerHTML = `
+          <div class="risk-gauge"><div class="rg-val">${rs.supply_risk}</div><div class="rg-label">Supply Risk</div></div>
+          <div class="risk-gauge"><div class="rg-val">${rs.demand_risk}</div><div class="rg-label">Demand Risk</div></div>
+          <div class="risk-gauge"><div class="rg-val">${rs.financial_stress}</div><div class="rg-label">Fin Stress</div></div>
+          <div class="risk-gauge"><div class="rg-val">${rs.gas_stress}</div><div class="rg-label">Gas Stress</div></div>
+        `;
+      }
+
+      // Regional
+      if (data.regional_risk) {
+        DOM.resRegional.innerHTML = Object.entries(data.regional_risk).map(([k, v]) => `
+          <div class="reg-card"><span>${k}</span> <span style="color:var(--gold)">${v}</span></div>
+        `).join('');
+      }
+
+      // Confidence & Intel
+      if (data.confidence_reasons) {
+        DOM.resConf.innerHTML = data.confidence_reasons.map(r => `<li>${r}</li>`).join('');
+      }
+      if (data.intelligence) {
+        DOM.resIntelFooter.innerHTML = `Model Intelligence: GERI Live at ${fmt(data.intelligence.geri_live)} (${data.intelligence.geri_live_band}) based on ${data.intelligence.alerts_processed} alerts. As of ${data.intelligence.as_of || 'now'}.`;
+      }
+    }
+
+    // --- Saved Scenarios ---
+    async function loadSavedScenarios() {
+      try {
+        const res = await fetch('/api/brent-forecast/scenarios', { headers: headers() });
+        const data = await res.json();
+        if (data.success && data.scenarios) {
+          if (data.scenarios.length === 0) {
+            DOM.savedList.innerHTML = '<div style="font-size: 13px; color: var(--text-muted);">No saved scenarios.</div>';
+            return;
+          }
+          DOM.savedList.innerHTML = data.scenarios.map(s => `
+            <div class="saved-item">
+              <div><strong>${s.name}</strong> <span style="color:var(--text-faint); margin-left:8px; font-size:11px;">${new Date(s.created_at).toLocaleDateString()}</span></div>
+              <div class="saved-item-actions">
+                <button class="btn-sm" onclick='loadScenario(${JSON.stringify(s.params)})'>Load</button>
+                <button class="btn-sm" onclick='deleteScenario(${s.id})' style="color:var(--red); border-color:rgba(239,68,68,0.3)">Del</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (err) { console.error('Load scenarios err', err); }
+    }
+
+    window.loadScenario = (p) => {
+      DOM.ctrlGeri.value = p.geri_change_pct || 0; updateDisplay(DOM.valGeri, DOM.ctrlGeri.value);
+      DOM.ctrlVix.value = p.vix_change_pct || 0; updateDisplay(DOM.valVix, DOM.ctrlVix.value);
+      DOM.ctrlGas.value = p.gas_stress_pct || 0; updateDisplay(DOM.valGas, DOM.ctrlGas.value);
+      DOM.ctrlSupply.value = p.supply_scenario || 'normal';
+      DOM.ctrlDemand.value = p.demand_outlook || 'neutral';
+      DOM.runBtn.click();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.deleteScenario = async (id) => {
+      if(!confirm("Delete this scenario?")) return;
+      try {
+        await fetch(`/api/brent-forecast/scenarios/${id}`, { method: 'DELETE', headers: headers() });
+        loadSavedScenarios();
+      } catch (err) {}
+    };
+
+    DOM.saveBtn.onclick = async () => {
+      if (!currentScenarioResult) return alert("Run a scenario first.");
+      const name = DOM.saveName.value.trim() || `Scenario ${new Date().toLocaleTimeString()}`;
+      DOM.saveBtn.disabled = true;
+      try {
+        const res = await fetch('/api/brent-forecast/scenarios', {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            name,
+            params: currentScenarioResult.params,
+            result: currentScenarioResult.horizons
+          })
+        });
+        const data = await res.json();
+        if(data.success) {
+          DOM.saveName.value = '';
+          loadSavedScenarios();
+        }
+      } catch (err) {}
+      DOM.saveBtn.disabled = false;
+    };
+
+    DOM.exportBtn.onclick = () => {
+      if (!currentScenarioResult) return alert("Run a scenario first.");
+      const r = currentScenarioResult;
+      let text = `Brent Intelligence Scenario Engine™ Export\n`;
+      text += `Date: ${new Date().toISOString()}\n\n`;
+      text += `PARAMETERS:\nGERI: ${r.params.geri_change_pct}%\nVIX: ${r.params.vix_change_pct}%\nGas Stress: ${r.params.gas_stress_pct}%\nSupply: ${r.params.supply_scenario}\nDemand: ${r.params.demand_outlook}\n\n`;
+      if(r.horizons["0_24h"]) {
+        const hz = r.horizons["0_24h"];
+        text += `24-HOUR OUTLOOK (Primary):\nRange: $${hz.expected_low} - $${hz.expected_high}\nMost Likely: $${hz.most_likely}\nBias: ${hz.bias} (Conf: ${hz.confidence}%)\n\n`;
+      }
+      if (r.interpretation) text += `INTERPRETATION:\n${r.interpretation.replace(/<[^>]+>/g, '')}\n`;
+      
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `brent_scenario_${new Date().getTime()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    DOM.copyEmbedBtn.onclick = () => {
+      navigator.clipboard.writeText(DOM.refEmbed.textContent);
+      const old = DOM.copyEmbedBtn.textContent;
+      DOM.copyEmbedBtn.textContent = "Copied!";
+      setTimeout(() => DOM.copyEmbedBtn.textContent = old, 2000);
+    };
+
+    DOM.copyRefBtn.onclick = () => {
+      navigator.clipboard.writeText(DOM.refUrl.textContent);
+      const old = DOM.copyRefBtn.textContent;
+      DOM.copyRefBtn.textContent = "Copied!";
+      setTimeout(() => DOM.copyRefBtn.textContent = old, 2000);
+    };
+
+    init();
+  </script>
+</body>
+</html>

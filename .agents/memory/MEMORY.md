@@ -12,4 +12,5 @@
 - [Brevo email patterns](brevo-email-patterns.md) — transactional /v3/smtp/email (sender from EMAIL_FROM) is the canonical send; list sends fetch contacts + use messageVersions (never shared to[]); list #7 = Energy Intelligence.
 - [Auth token links in emails](auth-token-links.md) — emailed login/reset tokens: single-use, URL fragment not query (analytics leak), JS POST exchange, throttle + generic responses.
 - [Blog new-article newsletter](blog-article-newsletter.md) — publish auto-sends excerpt email once; gated by blog_users.newsletter_auto_send, guarded by blog_posts.newsletter_sent_at; fires from all 3 publish endpoints via BackgroundTasks.
+- [Anonymous checkout webhook order](stripe-anonymous-checkout-webhook.md) — sub-products with anonymous Stripe checkout must be dispatched before the user_id early-return in the checkout webhook chain.
 - [EUR/USD data source](eurusd-source.md) — OANDA retired; now FRED DEXUSEU primary + Yahoo EURUSD=X fallback; FRED lags ~2-4d so Yahoo fills fresh daily, FRED is authoritative for backfill.

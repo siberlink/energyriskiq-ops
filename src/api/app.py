@@ -323,6 +323,12 @@ app.include_router(wti_router)
 app.include_router(wti_widget_router)
 app.include_router(gas_storage_widget_router)
 app.include_router(lng_widget_router)
+from src.api.brent_forecast_routes import router as brent_forecast_router, run_brent_forecast_migration
+app.include_router(brent_forecast_router)
+try:
+    run_brent_forecast_migration()
+except Exception as _e:
+    logger.error(f"brent_forecast migration error: {_e}")
 from src.api.wti_pro_widget_routes import router as wti_pro_widget_router, run_wti_pro_widget_migration
 app.include_router(wti_pro_widget_router)
 try:

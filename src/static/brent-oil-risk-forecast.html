@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brent Oil Price Risk Forecast — Free Scenario Calculator | EnergyRiskIQ</title>
+  <meta name="description" content="Simulate how geopolitical risk (GERI) and market volatility (VIX) shifts could move Brent crude prices over the next 24-48 hours. Live data-driven market reaction scenario model.">
+  
+  <link rel="canonical" href="https://energyriskiq.com/tools/brent-oil-risk-forecast">
+  
+  <meta property="og:title" content="Brent Oil Price Risk Forecast — Free Scenario Calculator">
+  <meta property="og:description" content="Simulate how geopolitical risk and market volatility shifts could move Brent crude prices.">
+  <meta property="og:url" content="https://energyriskiq.com/tools/brent-oil-risk-forecast">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="EnergyRiskIQ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Brent Oil Price Risk Forecast — Free Scenario Calculator">
+  <meta name="twitter:description" content="Simulate how geopolitical risk and market volatility shifts could move Brent crude prices.">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Brent Oil Price Risk Forecast — Free Scenario Calculator",
+    "url": "https://energyriskiq.com/tools/brent-oil-risk-forecast",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "description": "Institutional-grade scenario calculator simulating how changes in geopolitical risk and market volatility move Brent crude oil prices.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://energyriskiq.com"
+    },{
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Tools",
+      "item": "https://energyriskiq.com/tools"
+    },{
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Brent Forecast",
+      "item": "https://energyriskiq.com/tools/brent-oil-risk-forecast"
+    }]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is this a Brent price prediction?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. This is a market reaction simulator. It calculates how Brent typically responds to sudden shifts in geopolitical risk and market volatility under current conditions, rather than attempting to predict the outright price of oil months in advance."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the geopolitical risk (GERI) slider work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The model uses the Global Energy Risk Index (GERI), our proprietary real-time intelligence index. The slider allows you to test what happens if GERI spikes (e.g., due to a major conflict) or falls (tensions ease), using historical elasticities to estimate the Brent premium."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is GERI?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "GERI (Global Energy Risk Index) is EnergyRiskIQ's proprietary measure of geopolitical and supply-chain risk impacting global energy markets, calculated daily using advanced OSINT aggregation."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why are the 0-24h and 7-Day horizons locked?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Shorter and longer horizons require the full Institutional Scenario Engine, which integrates intraday GERI Live data, European Gas Stress (EGSI), specific supply shock modeling, and historical analog matching. This is available in the Pro tier."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How often is the baseline data updated?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The baseline prices and indices are updated continuously via our market API. Best practice is to run your scenarios shortly after the morning European session open when overnight intelligence has been processed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I export the results?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Exporting results, saving scenarios, and accessing the probability distribution charts are features of the premium Scenario Engine workspace."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #111827;
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #cbd5e1;
+      --heading: #f8fafc;
+      --gold: #d4a017;
+      --gold-dim: rgba(212, 160, 23, 0.15);
+      --blue: #3b82f6;
+      --cyan: #22d3ee;
+      --red: #ef4444;
+      --green: #10b981;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    a { color: var(--gold); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+    
+    /* Header */
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .logo span { color: var(--gold); }
+    
+    /* Hero */
+    .hero { text-align: center; margin-bottom: 48px; }
+    h1 { font-family: 'DM Serif Display', serif; font-size: 42px; color: var(--heading); line-height: 1.2; margin-bottom: 16px; }
+    .hero p { font-size: 18px; color: #94a3b8; max-width: 700px; margin: 0 auto 24px; }
+    
+    /* Trust badges */
+    .trust-badges { display: flex; justify-content: center; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+    .badge {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 20px;
+    }
+    
+    /* Hero Card (Matches WTI) */
+    .hero-card {
+      background: linear-gradient(135deg, #0c1322 0%, #0e2433 50%, #0f172a 100%);
+      border: 1px solid rgba(212,160,23,0.3);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin: 28px auto 36px;
+      position: relative;
+      overflow: hidden;
+      max-width: 760px;
+      text-align: left;
+    }
+    .hero-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), rgba(212,160,23,0.2));
+    }
+    .hero-bench {
+      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 8px;
+    }
+    .hero-price-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .hero-price {
+      font-size: 56px; font-weight: 800; line-height: 1; color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-price sup { font-size: 24px; font-weight: 600; vertical-align: top; margin-top: 8px; }
+    .hero-unit { font-size: 16px; color: #94a3b8; }
+    
+    .market-strip {
+      display: flex; gap: 24px; margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; flex-wrap: wrap;
+    }
+    .market-item { flex: 1; min-width: 120px; }
+    .market-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .market-val { font-size: 20px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+    .val-loading { opacity: 0.5; }
+    
+    /* Calculator */
+    .calc-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 32px; margin-bottom: 32px; position: relative; overflow: hidden;
+    }
+    .calc-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .calc-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 24px; }
+    
+    .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+    @media(max-width: 768px) { .sliders { grid-template-columns: 1fr; gap: 24px; } }
+    
+    .slider-group { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 12px; align-items: baseline; }
+    .slider-label { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+    .slider-val { font-size: 18px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
+    
+    input[type=range] {
+      width: 100%; -webkit-appearance: none; background: transparent; margin: 10px 0;
+    }
+    input[type=range]:focus { outline: none; }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%; height: 6px; cursor: pointer; background: rgba(255,255,255,0.1); border-radius: 3px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 20px; width: 20px; border-radius: 50%; background: var(--gold); cursor: pointer;
+      -webkit-appearance: none; margin-top: -7px; box-shadow: 0 0 10px rgba(212,160,23,0.5);
+    }
+    
+    .horizons { margin-bottom: 32px; }
+    .horizons-label { font-size: 13px; font-weight: 600; color: #94a3b8; margin-bottom: 12px; display: block; }
+    .horizon-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hz-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #94a3b8;
+      padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: not-allowed; position: relative; opacity: 0.7; flex: 1; text-align: center; min-width: 100px;
+    }
+    .hz-btn.active {
+      background: var(--gold-dim); border-color: var(--gold); color: var(--gold); cursor: default; opacity: 1;
+    }
+    .hz-btn.locked { cursor: help; }
+    /* lock icon without emoji */
+    .hz-btn.locked::after { 
+      content: ''; 
+      display: inline-block;
+      width: 10px; height: 12px;
+      margin-left: 6px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'%3E%3C/rect%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'%3E%3C/path%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      vertical-align: middle;
+      opacity: 0.6;
+    }
+    
+    .run-btn {
+      width: 100%; background: var(--gold); color: #000; font-size: 16px; font-weight: 700;
+      padding: 16px; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s;
+    }
+    .run-btn:hover { opacity: 0.9; }
+    .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    
+    /* Results */
+    .results-area { display: none; margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border); }
+    .results-area.active { display: block; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    @media(max-width: 600px) { .res-grid { grid-template-columns: 1fr; } }
+    .res-box { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
+    .res-label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .res-val { font-size: 28px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+    
+    .bias-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-top: 8px; }
+    .bias-bullish { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .bias-bearish { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .bias-neutral { background: rgba(255, 255, 255, 0.1); color: #cbd5e1; }
+    
+    /* Match WTI Commentary */
+    .wti-commentary {
+      background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+      border: 1px solid rgba(212,160,23,0.2);
+      border-radius: 14px;
+      padding: 26px 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      font-size: 15px; color: #cbd5e1; line-height: 1.75;
+    }
+    .wti-commentary::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    
+    .conf-list { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #94a3b8; }
+    .conf-list li { position: relative; padding-left: 20px; margin-bottom: 8px; }
+    .conf-list li::before { content: '•'; position: absolute; left: 6px; color: var(--gold); }
+    
+    /* Upsell Banner */
+    .upsell-banner {
+      background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid var(--gold);
+      border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 48px; display: none;
+    }
+    .upsell-banner.active { display: block; animation: fadeIn 0.5s ease 0.5s both; }
+    .upsell-banner h3 { font-family: 'DM Serif Display', serif; font-size: 24px; color: #fff; margin-bottom: 12px; }
+    .upsell-banner p { font-size: 15px; color: #94a3b8; margin-bottom: 24px; max-width: 600px; margin-inline: auto; }
+    .upsell-btn {
+      display: inline-block; background: var(--gold); color: #000; font-size: 15px; font-weight: 700;
+      padding: 12px 24px; border-radius: 8px; transition: transform 0.2s;
+    }
+    .upsell-btn:hover { transform: translateY(-2px); text-decoration: none; }
+    .trial-text { display: block; font-size: 12px; color: #64748b; margin-top: 12px; }
+    
+    /* Snapshot Cards */
+    .snap-section { margin-bottom: 48px; }
+    .section-title { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 24px; }
+    .snap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media(max-width: 768px) { .snap-grid { grid-template-columns: 1fr 1fr; } }
+    @media(max-width: 480px) { .snap-grid { grid-template-columns: 1fr; } }
+    .snap-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .snap-card-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .snap-card-val { font-size: 24px; font-weight: 800; color: #f8fafc; font-variant-numeric: tabular-nums; }
+    
+    /* Embed Widget */
+    .embed-section { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 48px; }
+    .embed-grid { display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: center; }
+    @media(max-width: 768px) { .embed-grid { grid-template-columns: 1fr; } }
+    .embed-preview { background: #000; border-radius: 12px; overflow: hidden; width: 340px; height: 240px; margin: 0 auto; border: 1px solid rgba(255,255,255,0.1); }
+    .embed-code { background: #000; padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a1a1aa; overflow-x: auto; margin-bottom: 16px; position: relative; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+    .referral-pitch { font-size: 13px; color: #94a3b8; background: rgba(212,160,23,0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(212,160,23,0.2); }
+    
+    /* SEO Content */
+    .content-section { margin-bottom: 48px; }
+    .content-section h2 { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .content-section p { margin-bottom: 16px; color: #94a3b8; }
+    
+    /* FAQ */
+    .faq-container { margin-bottom: 48px; }
+    details { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+    summary { padding: 16px 50px 16px 20px; font-weight: 700; color: #f1f5f9; cursor: pointer; list-style: none; position: relative; font-size: 14px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 22px; font-weight: 400; transition: transform 0.2s; }
+    details[open] summary::after { content: '\2212'; } /* Minus sign */
+    details > div { padding: 0 20px 18px; font-size: 13.5px; color: #94a3b8; line-height: 1.7; }
+    
+    /* Citation Card (Matches WTI) */
+    .wti-cite-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 26px; margin-bottom: 36px;
+      position: relative;
+    }
+    .wti-cite-card h3 { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+    .wti-cite-desc { font-size: 13px; color: #94a3b8; margin-bottom: 14px; }
+    .wti-cite-code-wrap { position: relative; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 16px 18px; }
+    .wti-cite-code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 12px; color: #cbd5e1; line-height: 1.7;
+      margin: 0; white-space: pre-wrap; word-break: break-word;
+    }
+    .wti-cite-code a { color: var(--gold); text-decoration: none; }
+    .wti-cite-copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(212,160,23,0.15); color: var(--gold);
+      border: 1px solid rgba(212,160,23,0.35); border-radius: 6px;
+      font-size: 11px; font-weight: 700; padding: 5px 12px; cursor: pointer;
+    }
+    .wti-cite-footer { font-size: 11px; color: #64748b; margin-top: 12px; line-height: 1.6; }
+    @media (max-width: 600px) {
+      .wti-cite-copy-btn { position: static; display: block; width: 100%; margin-top: 12px; }
+    }
+
+    /* License */
+    .wti-license {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px; padding: 18px 20px;
+      margin-bottom: 40px; font-size: 12px; color: #94a3b8;
+    }
+    .wti-license a { color: var(--gold); text-decoration: none; font-weight: 700; }
+    .wti-license a:hover { text-decoration: underline; }
+
+    /* Links Grid */
+    .links-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 48px; }
+    @media(max-width: 600px) { .links-grid { grid-template-columns: 1fr; } }
+    .link-card { display: block; padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; transition: border-color 0.2s; }
+    .link-card:hover { border-color: rgba(255,255,255,0.3); text-decoration: none; }
+    .link-card strong { display: block; color: #fff; font-size: 14px; margin-bottom: 4px; }
+    .link-card span { font-size: 12px; color: #64748b; }
+    
+    footer { text-align: center; padding: 32px 0; border-top: 1px solid var(--border); font-size: 13px; color: #64748b; }
+    footer a { color: #94a3b8; }
+    footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="logo">EnergyRisk<span>IQ</span></div>
+    </header>
+
+    <section class="hero">
+      <div class="trust-badges">
+        <span class="badge">Live Data</span>
+        <span class="badge">Institutional Grade</span>
+        <span class="badge">Free Tool</span>
+      </div>
+      <h1>Brent Oil Price Risk Forecast<br><span style="color:#94a3b8; font-size: 32px;">Live Scenario Calculator</span></h1>
+      <p>Simulate how Brent crude responds to shifting geopolitical risk (GERI) and market volatility. Best used daily after the latest intelligence update.</p>
+    </section>
+
+    <div class="hero-card">
+      <div class="hero-bench">Brent Crude Baseline</div>
+      <div class="hero-price-row">
+        <div class="hero-price"><sup style="font-size:24px;">$</sup><span id="hero-brent">--</span></div>
+        <div class="hero-unit">/ bbl</div>
+      </div>
+      
+      <div class="market-strip">
+        <div class="market-item">
+          <div class="market-label">GERI Live</div>
+          <div class="market-val" id="ms-geri">--</div>
+        </div>
+        <div class="market-item">
+          <div class="market-label">VIX Close</div>
+          <div class="market-val" id="ms-vix">--</div>
+        </div>
+        <div class="market-item">
+          <div class="market-label">Market Bias</div>
+          <div class="market-val" id="ms-bias">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-title">Configure Risk Scenario</div>
+      
+      <div class="sliders">
+        <div class="slider-group">
+          <div class="slider-header">
+            <span class="slider-label">Geopolitical Risk (GERI)</span>
+            <span class="slider-val" id="geri-val-display">0%</span>
+          </div>
+          <input type="range" id="geri-slider" min="-50" max="100" value="0" step="5">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 4px;">
+            <span>Easing (-50%)</span>
+            <span>Current</span>
+            <span>Escalation (+100%)</span>
+          </div>
+        </div>
+        
+        <div class="slider-group">
+          <div class="slider-header">
+            <span class="slider-label">Market Volatility (VIX)</span>
+            <span class="slider-val" id="vix-val-display">0%</span>
+          </div>
+          <input type="range" id="vix-slider" min="-50" max="100" value="0" step="5">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 4px;">
+            <span>Calmer (-50%)</span>
+            <span>Current</span>
+            <span>Panic (+100%)</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="horizons">
+        <span class="horizons-label">Market Reaction Horizon</span>
+        <div class="horizon-btns">
+          <button class="hz-btn locked" title="Premium horizon — unlock with Brent Intelligence Scenario Engine">0-24h</button>
+          <button class="hz-btn active">24-48h</button>
+          <button class="hz-btn locked" title="Premium horizon — unlock with Brent Intelligence Scenario Engine">72h</button>
+          <button class="hz-btn locked" title="Premium horizon — unlock with Brent Intelligence Scenario Engine">7-Day</button>
+        </div>
+      </div>
+      
+      <button class="run-btn" id="run-btn">Run Scenario</button>
+      
+      <div class="results-area" id="results-area">
+        <div class="res-grid">
+          <div class="res-box">
+            <div class="res-label">Expected Range (48h)</div>
+            <div class="res-val" id="res-range">$-- - $--</div>
+          </div>
+          <div class="res-box">
+            <div class="res-label">Most Likely Price</div>
+            <div class="res-val" id="res-likely">$--</div>
+            <div class="bias-badge" id="res-bias">Neutral</div>
+          </div>
+        </div>
+        
+        <div class="wti-commentary" id="res-commentary">
+          Loading scenario analysis...
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+          <strong style="font-size: 14px; color: #e2e8f0;">Confidence: <span id="res-conf" style="color: var(--gold);">--%</span></strong>
+        </div>
+        <ul class="conf-list" id="res-reasons">
+          <li>Loading confidence drivers...</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="upsell-banner" id="upsell-banner">
+      <h3>Unlock the full Brent Intelligence Scenario Engine™</h3>
+      <p>Access multi-driver scenarios (including gas stress & supply shocks), 4 forecasting horizons, historical analogs, probability distributions, and AI interpretation.</p>
+      <button class="upsell-btn" id="checkout-btn">Start 14-Day Free Trial</button>
+      <span class="trial-text">€8/month after trial. Cancel anytime.</span>
+    </div>
+    
+    <div class="snap-section">
+      <h2 class="section-title">Current Market Baseline</h2>
+      <div class="snap-grid">
+        <div class="snap-card">
+          <div class="snap-card-label">WTI Crude</div>
+          <div class="snap-card-val" id="snap-wti">--</div>
+        </div>
+        <div class="snap-card">
+          <div class="snap-card-label">TTF Gas</div>
+          <div class="snap-card-val" id="snap-ttf">--</div>
+        </div>
+        <div class="snap-card">
+          <div class="snap-card-label">EU Storage</div>
+          <div class="snap-card-val" id="snap-storage">--</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="embed-section">
+      <h2 class="section-title" style="margin-bottom: 8px;">Embed This Intelligence</h2>
+      <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Add the free Brent Risk Widget to your website or portal.</p>
+      <div class="embed-grid">
+        <div class="embed-preview">
+          <iframe src="https://energyriskiq.com/embed/brent-risk-widget" width="340" height="240" frameborder="0" scrolling="no" style="border: none;"></iframe>
+        </div>
+        <div>
+          <div class="embed-code">
+            <button class="copy-btn" onclick="copyEmbed()">Copy</button>
+<code id="embed-code-text">&lt;iframe src="https://energyriskiq.com/embed/brent-risk-widget" width="340" height="240" frameborder="0" scrolling="no" style="border: none; border-radius: 12px;"&gt;&lt;/iframe&gt;</code>
+          </div>
+          <div class="referral-pitch">
+            <strong>Are you a subscriber?</strong> Add <code>?ref=YOUR_CODE</code> to the embed URL to earn a 40% recurring commission (€3.20/month) for every referred Pro subscriber, paid out manually.
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="content-section">
+      <h2>How This Model Works</h2>
+      <p>The EnergyRiskIQ Brent Scenario tool is a market reaction simulator, not a crystal ball predicting absolute prices months in advance. It models how Brent crude typically responds to sudden shifts in two key variables: Geopolitical Risk (measured by our proprietary GERI index) and Market Volatility (VIX).</p>
+      <p>By defining a baseline using live market data, the calculator applies historical elasticities to estimate the likely premium or discount Brent would carry if your hypothetical scenario materializes. The confidence score reflects historical fit and input divergence.</p>
+      <p><em>Disclaimer: This tool provides scenario-based intelligence for informational purposes only. It is not financial or investment advice. Oil markets are subject to complex variables beyond the scope of a two-factor model.</em></p>
+    </div>
+    
+    <div class="faq-container">
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <details>
+        <summary>Is this a Brent price prediction?</summary>
+        <div>
+          No. This is a market reaction simulator. It calculates how Brent typically responds to sudden shifts in geopolitical risk and market volatility under current conditions, rather than attempting to predict the outright price of oil months in advance.
+        </div>
+      </details>
+      <details>
+        <summary>What is GERI?</summary>
+        <div>
+          GERI (Global Energy Risk Index) is EnergyRiskIQ's proprietary measure of geopolitical and supply-chain risk impacting global energy markets, calculated daily using advanced OSINT aggregation.
+        </div>
+      </details>
+      <details>
+        <summary>Why are the 0-24h and 7-Day horizons locked?</summary>
+        <div>
+          Shorter and longer horizons require the full Institutional Scenario Engine, which integrates intraday GERI Live data, European Gas Stress (EGSI), specific supply shock modeling, and historical analog matching. This is available in the Pro tier.
+        </div>
+      </details>
+      <details>
+        <summary>How often is the baseline data updated?</summary>
+        <div>
+          The baseline prices and indices are updated continuously via our market API. Best practice is to run your scenarios shortly after the morning European session open when overnight intelligence has been processed.
+        </div>
+      </details>
+      <details>
+        <summary>Can I export the results?</summary>
+        <div>
+          Exporting results, saving scenarios, and accessing the probability distribution charts are features of the premium Scenario Engine workspace.
+        </div>
+      </details>
+      <details>
+        <summary>Is the embed widget really free?</summary>
+        <div>
+          Yes. The basic embed widget is free to use on public websites and portals. We encourage attribution back to EnergyRiskIQ.
+        </div>
+      </details>
+    </div>
+
+    <!-- Citation Card matching WTI -->
+    <div class="wti-cite-card">
+      <h3>Cite This Scenario Data</h3>
+      <div class="wti-cite-desc">To reference the Brent Oil Risk Forecast or GERI elasticity model in your publication or internal report, please use the following citation format.</div>
+      <div class="wti-cite-code-wrap">
+        <button class="wti-cite-copy-btn" onclick="copyCitation()">Copy Citation</button>
+        <pre class="wti-cite-code" id="citation-text">EnergyRiskIQ. "Brent Oil Price Risk Forecast — Scenario Calculator." <a href="https://energyriskiq.com/tools/brent-oil-risk-forecast">https://energyriskiq.com/tools/brent-oil-risk-forecast</a>. Accessed <span id="cite-date"></span>.</pre>
+      </div>
+      <div class="wti-cite-footer">
+        Automated scraping of the scenario engine API is strictly prohibited. For programmatic access to GERI and scenario models, contact our enterprise data team.
+      </div>
+    </div>
+
+    <div class="wti-license">
+      The intelligence models and GERI data displayed on this page are provided by EnergyRiskIQ for informational and scenario-testing purposes only. Use of this data is subject to our <a href="/data-license">Data License Agreement</a>.
+    </div>
+    
+    <div class="links-grid">
+      <a href="/data/brent-crude-oil-price-today" class="link-card">
+        <strong>Live Brent Crude Data</strong>
+        <span>Intraday pricing and charts</span>
+      </a>
+      <a href="/data/wti-crude-oil-price-today" class="link-card">
+        <strong>WTI Crude Today</strong>
+        <span>Live prices and spreads</span>
+      </a>
+      <a href="/geri" class="link-card">
+        <strong>GERI Index Explained</strong>
+        <span>Methodology and history</span>
+      </a>
+      <a href="/data/global-energy-risk-forecast" class="link-card">
+        <strong>Global Risk Forecast</strong>
+        <span>Daily intelligence snapshot</span>
+      </a>
+    </div>
+
+    <footer>
+      <p>&copy; 2025 EnergyRiskIQ. All rights reserved.</p>
+      <p style="margin-top: 8px;"><a href="/data-license">Data License</a> &nbsp;|&nbsp; <a href="/terms">Terms</a> &nbsp;|&nbsp; <a href="/privacy">Privacy</a> &nbsp;|&nbsp; <a href="/disclaimer">Disclaimer</a></p>
+    </footer>
+  </div>
+
+  <script>
+    // Set citation date
+    document.getElementById('cite-date').textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+    function copyCitation() {
+      const text = document.getElementById('citation-text').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.wti-cite-copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy Citation', 2000);
+      });
+    }
+
+    // Referral capture
+    const params = new URLSearchParams(window.location.search);
+    if(params.has('ref')) {
+      localStorage.setItem('brent_ref', params.get('ref'));
+    }
+
+    // State
+    let currentBrent = null;
+
+    // Elements
+    const geriSlider = document.getElementById('geri-slider');
+    const vixSlider = document.getElementById('vix-slider');
+    const geriValDisp = document.getElementById('geri-val-display');
+    const vixValDisp = document.getElementById('vix-val-display');
+    const runBtn = document.getElementById('run-btn');
+    const resArea = document.getElementById('results-area');
+    const upsell = document.getElementById('upsell-banner');
+
+    // Slider updates
+    geriSlider.addEventListener('input', (e) => {
+      const v = e.target.value;
+      geriValDisp.textContent = v > 0 ? `+${v}%` : `${v}%`;
+    });
+    vixSlider.addEventListener('input', (e) => {
+      const v = e.target.value;
+      vixValDisp.textContent = v > 0 ? `+${v}%` : `${v}%`;
+    });
+
+    // Fetch Market Data
+    async function initData() {
+      try {
+        const res = await fetch('/api/brent-forecast/market');
+        const data = await res.json();
+        if(data.success && data.market) {
+          const m = data.market;
+          currentBrent = m.brent;
+          
+          document.getElementById('hero-brent').textContent = m.brent ? m.brent.toFixed(2) : '--';
+          document.getElementById('ms-geri').textContent = m.geri_live || m.geri || '--';
+          document.getElementById('ms-vix').textContent = m.vix ? m.vix.toFixed(2) : '--';
+          
+          const biasText = (m.brent_change_pct > 0) ? 'Bullish' : (m.brent_change_pct < 0) ? 'Bearish' : 'Neutral';
+          document.getElementById('ms-bias').textContent = biasText;
+          
+          document.getElementById('snap-wti').textContent = m.wti ? `$${m.wti.toFixed(2)}` : '--';
+          document.getElementById('snap-ttf').textContent = m.ttf ? `€${m.ttf.toFixed(2)}` : '--';
+          document.getElementById('snap-storage').textContent = m.gas_storage ? `${m.gas_storage.toFixed(1)}%` : '--';
+        }
+      } catch(err) {
+        console.error('Market fetch error:', err);
+      }
+    }
+
+    // Run Scenario
+    runBtn.addEventListener('click', async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = 'Calculating...';
+      
+      try {
+        const payload = {
+          brent: currentBrent,
+          geri_change_pct: parseFloat(geriSlider.value),
+          vix_change_pct: parseFloat(vixSlider.value)
+        };
+        
+        const res = await fetch('/api/brent-forecast/scenario', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if(data.success) {
+          const r = data.result;
+          
+          document.getElementById('res-range').textContent = `$${r.expected_low.toFixed(2)} - $${r.expected_high.toFixed(2)}`;
+          document.getElementById('res-likely').textContent = `$${r.most_likely.toFixed(2)}`;
+          
+          const biasEl = document.getElementById('res-bias');
+          biasEl.textContent = r.bias;
+          biasEl.className = 'bias-badge';
+          if(r.bias.toLowerCase() === 'bullish') biasEl.classList.add('bias-bullish');
+          else if(r.bias.toLowerCase() === 'bearish') biasEl.classList.add('bias-bearish');
+          else biasEl.classList.add('bias-neutral');
+          
+          document.getElementById('res-commentary').textContent = data.commentary;
+          document.getElementById('res-conf').textContent = `${r.confidence}%`;
+          
+          const ul = document.getElementById('res-reasons');
+          ul.innerHTML = '';
+          (data.confidence_reasons || []).forEach(reason => {
+            const li = document.createElement('li');
+            li.textContent = reason;
+            ul.appendChild(li);
+          });
+          
+          resArea.classList.add('active');
+          setTimeout(() => {
+            upsell.classList.add('active');
+          }, 800);
+        }
+      } catch(err) {
+        console.error('Scenario fetch error:', err);
+        alert('Failed to calculate scenario. Please try again later.');
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Run Scenario';
+      }
+    });
+
+    // Checkout
+    document.getElementById('checkout-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('checkout-btn');
+      btn.textContent = 'Redirecting...';
+      try {
+        const ref = localStorage.getItem('brent_ref') || undefined;
+        const res = await fetch('/api/brent-forecast/checkout', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ref})
+        });
+        const data = await res.json();
+        if(data.success && data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          alert('Checkout unavailable right now.');
+          btn.textContent = 'Start 14-Day Free Trial';
+        }
+      } catch(err) {
+        console.error(err);
+        alert('Error connecting to billing. Please try again.');
+        btn.textContent = 'Start 14-Day Free Trial';
+      }
+    });
+
+    function copyEmbed() {
+      const code = document.getElementById('embed-code-text').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    }
+
+    // Init
+    initData();
+  </script>
+</body>
+</html>

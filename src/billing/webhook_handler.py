@@ -56,6 +56,13 @@ def get_user_id_from_customer(customer_id: str) -> Optional[int]:
 async def handle_checkout_session_completed(session: dict):
     logger.info(f"Processing checkout.session.completed: {session['id']}")
     
+    # Anonymous sub-product checkouts (no main-app user) must be dispatched
+    # BEFORE user_id resolution, or they would be dropped by the early return.
+    if session.get("metadata", {}).get("type") == "brent_forecast":
+        from src.api.brent_forecast_routes import handle_brent_forecast_checkout_completed
+        handle_brent_forecast_checkout_completed(session)
+        return
+
     user_id = session.get("metadata", {}).get("user_id")
     if not user_id:
         customer_id = session.get("customer")
@@ -166,6 +173,13 @@ async def handle_subscription_updated(subscription: dict):
     except Exception as e:
         logger.error(f"Daily report subscription event handler error: {e}")
 
+    try:
+        from src.api.brent_forecast_routes import handle_brent_forecast_subscription_event
+        if handle_brent_forecast_subscription_event(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Brent forecast subscription event handler error: {e}")
+
     customer_id = subscription.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -232,6 +246,13 @@ async def handle_subscription_deleted(subscription: dict):
     except Exception as e:
         logger.error(f"Daily report subscription deleted handler error: {e}")
 
+    try:
+        from src.api.brent_forecast_routes import handle_brent_forecast_subscription_deleted
+        if handle_brent_forecast_subscription_deleted(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Brent forecast subscription deleted handler error: {e}")
+
     customer_id = subscription.get("customer")
     user_id = get_user_id_from_customer(customer_id)
     
@@ -283,6 +304,10 @@ async def handle_invoice_paid(invoice: dict):
             if _cur.fetchone():
                 logger.info(f"invoice.paid {invoice['id']} is for a daily-report subscription — skipping main user_plans logic")
                 return
+        from src.api.brent_forecast_routes import handle_brent_forecast_invoice_paid
+        if handle_brent_forecast_invoice_paid(invoice):
+            logger.info(f"invoice.paid {invoice['id']} is for a brent-forecast subscription — skipping main user_plans logic")
+            return
     except Exception as e:
         logger.error(f"Widget invoice-isolation check failed: {e}")
 
@@ -340,6 +365,10 @@ async def handle_invoice_payment_failed(invoice: dict):
                 if _cur.fetchone():
                     logger.info(f"invoice.payment_failed {invoice['id']} is for a daily-report subscription — skipping main user_plans logic")
                     return
+            from src.api.brent_forecast_routes import handle_brent_forecast_invoice_failed
+            if handle_brent_forecast_invoice_failed(invoice):
+                logger.info(f"invoice.payment_failed {invoice['id']} is for a brent-forecast subscription — skipping main user_plans logic")
+                return
         except Exception as e:
             logger.error(f"Widget invoice-isolation check failed: {e}")
 

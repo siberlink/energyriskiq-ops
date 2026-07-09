@@ -1273,6 +1273,7 @@ async def sitemap_data_xml():
         (f"{BASE_URL}/widgets/wti-crude-oil-price",          "weekly", "0.8"),
         (f"{BASE_URL}/widgets/europe-gas-storage-levels",    "weekly", "0.8"),
         (f"{BASE_URL}/widgets/jkm-lng-price",                "weekly", "0.8"),
+        (f"{BASE_URL}/tools/brent-oil-risk-forecast",        "daily",  "0.9"),
     ]
     urls = ''
     for loc, freq, pri in pages:
