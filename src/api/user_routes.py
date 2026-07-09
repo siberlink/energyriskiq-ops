@@ -306,6 +306,15 @@ _LAST_LOGIN_BACKFILL = """
           FROM sessions GROUP BY user_id) s
     WHERE s.user_id = u.id AND u.last_login_at IS NULL
 """
+_LAST_LOGIN_BACKFILL_ACTIVITY = """
+    UPDATE users u SET last_login_at = e.max_login
+    FROM (SELECT user_id, MAX(created_at) AS max_login
+          FROM user_activity_events
+          WHERE event_type = 'login' AND user_id IS NOT NULL
+          GROUP BY user_id) e
+    WHERE e.user_id = u.id
+      AND (u.last_login_at IS NULL OR e.max_login > u.last_login_at)
+"""
 
 
 def _init_last_login_column():
@@ -315,6 +324,7 @@ def _init_last_login_column():
         with get_cursor() as cursor:
             cursor.execute(_LAST_LOGIN_DDL)
             cursor.execute(_LAST_LOGIN_BACKFILL)
+            cursor.execute(_LAST_LOGIN_BACKFILL_ACTIVITY)
     except Exception as e:
         logger.warning(f"Could not init users.last_login_at: {e}")
 
