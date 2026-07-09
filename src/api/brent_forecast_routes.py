@@ -711,51 +711,167 @@ async def brent_checkout(body: CheckoutRequest):
         raise HTTPException(status_code=500, detail="Could not start checkout")
 
 
-def _welcome_email_html(email: str, password: str) -> str:
+BRENT_WELCOME_SUBJECT = "Welcome to EnergyRiskIQ – Your Brent Intelligence Scenario Engine Access"
+
+
+def _build_brent_welcome_email(email: str, password: str):
     base = _base_url()
-    url = f"{base}/tools/brent-intelligence-scenario/engine"
-    return f"""
-<div style="background:#0b1020;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#e2e8f0">
-  <div style="max-width:560px;margin:0 auto;background:#111a33;border:1px solid #26314f;border-radius:12px;overflow:hidden">
-    <div style="padding:22px 28px;border-bottom:1px solid #26314f">
-      <span style="font-size:18px;font-weight:bold;color:#f8fafc">Energy<span style="color:#d4a017">Risk</span>IQ</span>
-    </div>
-    <div style="padding:28px">
-      <h2 style="margin:0 0 12px;color:#f8fafc;font-size:20px">Welcome to the Brent Intelligence Scenario Engine&trade;</h2>
-      <p style="line-height:1.6;color:#cbd5e1">Your 14-day free trial is active. Use the credentials below to access your
-      premium dashboard — unlimited simulations, the Historical Analog Engine, probability distributions,
-      scenario comparison, saved &amp; exported scenarios, and intraday GERI integration.</p>
-      <div style="background:#0b1020;border:1px solid #26314f;border-radius:8px;padding:16px 20px;margin:20px 0">
-        <p style="margin:4px 0;color:#94a3b8">Login email</p>
-        <p style="margin:4px 0 14px;color:#f8fafc;font-weight:bold">{email}</p>
-        <p style="margin:4px 0;color:#94a3b8">Password</p>
-        <p style="margin:4px 0;color:#f8fafc;font-weight:bold;font-size:16px;letter-spacing:1px">{password}</p>
-      </div>
-      <div style="text-align:center;margin:26px 0">
-        <a href="{url}" style="background:#d4a017;color:#0b1020;text-decoration:none;font-weight:bold;
-           padding:13px 30px;border-radius:8px;display:inline-block">Open Your Scenario Engine</a>
-      </div>
-      <p style="color:#94a3b8;font-size:13px;line-height:1.6">Your subscription: &euro;8/month after the 14-day free trial.
-      You can cancel anytime. Keep this email safe — it contains your login credentials.</p>
-    </div>
-    <div style="padding:16px 28px;border-top:1px solid #26314f;color:#64748b;font-size:12px">
-      &copy; EnergyRiskIQ — Brent Oil Risk Forecast
-    </div>
-  </div>
-</div>"""
+    login_link = f"{base}/tools/brent-intelligence-scenario/engine"
+    logo_url = f"{base}/static/logo.png"
+
+    text_body = f"""Hi,
+
+Welcome to EnergyRiskIQ—and thank you for subscribing to the Brent Intelligence Scenario Engine™.
+
+Your 14-day free trial is now active. Your subscription continues at €8/month after the trial, and you can cancel anytime.
+
+IMPORTANT — SAVE THIS EMAIL
+This email contains your login credentials. Please keep it in a safe place — you will need it to access your Scenario Engine dashboard.
+
+Your access details
+
+Dashboard: {login_link}
+Login email: {email}
+Password: {password}
+
+What you'll find inside your Scenario Engine
+
+* 4 forecasting horizons – 0-24h, 24-48h, 72h and 7-day Brent reaction windows.
+* 5-driver scenario builder – GERI, VIX, gas stress, supply presets, and demand conditions.
+* Historical Analog Engine – Compare your scenario against real historical market episodes.
+* Driver attribution & probability ranges – See exactly what moves your forecast.
+* Saved scenarios & exports – Build a scenario library and export forecast reports.
+* Partner referral program – Earn a 40% recurring commission for every referred subscriber.
+
+Where to begin
+
+1. Open your dashboard and log in with the credentials above.
+2. Run your first scenario using a quick preset such as Strait of Hormuz Risk or OPEC+ Cut.
+3. Save it to your scenario library so you can track how conditions evolve.
+
+Log in now: {login_link}
+
+Thank you for joining the EnergyRiskIQ community.
+
+Kind regards,
+
+Emil Constantinescu
+Founder, EnergyRiskIQ
+
+---
+
+Need assistance?
+
+You can reply directly to this email at any time. We read every message and are always happy to help."""
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{BRENT_WELCOME_SUBJECT}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#0f172a; font-family:Arial, Helvetica, sans-serif; color:#1a1a1a; -webkit-text-size-adjust:100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f172a; padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+          <tr>
+            <td style="background-color:#0f172a; padding:28px 32px; text-align:center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
+                <tr>
+                  <td style="vertical-align:middle; padding-right:12px;">
+                    <img src="{logo_url}" alt="EnergyRiskIQ" width="40" height="40" style="display:block; border:0; outline:none; text-decoration:none;">
+                  </td>
+                  <td style="vertical-align:middle;">
+                    <span style="color:#d4a017; font-size:22px; font-weight:bold; letter-spacing:0.5px;">EnergyRiskIQ</span>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:12px 0 0; color:#94a3b8; font-size:13px;">Brent Intelligence Scenario Engine&trade;</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Hi,</p>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Welcome to <strong>EnergyRiskIQ</strong>&mdash;and thank you for subscribing to the <strong>Brent Intelligence Scenario Engine&trade;</strong>.</p>
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Your <strong>14-day free trial</strong> is now active. Your subscription continues at &euro;8/month after the trial, and you can cancel anytime.</p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td style="background-color:#fef3c7; border:1px solid #d4a017; border-radius:8px; padding:14px 18px; font-size:15px; line-height:1.6; color:#78350f;">
+                    <strong>&#9888;&#65039; Important &mdash; save this email.</strong> It contains your login credentials. Keep it in a safe place for future access to your Scenario Engine dashboard.
+                  </td>
+                </tr>
+              </table>
+
+              <h2 style="margin:0 0 12px; font-size:18px; color:#0f172a;">Your access details</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+                <tr>
+                  <td style="background-color:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:18px 22px;">
+                    <p style="margin:0 0 4px; font-size:13px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Dashboard link</p>
+                    <p style="margin:0 0 14px; font-size:15px;"><a href="{login_link}" style="color:#0f172a; font-weight:bold;">{login_link}</a></p>
+                    <p style="margin:0 0 4px; font-size:13px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Login email</p>
+                    <p style="margin:0 0 14px; font-size:15px; color:#0f172a; font-weight:bold;">{email}</p>
+                    <p style="margin:0 0 4px; font-size:13px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">Password</p>
+                    <p style="margin:0; font-size:16px; color:#0f172a; font-weight:bold; letter-spacing:1px; font-family:'Courier New', monospace;">{password}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0f172a;">What you'll find inside your Scenario Engine</h2>
+              <ul style="margin:0 0 16px; padding-left:20px; font-size:16px; line-height:1.7;">
+                <li><strong>4 forecasting horizons</strong> &ndash; 0&ndash;24h, 24&ndash;48h, 72h and 7-day Brent reaction windows.</li>
+                <li><strong>5-driver scenario builder</strong> &ndash; GERI, VIX, gas stress, supply presets, and demand conditions.</li>
+                <li><strong>Historical Analog Engine</strong> &ndash; Compare your scenario against real historical market episodes.</li>
+                <li><strong>Driver attribution &amp; probability ranges</strong> &ndash; See exactly what moves your forecast.</li>
+                <li><strong>Saved scenarios &amp; exports</strong> &ndash; Build a scenario library and export forecast reports.</li>
+                <li><strong>Partner referral program</strong> &ndash; Earn a 40% recurring commission for every referred subscriber.</li>
+              </ul>
+
+              <h2 style="margin:28px 0 12px; font-size:18px; color:#0f172a;">Where to begin</h2>
+              <p style="margin:0 0 12px; font-size:16px; line-height:1.6;"><strong>1. Open your dashboard</strong><br>Log in with the credentials above.</p>
+              <p style="margin:0 0 12px; font-size:16px; line-height:1.6;"><strong>2. Run your first scenario</strong><br>Try a quick preset such as Strait of Hormuz Risk or OPEC+ Cut.</p>
+              <p style="margin:0 0 24px; font-size:16px; line-height:1.6;"><strong>3. Save it to your library</strong><br>Track how conditions evolve day by day.</p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+                <tr>
+                  <td align="center" style="border-radius:8px; background-color:#d4a017;">
+                    <a href="{login_link}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0f172a; text-decoration:none; border-radius:8px;">&#128073; Open Your Scenario Engine</a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 16px; font-size:16px; line-height:1.6;">Thank you for joining the EnergyRiskIQ community.</p>
+              <p style="margin:0 0 4px; font-size:16px; line-height:1.6;">Kind regards,</p>
+              <p style="margin:0; font-size:16px; line-height:1.6;"><strong>Emil Constantinescu</strong><br>Founder, EnergyRiskIQ</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f1f5f9; padding:20px 32px; font-size:13px; line-height:1.6; color:#64748b;">
+              <p style="margin:0 0 6px;"><strong>Need assistance?</strong></p>
+              <p style="margin:0;">You can reply directly to this email at any time. We read every message and are always happy to help. Your subscription is &euro;8/month after the 14-day free trial &mdash; cancel anytime.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+    return text_body, html_body
 
 
 def _send_welcome_email(email: str, password: str):
     try:
         from src.alerts.channels import _send_brevo
+        text_body, html_body = _build_brent_welcome_email(email, password)
         ok, err, _mid = _send_brevo(
             email,
-            "Your Brent Intelligence Scenario Engine access — EnergyRiskIQ",
-            f"Welcome to EnergyRiskIQ's Brent Intelligence Scenario Engine.\n\n"
-            f"Login: {_base_url()}/tools/brent-intelligence-scenario/engine\n"
-            f"Email: {email}\nPassword: {password}\n\n"
-            f"Your 14-day free trial is active. €8/month after trial, cancel anytime.",
-            _welcome_email_html(email, password))
+            BRENT_WELCOME_SUBJECT,
+            text_body,
+            html_body)
         if not ok:
             logger.error(f"Brent welcome email failed for {email}: {err}")
     except Exception as e:
