@@ -13,4 +13,5 @@
 - [Auth token links in emails](auth-token-links.md) — emailed login/reset tokens: single-use, URL fragment not query (analytics leak), JS POST exchange, throttle + generic responses.
 - [Blog new-article newsletter](blog-article-newsletter.md) — publish auto-sends excerpt email once; gated by blog_users.newsletter_auto_send, guarded by blog_posts.newsletter_sent_at; fires from all 3 publish endpoints via BackgroundTasks.
 - [Anonymous checkout webhook order](stripe-anonymous-checkout-webhook.md) — sub-products with anonymous Stripe checkout must be dispatched before the user_id early-return in the checkout webhook chain.
+- [E2E tests vs workflow restarts](e2e-test-server-restarts.md) — file edits during a Playwright run restart the server (~45s boot), causing false UI failures; check restart timestamps + DB before debugging.
 - [EUR/USD data source](eurusd-source.md) — OANDA retired; now FRED DEXUSEU primary + Yahoo EURUSD=X fallback; FRED lags ~2-4d so Yahoo fills fresh daily, FRED is authoritative for backfill.

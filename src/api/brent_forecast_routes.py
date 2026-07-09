@@ -13,6 +13,7 @@ login, 40% recurring referral commission (€3.20/invoice) tracked in
 import os
 import re
 import json
+import time
 import logging
 import secrets
 import string
@@ -92,6 +93,14 @@ CREATE TABLE IF NOT EXISTS brent_saved_scenarios (
     name TEXT NOT NULL,
     params JSONB NOT NULL,
     result JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS brent_user_alerts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES paid_brent_forecast_users(id) ON DELETE CASCADE,
+    alert_type TEXT NOT NULL,
+    threshold NUMERIC(10,2) NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 """
@@ -342,23 +351,169 @@ _HORIZONS = {
     "7d":     {"factor": 1.0,  "band": 0.045, "confidence": 58},
 }
 
-_ANALOGS = [
-    {"label": "February 2022 — Russia invades Ukraine", "period": "2022-02",
-     "geri_shift": 95, "brent_move": "+21% in 9 days", "duration": "6 weeks elevated",
-     "outcome": "Brent spiked from $92 to $128 before retracing as SPR releases and demand fears set in."},
-    {"label": "October 2023 — Middle East escalation", "period": "2023-10",
-     "geri_shift": 45, "brent_move": "+7.5% in 5 days", "duration": "3 weeks",
-     "outcome": "Risk premium of $6-8/bbl built quickly, then faded as supply remained physically unaffected."},
-    {"label": "June 2019 — Gulf of Oman tanker attacks", "period": "2019-06",
-     "geri_shift": 30, "brent_move": "+4.5% in 2 days", "duration": "2 weeks",
-     "outcome": "Short-lived spike; demand concerns dominated and Brent resumed its downtrend within a month."},
-    {"label": "September 2019 — Abqaiq drone strike", "period": "2019-09",
-     "geri_shift": 60, "brent_move": "+14.6% in 1 day", "duration": "10 days",
-     "outcome": "Largest single-day jump since 1991; fully retraced in under two weeks as output was restored."},
-    {"label": "April 2024 — Iran-Israel direct exchange", "period": "2024-04",
-     "geri_shift": 50, "brent_move": "+3.8% then -5%", "duration": "1 week",
-     "outcome": "Market priced de-escalation quickly; risk premium evaporated once retaliation stayed limited."},
-]
+# ─────────────────────────────────────────────────────────────────────────────
+# Real-data historical analog engine (production DB: intel_indices_daily +
+# oil_price_snapshots + vix_snapshots). Episodes of significant GERI shifts
+# are mined from the actual index history and paired with the real Brent
+# reaction. If no relevant episode matches a scenario, no analogs are shown.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_HIST_CACHE = {"at": 0.0, "rows": None, "episodes": None, "sensitivity": None}
+_HIST_TTL = 3600  # seconds
+
+
+def _load_history():
+    """Daily joined GERI / Brent / VIX history, cached for 1 hour."""
+    now = time.time()
+    if _HIST_CACHE["rows"] is not None and now - _HIST_CACHE["at"] < _HIST_TTL:
+        return _HIST_CACHE["rows"]
+    rows = []
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute("""
+                SELECT g.date, g.value AS geri, o.brent_price AS brent, v.vix_close AS vix
+                FROM intel_indices_daily g
+                LEFT JOIN oil_price_snapshots o ON o.date = g.date
+                LEFT JOIN vix_snapshots v ON v.date = g.date
+                WHERE g.index_id = 'global:geo_energy_risk'
+                ORDER BY g.date
+            """)
+            for r in cur.fetchall():
+                rows.append({
+                    "date": r["date"],
+                    "geri": int(r["geri"]) if r["geri"] is not None else None,
+                    "brent": float(r["brent"]) if r["brent"] is not None else None,
+                    "vix": float(r["vix"]) if r["vix"] is not None else None,
+                })
+    except Exception as e:
+        logger.error(f"Brent analog history load failed: {e}")
+        return _HIST_CACHE["rows"] or []
+    _HIST_CACHE.update({"at": now, "rows": rows, "episodes": None, "sensitivity": None})
+    return rows
+
+
+def _brent_near(rows, idx, max_span=4):
+    """Nearest non-null Brent price at/around rows[idx]."""
+    n = len(rows)
+    for off in range(max_span + 1):
+        for j in (idx + off, idx - off):
+            if 0 <= j < n and rows[j]["brent"] is not None:
+                return rows[j]["brent"]
+    return None
+
+
+def _mine_episodes():
+    """Detect significant GERI shift episodes and their real Brent reaction."""
+    if _HIST_CACHE["episodes"] is not None and time.time() - _HIST_CACHE["at"] < _HIST_TTL:
+        return _HIST_CACHE["episodes"]
+    rows = _load_history()
+    episodes = []
+    n = len(rows)
+    i = 7
+    while i < n:
+        base_row, cur_row = rows[i - 7], rows[i]
+        if base_row["geri"] is None or cur_row["geri"] is None:
+            i += 1
+            continue
+        delta = cur_row["geri"] - base_row["geri"]
+        if abs(delta) < 15:
+            i += 1
+            continue
+        # extend to local extreme
+        j = i
+        while (j + 1 < n and rows[j + 1]["geri"] is not None
+               and ((delta > 0 and rows[j + 1]["geri"] >= rows[j]["geri"])
+                    or (delta < 0 and rows[j + 1]["geri"] <= rows[j]["geri"]))):
+            j += 1
+        start, peak = i - 7, j
+        base_g, peak_g = rows[start]["geri"], rows[peak]["geri"]
+        shift_pts = peak_g - base_g
+        shift_pct = round(shift_pts / max(base_g, 5) * 100.0)
+        b_before = _brent_near(rows, start)
+        b_peak = _brent_near(rows, peak)
+        b_2d = _brent_near(rows, min(peak + 2, n - 1)) if peak + 2 < n + 4 else None
+        b_7d = _brent_near(rows, peak + 7) if peak + 7 < n else None
+        b_30d = _brent_near(rows, peak + 30) if peak + 30 < n else None
+
+        def _pct(a, b):
+            return round((b - a) / a * 100.0, 1) if (a and b) else None
+
+        # risk faded: GERI back within 30% of base within 21 days after peak
+        faded = None
+        for k in range(peak + 1, min(peak + 22, n)):
+            g = rows[k]["geri"]
+            if g is None:
+                continue
+            if (shift_pts > 0 and g <= base_g + 0.3 * shift_pts) or \
+               (shift_pts < 0 and g >= base_g + 0.3 * shift_pts):
+                faded = (rows[k]["date"] - rows[peak]["date"]).days
+                break
+        if faded is None and peak + 21 >= n:
+            faded_state = "recent"      # too recent to judge
+        elif faded is None:
+            faded_state = "persisted"
+        else:
+            faded_state = "faded"
+
+        direction = "surge" if shift_pts > 0 else "drop"
+        episodes.append({
+            "label": f"{rows[start]['date']:%d %b %Y} — GERI {direction} "
+                     f"{'+' if shift_pts > 0 else ''}{shift_pts} pts ({base_g} → {peak_g})",
+            "period": f"{rows[start]['date']:%b %Y}",
+            "start_date": rows[start]["date"].isoformat(),
+            "peak_date": rows[peak]["date"].isoformat(),
+            "duration_days": (rows[peak]["date"] - rows[start]["date"]).days,
+            "geri_shift_pts": shift_pts,
+            "geri_shift_pct": shift_pct,
+            "brent_before": round(b_before, 2) if b_before else None,
+            "brent_at_peak": round(b_peak, 2) if b_peak else None,
+            "brent_after_7d": round(b_7d, 2) if b_7d else None,
+            "brent_after_30d": round(b_30d, 2) if b_30d else None,
+            "move_to_peak_pct": _pct(b_before, b_peak),
+            "move_7d_pct": _pct(b_peak, b_7d),
+            "move_30d_pct": _pct(b_peak, b_30d),
+            "risk_state": faded_state,
+            "faded_after_days": faded,
+        })
+        i = j + 8
+    _HIST_CACHE["episodes"] = episodes
+    return episodes
+
+
+def _historical_sensitivity():
+    """Regression slope of daily Brent % change vs daily GERI point change,
+    and vs daily VIX % change, from real history."""
+    if _HIST_CACHE["sensitivity"] is not None and time.time() - _HIST_CACHE["at"] < _HIST_TTL:
+        return _HIST_CACHE["sensitivity"]
+    rows = _load_history()
+    g_pairs, v_pairs = [], []
+    prev = None
+    for r in rows:
+        if prev and r["brent"] and prev["brent"]:
+            b_ret = (r["brent"] - prev["brent"]) / prev["brent"] * 100.0
+            if r["geri"] is not None and prev["geri"] is not None:
+                g_pairs.append((r["geri"] - prev["geri"], b_ret))
+            if r["vix"] and prev["vix"]:
+                v_pairs.append(((r["vix"] - prev["vix"]) / prev["vix"] * 100.0, b_ret))
+        prev = r
+
+    def _slope(pairs):
+        if len(pairs) < 20:
+            return None
+        mx = sum(p[0] for p in pairs) / len(pairs)
+        my = sum(p[1] for p in pairs) / len(pairs)
+        var = sum((p[0] - mx) ** 2 for p in pairs)
+        if var == 0:
+            return None
+        return sum((p[0] - mx) * (p[1] - my) for p in pairs) / var
+
+    sens = {
+        "geri_slope_pct_per_pt": _slope(g_pairs),   # Brent % per 1 GERI pt
+        "vix_slope_pct_per_pct": _slope(v_pairs),   # Brent % per 1% VIX chg
+        "sample_days": len(g_pairs),
+    }
+    _HIST_CACHE["sensitivity"] = sens
+    return sens
 
 
 def _clamp(v, lo, hi):
@@ -379,13 +534,33 @@ def _confidence_reasons(geri_pct, vix_pct, extra_drivers=False):
     return reasons
 
 
-def _match_analogs(geri_pct):
-    shift = abs(geri_pct)
+def _match_analogs(scenario_shift_pct):
+    """Match real mined episodes against the scenario's GERI shift (%).
+    Returns [] when the scenario is too small or nothing matches well."""
+    if abs(scenario_shift_pct) < 8:
+        return []
+    try:
+        episodes = _mine_episodes()
+    except Exception as e:
+        logger.error(f"Analog mining failed: {e}")
+        return []
     scored = []
-    for a in _ANALOGS:
-        diff = abs(a["geri_shift"] - shift)
-        match = _clamp(int(round(95 - diff * 0.9)), 40, 96)
-        scored.append({**a, "match_pct": match})
+    for ep in episodes:
+        ep_shift = ep["geri_shift_pct"]
+        if ep_shift == 0:
+            continue
+        same_dir = (ep_shift > 0) == (scenario_shift_pct > 0)
+        diff = abs(abs(ep_shift) - abs(scenario_shift_pct))
+        score = 100 - min(diff, 100) * 0.55 - (0 if same_dir else 45)
+        score = _clamp(int(round(score)), 0, 97)
+        if score < 55:
+            continue
+        explanation = (
+            f"Scenario models a {'+' if scenario_shift_pct > 0 else ''}{int(scenario_shift_pct)}% GERI shift; "
+            f"this real episode saw {'+' if ep_shift > 0 else ''}{ep_shift}% "
+            f"({'same' if same_dir else 'opposite'} direction, "
+            f"{diff:.0f} pp magnitude difference).")
+        scored.append({**ep, "match_pct": score, "similarity_explanation": explanation})
     scored.sort(key=lambda x: -x["match_pct"])
     return scored[:3]
 
@@ -413,10 +588,17 @@ def _compute_scenario(brent, geri_pct, vix_pct, gas_pct=0.0,
         conf = _clamp(int(cfg["confidence"] - abs(total_pct) * 0.45), 35, 90)
         bias = "Bullish" if total_pct > 1.5 else "Bearish" if total_pct < -1.5 else "Neutral"
         bull_prob = _clamp(int(round(50 + total_pct * 1.6)), 8, 92)
+        tail_dir = 1 if total_pct >= 0 else -1
+        tail = mid * (1 + tail_dir * band * 2.3)
         horizons[hz] = {
             "expected_low": round(lo, 2), "expected_high": round(hi, 2),
             "most_likely": round(mid, 2), "move_pct": round(move * 100, 2),
+            "diff_vs_current": round(mid - brent, 2),
             "bias": bias, "bullish_probability": bull_prob, "confidence": conf,
+            "distribution": {
+                "bearish": round(lo, 2), "base": round(mid, 2),
+                "bullish": round(hi, 2), "tail_risk": round(tail, 2),
+            },
         }
     attribution = {
         "geri": round(geri_impact, 2), "vix": round(vix_impact, 2),
@@ -438,9 +620,154 @@ def _risk_score(snap, geri_pct, gas_pct, supply, demand):
     composite = supply_score * 0.4 + gas_score * 0.2 + fin_score * 0.15 + (100 - demand_score) * -0.0 + demand_score * 0.25
     bias = ("STRONGLY BULLISH" if composite > 70 else "BULLISH" if composite > 55
             else "NEUTRAL" if composite > 42 else "BEARISH")
+    comp = _clamp(int(round(composite)), 5, 100)
+    comp_label = ("Extreme" if comp >= 80 else "Elevated" if comp >= 60
+                  else "Moderate" if comp >= 40 else "Low")
     return {"supply_risk": supply_score, "demand_risk": demand_score,
             "financial_stress": fin_score, "gas_stress": gas_score,
+            "composite": comp, "composite_label": comp_label,
             "overall_bias": bias}
+
+
+def _band_label(v, lo, mid_v, hi):
+    if v is None:
+        return "unknown"
+    return "Low" if v < lo else "Moderate" if v < mid_v else "Elevated" if v < hi else "High"
+
+
+def _market_regime(snap):
+    geri = snap.get("geri_live") or snap.get("geri")
+    vix = snap.get("vix")
+    risk_part = {"Low": "Low geopolitical risk", "Moderate": "Moderate geopolitical risk",
+                 "Elevated": "Elevated geopolitical risk", "High": "High geopolitical risk",
+                 "unknown": "Geopolitical risk unclear"}[_band_label(geri, 25, 40, 60)]
+    vol_part = ("low volatility" if (vix or 0) < 15 else
+                "moderate volatility" if (vix or 0) < 22 else "high volatility") if vix else "volatility unknown"
+    return {
+        "label": f"{risk_part} / {vol_part}",
+        "bands": {
+            "geri_daily": _band_label(snap.get("geri"), 25, 40, 60),
+            "geri_live": _band_label(snap.get("geri_live"), 25, 40, 60),
+            "eeri": _band_label(snap.get("eeri"), 25, 40, 60),
+            "egsi_m": _band_label(snap.get("egsi_m"), 30, 50, 70),
+            "vix": _band_label(snap.get("vix"), 15, 22, 30),
+        },
+    }
+
+
+_DRIVER_NAMES = {
+    "geri": "Geopolitical risk premium (GERI)",
+    "supply": "Supply disruption",
+    "gas_stress": "European gas stress",
+    "vix": "Financial volatility (VIX)",
+    "demand": "Demand outlook",
+}
+
+
+def _main_driver(attribution):
+    items = [(k, v) for k, v in attribution.items() if k != "total"]
+    if not items or all(abs(v) < 0.05 for _, v in items):
+        return None, None
+    main = max(items, key=lambda kv: abs(kv[1]))
+    offsets = [kv for kv in items if (kv[1] > 0) != (main[1] > 0) and abs(kv[1]) > 0.2]
+    offset = max(offsets, key=lambda kv: abs(kv[1])) if offsets else None
+    return main, offset
+
+
+def _scenario_summary(geri_pct, vix_pct, gas_pct, supply, demand, attribution, total_pct):
+    tested = []
+    if geri_pct:
+        tested.append(f"GERI {'+' if geri_pct > 0 else ''}{geri_pct:.0f}%")
+    if vix_pct:
+        tested.append(f"VIX {'+' if vix_pct > 0 else ''}{vix_pct:.0f}%")
+    if gas_pct:
+        tested.append(f"European gas stress {'+' if gas_pct > 0 else ''}{gas_pct:.0f}%")
+    tested.append("supply " + ("status quo" if supply == "normal" else supply.replace("_", " ")))
+    if demand != "neutral":
+        tested.append(f"{demand} demand")
+    bias = "Bullish" if total_pct > 1.5 else "Bearish" if total_pct < -1.5 else "Neutral"
+    main, offset = _main_driver(attribution)
+    return {
+        "tested": "Scenario tested: " + ", ".join(tested) + ".",
+        "bias": bias,
+        "main_driver": _DRIVER_NAMES.get(main[0]) if main else "No dominant driver",
+        "key_offset": _DRIVER_NAMES.get(offset[0]) if offset else None,
+    }
+
+
+def _what_to_watch(snap, supply, total_pct):
+    geri_live = snap.get("geri_live") or snap.get("geri") or 30
+    vix = snap.get("vix") or 18
+    brent = snap.get("brent_intraday") or snap.get("brent") or 75
+    watch = [
+        f"GERI Live above {int(round(max(geri_live * 1.15, geri_live + 5)))}",
+        f"VIX above {int(round(max(20, vix * 1.2)))}",
+        f"Brent breaking {'above' if total_pct >= 0 else 'below'} ${brent * (1.02 if total_pct >= 0 else 0.98):.0f}",
+    ]
+    if supply in ("hormuz", "pipeline_attack", "sanctions"):
+        watch.append("New Middle East shipping and infrastructure alerts")
+    watch.append("OPEC+ statement and quota compliance risk")
+    return watch
+
+
+def _scenario_risk_line(snap, total_pct, bias):
+    geri_live = snap.get("geri_live") or snap.get("geri") or 30
+    brent = snap.get("brent_intraday") or snap.get("brent") or 75
+    if total_pct >= 0:
+        return (f"This scenario becomes more bullish if GERI Live rises above "
+                f"{int(round(geri_live * 1.15))} while Brent remains below ${brent * 1.03:.0f}; "
+                f"it weakens if risk indices retrace with no physical supply impact.")
+    return (f"This scenario becomes more bearish if GERI Live falls below "
+            f"{int(round(geri_live * 0.85))} while Brent holds above ${brent * 0.97:.0f}; "
+            f"it weakens if new supply disruptions re-price the risk premium.")
+
+
+def _driver_details(snap, attribution, geri_pct, vix_pct, gas_pct, supply, demand):
+    sens = _historical_sensitivity()
+    g_slope = sens.get("geri_slope_pct_per_pt")
+    v_slope = sens.get("vix_slope_pct_per_pct")
+    sample = sens.get("sample_days") or 0
+    g_sens = (f"Over the last {sample} trading days, a 10-point GERI rise has coincided with "
+              f"a {g_slope * 10:+.1f}% Brent move on average." if g_slope is not None
+              else "Not enough paired GERI/Brent history yet for a robust estimate.")
+    v_sens = (f"Over the last {sample} trading days, a 10% VIX rise has coincided with "
+              f"a {v_slope * 10:+.1f}% Brent move on average." if v_slope is not None
+              else "Not enough paired VIX/Brent history yet for a robust estimate.")
+    return {
+        "geri": {
+            "name": "GERI Risk", "why": "Geopolitical escalation adds a supply-risk premium to Brent before any barrels are lost. GERI quantifies that pressure from live intelligence flow.",
+            "current": snap.get("geri_live") or snap.get("geri"),
+            "input": f"{'+' if geri_pct > 0 else ''}{geri_pct:.0f}%",
+            "contribution_pct": attribution["geri"], "sensitivity": g_sens,
+        },
+        "supply": {
+            "name": "Supply Shock", "why": "Physical supply disruptions (OPEC+ cuts, chokepoint closures, sanctions) move Brent directly by removing barrels from the market.",
+            "current": "No active disruption modeled" if supply == "normal" else supply.replace("_", " ").title(),
+            "input": supply.replace("_", " ").title(),
+            "contribution_pct": attribution["supply"],
+            "sensitivity": "Preset shocks are calibrated to historical disruption episodes (e.g. chokepoint threats have repriced Brent 4–15% before physical loss).",
+        },
+        "gas_stress": {
+            "name": "EU Gas Stress", "why": "European gas stress spills into oil via fuel switching, energy-complex sentiment and refinery economics.",
+            "current": snap.get("egsi_m"),
+            "input": f"{'+' if gas_pct > 0 else ''}{gas_pct:.0f}%",
+            "contribution_pct": attribution["gas_stress"],
+            "sensitivity": "Gas-to-oil spillover is modeled at roughly 0.3% Brent per 10% gas-stress change.",
+        },
+        "vix": {
+            "name": "Financial VIX", "why": "Rising financial stress usually weighs on oil demand expectations; extreme fear can flip into a risk premium.",
+            "current": snap.get("vix"),
+            "input": f"{'+' if vix_pct > 0 else ''}{vix_pct:.0f}%",
+            "contribution_pct": attribution["vix"], "sensitivity": v_sens,
+        },
+        "demand": {
+            "name": "Demand Outlook", "why": "Global demand expectations set the baseline direction on top of which risk premia are priced.",
+            "current": "Neutral baseline",
+            "input": demand.title(),
+            "contribution_pct": attribution["demand"],
+            "sensitivity": "Weak vs strong demand outlooks shift the model by ±2.5% over a full 7-day horizon.",
+        },
+    }
 
 
 class PublicScenarioRequest(BaseModel):
@@ -545,13 +872,26 @@ async def advanced_scenario(body: AdvancedScenarioRequest,
         "Asia LNG": snap.get("egsi_s_band", snap.get("egsi_m_band", "unknown")),
         "North America": "low" if snap.get("vix", 18) < 22 else "moderate",
     }
+    scenario_shift = geri_pct + _SUPPLY_SHOCKS.get(supply, 0) * 2
+    summary = _scenario_summary(geri_pct, vix_pct, gas_pct, supply, demand,
+                                attribution, total_pct)
+    main, _off = _main_driver(attribution)
+    main_reason = _DRIVER_NAMES.get(main[0]) if main else "Conditions broadly unchanged"
+    for hz in horizons.values():
+        hz["main_reason"] = main_reason
     return {
         "success": True,
         "brent": round(brent, 2),
         "horizons": horizons,
         "attribution": attribution,
         "interpretation": interpretation,
-        "analogs": _match_analogs(geri_pct + _SUPPLY_SHOCKS.get(supply, 0) * 2),
+        "scenario_summary": summary,
+        "what_to_watch": _what_to_watch(snap, supply, total_pct),
+        "scenario_risk": _scenario_risk_line(snap, total_pct, bias),
+        "driver_details": _driver_details(snap, attribution, geri_pct, vix_pct,
+                                          gas_pct, supply, demand),
+        "market_regime": _market_regime(snap),
+        "analogs": _match_analogs(scenario_shift),
         "risk_score": _risk_score(snap, geri_pct, gas_pct, supply, demand),
         "regional_risk": regional,
         "confidence_reasons": _confidence_reasons(geri_pct, vix_pct, extra_drivers=True),
@@ -562,6 +902,7 @@ async def advanced_scenario(body: AdvancedScenarioRequest,
             "as_of": snap.get("geri_live_at"),
         },
         "market": snap,
+        "as_of": datetime.utcnow().strftime("%d %B %Y, %H:%M UTC"),
     }
 
 
@@ -610,6 +951,126 @@ async def delete_scenario(scenario_id: int,
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Scenario not found")
     return {"success": True}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Risk alerts (premium, in-app)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_ALERT_TYPES = {
+    "geri_live_above": "GERI Live rises above",
+    "vix_above": "VIX rises above",
+    "brent_above": "Brent rises above",
+    "brent_below": "Brent falls below",
+    "forecast_bearish": "Baseline 24–48h forecast turns bearish",
+    "analog_match_above": "Best historical analog match exceeds (%)",
+}
+
+
+class AlertRequest(BaseModel):
+    alert_type: str
+    threshold: float = 0.0
+
+
+@router.get("/api/brent-forecast/alerts")
+async def list_alerts(x_brent_token: Optional[str] = Header(None)):
+    user = _require_user(x_brent_token)
+    with get_cursor(commit=False) as cur:
+        cur.execute("SELECT id, alert_type, threshold, active, created_at FROM brent_user_alerts "
+                    "WHERE user_id = %s ORDER BY created_at DESC LIMIT 50", (user["id"],))
+        rows = cur.fetchall()
+    return {"success": True, "alert_types": _ALERT_TYPES, "alerts": [
+        {"id": r["id"], "alert_type": r["alert_type"], "threshold": float(r["threshold"]),
+         "active": r["active"], "created_at": r["created_at"].isoformat()} for r in rows]}
+
+
+@router.post("/api/brent-forecast/alerts")
+async def create_alert(body: AlertRequest,
+                       x_brent_token: Optional[str] = Header(None)):
+    user = _require_user(x_brent_token)
+    if body.alert_type not in _ALERT_TYPES:
+        raise HTTPException(status_code=400, detail="Unknown alert type")
+    threshold = _clamp(float(body.threshold or 0), -1000, 10000)
+    with get_cursor() as cur:
+        cur.execute("SELECT COUNT(*) AS c FROM brent_user_alerts WHERE user_id = %s", (user["id"],))
+        if cur.fetchone()["c"] >= 20:
+            raise HTTPException(status_code=400, detail="Alert limit reached (20)")
+        cur.execute("INSERT INTO brent_user_alerts (user_id, alert_type, threshold) "
+                    "VALUES (%s, %s, %s) RETURNING id", (user["id"], body.alert_type, threshold))
+        aid = cur.fetchone()["id"]
+    return {"success": True, "id": aid}
+
+
+@router.delete("/api/brent-forecast/alerts/{alert_id}")
+async def delete_alert(alert_id: int,
+                       x_brent_token: Optional[str] = Header(None)):
+    user = _require_user(x_brent_token)
+    with get_cursor() as cur:
+        cur.execute("DELETE FROM brent_user_alerts WHERE id = %s AND user_id = %s",
+                    (alert_id, user["id"]))
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Alert not found")
+    return {"success": True}
+
+
+@router.get("/api/brent-forecast/alerts/evaluate")
+async def evaluate_alerts(x_brent_token: Optional[str] = Header(None)):
+    """Evaluate the user's alerts against live market conditions (in-app)."""
+    user = _require_user(x_brent_token)
+    with get_cursor(commit=False) as cur:
+        cur.execute("SELECT id, alert_type, threshold FROM brent_user_alerts "
+                    "WHERE user_id = %s AND active", (user["id"],))
+        alerts = cur.fetchall()
+    if not alerts:
+        return {"success": True, "triggered": [], "evaluated": 0}
+
+    snap = _market_snapshot()
+    brent = snap.get("brent_intraday") or snap.get("brent")
+    geri_live = snap.get("geri_live") or snap.get("geri")
+    vix = snap.get("vix")
+
+    baseline_bias = None
+    best_match = None
+    types_present = {a["alert_type"] for a in alerts}
+    if "forecast_bearish" in types_present and brent:
+        horizons, _attr, _tp = _compute_scenario(brent, 0, 0)
+        baseline_bias = horizons["24_48h"]["bias"]
+    if "analog_match_above" in types_present:
+        rows = _load_history()
+        recent = [r for r in rows[-8:] if r["geri"] is not None]
+        if len(recent) >= 2 and recent[0]["geri"]:
+            shift = (recent[-1]["geri"] - recent[0]["geri"]) / max(recent[0]["geri"], 5) * 100
+            matches = _match_analogs(shift)
+            best_match = matches[0]["match_pct"] if matches else None
+
+    triggered = []
+    for a in alerts:
+        t, th = a["alert_type"], float(a["threshold"])
+        hit, cur_val, msg = False, None, ""
+        if t == "geri_live_above" and geri_live is not None:
+            cur_val, hit = geri_live, geri_live > th
+            msg = f"GERI Live is {geri_live:.0f} (threshold {th:.0f})"
+        elif t == "vix_above" and vix is not None:
+            cur_val, hit = vix, vix > th
+            msg = f"VIX is {vix:.1f} (threshold {th:.1f})"
+        elif t == "brent_above" and brent is not None:
+            cur_val, hit = brent, brent > th
+            msg = f"Brent is ${brent:.2f} (threshold ${th:.2f})"
+        elif t == "brent_below" and brent is not None:
+            cur_val, hit = brent, brent < th
+            msg = f"Brent is ${brent:.2f} (threshold ${th:.2f})"
+        elif t == "forecast_bearish" and baseline_bias is not None:
+            cur_val, hit = baseline_bias, baseline_bias == "Bearish"
+            msg = f"Baseline 24–48h forecast bias is {baseline_bias}"
+        elif t == "analog_match_above":
+            cur_val = best_match
+            hit = best_match is not None and best_match > th
+            msg = (f"Best analog match is {best_match}% (threshold {th:.0f}%)"
+                   if best_match is not None else "No qualifying analog right now")
+        if hit:
+            triggered.append({"id": a["id"], "alert_type": t, "threshold": th,
+                              "current": cur_val, "message": msg})
+    return {"success": True, "triggered": triggered, "evaluated": len(alerts)}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Brent Intelligence Scenario Engine™ | EnergyRiskIQ</title>
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
       --bg: #0e1422;
@@ -30,7 +30,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
+
     body {
       background-color: var(--bg);
       color: var(--text);
@@ -45,35 +45,16 @@
     button { font-family: inherit; cursor: pointer; border: none; background: none; }
     input, select { font-family: inherit; }
 
-    /* Layout */
-    .app-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px 60px;
-    }
+    .app-container { max-width: 1240px; margin: 0 auto; padding: 0 20px 60px; }
 
     /* Auth Overlay */
     #auth-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      position: fixed; inset: 0;
       background: rgba(14, 20, 34, 0.85);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;
     }
-    .auth-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--gold-dim);
-      border-radius: 12px;
-      padding: 40px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    }
+    .auth-card { background: var(--bg-panel); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
     .auth-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--gold); }
     .auth-desc { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
     .auth-field { margin-bottom: 16px; }
@@ -86,154 +67,217 @@
     .auth-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; }
     .auth-links { margin-top: 24px; text-align: center; font-size: 13px; }
 
-    /* App content */
-    #app-content {
-      transition: filter 0.3s ease;
-    }
+    #app-content { transition: filter 0.3s ease; }
     .blurred { filter: blur(5px); pointer-events: none; user-select: none; }
 
     /* Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .brand { font-size: 18px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 12px; }
+    .header { padding: 20px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .brand { font-size: 18px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .brand-gold { color: var(--gold); }
-    .live-pill { background: var(--cyan-dim); border: 1px solid var(--cyan); color: var(--cyan); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+    .live-pill { background: var(--cyan-dim); border: 1px solid var(--cyan); color: var(--cyan); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
     .live-pill::before { content: ''; width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; box-shadow: 0 0 8px var(--cyan); }
-    .user-nav { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); }
+    .user-nav { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); flex-wrap: wrap; }
     .logout-btn { color: var(--text-faint); cursor: pointer; }
     .logout-btn:hover { color: var(--text); }
+    .header-sub { margin-top: 8px; font-size: 13px; color: var(--text-muted); max-width: 780px; }
+    .header-status { margin-top: 6px; font-size: 12px; color: var(--text-faint); font-family: var(--font-mono); }
 
-    /* Welcome Banner */
-    #welcome-banner { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--green); color: #fff; padding: 16px 20px; border-radius: 8px; margin-bottom: 30px; display: none; justify-content: space-between; align-items: center; }
+    /* Tabs */
+    .tab-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 26px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 12px 18px; font-size: 13px; font-weight: 700; color: var(--text-muted); border-bottom: 2px solid transparent; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    #welcome-banner { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--green); color: #fff; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px; display: none; justify-content: space-between; align-items: center; gap: 12px; }
     .wb-close { color: var(--text-muted); cursor: pointer; font-size: 20px; line-height: 1; }
     .wb-close:hover { color: #fff; }
 
-    /* Section titles */
-    .section-title { font-size: 16px; font-weight: 800; margin-bottom: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-faint); display: flex; align-items: center; gap: 10px; }
+    .section-title { font-size: 15px; font-weight: 800; margin-bottom: 16px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-faint); display: flex; align-items: center; gap: 10px; }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-    /* Snapshot Grid */
-    .snap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 40px; }
-    .snap-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    /* Snapshot */
+    .snap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 14px; margin-bottom: 34px; }
+    .snap-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+    .snap-card.regime { grid-column: 1 / -1; background: rgba(212,160,23,0.05); border-color: var(--gold-dim); }
     .snap-label { font-size: 11px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .snap-val { font-size: 20px; font-weight: 800; font-family: var(--font-mono); }
+    .snap-val { font-size: 19px; font-weight: 800; font-family: var(--font-mono); }
     .snap-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .band-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+    .band-low { background: rgba(16,185,129,0.15); color: var(--green); }
+    .band-moderate { background: rgba(212,160,23,0.15); color: var(--gold); }
+    .band-elevated { background: rgba(249,115,22,0.15); color: #fb923c; }
+    .band-high { background: rgba(239,68,68,0.15); color: var(--red); }
+    .band-unknown { background: rgba(255,255,255,0.08); color: var(--text-faint); }
     .up { color: var(--green); }
     .down { color: var(--red); }
 
-    /* Main split */
-    .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 30px; margin-bottom: 40px; }
-    @media(max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+    /* Presets */
+    .preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 22px; }
+    .preset-btn { padding: 10px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text-muted); font-size: 12px; font-weight: 700; text-align: center; transition: all 0.15s; }
+    .preset-btn:hover, .preset-btn.selected { border-color: var(--gold); color: var(--gold); background: rgba(212,160,23,0.06); }
 
-    /* Controls Panel */
-    .controls-panel { background: var(--bg-panel); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 24px; position: relative; }
+    /* Main split */
+    .main-grid { display: grid; grid-template-columns: 340px 1fr; gap: 26px; margin-bottom: 34px; }
+    @media(max-width: 980px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .controls-panel { background: var(--bg-panel); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 24px; position: relative; align-self: start; }
     .controls-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), transparent); border-top-left-radius: 12px; border-top-right-radius: 12px; }
-    
-    .control-group { margin-bottom: 24px; }
+    .control-group { margin-bottom: 22px; }
     .control-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; }
     .control-val-disp { font-family: var(--font-mono); color: var(--gold); }
-    
     input[type=range] { width: 100%; appearance: none; background: transparent; cursor: pointer; margin-top: 8px; }
     input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; }
-    input[type=range]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; background: var(--gold); border-radius: 50%; margin-top: -6px; }
+    input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--gold); border-radius: 50%; margin-top: -7px; }
     input[type=range]:focus { outline: none; }
-    
     .select-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 6px; font-size: 14px; appearance: none; }
     .select-input:focus { border-color: var(--gold); outline: none; }
-
     .run-btn { width: 100%; background: var(--gold); color: #000; font-weight: 800; padding: 16px; border-radius: 8px; font-size: 15px; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s; }
     .run-btn:hover { opacity: 0.9; }
     .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Results Area */
-    .results-area { display: flex; flex-direction: column; gap: 30px; }
-    
+    .results-area { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+    /* Scenario summary */
+    .summary-bar { background: rgba(212,160,23,0.05); border: 1px solid var(--gold-dim); border-radius: 10px; padding: 16px 18px; font-size: 13px; }
+    .summary-tested { color: var(--text); font-weight: 700; margin-bottom: 8px; }
+    .summary-meta { display: flex; flex-wrap: wrap; gap: 14px; color: var(--text-muted); }
+    .summary-meta strong { color: var(--text); }
+
     /* Horizons */
-    .horizons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .hz-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .horizons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+    .hz-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
     .hz-card.primary { border-color: var(--gold-dim); background: linear-gradient(180deg, rgba(212,160,23,0.05) 0%, transparent 100%); }
-    .hz-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .hz-range { font-size: 24px; font-weight: 800; font-family: var(--font-mono); margin-bottom: 4px; }
-    .hz-mid { font-size: 14px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 16px; }
-    .hz-meta { display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .hz-label { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+    .hz-range { font-size: 21px; font-weight: 800; font-family: var(--font-mono); margin-bottom: 4px; }
+    .hz-mid { font-size: 13px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 6px; }
+    .hz-diff { font-size: 12px; font-family: var(--font-mono); margin-bottom: 8px; }
+    .hz-reason { font-size: 11px; color: var(--text-faint); margin-bottom: 12px; }
+    .hz-meta { display: flex; justify-content: space-between; font-size: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
     .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
     .badge-bullish { background: rgba(16, 185, 129, 0.15); color: var(--green); }
     .badge-bearish { background: rgba(239, 68, 68, 0.15); color: var(--red); }
     .badge-neutral { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
 
-    /* Attribution & Interpretation */
-    .attr-interp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media(max-width: 768px) { .attr-interp-grid { grid-template-columns: 1fr; } }
     .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     .panel-title { font-size: 13px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
-    
-    .attr-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; font-size: 13px; }
-    .attr-label { width: 100px; color: var(--text-muted); }
-    .attr-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; position: relative; }
+
+    /* Probability table */
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
+    .data-table th { text-align: left; padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-faint); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); font-family: var(--font-mono); white-space: nowrap; }
+    .data-table td:first-child { font-family: var(--font-main); font-weight: 700; }
+
+    /* Attribution */
+    .attr-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px; border-radius: 6px; padding: 4px 6px; }
+    .attr-row.clickable { cursor: pointer; }
+    .attr-row.clickable:hover, .attr-row.selected { background: rgba(212,160,23,0.08); }
+    .attr-label { width: 110px; color: var(--text-muted); flex-shrink: 0; }
+    .attr-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; position: relative; min-width: 60px; }
     .attr-bar { position: absolute; height: 100%; border-radius: 3px; }
     .attr-bar.pos { background: var(--green); left: 50%; }
     .attr-bar.neg { background: var(--red); right: 50%; }
-    .attr-val { width: 50px; text-align: right; font-family: var(--font-mono); font-weight: 700; }
+    .attr-val { width: 56px; text-align: right; font-family: var(--font-mono); font-weight: 700; flex-shrink: 0; }
+    .driver-detail { margin-top: 14px; padding: 14px; background: rgba(212,160,23,0.05); border: 1px solid var(--gold-dim); border-radius: 8px; font-size: 13px; color: var(--text-muted); display: none; }
+    .driver-detail strong { color: var(--text); }
+    .dd-row { margin-bottom: 8px; }
 
     .interp-text { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
     .interp-text strong { color: var(--text); }
+    .interp-block { margin-bottom: 16px; }
+    .interp-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 8px; }
+    .watch-list { list-style: none; }
+    .watch-list li { position: relative; padding-left: 20px; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
+    .watch-list li::before { content: '👁'; position: absolute; left: 0; font-size: 11px; }
 
     /* Analogs */
     .analogs-list { display: flex; flex-direction: column; gap: 12px; }
     .analog-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 16px; border-radius: 8px; }
-    .analog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .analog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
     .analog-title { font-weight: 700; font-size: 14px; }
-    .analog-meta { font-family: var(--font-mono); font-size: 12px; color: var(--gold); }
+    .analog-meta { font-family: var(--font-mono); font-size: 12px; color: var(--gold); white-space: nowrap; }
+    .analog-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .analog-stat { background: rgba(0,0,0,0.25); border-radius: 6px; padding: 8px; }
+    .as-label { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.5px; }
+    .as-val { font-family: var(--font-mono); font-size: 13px; font-weight: 700; margin-top: 2px; }
     .analog-desc { font-size: 13px; color: var(--text-muted); }
+    .analog-compare { margin-top: 10px; display: none; padding: 10px 12px; background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.25); border-radius: 6px; font-size: 13px; color: var(--text-muted); }
 
-    /* Risk Score */
-    .risk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
-    @media(max-width: 600px) { .risk-grid { grid-template-columns: 1fr 1fr; } }
+    /* Risk score */
+    .risk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media(max-width: 640px) { .risk-grid { grid-template-columns: 1fr 1fr; } }
     .risk-gauge { text-align: center; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border); }
     .rg-val { font-size: 24px; font-weight: 800; font-family: var(--font-mono); margin-bottom: 4px; }
     .rg-label { font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; }
+    .composite-box { display: flex; align-items: center; gap: 18px; background: rgba(212,160,23,0.06); border: 1px solid var(--gold-dim); border-radius: 10px; padding: 18px; margin-bottom: 20px; flex-wrap: wrap; }
+    .composite-num { font-size: 40px; font-weight: 800; font-family: var(--font-mono); color: var(--gold); }
+    .composite-bar { flex: 1; min-width: 140px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.07); position: relative; overflow: hidden; }
+    .composite-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--green), var(--gold), var(--red)); border-radius: 4px; }
 
-    /* Regional */
     .regional-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    @media(max-width: 600px) { .regional-grid { grid-template-columns: 1fr 1fr; } }
-    .reg-card { padding: 12px; background: rgba(255,255,255,0.02); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; }
+    @media(max-width: 640px) { .regional-grid { grid-template-columns: 1fr 1fr; } }
+    .reg-card { padding: 12px; background: rgba(255,255,255,0.02); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; gap: 6px; }
 
-    /* Confidence Reasons */
     .conf-list { list-style: none; }
     .conf-list li { position: relative; padding-left: 20px; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
     .conf-list li::before { content: '→'; position: absolute; left: 0; color: var(--gold); }
 
-    /* Saved Scenarios & Footer */
-    .footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 40px; }
-    @media(max-width: 768px) { .footer-grid { grid-template-columns: 1fr; } }
+    /* Library */
+    .lib-cat { margin-bottom: 26px; }
+    .lib-cat-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 12px; }
+    .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .lib-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; cursor: pointer; transition: border-color 0.15s; }
+    .lib-card:hover { border-color: var(--gold); }
+    .lib-name { font-weight: 800; font-size: 14px; margin-bottom: 6px; }
+    .lib-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+    .lib-params { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
 
-    .saved-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; max-height: 200px; overflow-y: auto; }
-    .saved-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
-    .saved-item-actions { display: flex; gap: 8px; }
-    .btn-sm { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+    /* Saved / comparison */
+    .saved-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .saved-item { padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+    .saved-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .saved-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); margin-bottom: 8px; }
+    .saved-item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-sm { padding: 5px 11px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); white-space: nowrap; }
     .btn-sm:hover { background: rgba(255,255,255,0.1); }
-    
-    .save-form { display: flex; gap: 10px; margin-top: 16px; }
-    .save-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
-    
+    .btn-gold { background: var(--gold); color: #000; border-color: var(--gold); }
+    .btn-gold:hover { opacity: 0.9; background: var(--gold); }
+    .save-form { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .save-input { flex: 1; min-width: 160px; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+    .compare-note { font-size: 12px; color: var(--text-faint); margin-top: 10px; }
+
+    /* Alerts */
+    .alert-form { display: grid; grid-template-columns: 1fr 140px auto; gap: 10px; margin-bottom: 20px; }
+    @media(max-width: 640px) { .alert-form { grid-template-columns: 1fr; } }
+    .alert-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; font-size: 13px; flex-wrap: wrap; }
+    .alert-triggered { border-color: var(--red); background: rgba(239,68,68,0.07); }
+    .trig-list { margin-top: 16px; }
+    .trig-item { padding: 12px 14px; border: 1px solid var(--red); background: rgba(239,68,68,0.08); border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+
+    /* Partner */
     .ref-box { background: rgba(212, 160, 23, 0.05); border: 1px solid var(--gold-dim); border-radius: 8px; padding: 16px; margin-top: 16px; }
-    .ref-link-wrap { display: flex; gap: 8px; margin: 12px 0; }
-    .ref-link { flex: 1; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); overflow-x: auto; white-space: nowrap; }
-    .stats-row { display: flex; gap: 20px; font-size: 13px; margin-top: 12px; }
+    .ref-link-wrap { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+    .ref-link { flex: 1; min-width: 200px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); overflow-x: auto; white-space: nowrap; }
+    .stats-row { display: flex; gap: 20px; font-size: 13px; margin-top: 12px; flex-wrap: wrap; }
     .stats-row strong { color: var(--text); }
 
     .small-print { margin-top: 40px; font-size: 11px; color: var(--text-faint); text-align: center; }
     .small-print a { color: var(--text-muted); }
-
     .loader { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+    .muted-note { font-size: 13px; color: var(--text-muted); }
+
+    @media(max-width: 640px) {
+      .app-container { padding: 0 14px 50px; }
+      .auth-card { padding: 26px 20px; }
+      .snap-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+      .hz-range { font-size: 18px; }
+      .composite-num { font-size: 32px; }
+      .attr-label { width: 88px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -243,9 +287,7 @@
     <div class="auth-card">
       <h1 class="auth-title">Sign in to Scenario Engine™</h1>
       <p class="auth-desc">Enter your credentials to access the premium dashboard.</p>
-      
       <div id="auth-error" class="auth-error"></div>
-      
       <form id="login-form">
         <div class="auth-field">
           <label class="auth-label">Email Address</label>
@@ -257,9 +299,8 @@
         </div>
         <button type="submit" class="auth-btn" id="login-btn">Sign In</button>
       </form>
-      
       <div class="auth-links">
-        <span style="color: var(--text-muted)">Not a member yet?</span> 
+        <span style="color: var(--text-muted)">Not a member yet?</span>
         <a href="#" id="trial-link">Start your 14-day free trial</a>
       </div>
     </div>
@@ -267,18 +308,22 @@
 
   <div id="app-content" class="blurred">
     <div class="app-container">
-      
+
       <!-- Header -->
       <header class="header">
-        <div class="brand">
-          <span class="brand-gold">EnergyRiskIQ</span>
-          <span>Brent Intelligence Scenario Engine™</span>
+        <div class="header-top">
+          <div class="brand">
+            <span class="brand-gold">EnergyRiskIQ</span>
+            <span>Brent Intelligence Scenario Engine™</span>
+          </div>
+          <div class="user-nav">
+            <span class="live-pill" id="hdr-live-pill">GERI LIVE: --</span>
+            <span id="hdr-email">--</span>
+            <button class="logout-btn" id="logout-btn">Sign out</button>
+          </div>
         </div>
-        <div class="user-nav">
-          <span class="live-pill" id="hdr-live-pill">GERI LIVE: --</span>
-          <span id="hdr-email">--</span>
-          <button class="logout-btn" id="logout-btn">Sign out</button>
-        </div>
+        <div class="header-sub">Institutional Brent scenario modelling using GERI Live, VIX, supply shocks, European gas stress, and historical analogs.</div>
+        <div class="header-status" id="hdr-updated">Last updated: --</div>
       </header>
 
       <div id="welcome-banner">
@@ -286,128 +331,218 @@
         <span class="wb-close" id="wb-close">&times;</span>
       </div>
 
-      <!-- Snapshot -->
-      <div class="section-title">Current Market Environment</div>
-      <div class="snap-grid" id="market-grid">
-        <div class="loader">Loading market data...</div>
-      </div>
+      <!-- Tabs -->
+      <nav class="tab-bar" id="tab-bar">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="drivers">Drivers</button>
+        <button class="tab-btn" data-tab="analogs">Analogs</button>
+        <button class="tab-btn" data-tab="library">Scenario Library</button>
+        <button class="tab-btn" data-tab="saved">Saved Scenarios</button>
+        <button class="tab-btn" data-tab="alerts">Alerts</button>
+        <button class="tab-btn" data-tab="partner">Partner Program</button>
+      </nav>
 
-      <!-- Main Engine -->
-      <div class="main-grid">
-        
-        <!-- Controls -->
-        <aside class="controls-panel">
-          <div class="section-title" style="margin-bottom: 24px;">Scenario Parameters</div>
-          
-          <div class="control-group">
-            <div class="control-label">
-              <span>Geopolitical Risk (GERI)</span>
-              <span class="control-val-disp" id="val-geri">0%</span>
-            </div>
-            <input type="range" id="ctrl-geri" min="-50" max="100" value="0" step="5">
-          </div>
-          
-          <div class="control-group">
-            <div class="control-label">
-              <span>Financial Stress (VIX)</span>
-              <span class="control-val-disp" id="val-vix">0%</span>
-            </div>
-            <input type="range" id="ctrl-vix" min="-50" max="100" value="0" step="5">
-          </div>
-          
-          <div class="control-group">
-            <div class="control-label">
-              <span>European Gas Stress</span>
-              <span class="control-val-disp" id="val-gas">0%</span>
-            </div>
-            <input type="range" id="ctrl-gas" min="-50" max="100" value="0" step="5">
-          </div>
-          
-          <div class="control-group">
-            <div class="control-label"><span>Supply Scenario</span></div>
-            <select id="ctrl-supply" class="select-input">
-              <option value="normal">Normal / Status Quo</option>
-              <option value="opec_cut">OPEC+ Surprise Cut</option>
-              <option value="hormuz">Hormuz Disruption</option>
-              <option value="pipeline_attack">Major Pipeline Attack</option>
-              <option value="sanctions">New Tight Sanctions</option>
-            </select>
-          </div>
-          
-          <div class="control-group">
-            <div class="control-label"><span>Demand Outlook</span></div>
-            <select id="ctrl-demand" class="select-input">
-              <option value="weak">Weak (Recessionary)</option>
-              <option value="neutral" selected>Neutral</option>
-              <option value="strong">Strong (Growth Surprise)</option>
-            </select>
-          </div>
+      <!-- ══════════ OVERVIEW ══════════ -->
+      <section class="tab-pane active" id="tab-overview">
 
-          <button id="run-btn" class="run-btn">Run Scenario Analysis</button>
-          
-          <div style="margin-top: 16px; font-size: 11px; color: var(--text-faint); text-align: center;">
-            Base Brent: $<span id="base-brent">--</span>
-          </div>
-        </aside>
-
-        <!-- Results -->
-        <main class="results-area" id="results-area" style="opacity: 0.5; pointer-events: none;">
-          
-          <div class="horizons-grid" id="res-horizons">
-            <!-- Populated via JS -->
-            <div class="loader">Run a scenario to see projections.</div>
-          </div>
-
-          <div class="attr-interp-grid">
-            <div class="panel">
-              <div class="panel-title">Driver Attribution</div>
-              <div id="res-attr"></div>
-            </div>
-            <div class="panel">
-              <div class="panel-title">AI Interpretation</div>
-              <div class="interp-text" id="res-interp"></div>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-title">Historical Analogs</div>
-            <div class="analogs-list" id="res-analogs"></div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-title">Oil Market Risk Score</div>
-            <div class="risk-grid" id="res-risk-score"></div>
-            <div class="panel-title" style="margin-top: 20px;">Regional Risk Context</div>
-            <div class="regional-grid" id="res-regional"></div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-title">Confidence Factors</div>
-            <ul class="conf-list" id="res-conf"></ul>
-            <div style="margin-top: 16px; font-size: 11px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 12px;" id="res-intel-footer">
-              Intelligence Footer
-            </div>
-          </div>
-
-        </main>
-      </div>
-
-      <!-- Footer Sections -->
-      <div class="footer-grid">
-        <div class="panel">
-          <div class="panel-title">Saved Scenarios</div>
-          <div class="save-form">
-            <input type="text" id="save-name" class="save-input" placeholder="Scenario name...">
-            <button class="btn-sm" id="save-btn" style="background: var(--gold); color: #000;">Save Current</button>
-            <button class="btn-sm" id="export-btn">Export .TXT</button>
-          </div>
-          <div class="saved-list" id="saved-list">
-            <div style="font-size: 13px; color: var(--text-muted);">Loading saved scenarios...</div>
-          </div>
+        <div class="section-title">Current Market Environment</div>
+        <div class="snap-grid" id="market-grid">
+          <div class="loader">Loading market data...</div>
         </div>
 
+        <div class="section-title">Quick Scenario Presets</div>
+        <div class="preset-grid" id="preset-grid"></div>
+
+        <div class="main-grid">
+          <aside class="controls-panel">
+            <div class="section-title" style="margin-bottom: 24px;">Scenario Parameters</div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>Geopolitical Risk (GERI)</span>
+                <span class="control-val-disp" id="val-geri">0%</span>
+              </div>
+              <input type="range" id="ctrl-geri" min="-50" max="100" value="0" step="5">
+            </div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>Financial Stress (VIX)</span>
+                <span class="control-val-disp" id="val-vix">0%</span>
+              </div>
+              <input type="range" id="ctrl-vix" min="-50" max="100" value="0" step="5">
+            </div>
+            <div class="control-group">
+              <div class="control-label">
+                <span>European Gas Stress</span>
+                <span class="control-val-disp" id="val-gas">0%</span>
+              </div>
+              <input type="range" id="ctrl-gas" min="-50" max="100" value="0" step="5">
+            </div>
+            <div class="control-group">
+              <div class="control-label"><span>Supply Scenario</span></div>
+              <select id="ctrl-supply" class="select-input">
+                <option value="normal">Normal / Status Quo</option>
+                <option value="opec_cut">OPEC+ Surprise Cut</option>
+                <option value="hormuz">Hormuz Disruption</option>
+                <option value="pipeline_attack">Major Pipeline Attack</option>
+                <option value="sanctions">New Tight Sanctions</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <div class="control-label"><span>Demand Outlook</span></div>
+              <select id="ctrl-demand" class="select-input">
+                <option value="weak">Weak (Recessionary)</option>
+                <option value="neutral" selected>Neutral</option>
+                <option value="strong">Strong (Growth Surprise)</option>
+              </select>
+            </div>
+            <button id="run-btn" class="run-btn">Run Scenario Analysis</button>
+            <div style="margin-top: 16px; font-size: 11px; color: var(--text-faint); text-align: center;">
+              Base Brent: $<span id="base-brent">--</span>
+            </div>
+          </aside>
+
+          <main class="results-area" id="results-area" style="opacity: 0.5;">
+            <div class="summary-bar" id="res-summary" style="display:none;"></div>
+
+            <div class="horizons-grid" id="res-horizons">
+              <div class="loader">Run a scenario to see projections.</div>
+            </div>
+
+            <div class="panel" id="res-conf-panel" style="display:none;">
+              <div class="panel-title">Confidence Factors</div>
+              <ul class="conf-list" id="res-conf"></ul>
+              <div style="margin-top: 16px; font-size: 11px; color: var(--text-faint); border-top: 1px solid var(--border); padding-top: 12px;" id="res-intel-footer"></div>
+            </div>
+
+            <div class="panel" id="res-prob-panel" style="display:none;">
+              <div class="panel-title">Brent Probability Distribution</div>
+              <div class="table-scroll">
+                <table class="data-table" id="prob-table">
+                  <thead><tr><th>Horizon</th><th>Bearish</th><th>Base</th><th>Bullish</th><th>Tail Risk</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" id="res-interp-panel" style="display:none;">
+              <div class="panel-title">AI Interpretation</div>
+              <div class="interp-block">
+                <h4>Interpretation</h4>
+                <div class="interp-text" id="res-interp"></div>
+              </div>
+              <div class="interp-block">
+                <h4>What to Watch Next</h4>
+                <ul class="watch-list" id="res-watch"></ul>
+              </div>
+              <div class="interp-block" style="margin-bottom:0;">
+                <h4>Scenario Risk</h4>
+                <div class="interp-text" id="res-scenario-risk"></div>
+              </div>
+            </div>
+
+            <div class="panel" id="compare-panel" style="display:none;">
+              <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span>Scenario Comparison</span>
+                <span>
+                  <button class="btn-sm btn-gold" id="add-compare-btn">Add current run</button>
+                  <button class="btn-sm" id="clear-compare-btn">Clear</button>
+                </span>
+              </div>
+              <div class="table-scroll">
+                <table class="data-table" id="compare-table">
+                  <thead><tr><th>Scenario</th><th>24–48h</th><th>72h</th><th>7D</th><th>Bias</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="compare-note" id="compare-note">Run scenarios and add them here to compare side by side.</div>
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <!-- ══════════ DRIVERS ══════════ -->
+      <section class="tab-pane" id="tab-drivers">
+        <div class="section-title">Driver Attribution &amp; Risk Context</div>
+        <div id="drivers-empty" class="muted-note" style="margin-bottom:20px;">Run a scenario on the Overview tab to populate driver analytics.</div>
+        <div id="drivers-content" style="display:none;">
+          <div class="panel" style="margin-bottom: 20px;">
+            <div class="panel-title">Driver Attribution <span style="color:var(--text-faint); font-weight:400; text-transform:none; letter-spacing:0;">— click a driver for details</span></div>
+            <div id="res-attr"></div>
+            <div class="driver-detail" id="driver-detail"></div>
+          </div>
+          <div class="panel" style="margin-bottom: 20px;">
+            <div class="panel-title">Oil Market Risk Score</div>
+            <div class="composite-box" id="res-composite"></div>
+            <div class="risk-grid" id="res-risk-score"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Regional Risk Context</div>
+            <div class="regional-grid" id="res-regional"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════ ANALOGS ══════════ -->
+      <section class="tab-pane" id="tab-analogs">
+        <div class="section-title">Historical Analogs — Real Episodes from EnergyRiskIQ Data</div>
+        <p class="muted-note" style="margin-bottom: 20px;">Analogs are mined from actual GERI index history and the real Brent price reaction recorded in the EnergyRiskIQ production dataset. If no relevant episode matches your scenario, none are shown.</p>
+        <div class="analogs-list" id="res-analogs">
+          <div class="muted-note">Run a scenario on the Overview tab to find matching historical episodes.</div>
+        </div>
+      </section>
+
+      <!-- ══════════ LIBRARY ══════════ -->
+      <section class="tab-pane" id="tab-library">
+        <div class="section-title">Scenario Library</div>
+        <p class="muted-note" style="margin-bottom: 24px;">Curated scenario templates. Clicking a card loads its parameters and runs the model immediately.</p>
+        <div id="library-content"></div>
+      </section>
+
+      <!-- ══════════ SAVED ══════════ -->
+      <section class="tab-pane" id="tab-saved">
+        <div class="section-title">Saved Scenarios</div>
         <div class="panel">
-          <div class="panel-title">Partner Referral Program</div>
+          <div class="save-form">
+            <input type="text" id="save-name" class="save-input" placeholder="Scenario name...">
+            <button class="btn-sm btn-gold" id="save-btn">Save Current</button>
+            <button class="btn-sm" id="export-btn">Export .TXT</button>
+            <button class="btn-sm" id="export-pdf-btn">Export PDF</button>
+          </div>
+          <div class="saved-list" id="saved-list">
+            <div class="muted-note">Loading saved scenarios...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════ ALERTS ══════════ -->
+      <section class="tab-pane" id="tab-alerts">
+        <div class="section-title">Risk Alerts</div>
+        <div class="panel">
+          <p class="muted-note" style="margin-bottom: 16px;">Set thresholds and let the engine monitor risk for you. Alerts are evaluated against live market data every time you open this tab or press Evaluate.</p>
+          <div class="alert-form">
+            <select id="alert-type" class="select-input">
+              <option value="geri_live_above">GERI Live rises above…</option>
+              <option value="vix_above">VIX rises above…</option>
+              <option value="brent_above">Brent rises above… ($)</option>
+              <option value="brent_below">Brent falls below… ($)</option>
+              <option value="forecast_bearish">Baseline forecast turns bearish</option>
+              <option value="analog_match_above">Historical analog match exceeds… (%)</option>
+            </select>
+            <input type="number" id="alert-threshold" class="save-input" placeholder="Threshold" step="0.1">
+            <button class="btn-sm btn-gold" id="alert-add-btn" style="padding: 8px 18px;">Add Alert</button>
+          </div>
+          <div id="alerts-list"><div class="muted-note">Loading alerts…</div></div>
+          <div style="margin-top: 16px;">
+            <button class="btn-sm" id="alert-eval-btn">Evaluate Now</button>
+          </div>
+          <div class="trig-list" id="trig-list"></div>
+        </div>
+      </section>
+
+      <!-- ══════════ PARTNER ══════════ -->
+      <section class="tab-pane" id="tab-partner">
+        <div class="section-title">Partner Referral Program</div>
+        <div class="panel">
           <p style="font-size: 13px; color: var(--text-muted);">Share your link. Earn 40% recurring commission (€3.20/month) per active professional referral.</p>
           <div class="ref-box">
             <div style="font-size: 12px; font-weight: 700; color: var(--text-faint); text-transform: uppercase;">Your Referral Link</div>
@@ -426,11 +561,11 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div class="small-print">
         EnergyRiskIQ Brent Intelligence Scenario Engine™ is an analytical decision-support tool, not financial advice.<br>
-        Information provided is for educational and strategic planning purposes only. <a href="/data-license">Data License & Terms</a>.
+        Information provided is for educational and strategic planning purposes only. <a href="/data-license">Data License &amp; Terms</a>.
       </div>
 
     </div>
@@ -441,71 +576,95 @@
     let API_TOKEN = localStorage.getItem('brent_token');
     let marketData = null;
     let currentScenarioResult = null;
+    let comparisonRows = [];
 
-    const DOM = {
-      overlay: document.getElementById('auth-overlay'),
-      content: document.getElementById('app-content'),
-      loginForm: document.getElementById('login-form'),
-      loginEmail: document.getElementById('login-email'),
-      loginPass: document.getElementById('login-password'),
-      loginBtn: document.getElementById('login-btn'),
-      authError: document.getElementById('auth-error'),
-      trialLink: document.getElementById('trial-link'),
-      logoutBtn: document.getElementById('logout-btn'),
-      
-      wb: document.getElementById('welcome-banner'),
-      wbText: document.getElementById('wb-text'),
-      wbClose: document.getElementById('wb-close'),
-      
-      hdrEmail: document.getElementById('hdr-email'),
-      hdrLive: document.getElementById('hdr-live-pill'),
-      marketGrid: document.getElementById('market-grid'),
-      
-      ctrlGeri: document.getElementById('ctrl-geri'),
-      ctrlVix: document.getElementById('ctrl-vix'),
-      ctrlGas: document.getElementById('ctrl-gas'),
-      ctrlSupply: document.getElementById('ctrl-supply'),
-      ctrlDemand: document.getElementById('ctrl-demand'),
-      valGeri: document.getElementById('val-geri'),
-      valVix: document.getElementById('val-vix'),
-      valGas: document.getElementById('val-gas'),
-      baseBrent: document.getElementById('base-brent'),
-      runBtn: document.getElementById('run-btn'),
-      
-      resArea: document.getElementById('results-area'),
-      resHorizons: document.getElementById('res-horizons'),
-      resAttr: document.getElementById('res-attr'),
-      resInterp: document.getElementById('res-interp'),
-      resAnalogs: document.getElementById('res-analogs'),
-      resRiskScore: document.getElementById('res-risk-score'),
-      resRegional: document.getElementById('res-regional'),
-      resConf: document.getElementById('res-conf'),
-      resIntelFooter: document.getElementById('res-intel-footer'),
-
-      saveName: document.getElementById('save-name'),
-      saveBtn: document.getElementById('save-btn'),
-      exportBtn: document.getElementById('export-btn'),
-      savedList: document.getElementById('saved-list'),
-
-      refUrl: document.getElementById('ref-url'),
-      refCount: document.getElementById('ref-count'),
-      refEarned: document.getElementById('ref-earned'),
-      copyRefBtn: document.getElementById('copy-ref-btn'),
-      refEmbed: document.getElementById('ref-embed'),
-      copyEmbedBtn: document.getElementById('copy-embed-btn')
-    };
-
-    // --- Helpers ---
+    const $ = (id) => document.getElementById(id);
     const headers = () => ({ 'Content-Type': 'application/json', 'X-Brent-Token': API_TOKEN || '' });
     const fmt = (n) => typeof n === 'number' ? n.toFixed(2) : '--';
     const sign = (n) => n > 0 ? '+' : '';
-    
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const bandCls = (b) => 'band-' + String(b || 'unknown').toLowerCase();
+
+    // --- Tabs ---
+    $('tab-bar').addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-btn');
+      if (!btn) return;
+      switchTab(btn.dataset.tab);
+    });
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+      if (name === 'alerts') loadAlerts();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- Presets (item 3 + 14) ---
+    const PRESETS = [
+      { key: 'baseline', name: 'Baseline', desc: 'Current conditions, no shocks.', geri: 0, vix: 0, gas: 0, supply: 'normal', demand: 'neutral', cat: 'Global Demand' },
+      { key: 'mideast', name: 'Middle East Escalation', desc: 'Regional conflict widens; infrastructure at risk.', geri: 40, vix: 15, gas: 10, supply: 'pipeline_attack', demand: 'neutral', cat: 'Middle East' },
+      { key: 'hormuz', name: 'Hormuz Disruption', desc: 'Strait of Hormuz shipping disruption.', geri: 60, vix: 25, gas: 20, supply: 'hormuz', demand: 'neutral', cat: 'Middle East' },
+      { key: 'opec_cut', name: 'OPEC+ Surprise Cut', desc: 'Unexpected production cut announcement.', geri: 10, vix: 5, gas: 0, supply: 'opec_cut', demand: 'neutral', cat: 'OPEC' },
+      { key: 'sanctions', name: 'Russia Sanctions', desc: 'New tight sanctions on Russian exports.', geri: 30, vix: 10, gas: 15, supply: 'sanctions', demand: 'neutral', cat: 'Russia / Sanctions' },
+      { key: 'ceasefire', name: 'Ceasefire / De-escalation', desc: 'Major conflict de-escalates; risk premium unwinds.', geri: -35, vix: -15, gas: -10, supply: 'normal', demand: 'neutral', cat: 'Middle East' },
+      { key: 'recession', name: 'Global Recession', desc: 'Demand destruction; financial stress spikes.', geri: -10, vix: 40, gas: -5, supply: 'normal', demand: 'weak', cat: 'Financial Stress' },
+      { key: 'recovery', name: 'Demand Recovery', desc: 'Growth surprise lifts consumption outlook.', geri: 0, vix: -10, gas: 0, supply: 'normal', demand: 'strong', cat: 'Global Demand' },
+      { key: 'iran_israel', name: 'Iran–Israel Escalation', desc: 'Direct exchange raises supply fears.', geri: 50, vix: 20, gas: 10, supply: 'pipeline_attack', demand: 'neutral', cat: 'Middle East' },
+      { key: 'export_ban', name: 'Russia Export Ban', desc: 'Full export halt scenario.', geri: 45, vix: 20, gas: 30, supply: 'sanctions', demand: 'neutral', cat: 'Russia / Sanctions' },
+      { key: 'shipping', name: 'Red Sea Shipping Crisis', desc: 'Rerouting and freight-cost surge.', geri: 25, vix: 10, gas: 5, supply: 'pipeline_attack', demand: 'neutral', cat: 'Shipping' },
+    ];
+
+    function renderPresets() {
+      $('preset-grid').innerHTML = PRESETS.slice(0, 8).map(p =>
+        `<button class="preset-btn" data-preset="${p.key}" title="${esc(p.desc)}">${esc(p.name)}</button>`).join('');
+      $('preset-grid').onclick = (e) => {
+        const b = e.target.closest('.preset-btn');
+        if (!b) return;
+        document.querySelectorAll('.preset-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        applyPreset(b.dataset.preset, true);
+      };
+    }
+
+    function applyPreset(key, run) {
+      const p = PRESETS.find(x => x.key === key);
+      if (!p) return;
+      $('ctrl-geri').value = p.geri; updateDisplay($('val-geri'), p.geri);
+      $('ctrl-vix').value = p.vix; updateDisplay($('val-vix'), p.vix);
+      $('ctrl-gas').value = p.gas; updateDisplay($('val-gas'), p.gas);
+      $('ctrl-supply').value = p.supply;
+      $('ctrl-demand').value = p.demand;
+      if (run) { window.__pendingScenarioName = p.name; runScenario(); }
+    }
+
+    function renderLibrary() {
+      const cats = ['Middle East', 'OPEC', 'Russia / Sanctions', 'Shipping', 'Global Demand', 'Financial Stress'];
+      $('library-content').innerHTML = cats.map(cat => {
+        const items = PRESETS.filter(p => p.cat === cat);
+        if (!items.length) return '';
+        return `<div class="lib-cat">
+          <div class="lib-cat-title">${esc(cat)}</div>
+          <div class="lib-grid">${items.map(p => `
+            <div class="lib-card" data-preset="${p.key}">
+              <div class="lib-name">${esc(p.name)}</div>
+              <div class="lib-desc">${esc(p.desc)}</div>
+              <div class="lib-params">GERI ${sign(p.geri)}${p.geri}% · VIX ${sign(p.vix)}${p.vix}% · Gas ${sign(p.gas)}${p.gas}%<br>Supply: ${esc(p.supply.replace('_',' '))} · Demand: ${esc(p.demand)}</div>
+            </div>`).join('')}</div>
+        </div>`;
+      }).join('');
+      $('library-content').onclick = (e) => {
+        const c = e.target.closest('.lib-card');
+        if (!c) return;
+        applyPreset(c.dataset.preset, true);
+        switchTab('overview');
+      };
+    }
+
     // --- Init ---
     async function init() {
-      // Check for Stripe redirect
+      renderPresets();
+      renderLibrary();
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('session_id');
-      
       if (sessionId) {
         try {
           const res = await fetch(`/api/brent-forecast/confirm?session_id=${sessionId}`);
@@ -514,46 +673,40 @@
             API_TOKEN = data.token;
             localStorage.setItem('brent_token', API_TOKEN);
             window.history.replaceState({}, document.title, window.location.pathname);
-            
             if (data.created) {
-              DOM.wbText.textContent = `Welcome! Your login credentials have been emailed to ${data.email}. Keep them safe.`;
-              DOM.wb.style.display = 'flex';
+              $('wb-text').textContent = `Welcome! Your login credentials have been emailed to ${data.email}. Keep them safe.`;
+              $('welcome-banner').style.display = 'flex';
             }
           }
         } catch (err) { console.error('Confirm error', err); }
       }
-
       checkAuth();
     }
 
     // --- Auth ---
     async function checkAuth() {
       if (!API_TOKEN) return showLogin();
-      
       try {
         const res = await fetch('/api/brent-forecast/me', { headers: headers() });
         if (res.status === 402) return showLogin("Your subscription is not active.");
         if (!res.ok) return showLogin();
-        
         const data = await res.json();
         if (!data.success || !data.active) return showLogin("Your subscription is not active.");
-        
-        // Authenticated
-        DOM.overlay.style.display = 'none';
-        DOM.content.classList.remove('blurred');
-        DOM.hdrEmail.textContent = data.email;
-        
-        if (data.welcome_banner_seen === false && DOM.wb.style.display === 'none') {
-          DOM.wbText.textContent = "Welcome! Your login credentials have been emailed. Keep them safe.";
-          DOM.wb.style.display = 'flex';
+
+        $('auth-overlay').style.display = 'none';
+        $('app-content').classList.remove('blurred');
+        $('hdr-email').textContent = data.email;
+
+        if (data.welcome_banner_seen === false && $('welcome-banner').style.display === 'none') {
+          $('wb-text').textContent = "Welcome! Your login credentials have been emailed. Keep them safe.";
+          $('welcome-banner').style.display = 'flex';
         }
 
-        // Setup referral info
         if (data.ref_code) {
-          DOM.refUrl.textContent = `https://energyriskiq.com/tools/brent-oil-risk-forecast?ref=${data.ref_code}`;
-          DOM.refEmbed.textContent = `<iframe src="https://energyriskiq.com/embed/brent-risk-widget?ref=${data.ref_code}" width="340" height="240" frameborder="0" title="Brent Oil Risk Forecast Widget"></iframe>`;
-          DOM.refCount.textContent = data.referrals || 0;
-          DOM.refEarned.textContent = `€${(data.commission_earned_eur || 0).toFixed(2)}`;
+          $('ref-url').textContent = `https://energyriskiq.com/tools/brent-oil-risk-forecast?ref=${data.ref_code}`;
+          $('ref-embed').textContent = `<iframe src="https://energyriskiq.com/embed/brent-risk-widget?ref=${data.ref_code}" width="340" height="240" frameborder="0" title="Brent Oil Risk Forecast Widget"></iframe>`;
+          $('ref-count').textContent = data.referrals || 0;
+          $('ref-earned').textContent = `€${(data.commission_earned_eur || 0).toFixed(2)}`;
         }
 
         loadDashboard();
@@ -563,28 +716,26 @@
     }
 
     function showLogin(msg = "") {
-      DOM.overlay.style.display = 'flex';
-      DOM.content.classList.add('blurred');
+      $('auth-overlay').style.display = 'flex';
+      $('app-content').classList.add('blurred');
       if (msg) {
-        DOM.authError.textContent = msg;
-        DOM.authError.style.display = 'block';
+        $('auth-error').textContent = msg;
+        $('auth-error').style.display = 'block';
       }
     }
 
-    DOM.loginForm.onsubmit = async (e) => {
+    $('login-form').onsubmit = async (e) => {
       e.preventDefault();
-      DOM.authError.style.display = 'none';
-      DOM.loginBtn.disabled = true;
-      DOM.loginBtn.textContent = "Signing in...";
-      
+      $('auth-error').style.display = 'none';
+      $('login-btn').disabled = true;
+      $('login-btn').textContent = "Signing in...";
       try {
         const res = await fetch('/api/brent-forecast/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: DOM.loginEmail.value, password: DOM.loginPass.value })
+          body: JSON.stringify({ email: $('login-email').value, password: $('login-password').value })
         });
         const data = await res.json();
-        
         if (data.success && data.token) {
           API_TOKEN = data.token;
           localStorage.setItem('brent_token', API_TOKEN);
@@ -595,12 +746,12 @@
       } catch (err) {
         showLogin("Login failed");
       } finally {
-        DOM.loginBtn.disabled = false;
-        DOM.loginBtn.textContent = "Sign In";
+        $('login-btn').disabled = false;
+        $('login-btn').textContent = "Sign In";
       }
     };
 
-    DOM.logoutBtn.onclick = async () => {
+    $('logout-btn').onclick = async () => {
       if (API_TOKEN) {
         await fetch('/api/brent-forecast/logout', { method: 'POST', headers: headers() });
       }
@@ -609,7 +760,7 @@
       showLogin();
     };
 
-    DOM.trialLink.onclick = async (e) => {
+    $('trial-link').onclick = async (e) => {
       e.preventDefault();
       try {
         const refCode = localStorage.getItem('brent_ref') || undefined;
@@ -624,71 +775,84 @@
       } catch (err) { alert("Could not initiate checkout."); }
     };
 
-    DOM.wbClose.onclick = async () => {
-      DOM.wb.style.display = 'none';
+    $('wb-close').onclick = async () => {
+      $('welcome-banner').style.display = 'none';
       await fetch('/api/brent-forecast/welcome-seen', { method: 'POST', headers: headers() });
     };
 
-    // --- Dashboard Data ---
+    // --- Dashboard ---
     async function loadDashboard() {
-      // 1. Market Data
       try {
         const res = await fetch('/api/brent-forecast/market', { headers: headers() });
         const data = await res.json();
         if (data.success && data.market) {
           marketData = data.market;
           renderMarketSnapshot(marketData);
-          DOM.baseBrent.textContent = fmt(marketData.brent_intraday || marketData.brent);
-          if (marketData.geri_live) DOM.hdrLive.textContent = `GERI LIVE: ${fmt(marketData.geri_live)}`;
+          $('base-brent').textContent = fmt(marketData.brent_intraday || marketData.brent);
+          if (marketData.geri_live) $('hdr-live-pill').textContent = `GERI LIVE: ${fmt(marketData.geri_live)}`;
+          $('hdr-updated').textContent = 'Last updated: ' + new Date().toLocaleString('en-GB', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
         }
       } catch (err) { console.error('Market err', err); }
-
-      // 2. Load Scenarios
       loadSavedScenarios();
     }
 
+    function localBand(v, lo, mid, hi) {
+      if (v == null) return 'unknown';
+      return v < lo ? 'Low' : v < mid ? 'Moderate' : v < hi ? 'Elevated' : 'High';
+    }
+
     function renderMarketSnapshot(m) {
+      const geriRef = m.geri_live ?? m.geri;
+      const riskPart = { Low: 'Low geopolitical risk', Moderate: 'Moderate geopolitical risk', Elevated: 'Elevated geopolitical risk', High: 'High geopolitical risk', unknown: 'Geopolitical risk unclear' }[localBand(geriRef, 25, 40, 60)];
+      const volPart = m.vix == null ? 'volatility unknown' : (m.vix < 15 ? 'low volatility' : m.vix < 22 ? 'moderate volatility' : 'high volatility');
+
       const items = [
         { label: 'Brent Crude', val: `$${fmt(m.brent_intraday || m.brent)}`, sub: m.brent_intraday ? 'Intraday Live' : 'Daily Close' },
         { label: 'WTI Crude', val: `$${fmt(m.wti)}`, sub: 'Daily Close' },
-        { label: 'GERI Daily', val: fmt(m.geri), sub: m.geri_band || '' },
-        { label: 'GERI Live', val: fmt(m.geri_live), sub: `${m.geri_live_alerts || 0} alerts processed` },
-        { label: 'VIX Volatility', val: fmt(m.vix), sub: 'Financial Stress' },
-        { label: 'EERI', val: fmt(m.eeri), sub: m.eeri_band || 'European Energy Risk' },
-        { label: 'EGSI-M', val: fmt(m.egsi_m), sub: m.egsi_m_band || 'EU Gas Stress' },
+        { label: 'GERI Daily', val: fmt(m.geri), band: localBand(m.geri, 25, 40, 60) },
+        { label: 'GERI Live', val: fmt(m.geri_live), sub: `${m.geri_live_alerts || 0} alerts processed`, band: localBand(m.geri_live, 25, 40, 60) },
+        { label: 'VIX Volatility', val: fmt(m.vix), band: localBand(m.vix, 15, 22, 30) },
+        { label: 'EERI', val: fmt(m.eeri), band: localBand(m.eeri, 25, 40, 60) },
+        { label: 'EGSI-M', val: fmt(m.egsi_m), band: localBand(m.egsi_m, 30, 50, 70) },
         { label: 'TTF Gas', val: `€${fmt(m.ttf)}`, sub: '/MWh' },
         { label: 'JKM LNG', val: `$${fmt(m.lng)}`, sub: '/MMBtu' },
         { label: 'EU Gas Storage', val: `${fmt(m.gas_storage)}%`, sub: 'Fullness' }
       ];
 
-      DOM.marketGrid.innerHTML = items.map(i => `
+      $('market-grid').innerHTML =
+        `<div class="snap-card regime">
+          <div class="snap-label">Market Regime</div>
+          <div class="snap-val" style="font-size:16px; font-family:var(--font-main);">${esc(riskPart)} / ${esc(volPart)}</div>
+        </div>` +
+        items.map(i => `
         <div class="snap-card">
           <div class="snap-label">${i.label}</div>
           <div class="snap-val">${i.val}</div>
-          <div class="snap-sub">${i.sub}</div>
-        </div>
-      `).join('');
+          ${i.sub ? `<div class="snap-sub">${i.sub}</div>` : ''}
+          ${i.band ? `<span class="band-tag ${bandCls(i.band)}">${i.band}</span>` : ''}
+        </div>`).join('');
     }
 
     // --- Controls ---
     const updateDisplay = (el, val) => el.textContent = (val > 0 ? '+' : '') + val + '%';
-    DOM.ctrlGeri.oninput = (e) => updateDisplay(DOM.valGeri, e.target.value);
-    DOM.ctrlVix.oninput = (e) => updateDisplay(DOM.valVix, e.target.value);
-    DOM.ctrlGas.oninput = (e) => updateDisplay(DOM.valGas, e.target.value);
+    $('ctrl-geri').oninput = (e) => updateDisplay($('val-geri'), e.target.value);
+    $('ctrl-vix').oninput = (e) => updateDisplay($('val-vix'), e.target.value);
+    $('ctrl-gas').oninput = (e) => updateDisplay($('val-gas'), e.target.value);
 
-    DOM.runBtn.onclick = async () => {
-      DOM.runBtn.disabled = true;
-      DOM.runBtn.textContent = "Running...";
-      
+    $('run-btn').onclick = () => runScenario();
+
+    async function runScenario() {
+      const btn = $('run-btn');
+      btn.disabled = true;
+      btn.textContent = "Running...";
       const payload = {
         brent: marketData ? (marketData.brent_intraday || marketData.brent) : null,
-        geri_change_pct: parseFloat(DOM.ctrlGeri.value),
-        vix_change_pct: parseFloat(DOM.ctrlVix.value),
-        gas_stress_pct: parseFloat(DOM.ctrlGas.value),
-        supply_scenario: DOM.ctrlSupply.value,
-        demand_outlook: DOM.ctrlDemand.value
+        geri_change_pct: parseFloat($('ctrl-geri').value),
+        vix_change_pct: parseFloat($('ctrl-vix').value),
+        gas_stress_pct: parseFloat($('ctrl-gas').value),
+        supply_scenario: $('ctrl-supply').value,
+        demand_outlook: $('ctrl-demand').value
       };
-
       try {
         const res = await fetch('/api/brent-forecast/scenario/advanced', {
           method: 'POST',
@@ -696,9 +860,9 @@
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        
         if (data.success) {
-          currentScenarioResult = { params: payload, ...data };
+          currentScenarioResult = { params: payload, name: window.__pendingScenarioName || null, ...data };
+          window.__pendingScenarioName = null;
           renderResults(data);
         } else {
           alert("Error running scenario: " + (data.detail || "Unknown"));
@@ -706,159 +870,320 @@
       } catch (err) {
         alert("Connection error running scenario.");
       } finally {
-        DOM.runBtn.disabled = false;
-        DOM.runBtn.textContent = "Run Scenario Analysis";
+        btn.disabled = false;
+        btn.textContent = "Run Scenario Analysis";
       }
-    };
+    }
+
+    const HZ_NAMES = { "0_24h": "0–24 Hours (Live)", "24_48h": "24–48 Hours", "72h": "72 Hours", "7d": "7 Days" };
 
     function renderResults(data) {
-      DOM.resArea.style.opacity = '1';
-      DOM.resArea.style.pointerEvents = 'auto';
+      $('results-area').style.opacity = '1';
+      if (data.as_of) $('hdr-updated').textContent = 'Last updated: ' + data.as_of;
 
-      // Horizons
-      const hNames = { "0_24h": "0–24 Hours (Live)", "24_48h": "24–48 Hours", "72h": "72 Hours", "7d": "7 Days" };
+      // Scenario summary (item 4)
+      if (data.scenario_summary) {
+        const s = data.scenario_summary;
+        $('res-summary').style.display = 'block';
+        $('res-summary').innerHTML = `
+          <div class="summary-tested">${esc(s.tested)}</div>
+          <div class="summary-meta">
+            <span>Model bias: <strong>${esc(s.bias)}</strong></span>
+            <span>Main driver: <strong>${esc(s.main_driver)}</strong></span>
+            ${s.key_offset ? `<span>Key offset: <strong>${esc(s.key_offset)}</strong></span>` : ''}
+          </div>`;
+      }
+
+      // Horizons (item 5)
+      const currentBrent = data.brent;
       let hHtml = '';
-      for (const [key, name] of Object.entries(hNames)) {
+      for (const [key, name] of Object.entries(HZ_NAMES)) {
         if (!data.horizons[key]) continue;
         const h = data.horizons[key];
         const isPrimary = key === "0_24h";
         const badgeCls = h.bias.toLowerCase() === 'bullish' ? 'badge-bullish' : h.bias.toLowerCase() === 'bearish' ? 'badge-bearish' : 'badge-neutral';
-        
+        const diffCls = (h.diff_vs_current || 0) >= 0 ? 'up' : 'down';
         hHtml += `
           <div class="hz-card ${isPrimary ? 'primary' : ''}">
             <div class="hz-label">${name} ${isPrimary ? '<span style="color:var(--gold)">Primary</span>' : ''}</div>
             <div class="hz-range">$${fmt(h.expected_low)} – $${fmt(h.expected_high)}</div>
-            <div class="hz-mid">Modeled: $${fmt(h.most_likely)} (${sign(h.move_pct)}${fmt(h.move_pct)}%)</div>
+            <div class="hz-mid">Current: $${fmt(currentBrent)} → Modeled: $${fmt(h.most_likely)}</div>
+            <div class="hz-diff ${diffCls}">${sign(h.diff_vs_current)}$${fmt(Math.abs(h.diff_vs_current))} (${sign(h.move_pct)}${fmt(h.move_pct)}%) vs current</div>
+            <div class="hz-reason">Main driver: ${esc(h.main_reason || '--')}</div>
             <div class="hz-meta">
               <span class="badge ${badgeCls}">${h.bias}</span>
               <span>Conf: ${h.confidence}%</span>
             </div>
-          </div>
-        `;
+          </div>`;
       }
-      DOM.resHorizons.innerHTML = hHtml;
+      $('res-horizons').innerHTML = hHtml;
 
-      // Attribution
-      if (data.attribution) {
-        const a = data.attribution;
-        const maxAbs = Math.max(0.1, ...Object.values(a).map(v => Math.abs(v)));
-        
-        const renderBar = (lbl, val) => {
-          const w = (Math.abs(val) / maxAbs) * 100;
-          const cls = val >= 0 ? 'pos' : 'neg';
-          return `
-            <div class="attr-row">
-              <div class="attr-label">${lbl}</div>
-              <div class="attr-bar-wrap"><div class="attr-bar ${cls}" style="width:${w}%"></div></div>
-              <div class="attr-val" style="color: ${val >= 0 ? 'var(--green)' : 'var(--red)'}">${sign(val)}${fmt(val)}</div>
-            </div>
-          `;
-        };
-        
-        DOM.resAttr.innerHTML = `
-          ${renderBar('GERI Risk', a.geri)}
-          ${renderBar('Supply Shock', a.supply)}
-          ${renderBar('EU Gas Stress', a.gas_stress)}
-          ${renderBar('Financial VIX', a.vix)}
-          ${renderBar('Demand Outlook', a.demand)}
-          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);" class="attr-row">
-            <div class="attr-label" style="color: var(--text); font-weight: 800;">Total Impact</div>
-            <div class="attr-bar-wrap"></div>
-            <div class="attr-val" style="color: var(--text);">${sign(a.total)}${fmt(a.total)}%</div>
-          </div>
-        `;
+      // Confidence factors (item 11 — directly under horizons)
+      if (data.confidence_reasons) {
+        $('res-conf-panel').style.display = 'block';
+        $('res-conf').innerHTML = data.confidence_reasons.map(r => `<li>${esc(r)}</li>`).join('');
+      }
+      if (data.intelligence) {
+        $('res-intel-footer').innerHTML = `Model Intelligence: GERI Live at ${fmt(data.intelligence.geri_live)} (${esc(data.intelligence.geri_live_band || '')}) based on ${data.intelligence.alerts_processed} alerts. As of ${esc(data.intelligence.as_of || 'now')}.`;
       }
 
-      // Interpretation
-      DOM.resInterp.innerHTML = data.interpretation || "No interpretation generated.";
+      // Probability distribution (item 6)
+      $('res-prob-panel').style.display = 'block';
+      $('prob-table').querySelector('tbody').innerHTML = Object.entries(HZ_NAMES).map(([key, name]) => {
+        const h = data.horizons[key];
+        if (!h || !h.distribution) return '';
+        const d = h.distribution;
+        return `<tr><td>${name}</td><td class="down">$${fmt(d.bearish)}</td><td>$${fmt(d.base)}</td><td class="up">$${fmt(d.bullish)}</td><td style="color:var(--gold)">$${fmt(d.tail_risk)}</td></tr>`;
+      }).join('');
 
-      // Analogs
-      if (data.analogs && data.analogs.length) {
-        DOM.resAnalogs.innerHTML = data.analogs.map(a => `
-          <div class="analog-item">
-            <div class="analog-header">
-              <div class="analog-title">${a.label}</div>
-              <div class="analog-meta">${a.match_pct}% Match</div>
-            </div>
-            <div class="analog-desc"><strong>Move:</strong> ${a.brent_move} | <strong>Duration:</strong> ${a.duration}<br>${a.outcome}</div>
-          </div>
-        `).join('');
-      } else {
-        DOM.resAnalogs.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">No strong historical analogs found for this exact parameter combination.</div>';
-      }
+      // AI interpretation, watch-list, scenario risk (item 8)
+      $('res-interp-panel').style.display = 'block';
+      $('res-interp').innerHTML = data.interpretation || "No interpretation generated.";
+      $('res-watch').innerHTML = (data.what_to_watch || []).map(w => `<li>${esc(w)}</li>`).join('');
+      $('res-scenario-risk').textContent = data.scenario_risk || '';
 
-      // Risk Score
+      // Comparison panel visible (item 13)
+      $('compare-panel').style.display = 'block';
+      renderComparison();
+
+      // Drivers tab (items 7, 10)
+      renderDrivers(data);
+
+      // Analogs tab (item 9)
+      renderAnalogs(data);
+    }
+
+    // --- Drivers tab ---
+    const DRIVER_ORDER = [['geri', 'GERI Risk'], ['supply', 'Supply Shock'], ['gas_stress', 'EU Gas Stress'], ['vix', 'Financial VIX'], ['demand', 'Demand Outlook']];
+
+    function renderDrivers(data) {
+      $('drivers-empty').style.display = 'none';
+      $('drivers-content').style.display = 'block';
+      const a = data.attribution || {};
+      const maxAbs = Math.max(0.1, ...DRIVER_ORDER.map(([k]) => Math.abs(a[k] || 0)));
+
+      $('res-attr').innerHTML = DRIVER_ORDER.map(([k, lbl]) => {
+        const val = a[k] || 0;
+        const w = (Math.abs(val) / maxAbs) * 100;
+        const cls = val >= 0 ? 'pos' : 'neg';
+        return `
+          <div class="attr-row clickable" data-driver="${k}">
+            <div class="attr-label">${lbl}</div>
+            <div class="attr-bar-wrap"><div class="attr-bar ${cls}" style="width:${Math.min(w, 50)}%"></div></div>
+            <div class="attr-val" style="color: ${val >= 0 ? 'var(--green)' : 'var(--red)'}">${sign(val)}${fmt(val)}</div>
+          </div>`;
+      }).join('') + `
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);" class="attr-row">
+          <div class="attr-label" style="color: var(--text); font-weight: 800;">Total Impact</div>
+          <div class="attr-bar-wrap"></div>
+          <div class="attr-val" style="color: var(--text);">${sign(a.total)}${fmt(a.total)}%</div>
+        </div>`;
+
+      $('res-attr').onclick = (e) => {
+        const row = e.target.closest('.attr-row.clickable');
+        if (!row) return;
+        const k = row.dataset.driver;
+        const dd = (data.driver_details || {})[k];
+        const detail = $('driver-detail');
+        const wasSelected = row.classList.contains('selected');
+        document.querySelectorAll('.attr-row.clickable').forEach(r => r.classList.remove('selected'));
+        if (wasSelected || !dd) { detail.style.display = 'none'; return; }
+        row.classList.add('selected');
+        detail.style.display = 'block';
+        detail.innerHTML = `
+          <div class="dd-row"><strong>${esc(dd.name)}</strong></div>
+          <div class="dd-row"><strong>Why this matters:</strong> ${esc(dd.why)}</div>
+          <div class="dd-row"><strong>Current value:</strong> ${esc(dd.current != null ? dd.current : '--')}</div>
+          <div class="dd-row"><strong>Scenario input:</strong> ${esc(dd.input)}</div>
+          <div class="dd-row"><strong>Contribution to Brent forecast:</strong> ${sign(dd.contribution_pct)}${fmt(dd.contribution_pct)}%</div>
+          <div class="dd-row" style="margin-bottom:0;"><strong>Historical sensitivity:</strong> ${esc(dd.sensitivity)}</div>`;
+      };
+
+      // Risk score + composite (item 10)
       if (data.risk_score) {
         const rs = data.risk_score;
-        DOM.resRiskScore.innerHTML = `
+        $('res-composite').innerHTML = `
+          <div class="composite-num">${rs.composite ?? '--'}<span style="font-size:16px; color:var(--text-faint);">/100</span></div>
+          <div style="min-width:120px;">
+            <div style="font-weight:800; font-size:15px;">Brent Risk Score</div>
+            <span class="band-tag ${bandCls(rs.composite_label)}">${esc(rs.composite_label || '')}</span>
+          </div>
+          <div class="composite-bar"><div class="composite-fill" style="width:${rs.composite || 0}%"></div></div>`;
+        $('res-risk-score').innerHTML = `
           <div class="risk-gauge"><div class="rg-val">${rs.supply_risk}</div><div class="rg-label">Supply Risk</div></div>
           <div class="risk-gauge"><div class="rg-val">${rs.demand_risk}</div><div class="rg-label">Demand Risk</div></div>
           <div class="risk-gauge"><div class="rg-val">${rs.financial_stress}</div><div class="rg-label">Fin Stress</div></div>
-          <div class="risk-gauge"><div class="rg-val">${rs.gas_stress}</div><div class="rg-label">Gas Stress</div></div>
-        `;
+          <div class="risk-gauge"><div class="rg-val">${rs.gas_stress}</div><div class="rg-label">Gas Stress</div></div>`;
       }
 
-      // Regional
       if (data.regional_risk) {
-        DOM.resRegional.innerHTML = Object.entries(data.regional_risk).map(([k, v]) => `
-          <div class="reg-card"><span>${k}</span> <span style="color:var(--gold)">${v}</span></div>
-        `).join('');
-      }
-
-      // Confidence & Intel
-      if (data.confidence_reasons) {
-        DOM.resConf.innerHTML = data.confidence_reasons.map(r => `<li>${r}</li>`).join('');
-      }
-      if (data.intelligence) {
-        DOM.resIntelFooter.innerHTML = `Model Intelligence: GERI Live at ${fmt(data.intelligence.geri_live)} (${data.intelligence.geri_live_band}) based on ${data.intelligence.alerts_processed} alerts. As of ${data.intelligence.as_of || 'now'}.`;
+        $('res-regional').innerHTML = Object.entries(data.regional_risk).map(([k, v]) => `
+          <div class="reg-card"><span>${esc(k)}</span> <span style="color:var(--gold)">${esc(v)}</span></div>`).join('');
       }
     }
 
-    // --- Saved Scenarios ---
+    // --- Analogs tab (item 9) ---
+    function renderAnalogs(data) {
+      const list = $('res-analogs');
+      if (data.analogs && data.analogs.length) {
+        const riskText = { faded: 'Risk premium faded', persisted: 'Risk premium persisted', recent: 'Too recent to judge' };
+        list.innerHTML = data.analogs.map((a, idx) => `
+          <div class="analog-item">
+            <div class="analog-header">
+              <div class="analog-title">${esc(a.label)}</div>
+              <div class="analog-meta">${a.match_pct}% Match</div>
+            </div>
+            <div class="analog-stats">
+              <div class="analog-stat"><div class="as-label">Brent before</div><div class="as-val">${a.brent_before != null ? '$' + fmt(a.brent_before) : '--'}</div></div>
+              <div class="analog-stat"><div class="as-label">Brent at peak</div><div class="as-val">${a.brent_at_peak != null ? '$' + fmt(a.brent_at_peak) : '--'}</div></div>
+              <div class="analog-stat"><div class="as-label">Move to peak</div><div class="as-val ${(a.move_to_peak_pct || 0) >= 0 ? 'up' : 'down'}">${a.move_to_peak_pct != null ? sign(a.move_to_peak_pct) + a.move_to_peak_pct + '%' : '--'}</div></div>
+              <div class="analog-stat"><div class="as-label">7D move</div><div class="as-val ${(a.move_7d_pct || 0) >= 0 ? 'up' : 'down'}">${a.move_7d_pct != null ? sign(a.move_7d_pct) + a.move_7d_pct + '%' : '--'}</div></div>
+              <div class="analog-stat"><div class="as-label">30D move</div><div class="as-val ${(a.move_30d_pct || 0) >= 0 ? 'up' : 'down'}">${a.move_30d_pct != null ? sign(a.move_30d_pct) + a.move_30d_pct + '%' : '--'}</div></div>
+              <div class="analog-stat"><div class="as-label">Duration</div><div class="as-val">${a.duration_days} days</div></div>
+            </div>
+            <div class="analog-desc">
+              <strong>${riskText[a.risk_state] || ''}${a.faded_after_days ? ` after ${a.faded_after_days} days` : ''}.</strong><br>
+              ${esc(a.similarity_explanation || '')}
+            </div>
+            <button class="btn-sm" style="margin-top:10px;" data-compare-analog="${idx}">Compare with current scenario</button>
+            <div class="analog-compare" id="analog-compare-${idx}"></div>
+          </div>`).join('');
+
+        list.onclick = (e) => {
+          const b = e.target.closest('[data-compare-analog]');
+          if (!b) return;
+          const idx = parseInt(b.dataset.compareAnalog);
+          const a = data.analogs[idx];
+          const box = $(`analog-compare-${idx}`);
+          if (box.style.display === 'block') { box.style.display = 'none'; return; }
+          const hz = data.horizons['7d'];
+          box.style.display = 'block';
+          box.innerHTML = `
+            <strong>Historical episode:</strong> Brent moved ${a.move_to_peak_pct != null ? sign(a.move_to_peak_pct) + a.move_to_peak_pct + '%' : '--'} into the peak, then ${a.move_7d_pct != null ? sign(a.move_7d_pct) + a.move_7d_pct + '%' : '--'} over the following 7 days.<br>
+            <strong>Your scenario (7D model):</strong> ${sign(hz.move_pct)}${fmt(hz.move_pct)}% to $${fmt(hz.most_likely)} (range $${fmt(hz.expected_low)}–$${fmt(hz.expected_high)}).<br>
+            <strong>Takeaway:</strong> ${a.risk_state === 'faded' ? 'In the real episode the risk premium faded — watch for retracement if physical supply stays intact.' : a.risk_state === 'persisted' ? 'In the real episode risk stayed elevated — sustained premium is plausible.' : 'The real episode is too recent to know if the premium held.'}`;
+        };
+      } else {
+        list.innerHTML = '<div class="muted-note">No relevant historical analog found in the EnergyRiskIQ dataset for this scenario. Analogs only appear when a real past episode closely matches your modeled risk shift.</div>';
+      }
+    }
+
+    // --- Comparison (item 13) ---
+    $('add-compare-btn').onclick = () => {
+      if (!currentScenarioResult) return alert("Run a scenario first.");
+      const r = currentScenarioResult;
+      const label = r.name || `GERI ${sign(r.params.geri_change_pct)}${r.params.geri_change_pct}% / ${r.params.supply_scenario.replace('_', ' ')}`;
+      comparisonRows.push({
+        label,
+        h24: r.horizons['24_48h'] ? r.horizons['24_48h'].most_likely : null,
+        h72: r.horizons['72h'] ? r.horizons['72h'].most_likely : null,
+        h7d: r.horizons['7d'] ? r.horizons['7d'].most_likely : null,
+        bias: r.scenario_summary ? r.scenario_summary.bias : (r.horizons['24_48h'] || {}).bias || '--'
+      });
+      if (comparisonRows.length > 6) comparisonRows.shift();
+      renderComparison();
+    };
+    $('clear-compare-btn').onclick = () => { comparisonRows = []; renderComparison(); };
+
+    function renderComparison() {
+      const tbody = $('compare-table').querySelector('tbody');
+      if (!comparisonRows.length) {
+        tbody.innerHTML = '';
+        $('compare-note').style.display = 'block';
+        return;
+      }
+      $('compare-note').style.display = 'none';
+      tbody.innerHTML = comparisonRows.map(r => {
+        const biasCls = r.bias === 'Bullish' ? 'up' : r.bias === 'Bearish' ? 'down' : '';
+        return `<tr><td>${esc(r.label)}</td><td>$${fmt(r.h24)}</td><td>$${fmt(r.h72)}</td><td>$${fmt(r.h7d)}</td><td class="${biasCls}">${esc(r.bias)}</td></tr>`;
+      }).join('');
+    }
+
+    // --- Saved scenarios (item 12) ---
     async function loadSavedScenarios() {
       try {
         const res = await fetch('/api/brent-forecast/scenarios', { headers: headers() });
         const data = await res.json();
         if (data.success && data.scenarios) {
           if (data.scenarios.length === 0) {
-            DOM.savedList.innerHTML = '<div style="font-size: 13px; color: var(--text-muted);">No saved scenarios.</div>';
+            $('saved-list').innerHTML = '<div class="muted-note">No saved scenarios yet. Run a scenario on the Overview tab, then save it here.</div>';
             return;
           }
-          DOM.savedList.innerHTML = data.scenarios.map(s => `
+          window.__savedScenarios = data.scenarios;
+          $('saved-list').innerHTML = data.scenarios.map((s, i) => {
+            const p = s.params || {};
+            const r24 = s.result && s.result['24_48h'] ? s.result['24_48h'] : null;
+            return `
             <div class="saved-item">
-              <div><strong>${s.name}</strong> <span style="color:var(--text-faint); margin-left:8px; font-size:11px;">${new Date(s.created_at).toLocaleDateString()}</span></div>
-              <div class="saved-item-actions">
-                <button class="btn-sm" onclick='loadScenario(${JSON.stringify(s.params)})'>Load</button>
-                <button class="btn-sm" onclick='deleteScenario(${s.id})' style="color:var(--red); border-color:rgba(239,68,68,0.3)">Del</button>
+              <div class="saved-head">
+                <strong>${esc(s.name)}</strong>
+                <div class="saved-item-actions">
+                  <button class="btn-sm btn-gold" data-rerun="${i}">Re-run</button>
+                  <button class="btn-sm" data-compare-saved="${i}">Compare vs market</button>
+                  <button class="btn-sm" data-del="${s.id}" style="color:var(--red); border-color:rgba(239,68,68,0.3)">Delete</button>
+                </div>
               </div>
-            </div>
-          `).join('');
+              <div class="saved-meta">${new Date(s.created_at).toLocaleString()} · Baseline $${p.brent != null ? fmt(p.brent) : '--'}</div>
+              <div style="font-size:12px; color:var(--text-muted);">
+                GERI ${sign(p.geri_change_pct || 0)}${p.geri_change_pct || 0}% · VIX ${sign(p.vix_change_pct || 0)}${p.vix_change_pct || 0}% · Gas ${sign(p.gas_stress_pct || 0)}${p.gas_stress_pct || 0}% · Supply ${esc((p.supply_scenario || 'normal').replace('_', ' '))} · Demand ${esc(p.demand_outlook || 'neutral')}
+                ${r24 ? `<br>Result 24–48h: $${fmt(r24.most_likely)} (${esc(r24.bias)})` : ''}
+              </div>
+              <div class="analog-compare" id="saved-compare-${i}"></div>
+            </div>`;
+          }).join('');
+
+          $('saved-list').onclick = (e) => {
+            const rerun = e.target.closest('[data-rerun]');
+            const cmp = e.target.closest('[data-compare-saved]');
+            const del = e.target.closest('[data-del]');
+            if (rerun) {
+              const s = window.__savedScenarios[parseInt(rerun.dataset.rerun)];
+              loadScenarioParams(s.params, s.name);
+            } else if (cmp) {
+              const i = parseInt(cmp.dataset.compareSaved);
+              const s = window.__savedScenarios[i];
+              const box = $(`saved-compare-${i}`);
+              if (box.style.display === 'block') { box.style.display = 'none'; return; }
+              const curBrent = marketData ? (marketData.brent_intraday || marketData.brent) : null;
+              const saved24 = s.result && s.result['24_48h'] ? s.result['24_48h'].most_likely : null;
+              const savedBase = s.params && s.params.brent != null ? s.params.brent : null;
+              box.style.display = 'block';
+              box.innerHTML = `
+                <strong>Saved baseline:</strong> ${savedBase != null ? '$' + fmt(savedBase) : '--'} → modeled 24–48h ${saved24 != null ? '$' + fmt(saved24) : '--'}<br>
+                <strong>Current market Brent:</strong> ${curBrent != null ? '$' + fmt(curBrent) : '--'}<br>
+                <strong>Market vs saved baseline:</strong> ${curBrent != null && savedBase != null ? sign(curBrent - savedBase) + '$' + fmt(Math.abs(curBrent - savedBase)) + ' (' + sign((curBrent - savedBase) / savedBase * 100) + ((curBrent - savedBase) / savedBase * 100).toFixed(2) + '%)' : '--'}<br>
+                <strong>Market vs saved 24–48h forecast:</strong> ${curBrent != null && saved24 != null ? sign(curBrent - saved24) + '$' + fmt(Math.abs(curBrent - saved24)) : '--'}`;
+            } else if (del) {
+              deleteScenario(parseInt(del.dataset.del));
+            }
+          };
         }
       } catch (err) { console.error('Load scenarios err', err); }
     }
 
-    window.loadScenario = (p) => {
-      DOM.ctrlGeri.value = p.geri_change_pct || 0; updateDisplay(DOM.valGeri, DOM.ctrlGeri.value);
-      DOM.ctrlVix.value = p.vix_change_pct || 0; updateDisplay(DOM.valVix, DOM.ctrlVix.value);
-      DOM.ctrlGas.value = p.gas_stress_pct || 0; updateDisplay(DOM.valGas, DOM.ctrlGas.value);
-      DOM.ctrlSupply.value = p.supply_scenario || 'normal';
-      DOM.ctrlDemand.value = p.demand_outlook || 'neutral';
-      DOM.runBtn.click();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    function loadScenarioParams(p, name) {
+      $('ctrl-geri').value = p.geri_change_pct || 0; updateDisplay($('val-geri'), $('ctrl-geri').value);
+      $('ctrl-vix').value = p.vix_change_pct || 0; updateDisplay($('val-vix'), $('ctrl-vix').value);
+      $('ctrl-gas').value = p.gas_stress_pct || 0; updateDisplay($('val-gas'), $('ctrl-gas').value);
+      $('ctrl-supply').value = p.supply_scenario || 'normal';
+      $('ctrl-demand').value = p.demand_outlook || 'neutral';
+      window.__pendingScenarioName = name || null;
+      switchTab('overview');
+      runScenario();
+    }
 
-    window.deleteScenario = async (id) => {
-      if(!confirm("Delete this scenario?")) return;
+    async function deleteScenario(id) {
+      if (!confirm("Delete this scenario?")) return;
       try {
         await fetch(`/api/brent-forecast/scenarios/${id}`, { method: 'DELETE', headers: headers() });
         loadSavedScenarios();
       } catch (err) {}
-    };
+    }
 
-    DOM.saveBtn.onclick = async () => {
+    $('save-btn').onclick = async () => {
       if (!currentScenarioResult) return alert("Run a scenario first.");
-      const name = DOM.saveName.value.trim() || `Scenario ${new Date().toLocaleTimeString()}`;
-      DOM.saveBtn.disabled = true;
+      const name = $('save-name').value.trim() || currentScenarioResult.name || `Scenario ${new Date().toLocaleTimeString()}`;
+      $('save-btn').disabled = true;
       try {
         const res = await fetch('/api/brent-forecast/scenarios', {
           method: 'POST',
@@ -870,47 +1195,144 @@
           })
         });
         const data = await res.json();
-        if(data.success) {
-          DOM.saveName.value = '';
+        if (data.success) {
+          $('save-name').value = '';
           loadSavedScenarios();
+        } else {
+          alert(data.detail || "Could not save scenario.");
         }
-      } catch (err) {}
-      DOM.saveBtn.disabled = false;
+      } catch (err) {
+        alert("Connection error saving scenario. Please try again.");
+      } finally {
+        $('save-btn').disabled = false;
+      }
     };
 
-    DOM.exportBtn.onclick = () => {
-      if (!currentScenarioResult) return alert("Run a scenario first.");
+    function buildExportText() {
       const r = currentScenarioResult;
       let text = `Brent Intelligence Scenario Engine™ Export\n`;
       text += `Date: ${new Date().toISOString()}\n\n`;
-      text += `PARAMETERS:\nGERI: ${r.params.geri_change_pct}%\nVIX: ${r.params.vix_change_pct}%\nGas Stress: ${r.params.gas_stress_pct}%\nSupply: ${r.params.supply_scenario}\nDemand: ${r.params.demand_outlook}\n\n`;
-      if(r.horizons["0_24h"]) {
-        const hz = r.horizons["0_24h"];
-        text += `24-HOUR OUTLOOK (Primary):\nRange: $${hz.expected_low} - $${hz.expected_high}\nMost Likely: $${hz.most_likely}\nBias: ${hz.bias} (Conf: ${hz.confidence}%)\n\n`;
+      text += `PARAMETERS:\nBase Brent: $${r.params.brent != null ? r.params.brent : '--'}\nGERI: ${r.params.geri_change_pct}%\nVIX: ${r.params.vix_change_pct}%\nGas Stress: ${r.params.gas_stress_pct}%\nSupply: ${r.params.supply_scenario}\nDemand: ${r.params.demand_outlook}\n\n`;
+      if (r.scenario_summary) {
+        text += `SUMMARY:\n${r.scenario_summary.tested}\nBias: ${r.scenario_summary.bias}\nMain driver: ${r.scenario_summary.main_driver}\n\n`;
       }
-      if (r.interpretation) text += `INTERPRETATION:\n${r.interpretation.replace(/<[^>]+>/g, '')}\n`;
-      
-      const blob = new Blob([text], { type: 'text/plain' });
+      text += `HORIZONS:\n`;
+      for (const [key, name] of Object.entries(HZ_NAMES)) {
+        const hz = r.horizons[key];
+        if (!hz) continue;
+        text += `${name}: $${hz.expected_low} - $${hz.expected_high} | Modeled $${hz.most_likely} (${hz.move_pct > 0 ? '+' : ''}${hz.move_pct}%) | ${hz.bias} | Conf ${hz.confidence}%\n`;
+      }
+      if (r.risk_score && r.risk_score.composite != null) {
+        text += `\nBRENT RISK SCORE: ${r.risk_score.composite}/100 (${r.risk_score.composite_label})\n`;
+      }
+      if (r.interpretation) text += `\nINTERPRETATION:\n${r.interpretation.replace(/<[^>]+>/g, '')}\n`;
+      if (r.what_to_watch) text += `\nWHAT TO WATCH:\n${r.what_to_watch.map(w => '- ' + w).join('\n')}\n`;
+      if (r.scenario_risk) text += `\nSCENARIO RISK:\n${r.scenario_risk}\n`;
+      return text;
+    }
+
+    $('export-btn').onclick = () => {
+      if (!currentScenarioResult) return alert("Run a scenario first.");
+      const blob = new Blob([buildExportText()], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `brent_scenario_${new Date().getTime()}.txt`;
+      a.download = `brent_scenario_${Date.now()}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
     };
 
-    DOM.copyEmbedBtn.onclick = () => {
-      navigator.clipboard.writeText(DOM.refEmbed.textContent);
-      const old = DOM.copyEmbedBtn.textContent;
-      DOM.copyEmbedBtn.textContent = "Copied!";
-      setTimeout(() => DOM.copyEmbedBtn.textContent = old, 2000);
+    $('export-pdf-btn').onclick = () => {
+      if (!currentScenarioResult) return alert("Run a scenario first.");
+      const w = window.open('', '_blank');
+      if (!w) return alert("Please allow pop-ups to export PDF.");
+      const pre = buildExportText();
+      w.document.write(`<html><head><title>Brent Scenario Export</title><style>body{font-family:monospace;padding:32px;font-size:13px;line-height:1.5;} h1{font-size:18px;}</style></head><body><h1>EnergyRiskIQ — Brent Intelligence Scenario Engine™</h1><pre>${pre.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre><script>window.onload=function(){window.print();}<\/script></body></html>`);
+      w.document.close();
     };
 
-    DOM.copyRefBtn.onclick = () => {
-      navigator.clipboard.writeText(DOM.refUrl.textContent);
-      const old = DOM.copyRefBtn.textContent;
-      DOM.copyRefBtn.textContent = "Copied!";
-      setTimeout(() => DOM.copyRefBtn.textContent = old, 2000);
+    // --- Alerts (item 15) ---
+    const ALERT_LABELS = {
+      geri_live_above: 'GERI Live rises above',
+      vix_above: 'VIX rises above',
+      brent_above: 'Brent rises above $',
+      brent_below: 'Brent falls below $',
+      forecast_bearish: 'Baseline 24–48h forecast turns bearish',
+      analog_match_above: 'Historical analog match exceeds (%)'
+    };
+
+    async function loadAlerts() {
+      try {
+        const res = await fetch('/api/brent-forecast/alerts', { headers: headers() });
+        const data = await res.json();
+        if (!data.success) return;
+        if (!data.alerts.length) {
+          $('alerts-list').innerHTML = '<div class="muted-note">No alerts configured yet.</div>';
+        } else {
+          $('alerts-list').innerHTML = data.alerts.map(a => `
+            <div class="alert-item" id="alert-item-${a.id}">
+              <span>${esc(ALERT_LABELS[a.alert_type] || a.alert_type)} ${a.alert_type === 'forecast_bearish' ? '' : '<strong>' + a.threshold + '</strong>'}</span>
+              <button class="btn-sm" data-alert-del="${a.id}" style="color:var(--red); border-color:rgba(239,68,68,0.3)">Remove</button>
+            </div>`).join('');
+        }
+        $('alerts-list').onclick = async (e) => {
+          const b = e.target.closest('[data-alert-del]');
+          if (!b) return;
+          await fetch(`/api/brent-forecast/alerts/${b.dataset.alertDel}`, { method: 'DELETE', headers: headers() });
+          loadAlerts();
+        };
+        evaluateAlerts();
+      } catch (err) { console.error('Alerts err', err); }
+    }
+
+    $('alert-add-btn').onclick = async () => {
+      const type = $('alert-type').value;
+      const th = parseFloat($('alert-threshold').value) || 0;
+      if (type !== 'forecast_bearish' && !$('alert-threshold').value) return alert("Enter a threshold value.");
+      $('alert-add-btn').disabled = true;
+      try {
+        const res = await fetch('/api/brent-forecast/alerts', {
+          method: 'POST', headers: headers(),
+          body: JSON.stringify({ alert_type: type, threshold: th })
+        });
+        const data = await res.json();
+        if (data.success) { $('alert-threshold').value = ''; loadAlerts(); }
+        else alert(data.detail || 'Could not add alert.');
+      } catch (err) { alert('Could not add alert.'); }
+      $('alert-add-btn').disabled = false;
+    };
+
+    $('alert-eval-btn').onclick = () => evaluateAlerts(true);
+
+    async function evaluateAlerts(manual) {
+      try {
+        const res = await fetch('/api/brent-forecast/alerts/evaluate', { headers: headers() });
+        const data = await res.json();
+        if (!data.success) return;
+        document.querySelectorAll('.alert-item').forEach(el => el.classList.remove('alert-triggered'));
+        if (!data.triggered.length) {
+          $('trig-list').innerHTML = data.evaluated ? '<div class="muted-note" style="margin-top:8px;">No alerts triggered under current market conditions.</div>' : '';
+          return;
+        }
+        data.triggered.forEach(t => {
+          const el = $(`alert-item-${t.id}`);
+          if (el) el.classList.add('alert-triggered');
+        });
+        $('trig-list').innerHTML = data.triggered.map(t => `
+          <div class="trig-item">⚠ <strong>Triggered:</strong> ${esc(t.message)}</div>`).join('');
+      } catch (err) { console.error('Eval err', err); }
+    }
+
+    // --- Partner copy buttons ---
+    $('copy-embed-btn').onclick = () => {
+      navigator.clipboard.writeText($('ref-embed').textContent);
+      $('copy-embed-btn').textContent = "Copied!";
+      setTimeout(() => $('copy-embed-btn').textContent = "Copy", 2000);
+    };
+    $('copy-ref-btn').onclick = () => {
+      navigator.clipboard.writeText($('ref-url').textContent);
+      $('copy-ref-btn').textContent = "Copied!";
+      setTimeout(() => $('copy-ref-btn').textContent = "Copy", 2000);
     };
 
     init();

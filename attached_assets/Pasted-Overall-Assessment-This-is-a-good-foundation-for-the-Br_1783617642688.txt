@@ -1,0 +1,370 @@
+Overall Assessment
+
+This is a good foundation for the Brent Intelligence Scenario Engine™.
+
+Strong points:
+
+Professional institutional look.
+Good live market environment section.
+Multiple forecast horizons.
+Scenario parameters are clear.
+Driver attribution is valuable.
+Historical analogs are excellent.
+AI interpretation adds premium feel.
+Saved scenarios and referral program are useful.
+
+Main weakness:
+
+The page has many good elements, but the workflow is not yet fully guided. A user should instantly understand:
+
+What am I testing?
+What changed?
+What is the forecast?
+Why?
+What should I watch next?
+1. Improve the Top Header
+
+Current header is clean, but I would add a clear product positioning line under the title.
+
+Add:
+
+Institutional Brent scenario modelling using GERI Live, VIX, supply shocks, European gas stress, and historical analogs.
+
+This explains why premium exists.
+
+Also add a small status line:
+
+Last updated: 09 July 2026, 16:49 UTC
+
+You already show it lower, but it should be visible near the top.
+
+2. Improve “Current Market Environment”
+
+This section is good. I would add one extra card:
+
+Market Regime
+
+Example:
+
+Elevated geopolitical risk / moderate volatility
+
+This gives the user a fast interpretation instead of only numbers.
+
+Also consider color labels:
+
+GERI Daily: Elevated
+GERI Live: Moderate
+EERI: Moderate
+EGSI-M: Low
+
+This makes it easier to scan.
+
+3. Scenario Parameters Need Better Presets
+
+The left panel is functional, but it needs stronger scenario presets.
+
+Instead of only supply scenario dropdown, add quick scenario buttons:
+
+Baseline
+Middle East Escalation
+Hormuz Disruption
+OPEC+ Surprise Cut
+Russia Sanctions
+Ceasefire / De-escalation
+Global Recession
+Demand Recovery
+
+When clicked, they should adjust:
+
+GERI
+VIX
+European gas stress
+supply scenario
+demand outlook
+
+This makes the premium engine feel much more intelligent.
+
+4. Add a “Scenario Summary” Before Results
+
+Before the horizon cards, add a compact summary:
+
+Scenario tested: GERI +20%, VIX +10%, European gas stress +10%, supply status quo.
+
+Then:
+
+Model bias: Bullish
+Main driver: Geopolitical risk premium
+Key offset: Moderate financial stress
+
+This helps the user understand the result instantly.
+
+5. Horizon Cards Are Good — Add Difference vs Baseline
+
+The 0–24h, 24–48h, 72h, and 7-day cards are excellent.
+
+Improve each card by adding:
+
+Current Brent
+Modeled Brent
+Difference vs current
+Range
+Confidence
+Main reason
+
+Example:
+
+0–24h
+$75.56–$78.02
+Modeled: $76.79
++0.60% vs current
+Main driver: GERI risk premium
+Confidence: 83%
+
+This is almost there already, but “main reason” would improve clarity.
+
+6. Add a Probability Distribution Chart
+
+This would make the premium product feel much more advanced.
+
+Add below horizon cards:
+
+Brent Probability Distribution
+
+For each horizon:
+
+Bearish case
+Base case
+Bullish case
+Tail-risk case
+
+Example:
+
+Horizon	Bearish	Base	Bullish	Tail Risk
+24–48h	$74.80	$77.05	$78.70	$81.20
+7D	$73.91	$77.64	$81.38	$85.00
+
+This is very valuable for professional users.
+
+7. Driver Attribution Is Excellent — Make It Clickable
+
+The Driver Attribution panel is one of the best parts.
+
+Improve it by allowing users to click each driver:
+
+GERI Risk
+Supply Shock
+EU Gas Stress
+Financial VIX
+Demand Outlook
+
+When clicked, show:
+
+Why this matters
+Current value
+Scenario input
+Contribution to Brent forecast
+Historical sensitivity
+
+This turns the tool into a learning and decision-support system.
+
+8. AI Interpretation Should Add “What to Watch Next”
+
+Current AI interpretation is good but too general.
+
+Add three sections:
+
+Interpretation
+
+What the model says.
+
+What to Watch Next
+
+Examples:
+
+GERI Live above 45
+VIX above 20
+Brent breaking above $79
+New Middle East shipping alerts
+OPEC statement risk
+Scenario Risk
+
+Example:
+
+This scenario becomes more bullish if GERI rises above 45 while Brent remains below $78.
+
+This makes the AI interpretation actionable.
+
+9. Historical Analogs Are Very Strong — Expand Them
+
+This is one of the most premium features.
+
+Current analog cards are good. Add:
+
+Brent before event
+Brent after event
+7D move
+30D move
+Risk faded or persisted?
+Similarity score explanation
+
+Example:
+
+June 2019 — Gulf of Oman tanker attacks
+Similarity: 86%
+Brent reaction: +4.5% in 2 days
+Duration: 2 weeks
+Risk premium faded after supply remained unaffected.
+
+Also add a button:
+
+Compare with current scenario
+
+10. Oil Market Risk Score Is Good — Add One Composite Score
+
+You currently show:
+
+Supply risk
+Demand risk
+Financial stress
+Gas stress
+
+Add a main score:
+
+Brent Risk Score: 62 / 100
+
+Label:
+
+Elevated
+
+This gives users one number they can remember and track daily.
+
+11. Confidence Factors Are Excellent — Move Higher
+
+The confidence factors section is valuable, but it is too low.
+
+Move it closer to the horizon results.
+
+Users want to know:
+
+Can I trust this result?
+
+So place:
+
+Horizon cards
+Confidence factors
+Driver attribution
+AI interpretation
+Historical analogs
+12. Saved Scenarios Need More Value
+
+Saved scenarios are good, but currently feel basic.
+
+Add:
+
+Save scenario name
+Timestamp
+Brent baseline
+Scenario assumptions
+Result
+Re-run scenario
+Compare with current market
+Export PDF
+Export TXT
+
+Most important feature:
+
+Compare saved scenario vs current market
+
+That creates repeat usage.
+
+13. Add Scenario Comparison
+
+Premium users should be able to compare multiple scenarios side by side.
+
+Example:
+
+Scenario	24–48h	72h	7D	Bias
+Status Quo	$77.05	$77.31	$77.64	Bullish
+Hormuz Disruption	$82.40	$86.20	$89.50	Strong Bullish
+Ceasefire	$74.80	$73.90	$72.60	Bearish
+
+This is a major premium feature.
+
+14. Add Scenario Library Inside Premium
+
+Add a new section:
+
+Scenario Library
+
+Categories:
+
+Middle East
+OPEC
+Russia / Sanctions
+Shipping
+Global Demand
+Financial Stress
+
+Cards:
+
+Hormuz Disruption
+OPEC+ Surprise Cut
+Iran-Israel Escalation
+Russia Export Ban
+Global Recession
+Ceasefire
+
+Each card loads the scenario parameters automatically.
+
+15. Add Alerts
+
+This would make users stay subscribed.
+
+Example alert options:
+
+Alert me if GERI Live rises above 45
+Alert me if Brent forecast turns bearish
+Alert me if 7-day scenario range exceeds 5%
+Alert me if historical analog match exceeds 80%
+
+This turns the tool from “something I use once” into “something that monitors risk for me.”
+
+16. Referral Program Should Be Lower
+
+The referral program is useful, but it should not compete with the tool.
+
+Keep it at the bottom, or place it under a separate tab:
+
+Partner Program
+
+For premium users, the main focus should be intelligence, not referrals.
+
+17. Recommended Premium Dashboard Structure
+
+I would organize the page into tabs:
+
+Overview
+
+Market environment, scenario inputs, horizon results.
+
+Drivers
+
+Attribution, risk scores, regional context.
+
+Analogs
+
+Historical analogs and comparison.
+
+Scenario Library
+
+Preset scenarios.
+
+Saved Scenarios
+
+Saved runs and exports.
+
+Alerts
+
+Risk alerts.
+
+This will make the tool feel less long and more professional.
