@@ -220,6 +220,40 @@ _BRENT_CSS = """
 }
 .brent-hero-cta:hover { background: rgba(249,115,22,0.22); }
 
+/* ── Brent Forecast Tool Banner ───────────────────────────────────────── */
+.brent-forecast-banner {
+  display: flex; align-items: center; gap: 18px;
+  max-width: 860px; margin: 22px auto 26px;
+  padding: 18px 24px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(249,115,22,0.10), rgba(212,160,23,0.06) 55%, rgba(15,23,42,0.6));
+  border: 1px solid rgba(249,115,22,0.30);
+  text-decoration: none; text-align: left;
+  transition: all 0.2s;
+}
+.brent-forecast-banner:hover {
+  border-color: rgba(249,115,22,0.55);
+  background: linear-gradient(135deg, rgba(249,115,22,0.16), rgba(212,160,23,0.10) 55%, rgba(15,23,42,0.6));
+  transform: translateY(-1px);
+}
+.bfb-icon { font-size: 30px; flex-shrink: 0; }
+.bfb-text { flex: 1; min-width: 0; }
+.bfb-kicker {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #f97316; margin-bottom: 4px;
+}
+.bfb-title { font-size: 15px; font-weight: 800; color: #e2e8f0; line-height: 1.35; }
+.bfb-sub { font-size: 12.5px; color: #94a3b8; margin-top: 5px; line-height: 1.5; }
+.bfb-cta {
+  flex-shrink: 0; padding: 9px 18px; border-radius: 8px; white-space: nowrap;
+  background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4);
+  color: #f97316; font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+}
+@media (max-width: 700px) {
+  .brent-forecast-banner { flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px 18px; }
+  .bfb-icon { display: none; }
+  .bfb-cta { align-self: stretch; text-align: center; }
+}
+
 /* ── Sticky Price Bar ─────────────────────────────────────────────────── */
 .brent-sticky-bar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 900;
@@ -594,6 +628,11 @@ def _compute_brent_data() -> dict:
         (today,)
     ) or []
 
+    # Latest intraday tick (most recent date/hour, may be from today or the last trading day)
+    brent_intraday_latest = execute_production_one(
+        "SELECT date, hour, price FROM intraday_brent ORDER BY date DESC, hour DESC LIMIT 1"
+    )
+
     # WTI latest
     wti_row = execute_production_one(
         "SELECT date, wti_price, wti_change_24h, wti_change_pct FROM oil_price_snapshots ORDER BY date DESC LIMIT 1"
@@ -680,6 +719,7 @@ def _compute_brent_data() -> dict:
         "brent_latest_row": brent_latest_row,
         "brent_90d": brent_90d,
         "brent_intraday": brent_intraday,
+        "brent_intraday_latest": brent_intraday_latest,
         "wti_row": wti_row,
         "vix_row": vix_row,
         "vix_prev": vix_prev,
@@ -794,15 +834,39 @@ def _build_brent_html(data: dict) -> str:
     today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     brent_row = data["brent_latest_row"] or {}
-    brent_price  = _safe_float(brent_row.get("brent_price", 0))
+    brent_close_price = _safe_float(brent_row.get("brent_price", 0))
     brent_chg    = _safe_float(brent_row.get("brent_change_24h", 0))
     brent_chg_pct = _safe_float(brent_row.get("brent_change_pct", 0))
     brent_date   = brent_row.get("date", today_date)
+    brent_close_date = _fmt_date(brent_row.get("date"))
+
+    # Prefer the latest intraday tick as the live price; fall back to the daily close
+    intraday_latest = data.get("brent_intraday_latest") or {}
+    intraday_price = _safe_float(intraday_latest.get("price", 0))
+    _intra_date = intraday_latest.get("date")
+    _close_date = brent_row.get("date")
+    _intraday_fresh = bool(
+        _intra_date is not None and (_close_date is None or _intra_date >= _close_date)
+    )
+    is_intraday = intraday_price > 0 and _intraday_fresh
+    if is_intraday:
+        brent_price = intraday_price
+        if brent_close_price > 0:
+            brent_chg = brent_price - brent_close_price
+            brent_chg_pct = (brent_chg / brent_close_price) * 100
+        intraday_date = intraday_latest.get("date")
+        intraday_hour = intraday_latest.get("hour")
+        brent_date = f"{intraday_date} {int(intraday_hour):02d}:00 UTC" if intraday_hour is not None else str(intraday_date)
+    else:
+        brent_price = brent_close_price
 
     wti_row   = data["wti_row"] or {}
     wti_price  = _safe_float(wti_row.get("wti_price", 0))
     wti_chg    = _safe_float(wti_row.get("wti_change_24h", 0))
-    brent_wti_spread = _safe_float(brent_row.get("brent_wti_spread") or (brent_price - wti_price))
+    brent_wti_spread = (
+        (brent_price - wti_price) if (is_intraday and wti_price > 0)
+        else _safe_float(brent_row.get("brent_wti_spread") or (brent_price - wti_price))
+    )
 
     vix_row   = data["vix_row"] or {}
     vix_close = _safe_float(vix_row.get("vix_close", 20))
@@ -842,6 +906,20 @@ def _build_brent_html(data: dict) -> str:
     gc = BAND_COLORS.get(geri_band, "#f97316")
     ec = BAND_COLORS.get(eeri_band, "#ef4444")
     mgc = BAND_COLORS.get(egsi_band, "#f97316")
+
+    # Hero card intraday/close presentation
+    if is_intraday:
+        price_mode_tag = '<span style="color:#22c55e;font-weight:700;">&#9679; Intraday Live</span>'
+        chg_basis_label = "vs last close"
+        last_close_line = (
+            f'<div style="font-size:13px;color:#94a3b8;margin-top:6px;">'
+            f'Last closing price: <strong style="color:#e2e8f0;">${brent_close_price:.2f}</strong>'
+            f' <span style="color:#64748b;">({brent_close_date})</span></div>'
+        )
+    else:
+        price_mode_tag = ""
+        chg_basis_label = "day-over-day"
+        last_close_line = ""
 
     # Sentiment
     s_emoji, s_label, s_color = _sentiment_label(brent_chg_pct)
@@ -1091,11 +1169,12 @@ document.body.style.overflow='';
 
   <!-- PRIMARY PRICE CARD -->
   <div class="brent-hero-price-card">
-    <div class="brent-price-label">&#128137; Brent Crude Oil &mdash; USD per Barrel</div>
+    <div class="brent-price-label">&#128137; Brent Crude Oil &mdash; USD per Barrel {price_mode_tag}</div>
     <div class="brent-price-main"><sup>$</sup>{brent_price:.2f}</div>
     <div class="brent-price-change" style="color:{b_color}">
-      {b_arrow} {brent_chg:+.2f} &nbsp;&bull;&nbsp; {brent_chg_pct:+.2f}% day-over-day
+      {b_arrow} {brent_chg:+.2f} &nbsp;&bull;&nbsp; {brent_chg_pct:+.2f}% {chg_basis_label}
     </div>
+    {last_close_line}
     <div>
       <span class="brent-sentiment-badge" style="background:rgba(255,255,255,0.04);border:1px solid {s_color}33;color:{s_color};">
         {s_emoji} {s_label} Bias
@@ -1114,6 +1193,17 @@ document.body.style.overflow='';
       &#128276; Get real-time oil price alerts &amp; risk signals &rarr; Free Account
     </a>
   </div>
+
+  <!-- BRENT FORECAST TOOL BANNER -->
+  <a href="/tools/brent-oil-risk-forecast" class="brent-forecast-banner">
+    <div class="bfb-icon">&#128202;</div>
+    <div class="bfb-text">
+      <div class="bfb-kicker">Free Tool &bull; Live Data</div>
+      <div class="bfb-title">Brent Oil Risk Forecast Tool &mdash; Simulate Brent Price Scenarios Using Geopolitical Risk</div>
+      <div class="bfb-sub">Simulate how Brent crude responds to shifting geopolitical risk (GERI) and market volatility. Best used daily after the latest intelligence update.</div>
+    </div>
+    <div class="bfb-cta">Run a Scenario &rarr;</div>
+  </a>
 
   <!-- Hero index badges -->
   <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:0.5rem;">
