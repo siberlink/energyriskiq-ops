@@ -986,9 +986,13 @@
         const data = await res.json();
         if(data.success && data.market) {
           const m = data.market;
-          currentBrent = m.brent;
+          currentBrent = m.brent_intraday || m.brent;
           
-          document.getElementById('hero-brent').textContent = m.brent ? m.brent.toFixed(2) : '--';
+          document.getElementById('hero-brent').textContent = currentBrent ? currentBrent.toFixed(2) : '--';
+          if (m.brent_intraday) {
+            const bench = document.querySelector('.hero-bench');
+            if (bench) bench.textContent = 'Brent Crude Baseline (Intraday Live)';
+          }
           document.getElementById('ms-geri').textContent = m.geri_live || m.geri || '--';
           document.getElementById('ms-vix').textContent = m.vix ? m.vix.toFixed(2) : '--';
           

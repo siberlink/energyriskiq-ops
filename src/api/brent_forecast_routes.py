@@ -781,7 +781,7 @@ async def public_scenario(body: PublicScenarioRequest):
     geri_pct = _clamp(body.geri_change_pct, -50, 100)
     vix_pct = _clamp(body.vix_change_pct, -50, 100)
     snap = _market_snapshot()
-    brent = body.brent if body.brent and 10 < body.brent < 300 else snap.get("brent", 75.0)
+    brent = body.brent if body.brent and 10 < body.brent < 300 else (snap.get("brent_intraday") or snap.get("brent", 75.0))
     horizons, attribution, total_pct = _compute_scenario(brent, geri_pct, vix_pct)
     hz = horizons["24_48h"]
     commentary = _commentary(geri_pct, vix_pct, hz)
@@ -829,7 +829,7 @@ async def advanced_scenario(body: AdvancedScenarioRequest,
                             x_brent_token: Optional[str] = Header(None)):
     _require_user(x_brent_token)
     snap = _market_snapshot()
-    brent = body.brent if body.brent and 10 < body.brent < 300 else snap.get("brent", 75.0)
+    brent = body.brent if body.brent and 10 < body.brent < 300 else (snap.get("brent_intraday") or snap.get("brent", 75.0))
     geri_pct = _clamp(body.geri_change_pct, -50, 100)
     vix_pct = _clamp(body.vix_change_pct, -50, 100)
     gas_pct = _clamp(body.gas_stress_pct, -50, 100)
@@ -1579,7 +1579,7 @@ async def embed_brent_risk_widget(request: Request, ref: Optional[str] = None):
         snap = _market_snapshot()
     except Exception:
         snap = {}
-    brent = snap.get("brent")
+    brent = snap.get("brent_intraday") or snap.get("brent")
     geri = snap.get("geri_live") or snap.get("geri")
     geri_band = (snap.get("geri_live_band") or snap.get("geri_band") or "—").upper()
     vix = snap.get("vix")
