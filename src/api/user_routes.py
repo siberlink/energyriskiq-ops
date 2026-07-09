@@ -179,6 +179,149 @@ You can reply directly to this email at any time. We read every message and are 
     return text_body, html_body
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Email magic-login tokens (used by newsletter "Login Your Account" button)
+# ─────────────────────────────────────────────────────────────────────────────
+
+EMAIL_LOGIN_TOKEN_DAYS = 7
+
+_EMAIL_LOGIN_TOKENS_DDL = """
+    CREATE TABLE IF NOT EXISTS email_login_tokens (
+        token VARCHAR(64) PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        email TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        expires_at TIMESTAMPTZ NOT NULL
+    )
+"""
+
+
+def _init_email_login_tokens_table():
+    """Create email_login_tokens on the primary (Neon) DB and mirror to the
+    Replit-managed DATABASE_URL so publish schema diffs don't propose drops."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(_EMAIL_LOGIN_TOKENS_DDL)
+    except Exception as e:
+        logger.warning(f"Could not create email_login_tokens table: {e}")
+
+    prod = os.environ.get("PRODUCTION_DATABASE_URL")
+    managed = os.environ.get("DATABASE_URL")
+    if not managed or not prod or managed == prod:
+        return
+    conn = None
+    try:
+        import psycopg2
+        conn = psycopg2.connect(managed)
+        cur = conn.cursor()
+        cur.execute(_EMAIL_LOGIN_TOKENS_DDL)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        logger.warning(f"Managed DB email_login_tokens sync skipped: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+def create_email_login_token(user_id: int, email: str) -> str:
+    """Create a time-limited magic-login token for a user and return it."""
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(days=EMAIL_LOGIN_TOKEN_DAYS)
+    with get_cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO email_login_tokens (token, user_id, email, expires_at) "
+            "VALUES (%s, %s, %s, %s)",
+            (token, user_id, email, expires_at),
+        )
+    return token
+
+
+def build_email_login_url(email: str) -> Optional[str]:
+    """Return a magic-login URL for the given user email, or None if the email
+    does not belong to a fully set-up account."""
+    try:
+        with get_cursor(commit=False) as cursor:
+            cursor.execute(
+                "SELECT id, email FROM users "
+                "WHERE LOWER(email) = LOWER(%s) AND email_verified = TRUE "
+                "AND password_hash IS NOT NULL",
+                (email,),
+            )
+            user = cursor.fetchone()
+        if not user:
+            return None
+        token = create_email_login_token(user["id"], user["email"])
+        return f"{APP_URL}/users/email-login?t={token}"
+    except Exception as e:
+        logger.warning(f"Could not build email login URL for {email}: {e}")
+        return None
+
+
+class EmailLoginExchangeRequest(BaseModel):
+    token: str
+
+
+@router.post("/email-login/exchange")
+def email_login_exchange(body: EmailLoginExchangeRequest, request: Request = None):
+    """Exchange a magic-login token (from a newsletter email) for a session.
+    Tokens are valid for EMAIL_LOGIN_TOKEN_DAYS and single-use: the row is
+    atomically deleted on exchange so a leaked/forwarded link cannot be
+    replayed. The exchange is a JS-triggered POST, so email link scanners
+    (which only GET the landing page) do not burn the token."""
+    token = (body.token or "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="Token is required")
+
+    with get_cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM email_login_tokens "
+            "WHERE token = %s AND expires_at > NOW() "
+            "RETURNING user_id, email",
+            (token,),
+        )
+        row = cursor.fetchone()
+        cursor.execute("DELETE FROM email_login_tokens WHERE expires_at <= NOW()")
+
+    if not row:
+        raise HTTPException(status_code=401, detail="Invalid or expired login link")
+
+    user_id = row["user_id"]
+    with get_cursor(commit=False) as cursor:
+        cursor.execute(
+            "SELECT id, email FROM users WHERE id = %s AND email_verified = TRUE",
+            (user_id,),
+        )
+        user = cursor.fetchone()
+    if not user:
+        raise HTTPException(status_code=401, detail="Account not found")
+
+    session_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(seconds=SESSION_DURATION)
+    with get_cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO sessions (token, user_id, expires_at) VALUES (%s, %s, %s)",
+            (session_token, user_id, expires_at),
+        )
+
+    try:
+        from src.api.user_activity_tracking_routes import record_activity_event
+        record_activity_event(
+            user_id, user["email"], "login",
+            page_path="/users/email-login",
+            request=request,
+            session_token=session_token,
+        )
+    except Exception as _e:
+        logger.debug(f"email-login activity record failed: {_e}")
+
+    return {
+        "success": True,
+        "token": session_token,
+        "user": {"id": user["id"], "email": user["email"]},
+    }
+
+
 class SignupRequest(BaseModel):
     email: EmailStr
 

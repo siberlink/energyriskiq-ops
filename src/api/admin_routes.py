@@ -702,12 +702,17 @@ def _bulk_body_to_html(body: str, content_type: str) -> str:
     return body
 
 
-def _build_bulk_email_html(subject: str, body_html: str) -> str:
+def _build_bulk_email_html(subject: str, body_html: str,
+                           login_url: Optional[str] = None) -> str:
     """Wrap an admin newsletter subject + body in the branded EnergyRiskIQ
     template (navy background, logo header, footer with founder signature).
-    Mirrors the welcome email styling in src/api/user_routes.py."""
+    Mirrors the welcome email styling in src/api/user_routes.py.
+    login_url: href for the centred "Login Your Account" button. May be a
+    Brevo placeholder like {{params.login_url}} for per-recipient links."""
     logo_url = f"{APP_URL}/static/logo.png"
     safe_subject = _html.escape(subject, quote=True)
+    if not login_url:
+        login_url = f"{APP_URL}/users/account"
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -739,6 +744,13 @@ def _build_bulk_email_html(subject: str, body_html: str) -> str:
             <td style="padding:32px;">
               <h1 style="margin:0 0 20px; font-size:22px; line-height:1.35; color:#0f172a;">{safe_subject}</h1>
               <div style="font-size:16px; line-height:1.6; color:#1a1a1a;">{body_html}</div>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px auto 4px;">
+                <tr>
+                  <td align="center" style="border-radius:8px; background-color:#d4a017;">
+                    <a href="{login_url}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0f172a; text-decoration:none; border-radius:8px;">Login Your Account</a>
+                  </td>
+                </tr>
+              </table>
               <p style="margin:28px 0 4px; font-size:16px; line-height:1.6;">Kind regards,</p>
               <p style="margin:0; font-size:16px; line-height:1.6;"><strong>Emil C</strong><br>Founder, EnergyRiskIQ</p>
             </td>
@@ -766,8 +778,19 @@ def _run_bulk_email(campaign_id: int, subject: str, body: str,
 
     sender = _email_sender()
     body_html = _bulk_body_to_html(body, content_type)
-    full_html = _build_bulk_email_html(subject, body_html)
+    # Per-recipient magic-login links are injected via Brevo params.
+    full_html = _build_bulk_email_html(subject, body_html,
+                                       login_url="{{params.login_url}}")
     content_field = {"htmlContent": full_html}
+
+    fallback_login_url = f"{APP_URL}/users/account"
+    login_urls = {}
+    try:
+        from src.api.user_routes import build_email_login_url
+        for e in emails:
+            login_urls[e] = build_email_login_url(e) or fallback_login_url
+    except Exception as e:
+        logger.warning(f"Bulk email campaign {campaign_id}: login-link generation failed, using fallback: {e}")
 
     sent = 0
     failed = 0
@@ -780,7 +803,13 @@ def _run_bulk_email(campaign_id: int, subject: str, body: str,
         payload = {
             "sender": sender,
             "subject": subject,
-            "messageVersions": [{"to": [{"email": e}]} for e in chunk],
+            "messageVersions": [
+                {
+                    "to": [{"email": e}],
+                    "params": {"login_url": login_urls.get(e, fallback_login_url)},
+                }
+                for e in chunk
+            ],
         }
         payload.update(content_field)
 
@@ -916,7 +945,12 @@ def admin_send_bulk_email_test(body: SendBulkEmailTestRequest, x_admin_token: Op
         raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
 
     body_html = _bulk_body_to_html(content, content_type)
-    full_html = _build_bulk_email_html(subject, body_html)
+    try:
+        from src.api.user_routes import build_email_login_url
+        login_url = build_email_login_url(to_email)
+    except Exception:
+        login_url = None
+    full_html = _build_bulk_email_html(subject, body_html, login_url=login_url)
     sender = _email_sender()
 
     try:

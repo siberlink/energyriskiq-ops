@@ -4,7 +4,7 @@ import asyncio
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -205,6 +205,57 @@ async def users_account_page_html():
     """Redirect to canonical URL for SEO."""
     return RedirectResponse(url="/users/account", status_code=301)
 
+@app.get("/users/email-login", include_in_schema=False)
+async def users_email_login_page():
+    """Magic-login landing page from newsletter emails: exchanges the token for
+    a session, stores it the same way the sign-in page does, then forwards to
+    the account page. Falls back to /users on failure."""
+    html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Signing you in… | EnergyRiskIQ</title>
+</head>
+<body style="margin:0;background:#0f172a;color:#e2e8f0;font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  <div style="text-align:center;">
+    <p style="color:#d4a017;font-size:20px;font-weight:bold;margin:0 0 10px;">EnergyRiskIQ</p>
+    <p id="msg" style="color:#94a3b8;font-size:14px;">Signing you in…</p>
+  </div>
+  <script>
+  (async function() {
+    var params = new URLSearchParams(window.location.search);
+    var t = params.get('t');
+    try { history.replaceState(null, '', '/users/email-login'); } catch (e) {}
+    if (!t) { window.location.replace('/users'); return; }
+    try {
+      var res = await fetch('/users/email-login/exchange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: t })
+      });
+      var data = await res.json();
+      if (res.ok && data.success && data.token) {
+        localStorage.setItem('userSession', JSON.stringify({
+          token: data.token,
+          user: data.user,
+          expires: Date.now() + (7 * 24 * 60 * 60 * 1000)
+        }));
+        window.location.replace('/users/account');
+      } else {
+        document.getElementById('msg').textContent = 'This login link has expired. Redirecting to sign in…';
+        setTimeout(function() { window.location.replace('/users'); }, 1800);
+      }
+    } catch (e) {
+      window.location.replace('/users');
+    }
+  })();
+  </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
+
 @app.get("/energy-risk-intelligence-signals", include_in_schema=False)
 async def signals_landing_page():
     response = FileResponse(os.path.join(STATIC_DIR, "energy-risk-intelligence-signals.html"), media_type="text/html")
@@ -346,6 +397,8 @@ async def startup_event():
         from src.api.admin_routes import _init_admin_sessions_table, _init_bulk_email_table
         _init_admin_sessions_table()
         _init_bulk_email_table()
+        from src.api.user_routes import _init_email_login_tokens_table
+        _init_email_login_tokens_table()
         logger.info("Database migrations completed")
         app_url = os.environ.get("APP_URL", "")
         if app_url and os.environ.get("TELEGRAM_BOT_TOKEN"):
