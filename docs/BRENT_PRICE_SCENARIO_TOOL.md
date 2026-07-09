@@ -138,3 +138,63 @@ Public tools that funnel into Forecast Desk:
 - LNG Scenario Tool
 - Gas Storage Calculator
 - Risk Correlation Explorer
+
+---
+
+## 10. Institutional Scenario Engine (flagship premium vision)
+
+This can become one of EnergyRiskIQ's flagship premium features **if it avoids predicting a single "correct" Brent price**. Build an **Institutional Scenario Engine** instead.
+
+Professional traders don't ask "What will Brent be tomorrow?" — they ask **"Given today's information, what are the most likely scenarios?"** That difference drives the whole design.
+
+### Naming
+Don't call it "Brent Price Scenario Tool". Call it:
+- **Brent Intelligence Scenario Engine™**, or
+- **Brent Risk Scenario Engine™**
+
+### Positioning / marketing
+Market it as an **oil market decision-support system**, not a price prediction tool. Home-page copy:
+> "Explore how changes in geopolitical risk, financial markets, European gas stress, LNG dynamics, and supply conditions could influence Brent over the next 24 hours, 72 hours, and 7 days."
+
+Competitors can regress Brent vs. VIX; they cannot easily replicate a platform integrating GERI Live, EERI, EGSI, gas storage, LNG, TTF, intelligence alerts, and intraday market data into one coherent scenario engine. That is the genuine moat.
+
+### Overall page layout
+1. **Current Market Snapshot** — all visible: Brent, WTI, GERI Live, GERI Daily, EERI, EGSI, VIX, TTF, EU Gas Storage (%), LNG.
+2. **Scenario Builder** (multiple risk drivers, not one slider)
+3. **Time Horizon** — 0–24h / 72h / 7 Days
+4. **Results**
+
+The user isn't just changing GERI — they are **building a market scenario**.
+
+### Scenario Builder — driver controls
+| Driver | Data behind it | Control |
+|---|---|---|
+| **Geopolitical Risk** | GERI Live + GERI Daily | Slider: Lower → Current → Escalation → Major Crisis |
+| **Financial Stress** | VIX | Slider: Calm → Current → Stress → Panic |
+| **European Gas Stress** | EGSI-M, EGSI-S, TTF, Gas Storage | Slider: Lower → Current → Higher |
+| **Supply Risk** (unique to platform) | GERI, Intelligence Alerts, LNG, Gas Storage, TTF | Preset buttons: Normal / OPEC Cut / Hormuz / Pipeline Attack / Sanctions / Custom |
+| **Demand Outlook** | VIX, WTI, Brent, macro events | Buttons: Weak / Neutral / Strong |
+
+### Results sections
+1. **Scenario Summary** — Current Brent, Expected Range (e.g. $76.40–$78.30), Most Likely (e.g. $77.20), Bullish probability (e.g. 78%), Confidence (e.g. 81%). No fake precision — never show "$77.123456"; professionals trust ranges.
+2. **Driver Attribution** (Bloomberg-style, users love this) — bar breakdown per driver, e.g. GERI +5.8%, Supply Risk +2.1%, VIX −1.4%, Gas Storage +0.8%, Total +7.3%. Users understand *why*.
+3. **AI Interpretation** — short narrative: expected bias over horizon, main drivers as bullets, offsetting factors (e.g. "Market fear remains moderate, partially offsetting the geopolitical premium").
+4. **Historical Analogs** — similar historical scenarios with match % (e.g. Feb 2022 — 89%, Oct 2023 — 82%, Jun 2019 — 74%). Clicking opens: what happened, how much Brent moved, how long, outcome. Excellent learning tool.
+5. **Intelligence Drivers** — alert stats (e.g. "112 alerts processed": War 38, Shipping 19, Energy 17, Infrastructure 12, Cyber 9, Political 17) plus the most influential event with its GERI impact (e.g. "Israeli strike, +2.3 GERI, confidence High").
+6. **Regional Risk** (from EERI) — e.g. Europe: Medium, Middle East: High, Asia LNG: Moderate, North America: Low.
+7. **Confidence Meter** — headline % with the *reasons*: GERI stable, low data conflict, strong historical match, high-quality intelligence flow.
+
+### Oil Market Risk Score (key differentiator)
+Combine proprietary indices into a single institutional-style composite, and **derive the scenario from these components** rather than directly from GERI or VIX:
+
+```
+Oil Market Risk Score
+  Supply Risk           82/100
+  Demand Risk           41/100
+  Financial Stress      35/100
+  European Gas Stress   61/100
+  Overall Brent Bias    STRONGLY BULLISH
+```
+
+### What NOT to show
+- A single precise price for "Brent tomorrow" — nobody believes it. Ranges + probabilities + attribution only.
