@@ -437,6 +437,9 @@
                     <button type="submit" class="submit-btn" id="signinBtn">Sign In</button>
 
                     <p class="link-text">
+                        <a href="#" onclick="showForgotView(); return false;">Forgot password or PIN?</a>
+                    </p>
+                    <p class="link-text">
                         Don't have an account? <a href="#" onclick="showTab('signup'); return false;">Sign up</a>
                     </p>
                 </form>
@@ -469,6 +472,56 @@
                 <p class="link-text" style="margin-top: 16px;">
                     <a href="#" onclick="showAuthView(); return false;">Back to sign in</a>
                 </p>
+            </div>
+
+            <!-- Forgot Password View -->
+            <div id="forgotView" style="display: none;">
+                <a href="#" class="back-link" onclick="showAuthView(); return false;">&larr; Back</a>
+
+                <div class="auth-logo" style="margin-bottom: 24px;">
+                    <h1 style="font-size: 22px;">Password &amp; PIN Recovery</h1>
+                    <p>Enter your account email and we'll send you a recovery link</p>
+                </div>
+
+                <div class="auth-error" id="forgotError"></div>
+                <div class="auth-success" id="forgotSuccess"></div>
+
+                <form id="forgotForm" onsubmit="handleForgot(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="forgotEmail" placeholder="you@example.com" required>
+                        <p class="form-hint">The recovery link is valid for 1 hour and can be used once</p>
+                    </div>
+                    <button type="submit" class="submit-btn" id="forgotBtn">Send Recovery Link</button>
+                </form>
+            </div>
+
+            <!-- Reset Password View -->
+            <div id="resetView" style="display: none;">
+                <div class="auth-logo" style="margin-bottom: 24px;">
+                    <h1 style="font-size: 22px;">Set a new password &amp; PIN</h1>
+                    <p>Choose a new password and a new 6-digit PIN for your account</p>
+                </div>
+
+                <div class="auth-error" id="resetError"></div>
+
+                <form id="resetForm" onsubmit="handleReset(event)">
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="resetPassword" placeholder="Enter new password" required minlength="8">
+                        <p class="form-hint">At least 8 characters</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" id="resetConfirmPassword" placeholder="Confirm new password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New 6-Digit PIN</label>
+                        <input type="text" id="resetPin" placeholder="Enter 6-digit PIN" maxlength="6" pattern="[0-9]{6}" required>
+                        <p class="form-hint">You'll use this PIN along with your password to sign in</p>
+                    </div>
+                    <button type="submit" class="submit-btn" id="resetBtn">Update Password &amp; PIN</button>
+                </form>
             </div>
 
             <!-- Set Password View -->
@@ -515,6 +568,7 @@
     <script>
         let verificationToken = null;
         let pendingEmail = null;
+        let resetToken = null;
 
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
@@ -539,25 +593,116 @@
             hideMessages();
         }
 
+        function hideAllViews() {
+            ['authView', 'emailSentView', 'setPasswordView', 'forgotView', 'resetView'].forEach(function(id) {
+                document.getElementById(id).style.display = 'none';
+            });
+        }
+
         function showAuthView() {
+            hideAllViews();
             document.getElementById('authView').style.display = 'block';
-            document.getElementById('emailSentView').style.display = 'none';
-            document.getElementById('setPasswordView').style.display = 'none';
             hideMessages();
         }
 
         function showEmailSentView(email) {
-            document.getElementById('authView').style.display = 'none';
+            hideAllViews();
             document.getElementById('emailSentView').style.display = 'block';
-            document.getElementById('setPasswordView').style.display = 'none';
             document.getElementById('sentEmail').textContent = email;
             pendingEmail = email;
         }
 
         function showSetPasswordView() {
-            document.getElementById('authView').style.display = 'none';
-            document.getElementById('emailSentView').style.display = 'none';
+            hideAllViews();
             document.getElementById('setPasswordView').style.display = 'block';
+        }
+
+        function showForgotView() {
+            hideAllViews();
+            document.getElementById('forgotView').style.display = 'block';
+            document.getElementById('forgotError').style.display = 'none';
+            document.getElementById('forgotSuccess').style.display = 'none';
+        }
+
+        function showResetView() {
+            hideAllViews();
+            document.getElementById('resetView').style.display = 'block';
+            document.getElementById('resetError').style.display = 'none';
+        }
+
+        async function handleForgot(e) {
+            e.preventDefault();
+            document.getElementById('forgotError').style.display = 'none';
+            document.getElementById('forgotSuccess').style.display = 'none';
+
+            const email = document.getElementById('forgotEmail').value;
+            const btn = document.getElementById('forgotBtn');
+            btn.setAttribute('data-text', 'Send Recovery Link');
+            setButtonLoading('forgotBtn', true);
+
+            try {
+                const response = await fetch('/users/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showSuccess('forgotSuccess', data.message || 'If an account exists for this email, a recovery link has been sent.');
+                } else {
+                    showError('forgotError', data.detail || 'Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                showError('forgotError', 'Network error. Please try again.');
+            } finally {
+                setButtonLoading('forgotBtn', false);
+            }
+        }
+
+        async function handleReset(e) {
+            e.preventDefault();
+            document.getElementById('resetError').style.display = 'none';
+
+            const password = document.getElementById('resetPassword').value;
+            const confirm = document.getElementById('resetConfirmPassword').value;
+            const pin = document.getElementById('resetPin').value;
+
+            if (password.length < 8) {
+                showError('resetError', 'Password must be at least 8 characters');
+                return;
+            }
+            if (password !== confirm) {
+                showError('resetError', 'Passwords do not match');
+                return;
+            }
+            if (!/^\d{6}$/.test(pin)) {
+                showError('resetError', 'PIN must be exactly 6 digits');
+                return;
+            }
+
+            const btn = document.getElementById('resetBtn');
+            btn.setAttribute('data-text', 'Update Password & PIN');
+            setButtonLoading('resetBtn', true);
+
+            try {
+                const response = await fetch('/users/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: resetToken, password, pin })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showAuthView();
+                    showTab('signin');
+                    showSuccess('authSuccess', 'Your password and PIN have been updated. Please sign in with your new credentials.');
+                } else {
+                    showError('resetError', data.detail || 'Failed to reset. Please request a new recovery link.');
+                }
+            } catch (error) {
+                showError('resetError', 'Network error. Please try again.');
+            } finally {
+                setButtonLoading('resetBtn', false);
+            }
         }
 
         function hideMessages() {
@@ -795,8 +940,16 @@
             if (checkExistingSession()) return;
 
             const params = getUrlParams();
-            
-            if (params.token) {
+
+            let hashToken = null;
+            if (window.location.hash && window.location.hash.indexOf('rt=') !== -1) {
+                hashToken = window.location.hash.split('rt=')[1] || null;
+            }
+            if (params.action === 'reset' && (hashToken || params.token)) {
+                resetToken = hashToken || params.token;
+                try { history.replaceState(null, '', '/users'); } catch (e) {}
+                showResetView();
+            } else if (params.token) {
                 verifyToken(params.token);
             }
         });

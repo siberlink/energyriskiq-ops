@@ -258,6 +258,47 @@ def build_email_login_url(email: str) -> Optional[str]:
         return None
 
 
+PASSWORD_RESET_TOKEN_HOURS = 1
+
+_PASSWORD_RESET_TOKENS_DDL = """
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        token VARCHAR(64) PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        email TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        expires_at TIMESTAMPTZ NOT NULL
+    )
+"""
+
+
+def _init_password_reset_tokens_table():
+    """Create password_reset_tokens on the primary (Neon) DB and mirror to the
+    Replit-managed DATABASE_URL so publish schema diffs don't propose drops."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(_PASSWORD_RESET_TOKENS_DDL)
+    except Exception as e:
+        logger.warning(f"Could not create password_reset_tokens table: {e}")
+
+    prod = os.environ.get("PRODUCTION_DATABASE_URL")
+    managed = os.environ.get("DATABASE_URL")
+    if not managed or not prod or managed == prod:
+        return
+    conn = None
+    try:
+        import psycopg2
+        conn = psycopg2.connect(managed)
+        cur = conn.cursor()
+        cur.execute(_PASSWORD_RESET_TOKENS_DDL)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        logger.warning(f"Managed DB password_reset_tokens sync skipped: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
 class EmailLoginExchangeRequest(BaseModel):
     token: str
 
@@ -905,6 +946,148 @@ The EnergyRiskIQ Team"""
     send_email(email, email_subject, email_body)
     
     return {"success": True, "message": "If an account exists, a verification email will be sent."}
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+    pin: str
+
+
+_FORGOT_GENERIC_MSG = "If an account exists for this email, a recovery link has been sent."
+
+_forgot_attempts: dict = {}
+_FORGOT_MAX_PER_WINDOW = 3
+_FORGOT_WINDOW_SECONDS = 900
+
+
+def _forgot_throttled(key: str) -> bool:
+    """Simple in-memory throttle: max 3 requests per key per 15 minutes."""
+    import time as _time
+    now = _time.time()
+    attempts = [t for t in _forgot_attempts.get(key, []) if now - t < _FORGOT_WINDOW_SECONDS]
+    if len(attempts) >= _FORGOT_MAX_PER_WINDOW:
+        _forgot_attempts[key] = attempts
+        return True
+    attempts.append(now)
+    _forgot_attempts[key] = attempts
+    if len(_forgot_attempts) > 10000:
+        for k in [k for k, v in _forgot_attempts.items() if not v or now - v[-1] > _FORGOT_WINDOW_SECONDS]:
+            _forgot_attempts.pop(k, None)
+    return False
+
+
+@router.post("/forgot-password")
+def forgot_password(body: ForgotPasswordRequest, request: Request = None):
+    """Send a branded password & PIN recovery email. Always returns a generic
+    success message so account existence cannot be probed."""
+    email = (body.email or "").lower().strip()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    ip = request.client.host if request and request.client else "unknown"
+    if _forgot_throttled(f"e:{email}") or _forgot_throttled(f"ip:{ip}"):
+        # Same generic message: no email is sent, but callers learn nothing.
+        return {"success": True, "message": _FORGOT_GENERIC_MSG}
+
+    with get_cursor(commit=False) as cursor:
+        cursor.execute(
+            "SELECT id, email FROM users "
+            "WHERE LOWER(email) = %s AND email_verified = TRUE "
+            "AND password_hash IS NOT NULL",
+            (email,),
+        )
+        user = cursor.fetchone()
+
+    if not user:
+        return {"success": True, "message": _FORGOT_GENERIC_MSG}
+
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(hours=PASSWORD_RESET_TOKEN_HOURS)
+    with get_cursor() as cursor:
+        cursor.execute("DELETE FROM password_reset_tokens WHERE user_id = %s OR expires_at <= NOW()",
+                       (user["id"],))
+        cursor.execute(
+            "INSERT INTO password_reset_tokens (token, user_id, email, expires_at) "
+            "VALUES (%s, %s, %s, %s)",
+            (token, user["id"], user["email"], expires_at),
+        )
+
+    # Token travels in the URL fragment (#rt=...) — fragments are never sent
+    # to the server, third-party analytics, or in Referer headers.
+    reset_link = f"{APP_URL}/users?action=reset#rt={token}"
+    subject = "Reset your EnergyRiskIQ password & PIN"
+    body_html = (
+        "<p style=\"margin:0 0 16px;\">Hello,</p>"
+        "<p style=\"margin:0 0 16px;\">We received a request to reset the password and PIN "
+        "for your EnergyRiskIQ account. Click the button below to choose a new password "
+        "and a new 6-digit PIN.</p>"
+        f"<p style=\"margin:0 0 16px;\">This link is valid for {PASSWORD_RESET_TOKEN_HOURS} hour and can be used once. "
+        "If you didn't request this, you can safely ignore this email — your current "
+        "password and PIN remain unchanged.</p>"
+    )
+    text_body = (
+        "Hello,\n\nWe received a request to reset the password and PIN for your "
+        "EnergyRiskIQ account. Use the link below to choose a new password and PIN:\n\n"
+        f"{reset_link}\n\nThis link is valid for {PASSWORD_RESET_TOKEN_HOURS} hour and can be used once. "
+        "If you didn't request this, you can safely ignore this email.\n\n"
+        "Kind regards,\nEmil C\nFounder, EnergyRiskIQ"
+    )
+    try:
+        from src.api.admin_routes import _build_bulk_email_html
+        html = _build_bulk_email_html(subject, body_html, login_url=reset_link,
+                                      button_label="Reset Password & PIN")
+    except Exception as e:
+        logger.warning(f"Branded reset email build failed, using plain text: {e}")
+        html = None
+
+    success, error, _ = send_email(user["email"], subject, text_body, html_body=html)
+    if not success:
+        logger.error(f"Failed to send password reset email to {user['email']}: {error}")
+
+    return {"success": True, "message": _FORGOT_GENERIC_MSG}
+
+
+@router.post("/reset-password")
+def reset_password(body: ResetPasswordRequest):
+    """Set a new password and PIN using a single-use recovery token.
+    Invalidates all existing sessions for the user."""
+    token = (body.token or "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="Token is required")
+    if len(body.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    if not body.pin.isdigit() or len(body.pin) != 6:
+        raise HTTPException(status_code=400, detail="PIN must be exactly 6 digits")
+
+    with get_cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM password_reset_tokens "
+            "WHERE token = %s AND expires_at > NOW() "
+            "RETURNING user_id, email",
+            (token,),
+        )
+        row = cursor.fetchone()
+        cursor.execute("DELETE FROM password_reset_tokens WHERE expires_at <= NOW()")
+
+        if not row:
+            raise HTTPException(status_code=400, detail="Invalid or expired recovery link. Please request a new one.")
+
+        password_hash = hash_password(body.password)
+        pin_hash = hash_password(body.pin)
+        cursor.execute(
+            "UPDATE users SET password_hash = %s, pin_hash = %s, updated_at = NOW() WHERE id = %s",
+            (password_hash, pin_hash, row["user_id"]),
+        )
+        cursor.execute("DELETE FROM sessions WHERE user_id = %s", (row["user_id"],))
+        cursor.execute("DELETE FROM email_login_tokens WHERE user_id = %s", (row["user_id"],))
+
+    logger.info(f"Password & PIN reset completed for user {row['user_id']}")
+    return {"success": True, "message": "Your password and PIN have been updated. Please sign in."}
 
 
 TELEGRAM_ELIGIBLE_PLANS = ['free', 'personal', 'trader', 'pro', 'enterprise']

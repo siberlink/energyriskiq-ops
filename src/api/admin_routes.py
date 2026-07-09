@@ -703,7 +703,8 @@ def _bulk_body_to_html(body: str, content_type: str) -> str:
 
 
 def _build_bulk_email_html(subject: str, body_html: str,
-                           login_url: Optional[str] = None) -> str:
+                           login_url: Optional[str] = None,
+                           button_label: str = "Login Your Account") -> str:
     """Wrap an admin newsletter subject + body in the branded EnergyRiskIQ
     template (navy background, logo header, footer with founder signature).
     Mirrors the welcome email styling in src/api/user_routes.py.
@@ -747,7 +748,7 @@ def _build_bulk_email_html(subject: str, body_html: str,
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin:28px auto 4px;">
                 <tr>
                   <td align="center" style="border-radius:8px; background-color:#d4a017;">
-                    <a href="{login_url}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0f172a; text-decoration:none; border-radius:8px;">Login Your Account</a>
+                    <a href="{login_url}" style="display:inline-block; padding:14px 28px; font-size:16px; font-weight:bold; color:#0f172a; text-decoration:none; border-radius:8px;">{button_label}</a>
                   </td>
                 </tr>
               </table>
