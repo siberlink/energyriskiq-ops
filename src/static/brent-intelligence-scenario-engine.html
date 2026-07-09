@@ -322,7 +322,7 @@
             <button class="logout-btn" id="logout-btn">Sign out</button>
           </div>
         </div>
-        <div class="header-sub">Institutional Brent scenario modelling using GERI Live, VIX, supply shocks, European gas stress, and historical analogs.</div>
+        <div class="header-sub">Institutional Brent scenario modelling using <a href="https://energyriskiq.com/research/global-energy-risk-index" target="_blank" rel="noopener" style="color: var(--gold); text-decoration: underline;">GERI</a> Live, VIX, supply shocks, European gas stress, and historical analogs.</div>
         <div class="header-status" id="hdr-updated">Last updated: --</div>
       </header>
 
@@ -358,7 +358,7 @@
             <div class="section-title" style="margin-bottom: 24px;">Scenario Parameters</div>
             <div class="control-group">
               <div class="control-label">
-                <span>Geopolitical Risk (GERI)</span>
+                <span>Geopolitical Risk (<a href="https://energyriskiq.com/research/global-energy-risk-index" target="_blank" rel="noopener" style="color: var(--gold); text-decoration: underline;">GERI</a>)</span>
                 <span class="control-val-disp" id="val-geri">0%</span>
               </div>
               <input type="range" id="ctrl-geri" min="-50" max="100" value="0" step="5">
@@ -425,7 +425,6 @@
             </div>
 
             <div class="panel" id="res-interp-panel" style="display:none;">
-              <div class="panel-title">AI Interpretation</div>
               <div class="interp-block">
                 <h4>Interpretation</h4>
                 <div class="interp-text" id="res-interp"></div>
@@ -936,7 +935,7 @@
         return `<tr><td>${name}</td><td class="down">$${fmt(d.bearish)}</td><td>$${fmt(d.base)}</td><td class="up">$${fmt(d.bullish)}</td><td style="color:var(--gold)">$${fmt(d.tail_risk)}</td></tr>`;
       }).join('');
 
-      // AI interpretation, watch-list, scenario risk (item 8)
+      // Interpretation, watch-list, scenario risk (item 8)
       $('res-interp-panel').style.display = 'block';
       $('res-interp').innerHTML = data.interpretation || "No interpretation generated.";
       $('res-watch').innerHTML = (data.what_to_watch || []).map(w => `<li>${esc(w)}</li>`).join('');
