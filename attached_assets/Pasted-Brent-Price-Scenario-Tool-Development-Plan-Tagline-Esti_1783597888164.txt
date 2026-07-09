@@ -1,0 +1,226 @@
+Brent Price Scenario Tool – Development Plan
+
+Tagline: Estimate how changes in geopolitical risk could influence Brent crude oil prices.
+Key positioning: “What could happen to Brent prices if geopolitical risk changes”?
+
+SEO Strategy:
+Primary Keyword: “Brent oil risk forecast”
+Secondary Keywords:
+•	Brent oil price forecast
+•	Brent crude oil forecast
+•	Brent oil price prediction
+•	Brent oil outlook
+•	Oil risk forecast
+•	Geopolitical oir risk
+•	Oil market risk analysis
+•	Energy risk forecast
+•	Oil supply disruption forecast
+•	Geopolitical risk oil price forecast
+•	Oil price scenario analysis
+•	Brent price forecast today
+•	Brent oil scenario tool
+•	Oil market risk calculator
+•	How geopolitical risk affects oil prices
+•	Global oil market forecast
+
+Long-tail Keywords:
+•	Brent oil risk forecast tool
+•	Brent oil risk forecast today
+•	Brent oil price forecast after middle east escalation
+•	How geopolitical risk affects brent oil prices
+•	Will brent oil prices rise if hormuz closes
+•	Opec production cuts oil price forecast
+•	Iran Israel oil price forecast
+•	Russia Ukraine oil risk forecast
+•	Energy risk dashboard for oil traders
+•	Brent crude scenario calculator
+•	Geopolitical risk and oil prices
+•	Oil price forecast based on geopolitical risk
+•	Estimate brent price after middle east tensions
+•	Oil market scenario simulator
+ Brent Risk Forecast Dashboard – Page Blueprint:
+
+
+
+
+
+
+
+ Public Page Blueprint:
+Suggested URL
+/tools/brent-oil-risk-forecast
+
+SEO Title
+Brent Oil Risk Forecast Tool | Estimate Price Scenarios from Geopolitical Risk
+
+Meta Description
+Estimate Brent crude oil price scenarios using geopolitical risk, market volatility and EnergyRiskIQ indicators. Simulate how changes in global tensions could impact oil prices.
+
+H1: Brent Oil Risk Forecast Tool
+H2: “Estimate how geopolitical risk changes could influence Brent crude prices”
+Badge: Updated Daily    Badge: Powered by GERI    Badge: Scenario-based Analysis
+
+Hero Section
+Left Side
+
+H3: “Estimate how geopolitical risk changes could influence Brent crude prices”
+
+H4: “Simulate potential Brent price scenarios using geopolitical risk indicators, market volatility and historical relationships between Brent, GERI and VIX.”
+
+Button: 24-48h
+Button: 0 – 24h (Grayed out)
+Button: 3 Days (72h) (Grayed out)
+Button: 7 Days Outlook (Grayed out)
+
+Button: “Run Free Scenario”
+Best used once each trading morning (09:00–10:00 UTC), and again after any major geopolitical or OPEC announcement.
+
+
+“GERI” – Link to: https://energyriskiq.com/research/global-energy-risk-index
+
+GERI – Tool Tip Text = “Global Energy Risk Index (GERI) – Proprietary Index by EnergyRiskIQ.  Click on the link to review what the Index is and how is calculated.”
+	Right Side
+
+Interactive Preview:
+
+Current Brent: $78.50/bbl (Auto-filled, Editable)
+
+Current GERI: 42 (Auto-filled)
+
+Current VIX: 18 (Auto-filled)
+
+
+Geopolitical Risk Scenario
+Slider – GERI change
+-50% to +100%
+Default: 0%
+
+Use scale on slider:
+-	Lower Tensions
+-	Current Risk (Default: 0%
+-	Escalation
+-	Major crisis
+
+Market Stress Scenario
+Slider:
+VIX Change
+-50% to +100%
+
+
+
+
+Forecast Display
+(based on scenarios)
+24 – 48 h: forecast (public result)
+0 – 24h forecast: (premium – involves GERI Live, display blur result)
+3 Days (72h) forecast: (premium feature – display blur result)
+7 Days Outlook: (premium feature – display blur result)
+
+Forecast is Displayed in Ranges:
+EXAMPLE:
+Bulish Scenario: $84.50 – $86.45
+Bearich Scenario: $76.20 – $77.80
+
+Add confidence score
+Example  Confidence 71%
+
+
+Banner appear after calculation:
+Early subscription to EnergyRiskIQ’s “Brent Oil Risk Forecast” Library that will contain over 150+ Risk Scenarios with multiple time frames. New scenarios added periodically.
+Subscribe Today – Only 8 Euro/Month! Avoid Paying 199/month Later
+CTA button:  “Get 14 Days Free Trial”
+
+
+“Embed the calculator on your own webiste or blog, attract visitors and earn commission in the same time
+Button  “Grab The Embed Code”
+
+Very small print: “Only paid users can earn commission on EnergyRiskIQ’s proprietary tools”
+
+Scenario Commentary
+Example:
+Rising geopolitical risk combined with higher market volatility historically supports Brent prices. Under this scenario Brent could trade between $82 and $87 per barrel over the next 30 days.
+
+Show CTA:
+Unlock Unlimited Oil Risk Forecasts Library (8 Euro./Month)
+
+Sections Below The Tool:
+1)	How Geopolitical Risk Influences Brent Prices (800 Words Article)
+2)	How We Estimate Brent Price Scenarios
+a.	Explain: 
+i.	GERI, 
+ii.	VIX, 
+iii.	Historical Relationships, 
+iv.	Scenario methodology
+3)	Current Brent Market Snapshot
+a.	Live Cards:
+i.	Brent
+ii.	GERI
+iii.	VIX
+4)	Historical Relationship Between GERI and Brent
+a.	Interactive Chart
+5)	Recent Oil Market Risk Analysis
+a.	Automatically generated daily commentary
+6)	FAQ
+a.	What is a Brent oil risk forecast?
+b.	How does geopolitical risk affect oil prices?
+c.	Is Brent highly correlated with geopolitical events
+d.	Can this tool predict oil prices?
+e.	What is GERI?
+f.	How often is the forecast updated?
+g.	Why do oil prices rise during geopolitical crises
+
+
+SECTION at the Bottom Page
+<embed>
+... code
+<embed>
+
+
+ 
+Key Development – Strategy
+•	Visitor land (from Google, AI, etc) on the landing page: “/tools/brent-oil-risk-forecast”
+•	Just bellow the calculator section display a banner “Embed the calculator on your own webiste or blog, attract visitors and earn commission in the same time” – Link to the dedicated Section of the Widget at the bottom of the page
+•	Visitor using the calculator
+o	Calculator give result
+o	Banner display under result, promoting Paid Calculators
+o	CTA button display with 14 days Trial (8 Euro/Month)
+•	Visitor click CTA button “Get 14 Days Free Trial”  redirect to Stripe  User enroll in the 14 days free trial  User is automatically registered in a dedicated Table “paid_brent_forecast_users” with their e-mail, generated password, paid=true  Email is sent to User with the dedicated page for Advanced Calculator and their generated password  Dedicated page with the Advanced Calculator is Displayed  A one time only Banner is displayed letting the user know that they received an e-mail with their Authentication Credentials to access the Calculator with a “Dismiss” button
+•	The Advanced Calculator page “/tools/brent-intelligence-scenario/engine/”, can only be accessed by Authentication – Login form is displayed on top of the “faded page”
+
+Brent Risk Forecast Dashboard:
+•	Separate “User Table” (brent_dashboard_users)  from the current one
+o	User_Id
+o	User_Email
+o	User_Password
+o	User_Trial (Boolean)
+o	User_Paid Boolean)
+o	User_Enroll_Date (Date)
+•	Login using email and password
+•	Automatically generated password is sent to the User by Email
+•	After enrolling in a 14 Days Trial, email is grabed from Stripe  Password is generated  Welcome Message is sent to the User’s Email address (include password) – User is Automatically authorized and logged in the “Brent Risk Forecast Dashboard”
+ Private “Brent Oil Risk Forecast” Dashboard
+
+Premium Features:
+-	Historical Analog Engine
+-	Unlimited simulations
+-	Probability distributions
+-	Scenario comparison
+-	Save scenarios
+-	Export scenarios
+-	Intraday GERI Integration
+-	Brent alert system
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
