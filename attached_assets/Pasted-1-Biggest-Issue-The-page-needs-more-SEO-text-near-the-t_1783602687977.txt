@@ -1,0 +1,197 @@
+1. Biggest Issue: The page needs more SEO text near the top
+
+Right now, the visual tool is strong, but Google needs more written context.
+
+Add a short SEO block directly under the hero:
+
+Suggested heading:
+
+Brent Oil Risk Forecast Today
+
+Text:
+
+The Brent Oil Risk Forecast Tool estimates how Brent crude prices may react to changes in geopolitical risk, GERI, and market volatility. Use the scenario calculator to test how escalation, easing tensions, or volatility shocks could influence Brent over the next 24–48 hours.
+
+This helps rank for:
+
+Brent oil risk forecast
+Brent price scenario calculator
+geopolitical risk oil price forecast
+Brent crude oil forecast today
+2. Improve the main headline for CTR
+
+Current:
+
+Brent Oil Price Risk Forecast
+Live Scenario Calculator
+
+Better:
+
+Brent Oil Risk Forecast Tool
+Simulate Brent Price Scenarios Using Geopolitical Risk
+
+This is clearer for Google and users.
+
+3. Add a clear premium upsell above the fold
+
+At the moment, the locked horizons suggest premium, but the page does not strongly explain the premium product.
+
+Add a small banner below the scenario button:
+
+Want 0–24h, 72h, 7-day forecasts, historical analogs and saved scenarios?
+Unlock the Brent Intelligence Scenario Engine.
+
+Button:
+
+Unlock Premium Forecasts
+
+4. Add Scenario Preset Buttons
+
+This is currently missing and would increase engagement a lot.
+
+Add under sliders:
+
+Quick Scenarios
+
+Middle East Escalation
+Strait of Hormuz Risk
+OPEC+ Cut
+Russia Sanctions
+Global Recession
+Ceasefire / De-escalation
+
+Each button auto-adjusts GERI and VIX.
+
+This improves repeat usage and makes the tool feel intelligent.
+
+5. Add result preview / sample output before user runs
+
+Users need to know what they will get.
+
+Under “Run Scenario”, show a faded/sample card:
+
+Scenario output includes:
+Estimated Brent range
+Expected % move
+Market bias
+Confidence score
+Risk commentary
+
+This increases button clicks.
+
+6. Improve “Embed This Intelligence”
+
+This is very good, but it appears too early.
+
+I would move it lower, after the main educational content.
+
+Why? The primary goal should be:
+
+Use tool
+Understand value
+Create account / upgrade
+Then embed/share
+
+The embed section is useful, but it distracts from paid conversion.
+
+7. Add “Best Time to Use This Tool” section
+
+This is important for returning visitors.
+
+Add a box:
+
+Best used daily after the EnergyRiskIQ intelligence update, typically from 08:00 UTC onward, and again after major geopolitical, OPEC, shipping, or inventory-related events.
+
+This creates a daily habit.
+
+8. Add “Today’s Brent Risk Summary”
+
+This is the best repeat-traffic feature.
+
+Add a daily updated section:
+
+Today’s Brent Risk Summary
+
+Include:
+
+Brent direction
+GERI change
+VIX condition
+Market bias
+Key risk driver
+Watchlist for next 24–48h
+
+This gives people a reason to return every day.
+
+9. Add a stronger paid conversion section
+
+Current page has locked buttons, but no strong sales block.
+
+Add after “How This Model Works”:
+
+Unlock the Brent Intelligence Scenario Engine
+
+Premium includes:
+
+0–24h, 72h and 7-day horizons
+Unlimited simulations
+Historical analog engine
+Scenario library
+Probability distribution charts
+Saved scenarios
+Exportable forecast reports
+Intraday GERI Live integration
+
+CTA:
+
+Start Premium Access
+
+Secondary:
+
+Create Free Account
+
+10. Add Scenario Library Preview
+
+This is essential.
+
+Add cards:
+
+What if Iran escalates?
+What if Strait of Hormuz risk rises?
+What if OPEC cuts production?
+What if recession risk increases?
+What if Brent decouples from GERI?
+
+Each card should link to a future SEO scenario page.
+
+This can become one of your biggest organic traffic engines.
+
+11. FAQ is good — add more SEO questions
+
+Add:
+
+How does geopolitical risk affect Brent oil prices?
+Can Brent rise when demand is weak?
+What is the relationship between GERI and Brent?
+What happens to oil prices if the Strait of Hormuz is disrupted?
+Is Brent more sensitive to GERI or VIX?
+How often should I run a Brent risk forecast?
+12. Related pages should be more SEO-focused
+
+Current related links are good. Improve titles:
+
+Instead of:
+
+Live Brent Crude Data
+
+Use:
+
+Brent Crude Oil Price Today
+
+Instead of:
+
+Global Risk Forecast
+
+Use:
+
+Global Energy Risk Forecast

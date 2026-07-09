@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Brent Oil Price Risk Forecast — Free Scenario Calculator | EnergyRiskIQ</title>
-  <meta name="description" content="Simulate how geopolitical risk (GERI) and market volatility (VIX) shifts could move Brent crude prices over the next 24-48 hours. Live data-driven market reaction scenario model.">
+  <title>Brent Oil Risk Forecast Tool — Simulate Brent Price Scenarios | EnergyRiskIQ</title>
+  <meta name="description" content="Free Brent oil risk forecast tool. Simulate how geopolitical risk (GERI) and market volatility (VIX) could move Brent crude prices over the next 24-48 hours. Brent price scenario calculator with live data.">
   
   <link rel="canonical" href="https://energyriskiq.com/tools/brent-oil-risk-forecast">
   
-  <meta property="og:title" content="Brent Oil Price Risk Forecast — Free Scenario Calculator">
-  <meta property="og:description" content="Simulate how geopolitical risk and market volatility shifts could move Brent crude prices.">
+  <meta property="og:title" content="Brent Oil Risk Forecast Tool — Simulate Brent Price Scenarios Using Geopolitical Risk">
+  <meta property="og:description" content="Free Brent price scenario calculator. Test how escalation, easing tensions, or volatility shocks could influence Brent crude over the next 24-48 hours.">
   <meta property="og:url" content="https://energyriskiq.com/tools/brent-oil-risk-forecast">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="EnergyRiskIQ">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Brent Oil Price Risk Forecast — Free Scenario Calculator">
-  <meta name="twitter:description" content="Simulate how geopolitical risk and market volatility shifts could move Brent crude prices.">
+  <meta name="twitter:title" content="Brent Oil Risk Forecast Tool — Simulate Brent Price Scenarios">
+  <meta name="twitter:description" content="Free Brent price scenario calculator using geopolitical risk (GERI) and market volatility.">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
@@ -23,7 +23,7 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Brent Oil Price Risk Forecast — Free Scenario Calculator",
+    "name": "Brent Oil Risk Forecast Tool — Brent Price Scenario Calculator",
     "url": "https://energyriskiq.com/tools/brent-oil-risk-forecast",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web",
@@ -108,6 +108,54 @@
         "acceptedAnswer": {
           "@type": "Answer",
           "text": "Exporting results, saving scenarios, and accessing the probability distribution charts are features of the premium Scenario Engine workspace."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does geopolitical risk affect Brent oil prices?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Geopolitical risk raises the probability of supply disruption. When risk indices such as GERI rise, markets price a risk premium into Brent crude — typically before any physical barrels are lost. Escalation in producer regions, shipping chokepoints, or sanctions regimes usually lifts Brent, while de-escalation lets the premium fade."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can Brent rise when demand is weak?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Brent is priced on both supply and demand expectations. A supply-side shock — OPEC+ cuts, conflict near export infrastructure, or a shipping chokepoint disruption — can push Brent higher even when demand indicators are soft, because the market prices scarcity risk rather than current consumption."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the relationship between GERI and Brent?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "GERI measures global energy-related geopolitical risk in real time. Historically, sharp GERI increases correlate with a rising Brent risk premium, while falling GERI usually coincides with premium unwinds. The scenario model applies these historical elasticities to estimate how a hypothetical GERI shift would move Brent."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens to oil prices if the Strait of Hormuz is disrupted?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Roughly a fifth of global oil supply transits the Strait of Hormuz. Even a partial disruption typically triggers an immediate and outsized Brent spike, as markets price the risk of prolonged supply loss. Use the Strait of Hormuz quick scenario to simulate this in the calculator."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Brent more sensitive to GERI or VIX?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "In our model, Brent is more sensitive to geopolitical risk (GERI) than to general market volatility (VIX). GERI shocks act directly on supply-risk expectations, while VIX moves reflect broader risk sentiment that can either amplify or offset the oil-specific signal."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How often should I run a Brent risk forecast?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Daily. The baseline updates continuously, so the tool is best used each morning after the EnergyRiskIQ intelligence update (from roughly 08:00 UTC), and again after major geopolitical, OPEC, shipping, or inventory-related events."
         }
       }
     ]
@@ -399,6 +447,76 @@
     footer { text-align: center; padding: 32px 0; border-top: 1px solid var(--border); font-size: 13px; color: #64748b; }
     footer a { color: #94a3b8; }
     footer a:hover { color: #fff; }
+
+    /* SEO intro */
+    .seo-intro { background: rgba(212,160,23,0.05); border: 1px solid rgba(212,160,23,0.2); border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; }
+    .seo-intro h2 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .seo-intro p { font-size: 14px; line-height: 1.7; color: #94a3b8; }
+
+    /* Quick scenario presets */
+    .presets { margin-bottom: 24px; }
+    .preset-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .preset-btn { background: rgba(212,160,23,0.08); border: 1px solid rgba(212,160,23,0.3); color: #e2e8f0; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 999px; cursor: pointer; transition: all .15s; }
+    .preset-btn:hover, .preset-btn.active { background: var(--gold); color: #000; border-color: var(--gold); }
+
+    /* Sample output preview */
+    .sample-preview { margin-top: 16px; border: 1px dashed rgba(148,163,184,0.3); border-radius: 12px; padding: 16px 20px; opacity: 0.65; }
+    .sample-preview-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 8px; }
+    .sample-preview ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+    .sample-preview li { font-size: 13px; color: #94a3b8; }
+    .sample-preview li::before { content: "✓ "; color: var(--gold); }
+
+    /* Mini upsell banner */
+    .mini-upsell { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(212,160,23,0.07); border: 1px solid rgba(212,160,23,0.25); border-radius: 12px; padding: 14px 18px; }
+    .mini-upsell span { font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+    .mini-upsell-btn { flex-shrink: 0; background: var(--gold); color: #000; border: none; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 8px; cursor: pointer; }
+    .mini-upsell-btn:hover { filter: brightness(1.1); }
+    @media(max-width: 600px) { .mini-upsell { flex-direction: column; align-items: stretch; text-align: center; } }
+
+    /* Today's risk summary */
+    .risk-summary { margin-bottom: 48px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+    .summary-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px; }
+    .summary-val { font-size: 14px; font-weight: 600; color: #e2e8f0; line-height: 1.5; }
+    .summary-updated { font-size: 12px; color: #64748b; margin-top: 12px; }
+    @media(max-width: 768px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+    @media(max-width: 480px) { .summary-grid { grid-template-columns: 1fr; } }
+
+    /* Best time box */
+    .best-time { display: flex; gap: 16px; align-items: flex-start; background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); border-radius: 12px; padding: 20px 24px; margin-bottom: 48px; }
+    .best-time-icon { font-size: 24px; }
+    .best-time strong { display: block; color: #fff; font-size: 15px; margin-bottom: 6px; }
+    .best-time p { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+
+    /* Sales block */
+    .sales-block { background: linear-gradient(145deg, rgba(212,160,23,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(212,160,23,0.35); border-radius: 16px; padding: 32px; margin-bottom: 48px; text-align: center; }
+    .sales-block h2 { font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .sales-block > p { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+    .sales-features { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 24px; max-width: 560px; margin: 0 auto 24px; text-align: left; }
+    .sales-features li { font-size: 14px; color: #e2e8f0; }
+    .sales-features li::before { content: "✓ "; color: var(--gold); font-weight: 700; }
+    .sales-cta-row { display: flex; gap: 16px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    .sales-secondary { color: #94a3b8; font-size: 14px; font-weight: 600; text-decoration: underline; }
+    .sales-secondary:hover { color: #fff; }
+    @media(max-width: 600px) { .sales-features { grid-template-columns: 1fr; } }
+
+    /* Scenario library */
+    .scenario-library { margin-bottom: 48px; }
+    .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .lib-card { display: flex; flex-direction: column; gap: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; text-decoration: none; transition: border-color .15s; }
+    .lib-card:hover { border-color: var(--gold); }
+    .lib-card strong { color: #fff; font-size: 14px; }
+    .lib-card span { color: #64748b; font-size: 12px; line-height: 1.5; }
+    @media(max-width: 768px) { .lib-grid { grid-template-columns: 1fr 1fr; } }
+    @media(max-width: 480px) { .lib-grid { grid-template-columns: 1fr; } }
+
+    @media(max-width: 600px) {
+      .hero h1 span { font-size: 20px !important; }
+      .seo-intro { padding: 16px 18px; }
+      .best-time { flex-direction: column; gap: 8px; }
+      .sales-block { padding: 24px 18px; }
+    }
   </style>
 </head>
 <body>
@@ -414,9 +532,14 @@
         <span class="badge">Institutional Grade</span>
         <span class="badge">Free Tool</span>
       </div>
-      <h1>Brent Oil Price Risk Forecast<br><span style="color:#94a3b8; font-size: 32px;">Live Scenario Calculator</span></h1>
+      <h1>Brent Oil Risk Forecast Tool<br><span style="color:#94a3b8; font-size: 32px;">Simulate Brent Price Scenarios Using Geopolitical Risk</span></h1>
       <p>Simulate how Brent crude responds to shifting geopolitical risk (GERI) and market volatility. Best used daily after the latest intelligence update.</p>
     </section>
+
+    <div class="seo-intro">
+      <h2>Brent Oil Risk Forecast Today</h2>
+      <p>The Brent Oil Risk Forecast Tool estimates how Brent crude prices may react to changes in geopolitical risk, GERI, and market volatility. Use the scenario calculator below to test how escalation, easing tensions, or volatility shocks could influence Brent over the next 24&ndash;48 hours. The model is a free Brent price scenario calculator built on live market data and historical risk elasticities &mdash; a practical geopolitical risk oil price forecast you can run every day.</p>
+    </div>
 
     <div class="hero-card">
       <div class="hero-bench">Brent Crude Baseline</div>
@@ -441,7 +564,7 @@
       </div>
     </div>
 
-    <div class="calc-card">
+    <div class="calc-card" id="calculator">
       <div class="calc-title">Configure Risk Scenario</div>
       
       <div class="sliders">
@@ -471,7 +594,19 @@
           </div>
         </div>
       </div>
-      
+
+      <div class="presets">
+        <span class="horizons-label">Quick Scenarios</span>
+        <div class="preset-btns">
+          <button class="preset-btn" data-geri="60" data-vix="35">Middle East Escalation</button>
+          <button class="preset-btn" data-geri="85" data-vix="55">Strait of Hormuz Risk</button>
+          <button class="preset-btn" data-geri="20" data-vix="10">OPEC+ Cut</button>
+          <button class="preset-btn" data-geri="45" data-vix="25">Russia Sanctions</button>
+          <button class="preset-btn" data-geri="-10" data-vix="70">Global Recession</button>
+          <button class="preset-btn" data-geri="-40" data-vix="-25">Ceasefire / De-escalation</button>
+        </div>
+      </div>
+
       <div class="horizons">
         <span class="horizons-label">Market Reaction Horizon</span>
         <div class="horizon-btns">
@@ -483,7 +618,23 @@
       </div>
       
       <button class="run-btn" id="run-btn">Run Scenario</button>
-      
+
+      <div class="sample-preview" id="sample-preview">
+        <div class="sample-preview-title">Scenario output includes:</div>
+        <ul>
+          <li>Estimated Brent range</li>
+          <li>Expected % move</li>
+          <li>Market bias</li>
+          <li>Confidence score</li>
+          <li>Risk commentary</li>
+        </ul>
+      </div>
+
+      <div class="mini-upsell">
+        <span>Want 0&ndash;24h, 72h and 7-day forecasts, historical analogs and saved scenarios? Unlock the Brent Intelligence Scenario Engine.</span>
+        <button class="mini-upsell-btn checkout-trigger">Unlock Premium Forecasts</button>
+      </div>
+
       <div class="results-area" id="results-area">
         <div class="res-grid">
           <div class="res-box">
@@ -513,10 +664,41 @@
     <div class="upsell-banner" id="upsell-banner">
       <h3>Unlock the full Brent Intelligence Scenario Engine™</h3>
       <p>Access multi-driver scenarios (including gas stress & supply shocks), 4 forecasting horizons, historical analogs, probability distributions, and AI interpretation.</p>
-      <button class="upsell-btn" id="checkout-btn">Start 14-Day Free Trial</button>
+      <button class="upsell-btn checkout-trigger" id="checkout-btn">Start 14-Day Free Trial</button>
       <span class="trial-text">€8/month after trial. Cancel anytime.</span>
     </div>
-    
+
+    <div class="risk-summary">
+      <h2 class="section-title">Today's Brent Risk Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Brent Direction</div>
+          <div class="summary-val" id="sum-direction">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">GERI Signal</div>
+          <div class="summary-val" id="sum-geri">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">VIX Condition</div>
+          <div class="summary-val" id="sum-vix">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Market Bias</div>
+          <div class="summary-val" id="sum-bias">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Key Risk Driver</div>
+          <div class="summary-val" id="sum-driver">--</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">24&ndash;48h Watchlist</div>
+          <div class="summary-val" id="sum-watch">--</div>
+        </div>
+      </div>
+      <p class="summary-updated">Updated daily from live EnergyRiskIQ market and risk index data.</p>
+    </div>
+
     <div class="snap-section">
       <h2 class="section-title">Current Market Baseline</h2>
       <div class="snap-grid">
@@ -535,32 +717,52 @@
       </div>
     </div>
     
-    <div class="embed-section">
-      <h2 class="section-title" style="margin-bottom: 8px;">Embed This Intelligence</h2>
-      <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Add the free Brent Risk Widget to your website or portal.</p>
-      <div class="embed-grid">
-        <div class="embed-preview">
-          <iframe src="https://energyriskiq.com/embed/brent-risk-widget" width="340" height="240" frameborder="0" scrolling="no" style="border: none;"></iframe>
-        </div>
-        <div>
-          <div class="embed-code">
-            <button class="copy-btn" onclick="copyEmbed()">Copy</button>
-<code id="embed-code-text">&lt;iframe src="https://energyriskiq.com/embed/brent-risk-widget" width="340" height="240" frameborder="0" scrolling="no" style="border: none; border-radius: 12px;"&gt;&lt;/iframe&gt;</code>
-          </div>
-          <div class="referral-pitch">
-            <strong>Are you a subscriber?</strong> Add <code>?ref=YOUR_CODE</code> to the embed URL to earn a 40% recurring commission (€3.20/month) for every referred Pro subscriber, paid out manually.
-          </div>
-        </div>
+    <div class="best-time">
+      <div class="best-time-icon">🕗</div>
+      <div>
+        <strong>Best Time to Use This Tool</strong>
+        <p>Best used daily after the EnergyRiskIQ intelligence update, typically from 08:00 UTC onward, and again after major geopolitical, OPEC, shipping, or inventory-related events.</p>
       </div>
     </div>
-    
+
     <div class="content-section">
       <h2>How This Model Works</h2>
       <p>The EnergyRiskIQ Brent Scenario tool is a market reaction simulator, not a crystal ball predicting absolute prices months in advance. It models how Brent crude typically responds to sudden shifts in two key variables: Geopolitical Risk (measured by our proprietary GERI index) and Market Volatility (VIX).</p>
       <p>By defining a baseline using live market data, the calculator applies historical elasticities to estimate the likely premium or discount Brent would carry if your hypothetical scenario materializes. The confidence score reflects historical fit and input divergence.</p>
       <p><em>Disclaimer: This tool provides scenario-based intelligence for informational purposes only. It is not financial or investment advice. Oil markets are subject to complex variables beyond the scope of a two-factor model.</em></p>
     </div>
-    
+
+    <div class="sales-block">
+      <h2>Unlock the Brent Intelligence Scenario Engine</h2>
+      <p>Go beyond the free calculator with the full institutional scenario workspace.</p>
+      <ul class="sales-features">
+        <li>0&ndash;24h, 72h and 7-day horizons</li>
+        <li>Unlimited simulations</li>
+        <li>Historical analog engine</li>
+        <li>Scenario library</li>
+        <li>Probability distribution charts</li>
+        <li>Saved scenarios</li>
+        <li>Exportable forecast reports</li>
+        <li>Intraday GERI Live integration</li>
+      </ul>
+      <div class="sales-cta-row">
+        <button class="upsell-btn checkout-trigger">Start Premium Access</button>
+        <a href="/tools/brent-intelligence-scenario/engine" class="sales-secondary">Create Free Account</a>
+      </div>
+      <span class="trial-text">14-day free trial &middot; €8/month after &middot; Cancel anytime.</span>
+    </div>
+
+    <div class="scenario-library">
+      <h2 class="section-title">Scenario Library Preview</h2>
+      <div class="lib-grid">
+        <a href="/tools/brent-oil-risk-forecast?scenario=iran-escalation#calculator" class="lib-card" data-geri="70" data-vix="40"><strong>What if Iran escalates?</strong><span>Simulate a sharp Middle East risk spike</span></a>
+        <a href="/tools/brent-oil-risk-forecast?scenario=strait-of-hormuz#calculator" class="lib-card" data-geri="85" data-vix="55"><strong>What if Strait of Hormuz risk rises?</strong><span>Test the world's most critical oil chokepoint</span></a>
+        <a href="/tools/brent-oil-risk-forecast?scenario=opec-production-cut#calculator" class="lib-card" data-geri="20" data-vix="10"><strong>What if OPEC cuts production?</strong><span>Model a supply-side tightening move</span></a>
+        <a href="/tools/brent-oil-risk-forecast?scenario=recession-risk#calculator" class="lib-card" data-geri="-10" data-vix="70"><strong>What if recession risk increases?</strong><span>Demand-shock scenario with volatility spike</span></a>
+        <a href="/tools/brent-oil-risk-forecast?scenario=brent-geri-decoupling#calculator" class="lib-card" data-geri="50" data-vix="-10"><strong>What if Brent decouples from GERI?</strong><span>Risk rising while volatility stays calm</span></a>
+      </div>
+    </div>
+
     <div class="faq-container">
       <h2 class="section-title">Frequently Asked Questions</h2>
       <details>
@@ -599,6 +801,61 @@
           Yes. The basic embed widget is free to use on public websites and portals. We encourage attribution back to EnergyRiskIQ.
         </div>
       </details>
+      <details>
+        <summary>How does geopolitical risk affect Brent oil prices?</summary>
+        <div>
+          Geopolitical risk raises the probability of supply disruption. When risk indices such as GERI rise, markets price a risk premium into Brent crude — typically before any physical barrels are lost. Escalation in producer regions, shipping chokepoints, or sanctions regimes usually lifts Brent, while de-escalation lets the premium fade.
+        </div>
+      </details>
+      <details>
+        <summary>Can Brent rise when demand is weak?</summary>
+        <div>
+          Yes. A supply-side shock — OPEC+ cuts, conflict near export infrastructure, or a shipping chokepoint disruption — can push Brent higher even when demand indicators are soft, because the market prices scarcity risk rather than current consumption.
+        </div>
+      </details>
+      <details>
+        <summary>What is the relationship between GERI and Brent?</summary>
+        <div>
+          GERI measures global energy-related geopolitical risk in real time. Historically, sharp GERI increases correlate with a rising Brent risk premium, while falling GERI usually coincides with premium unwinds. The scenario model applies these historical elasticities to estimate how a hypothetical GERI shift would move Brent.
+        </div>
+      </details>
+      <details>
+        <summary>What happens to oil prices if the Strait of Hormuz is disrupted?</summary>
+        <div>
+          Roughly a fifth of global oil supply transits the Strait of Hormuz. Even a partial disruption typically triggers an immediate and outsized Brent spike, as markets price the risk of prolonged supply loss. Use the Strait of Hormuz quick scenario above to simulate this.
+        </div>
+      </details>
+      <details>
+        <summary>Is Brent more sensitive to GERI or VIX?</summary>
+        <div>
+          In our model, Brent is more sensitive to geopolitical risk (GERI) than to general market volatility (VIX). GERI shocks act directly on supply-risk expectations, while VIX moves reflect broader risk sentiment that can amplify or offset the oil-specific signal.
+        </div>
+      </details>
+      <details>
+        <summary>How often should I run a Brent risk forecast?</summary>
+        <div>
+          Daily. The baseline updates continuously, so the tool is best used each morning after the EnergyRiskIQ intelligence update (from roughly 08:00 UTC), and again after major geopolitical, OPEC, shipping, or inventory-related events.
+        </div>
+      </details>
+    </div>
+
+    <div class="embed-section">
+      <h2 class="section-title" style="margin-bottom: 8px;">Embed This Intelligence</h2>
+      <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">Add the free Brent Risk Widget to your website or portal.</p>
+      <div class="embed-grid">
+        <div class="embed-preview">
+          <iframe src="https://energyriskiq.com/embed/brent-risk-widget" width="340" height="240" frameborder="0" scrolling="no" style="border: none;" title="Brent Oil Risk Forecast Widget"></iframe>
+        </div>
+        <div>
+          <div class="embed-code">
+            <button class="copy-btn" onclick="copyEmbed()">Copy</button>
+<code id="embed-code-text">&lt;iframe src="https://energyriskiq.com/embed/brent-risk-widget" width="340" height="240" frameborder="0" scrolling="no" style="border: none; border-radius: 12px;"&gt;&lt;/iframe&gt;</code>
+          </div>
+          <div class="referral-pitch">
+            <strong>Are you a subscriber?</strong> Add <code>?ref=YOUR_CODE</code> to the embed URL to earn a 40% recurring commission (€3.20/month) for every referred Pro subscriber, paid out manually.
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Citation Card matching WTI -->
@@ -620,20 +877,20 @@
     
     <div class="links-grid">
       <a href="/data/brent-crude-oil-price-today" class="link-card">
-        <strong>Live Brent Crude Data</strong>
-        <span>Intraday pricing and charts</span>
+        <strong>Brent Crude Oil Price Today</strong>
+        <span>Live intraday pricing and charts</span>
       </a>
       <a href="/data/wti-crude-oil-price-today" class="link-card">
-        <strong>WTI Crude Today</strong>
-        <span>Live prices and spreads</span>
+        <strong>WTI Crude Oil Price Today</strong>
+        <span>Live prices and Brent-WTI spread</span>
       </a>
       <a href="/geri" class="link-card">
-        <strong>GERI Index Explained</strong>
+        <strong>GERI — Global Energy Risk Index</strong>
         <span>Methodology and history</span>
       </a>
       <a href="/data/global-energy-risk-forecast" class="link-card">
-        <strong>Global Risk Forecast</strong>
-        <span>Daily intelligence snapshot</span>
+        <strong>Global Energy Risk Forecast</strong>
+        <span>Daily AI intelligence snapshot</span>
       </a>
     </div>
 
@@ -684,6 +941,44 @@
       vixValDisp.textContent = v > 0 ? `+${v}%` : `${v}%`;
     });
 
+    // Quick scenario presets + scenario library cards
+    function applyPreset(geri, vix) {
+      geriSlider.value = Math.max(-50, Math.min(100, geri));
+      vixSlider.value = Math.max(-50, Math.min(100, vix));
+      geriSlider.dispatchEvent(new Event('input'));
+      vixSlider.dispatchEvent(new Event('input'));
+    }
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyPreset(parseFloat(btn.dataset.geri), parseFloat(btn.dataset.vix));
+      });
+    });
+    document.querySelectorAll('.lib-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        applyPreset(parseFloat(card.dataset.geri), parseFloat(card.dataset.vix));
+        document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Apply scenario from URL (?scenario=slug) for future SEO scenario links
+    const SCENARIO_PRESETS = {
+      'iran-escalation': [70, 40],
+      'strait-of-hormuz': [85, 55],
+      'opec-production-cut': [20, 10],
+      'recession-risk': [-10, 70],
+      'brent-geri-decoupling': [50, -10],
+      'middle-east-escalation': [60, 35],
+      'russia-sanctions': [45, 25],
+      'ceasefire': [-40, -25]
+    };
+    const urlScenario = params.get('scenario');
+    if (urlScenario && SCENARIO_PRESETS[urlScenario]) {
+      applyPreset(...SCENARIO_PRESETS[urlScenario]);
+    }
+
     // Fetch Market Data
     async function initData() {
       try {
@@ -703,10 +998,55 @@
           document.getElementById('snap-wti').textContent = m.wti ? `$${m.wti.toFixed(2)}` : '--';
           document.getElementById('snap-ttf').textContent = m.ttf ? `€${m.ttf.toFixed(2)}` : '--';
           document.getElementById('snap-storage').textContent = m.gas_storage ? `${m.gas_storage.toFixed(1)}%` : '--';
+
+          renderRiskSummary(m, biasText);
         }
       } catch(err) {
         console.error('Market fetch error:', err);
       }
+    }
+
+    // Today's Brent Risk Summary (deterministic from live market data)
+    function renderRiskSummary(m, biasText) {
+      const chg = m.brent_change_pct || 0;
+      document.getElementById('sum-direction').textContent =
+        chg > 0.5 ? `Higher (+${chg.toFixed(1)}% d/d)` :
+        chg < -0.5 ? `Lower (${chg.toFixed(1)}% d/d)` : 'Broadly flat day-over-day';
+
+      const gl = m.geri_live, gd = m.geri;
+      let geriTxt = '--';
+      if (gl != null && gd != null) {
+        const diff = gl - gd;
+        geriTxt = diff > 2 ? `Rising intraday (${gd} → ${gl}, ${m.geri_live_band || ''})` :
+                  diff < -2 ? `Easing intraday (${gd} → ${gl}, ${m.geri_live_band || ''})` :
+                  `Stable near ${gl} (${m.geri_live_band || m.geri_band || ''})`;
+      } else if (gd != null) {
+        geriTxt = `${gd} (${m.geri_band || ''})`;
+      }
+      document.getElementById('sum-geri').textContent = geriTxt;
+
+      const vix = m.vix;
+      document.getElementById('sum-vix').textContent = vix == null ? '--' :
+        vix >= 30 ? `Elevated (${vix.toFixed(1)}) — stress regime` :
+        vix >= 20 ? `Raised (${vix.toFixed(1)}) — cautious tone` :
+        `Calm (${vix.toFixed(1)}) — low volatility`;
+
+      document.getElementById('sum-bias').textContent = biasText;
+
+      let driver = 'Geopolitical risk (GERI)';
+      if ((m.egsi_m || 0) >= 40 || (m.egsi_s || 0) >= 40) driver = 'European gas stress (EGSI)';
+      else if (vix != null && vix >= 25 && (gl || gd || 0) < 40) driver = 'Financial volatility (VIX)';
+      else if ((gl || gd || 0) >= 50) driver = 'Geopolitical escalation risk';
+      document.getElementById('sum-driver').textContent = driver;
+
+      const watch = [];
+      if ((gl || gd || 0) >= 40) watch.push('geopolitical headlines');
+      if (vix != null && vix >= 20) watch.push('volatility spillover');
+      if ((m.gas_storage || 100) < 45) watch.push('EU gas storage draw');
+      if (Math.abs(chg) >= 2) watch.push('momentum follow-through');
+      if (!watch.length) watch.push('OPEC+ signals', 'inventory data');
+      document.getElementById('sum-watch').textContent =
+        watch.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' · ');
     }
 
     // Run Scenario
@@ -752,6 +1092,7 @@
             ul.appendChild(li);
           });
           
+          document.getElementById('sample-preview').style.display = 'none';
           resArea.classList.add('active');
           setTimeout(() => {
             upsell.classList.add('active');
@@ -766,29 +1107,34 @@
       }
     });
 
-    // Checkout
-    document.getElementById('checkout-btn').addEventListener('click', async () => {
-      const btn = document.getElementById('checkout-btn');
-      btn.textContent = 'Redirecting...';
-      try {
-        const ref = localStorage.getItem('brent_ref') || undefined;
-        const res = await fetch('/api/brent-forecast/checkout', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ref})
-        });
-        const data = await res.json();
-        if(data.success && data.checkout_url) {
-          window.location.href = data.checkout_url;
-        } else {
-          alert('Checkout unavailable right now.');
-          btn.textContent = 'Start 14-Day Free Trial';
+    // Checkout (all premium CTA buttons)
+    document.querySelectorAll('.checkout-trigger').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const original = btn.textContent;
+        btn.textContent = 'Redirecting...';
+        btn.disabled = true;
+        try {
+          const ref = localStorage.getItem('brent_ref') || undefined;
+          const res = await fetch('/api/brent-forecast/checkout', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(ref ? {ref} : {})
+          });
+          const data = await res.json();
+          if(data.success && data.checkout_url) {
+            window.location.href = data.checkout_url;
+          } else {
+            alert('Checkout unavailable right now.');
+            btn.textContent = original;
+            btn.disabled = false;
+          }
+        } catch(err) {
+          console.error(err);
+          alert('Error connecting to billing. Please try again.');
+          btn.textContent = original;
+          btn.disabled = false;
         }
-      } catch(err) {
-        console.error(err);
-        alert('Error connecting to billing. Please try again.');
-        btn.textContent = 'Start 14-Day Free Trial';
-      }
+      });
     });
 
     function copyEmbed() {
