@@ -82,8 +82,11 @@ app.add_middleware(
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """Redirect all 404 Not Found responses to the main landing page."""
+    """Redirect all 404 Not Found responses to the main landing page,
+    except admin API paths which need real JSON errors."""
     if exc.status_code == 404:
+        if request.url.path.startswith("/admin/"):
+            return JSONResponse(status_code=404, content={"detail": str(exc.detail)})
         return RedirectResponse(url="/", status_code=302)
     return JSONResponse(status_code=exc.status_code, content={"detail": str(exc.detail)})
 
@@ -397,9 +400,10 @@ async def startup_event():
         from src.api.admin_routes import _init_admin_sessions_table, _init_bulk_email_table
         _init_admin_sessions_table()
         _init_bulk_email_table()
-        from src.api.user_routes import _init_email_login_tokens_table, _init_password_reset_tokens_table
+        from src.api.user_routes import _init_email_login_tokens_table, _init_password_reset_tokens_table, _init_last_login_column
         _init_email_login_tokens_table()
         _init_password_reset_tokens_table()
+        _init_last_login_column()
         logger.info("Database migrations completed")
         app_url = os.environ.get("APP_URL", "")
         if app_url and os.environ.get("TELEGRAM_BOT_TOKEN"):

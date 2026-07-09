@@ -465,7 +465,7 @@ def admin_list_users(
 
             cur.execute(f"""
                 SELECT u.id, u.email, u.created_at,
-                       u.subscription_status,
+                       u.subscription_status, u.last_login_at,
                        COALESCE(up.plan, 'free') as plan,
                        up.updated_at as plan_updated_at
                 FROM users u
@@ -485,6 +485,7 @@ def admin_list_users(
                 "subscription_status": r["subscription_status"],
                 "created_at": r["created_at"].isoformat() if r["created_at"] else None,
                 "plan_updated_at": r["plan_updated_at"].isoformat() if r.get("plan_updated_at") else None,
+                "last_login_at": r["last_login_at"].isoformat() if r.get("last_login_at") else None,
             })
 
         return {
@@ -497,6 +498,38 @@ def admin_list_users(
         }
     except Exception as e:
         logger.error(f"Failed to list users: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/users/{user_id}")
+def admin_delete_user(user_id: int, x_admin_token: Optional[str] = Header(None)):
+    """Permanently delete a user and all their data. Non-cascading tables are
+    cleaned up explicitly; FK CASCADE covers sessions, plans, settings, alerts."""
+    verify_admin_token(x_admin_token)
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT id, email FROM users WHERE id = %s", (user_id,))
+            user = cur.fetchone()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            email = user["email"]
+
+            cur.execute("DELETE FROM ticket_messages WHERE ticket_id IN (SELECT id FROM tickets WHERE user_id = %s)", (user_id,))
+            for table in ("tickets", "eriq_token_ledger", "eriq_token_balances",
+                          "eriq_conversations", "email_login_tokens",
+                          "password_reset_tokens", "user_daily_report_subs",
+                          "user_index_history_subs", "user_pro_widgets",
+                          "user_activity_events"):
+                cur.execute(f"DELETE FROM {table} WHERE user_id = %s", (user_id,))
+
+            cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+
+        logger.info(f"Admin deleted user {user_id} ({email})")
+        return {"success": True, "message": f"User {email} and all associated data deleted."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete user {user_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

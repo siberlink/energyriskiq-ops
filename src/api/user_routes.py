@@ -299,6 +299,44 @@ def _init_password_reset_tokens_table():
             conn.close()
 
 
+_LAST_LOGIN_DDL = "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ"
+_LAST_LOGIN_BACKFILL = """
+    UPDATE users u SET last_login_at = s.max_created
+    FROM (SELECT user_id, MAX(created_at) AT TIME ZONE 'UTC' AS max_created
+          FROM sessions GROUP BY user_id) s
+    WHERE s.user_id = u.id AND u.last_login_at IS NULL
+"""
+
+
+def _init_last_login_column():
+    """Idempotently add users.last_login_at on the primary (Neon) DB and the
+    Replit-managed DATABASE_URL, and backfill from existing sessions."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(_LAST_LOGIN_DDL)
+            cursor.execute(_LAST_LOGIN_BACKFILL)
+    except Exception as e:
+        logger.warning(f"Could not init users.last_login_at: {e}")
+
+    prod = os.environ.get("PRODUCTION_DATABASE_URL")
+    managed = os.environ.get("DATABASE_URL")
+    if not managed or not prod or managed == prod:
+        return
+    conn = None
+    try:
+        import psycopg2
+        conn = psycopg2.connect(managed)
+        cur = conn.cursor()
+        cur.execute(_LAST_LOGIN_DDL)
+        conn.commit()
+        cur.close()
+    except Exception as e:
+        logger.warning(f"Managed DB last_login_at sync skipped: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
 class EmailLoginExchangeRequest(BaseModel):
     token: str
 
@@ -344,6 +382,7 @@ def email_login_exchange(body: EmailLoginExchangeRequest, request: Request = Non
             "INSERT INTO sessions (token, user_id, expires_at) VALUES (%s, %s, %s)",
             (session_token, user_id, expires_at),
         )
+        cursor.execute("UPDATE users SET last_login_at = NOW() WHERE id = %s", (user_id,))
 
     try:
         from src.api.user_activity_tracking_routes import record_activity_event
@@ -589,6 +628,7 @@ def set_password(body: SetPasswordRequest):
             INSERT INTO sessions (token, user_id, expires_at)
             VALUES (%s, %s, %s)
         """, (session_token, user_id, expires_at))
+        cursor.execute("UPDATE users SET last_login_at = NOW() WHERE id = %s", (user_id,))
     
     try:
         welcome_text, welcome_html = _build_welcome_email()
@@ -654,6 +694,7 @@ def signin(body: SigninRequest, request: Request = None):
             INSERT INTO sessions (token, user_id, expires_at)
             VALUES (%s, %s, %s)
         """, (session_token, user_id, expires_at))
+        cursor.execute("UPDATE users SET last_login_at = NOW() WHERE id = %s", (user_id,))
     
     try:
         from src.api.user_activity_tracking_routes import record_activity_event
