@@ -945,6 +945,8 @@ def _blog_page(title, body_html, request: Request, meta_description=None, head_e
     <meta name="description" content="{_esc(desc)}"/>{canonical_tag}{social_tags}{head_extra}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     {_blog_base_styles()}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     {_blog_nav_html(user)}

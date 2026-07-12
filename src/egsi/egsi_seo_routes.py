@@ -244,7 +244,9 @@ async def egsi_public_page(request: Request):
             <link rel="canonical" href="{BASE_URL}/indices/europe-gas-stress-index">
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_digest_dark_styles()}
-        </head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
         <body>
             <nav class="nav"><div class="nav-inner">
                 <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
@@ -807,7 +809,9 @@ async def egsi_public_page(request: Request):
                 .container {{ padding: 0 0.75rem; }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav">
             <div class="nav-inner">
@@ -1224,7 +1228,9 @@ async def egsi_updates_page():
                 text-decoration: underline;
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -1565,7 +1571,9 @@ async def egsi_methodology_page():
                 .meth-table thead th, .meth-table tbody td {{ padding: 0.5rem 0.6rem; }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -2158,7 +2166,9 @@ async def egsi_history_page():
         <link rel="icon" type="image/png" href="/static/favicon.png">
         
         {get_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -2256,7 +2266,9 @@ async def egsi_daily_snapshot(date_str: str):
             <link rel="canonical" href="{BASE_URL}/egsi/{date_str}">
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
-        </head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
         <body>
             <header>
                 <div class="container header-content">
@@ -2382,7 +2394,9 @@ async def egsi_daily_snapshot(date_str: str):
         <meta property="og:url" content="{BASE_URL}/egsi/{date_str}">
         
         {get_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -2476,7 +2490,9 @@ async def egsi_monthly_archive(year: int, month: int):
             <link rel="canonical" href="{BASE_URL}/egsi/{year}/{month:02d}">
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
-        </head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
         <body>
             <header>
                 <div class="container header-content">
@@ -2554,7 +2570,9 @@ async def egsi_monthly_archive(year: int, month: int):
         <link rel="icon" type="image/png" href="/static/favicon.png">
         
         {get_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <header>
             <div class="container header-content">

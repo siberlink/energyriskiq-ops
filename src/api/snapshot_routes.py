@@ -1145,6 +1145,8 @@ _LOADER_HTML = """<!DOCTYPE html>
       gtag('js', new Date());
       gtag('config', 'G-CZQZYP5138');
     </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Global Energy Risk Snapshot | EnergyRiskIQ</title>

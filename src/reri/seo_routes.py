@@ -615,7 +615,9 @@ async def eeri_public_page(request: Request):
             }}
             </script>
             {get_digest_dark_styles()}
-        </head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
         <body>
             <nav class="nav"><div class="nav-inner">
                 <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
@@ -1327,7 +1329,9 @@ def _render_eeri_page(eeri: dict):
                 line-height: 1.4;
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">EnergyRiskIQ</a>
@@ -1631,7 +1635,9 @@ async def eeri_updates_page():
                 text-decoration: underline;
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -1969,7 +1975,9 @@ async def eeri_methodology_page():
                 .meth-table thead th, .meth-table tbody td {{ padding: 0.5rem 0.6rem; }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -2398,7 +2406,9 @@ async def eeri_history_page():
             }}
             .eeri-table a:hover {{ text-decoration: underline; }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -2565,7 +2575,9 @@ async def eeri_daily_snapshot(date_str: str):
         <link rel="canonical" href="{BASE_URL}/eeri/{date_str}">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -2695,7 +2707,9 @@ async def eeri_monthly_archive(year: int, month: int):
             .data-table th, .data-table td {{ padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }}
             .data-table th {{ background: var(--bg-light); font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>

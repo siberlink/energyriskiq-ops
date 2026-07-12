@@ -669,7 +669,9 @@ async def alerts_hub():
         <link rel="canonical" href="{BASE_URL}/alerts">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         {render_cta_section("top")}
@@ -754,6 +756,8 @@ async def alerts_by_region(region_slug: str):
     <meta name="description" content="Daily archive of geopolitical and energy risk alerts for {region_name}. Monitor supply disruption signals, market volatility, and risk intelligence.">
     <link rel="canonical" href="{BASE_URL}/alerts/region/{region_slug}">
     {get_common_styles()}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     {render_nav()}
@@ -934,7 +938,9 @@ async def regional_daily_alerts_page(region_slug: str, date_str: str, request: R
         <script type="application/ld+json">{breadcrumb_json_ld}</script>
         {get_common_styles()}
         {get_risk_context_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         {render_cta_section("top")}
@@ -1022,6 +1028,8 @@ async def alerts_by_category(category_slug: str):
     <meta name="description" content="{category_name} risk alerts and intelligence. Monitor {category_name.lower()} events affecting energy markets, supply chains, and regional stability.">
     <link rel="canonical" href="{BASE_URL}/alerts/category/{category_slug}">
     {get_common_styles()}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     {render_nav()}
@@ -1243,7 +1251,9 @@ async def daily_alerts_page(date_str: str, request: Request):
         <script type="application/ld+json">{breadcrumb_json_ld}</script>
         {get_common_styles()}
         {get_risk_context_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         {render_cta_section("top")}
@@ -1360,7 +1370,9 @@ async def monthly_archive_page(year: int, month: int):
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         {get_risk_context_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         {render_cta_section("top")}
@@ -1711,7 +1723,9 @@ async def sitemap_html():
         <meta name="description" content="Complete sitemap for EnergyRiskIQ - navigate all pages including daily alerts, monthly archives, and more.">
         <link rel="canonical" href="{BASE_URL}/sitemap.html">
         {get_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         <main>
@@ -2685,7 +2699,9 @@ async def geri_page(request: Request):
                 .region-tag, .asset-tag {{ font-size: 0.65rem; padding: 0.2rem 0.4rem; }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav">
             <div class="nav-inner">
@@ -2925,7 +2941,9 @@ async def geri_history_page(request: Request):
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         {get_geri_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         <main>
@@ -3195,7 +3213,9 @@ async def geri_updates_page():
                 text-decoration: underline;
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav"><div class="container nav-inner">
             <a href="/" class="logo"><img src="/static/logo.png" alt="EnergyRiskIQ" width="32" height="32" style="margin-right: 0.5rem; vertical-align: middle;">EnergyRiskIQ</a>
@@ -3541,7 +3561,9 @@ async def geri_methodology_page():
                 .meth-table thead th, .meth-table tbody td {{ padding: 0.5rem 0.6rem; }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
 
@@ -3918,7 +3940,9 @@ async def geri_daily_page(request: Request, date: str):
             <title>GERI {date} Not Found | EnergyRiskIQ</title>
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
-        </head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
         <body>
             {render_nav()}
             <main>
@@ -4117,7 +4141,9 @@ async def geri_daily_page(request: Request, date: str):
             .geri-interpretation p {{ margin: 0 0 1rem 0; }}
             .geri-interpretation p:last-child {{ margin-bottom: 0; }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         <main>
@@ -4206,7 +4232,9 @@ async def geri_monthly_page(request: Request, year: int, month: int):
             <title>GERI {calendar_month_name[month]} {year} Not Found | EnergyRiskIQ</title>
             <link rel="icon" type="image/png" href="/static/favicon.png">
             {get_common_styles()}
-        </head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
         <body>
             {render_nav()}
             <main>
@@ -4296,7 +4324,9 @@ async def geri_monthly_page(request: Request, year: int, month: int):
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_common_styles()}
         {get_geri_common_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_nav()}
         <main>
@@ -5347,7 +5377,9 @@ async def indices_hub_page(request: Request):
                 }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav">
             <div class="container nav-inner">
@@ -5752,7 +5784,9 @@ async def digest_history_page():
         <meta property="og:url" content="{BASE_URL}/daily-geo-energy-intelligence-digest/history">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_digest_dark_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_digest_nav()}
         <main>
@@ -5824,7 +5858,9 @@ async def digest_date_page(date_str: str):
         <meta property="og:url" content="{BASE_URL}/daily-geo-energy-intelligence-digest/{date_str}">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_digest_dark_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_digest_nav()}
         <main>
@@ -5878,7 +5914,9 @@ async def digest_latest_page():
         <link rel="canonical" href="{BASE_URL}/daily-geo-energy-intelligence-digest">
         <link rel="icon" type="image/png" href="/static/favicon.png">
         {get_digest_dark_styles()}
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         {render_digest_nav()}
         <main>
@@ -7085,7 +7123,9 @@ async def geri_research_page(request: Request):
                 .pipeline-step {{ min-width: 100%; max-width: 100%; }}
             }}
         </style>
-    </head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
+</head>
     <body>
         <nav class="nav">
             <div class="nav-inner">
@@ -9395,6 +9435,8 @@ async def global_energy_risk_timeline_page(request: Request):
         .dl-note p {{ font-size: 0.79rem; color: #94a3b8; margin: 0; line-height: 1.55; }}
         .dl-note strong {{ color: #cbd5e1; }}
     </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <nav class="nav">
@@ -11124,6 +11166,8 @@ async def data_license_page():
     }}
     .license-footer a {{ color: #3b82f6; text-decoration: none; }}
   </style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4464205455860668"
+     crossorigin="anonymous"></script>
 </head>
 <body>
   <nav class="nav">
