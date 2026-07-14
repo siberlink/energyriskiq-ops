@@ -257,8 +257,16 @@ async def status(x_user_token: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
+    plan_entitled = False
+    try:
+        from src.db.db import execute_one
+        prow = execute_one("SELECT plan FROM user_plans WHERE user_id = %s", (user["id"],))
+        plan_entitled = bool(prow and prow.get("plan") in ("pro", "enterprise"))
+    except Exception as e:
+        logger.error(f"geri-live status plan lookup failed: {e}")
     return {
         "active": _active_for_mode(row),
+        "plan_entitled": plan_entitled,
         "status": row["status"],
         "current_period_end": (row["current_period_end"].isoformat()
                                if row.get("current_period_end") else None),

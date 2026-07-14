@@ -9091,6 +9091,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             loadEeriSnapshot();
             loadDigestSnapshot();
             loadEgsiSnapshot();
+            if (typeof glLoadDashPromo === 'function') glLoadDashPromo();
         }
 
         async function loadGeriSnapshot() {
@@ -16447,8 +16448,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         let glStatusCache = null;
 
         function glPlanEntitled() {
-            const plan = (currentUser && currentUser.plan) ? currentUser.plan : 'free';
-            return plan === 'pro' || plan === 'enterprise';
+            // Server-derived only: currentUser.plan is unreliable on the
+            // frontend (legacy override), so trust /api/geri-live/status.
+            return !!(glStatusCache && glStatusCache.plan_entitled);
         }
 
         async function glFetchStatus() {
@@ -16470,8 +16472,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (paywall) paywall.style.display = 'none';
             if (content) content.style.display = 'none';
 
-            const st = glPlanEntitled() ? null : await glFetchStatus();
-            const entitled = glPlanEntitled() || (st && st.active);
+            const st = await glFetchStatus();
+            const entitled = !!(st && (st.plan_entitled || st.active));
 
             if (loading) loading.style.display = 'none';
             if (entitled) {
@@ -16505,7 +16507,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         function glRenderBillingBar(st) {
             const bar = document.getElementById('glBillingBar');
             if (!bar) return;
-            if (glPlanEntitled() || !st || !st.active) { bar.style.display = 'none'; return; }
+            if (!st || st.plan_entitled || !st.active) { bar.style.display = 'none'; return; }
             const meta = document.getElementById('glBillingMeta');
             const btn = document.getElementById('glCancelBtn');
             let txt = st.status === 'trialing'
@@ -16571,9 +16573,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         async function glLoadDashPromo() {
             const promo = document.getElementById('glDashPromo');
             if (!promo) return;
-            if (glPlanEntitled()) { promo.style.display = 'none'; return; }
             const st = await glFetchStatus();
-            if (!st || st.active) { promo.style.display = 'none'; return; }
+            if (!st || st.active || st.plan_entitled) { promo.style.display = 'none'; return; }
             const eligible = !!st.trial_eligible;
             const tag = document.getElementById('glPromoTag');
             const price = document.getElementById('glPromoPrice');
