@@ -990,7 +990,10 @@ def get_daily_digest(x_user_token: Optional[str] = Header(None)):
     # Gate the full Daily Intelligence Report behind its €2.99/mo subscription.
     try:
         from src.api.daily_report_routes import user_has_daily_report
-        if not user_has_daily_report(user_id):
+        from src.api.geri_live_sub_routes import user_has_geri_live
+        # GERI Live subscribers get the Daily Intelligence Report as a launch
+        # bonus for as long as their GERI Live subscription stays active.
+        if not (user_has_daily_report(user_id) or user_has_geri_live(user_id)):
             raise HTTPException(402, "Daily Intelligence Report subscription required")
     except HTTPException:
         raise

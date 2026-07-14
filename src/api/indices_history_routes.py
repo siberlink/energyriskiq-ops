@@ -201,6 +201,17 @@ def _get_or_create_row(user_id: int):
         return cur.fetchone()
 
 
+def _geri_live_bonus(user_id) -> bool:
+    """GERI Live launch-offer bonus: an active GERI Live subscription also
+    unlocks Indices History downloads. Ends automatically when GERI Live
+    is cancelled."""
+    try:
+        from src.api.geri_live_sub_routes import user_has_geri_live
+        return user_has_geri_live(user_id)
+    except Exception:
+        return False
+
+
 def _is_active(row) -> bool:
     if not row:
         return False
@@ -229,8 +240,10 @@ async def status(x_user_token: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
+    bonus = _geri_live_bonus(user["id"])
     return {
-        "active": _active_for_mode(row),
+        "active": _active_for_mode(row) or bonus,
+        "geri_live_bonus": bonus,
         "status": row["status"],
         "current_period_end": (row["current_period_end"].isoformat()
                                if row.get("current_period_end") else None),
@@ -427,7 +440,7 @@ async def download(
     # Runtime entitlement is mode-agnostic (mirrors WTI widget embed): a paying
     # subscriber must never be denied a download just because the app's Stripe
     # mode was toggled. Mode-awareness only gates account management (checkout).
-    if not _is_active(row):
+    if not (_is_active(row) or _geri_live_bonus(user["id"])):
         raise HTTPException(402, "Active Indices History subscription required")
 
     index = (index or "").lower()

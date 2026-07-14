@@ -359,6 +359,12 @@ try:
     run_daily_report_migration()
 except Exception as _e:
     logger.error(f"daily_report migration error: {_e}")
+from src.api.geri_live_sub_routes import router as geri_live_sub_router, run_geri_live_sub_migration
+app.include_router(geri_live_sub_router)
+try:
+    run_geri_live_sub_migration()
+except Exception as _e:
+    logger.error(f"geri_live_sub migration error: {_e}")
 from src.api.widget_embed_tracking_routes import router as widget_embed_tracking_router, run_widget_embed_tracking_migration
 app.include_router(widget_embed_tracking_router)
 try:

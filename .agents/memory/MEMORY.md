@@ -15,3 +15,4 @@
 - [Anonymous checkout webhook order](stripe-anonymous-checkout-webhook.md) — sub-products with anonymous Stripe checkout must be dispatched before the user_id early-return in the checkout webhook chain.
 - [E2E tests vs workflow restarts](e2e-test-server-restarts.md) — file edits during a Playwright run restart the server (~45s boot), causing false UI failures; check restart timestamps + DB before debugging.
 - [EUR/USD data source](eurusd-source.md) — OANDA retired; now FRED DEXUSEU primary + Yahoo EURUSD=X fallback; FRED lags ~2-4d so Yahoo fills fresh daily, FRED is authoritative for backfill.
+- [Bundled bonus entitlements](bundled-bonus-entitlements.md) — bonus features unlocked by a parent sub must derive access live (own_active OR parent_active) at every gate; never copy flags.

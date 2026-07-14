@@ -1,15 +1,22 @@
 """
-Daily Intelligence Report — paid (€2.99/mo) subscription that unlocks the full
-AI-powered Daily Geo-Energy Intelligence Digest inside the user account.
+GERI Live — paid (€8/mo, 14-day free trial) standalone subscription that unlocks
+the real-time GERI Live dashboard inside the user account.
 
-Mirrors the WTI Pro Widget / Indices History subscription technique (Stripe
-checkout, webhook-independent confirm, mode-aware activation, cancel-at-period-end).
+One-Time Only launch offer: subscribers who start the 14-day free trial also get
+BONUS access to the Daily Intelligence Report, WTI Pro Widget, LNG Pro Widget,
+Gas Storage Pro Widget and Indices History downloads — for as long as the GERI
+Live subscription stays active (trialing/active/canceling). If the trial or the
+subscription is cancelled, the bonus access ends automatically because all bonus
+entitlement checks derive from this subscription's status.
+
+Mirrors the Daily Intelligence Report subscription technique (Stripe checkout,
+webhook-independent confirm, mode-aware activation, cancel-at-period-end).
 
 Routes:
-  GET  /api/daily-report/status     — subscription status (mode-aware)
-  POST /api/daily-report/checkout   — start Stripe checkout (€2.99/mo)
-  POST /api/daily-report/confirm    — webhook-independent activation
-  POST /api/daily-report/cancel     — cancel at period end
+  GET  /api/geri-live/status     — subscription status (mode-aware)
+  POST /api/geri-live/checkout   — start Stripe checkout (€8/mo, 14-day trial)
+  POST /api/geri-live/confirm    — webhook-independent activation
+  POST /api/geri-live/cancel     — cancel at period end
 """
 import logging
 from datetime import datetime
@@ -27,31 +34,32 @@ from src.billing.stripe_client import (
     cancel_subscription as stripe_cancel_subscription,
 )
 
-router = APIRouter(tags=["daily-report"])
+router = APIRouter(tags=["geri-live"])
 logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-SUB_CODE = "daily-report"
-PLAN_CODE = "daily_report"             # Stripe product metadata key
-PRICE_EUR_CENTS = 299                  # €2.99
+PLAN_CODE = "geri_live"                # Stripe product metadata key + metadata.type
+PRICE_EUR_CENTS = 800                  # €8.00
 TRIAL_DAYS = 14                        # 14-day free trial (once per user)
-SUB_NAME = "EnergyRiskIQ — Daily Intelligence Report"
-SUB_DESC = ("Full access to the AI-powered Daily Geo-Energy Intelligence Digest — "
-            "updated daily with new intelligence. €2.99/month.")
+SUB_NAME = "EnergyRiskIQ — GERI Live"
+SUB_DESC = ("Real-time GERI Live intelligence dashboard — live index, drivers, "
+            "regional risk and intraday energy prices. Includes launch bonus "
+            "access to the Daily Intelligence Report, WTI/LNG/Gas Pro Widgets "
+            "and Indices History downloads. €8/month after a 14-day free trial.")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Migration
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_daily_report_migration():
+def run_geri_live_sub_migration():
     try:
         with get_cursor() as cur:
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS user_daily_report_subs (
+                CREATE TABLE IF NOT EXISTS user_geri_live_subs (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
                     status TEXT NOT NULL DEFAULT 'inactive',
@@ -59,22 +67,19 @@ def run_daily_report_migration():
                     stripe_customer_id TEXT,
                     current_period_end TIMESTAMP,
                     stripe_mode TEXT,
+                    trial_used BOOLEAN NOT NULL DEFAULT FALSE,
                     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
                     UNIQUE (user_id)
                 )
             """)
             cur.execute(
-                "CREATE INDEX IF NOT EXISTS idx_daily_report_subs_sub "
-                "ON user_daily_report_subs(stripe_subscription_id)"
+                "CREATE INDEX IF NOT EXISTS idx_geri_live_subs_sub "
+                "ON user_geri_live_subs(stripe_subscription_id)"
             )
-            cur.execute(
-                "ALTER TABLE user_daily_report_subs "
-                "ADD COLUMN IF NOT EXISTS trial_used BOOLEAN NOT NULL DEFAULT FALSE"
-            )
-        logger.info("user_daily_report_subs migration complete")
+        logger.info("user_geri_live_subs migration complete")
     except Exception as e:
-        logger.error(f"user_daily_report_subs migration failed: {e}")
+        logger.error(f"user_geri_live_subs migration failed: {e}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -86,7 +91,7 @@ def _settings_key(name: str) -> str:
 
 
 def _get_stored_price_id() -> Optional[str]:
-    key = _settings_key("daily_report_price_id")
+    key = _settings_key("geri_live_price_id")
     try:
         with get_cursor(commit=False) as cur:
             cur.execute("SELECT value FROM app_settings WHERE key = %s", (key,))
@@ -98,8 +103,8 @@ def _get_stored_price_id() -> Optional[str]:
 
 def _store_price_id(price_id: str, product_id: str):
     with get_cursor() as cur:
-        for k, v in (("daily_report_price_id", price_id),
-                     ("daily_report_product_id", product_id)):
+        for k, v in (("geri_live_price_id", price_id),
+                     ("geri_live_product_id", product_id)):
             key = _settings_key(k)
             cur.execute("""
                 INSERT INTO app_settings (key, value, updated_at)
@@ -109,7 +114,7 @@ def _store_price_id(price_id: str, product_id: str):
             """, (key, v))
 
 
-def ensure_daily_report_price_id() -> str:
+def ensure_geri_live_price_id() -> str:
     cached = _get_stored_price_id()
     if cached:
         return cached
@@ -129,7 +134,7 @@ def ensure_daily_report_price_id() -> str:
             description=SUB_DESC,
             metadata={"plan_code": PLAN_CODE, "kind": "subscription"},
         )
-        logger.info(f"Created Stripe product {product.id} for daily report")
+        logger.info(f"Created Stripe product {product.id} for GERI Live")
     price_id = None
     for p in stripe.Price.list(product=product.id, active=True, limit=100).data:
         if (p.unit_amount == PRICE_EUR_CENTS
@@ -147,7 +152,7 @@ def ensure_daily_report_price_id() -> str:
             metadata={"plan_code": PLAN_CODE},
         )
         price_id = price.id
-        logger.info(f"Created Stripe price {price_id} for daily report")
+        logger.info(f"Created Stripe price {price_id} for GERI Live")
     _store_price_id(price_id, product.id)
     return price_id
 
@@ -183,14 +188,14 @@ def _get_user_from_token(token: Optional[str]):
 def _get_or_create_row(user_id: int):
     with get_cursor() as cur:
         cur.execute(
-            "SELECT * FROM user_daily_report_subs WHERE user_id = %s",
+            "SELECT * FROM user_geri_live_subs WHERE user_id = %s",
             (user_id,)
         )
         row = cur.fetchone()
         if row:
             return row
         cur.execute("""
-            INSERT INTO user_daily_report_subs (user_id, status)
+            INSERT INTO user_geri_live_subs (user_id, status)
             VALUES (%s, 'inactive')
             RETURNING *
         """, (user_id,))
@@ -227,12 +232,13 @@ def _trial_eligible(row) -> bool:
     return True
 
 
-def user_has_daily_report(user_id: int) -> bool:
-    """Mode-agnostic entitlement check for the gated digest content."""
+def user_has_geri_live(user_id: int) -> bool:
+    """Mode-agnostic runtime entitlement check for GERI Live and its launch
+    bonus (Daily Intelligence Report, Pro Widgets, Indices History)."""
     try:
         with get_cursor(commit=False) as cur:
             cur.execute(
-                "SELECT status FROM user_daily_report_subs WHERE user_id = %s",
+                "SELECT status FROM user_geri_live_subs WHERE user_id = %s",
                 (user_id,)
             )
             row = cur.fetchone()
@@ -245,20 +251,14 @@ def user_has_daily_report(user_id: int) -> bool:
 # Account endpoints
 # ─────────────────────────────────────────────────────────────────────────────
 
-@router.get("/api/daily-report/status")
+@router.get("/api/geri-live/status")
 async def status(x_user_token: Optional[str] = Header(None)):
     user = _get_user_from_token(x_user_token)
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
-    try:
-        from src.api.geri_live_sub_routes import user_has_geri_live
-        bonus = user_has_geri_live(user["id"])
-    except Exception:
-        bonus = False
     return {
-        "active": _active_for_mode(row) or bonus,
-        "geri_live_bonus": bonus,
+        "active": _active_for_mode(row),
         "status": row["status"],
         "current_period_end": (row["current_period_end"].isoformat()
                                if row.get("current_period_end") else None),
@@ -269,7 +269,7 @@ async def status(x_user_token: Optional[str] = Header(None)):
     }
 
 
-@router.post("/api/daily-report/checkout")
+@router.post("/api/geri-live/checkout")
 async def checkout(x_user_token: Optional[str] = Header(None)):
     user = _get_user_from_token(x_user_token)
     if not user:
@@ -280,9 +280,9 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
 
     init_stripe()
     try:
-        price_id = ensure_daily_report_price_id()
+        price_id = ensure_geri_live_price_id()
     except Exception as e:
-        logger.error(f"Could not ensure daily report price: {e}", exc_info=True)
+        logger.error(f"Could not ensure GERI Live price: {e}", exc_info=True)
         raise HTTPException(500, "Billing not available")
 
     customer_id = user.get("stripe_customer_id")
@@ -309,7 +309,7 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
     subscription_data = {
         "metadata": {
             "user_id": str(user["id"]),
-            "type": "daily_report",
+            "type": "geri_live",
         }
     }
     trial_granted = _trial_eligible(row)
@@ -321,22 +321,22 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
             payment_method_types=["card"],
             line_items=[{"price": price_id, "quantity": 1}],
             mode="subscription",
-            success_url=f"{base}/users/account?daily_report=active",
-            cancel_url=f"{base}/users/account?daily_report=cancelled",
+            success_url=f"{base}/users/account?geri_live=active",
+            cancel_url=f"{base}/users/account?geri_live=cancelled",
             metadata={
                 "user_id": str(user["id"]),
-                "type": "daily_report",
+                "type": "geri_live",
             },
             subscription_data=subscription_data,
         )
     except Exception as e:
-        logger.error(f"Daily report checkout creation failed: {e}", exc_info=True)
+        logger.error(f"GERI Live checkout creation failed: {e}", exc_info=True)
         raise HTTPException(500, "Failed to start checkout")
 
     return {"checkout_url": session.url, "trial_granted": trial_granted}
 
 
-@router.post("/api/daily-report/confirm")
+@router.post("/api/geri-live/confirm")
 async def confirm(x_user_token: Optional[str] = Header(None)):
     """Activate the subscription by checking Stripe directly (webhook-independent).
     Called by the account page when the user returns from Stripe Checkout."""
@@ -366,7 +366,7 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
             if found.get("data"):
                 customer_id = found["data"][0]["id"]
         except Exception as e:
-            logger.error(f"Daily report confirm: customer search failed: {e}")
+            logger.error(f"GERI Live confirm: customer search failed: {e}")
     if not customer_id:
         return {"active": False, "status": row["status"]}
 
@@ -375,13 +375,13 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
             customer=customer_id, status="all", limit=100
         )
     except Exception as e:
-        logger.error(f"Daily report confirm: could not list subscriptions: {e}")
+        logger.error(f"GERI Live confirm: could not list subscriptions: {e}")
         return {"active": False, "status": row["status"]}
 
     matched = None
     for sub in subs.get("data", []):
         meta = sub.get("metadata") or {}
-        if meta.get("type") == "daily_report" and sub.get("status") in (
+        if meta.get("type") == "geri_live" and sub.get("status") in (
             "active", "trialing",
         ):
             matched = sub
@@ -400,7 +400,7 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
 
     with get_cursor() as cur:
         cur.execute("""
-            UPDATE user_daily_report_subs
+            UPDATE user_geri_live_subs
             SET stripe_subscription_id = %s,
                 stripe_customer_id = %s,
                 status = %s,
@@ -411,14 +411,14 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
             WHERE id = %s
         """, (subscription_id, customer_id, local_status, period_end_dt,
               matched_mode, row["id"]))
-    logger.info(f"Daily report subscription activated via confirm for user {user['id']}")
+    logger.info(f"GERI Live subscription activated via confirm for user {user['id']}")
     return {
         "active": local_status in ("active", "trialing", "canceling"),
         "status": local_status,
     }
 
 
-@router.post("/api/daily-report/cancel")
+@router.post("/api/geri-live/cancel")
 async def cancel(x_user_token: Optional[str] = Header(None)):
     user = _get_user_from_token(x_user_token)
     if not user:
@@ -436,14 +436,14 @@ async def cancel(x_user_token: Optional[str] = Header(None)):
                                                at_period_end=True)
         with get_cursor() as cur:
             cur.execute(
-                "UPDATE user_daily_report_subs SET status = 'canceling', "
+                "UPDATE user_geri_live_subs SET status = 'canceling', "
                 "updated_at = NOW() WHERE id = %s",
                 (row["id"],)
             )
         return {"canceled_at_period_end": True,
                 "current_period_end": sub.get("current_period_end")}
     except Exception as e:
-        logger.error(f"Daily report cancel error: {e}", exc_info=True)
+        logger.error(f"GERI Live cancel error: {e}", exc_info=True)
         raise HTTPException(500, "Failed to cancel subscription")
 
 
@@ -451,22 +451,22 @@ async def cancel(x_user_token: Optional[str] = Header(None)):
 # Webhook handlers (called from src.billing.webhook_handler by metadata.type)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def handle_daily_report_checkout_completed(session: dict) -> bool:
+def handle_geri_live_checkout_completed(session: dict) -> bool:
     user_id_str = (session.get("metadata") or {}).get("user_id")
     if not user_id_str:
-        logger.error("Daily report checkout completed without user_id metadata")
+        logger.error("GERI Live checkout completed without user_id metadata")
         return True
     user_id = int(user_id_str)
     subscription_id = session.get("subscription")
     customer_id = session.get("customer")
     if not subscription_id:
-        logger.error("Daily report checkout completed without subscription")
+        logger.error("GERI Live checkout completed without subscription")
         return True
     ensure_stripe_initialized()
     try:
         sub = stripe.Subscription.retrieve(subscription_id)
     except Exception as e:
-        logger.error(f"Could not retrieve daily report subscription {subscription_id}: {e}")
+        logger.error(f"Could not retrieve GERI Live subscription {subscription_id}: {e}")
         return True
     period_end = sub.get("current_period_end")
     period_end_dt = datetime.utcfromtimestamp(period_end) if period_end else None
@@ -474,13 +474,13 @@ def handle_daily_report_checkout_completed(session: dict) -> bool:
     mode = "live" if sub.get("livemode") else "sandbox"
     with get_cursor() as cur:
         cur.execute(
-            "SELECT id FROM user_daily_report_subs WHERE user_id = %s",
+            "SELECT id FROM user_geri_live_subs WHERE user_id = %s",
             (user_id,)
         )
         existing = cur.fetchone()
         if existing:
             cur.execute("""
-                UPDATE user_daily_report_subs
+                UPDATE user_geri_live_subs
                 SET stripe_subscription_id = %s,
                     stripe_customer_id = %s,
                     status = %s,
@@ -493,26 +493,26 @@ def handle_daily_report_checkout_completed(session: dict) -> bool:
                   mode, existing["id"]))
         else:
             cur.execute("""
-                INSERT INTO user_daily_report_subs
+                INSERT INTO user_geri_live_subs
                     (user_id, status, stripe_subscription_id, stripe_customer_id,
                      current_period_end, stripe_mode, trial_used)
                 VALUES (%s, %s, %s, %s, %s, %s, TRUE)
             """, (user_id, status_val, subscription_id, customer_id,
                   period_end_dt, mode))
-    logger.info(f"Daily report subscription activated for user {user_id}")
+    logger.info(f"GERI Live subscription activated for user {user_id}")
     return True
 
 
-def handle_daily_report_subscription_event(subscription: dict) -> bool:
-    """Update row on subscription.updated. Returns True if this is a daily-report
+def handle_geri_live_subscription_event(subscription: dict) -> bool:
+    """Update row on subscription.updated. Returns True if this is a GERI Live
     subscription (so the caller skips main plan logic)."""
     sub_id = subscription.get("id")
     if not sub_id:
         return False
-    is_meta = (subscription.get("metadata") or {}).get("type") == "daily_report"
+    is_meta = (subscription.get("metadata") or {}).get("type") == "geri_live"
     with get_cursor() as cur:
         cur.execute(
-            "SELECT id FROM user_daily_report_subs WHERE stripe_subscription_id = %s",
+            "SELECT id FROM user_geri_live_subs WHERE stripe_subscription_id = %s",
             (sub_id,)
         )
         row = cur.fetchone()
@@ -527,33 +527,33 @@ def handle_daily_report_subscription_event(subscription: dict) -> bool:
     local_status = "canceling" if cancel_at_end else stripe_status
     with get_cursor() as cur:
         cur.execute("""
-            UPDATE user_daily_report_subs
+            UPDATE user_geri_live_subs
             SET status = %s, current_period_end = %s, updated_at = NOW()
             WHERE id = %s
         """, (local_status, period_end_dt, row["id"]))
-    logger.info(f"Daily report subscription {sub_id} → status={local_status}")
+    logger.info(f"GERI Live subscription {sub_id} → status={local_status}")
     return True
 
 
-def handle_daily_report_subscription_deleted(subscription: dict) -> bool:
+def handle_geri_live_subscription_deleted(subscription: dict) -> bool:
     sub_id = subscription.get("id")
     if not sub_id:
         return False
-    is_meta = (subscription.get("metadata") or {}).get("type") == "daily_report"
+    is_meta = (subscription.get("metadata") or {}).get("type") == "geri_live"
     with get_cursor() as cur:
         cur.execute(
-            "SELECT id FROM user_daily_report_subs WHERE stripe_subscription_id = %s",
+            "SELECT id FROM user_geri_live_subs WHERE stripe_subscription_id = %s",
             (sub_id,)
         )
         row = cur.fetchone()
         if not row:
             # Short-circuit on metadata even if the local row is missing, so a
-            # daily-report deletion never falls through to main user_plans logic.
+            # GERI Live deletion never falls through to main user_plans logic.
             return True if is_meta else False
         cur.execute("""
-            UPDATE user_daily_report_subs
+            UPDATE user_geri_live_subs
             SET status = 'cancelled', updated_at = NOW()
             WHERE id = %s
         """, (row["id"],))
-    logger.info(f"Daily report subscription {sub_id} cancelled")
+    logger.info(f"GERI Live subscription {sub_id} cancelled")
     return True

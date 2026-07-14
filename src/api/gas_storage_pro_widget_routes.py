@@ -270,6 +270,16 @@ def _get_or_create_widget_row(user_id: int):
         return cur.fetchone()
 
 
+def _geri_live_bonus(user_id) -> bool:
+    """GERI Live launch-offer bonus: an active GERI Live subscription also
+    unlocks this Pro widget. Ends automatically when GERI Live is cancelled."""
+    try:
+        from src.api.geri_live_sub_routes import user_has_geri_live
+        return user_has_geri_live(user_id)
+    except Exception:
+        return False
+
+
 def _widget_is_active(row) -> bool:
     """Status-only check — used by the public embed runtime so a live customer's
     widget keeps rendering regardless of the admin's current Stripe mode toggle."""
@@ -303,8 +313,10 @@ async def widget_status(x_user_token: Optional[str] = Header(None)):
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_widget_row(user["id"])
     cfg = _merge_config(row["config_json"])
+    bonus = _geri_live_bonus(user["id"])
     return {
-        "active": _widget_active_for_mode(row),
+        "active": _widget_active_for_mode(row) or bonus,
+        "geri_live_bonus": bonus,
         "status": row["status"],
         "embed_token": row["embed_token"],
         "config": cfg,
@@ -1181,7 +1193,7 @@ async def embed_gas_storage_pro_widget(request: Request):
     qp = request.query_params
     token = qp.get("t") or qp.get("token") or ""
     row = _lookup_widget_by_token(token)
-    if not row or not _widget_is_active(row):
+    if not row or not (_widget_is_active(row) or _geri_live_bonus(row["user_id"])):
         return HTMLResponse(_render_inactive_html(), headers=EMBED_HEADERS)
     try:
         html = _render_pro_widget_html(row, dict(qp))
