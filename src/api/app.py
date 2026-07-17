@@ -424,8 +424,9 @@ async def startup_event():
         from src.ingest.intraday_prices import run_intraday_migration
         run_intraday_migration()
         if ENABLE_GERI:
-            from src.geri.live import run_geri_live_migration, periodic_geri_live_recompute
+            from src.geri.live import run_geri_live_migration, run_geri_live_history_migration, periodic_geri_live_recompute
             run_geri_live_migration()
+            run_geri_live_history_migration()
             asyncio.create_task(periodic_geri_live_recompute())
             logger.info("GERI module is ENABLED (including Live + periodic recompute)")
         else:

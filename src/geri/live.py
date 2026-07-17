@@ -88,6 +88,175 @@ def run_geri_live_migration():
     logger.info("geri_live table migration complete")
 
 
+def run_geri_live_history_migration():
+    """Create the geri_live_history table: one row per GERI Live update,
+    with the events that triggered the change and asset prices (Brent/WTI/NatGas)."""
+    with get_cursor(commit=True) as cursor:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS geri_live_history (
+                id SERIAL PRIMARY KEY,
+                snapshot_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                value INTEGER NOT NULL,
+                value_raw NUMERIC(6,2),
+                band VARCHAR(20) NOT NULL DEFAULT 'LOW',
+                prev_value INTEGER,
+                value_change INTEGER,
+                alert_count INTEGER DEFAULT 0,
+                new_alert_count INTEGER DEFAULT 0,
+                last_alert_id INTEGER,
+                trigger_events JSONB DEFAULT '[]',
+                top_drivers JSONB DEFAULT '[]',
+                brent_price NUMERIC(10,4),
+                brent_change_pct NUMERIC(8,4),
+                wti_price NUMERIC(10,4),
+                wti_change_pct NUMERIC(8,4),
+                natgas_price NUMERIC(10,4),
+                natgas_change_pct NUMERIC(8,4),
+                metadata JSONB DEFAULT '{}',
+                computed_at TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_geri_live_history_computed_at
+            ON geri_live_history(computed_at DESC)
+        """)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_geri_live_history_date
+            ON geri_live_history(snapshot_date)
+        """)
+        cursor.execute("""
+            ALTER TABLE geri_live_history ADD COLUMN IF NOT EXISTS trigger_event_ids JSONB DEFAULT '[]'
+        """)
+    logger.info("geri_live_history table migration complete")
+
+
+def _get_latest_asset_prices() -> Dict[str, Any]:
+    """Latest Brent / WTI / Natural Gas prices for history snapshots.
+
+    Prefers today's intraday capture; falls back to the most recent
+    intraday row of any day, then (for Brent/WTI) the daily
+    oil_price_snapshots table. Missing values stay None — never fabricated.
+    """
+    prices: Dict[str, Any] = {
+        'brent_price': None, 'brent_change_pct': None,
+        'wti_price': None, 'wti_change_pct': None,
+        'natgas_price': None, 'natgas_change_pct': None,
+    }
+    for asset, table in (('brent', 'intraday_brent'), ('wti', 'intraday_wti'), ('natgas', 'intraday_natgas')):
+        try:
+            row = execute_one(
+                f"SELECT price, change_pct FROM {table} ORDER BY date DESC, hour DESC LIMIT 1"
+            )
+            if row and row.get('price') is not None:
+                prices[f'{asset}_price'] = float(row['price'])
+                if row.get('change_pct') is not None:
+                    prices[f'{asset}_change_pct'] = float(row['change_pct'])
+        except Exception as e:
+            logger.warning("geri_live_history: failed reading %s: %s", table, e)
+    if prices['brent_price'] is None or prices['wti_price'] is None:
+        try:
+            row = execute_one(
+                "SELECT brent_price, brent_change_pct, wti_price, wti_change_pct "
+                "FROM oil_price_snapshots ORDER BY id DESC LIMIT 1"
+            )
+            if row:
+                if prices['brent_price'] is None and row.get('brent_price') is not None:
+                    prices['brent_price'] = float(row['brent_price'])
+                    if row.get('brent_change_pct') is not None:
+                        prices['brent_change_pct'] = float(row['brent_change_pct'])
+                if prices['wti_price'] is None and row.get('wti_price') is not None:
+                    prices['wti_price'] = float(row['wti_price'])
+                    if row.get('wti_change_pct') is not None:
+                        prices['wti_change_pct'] = float(row['wti_change_pct'])
+        except Exception as e:
+            logger.warning("geri_live_history: oil_price_snapshots fallback failed: %s", e)
+    return prices
+
+
+MAX_TRIGGER_EVENTS = 25
+
+
+def _store_history_snapshot(result: Dict[str, Any], alerts: List[AlertRecord]):
+    """Insert one geri_live_history row per GERI Live update.
+
+    trigger_events = the alerts that arrived since the previous snapshot
+    (i.e. the events that generated this change in GERI Live), capped at
+    MAX_TRIGGER_EVENTS most recent.
+    """
+    try:
+        prev = execute_one(
+            "SELECT value, last_alert_id FROM geri_live_history ORDER BY id DESC LIMIT 1"
+        )
+        prev_value = int(prev['value']) if prev else None
+        prev_last_alert_id = prev.get('last_alert_id') if prev else None
+
+        if prev_last_alert_id:
+            new_alerts = [a for a in alerts if a.id and a.id > prev_last_alert_id]
+        else:
+            new_alerts = list(alerts)
+        new_alert_count = len(new_alerts)
+
+        trigger_event_ids = [a.id for a in new_alerts if a.id]
+
+        trigger_events = []
+        for a in new_alerts[-MAX_TRIGGER_EVENTS:]:
+            trigger_events.append({
+                'id': a.id,
+                'headline': a.headline,
+                'alert_type': a.alert_type,
+                'severity': a.severity,
+                'risk_score': a.risk_score,
+                'region': a.region,
+                'category': a.category,
+                'created_at': a.created_at.isoformat() if hasattr(a.created_at, 'isoformat') else str(a.created_at),
+            })
+
+        value = int(result['value'])
+        value_change = (value - prev_value) if prev_value is not None else None
+
+        last_alert_id = alerts[-1].id if alerts else prev_last_alert_id
+
+        prices = _get_latest_asset_prices()
+
+        metadata = json.dumps({
+            'anchor_value': result.get('anchor_value'),
+            'anchor_source': result.get('anchor_source'),
+            'signal_weight': result.get('signal_weight'),
+            'today_signal': result.get('today_signal'),
+            'today_signal_raw': result.get('today_signal_raw'),
+            'no_alerts_today': result.get('no_alerts_today', False),
+        })
+
+        with get_cursor(commit=True) as cursor:
+            cursor.execute("""
+                INSERT INTO geri_live_history
+                    (snapshot_date, value, value_raw, band, prev_value, value_change,
+                     alert_count, new_alert_count, last_alert_id, trigger_events, trigger_event_ids, top_drivers,
+                     brent_price, brent_change_pct, wti_price, wti_change_pct,
+                     natgas_price, natgas_change_pct, metadata, computed_at)
+                VALUES (CURRENT_DATE, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, NOW())
+            """, (
+                value,
+                result.get('value_raw', float(value)),
+                result['band'],
+                prev_value,
+                value_change,
+                result.get('alert_count', 0),
+                new_alert_count,
+                last_alert_id,
+                json.dumps(trigger_events),
+                json.dumps(trigger_event_ids),
+                json.dumps(result.get('top_drivers', [])),
+                prices['brent_price'], prices['brent_change_pct'],
+                prices['wti_price'], prices['wti_change_pct'],
+                prices['natgas_price'], prices['natgas_change_pct'],
+                metadata,
+            ))
+    except Exception as e:
+        logger.error("geri_live_history snapshot failed (non-fatal): %s", e)
+
+
 def _get_today_alerts() -> List[AlertRecord]:
     now_utc = datetime.utcnow()
     start_of_day = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -373,6 +542,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
             'signal_weight': 0.0,
         }
         _store_live_result(result)
+        _store_history_snapshot(result, [])
         return result
 
     components = compute_components(alerts)
@@ -499,6 +669,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
     }
 
     _store_live_result(result)
+    _store_history_snapshot(result, alerts)
     return result
 
 
