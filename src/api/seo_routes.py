@@ -573,6 +573,7 @@ def render_footer() -> str:
                 <a href="/sitemap.html">Sitemap</a>
                 <a href="/privacy">Privacy</a>
                 <a href="/terms">Terms</a>
+                <a href="/contact">Contact</a>
             </div>
         </div>
     </footer>
@@ -5531,6 +5532,7 @@ def render_digest_footer() -> str:
                 <a href="/sitemap.html">Sitemap</a>
                 <a href="/privacy">Privacy</a>
                 <a href="/terms">Terms</a>
+                <a href="/contact">Contact</a>
             </div>
         </div>
     </footer>

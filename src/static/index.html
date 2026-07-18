@@ -5382,7 +5382,7 @@
                     <a href="/privacy">Privacy Policy</a>
                     <a href="/terms">Terms of Service</a>
                     <a href="/disclaimer">Disclaimer</a>
-                    <a href="#" id="contact-link">Contact</a>
+                    <a href="/contact" id="contact-link">Contact</a>
                     <a href="/sitemap.html">Sitemap</a>
                 </nav>
             </div>
@@ -5495,11 +5495,8 @@
         const formMessage = document.getElementById('form-message');
         const submitBtn = document.getElementById('submit-btn');
 
-        contactLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
+        // Footer "Contact" now navigates to the dedicated /contact page.
+        // The modal remains available for any other in-page triggers.
 
         function closeModal() {
             modal.classList.remove('active');
