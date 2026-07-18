@@ -222,7 +222,7 @@ def _render_widget_html(data, *, pro=False):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,follow">
+<meta name="robots" content="{'noindex,follow' if pro else 'index,follow'}">
 <title>WTI Crude Oil Widget &middot; EnergyRiskIQ</title>
 <style>
   *{{box-sizing:border-box;}}
