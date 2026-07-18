@@ -323,6 +323,12 @@ app.include_router(wti_router)
 app.include_router(wti_widget_router)
 app.include_router(gas_storage_widget_router)
 app.include_router(lng_widget_router)
+from src.api.contact_routes import run_contact_confirmation_migration
+try:
+    run_contact_confirmation_migration()
+except Exception as _e:
+    logger.error(f"contact confirmation migration error: {_e}")
+
 from src.api.brent_forecast_routes import router as brent_forecast_router, run_brent_forecast_migration
 app.include_router(brent_forecast_router)
 try:
