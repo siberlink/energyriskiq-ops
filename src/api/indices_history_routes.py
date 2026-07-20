@@ -1,5 +1,5 @@
 """
-Download Indices History — paid (€1.85/mo) subscription that unlocks CSV/Excel
+Download Indices History — paid (€4.99/mo) subscription that unlocks CSV/Excel
 downloads of the full GERI, EERI, EGSI-M and EGSI-S risk-index history.
 
 Mirrors the WTI Pro Widget subscription technique (Stripe checkout, webhook-
@@ -7,7 +7,7 @@ independent confirm, mode-aware activation, cancel-at-period-end).
 
 Routes:
   GET  /api/indices-history/status     — subscription status (mode-aware)
-  POST /api/indices-history/checkout   — start Stripe checkout (€1.85/mo)
+  POST /api/indices-history/checkout   — start Stripe checkout (€4.99/mo)
   POST /api/indices-history/confirm    — webhook-independent activation
   POST /api/indices-history/cancel     — cancel at period end
   GET  /api/indices-history/download   — gated CSV/Excel download (?index=&fmt=)
@@ -37,10 +37,11 @@ logger = logging.getLogger(__name__)
 
 SUB_CODE = "indices-history"
 PLAN_CODE = "indices_history"          # Stripe product metadata key
-PRICE_EUR_CENTS = 185                  # €1.85
+PRICE_EUR_CENTS = 499                  # €4.99
 SUB_NAME = "EnergyRiskIQ — Indices History Downloads"
 SUB_DESC = ("Unlimited CSV and Excel downloads of the full GERI, EERI, EGSI-M "
-            "and EGSI-S risk-index history. €1.85/month.")
+            "and EGSI-S risk-index history, plus full access to the GERI, EERI "
+            "and EGSI history, daily and monthly archive pages. €4.99/month.")
 
 # index_code -> (csv_func_name, xlsx_func_name) in src.geri.routes
 _INDEX_DISPATCH = {
@@ -90,7 +91,9 @@ def _settings_key(name: str) -> str:
 
 
 def _get_stored_price_id() -> Optional[str]:
-    key = _settings_key("indices_history_price_id")
+    # Key includes the price so a reprice (e.g. €1.85 → €4.99) re-seeds a new
+    # Stripe price instead of reusing the cached old-amount price id.
+    key = _settings_key(f"indices_history_price{PRICE_EUR_CENTS}_id")
     try:
         with get_cursor(commit=False) as cur:
             cur.execute("SELECT value FROM app_settings WHERE key = %s", (key,))
@@ -102,7 +105,7 @@ def _get_stored_price_id() -> Optional[str]:
 
 def _store_price_id(price_id: str, product_id: str):
     with get_cursor() as cur:
-        for k, v in (("indices_history_price_id", price_id),
+        for k, v in ((f"indices_history_price{PRICE_EUR_CENTS}_id", price_id),
                      ("indices_history_product_id", product_id)):
             key = _settings_key(k)
             cur.execute("""
@@ -179,7 +182,7 @@ def _get_user_from_token(token: Optional[str]):
             SELECT u.id, u.email, u.stripe_customer_id
             FROM sessions s
             JOIN users u ON u.id = s.user_id
-            WHERE s.token = %s AND s.expires_at > NOW()
+            WHERE s.token = %s AND s.expires_at > (NOW() AT TIME ZONE 'UTC')
         """, (token,))
         return cur.fetchone()
 
@@ -210,6 +213,33 @@ def _geri_live_bonus(user_id) -> bool:
         return user_has_geri_live(user_id)
     except Exception:
         return False
+
+
+def user_has_indices_history(user_id) -> bool:
+    """Mode-agnostic runtime entitlement: active/trialing/canceling sub or the
+    GERI Live launch-offer bonus."""
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                "SELECT status FROM user_index_history_subs WHERE user_id = %s",
+                (user_id,)
+            )
+            row = cur.fetchone()
+        if row and row.get("status") in ("active", "trialing", "canceling"):
+            return True
+    except Exception:
+        pass
+    return _geri_live_bonus(user_id)
+
+
+def get_indices_history_user(token: Optional[str]):
+    """Resolve a session token to a user dict IF the user has an active
+    Indices History subscription (or GERI Live bonus). Used to gate the
+    public index history/daily/monthly pages."""
+    user = _get_user_from_token(token)
+    if not user:
+        return None
+    return user if user_has_indices_history(user["id"]) else None
 
 
 def _is_active(row) -> bool:

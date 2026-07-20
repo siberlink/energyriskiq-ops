@@ -737,6 +737,127 @@ def _alerts_paywall_response(page_title: str) -> HTMLResponse:
     return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
+def _indices_access_user(request: Request):
+    """Resolve the X-User-Token header to a user with an active Indices
+    History subscription (€4.99/mo, incl. GERI Live bonus). Returns None for
+    anonymous / unsubscribed."""
+    try:
+        token = request.headers.get("x-user-token")
+        if not token:
+            return None
+        from src.api.indices_history_routes import get_indices_history_user
+        return get_indices_history_user(token)
+    except Exception:
+        return None
+
+
+def render_indices_gated_nav() -> str:
+    """Navigation bar for subscriber-only index history pages (no free-access CTA)."""
+    return """
+    <nav class="nav">
+        <div class="container nav-inner">
+            <a href="/" class="logo">
+                <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                EnergyRiskIQ
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/indices/global-energy-risk-index">GERI</a>
+                <a href="/indices/europe-energy-risk-index">EERI</a>
+                <a href="/egsi">EGSI</a>
+                <a href="/users/account">My Account</a>
+            </div>
+        </div>
+    </nav>
+    """
+
+
+def _indices_paywall_response(page_title: str) -> HTMLResponse:
+    """Locked shell served to non-subscribers on gated index history pages.
+    Page JS retries the same URL with the user's session token; if the user
+    is an Indices History subscriber the full page replaces the shell."""
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>{page_title} | EnergyRiskIQ</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    {get_common_styles()}
+    <style>
+        .aa-lock-wrap {{ max-width: 560px; margin: 60px auto; padding: 0 16px; text-align: center; }}
+        .aa-lock-card {{ background: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 40px 28px; }}
+        .aa-lock-icon {{ font-size: 40px; margin-bottom: 14px; }}
+        .aa-lock-card h1 {{ font-size: 1.5rem; margin-bottom: 10px; color: #f1f5f9; }}
+        .aa-lock-card p {{ color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px; }}
+        .aa-price {{ font-size: 1.6rem; font-weight: 700; color: #38bdf8; margin: 14px 0 2px; }}
+        .aa-price small {{ font-size: 0.85rem; color: #64748b; font-weight: 400; }}
+        .aa-features {{ text-align: left; margin: 18px auto; max-width: 400px; color: #cbd5e1; font-size: 0.9rem; line-height: 2; list-style: none; padding: 0; }}
+        .aa-features li::before {{ content: "\\2713\\0020"; color: #34d399; font-weight: 700; }}
+        .aa-btn {{ display: inline-block; margin-top: 12px; background: #0284c7; color: #fff; padding: 12px 28px; border-radius: 8px; font-weight: 600; text-decoration: none; }}
+        .aa-btn:hover {{ background: #0369a1; }}
+        .aa-signin {{ margin-top: 14px; font-size: 0.85rem; color: #64748b; }}
+        .aa-signin a {{ color: #60a5fa; }}
+        #ih-checking {{ color: #64748b; font-size: 0.85rem; margin-top: 16px; }}
+    </style>
+</head>
+<body>
+    {render_indices_gated_nav()}
+    <main>
+        <div class="aa-lock-wrap">
+            <div class="aa-lock-card">
+                <div class="aa-lock-icon">&#128274;</div>
+                <h1>Index History is a Premium Feature</h1>
+                <p>Full access to the GERI, EERI and EGSI history pages, daily snapshots and monthly archives is available to Indices History subscribers.</p>
+                <div class="aa-price">&euro;4.99 <small>/ month</small></div>
+                <ul class="aa-features">
+                    <li>Full GERI, EERI &amp; EGSI history pages</li>
+                    <li>Every daily snapshot &amp; monthly archive</li>
+                    <li>Unlimited CSV &amp; Excel index downloads</li>
+                    <li>Cancel anytime</li>
+                </ul>
+                <a class="aa-btn" href="/users/account#indices-history">Subscribe in Your Account</a>
+                <div class="aa-signin">Already subscribed? <a href="/users">Sign in</a> and return to this page.</div>
+                <div id="ih-checking" style="display:none;">Checking your access&hellip;</div>
+                <!-- IH_PAYWALL_SHELL -->
+            </div>
+        </div>
+    </main>
+    {render_footer()}
+    <script>
+    (function() {{
+        var token = null;
+        try {{
+            var s = localStorage.getItem('userSession');
+            if (s) {{
+                var d = JSON.parse(s);
+                if (d && d.token && (!d.expires || d.expires > Date.now())) token = d.token;
+            }}
+        }} catch (e) {{}}
+        if (!token) return;
+        var el = document.getElementById('ih-checking');
+        if (el) el.style.display = 'block';
+        fetch(window.location.pathname + window.location.search, {{
+            headers: {{ 'x-user-token': token }},
+            cache: 'no-store'
+        }}).then(function(r) {{
+            if (!r.ok) {{ if (el) el.style.display = 'none'; return null; }}
+            return r.text();
+        }}).then(function(html) {{
+            if (!html) return;
+            if (html.indexOf('IH_PAYWALL_SHELL') !== -1) {{ if (el) el.style.display = 'none'; return; }}
+            document.open();
+            document.write(html);
+            document.close();
+        }}).catch(function() {{ if (el) el.style.display = 'none'; }});
+    }})();
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
+
+
 @router.get("/alerts", response_class=HTMLResponse)
 async def alerts_hub(request: Request):
     """Alerts hub page — subscriber-only (Alerts Archive, €4.99/mo)."""
@@ -2992,12 +3113,15 @@ def get_geri_common_styles():
 async def geri_history_page(request: Request):
     """
     GERI History Hub - Lists all available GERI snapshots.
-    Public page showing the official published archive.
+    Subscriber-only (Indices History, €4.99/mo).
     Protected: Anti-scraping measures applied.
     """
     # Apply anti-scraping protection
     await apply_anti_scraping(request)
-    
+
+    if not _indices_access_user(request):
+        return _indices_paywall_response("GERI History Archive")
+
     track_page_view("geri_history", "/geri/history")
     
     yesterday = get_yesterday_date().isoformat()
@@ -3060,7 +3184,7 @@ async def geri_history_page(request: Request):
      crossorigin="anonymous"></script>
 </head>
     <body>
-        {render_nav()}
+        {render_indices_gated_nav()}
         <main>
             <div class="container">
                 <div class="breadcrumbs">
@@ -3108,7 +3232,7 @@ async def geri_history_page(request: Request):
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/geri/updates", response_class=HTMLResponse)
@@ -4020,18 +4144,21 @@ async def geri_daily_page(request: Request, date: str):
     """
     # Apply anti-scraping protection
     await apply_anti_scraping(request)
-    
+
     import re
-    
+
     month_match = re.match(r'^(\d{4})/(\d{2})$', date)
+    date_match = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', date)
+    if not month_match and not date_match:
+        raise HTTPException(status_code=404, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    if not _indices_access_user(request):
+        return _indices_paywall_response("GERI Daily Snapshot")
+
     if month_match:
         year = int(month_match.group(1))
         month = int(month_match.group(2))
         return await geri_monthly_page(request, year, month)
-    
-    date_match = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', date)
-    if not date_match:
-        raise HTTPException(status_code=404, detail="Invalid date format. Use YYYY-MM-DD.")
     
     track_page_view("geri_daily", f"/geri/{date}")
     
@@ -4059,7 +4186,7 @@ async def geri_daily_page(request: Request, date: str):
      crossorigin="anonymous"></script>
 </head>
         <body>
-            {render_nav()}
+            {render_indices_gated_nav()}
             <main>
                 <div class="container" style="text-align: center; padding: 4rem 0;">
                     <h1>Snapshot Not Found</h1>
@@ -4260,7 +4387,7 @@ async def geri_daily_page(request: Request, date: str):
      crossorigin="anonymous"></script>
 </head>
     <body>
-        {render_nav()}
+        {render_indices_gated_nav()}
         <main>
             <div class="container">
                 <div class="breadcrumbs">
@@ -4313,7 +4440,7 @@ async def geri_daily_page(request: Request, date: str):
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 async def geri_monthly_page(request: Request, year: int, month: int):
@@ -4351,7 +4478,7 @@ async def geri_monthly_page(request: Request, year: int, month: int):
      crossorigin="anonymous"></script>
 </head>
         <body>
-            {render_nav()}
+            {render_indices_gated_nav()}
             <main>
                 <div class="container" style="text-align: center; padding: 4rem 0;">
                     <h1>No Data Available</h1>
@@ -4443,7 +4570,7 @@ async def geri_monthly_page(request: Request, year: int, month: int):
      crossorigin="anonymous"></script>
 </head>
     <body>
-        {render_nav()}
+        {render_indices_gated_nav()}
         <main>
             <div class="container">
                 <div class="breadcrumbs">
@@ -4486,7 +4613,7 @@ async def geri_monthly_page(request: Request, year: int, month: int):
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 def get_digest_dark_styles() -> str:

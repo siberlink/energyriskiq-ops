@@ -815,30 +815,8 @@ def generate_sitemap_core_entries() -> List[Dict]:
         {'loc': '/disclaimer', 'priority': '0.3', 'changefreq': 'yearly', 'lastmod': static_lastmod},
     ]
 
-    try:
-        from src.geri.geri_history_service import get_all_snapshot_dates
-        geri_dates = get_all_snapshot_dates()
-        if geri_dates:
-            entries.append({'loc': '/geri/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': _date_to_str(geri_dates[0])})
-    except Exception:
-        pass
-
-    try:
-        from src.reri.eeri_history_service import get_all_eeri_dates
-        eeri_dates = get_all_eeri_dates()
-        if eeri_dates:
-            entries.append({'loc': '/eeri/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': _date_to_str(eeri_dates[0])})
-    except Exception:
-        pass
-
-    try:
-        from src.egsi.egsi_history_service import get_all_egsi_m_dates
-        egsi_dates = get_all_egsi_m_dates()
-        if egsi_dates:
-            entries.append({'loc': '/egsi/history', 'priority': '0.6', 'changefreq': 'weekly', 'lastmod': _date_to_str(egsi_dates[0])})
-    except Exception:
-        pass
-
+    # Index history hubs (/geri|eeri|egsi/history) are behind the paid
+    # Indices History subscription (€4.99/mo) — excluded from sitemaps.
     return entries
 
 
@@ -849,45 +827,9 @@ def generate_sitemap_alerts_entries(limit: int = 60) -> List[Dict]:
 
 
 def generate_sitemap_indices_entries(limit: int = 60) -> List[Dict]:
-    """Index daily snapshot pages (GERI/EERI/EGSI) - last N days total across all indices."""
-    daily_entries = []
-    monthly_entries = []
-
-    try:
-        from src.geri.geri_history_service import get_all_snapshot_dates, get_available_months as get_geri_months
-        geri_dates = get_all_snapshot_dates()
-        for geri_date in geri_dates:
-            daily_entries.append({'loc': f"/geri/{_date_to_str(geri_date)}", 'lastmod': _date_to_str(geri_date)})
-        for m in get_geri_months()[:6]:
-            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
-            monthly_entries.append({'loc': f"/geri/{m['year']}/{m['month']:02d}", 'lastmod': _date_to_str(max_date)})
-    except Exception:
-        pass
-
-    try:
-        from src.reri.eeri_history_service import get_all_eeri_dates, get_eeri_available_months
-        eeri_dates = get_all_eeri_dates()
-        for eeri_date in eeri_dates:
-            daily_entries.append({'loc': f"/eeri/{_date_to_str(eeri_date)}", 'lastmod': _date_to_str(eeri_date)})
-        for m in get_eeri_available_months()[:6]:
-            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
-            monthly_entries.append({'loc': f"/eeri/{m['year']}/{m['month']:02d}", 'lastmod': _date_to_str(max_date)})
-    except Exception:
-        pass
-
-    try:
-        from src.egsi.egsi_history_service import get_all_egsi_m_dates, get_egsi_m_available_months
-        egsi_dates = get_all_egsi_m_dates()
-        for egsi_date in egsi_dates:
-            daily_entries.append({'loc': f"/egsi/{_date_to_str(egsi_date)}", 'lastmod': _date_to_str(egsi_date)})
-        for m in get_egsi_m_available_months()[:6]:
-            max_date = m.get('max_date', f"{m['year']}-{m['month']:02d}-01")
-            monthly_entries.append({'loc': f"/egsi/{m['year']}/{m['month']:02d}", 'lastmod': _date_to_str(max_date)})
-    except Exception:
-        pass
-
-    daily_entries.sort(key=lambda e: e['lastmod'], reverse=True)
-    return daily_entries[:limit] + monthly_entries
+    """Index daily/monthly snapshot pages (GERI/EERI/EGSI) are now behind the
+    paid Indices History subscription (€4.99/mo) — excluded from all sitemaps."""
+    return []
 
 
 def generate_sitemap_digest_entries(limit: int = 60) -> List[Dict]:

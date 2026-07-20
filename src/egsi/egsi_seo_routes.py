@@ -23,7 +23,9 @@ from src.egsi.egsi_history_service import (
 )
 from src.egsi.repo import get_egsi_s_delayed, get_egsi_s_latest
 from src.egsi.interpretation import generate_egsi_interpretation
-from src.api.seo_routes import get_digest_dark_styles, render_digest_footer
+from src.api.seo_routes import (get_digest_dark_styles, render_digest_footer,
+                                _indices_access_user, _indices_paywall_response,
+                                GATED_ALERTS_HEADERS)
 
 router = APIRouter(tags=["egsi-seo"])
 
@@ -2120,10 +2122,12 @@ async def egsi_methodology_page():
 
 
 @router.get("/egsi/history", response_class=HTMLResponse)
-async def egsi_history_page():
+async def egsi_history_page(request: Request):
     """
-    EGSI History Page - Overview of historical data with links to archives.
+    EGSI History Page - subscriber-only (Indices History, €4.99/mo).
     """
+    if not _indices_access_user(request):
+        return _indices_paywall_response("EGSI History Archive")
     dates = get_all_egsi_m_dates()
     months = get_egsi_m_available_months()
     stats = get_egsi_m_monthly_stats()
@@ -2177,7 +2181,7 @@ async def egsi_history_page():
                 <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+                
             </div>
         </div></nav>
         
@@ -2227,13 +2231,13 @@ async def egsi_history_page():
     </body>
     </html>
     """
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/egsi/{date_str}", response_class=HTMLResponse)
-async def egsi_daily_snapshot(date_str: str):
+async def egsi_daily_snapshot(request: Request, date_str: str):
     """
-    EGSI Daily Snapshot Page.
+    EGSI Daily Snapshot Page - subscriber-only (Indices History, €4.99/mo).
     """
     if '/' in date_str or len(date_str) < 8:
         raise HTTPException(status_code=404, detail="Invalid date format")
@@ -2242,6 +2246,9 @@ async def egsi_daily_snapshot(date_str: str):
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
         raise HTTPException(status_code=404, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    if not _indices_access_user(request):
+        return _indices_paywall_response("EGSI Daily Snapshot")
     
     egsi = get_egsi_m_by_date(target_date)
     if not egsi:
@@ -2320,7 +2327,7 @@ async def egsi_daily_snapshot(date_str: str):
         </body>
         </html>
         """
-        return HTMLResponse(content=no_data_html)
+        return HTMLResponse(content=no_data_html, headers=GATED_ALERTS_HEADERS)
     
     adjacent = get_egsi_m_adjacent_dates(target_date)
     
@@ -2405,7 +2412,7 @@ async def egsi_daily_snapshot(date_str: str):
                 <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+                
             </div>
         </div></nav>
         
@@ -2463,18 +2470,21 @@ async def egsi_daily_snapshot(date_str: str):
     </body>
     </html>
     """
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/egsi/{year}/{month}", response_class=HTMLResponse)
-async def egsi_monthly_archive(year: int, month: int):
+async def egsi_monthly_archive(request: Request, year: int, month: int):
     """
-    EGSI Monthly Archive Page.
+    EGSI Monthly Archive Page - subscriber-only (Indices History, €4.99/mo).
     """
     if month < 1 or month > 12:
         raise HTTPException(status_code=404, detail="Invalid month")
     if year < 2024 or year > 2030:
         raise HTTPException(status_code=404, detail="Invalid year")
+
+    if not _indices_access_user(request):
+        return _indices_paywall_response("EGSI Monthly Archive")
     
     data = get_egsi_m_monthly_data(year, month)
     if not data:
@@ -2539,7 +2549,7 @@ async def egsi_monthly_archive(year: int, month: int):
         </body>
         </html>
         """
-        return HTMLResponse(content=no_data_html)
+        return HTMLResponse(content=no_data_html, headers=GATED_ALERTS_HEADERS)
     
     month_label = f"{month_name[month]} {year}"
     
@@ -2636,4 +2646,4 @@ async def egsi_monthly_archive(year: int, month: int):
     </body>
     </html>
     """
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)

@@ -22,7 +22,9 @@ from fastapi.responses import HTMLResponse
 import json as json_module
 
 from src.reri.interpretation import generate_eeri_interpretation
-from src.api.seo_routes import get_digest_dark_styles, render_digest_footer
+from src.api.seo_routes import (get_digest_dark_styles, render_digest_footer,
+                                _indices_access_user, _indices_paywall_response,
+                                GATED_ALERTS_HEADERS)
 from src.reri.eeri_history_service import (
     get_latest_eeri_public,
     get_eeri_delayed,
@@ -2318,11 +2320,13 @@ async def eeri_methodology_page():
 
 
 @router.get("/eeri/history", response_class=HTMLResponse)
-async def eeri_history_page():
+async def eeri_history_page(request: Request):
     """
     EERI History Page - Overview of historical data with links to archives.
-    Public page showing the official published archive (24h delayed).
+    Subscriber-only (Indices History, €4.99/mo).
     """
+    if not _indices_access_user(request):
+        return _indices_paywall_response("EERI History Archive")
     dates = get_all_eeri_dates(public_only=True)
     months = get_eeri_available_months(public_only=True)
     
@@ -2417,7 +2421,7 @@ async def eeri_history_page():
                 <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+                
             </div>
         </div></nav>
         <main>
@@ -2464,13 +2468,13 @@ async def eeri_history_page():
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/eeri/{date_str}", response_class=HTMLResponse)
-async def eeri_daily_snapshot(date_str: str):
+async def eeri_daily_snapshot(request: Request, date_str: str):
     """
-    EERI Daily Snapshot Page - matches main EERI page design.
+    EERI Daily Snapshot Page - subscriber-only (Indices History, €4.99/mo).
     """
     if '/' in date_str or len(date_str) < 8:
         raise HTTPException(status_code=404, detail="Invalid date format")
@@ -2479,6 +2483,9 @@ async def eeri_daily_snapshot(date_str: str):
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
         raise HTTPException(status_code=404, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    if not _indices_access_user(request):
+        return _indices_paywall_response("EERI Daily Snapshot")
     
     eeri = get_eeri_by_date(target_date)
     if not eeri:
@@ -2586,7 +2593,7 @@ async def eeri_daily_snapshot(date_str: str):
                 <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+                
             </div>
         </div></nav>
         
@@ -2657,18 +2664,21 @@ async def eeri_daily_snapshot(date_str: str):
     </html>
     """
     
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/eeri/{year}/{month}", response_class=HTMLResponse)
-async def eeri_monthly_archive(year: int, month: int):
+async def eeri_monthly_archive(request: Request, year: int, month: int):
     """
-    EERI Monthly Archive Page.
+    EERI Monthly Archive Page - subscriber-only (Indices History, €4.99/mo).
     """
     if month < 1 or month > 12:
         raise HTTPException(status_code=404, detail="Invalid month")
     if year < 2024 or year > 2030:
         raise HTTPException(status_code=404, detail="Invalid year")
+
+    if not _indices_access_user(request):
+        return _indices_paywall_response("EERI Monthly Archive")
     
     data = get_eeri_monthly_data(year, month)
     if not data:
@@ -2771,4 +2781,4 @@ async def eeri_monthly_archive(year: int, month: int):
     </html>
     """
     
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
