@@ -1,0 +1,254 @@
+name: Daily Index Computation (GERI + EERI + EGSI)
+
+on:
+  schedule:
+    - cron: '10 1 * * *'
+  workflow_dispatch:
+
+env:
+  APP_URL: ${{ secrets.APP_URL }}
+
+jobs:
+  compute-indices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate configuration
+        run: |
+          if [ -z "${{ secrets.APP_URL }}" ]; then
+            echo "::error::APP_URL secret is empty or missing — set it in repo Settings > Secrets"
+            exit 1
+          fi
+          if [ -z "${{ secrets.INTERNAL_RUNNER_TOKEN }}" ]; then
+            echo "::error::INTERNAL_RUNNER_TOKEN secret is empty or missing"
+            exit 1
+          fi
+          echo "Checking app reachability..."
+          code=$(curl -sS -o /dev/null -w "%{http_code}" -m 30 --retry 3 --retry-delay 10 --retry-all-errors "${{ env.APP_URL }}/health" || echo "000")
+          echo "Health check HTTP code: $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::App at APP_URL is not reachable (HTTP $code)"
+            exit 1
+          fi
+
+      - name: Capture Market Data (VIX + TTF)
+        id: market_data
+        run: |
+          echo "Capturing VIX and TTF gas market data..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/market-data" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "Market data capture successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Market data capture returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute GERI for yesterday
+        id: geri
+        run: |
+          echo "Computing GERI v1.1 index for yesterday..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
+            "${{ env.APP_URL }}/internal/run/geri-compute?mode=yesterday&force=false" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "GERI computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::GERI computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Compute EERI for yesterday
+        id: eeri
+        if: always()
+        run: |
+          echo "Computing EERI index for yesterday..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/eeri-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "EERI computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::EERI computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Capture LNG Price (JKM)
+        id: lng_price
+        if: always()
+        run: |
+          echo "Capturing JKM LNG price from OilPriceAPI..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/lng-price-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "LNG price capture successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::LNG price capture returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute EGSI-M for yesterday
+        id: egsi_m
+        if: always()
+        run: |
+          echo "Computing EGSI-M (Market) index for yesterday..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "EGSI-M computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::EGSI-M computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compute EGSI-S for yesterday
+        id: egsi_s
+        if: always()
+        run: |
+          echo "Computing EGSI-S (System) index for yesterday..."
+          echo "Using real AGSI+ storage data + OilPriceAPI TTF prices..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-s-compute" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "EGSI-S computation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::EGSI-S computation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pre-generate Daily Intelligence Report
+        id: daily_report
+        if: always()
+        run: |
+          echo "Warming Daily Intelligence Report cache after indices are computed..."
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/daily-report" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "Daily Intelligence Report pre-generation successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Daily Intelligence Report pre-generation returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deliver Index & Digest to Users
+        id: delivery
+        if: steps.geri.outputs.status == 'success'
+        run: |
+          echo "Triggering preference-aware delivery to all users..."
+          echo "Waiting 30s for index data to settle..."
+          sleep 30
+          
+          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
+            "${{ env.APP_URL }}/internal/run/pro-delivery" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+          
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "Index & Digest delivery successful"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Index & Digest delivery returned HTTP $http_code"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Daily Index Computation & Delivery Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Task | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Market Data | ${{ steps.market_data.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| GERI | ${{ steps.geri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EERI | ${{ steps.eeri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| LNG Price | ${{ steps.lng_price.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EGSI-M | ${{ steps.egsi_m.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| EGSI-S | ${{ steps.egsi_s.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Daily Report | ${{ steps.daily_report.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Delivery | ${{ steps.delivery.outputs.status || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if any step failed
+        if: always()
+        run: |
+          failed=""
+          [ "${{ steps.market_data.outputs.status }}" = "failed" ] && failed="$failed market_data"
+          [ "${{ steps.geri.outputs.status }}" = "failed" ] && failed="$failed geri"
+          [ "${{ steps.eeri.outputs.status }}" = "failed" ] && failed="$failed eeri"
+          [ "${{ steps.lng_price.outputs.status }}" = "failed" ] && failed="$failed lng_price"
+          [ "${{ steps.egsi_m.outputs.status }}" = "failed" ] && failed="$failed egsi_m"
+          [ "${{ steps.egsi_s.outputs.status }}" = "failed" ] && failed="$failed egsi_s"
+          [ "${{ steps.daily_report.outputs.status }}" = "failed" ] && failed="$failed daily_report"
+          [ "${{ steps.delivery.outputs.status }}" = "failed" ] && failed="$failed delivery"
+          if [ -n "$failed" ]; then
+            echo "::error::Failed steps:$failed"
+            exit 1
+          fi
+          echo "All steps succeeded."
