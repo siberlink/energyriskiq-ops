@@ -799,7 +799,6 @@ def generate_sitemap_core_entries() -> List[Dict]:
 
     entries = [
         {'loc': '/', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
-        {'loc': '/alerts', 'priority': '0.7', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/indices/global-energy-risk-index', 'priority': '0.8', 'changefreq': 'weekly', 'lastmod': today},
         {'loc': '/geri/methodology', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
         {'loc': '/why-geri', 'priority': '0.7', 'changefreq': 'monthly', 'lastmod': today},
@@ -844,33 +843,9 @@ def generate_sitemap_core_entries() -> List[Dict]:
 
 
 def generate_sitemap_alerts_entries(limit: int = 60) -> List[Dict]:
-    """Daily alert pages - last N days only. No changefreq/priority (omitted for daily pages)."""
-    entries = []
-
-    pages = get_recent_daily_pages(limit=limit)
-    for p in pages:
-        page_date = p['page_date']
-        if isinstance(page_date, str):
-            page_date_obj = datetime.fromisoformat(page_date).date()
-            lastmod = page_date[:10]
-        else:
-            page_date_obj = page_date
-            lastmod = page_date.isoformat()
-        entries.append({
-            'loc': f"/alerts/daily/{page_date_obj.isoformat()}",
-            'lastmod': lastmod
-        })
-
-    months = get_available_months()
-    for m in months[:12]:
-        max_date = m.get('max_date')
-        lastmod = _date_to_str(max_date) if max_date else f"{m['year']}-{m['month']:02d}-01"
-        entries.append({
-            'loc': f"/alerts/{m['year']}/{m['month']:02d}",
-            'lastmod': lastmod
-        })
-
-    return entries
+    """Alerts archive pages are now behind the paid Alerts Archive subscription
+    (€4.99/mo) — they are excluded from all sitemaps."""
+    return []
 
 
 def generate_sitemap_indices_entries(limit: int = 60) -> List[Dict]:

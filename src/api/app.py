@@ -365,6 +365,12 @@ try:
     run_daily_report_migration()
 except Exception as _e:
     logger.error(f"daily_report migration error: {_e}")
+from src.api.alerts_access_routes import router as alerts_access_router, run_alerts_access_migration
+app.include_router(alerts_access_router)
+try:
+    run_alerts_access_migration()
+except Exception as _e:
+    logger.error(f"alerts_access migration error: {_e}")
 from src.api.geri_live_sub_routes import router as geri_live_sub_router, run_geri_live_sub_migration
 app.include_router(geri_live_sub_router)
 try:

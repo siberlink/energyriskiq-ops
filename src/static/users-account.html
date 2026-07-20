@@ -5945,6 +5945,16 @@
                 Daily Intelligence Report
                 <span class="new-badge-nav">NEW</span>
             </a>
+            <a class="nav-item" id="alertsAccessNavItem" onclick="showSection('alerts-access'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </span>
+                Alerts Archive
+                <span class="new-badge-nav">NEW</span>
+            </a>
             <a class="nav-item" id="wtiProWidgetNavItem" onclick="showSection('wti-pro-widget'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -7836,6 +7846,70 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         <div style="width: 40px; height: 40px; border: 3px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
                         <p style="color: #94a3b8;">Loading your daily intelligence report...</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts Archive Access Section -->
+        <div class="section-content" id="section-alerts-access">
+            <div class="page-header">
+                <h1 class="page-title">Alerts Archive</h1>
+                <p class="page-subtitle">Full access to the geopolitical &amp; energy risk alerts archive — daily pages, monthly archives, category views and Excel downloads</p>
+            </div>
+
+            <div id="aaLoading" style="display:none;">
+                <div style="text-align:center;padding:50px 20px;">
+                    <div style="width:40px;height:40px;border:3px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>
+                    <p style="color:#94a3b8;font-size:13px;" id="aaLoaderStatus">Checking subscription status&hellip;</p>
+                </div>
+            </div>
+
+            <!-- INACTIVE: paywall -->
+            <div id="aaInactive" class="dr2" style="display:none;">
+                <div class="dr2-card">
+                    <div class="dr2-eyebrow">Premium Archive Access</div>
+                    <div class="dr2-h1">Every Risk Alert. Every Day. Fully Searchable.</div>
+                    <p class="dr2-sub">The public alerts archive is now a subscriber-only intelligence resource. Unlock every daily alerts page, monthly archive and category view — plus a one-click Excel download of the full alert history.</p>
+                    <div class="dr2-grid dr2-g2" style="margin-top:18px;">
+                        <div class="dr2-check"><span class="tick">✓</span><span class="t"><b>Daily alert pages</b> — the complete day-by-day record of geopolitical &amp; energy risk signals</span></div>
+                        <div class="dr2-check"><span class="tick">✓</span><span class="t"><b>Monthly archives</b> — browse any month since launch, with alert counts and risk context</span></div>
+                        <div class="dr2-check"><span class="tick">✓</span><span class="t"><b>Category views</b> — geopolitical, infrastructure, supply-chain, market and energy alerts</span></div>
+                        <div class="dr2-check"><span class="tick">✓</span><span class="t"><b>Excel history download</b> — export the alert history (date, region, severity, headline, details) as .xlsx</span></div>
+                    </div>
+                </div>
+                <div class="dr2-cta-wrap" style="text-align:center;">
+                    <div style="font-size:26px;font-weight:800;color:#f1f5f9;margin-bottom:4px;">&euro;4.99 <span style="font-size:13px;color:#94a3b8;font-weight:600;">/ month</span></div>
+                    <button id="aaSubscribeBtn" onclick="aaStartCheckout()" style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;padding:16px 30px;border-radius:12px;cursor:pointer;font-weight:800;font-size:15px;width:100%;max-width:420px;box-shadow:0 10px 30px -8px rgba(59,130,246,.6);">Unlock the Alerts Archive — &euro;4.99/month</button>
+                    <div id="aaCheckoutNote" style="color:#64748b;font-size:12px;margin-top:10px;">Secure checkout via Stripe &middot; cancel anytime</div>
+                    <div class="dr2-rr" style="justify-content:center;">
+                        <span>Cancel anytime</span>
+                        <span>No long-term commitment</span>
+                        <span>Secure checkout via Stripe</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVE -->
+            <div id="aaActive" style="display:none;">
+                <div style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04));border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                    <div style="background:#10b981;color:#0b1220;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">✓</div>
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:12px;font-weight:700;color:#34d399;margin-bottom:2px;">Alerts Archive unlocked</div>
+                        <div style="font-size:11px;color:#cbd5e1;line-height:1.4;" id="aaBillingMeta">&euro;4.99 / month</div>
+                    </div>
+                    <button id="aaCancelBtn" onclick="aaCancel()" style="background:transparent;border:1px solid #475569;color:#cbd5e1;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">Cancel subscription</button>
+                </div>
+                <div class="dr2-card">
+                    <div class="dr2-sec-kick">Your archive access</div>
+                    <div class="dr2-grid dr2-g2">
+                        <a href="/alerts" target="_blank" class="dr2-check" style="text-decoration:none;cursor:pointer;"><span class="tick">→</span><span class="t"><b>Alerts hub</b> — recent daily pages &amp; monthly archives</span></a>
+                        <a href="/alerts/category/geopolitical" target="_blank" class="dr2-check" style="text-decoration:none;cursor:pointer;"><span class="tick">→</span><span class="t"><b>Category views</b> — geopolitical, infrastructure, supply-chain &amp; more</span></a>
+                    </div>
+                    <hr class="dr2-divider">
+                    <div class="dr2-sec-kick">Excel history download</div>
+                    <p style="color:#94a3b8;font-size:13px;line-height:1.6;margin-bottom:14px;">Download the alert history (up to 5,000 most recent alerts) as an Excel file — date, type, category, region, severity, headline and details.</p>
+                    <button id="aaDownloadBtn" onclick="aaDownloadExcel()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:13px 26px;border-radius:10px;cursor:pointer;font-weight:800;font-size:14px;">Download Alert History (.xlsx)</button>
+                    <div id="aaDownloadNote" style="color:#64748b;font-size:12px;margin-top:8px;"></div>
                 </div>
             </div>
         </div>
@@ -15037,6 +15111,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 loadEeriProData();
             } else if (sectionId === 'digest') {
                 drLoadStatus();
+            } else if (sectionId === 'alerts-access') {
+                aaLoadStatus();
             } else if (sectionId === 'egsi') {
                 loadEgsiDashboard();
             } else if (sectionId === 'tickets') {
@@ -16443,6 +16519,158 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             } catch (e) {}
         });
         /* ════════════════ End Daily Intelligence Report ════════════════ */
+
+        /* ════════════════ Alerts Archive Access — Account UI ════════════════ */
+        let aaState = { active:false, status:'' };
+
+        async function aaLoadStatus(_retry) {
+            const loader = document.getElementById('aaLoading');
+            const inactive = document.getElementById('aaInactive');
+            const active = document.getElementById('aaActive');
+            if (loader) loader.style.display = 'block';
+            if (inactive) inactive.style.display = 'none';
+            if (active) active.style.display = 'none';
+
+            const token = drGetAuthToken();
+            if (!token) {
+                const attempts = (_retry || 0) + 1;
+                if (attempts < 15) { setTimeout(() => aaLoadStatus(attempts), 200); return; }
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Please <a href="/users" style="color:#60a5fa;">sign in</a> to access the Alerts Archive.</div>';
+                return;
+            }
+            try {
+                const r = await fetch('/api/alerts-access/status', { headers:{ 'x-user-token': token }});
+                if (r.status === 401) {
+                    if (loader) loader.innerHTML = '<div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">Session expired — please <a href="/users" style="color:#60a5fa;">sign in again</a>.</div>';
+                    return;
+                }
+                const data = await r.json();
+                aaState.active = !!data.active;
+                aaState.status = data.status;
+                aaRenderShell(data);
+            } catch (e) {
+                console.error('aaLoadStatus', e);
+                if (loader) loader.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;font-size:13px;">Failed to load status. <button onclick="aaLoadStatus()" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;margin-left:8px;">Retry</button></div>';
+            }
+        }
+
+        function aaRenderShell(data) {
+            const loader = document.getElementById('aaLoading');
+            if (loader) loader.style.display = 'none';
+            const inactive = document.getElementById('aaInactive');
+            const active = document.getElementById('aaActive');
+            if (aaState.active) {
+                if (inactive) inactive.style.display = 'none';
+                if (active) active.style.display = 'block';
+                const meta = document.getElementById('aaBillingMeta');
+                if (meta) {
+                    if (data.status === 'canceling' && data.current_period_end) {
+                        const d = new Date(data.current_period_end);
+                        meta.textContent = 'Access until ' + d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) + ' · cancelling';
+                    } else {
+                        meta.textContent = '€4.99 / month';
+                    }
+                }
+                const cancelBtn = document.getElementById('aaCancelBtn');
+                if (cancelBtn) cancelBtn.style.display = (data.status === 'canceling') ? 'none' : '';
+            } else {
+                if (active) active.style.display = 'none';
+                if (inactive) inactive.style.display = 'block';
+            }
+        }
+
+        async function aaStartCheckout() {
+            const token = drGetAuthToken();
+            if (!token) { window.location.href = '/users'; return; }
+            const btn = document.getElementById('aaSubscribeBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Starting secure checkout…'; }
+            try {
+                const r = await fetch('/api/alerts-access/checkout', { method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json();
+                if (data.already_active) { aaLoadStatus(); return; }
+                if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                throw new Error('No checkout URL');
+            } catch (e) {
+                console.error('aaStartCheckout', e);
+                if (btn) { btn.disabled = false; btn.textContent = 'Unlock the Alerts Archive — €4.99/month'; }
+                alert('Unable to start checkout. Please try again.');
+            }
+        }
+
+        async function aaCancel() {
+            if (!confirm('Cancel your Alerts Archive subscription? You\u2019ll keep access until the end of the current billing period.')) return;
+            const token = drGetAuthToken();
+            if (!token) return;
+            try {
+                const r = await fetch('/api/alerts-access/cancel', { method:'POST', headers:{ 'x-user-token': token }});
+                if (r.ok) { aaLoadStatus(); }
+                else { alert('Unable to cancel right now. Please try again.'); }
+            } catch (e) { console.error('aaCancel', e); alert('Unable to cancel right now. Please try again.'); }
+        }
+
+        async function aaConfirmAfterCheckout(_attempt) {
+            const attempt = (_attempt || 0) + 1;
+            const token = drGetAuthToken();
+            if (!token) {
+                if (attempt < 15) { setTimeout(() => aaConfirmAfterCheckout(attempt), 300); return; }
+                aaLoadStatus();
+                return;
+            }
+            try {
+                const r = await fetch('/api/alerts-access/confirm', { method:'POST', headers:{ 'x-user-token': token }});
+                const data = await r.json().catch(() => ({}));
+                if (data && data.active) { aaLoadStatus(); return; }
+            } catch (e) { console.error('aaConfirmAfterCheckout', e); }
+            if (attempt < 8) { setTimeout(() => aaConfirmAfterCheckout(attempt), 1500); return; }
+            aaLoadStatus();
+        }
+
+        async function aaDownloadExcel() {
+            const token = drGetAuthToken();
+            if (!token) { window.location.href = '/users'; return; }
+            const btn = document.getElementById('aaDownloadBtn');
+            const note = document.getElementById('aaDownloadNote');
+            if (btn) { btn.disabled = true; btn.textContent = 'Preparing download…'; }
+            if (note) note.textContent = '';
+            try {
+                const r = await fetch('/api/alerts-access/history.xlsx', { headers:{ 'x-user-token': token }});
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const blob = await r.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'energyriskiq-alert-history.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+                if (note) note.textContent = 'Download started.';
+            } catch (e) {
+                console.error('aaDownloadExcel', e);
+                if (note) note.textContent = 'Download failed — please try again.';
+            }
+            if (btn) { btn.disabled = false; btn.textContent = 'Download Alert History (.xlsx)'; }
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            try {
+                const qp = new URLSearchParams(location.search);
+                if (qp.get('alerts_access') === 'active') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('alertsAccessNavItem');
+                        if (nav) nav.click();
+                        aaConfirmAfterCheckout();
+                    }, 300);
+                }
+                if (location.hash === '#alerts-access') {
+                    setTimeout(() => {
+                        const nav = document.getElementById('alertsAccessNavItem');
+                        if (nav) nav.click();
+                    }, 300);
+                }
+            } catch (e) {}
+        });
+        /* ════════════════ End Alerts Archive Access ════════════════ */
 
         /* ════════════════ GERI Live standalone subscription ════════════════ */
         let glStatusCache = null;

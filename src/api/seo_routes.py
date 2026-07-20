@@ -616,9 +616,132 @@ def render_cta_section(position: str = "mid") -> str:
         """
 
 
+def _alerts_access_user(request: Request):
+    """Resolve the X-User-Token header to a user with an active Alerts Archive
+    subscription (€4.99/mo). Returns None for anonymous / unsubscribed."""
+    try:
+        token = request.headers.get("x-user-token")
+        if not token:
+            return None
+        from src.api.alerts_access_routes import get_alerts_access_user
+        return get_alerts_access_user(token)
+    except Exception:
+        return None
+
+
+def render_gated_nav() -> str:
+    """Navigation bar for subscriber-only alerts pages (no free-access CTA)."""
+    return """
+    <nav class="nav">
+        <div class="container nav-inner">
+            <a href="/" class="logo">
+                <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
+                EnergyRiskIQ
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/alerts">Alerts</a>
+                <a href="/users/account">My Account</a>
+            </div>
+        </div>
+    </nav>
+    """
+
+
+GATED_ALERTS_HEADERS = {"Cache-Control": "private, no-store"}
+
+
+def _alerts_paywall_response(page_title: str) -> HTMLResponse:
+    """Locked shell served to anonymous visitors on gated alerts pages.
+    Page JS retries the same URL with the user's session token; if the user
+    is a subscriber the full page replaces the shell."""
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>{page_title} | EnergyRiskIQ</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    {get_common_styles()}
+    <style>
+        .aa-lock-wrap {{ max-width: 560px; margin: 60px auto; padding: 0 16px; text-align: center; }}
+        .aa-lock-card {{ background: #0f172a; border: 1px solid #1e293b; border-radius: 14px; padding: 40px 28px; }}
+        .aa-lock-icon {{ font-size: 40px; margin-bottom: 14px; }}
+        .aa-lock-card h1 {{ font-size: 1.5rem; margin-bottom: 10px; color: #f1f5f9; }}
+        .aa-lock-card p {{ color: #94a3b8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 10px; }}
+        .aa-price {{ font-size: 1.6rem; font-weight: 700; color: #38bdf8; margin: 14px 0 2px; }}
+        .aa-price small {{ font-size: 0.85rem; color: #64748b; font-weight: 400; }}
+        .aa-features {{ text-align: left; margin: 18px auto; max-width: 380px; color: #cbd5e1; font-size: 0.9rem; line-height: 2; list-style: none; padding: 0; }}
+        .aa-features li::before {{ content: "\\2713\\0020"; color: #34d399; font-weight: 700; }}
+        .aa-btn {{ display: inline-block; margin-top: 12px; background: #0284c7; color: #fff; padding: 12px 28px; border-radius: 8px; font-weight: 600; text-decoration: none; }}
+        .aa-btn:hover {{ background: #0369a1; }}
+        .aa-signin {{ margin-top: 14px; font-size: 0.85rem; color: #64748b; }}
+        .aa-signin a {{ color: #60a5fa; }}
+        #aa-checking {{ color: #64748b; font-size: 0.85rem; margin-top: 16px; }}
+    </style>
+</head>
+<body>
+    {render_gated_nav()}
+    <main>
+        <div class="aa-lock-wrap">
+            <div class="aa-lock-card">
+                <div class="aa-lock-icon">&#128274;</div>
+                <h1>Alerts Archive is a Premium Feature</h1>
+                <p>Full access to daily risk alert pages, monthly archives and category views is available to Alerts Archive subscribers.</p>
+                <div class="aa-price">&euro;4.99 <small>/ month</small></div>
+                <ul class="aa-features">
+                    <li>Every daily alerts page, past and future</li>
+                    <li>Monthly archives &amp; category views</li>
+                    <li>Download the full alert history as Excel</li>
+                    <li>Cancel anytime</li>
+                </ul>
+                <a class="aa-btn" href="/users/account#alerts-access">Subscribe in Your Account</a>
+                <div class="aa-signin">Already subscribed? <a href="/users">Sign in</a> and return to this page.</div>
+                <div id="aa-checking" style="display:none;">Checking your access&hellip;</div>
+                <!-- AA_PAYWALL_SHELL -->
+            </div>
+        </div>
+    </main>
+    {render_footer()}
+    <script>
+    (function() {{
+        var token = null;
+        try {{
+            var s = localStorage.getItem('userSession');
+            if (s) {{
+                var d = JSON.parse(s);
+                if (d && d.token && (!d.expires || d.expires > Date.now())) token = d.token;
+            }}
+        }} catch (e) {{}}
+        if (!token) return;
+        var el = document.getElementById('aa-checking');
+        if (el) el.style.display = 'block';
+        fetch(window.location.pathname + window.location.search, {{
+            headers: {{ 'x-user-token': token }},
+            cache: 'no-store'
+        }}).then(function(r) {{
+            if (!r.ok) {{ if (el) el.style.display = 'none'; return null; }}
+            return r.text();
+        }}).then(function(html) {{
+            if (!html) return;
+            if (html.indexOf('AA_PAYWALL_SHELL') !== -1) {{ if (el) el.style.display = 'none'; return; }}
+            document.open();
+            document.write(html);
+            document.close();
+        }}).catch(function() {{ if (el) el.style.display = 'none'; }});
+    }})();
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
+
+
 @router.get("/alerts", response_class=HTMLResponse)
-async def alerts_hub():
-    """Alerts hub page - main entry point for SEO traffic."""
+async def alerts_hub(request: Request):
+    """Alerts hub page — subscriber-only (Alerts Archive, €4.99/mo)."""
+    if not _alerts_access_user(request):
+        return _alerts_paywall_response("Geopolitical & Energy Risk Alerts Archive")
     track_page_view("hub", "/alerts")
     
     recent_pages = get_recent_daily_pages(limit=30)
@@ -674,8 +797,7 @@ async def alerts_hub():
      crossorigin="anonymous"></script>
 </head>
     <body>
-        {render_nav()}
-        {render_cta_section("top")}
+        {render_gated_nav()}
         <main>
             <div class="container">
                 <div class="breadcrumbs">
@@ -688,8 +810,6 @@ async def alerts_hub():
                 <ul class="page-list">
                     {pages_html if pages_html else '<li>No daily pages generated yet.</li>'}
                 </ul>
-                
-                {render_cta_section("mid")}
                 
                 <h2>Monthly Archives</h2>
                 <ul class="page-list">
@@ -706,7 +826,7 @@ async def alerts_hub():
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/alerts/region/{region_slug}", response_class=HTMLResponse)
@@ -985,11 +1105,12 @@ async def regional_daily_alerts_page(region_slug: str, date_str: str, request: R
 
 
 @router.get("/alerts/category/{category_slug}", response_class=HTMLResponse)
-async def alerts_by_category(category_slug: str):
+async def alerts_by_category(category_slug: str, request: Request):
     """
-    Category-specific alerts page. Currently shows info page with links.
-    In future, could filter alerts by category.
+    Category-specific alerts page — subscriber-only (Alerts Archive, €4.99/mo).
     """
+    if not _alerts_access_user(request):
+        return _alerts_paywall_response("Category Risk Alerts")
     # Map slug back to display name
     category_display_map = {
         'geopolitical': 'Geopolitical',
@@ -1033,8 +1154,7 @@ async def alerts_by_category(category_slug: str):
      crossorigin="anonymous"></script>
 </head>
 <body>
-    {render_nav()}
-    {render_cta_section("top")}
+    {render_gated_nav()}
     <main>
         <div class="container">
             <div class="breadcrumbs">
@@ -1049,8 +1169,6 @@ async def alerts_by_category(category_slug: str):
                 {pages_html if pages_html else '<li>No daily pages generated yet.</li>'}
             </ul>
             
-            {render_cta_section("mid")}
-            
             <p><a href="/alerts">&larr; Back to All Alerts</a></p>
             
             <div class="disclaimer">
@@ -1063,14 +1181,14 @@ async def alerts_by_category(category_slug: str):
 </html>
 """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=3600"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/alerts/daily/{date_str}", response_class=HTMLResponse)
 async def daily_alerts_page(date_str: str, request: Request):
-    """Daily alerts page for a specific date."""
-    # Anti-scraping protection: allow search engines, block scrapers
-    await apply_anti_scraping(request)
+    """Daily alerts page — subscriber-only (Alerts Archive, €4.99/mo)."""
+    if not _alerts_access_user(request):
+        return _alerts_paywall_response("Daily Risk Alerts")
     
     try:
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -1309,18 +1427,19 @@ async def daily_alerts_page(date_str: str, request: Request):
     </html>
     """
     
-    # Anti-scrape headers: allow indexing but discourage archiving/extraction
     headers = {
-        "Cache-Control": "public, max-age=86400",
-        "X-Robots-Tag": "index, follow, noarchive",
+        "Cache-Control": "private, no-store",
+        "X-Robots-Tag": "noindex, nofollow, noarchive",
         "X-Content-Type-Options": "nosniff",
     }
     return HTMLResponse(content=html, headers=headers)
 
 
 @router.get("/alerts/{year}/{month}", response_class=HTMLResponse)
-async def monthly_archive_page(year: int, month: int):
-    """Monthly archive page."""
+async def monthly_archive_page(year: int, month: int, request: Request):
+    """Monthly archive page — subscriber-only (Alerts Archive, €4.99/mo)."""
+    if not _alerts_access_user(request):
+        return _alerts_paywall_response("Monthly Risk Alerts Archive")
     if month < 1 or month > 12 or year < 2020 or year > 2030:
         raise HTTPException(status_code=404, detail="Invalid month/year")
     
@@ -1375,8 +1494,7 @@ async def monthly_archive_page(year: int, month: int):
      crossorigin="anonymous"></script>
 </head>
     <body>
-        {render_nav()}
-        {render_cta_section("top")}
+        {render_gated_nav()}
         <main>
             <div class="container">
                 <div class="breadcrumbs">
@@ -1392,8 +1510,6 @@ async def monthly_archive_page(year: int, month: int):
                     {pages_html if pages_html else '<li>No daily pages for this month.</li>'}
                 </ul>
                 
-                {render_cta_section("mid")}
-                
                 <div class="disclaimer">
                     <strong>Disclaimer:</strong> This information is provided for general informational purposes only and does not constitute financial, investment, or trading advice.
                 </div>
@@ -1404,7 +1520,7 @@ async def monthly_archive_page(year: int, month: int):
     </html>
     """
     
-    return HTMLResponse(content=html, headers={"Cache-Control": "public, max-age=86400"})
+    return HTMLResponse(content=html, headers=GATED_ALERTS_HEADERS)
 
 
 @router.get("/robots.txt", response_class=PlainTextResponse)
@@ -1548,7 +1664,6 @@ async def sitemap_index_xml():
 
     sitemaps = [
         ('sitemap-core.xml', today),
-        ('sitemap-alerts.xml', today),
         ('sitemap-indices.xml', today),
         ('sitemap-digest.xml', today),
         ('sitemap-data.xml', today),
@@ -1665,7 +1780,6 @@ async def sitemap_xml():
 
     sitemaps = [
         ('sitemap-core.xml',     today),
-        ('sitemap-alerts.xml',   today),
         ('sitemap-indices.xml',  today),
         ('sitemap-digest.xml',   today),
         ('sitemap-research.xml', today),

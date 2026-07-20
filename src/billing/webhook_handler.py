@@ -113,6 +113,11 @@ async def handle_checkout_session_completed(session: dict):
         handle_daily_report_checkout_completed(session)
         return
 
+    if session.get("metadata", {}).get("type") == "alerts_access":
+        from src.api.alerts_access_routes import handle_alerts_access_checkout_completed
+        handle_alerts_access_checkout_completed(session)
+        return
+
     subscription_id = session.get("subscription")
     
     if subscription_id:
@@ -187,6 +192,13 @@ async def handle_subscription_updated(subscription: dict):
             return
     except Exception as e:
         logger.error(f"GERI Live subscription event handler error: {e}")
+
+    try:
+        from src.api.alerts_access_routes import handle_alerts_access_subscription_event
+        if handle_alerts_access_subscription_event(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Alerts access subscription event handler error: {e}")
 
     try:
         from src.api.brent_forecast_routes import handle_brent_forecast_subscription_event
@@ -269,6 +281,13 @@ async def handle_subscription_deleted(subscription: dict):
         logger.error(f"GERI Live subscription deleted handler error: {e}")
 
     try:
+        from src.api.alerts_access_routes import handle_alerts_access_subscription_deleted
+        if handle_alerts_access_subscription_deleted(subscription):
+            return
+    except Exception as e:
+        logger.error(f"Alerts access subscription deleted handler error: {e}")
+
+    try:
         from src.api.brent_forecast_routes import handle_brent_forecast_subscription_deleted
         if handle_brent_forecast_subscription_deleted(subscription):
             return
@@ -332,6 +351,13 @@ async def handle_invoice_paid(invoice: dict):
             )
             if _cur.fetchone():
                 logger.info(f"invoice.paid {invoice['id']} is for a GERI Live subscription — skipping main user_plans logic")
+                return
+            _cur.execute(
+                "SELECT 1 FROM user_alerts_access_subs WHERE stripe_subscription_id = %s",
+                (subscription_id,)
+            )
+            if _cur.fetchone():
+                logger.info(f"invoice.paid {invoice['id']} is for an alerts-access subscription — skipping main user_plans logic")
                 return
         from src.api.brent_forecast_routes import handle_brent_forecast_invoice_paid
         if handle_brent_forecast_invoice_paid(invoice):
@@ -400,6 +426,13 @@ async def handle_invoice_payment_failed(invoice: dict):
                 )
                 if _cur.fetchone():
                     logger.info(f"invoice.payment_failed {invoice['id']} is for a GERI Live subscription — skipping main user_plans logic")
+                    return
+                _cur.execute(
+                    "SELECT 1 FROM user_alerts_access_subs WHERE stripe_subscription_id = %s",
+                    (subscription_id,)
+                )
+                if _cur.fetchone():
+                    logger.info(f"invoice.payment_failed {invoice['id']} is for an alerts-access subscription — skipping main user_plans logic")
                     return
             from src.api.brent_forecast_routes import handle_brent_forecast_invoice_failed
             if handle_brent_forecast_invoice_failed(invoice):
