@@ -14,5 +14,6 @@
 - [Blog new-article newsletter](blog-article-newsletter.md) — publish auto-sends excerpt email once; gated by blog_users.newsletter_auto_send, guarded by blog_posts.newsletter_sent_at; fires from all 3 publish endpoints via BackgroundTasks.
 - [Anonymous checkout webhook order](stripe-anonymous-checkout-webhook.md) — sub-products with anonymous Stripe checkout must be dispatched before the user_id early-return in the checkout webhook chain.
 - [E2E tests vs workflow restarts](e2e-test-server-restarts.md) — file edits during a Playwright run restart the server (~45s boot), causing false UI failures; check restart timestamps + DB before debugging.
+- [GH ops workflow silent failures](gh-ops-workflow-failures.md) — 0-1s curl step durations = calls never ran; most steps fake-success; backfill via /internal/run with local token.
 - [EUR/USD data source](eurusd-source.md) — OANDA retired; now FRED DEXUSEU primary + Yahoo EURUSD=X fallback; FRED lags ~2-4d so Yahoo fills fresh daily, FRED is authoritative for backfill.
 - [Bundled bonus entitlements](bundled-bonus-entitlements.md) — bonus features unlocked by a parent sub must derive access live (own_active OR parent_active) at every gate; never copy flags.
