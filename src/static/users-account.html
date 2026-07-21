@@ -5222,6 +5222,15 @@
             font-size: 12px;
             margin-left: auto;
         }
+        .geri-live-updated-time {
+            color: #94a3b8;
+            font-variant-numeric: tabular-nums;
+        }
+        .geri-live-updated-time::before {
+            content: '·';
+            color: #475569;
+            margin: 0 6px;
+        }
 
         .geri-live-yesterday-compare {
             display: flex;
@@ -7070,7 +7079,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                 <span id="geriLiveAlertNum">0</span> alerts today
                             </div>
                             <div class="geri-live-updated" id="geriLiveUpdated">
-                                Updated <span id="geriLiveUpdatedAgo">--</span>
+                                Updated <span id="geriLiveUpdatedAgo">--</span><span class="geri-live-updated-time" id="geriLiveUpdatedTime"></span>
                             </div>
                         </div>
 
@@ -18222,6 +18231,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             document.getElementById('geriLiveAlertNum').textContent = data.alert_count || 0;
 
             geriLiveLastUpdated = new Date();
+            var tsEl = document.getElementById('geriLiveUpdatedTime');
+            if (tsEl) {
+                tsEl.textContent = geriLiveLastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
             startGeriLiveTimer();
 
             var anchorVal = data.anchor_value !== undefined && data.anchor_value !== null ? data.anchor_value : data.yesterday_value;
