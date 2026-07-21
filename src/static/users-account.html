@@ -5222,14 +5222,11 @@
             font-size: 12px;
             margin-left: auto;
         }
-        .geri-live-updated-time {
+        .geri-live-clock {
             color: #94a3b8;
+            font-size: 12px;
             font-variant-numeric: tabular-nums;
-        }
-        .geri-live-updated-time::before {
-            content: '·';
-            color: #475569;
-            margin: 0 6px;
+            margin-left: 14px;
         }
 
         .geri-live-yesterday-compare {
@@ -7078,8 +7075,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                 <span class="geri-live-alert-icon">⚡</span>
                                 <span id="geriLiveAlertNum">0</span> alerts today
                             </div>
+                            <div class="geri-live-clock" id="geriLiveClock"></div>
                             <div class="geri-live-updated" id="geriLiveUpdated">
-                                Updated <span id="geriLiveUpdatedAgo">--</span><span class="geri-live-updated-time" id="geriLiveUpdatedTime"></span>
+                                Updated <span id="geriLiveUpdatedAgo">--</span>
                             </div>
                         </div>
 
@@ -18231,10 +18229,6 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             document.getElementById('geriLiveAlertNum').textContent = data.alert_count || 0;
 
             geriLiveLastUpdated = new Date();
-            var tsEl = document.getElementById('geriLiveUpdatedTime');
-            if (tsEl) {
-                tsEl.textContent = geriLiveLastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
             startGeriLiveTimer();
 
             var anchorVal = data.anchor_value !== undefined && data.anchor_value !== null ? data.anchor_value : data.yesterday_value;
@@ -18286,6 +18280,13 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         function startGeriLiveTimer() {
             if (geriLiveTimerInterval) clearInterval(geriLiveTimerInterval);
             geriLiveTimerInterval = setInterval(function() {
+                var clockEl = document.getElementById('geriLiveClock');
+                if (clockEl) {
+                    var now = new Date();
+                    var datePart = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                    var timePart = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                    clockEl.textContent = datePart + ' | ' + timePart;
+                }
                 if (!geriLiveLastUpdated) return;
                 var secs = Math.floor((Date.now() - geriLiveLastUpdated.getTime()) / 1000);
                 var el = document.getElementById('geriLiveUpdatedAgo');
