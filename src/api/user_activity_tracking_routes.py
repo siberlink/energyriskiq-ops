@@ -157,6 +157,24 @@ def _client_ip(request: Request) -> str:
     return ""
 
 
+# Users whose activity is never recorded and never shown in admin views.
+EXCLUDED_ACTIVITY_EMAILS = {
+    "emilconstantin22@gmail.com",
+    "promptvaulthub@gmail.com",
+}
+
+# SQL fragment appended to admin read queries so any historical rows from
+# excluded users stay hidden as well.
+_EXCL_SQL = (
+    "COALESCE(LOWER(email),'') NOT IN "
+    "('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
+)
+
+
+def _is_excluded_email(email: Optional[str]) -> bool:
+    return bool(email) and email.strip().lower() in EXCLUDED_ACTIVITY_EMAILS
+
+
 def _resolve_user(token: Optional[str]):
     """Return (user_id, email) for a live session token, else (None, None)."""
     if not token:
@@ -193,6 +211,8 @@ def record_activity_event(
     session_token: Optional[str] = None,
 ):
     """Insert one activity event. Never raises (best-effort)."""
+    if _is_excluded_email(email):
+        return
     ua = ""
     ip = ""
     referrer = ""
@@ -236,6 +256,8 @@ def _persist_events(token, events, ua, ip):
     user_id, email = _resolve_user(token)
     if not user_id:
         # Only attributed (authenticated) behavior is tracked.
+        return
+    if _is_excluded_email(email):
         return
 
     device = _parse_device(ua)
@@ -362,37 +384,38 @@ def admin_activity_overview(x_admin_token: Optional[str] = Header(None)):
                 SELECT COUNT(DISTINCT user_id) AS n
                 FROM user_activity_events
                 WHERE created_at > NOW() - INTERVAL '{_ACTIVE_WINDOW_MINUTES} minutes'
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 """
             )
             active_now = cur.fetchone()["n"] or 0
 
             cur.execute(
                 "SELECT COUNT(DISTINCT user_id) AS n FROM user_activity_events "
-                "WHERE created_at::date = NOW()::date"
+                "WHERE created_at::date = NOW()::date AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
             )
             active_today = cur.fetchone()["n"] or 0
 
             cur.execute(
                 "SELECT COUNT(*) AS n FROM user_activity_events "
-                "WHERE event_type='login' AND created_at::date = NOW()::date"
+                "WHERE event_type='login' AND created_at::date = NOW()::date AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
             )
             logins_today = cur.fetchone()["n"] or 0
 
             cur.execute(
                 "SELECT COUNT(*) AS n FROM user_activity_events "
-                "WHERE event_type='login' AND created_at > NOW() - INTERVAL '7 days'"
+                "WHERE event_type='login' AND created_at > NOW() - INTERVAL '7 days' AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
             )
             logins_7d = cur.fetchone()["n"] or 0
 
             cur.execute(
                 "SELECT COUNT(*) AS n FROM user_activity_events "
-                "WHERE event_type='page_view' AND created_at::date = NOW()::date"
+                "WHERE event_type='page_view' AND created_at::date = NOW()::date AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
             )
             page_views_today = cur.fetchone()["n"] or 0
 
             cur.execute(
                 "SELECT COALESCE(SUM(duration_ms),0) AS ms FROM user_activity_events "
-                "WHERE event_type='page_time' AND created_at::date = NOW()::date"
+                "WHERE event_type='page_time' AND created_at::date = NOW()::date AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
             )
             engaged_ms_today = int(cur.fetchone()["ms"] or 0)
 
@@ -406,6 +429,7 @@ def admin_activity_overview(x_admin_token: Optional[str] = Header(None)):
                     SELECT user_id, COUNT(*) AS logins
                     FROM user_activity_events
                     WHERE event_type='login' AND user_id IS NOT NULL
+                      AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                     GROUP BY user_id
                 ) t
                 """
@@ -419,6 +443,7 @@ def admin_activity_overview(x_admin_token: Optional[str] = Header(None)):
                 SELECT COALESCE(device,'Unknown') AS device, COUNT(*) AS n
                 FROM user_activity_events
                 WHERE created_at > NOW() - INTERVAL '30 days'
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY device ORDER BY n DESC
                 """
             )
@@ -429,6 +454,7 @@ def admin_activity_overview(x_admin_token: Optional[str] = Header(None)):
                 SELECT COALESCE(browser,'Unknown') AS browser, COUNT(*) AS n
                 FROM user_activity_events
                 WHERE created_at > NOW() - INTERVAL '30 days'
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY browser ORDER BY n DESC
                 """
             )
@@ -466,6 +492,7 @@ def admin_activity_live(
                 SELECT id, user_id, email, event_type, page_path, section,
                        duration_ms, device, browser, created_at
                 FROM user_activity_events
+                WHERE COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 ORDER BY id DESC
                 LIMIT %s
                 """,
@@ -504,6 +531,7 @@ def admin_activity_logins(x_admin_token: Optional[str] = Header(None)):
                        MAX(created_at) AS last_login
                 FROM user_activity_events
                 WHERE event_type='login' AND user_id IS NOT NULL
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY user_id
                 ORDER BY login_count DESC, last_login DESC
                 LIMIT 50
@@ -542,6 +570,7 @@ def admin_activity_pages(
                 FROM user_activity_events
                 WHERE event_type='page_view' AND page_path IS NOT NULL
                   AND created_at >= %s AND created_at < %s
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY page_path ORDER BY views DESC LIMIT 20
                 """,
                 rng,
@@ -557,6 +586,7 @@ def admin_activity_pages(
                 WHERE event_type='page_time' AND duration_ms IS NOT NULL
                   AND page_path IS NOT NULL
                   AND created_at >= %s AND created_at < %s
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY page_path ORDER BY avg_ms DESC LIMIT 20
                 """,
                 rng,
@@ -578,6 +608,7 @@ def admin_activity_pages(
                 FROM user_activity_events
                 WHERE event_type='section_view' AND section IS NOT NULL
                   AND created_at >= %s AND created_at < %s
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY section ORDER BY opens DESC LIMIT 30
                 """,
                 rng,
@@ -597,6 +628,7 @@ def admin_activity_pages(
                 FROM user_activity_events
                 WHERE event_type='cta_click'
                   AND created_at >= %s AND created_at < %s
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY label ORDER BY clicks DESC LIMIT 20
                 """,
                 rng,
@@ -626,7 +658,7 @@ def admin_activity_users(
     limit = max(1, min(limit, 200))
     start, end = _date_bounds(date_from, date_to)
     params = [start, end]
-    where = "WHERE user_id IS NOT NULL AND created_at >= %s AND created_at < %s"
+    where = "WHERE user_id IS NOT NULL AND created_at >= %s AND created_at < %s AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')"
     if search:
         where += " AND LOWER(email) LIKE %s"
         params.append(f"%{search.lower()}%")
@@ -687,6 +719,7 @@ def admin_activity_user_detail(
                        MAX(created_at) AS last_seen
                 FROM user_activity_events
                 WHERE user_id = %s
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 """,
                 (user_id,),
             )
@@ -698,6 +731,7 @@ def admin_activity_user_detail(
                        ROUND(AVG(NULLIF(duration_ms,0))) AS avg_ms
                 FROM user_activity_events
                 WHERE user_id = %s AND event_type='section_view' AND section IS NOT NULL
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 GROUP BY section ORDER BY opens DESC LIMIT 30
                 """,
                 (user_id,),
@@ -714,7 +748,7 @@ def admin_activity_user_detail(
             cur.execute(
                 """
                 SELECT created_at FROM user_activity_events
-                WHERE user_id = %s AND event_type='login'
+                WHERE user_id = %s AND event_type='login' AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 ORDER BY created_at DESC LIMIT 20
                 """,
                 (user_id,),
@@ -728,7 +762,7 @@ def admin_activity_user_detail(
                 SELECT event_type, page_path, section, duration_ms,
                        device, browser, created_at
                 FROM user_activity_events
-                WHERE user_id = %s
+                WHERE user_id = %s AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 ORDER BY id DESC LIMIT 100
                 """,
                 (user_id,),
@@ -784,6 +818,7 @@ def admin_activity_export_csv(
                        section, duration_ms, device, browser, referrer
                 FROM user_activity_events
                 WHERE created_at >= %s AND created_at < %s
+                  AND COALESCE(LOWER(email),'') NOT IN ('emilconstantin22@gmail.com','promptvaulthub@gmail.com')
                 ORDER BY id DESC
                 LIMIT %s
                 """,
