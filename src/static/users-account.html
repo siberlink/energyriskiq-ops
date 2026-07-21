@@ -18292,7 +18292,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 if (!el) return;
                 if (secs < 5) el.textContent = 'just now';
                 else if (secs < 60) el.textContent = secs + 's ago';
-                else el.textContent = Math.floor(secs / 60) + 'm ago';
+                else if (secs < 3600) el.textContent = Math.floor(secs / 60) + 'm ' + (secs % 60) + 's ago';
+                else el.textContent = Math.floor(secs / 3600) + 'h ' + Math.floor((secs % 3600) / 60) + 'm ago';
             }, 1000);
         }
 
