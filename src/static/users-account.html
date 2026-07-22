@@ -7140,7 +7140,7 @@
                     </div>
 
                     <!-- Step 5 -->
-                    <div class="routine-step" onclick="showSection('geri-live'); setTimeout(function(){ var el=document.getElementById('glBrentEngineSection'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }, 420);">
+                    <div class="routine-step" onclick="goToBrentEngine();">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s5">5</div>
                         </div>
@@ -19897,6 +19897,28 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         }
 
         /* ════ Brent Intelligence Forecast Engine™ (GERI Live Embedded) ════ */
+
+        function goToBrentEngine() {
+            showSection('geri-live');
+            var attempts = 0;
+            var maxAttempts = 60; // 6 seconds at 100ms intervals
+            var poll = setInterval(function() {
+                attempts++;
+                var el = document.getElementById('glBrentEngineSection');
+                // Element is visible when it has an offsetParent (not hidden by display:none)
+                if (el && el.offsetParent !== null) {
+                    clearInterval(poll);
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // Also handle the case where the user is not subscribed:
+                // glPaywall becomes visible instead — stop polling so we don't loop forever
+                var paywall = document.getElementById('glPaywall');
+                if (attempts >= maxAttempts || (paywall && paywall.style.display !== 'none')) {
+                    clearInterval(poll);
+                }
+            }, 100);
+        }
+
         var glBrentMarketData   = null;
         var glBrentCurrentResult = null;
         var glBrentCompareRows  = [];
