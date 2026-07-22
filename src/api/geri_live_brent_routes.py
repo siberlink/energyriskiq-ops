@@ -4,6 +4,10 @@ GERI Live — Brent Intelligence Forecast Engine bridge.
 Accepts x-user-token (main user session) and enforces GERI Live entitlement,
 then calls the same internal scenario engine used by the standalone
 Brent Intelligence Scenario Engine (brent_forecast_routes.py).
+
+The /market endpoint is intentionally unauthenticated — it returns the same
+public market snapshot as /api/brent-forecast/market so the embedded
+engine can load market data without requiring a separate auth check.
 """
 import logging
 from datetime import datetime
@@ -21,6 +25,11 @@ from src.api.brent_forecast_routes import (
     _market_regime,
     _what_to_watch,
     _scenario_risk_line,
+    _scenario_summary,
+    _driver_details,
+    _confidence_reasons,
+    _main_driver,
+    _DRIVER_NAMES,
     _SUPPLY_SHOCKS,
     _DEMAND,
     _clamp,
@@ -40,8 +49,8 @@ def _require_geri_live(token: Optional[str]):
 
 
 @router.get("/api/geri-live/brent-engine/market")
-async def geri_live_brent_market(x_user_token: Optional[str] = Header(None)):
-    _require_geri_live(x_user_token)
+async def geri_live_brent_market():
+    """Public market snapshot — same data as /api/brent-forecast/market."""
     try:
         snap = _market_snapshot()
         return {"success": True, "market": snap}
@@ -64,34 +73,36 @@ async def geri_live_brent_scenario(
     body: BrentScenarioRequest,
     x_user_token: Optional[str] = Header(None),
 ):
+    """
+    Runs the full advanced scenario analysis — identical output to
+    /api/brent-forecast/scenario/advanced — gated by GERI Live entitlement.
+    """
     _require_geri_live(x_user_token)
+
     snap = _market_snapshot()
     brent = (
         body.brent if body.brent and 10 < body.brent < 300
         else (snap.get("brent_intraday") or snap.get("brent", 75.0))
     )
     geri_pct = _clamp(body.geri_change_pct, -50, 100)
-    vix_pct = _clamp(body.vix_change_pct, -50, 100)
-    gas_pct = _clamp(body.gas_stress_pct, -50, 100)
-    supply = body.supply_scenario if body.supply_scenario in _SUPPLY_SHOCKS else "normal"
-    demand = body.demand_outlook if body.demand_outlook in _DEMAND else "neutral"
+    vix_pct  = _clamp(body.vix_change_pct, -50, 100)
+    gas_pct  = _clamp(body.gas_stress_pct, -50, 100)
+    supply   = body.supply_scenario if body.supply_scenario in _SUPPLY_SHOCKS else "normal"
+    demand   = body.demand_outlook if body.demand_outlook in _DEMAND else "neutral"
 
     horizons, attribution, total_pct = _compute_scenario(
         brent, geri_pct, vix_pct, gas_pct, supply, demand
     )
+
     bias = "bullish" if total_pct > 1.5 else "bearish" if total_pct < -1.5 else "neutral"
 
     drivers = []
     if abs(attribution["geri"]) > 0.5:
-        drivers.append(
-            ("Rising" if attribution["geri"] > 0 else "Falling") + " geopolitical risk (GERI)"
-        )
+        drivers.append(("Rising" if attribution["geri"] > 0 else "Falling") + " geopolitical risk (GERI)")
     if abs(attribution["supply"]) > 0.5:
-        drivers.append("Supply disruption: " + supply.replace("_", " ").title())
+        drivers.append("Supply disruption scenario: " + supply.replace("_", " ").title())
     if abs(attribution["gas_stress"]) > 0.5:
-        drivers.append(
-            ("Elevated" if attribution["gas_stress"] > 0 else "Easing") + " European gas stress"
-        )
+        drivers.append(("Elevated" if attribution["gas_stress"] > 0 else "Easing") + " European gas stress")
     if abs(attribution["vix"]) > 0.5:
         drivers.append(
             "Market fear adding a volatility premium"
@@ -103,32 +114,56 @@ async def geri_live_brent_scenario(
     if not drivers:
         drivers.append("Conditions broadly unchanged from current market")
 
-    interp_lines = [
-        f"The model expects Brent to hold a {bias} tone across the selected horizons.",
-        ("Primary support comes from: " if total_pct >= 0 else "Primary pressure comes from: ")
-        + "; ".join(drivers) + ".",
-        (
+    interpretation = (
+        f"The model expects Brent to hold a {bias} tone across the selected horizons. "
+        + ("Primary support comes from: " if total_pct >= 0 else "Primary pressure comes from: ")
+        + "; ".join(drivers) + ". "
+        + (
             "Market fear remains moderate, partially offsetting the geopolitical premium."
             if attribution["vix"] < 0 and attribution["geri"] > 0
             else "Volatility and risk signals are aligned, reinforcing the projected move."
             if (attribution["vix"] >= 0) == (attribution["geri"] >= 0)
             else "Cross-currents between risk drivers moderate the projected move."
-        ),
-    ]
+        )
+    )
+
+    regional = {
+        "Europe": snap.get("eeri_band", "unknown"),
+        "Middle East": "high" if (geri_pct > 20 or supply in ("hormuz", "pipeline_attack"))
+                       else (snap.get("geri_live_band") or snap.get("geri_band", "unknown")),
+        "Asia LNG": snap.get("egsi_s_band", snap.get("egsi_m_band", "unknown")),
+        "North America": "low" if snap.get("vix", 18) < 22 else "moderate",
+    }
 
     scenario_shift = geri_pct + _SUPPLY_SHOCKS.get(supply, 0) * 2
+    summary = _scenario_summary(geri_pct, vix_pct, gas_pct, supply, demand, attribution, total_pct)
+
+    main, _off = _main_driver(attribution)
+    main_reason = _DRIVER_NAMES.get(main[0]) if main else "Conditions broadly unchanged"
+    for hz in horizons.values():
+        hz["main_reason"] = main_reason
 
     return {
         "success": True,
         "brent": round(brent, 2),
         "horizons": horizons,
         "attribution": attribution,
-        "interpretation_lines": interp_lines,
+        "interpretation": interpretation,
+        "scenario_summary": summary,
         "what_to_watch": _what_to_watch(snap, supply, total_pct),
         "scenario_risk": _scenario_risk_line(snap, total_pct, bias),
+        "driver_details": _driver_details(snap, attribution, geri_pct, vix_pct, gas_pct, supply, demand),
         "market_regime": _market_regime(snap),
         "analogs": _match_analogs(scenario_shift),
         "risk_score": _risk_score(snap, geri_pct, gas_pct, supply, demand),
+        "regional_risk": regional,
+        "confidence_reasons": _confidence_reasons(geri_pct, vix_pct, extra_drivers=True),
+        "intelligence": {
+            "geri_live": snap.get("geri_live"),
+            "geri_live_band": snap.get("geri_live_band"),
+            "alerts_processed": snap.get("geri_live_alerts"),
+            "as_of": snap.get("geri_live_at"),
+        },
         "market": snap,
         "as_of": datetime.utcnow().strftime("%d %B %Y, %H:%M UTC"),
     }

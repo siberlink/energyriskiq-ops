@@ -5391,26 +5391,21 @@
             font-size: 13px;
             color: #64748b;
         }
-        .gl-brent-market-strip {
+        /* ── Market snapshot grid ── */
+        .gl-brent-snap-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-bottom: 22px;
         }
-        .gl-brent-market-card {
+        .gl-brent-snap-card {
             background: #0f172a;
             border: 1px solid #1e293b;
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 12px;
         }
-        .gl-brent-regime-card {
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 10px 12px;
-            grid-column: span 2;
-        }
-        .gl-brent-market-label {
+        .gl-brent-snap-card.regime { grid-column: span 2; }
+        .gl-brent-snap-label {
             font-size: 11px;
             color: #64748b;
             font-weight: 600;
@@ -5418,25 +5413,98 @@
             letter-spacing: 0.5px;
             margin-bottom: 6px;
         }
-        .gl-brent-market-value {
-            font-size: 20px;
+        .gl-brent-snap-val {
+            font-size: 18px;
             font-weight: 700;
             color: #e2e8f0;
             margin-bottom: 3px;
         }
-        .gl-brent-market-change, .gl-brent-market-sub, .gl-brent-market-band {
-            font-size: 12px;
-            color: #64748b;
+        .gl-brent-snap-sub { font-size: 11px; color: #64748b; }
+        .gl-brent-band-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
         }
-        .gl-brent-market-change.pos { color: #22c55e; }
-        .gl-brent-market-change.neg { color: #ef4444; }
-        .gl-brent-regime-label {
+        .band-low     { background: rgba(34,197,94,0.15);  color: #22c55e; }
+        .band-moderate{ background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .band-elevated{ background: rgba(239,68,68,0.15);  color: #ef4444; }
+        .band-high    { background: rgba(239,68,68,0.25);  color: #fca5a5; }
+        .band-unknown { background: rgba(100,116,139,0.15);color: #64748b; }
+        /* ── Tabs ── */
+        .gl-brent-results-col { display: flex; flex-direction: column; min-width: 0; }
+        .gl-brent-tab-bar {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #2d3f55;
+            margin-bottom: 16px;
+        }
+        .gl-brent-tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #64748b;
             font-size: 13px;
             font-weight: 600;
-            color: #94a3b8;
-            line-height: 1.4;
+            padding: 8px 14px;
+            cursor: pointer;
+            margin-bottom: -1px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .gl-brent-tab-btn:hover { color: #94a3b8; }
+        .gl-brent-tab-btn.active { color: #e2e8f0; border-bottom-color: #3b82f6; }
+        .gl-brent-tab-pane { display: none; }
+        .gl-brent-tab-pane.active { display: block; }
+        /* ── Regional risk ── */
+        .gl-brent-reg-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
             margin-top: 4px;
         }
+        .gl-brent-reg-card {
+            background: #1e293b;
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .gl-brent-reg-card span:last-child { font-weight: 700; color: #f59e0b; text-transform: capitalize; }
+        /* ── Analog items ── */
+        .gl-brent-analog-item {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .gl-brent-analog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .gl-brent-analog-title  { font-size: 14px; font-weight: 700; color: #e2e8f0; }
+        .gl-brent-analog-meta   { font-size: 12px; font-weight: 700; color: #f59e0b; }
+        .gl-brent-analog-stats  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        .gl-brent-analog-stat   { background: #0f172a; border-radius: 6px; padding: 7px 10px; }
+        .gl-brent-as-label { font-size: 10px; color: #64748b; margin-bottom: 3px; }
+        .gl-brent-as-val   { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+        .gl-brent-as-val.up   { color: #22c55e; }
+        .gl-brent-as-val.down { color: #ef4444; }
+        .gl-brent-analog-desc { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 8px; }
+        .gl-brent-analog-compare-box {
+            display: none;
+            background: #0f172a;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.8;
+            margin-top: 8px;
+        }
+        .gl-brent-horizon-reason { font-size: 11px; color: #64748b; margin-top: 4px; }
         .gl-brent-engine-body {
             display: grid;
             grid-template-columns: 380px 1fr;
@@ -5772,13 +5840,13 @@
         .gl-brent-empty-sub { font-size: 13px; }
         @media (max-width: 1100px) {
             .gl-brent-engine-body { grid-template-columns: 1fr; }
-            .gl-brent-market-strip { grid-template-columns: repeat(3, 1fr); }
-            .gl-brent-regime-card { grid-column: span 1; }
+            .gl-brent-snap-grid { grid-template-columns: repeat(3, 1fr); }
+            .gl-brent-snap-card.regime { grid-column: span 1; }
             .gl-brent-horizons-grid { grid-template-columns: repeat(2, 1fr); }
             .gl-brent-prob-row { grid-template-columns: 70px repeat(4, 1fr); }
         }
         @media (max-width: 768px) {
-            .gl-brent-market-strip { grid-template-columns: repeat(2, 1fr); }
+            .gl-brent-snap-grid { grid-template-columns: repeat(2, 1fr); }
             .gl-brent-horizons-grid { grid-template-columns: 1fr 1fr; }
             .gl-brent-risk-score-card { grid-template-columns: 1fr 1fr; }
         }
@@ -7719,79 +7787,41 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         <span>Brent Intelligence Forecast Engine™</span>
                         <span class="gl-brent-live-badge">LIVE</span>
                     </div>
-                    <div class="gl-brent-engine-subtitle">AI-powered Brent crude scenario analysis · powered by GERI Live signals</div>
+                    <div class="gl-brent-engine-subtitle">AI-powered Brent crude scenario analysis · powered by GERI Live signals · <span id="glBrentAsOf" style="color:#f59e0b;font-size:11px;"></span></div>
                 </div>
 
-                <!-- Market snapshot strip -->
-                <div class="gl-brent-market-strip" id="glBrentMarketStrip">
-                    <div class="gl-brent-market-card">
-                        <div class="gl-brent-market-label">Brent Crude</div>
-                        <div class="gl-brent-market-value" id="glBrentMktBrent">—</div>
-                        <div class="gl-brent-market-change" id="glBrentMktBrentChg">—</div>
-                    </div>
-                    <div class="gl-brent-market-card">
-                        <div class="gl-brent-market-label">GERI Live</div>
-                        <div class="gl-brent-market-value" id="glBrentMktGeri">—</div>
-                        <div class="gl-brent-market-band" id="glBrentMktGeriBand">—</div>
-                    </div>
-                    <div class="gl-brent-market-card">
-                        <div class="gl-brent-market-label">VIX</div>
-                        <div class="gl-brent-market-value" id="glBrentMktVix">—</div>
-                        <div class="gl-brent-market-sub">Market volatility</div>
-                    </div>
-                    <div class="gl-brent-market-card">
-                        <div class="gl-brent-market-label">TTF Gas</div>
-                        <div class="gl-brent-market-value" id="glBrentMktTtf">—</div>
-                        <div class="gl-brent-market-sub">€/MWh</div>
-                    </div>
-                    <div class="gl-brent-market-card">
-                        <div class="gl-brent-market-label">EERI</div>
-                        <div class="gl-brent-market-value" id="glBrentMktEeri">—</div>
-                        <div class="gl-brent-market-sub">Europe risk index</div>
-                    </div>
-                    <div class="gl-brent-regime-card">
-                        <div class="gl-brent-market-label">Market Regime</div>
-                        <div class="gl-brent-regime-label" id="glBrentRegimeLabel">Loading...</div>
-                    </div>
-                </div>
+                <!-- Market snapshot grid (10 cards — populated by JS) -->
+                <div id="glBrentMktGrid" class="gl-brent-snap-grid"></div>
 
-                <!-- Builder + Results two-column body -->
+                <!-- Builder + tabbed results -->
                 <div class="gl-brent-engine-body">
-                    <!-- LEFT: Scenario builder -->
+
+                    <!-- LEFT: Scenario builder (always visible) -->
                     <div class="gl-brent-builder">
                         <div class="gl-brent-builder-title">Scenario Builder</div>
 
                         <div class="gl-brent-presets-label">Quick Presets</div>
-                        <div class="gl-brent-presets-row">
-                            <button class="gl-brent-preset-btn" data-preset="base" onclick="glBrentApplyPreset('base')">Base Case</button>
-                            <button class="gl-brent-preset-btn" data-preset="opec_cut" onclick="glBrentApplyPreset('opec_cut')">OPEC+ Cut</button>
-                            <button class="gl-brent-preset-btn" data-preset="hormuz" onclick="glBrentApplyPreset('hormuz')">Hormuz Crisis</button>
-                            <button class="gl-brent-preset-btn" data-preset="escalation" onclick="glBrentApplyPreset('escalation')">ME Escalation</button>
-                            <button class="gl-brent-preset-btn" data-preset="russia" onclick="glBrentApplyPreset('russia')">Russia Shock</button>
-                            <button class="gl-brent-preset-btn" data-preset="recession" onclick="glBrentApplyPreset('recession')">US Recession</button>
-                            <button class="gl-brent-preset-btn" data-preset="china_surge" onclick="glBrentApplyPreset('china_surge')">China Surge</button>
-                            <button class="gl-brent-preset-btn" data-preset="eu_gas" onclick="glBrentApplyPreset('eu_gas')">EU Gas Crisis</button>
-                        </div>
+                        <div class="gl-brent-presets-row" id="glBrentPresetsRow"></div>
 
                         <div class="gl-brent-drivers-grid">
                             <div class="gl-brent-driver-row">
                                 <div class="gl-brent-driver-label">GERI Change <span class="gl-brent-driver-desc">— Geopolitical risk shift</span></div>
                                 <div class="gl-brent-slider-row">
-                                    <input type="range" class="gl-brent-slider" id="glBrentGeriSlider" min="-50" max="100" step="1" value="0" oninput="glBrentSyncVal('geri',this.value)">
+                                    <input type="range" class="gl-brent-slider" id="glBrentGeriSlider" min="-50" max="100" step="1" value="0" oninput="glBrentUpdateDisplay('glBrentGeriVal',this.value)">
                                     <span class="gl-brent-slider-val" id="glBrentGeriVal">0%</span>
                                 </div>
                             </div>
                             <div class="gl-brent-driver-row">
                                 <div class="gl-brent-driver-label">VIX Change <span class="gl-brent-driver-desc">— Financial volatility</span></div>
                                 <div class="gl-brent-slider-row">
-                                    <input type="range" class="gl-brent-slider" id="glBrentVixSlider" min="-50" max="100" step="1" value="0" oninput="glBrentSyncVal('vix',this.value)">
+                                    <input type="range" class="gl-brent-slider" id="glBrentVixSlider" min="-50" max="100" step="1" value="0" oninput="glBrentUpdateDisplay('glBrentVixVal',this.value)">
                                     <span class="gl-brent-slider-val" id="glBrentVixVal">0%</span>
                                 </div>
                             </div>
                             <div class="gl-brent-driver-row">
                                 <div class="gl-brent-driver-label">European Gas Stress <span class="gl-brent-driver-desc">— TTF / storage pressure</span></div>
                                 <div class="gl-brent-slider-row">
-                                    <input type="range" class="gl-brent-slider" id="glBrentGasSlider" min="-50" max="100" step="1" value="0" oninput="glBrentSyncVal('gas',this.value)">
+                                    <input type="range" class="gl-brent-slider" id="glBrentGasSlider" min="-50" max="100" step="1" value="0" oninput="glBrentUpdateDisplay('glBrentGasVal',this.value)">
                                     <span class="gl-brent-slider-val" id="glBrentGasVal">0%</span>
                                 </div>
                             </div>
@@ -7815,43 +7845,95 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                             </div>
                         </div>
 
-                        <button class="gl-brent-run-btn" id="glBrentRunBtn" onclick="glBrentRunScenario()">▶ Run Scenario</button>
+                        <button class="gl-brent-run-btn" id="glBrentRunBtn" onclick="glBrentRunScenario()">▶ Run Scenario Analysis</button>
                     </div>
 
-                    <!-- RIGHT: Results panel -->
-                    <div id="glBrentResultsPanel">
-                        <!-- Empty state -->
-                        <div class="gl-brent-empty-state" id="glBrentEmptyState">
-                            <div class="gl-brent-empty-icon">📊</div>
-                            <div class="gl-brent-empty-title">Select a scenario and run the engine</div>
-                            <div class="gl-brent-empty-sub">Adjust the drivers on the left or pick a quick preset, then press Run Scenario to generate Brent price projections across four time horizons.</div>
+                    <!-- RIGHT: Tabbed results -->
+                    <div class="gl-brent-results-col">
+
+                        <!-- Tab bar -->
+                        <div class="gl-brent-tab-bar">
+                            <button class="gl-brent-tab-btn active" data-tab="overview" onclick="glBrentSwitchTab('overview')">Overview</button>
+                            <button class="gl-brent-tab-btn" data-tab="drivers" onclick="glBrentSwitchTab('drivers')">Drivers</button>
+                            <button class="gl-brent-tab-btn" data-tab="analogs" onclick="glBrentSwitchTab('analogs')">Historical Analogs</button>
                         </div>
-                        <!-- Loading state -->
-                        <div class="gl-brent-loading-state" id="glBrentLoadingState" style="display:none;">
-                            <div class="spinner-small"></div>
-                            <span>Computing scenario projections...</span>
+
+                        <!-- ── Overview tab ── -->
+                        <div class="gl-brent-tab-pane active" id="glBrentTabOverview">
+                            <div class="gl-brent-empty-state" id="glBrentEmptyState">
+                                <div class="gl-brent-empty-icon">📊</div>
+                                <div class="gl-brent-empty-title">Select a scenario and run the engine</div>
+                                <div class="gl-brent-empty-sub">Adjust the drivers on the left or pick a quick preset, then press Run Scenario to generate Brent price projections across four time horizons.</div>
+                            </div>
+                            <div class="gl-brent-loading-state" id="glBrentLoadingState" style="display:none;">
+                                <div class="spinner-small"></div>
+                                <span>Computing scenario projections...</span>
+                            </div>
+                            <div class="gl-brent-results" id="glBrentResults" style="display:none;">
+                                <div id="glBrentSummary" style="display:none;background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;"></div>
+                                <div id="glBrentIntelFooter" style="font-size:11px;color:#475569;padding:0 2px;"></div>
+                                <div class="gl-brent-horizons-grid" id="glBrentHorizonsGrid"></div>
+                                <div class="gl-brent-prob-table" id="glBrentProbTable"></div>
+                                <div id="glBrentConfPanel" style="display:none;background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;">
+                                    <div class="gl-brent-prob-title">Confidence Factors</div>
+                                    <ul id="glBrentConfList" style="margin:0;padding:0 0 0 16px;font-size:12px;color:#94a3b8;line-height:1.8;"></ul>
+                                </div>
+                                <div class="gl-brent-interp-card" id="glBrentInterpCard"></div>
+                                <div class="gl-brent-watch-card" id="glBrentWatchCard"></div>
+                                <div class="gl-brent-scenario-risk" id="glBrentScenarioRisk" style="display:none;"></div>
+                                <div id="glBrentComparePanel" style="display:none;background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;">
+                                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                                        <div class="gl-brent-prob-title" style="margin-bottom:0;">Scenario Comparison</div>
+                                        <button onclick="glBrentAddCompare()" style="font-size:11px;background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:3px 10px;border-radius:5px;cursor:pointer;">+ Add current</button>
+                                        <button onclick="glBrentClearCompare()" style="font-size:11px;background:transparent;border:none;color:#475569;cursor:pointer;">Clear</button>
+                                    </div>
+                                    <div id="glBrentCompareNote" style="font-size:12px;color:#475569;">Run a scenario and click "+ Add current" to compare scenarios.</div>
+                                    <table id="glBrentCompareTable" style="width:100%;border-collapse:collapse;font-size:12px;display:none;">
+                                        <thead><tr style="color:#64748b;font-size:11px;">
+                                            <th style="text-align:left;padding:4px 6px;">Scenario</th>
+                                            <th style="padding:4px 6px;">24–48h</th>
+                                            <th style="padding:4px 6px;">72h</th>
+                                            <th style="padding:4px 6px;">7d</th>
+                                            <th style="padding:4px 6px;">Bias</th>
+                                        </tr></thead>
+                                        <tbody id="glBrentCompareTbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        <!-- Results -->
-                        <div class="gl-brent-results" id="glBrentResults" style="display:none;">
-                            <!-- Risk score bar -->
-                            <div class="gl-brent-risk-score-card" id="glBrentRiskCard"></div>
-                            <!-- Horizon cards -->
-                            <div class="gl-brent-horizons-grid" id="glBrentHorizonsGrid"></div>
-                            <!-- Probability distribution table -->
-                            <div class="gl-brent-prob-table" id="glBrentProbTable"></div>
-                            <!-- AI interpretation -->
-                            <div class="gl-brent-interp-card" id="glBrentInterpCard"></div>
-                            <!-- What to watch -->
-                            <div class="gl-brent-watch-card" id="glBrentWatchCard"></div>
-                            <!-- Driver attribution -->
-                            <div class="gl-brent-attribution-card" id="glBrentAttributionCard"></div>
-                            <!-- Scenario risk -->
-                            <div class="gl-brent-scenario-risk" id="glBrentScenarioRisk"></div>
-                            <!-- Historical analogs -->
-                            <div class="gl-brent-analogs-card" id="glBrentAnalogsCard"></div>
+
+                        <!-- ── Drivers tab ── -->
+                        <div class="gl-brent-tab-pane" id="glBrentTabDrivers">
+                            <div class="gl-brent-empty-state" id="glBrentDriversEmpty">
+                                <div class="gl-brent-empty-icon">📈</div>
+                                <div class="gl-brent-empty-title">Run a scenario to see driver analysis</div>
+                            </div>
+                            <div id="glBrentDriversContent" style="display:none;flex-direction:column;gap:16px;">
+                                <div class="gl-brent-attribution-card">
+                                    <div class="gl-brent-attribution-title">📊 Driver Attribution <span style="font-size:11px;font-weight:400;color:#475569;text-transform:none;letter-spacing:0;">· click a bar to expand detail</span></div>
+                                    <div id="glBrentAttrRows"></div>
+                                    <div id="glBrentDriverDetail" style="display:none;background:#1a2744;border:1px solid #334155;border-radius:8px;padding:12px;margin-top:10px;font-size:12px;color:#94a3b8;line-height:1.8;"></div>
+                                </div>
+                                <div id="glBrentRiskCard" class="gl-brent-risk-score-card"></div>
+                                <div style="background:#0f172a;border:1px solid #1e293b;border-radius:10px;padding:14px;">
+                                    <div class="gl-brent-prob-title">Regional Risk</div>
+                                    <div id="glBrentRegGrid" class="gl-brent-reg-grid"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+
+                        <!-- ── Analogs tab ── -->
+                        <div class="gl-brent-tab-pane" id="glBrentTabAnalogs">
+                            <div class="gl-brent-empty-state" id="glBrentAnalogsEmpty">
+                                <div class="gl-brent-empty-icon">📅</div>
+                                <div class="gl-brent-empty-title">Run a scenario to find historical analogs</div>
+                                <div class="gl-brent-empty-sub">Analogs appear when a real past episode closely matches your modeled risk shift.</div>
+                            </div>
+                            <div id="glBrentAnalogsContent" style="display:none;"></div>
+                        </div>
+
+                    </div><!-- /results-col -->
+                </div><!-- /engine-body -->
             </div>
             <!-- ══ /Brent Intelligence Forecast Engine™ ══ -->
 
@@ -19343,263 +19425,462 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
         }
 
-        /* ════════════════════════════════════════════════════════
-           Brent Intelligence Forecast Engine™ — GERI Live embedded
-           ════════════════════════════════════════════════════════ */
-        var glBrentMarketData = null;
-        var glBrentActivePreset = null;
+        /* ════ Brent Intelligence Forecast Engine™ (GERI Live Embedded) ════ */
+        var glBrentMarketData   = null;
+        var glBrentCurrentResult = null;
+        var glBrentCompareRows  = [];
 
-        var GL_BRENT_PRESETS = {
-            base:       { geri: 0,   vix: 0,   gas: 0,  supply: 'normal',          demand: 'neutral', label: 'Base Case' },
-            opec_cut:   { geri: 15,  vix: 0,   gas: 0,  supply: 'opec_cut',        demand: 'neutral', label: 'OPEC+ Cut' },
-            hormuz:     { geri: 40,  vix: 30,  gas: 20, supply: 'hormuz',          demand: 'neutral', label: 'Hormuz Crisis' },
-            escalation: { geri: 30,  vix: 20,  gas: 15, supply: 'pipeline_attack', demand: 'neutral', label: 'ME Escalation' },
-            russia:     { geri: 25,  vix: 15,  gas: 30, supply: 'sanctions',       demand: 'neutral', label: 'Russia Shock' },
-            recession:  { geri: 0,   vix: 40,  gas: 0,  supply: 'normal',          demand: 'weak',    label: 'US Recession' },
-            china_surge:{ geri: 5,   vix: -10, gas: 0,  supply: 'normal',          demand: 'strong',  label: 'China Surge' },
-            eu_gas:     { geri: 10,  vix: 15,  gas: 40, supply: 'normal',          demand: 'neutral', label: 'EU Gas Crisis' },
-        };
+        var GL_BRENT_PRESETS = [
+            { key: 'baseline',    name: 'Baseline',               desc: 'Current conditions, no shocks.',                    geri: 0,   vix: 0,   gas: 0,   supply: 'normal',          demand: 'neutral' },
+            { key: 'mideast',     name: 'ME Escalation',          desc: 'Regional conflict widens; infrastructure at risk.', geri: 40,  vix: 15,  gas: 10,  supply: 'pipeline_attack', demand: 'neutral' },
+            { key: 'hormuz',      name: 'Hormuz Crisis',          desc: 'Strait of Hormuz shipping disruption.',             geri: 60,  vix: 25,  gas: 20,  supply: 'hormuz',          demand: 'neutral' },
+            { key: 'opec_cut',    name: 'OPEC+ Cut',              desc: 'Unexpected production cut announcement.',           geri: 10,  vix: 5,   gas: 0,   supply: 'opec_cut',        demand: 'neutral' },
+            { key: 'sanctions',   name: 'Russia Sanctions',       desc: 'New tight sanctions on Russian exports.',           geri: 30,  vix: 10,  gas: 15,  supply: 'sanctions',       demand: 'neutral' },
+            { key: 'ceasefire',   name: 'Ceasefire',              desc: 'Major conflict de-escalates.',                      geri: -35, vix: -15, gas: -10, supply: 'normal',          demand: 'neutral' },
+            { key: 'recession',   name: 'Global Recession',       desc: 'Demand destruction; financial stress spikes.',     geri: -10, vix: 40,  gas: -5,  supply: 'normal',          demand: 'weak'    },
+            { key: 'recovery',    name: 'Demand Recovery',        desc: 'Growth surprise lifts consumption outlook.',       geri: 0,   vix: -10, gas: 0,   supply: 'normal',          demand: 'strong'  },
+            { key: 'iran_israel', name: 'Iran–Israel Escalation', desc: 'Direct exchange raises supply fears.',             geri: 50,  vix: 20,  gas: 10,  supply: 'pipeline_attack', demand: 'neutral' },
+            { key: 'export_ban',  name: 'Russia Export Ban',      desc: 'Full export halt scenario.',                       geri: 45,  vix: 20,  gas: 30,  supply: 'sanctions',       demand: 'neutral' },
+            { key: 'shipping',    name: 'Red Sea Crisis',         desc: 'Rerouting and freight-cost surge.',                geri: 25,  vix: 10,  gas: 5,   supply: 'pipeline_attack', demand: 'neutral' },
+        ];
 
-        function glBrentSyncVal(key, val) {
-            val = parseInt(val);
-            var suffix = (val >= 0 ? '+' : '') + val + '%';
-            if (key === 'geri') {
-                document.getElementById('glBrentGeriSlider').value = val;
-                document.getElementById('glBrentGeriVal').textContent = suffix;
-                document.getElementById('glBrentGeriVal').style.color = val > 0 ? '#f87171' : val < 0 ? '#34d399' : '#3b82f6';
-            } else if (key === 'vix') {
-                document.getElementById('glBrentVixSlider').value = val;
-                document.getElementById('glBrentVixVal').textContent = suffix;
-                document.getElementById('glBrentVixVal').style.color = val > 0 ? '#f87171' : val < 0 ? '#34d399' : '#3b82f6';
-            } else if (key === 'gas') {
-                document.getElementById('glBrentGasSlider').value = val;
-                document.getElementById('glBrentGasVal').textContent = suffix;
-                document.getElementById('glBrentGasVal').style.color = val > 0 ? '#f87171' : val < 0 ? '#34d399' : '#3b82f6';
-            }
-            glBrentActivePreset = null;
-            document.querySelectorAll('.gl-brent-preset-btn').forEach(function(b){ b.classList.remove('active'); });
+        function glBrentRenderPresets() {
+            var row = document.getElementById('glBrentPresetsRow');
+            if (!row) return;
+            row.innerHTML = GL_BRENT_PRESETS.slice(0, 8).map(function(p) {
+                return '<button class="gl-brent-preset-btn" data-preset="' + p.key + '" title="' + p.desc + '">' + p.name + '</button>';
+            }).join('');
+            row.onclick = function(e) {
+                var b = e.target.closest('.gl-brent-preset-btn');
+                if (!b) return;
+                document.querySelectorAll('#glBrentPresetsRow .gl-brent-preset-btn').forEach(function(x){ x.classList.remove('active'); });
+                b.classList.add('active');
+                glBrentApplyPreset(b.getAttribute('data-preset'), true);
+            };
         }
 
-        function glBrentApplyPreset(key) {
-            var p = GL_BRENT_PRESETS[key];
+        function glBrentUpdateDisplay(elId, val) {
+            val = parseInt(val);
+            var el = document.getElementById(elId);
+            if (el) el.textContent = (val > 0 ? '+' : '') + val + '%';
+            document.querySelectorAll('#glBrentPresetsRow .gl-brent-preset-btn').forEach(function(b){ b.classList.remove('active'); });
+        }
+
+        function glBrentApplyPreset(key, run) {
+            var p = GL_BRENT_PRESETS.find(function(x){ return x.key === key; });
             if (!p) return;
-            glBrentSyncVal('geri', p.geri);
-            glBrentSyncVal('vix', p.vix);
-            glBrentSyncVal('gas', p.gas);
-            document.getElementById('glBrentSupplySelect').value = p.supply;
-            document.getElementById('glBrentDemandSelect').value = p.demand;
-            glBrentActivePreset = key;
-            document.querySelectorAll('.gl-brent-preset-btn').forEach(function(b){
+            var gs = document.getElementById('glBrentGeriSlider');
+            var vs = document.getElementById('glBrentVixSlider');
+            var ns = document.getElementById('glBrentGasSlider');
+            var ss = document.getElementById('glBrentSupplySelect');
+            var ds = document.getElementById('glBrentDemandSelect');
+            if (gs) { gs.value = p.geri; document.getElementById('glBrentGeriVal').textContent = (p.geri > 0 ? '+' : '') + p.geri + '%'; }
+            if (vs) { vs.value = p.vix;  document.getElementById('glBrentVixVal').textContent  = (p.vix  > 0 ? '+' : '') + p.vix  + '%'; }
+            if (ns) { ns.value = p.gas;  document.getElementById('glBrentGasVal').textContent  = (p.gas  > 0 ? '+' : '') + p.gas  + '%'; }
+            if (ss) ss.value = p.supply;
+            if (ds) ds.value = p.demand;
+            document.querySelectorAll('#glBrentPresetsRow .gl-brent-preset-btn').forEach(function(b){
                 b.classList.toggle('active', b.getAttribute('data-preset') === key);
             });
+            if (run) glBrentRunScenario();
         }
 
+        var glBrentFmt     = function(n) { return typeof n === 'number' ? n.toFixed(2) : '--'; };
+        var glBrentSign    = function(n) { return n > 0 ? '+' : ''; };
+        var glBrentEsc     = function(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+        var glBrentBandCls = function(b) { return 'band-' + String(b || 'unknown').toLowerCase(); };
+        var glBrentLocalBand = function(v, lo, mid, hi) {
+            if (v == null) return 'unknown';
+            return v < lo ? 'Low' : v < mid ? 'Moderate' : v < hi ? 'Elevated' : 'High';
+        };
+
         async function glBrentLoadMarket() {
-            var token = sessionToken || '';
             try {
-                var resp = await fetch('/api/geri-live/brent-engine/market', {
-                    headers: { 'X-User-Token': token }
-                });
+                var resp = await fetch('/api/brent-forecast/market');
                 if (!resp.ok) return;
                 var json = await resp.json();
                 if (json.success && json.market) {
                     glBrentMarketData = json.market;
-                    glBrentRenderMarketStrip(json.market);
+                    glBrentRenderMarketSnapshot(json.market);
+                    var asOf = document.getElementById('glBrentAsOf');
+                    if (asOf) asOf.textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',timeZone:'UTC'}) + ' UTC';
                 }
             } catch(e) { console.error('glBrentLoadMarket:', e); }
         }
 
-        function glBrentRenderMarketStrip(m) {
-            var brent = m.brent_intraday || m.brent;
-            if (brent) document.getElementById('glBrentMktBrent').textContent = '$' + brent.toFixed(2);
-            var chg = m.brent_change_pct;
-            if (chg !== undefined && chg !== null) {
-                var chgEl = document.getElementById('glBrentMktBrentChg');
-                chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '% today';
-                chgEl.className = 'gl-brent-market-change ' + (chg >= 0 ? 'pos' : 'neg');
-            }
-            var geri = m.geri_live || m.geri;
-            if (geri) {
-                document.getElementById('glBrentMktGeri').textContent = geri.toFixed(1);
-                var band = m.geri_live_band || m.geri_band || '';
-                document.getElementById('glBrentMktGeriBand').textContent = band.toUpperCase();
-            }
-            if (m.vix) document.getElementById('glBrentMktVix').textContent = m.vix.toFixed(1);
-            if (m.ttf) document.getElementById('glBrentMktTtf').textContent = m.ttf.toFixed(2);
-            if (m.eeri) document.getElementById('glBrentMktEeri').textContent = m.eeri.toFixed(1);
-            document.getElementById('glBrentRegimeLabel').textContent = m.geri_live_band
-                ? ((m.geri_live_band || '').toUpperCase() + ' geopolitical risk') : 'Awaiting data';
+        function glBrentRenderMarketSnapshot(m) {
+            var geriRef = m.geri_live != null ? m.geri_live : m.geri;
+            var riskPart = {
+                Low: 'Low geopolitical risk', Moderate: 'Moderate geopolitical risk',
+                Elevated: 'Elevated geopolitical risk', High: 'High geopolitical risk',
+                unknown: 'Geopolitical risk unclear'
+            }[glBrentLocalBand(geriRef, 25, 40, 60)];
+            var volPart = m.vix == null ? 'volatility unknown'
+                        : m.vix < 15 ? 'low volatility' : m.vix < 22 ? 'moderate volatility' : 'high volatility';
+
+            var items = [
+                { label: 'Brent Crude',    val: '$' + glBrentFmt(m.brent_intraday || m.brent), sub: m.brent_intraday ? 'Intraday Live' : 'Daily Close' },
+                { label: 'WTI Crude',      val: '$' + glBrentFmt(m.wti),   sub: 'Daily Close' },
+                { label: 'GERI Daily',     val: glBrentFmt(m.geri),         band: glBrentLocalBand(m.geri, 25, 40, 60) },
+                { label: 'GERI Live',      val: glBrentFmt(m.geri_live),    sub: (m.geri_live_alerts || 0) + ' alerts', band: glBrentLocalBand(m.geri_live, 25, 40, 60) },
+                { label: 'VIX Volatility', val: glBrentFmt(m.vix),          band: glBrentLocalBand(m.vix, 15, 22, 30) },
+                { label: 'EERI',           val: glBrentFmt(m.eeri),         band: glBrentLocalBand(m.eeri, 25, 40, 60) },
+                { label: 'EGSI-M',         val: glBrentFmt(m.egsi_m),       band: glBrentLocalBand(m.egsi_m, 30, 50, 70) },
+                { label: 'TTF Gas',        val: '€' + glBrentFmt(m.ttf),    sub: '/MWh' },
+                { label: 'JKM LNG',        val: '$' + glBrentFmt(m.lng),    sub: '/MMBtu' },
+                { label: 'EU Gas Storage', val: glBrentFmt(m.gas_storage) + '%', sub: 'Fullness' },
+            ];
+
+            var grid = document.getElementById('glBrentMktGrid');
+            if (!grid) return;
+            grid.innerHTML =
+                '<div class="gl-brent-snap-card regime">'
+                + '<div class="gl-brent-snap-label">Market Regime</div>'
+                + '<div class="gl-brent-snap-val" style="font-size:14px;font-weight:600;">' + glBrentEsc(riskPart) + ' / ' + glBrentEsc(volPart) + '</div>'
+                + '</div>'
+                + items.map(function(i) {
+                    return '<div class="gl-brent-snap-card">'
+                        + '<div class="gl-brent-snap-label">' + i.label + '</div>'
+                        + '<div class="gl-brent-snap-val">' + i.val + '</div>'
+                        + (i.sub  ? '<div class="gl-brent-snap-sub">' + i.sub + '</div>' : '')
+                        + (i.band ? '<span class="gl-brent-band-tag ' + glBrentBandCls(i.band) + '">' + i.band + '</span>' : '')
+                        + '</div>';
+                }).join('');
+        }
+
+        function glBrentSwitchTab(name) {
+            document.querySelectorAll('.gl-brent-tab-btn').forEach(function(b){
+                b.classList.toggle('active', b.getAttribute('data-tab') === name);
+            });
+            var paneId = 'glBrentTab' + name.charAt(0).toUpperCase() + name.slice(1);
+            document.querySelectorAll('.gl-brent-tab-pane').forEach(function(p){
+                p.classList.toggle('active', p.id === paneId);
+            });
         }
 
         async function glBrentRunScenario() {
             var token = sessionToken || '';
             var btn = document.getElementById('glBrentRunBtn');
             btn.disabled = true;
+            btn.textContent = 'Running...';
             document.getElementById('glBrentEmptyState').style.display = 'none';
             document.getElementById('glBrentLoadingState').style.display = 'flex';
             document.getElementById('glBrentResults').style.display = 'none';
 
             var payload = {
+                brent:           glBrentMarketData ? (glBrentMarketData.brent_intraday || glBrentMarketData.brent) : null,
                 geri_change_pct: parseInt(document.getElementById('glBrentGeriSlider').value) || 0,
                 vix_change_pct:  parseInt(document.getElementById('glBrentVixSlider').value) || 0,
                 gas_stress_pct:  parseInt(document.getElementById('glBrentGasSlider').value) || 0,
                 supply_scenario: document.getElementById('glBrentSupplySelect').value,
                 demand_outlook:  document.getElementById('glBrentDemandSelect').value,
             };
+
             try {
                 var resp = await fetch('/api/geri-live/brent-engine/scenario', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-User-Token': token },
                     body: JSON.stringify(payload),
                 });
-                var json = await resp.json();
-                if (!resp.ok || !json.success) {
-                    throw new Error(json.detail || 'Scenario failed');
-                }
+                var data = await resp.json();
+                if (!resp.ok || !data.success) throw new Error(data.detail || 'Scenario failed');
+
+                glBrentCurrentResult = Object.assign({ params: payload }, data);
                 document.getElementById('glBrentLoadingState').style.display = 'none';
                 document.getElementById('glBrentResults').style.display = 'flex';
-                glBrentRenderResults(json, payload);
+                var asOf = document.getElementById('glBrentAsOf');
+                if (asOf && data.as_of) asOf.textContent = data.as_of;
+                glBrentRenderResults(data);
+                glBrentRenderDrivers(data);
+                glBrentRenderAnalogs(data);
+                glBrentSwitchTab('overview');
             } catch(e) {
                 document.getElementById('glBrentLoadingState').style.display = 'none';
                 document.getElementById('glBrentEmptyState').style.display = 'flex';
-                document.getElementById('glBrentEmptyState').querySelector('.gl-brent-empty-sub').textContent = 'Error: ' + e.message;
+                var subEl = document.getElementById('glBrentEmptyState').querySelector('.gl-brent-empty-sub');
+                if (subEl) subEl.textContent = 'Error: ' + e.message;
+                console.error('glBrentRunScenario:', e);
             } finally {
                 btn.disabled = false;
+                btn.textContent = '▶ Run Scenario Analysis';
             }
         }
 
-        function glBrentBiasColor(bias) {
-            bias = (bias || '').toLowerCase();
-            if (bias.includes('bullish')) return { bg: 'rgba(34,197,94,0.15)', color: '#22c55e', border: 'rgba(34,197,94,0.3)' };
-            if (bias.includes('bearish')) return { bg: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'rgba(239,68,68,0.3)' };
-            return { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.3)' };
-        }
+        var GL_BRENT_HZ_NAMES = { '0_24h': '0–24 Hours (Live)', '24_48h': '24–48 Hours', '72h': '72 Hours', '7d': '7 Days' };
 
-        function glBrentRenderResults(json, payload) {
-            var horizons = json.horizons || {};
-            var brent = json.brent || 75;
-            var hz_order = ['0_24h', '24_48h', '72h', '7d'];
-            var hz_labels = { '0_24h': '0–24h', '24_48h': '24–48h', '72h': '72h', '7d': '7 Days' };
+        function glBrentRenderResults(data) {
+            var horizons = data.horizons || {};
+            var currentBrent = data.brent;
 
-            /* ── Risk Score bar ── */
-            var rs = json.risk_score || {};
-            var biasC = glBrentBiasColor(rs.overall_bias);
-            var riskHtml = '<div class="gl-brent-risk-item">';
-            riskHtml += '<div class="gl-brent-risk-label">Composite Risk</div>';
-            riskHtml += '<div class="gl-brent-risk-val">' + (rs.composite || '--') + '/100</div>';
-            riskHtml += '<div class="gl-brent-risk-sub">' + (rs.composite_label || '') + '</div></div>';
-            riskHtml += '<div class="gl-brent-risk-item">';
-            riskHtml += '<div class="gl-brent-risk-label">Supply Risk</div>';
-            riskHtml += '<div class="gl-brent-risk-val">' + (rs.supply_risk || '--') + '</div></div>';
-            riskHtml += '<div class="gl-brent-risk-item">';
-            riskHtml += '<div class="gl-brent-risk-label">Financial Stress</div>';
-            riskHtml += '<div class="gl-brent-risk-val">' + (rs.financial_stress || '--') + '</div></div>';
-            riskHtml += '<div class="gl-brent-risk-bias" style="background:' + biasC.bg + ';color:' + biasC.color + ';border:1px solid ' + biasC.border + '">' + (rs.overall_bias || 'NEUTRAL') + '</div>';
-            document.getElementById('glBrentRiskCard').innerHTML = riskHtml;
+            /* ── Scenario summary ── */
+            if (data.scenario_summary) {
+                var s = data.scenario_summary;
+                var sumEl = document.getElementById('glBrentSummary');
+                sumEl.style.display = 'block';
+                sumEl.innerHTML =
+                    '<div style="font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:6px;">' + glBrentEsc(s.tested) + '</div>'
+                    + '<div style="font-size:12px;color:#64748b;">Model bias: <strong style="color:#94a3b8;">' + glBrentEsc(s.bias) + '</strong>'
+                    + ' · Main driver: <strong style="color:#94a3b8;">' + glBrentEsc(s.main_driver) + '</strong>'
+                    + (s.key_offset ? ' · Offset: <strong style="color:#94a3b8;">' + glBrentEsc(s.key_offset) + '</strong>' : '') + '</div>';
+            }
+
+            /* ── Intelligence footer ── */
+            if (data.intelligence) {
+                var intel = data.intelligence;
+                var intelEl = document.getElementById('glBrentIntelFooter');
+                if (intelEl) intelEl.textContent = 'Model Intelligence: GERI Live at '
+                    + glBrentFmt(intel.geri_live) + ' (' + (intel.geri_live_band || '') + ') based on '
+                    + (intel.alerts_processed || 0) + ' alerts processed. As of ' + (intel.as_of || 'now') + '.';
+            }
 
             /* ── Horizon cards ── */
             var hGrid = document.getElementById('glBrentHorizonsGrid');
             hGrid.innerHTML = '';
-            hz_order.forEach(function(key) {
+            Object.entries(GL_BRENT_HZ_NAMES).forEach(function([key, name]) {
                 var h = horizons[key];
                 if (!h) return;
+                var isPrimary = key === '0_24h';
                 var diff = h.diff_vs_current || 0;
-                var diffSign = diff >= 0 ? '+' : '';
-                var bC = glBrentBiasColor(h.bias);
+                var bias = (h.bias || '').toLowerCase();
+                var biasBg  = bias === 'bullish' ? 'rgba(34,197,94,0.15)' : bias === 'bearish' ? 'rgba(239,68,68,0.15)' : 'rgba(148,163,184,0.15)';
+                var biasClr = bias === 'bullish' ? '#22c55e'              : bias === 'bearish' ? '#ef4444'              : '#94a3b8';
                 var card = document.createElement('div');
-                card.className = 'gl-brent-horizon-card';
-                card.innerHTML = '<div class="gl-brent-horizon-label">' + (hz_labels[key] || key) + '</div>'
-                    + '<div class="gl-brent-horizon-price">$' + h.most_likely.toFixed(2) + '</div>'
-                    + '<div class="gl-brent-horizon-range">$' + h.expected_low.toFixed(2) + ' – $' + h.expected_high.toFixed(2) + '</div>'
-                    + '<div class="gl-brent-horizon-diff ' + (diff >= 0 ? 'pos' : 'neg') + '">' + diffSign + '$' + diff.toFixed(2) + ' vs now</div>'
-                    + '<div class="gl-brent-horizon-bias" style="background:' + bC.bg + ';color:' + bC.color + '">' + (h.bias || 'Neutral').toUpperCase() + '</div>'
-                    + '<div class="gl-brent-horizon-conf">Confidence: ' + h.confidence + '%</div>';
+                card.className = 'gl-brent-horizon-card' + (isPrimary ? ' primary' : '');
+                if (isPrimary) card.style.borderColor = '#3b82f6';
+                card.innerHTML =
+                    '<div class="gl-brent-horizon-label">' + name + (isPrimary ? ' <span style="color:#f59e0b;font-size:10px;">Primary</span>' : '') + '</div>'
+                    + '<div class="gl-brent-horizon-price">$' + glBrentFmt(h.most_likely) + '</div>'
+                    + '<div class="gl-brent-horizon-range">$' + glBrentFmt(h.expected_low) + ' – $' + glBrentFmt(h.expected_high) + '</div>'
+                    + '<div class="gl-brent-horizon-diff ' + (diff >= 0 ? 'pos' : 'neg') + '">'
+                    +   glBrentSign(diff) + '$' + glBrentFmt(Math.abs(diff)) + ' (' + glBrentSign(h.move_pct) + glBrentFmt(h.move_pct) + '%) vs current'
+                    + '</div>'
+                    + '<div class="gl-brent-horizon-reason">Main driver: ' + glBrentEsc(h.main_reason || '--') + '</div>'
+                    + '<div style="margin-top:8px;display:flex;align-items:center;gap:8px;">'
+                    +   '<span style="background:' + biasBg + ';color:' + biasClr + ';font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;">' + (h.bias || 'Neutral') + '</span>'
+                    +   '<span style="font-size:11px;color:#64748b;">Conf: ' + h.confidence + '%</span>'
+                    + '</div>';
                 hGrid.appendChild(card);
             });
 
-            /* ── Probability distribution table ── */
+            /* ── Probability distribution ── */
             var probEl = document.getElementById('glBrentProbTable');
-            var probHtml = '<div class="gl-brent-prob-title">Price Distribution</div>';
-            probHtml += '<div class="gl-brent-prob-row gl-brent-prob-header"><span class="gl-brent-prob-label">Scenario</span>';
-            hz_order.forEach(function(k){ probHtml += '<span>' + (hz_labels[k] || k) + '</span>'; });
-            probHtml += '</div>';
-            ['bearish', 'base', 'bullish', 'tail_risk'].forEach(function(scenario) {
-                var label = { bearish: '🔴 Bearish', base: '⚪ Base', bullish: '🟢 Bullish', tail_risk: '⚡ Tail Risk' }[scenario];
-                probHtml += '<div class="gl-brent-prob-row"><span class="gl-brent-prob-label">' + label + '</span>';
-                hz_order.forEach(function(k) {
-                    var val = ((horizons[k] || {}).distribution || {})[scenario];
-                    probHtml += '<span>' + (val !== undefined ? '$' + val.toFixed(2) : '—') + '</span>';
-                });
-                probHtml += '</div>';
-            });
-            probEl.innerHTML = probHtml;
+            probEl.innerHTML = '<div class="gl-brent-prob-title">Price Distribution by Scenario</div>'
+                + '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+                + '<thead><tr><th style="text-align:left;padding:4px 6px;color:#64748b;font-size:11px;font-weight:600;">Horizon</th>'
+                + '<th style="padding:4px 6px;color:#ef4444;font-weight:600;">Bearish</th>'
+                + '<th style="padding:4px 6px;color:#94a3b8;font-weight:600;">Base</th>'
+                + '<th style="padding:4px 6px;color:#22c55e;font-weight:600;">Bullish</th>'
+                + '<th style="padding:4px 6px;color:#f59e0b;font-weight:600;">Tail Risk</th></tr></thead><tbody>'
+                + Object.entries(GL_BRENT_HZ_NAMES).map(function([key, name]) {
+                    var h = horizons[key];
+                    if (!h || !h.distribution) return '';
+                    var d = h.distribution;
+                    return '<tr style="border-top:1px solid #1e293b;">'
+                        + '<td style="padding:5px 6px;color:#94a3b8;">' + name + '</td>'
+                        + '<td style="padding:5px 6px;color:#ef4444;text-align:center;">$' + glBrentFmt(d.bearish) + '</td>'
+                        + '<td style="padding:5px 6px;color:#94a3b8;text-align:center;">$' + glBrentFmt(d.base) + '</td>'
+                        + '<td style="padding:5px 6px;color:#22c55e;text-align:center;">$' + glBrentFmt(d.bullish) + '</td>'
+                        + '<td style="padding:5px 6px;color:#f59e0b;text-align:center;">$' + glBrentFmt(d.tail_risk) + '</td>'
+                        + '</tr>';
+                }).join('') + '</tbody></table>';
+
+            /* ── Confidence reasons ── */
+            if (data.confidence_reasons && data.confidence_reasons.length) {
+                var confEl = document.getElementById('glBrentConfPanel');
+                confEl.style.display = 'block';
+                document.getElementById('glBrentConfList').innerHTML = data.confidence_reasons.map(function(r){
+                    return '<li>' + glBrentEsc(r) + '</li>';
+                }).join('');
+            }
 
             /* ── Interpretation ── */
-            var interpEl = document.getElementById('glBrentInterpCard');
-            var lines = json.interpretation_lines || [];
-            var interpHtml = '<div class="gl-brent-interp-title">🧠 Scenario Interpretation</div>';
-            lines.forEach(function(line) {
-                interpHtml += '<p class="gl-brent-interp-para">' + line + '</p>';
-            });
-            interpEl.innerHTML = interpHtml;
+            document.getElementById('glBrentInterpCard').innerHTML =
+                '<div class="gl-brent-interp-title">🧠 Scenario Interpretation</div>'
+                + '<div class="gl-brent-interp-para">' + glBrentEsc(data.interpretation || 'No interpretation generated.') + '</div>';
 
             /* ── What to watch ── */
-            var watchEl = document.getElementById('glBrentWatchCard');
-            var watch = json.what_to_watch || [];
-            var watchHtml = '<div class="gl-brent-watch-title">👁 What to Watch</div>';
-            watch.forEach(function(w) { watchHtml += '<div class="gl-brent-watch-item">' + w + '</div>'; });
-            watchEl.innerHTML = watchHtml;
-
-            /* ── Driver attribution ── */
-            var attrEl = document.getElementById('glBrentAttributionCard');
-            var attr = json.attribution || {};
-            var attrNames = { geri: 'Geopolitical Risk (GERI)', vix: 'Financial Volatility (VIX)',
-                gas_stress: 'European Gas Stress', supply: 'Supply Disruption', demand: 'Demand Outlook' };
-            var maxAbs = Math.max(0.01, ...Object.values(attr).filter(function(v,k){ return k !== 'total'; }).map(Math.abs));
-            var attrHtml = '<div class="gl-brent-attribution-title">📊 Driver Attribution</div>';
-            Object.keys(attrNames).forEach(function(k) {
-                var v = attr[k] || 0;
-                var pct = Math.abs(v) / maxAbs * 100;
-                var barColor = v > 0 ? '#22c55e' : v < 0 ? '#ef4444' : '#475569';
-                var valColor = v > 0 ? '#22c55e' : v < 0 ? '#ef4444' : '#94a3b8';
-                attrHtml += '<div class="gl-brent-attr-row">'
-                    + '<span class="gl-brent-attr-label">' + attrNames[k] + '</span>'
-                    + '<div class="gl-brent-attr-bar-wrap"><div class="gl-brent-attr-bar" style="width:' + pct.toFixed(1) + '%;background:' + barColor + '"></div></div>'
-                    + '<span class="gl-brent-attr-val" style="color:' + valColor + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>'
-                    + '</div>';
-            });
-            var total = attr.total || 0;
-            var totColor = total > 0 ? '#22c55e' : total < 0 ? '#ef4444' : '#94a3b8';
-            attrHtml += '<div class="gl-brent-attr-row" style="border-top:1px solid #1e293b;padding-top:8px;margin-top:4px;">'
-                + '<span class="gl-brent-attr-label" style="font-weight:700;color:#e2e8f0;">Total Impact</span>'
-                + '<div class="gl-brent-attr-bar-wrap"></div>'
-                + '<span class="gl-brent-attr-val" style="color:' + totColor + ';font-size:14px;">' + (total >= 0 ? '+' : '') + total.toFixed(2) + '%</span>'
-                + '</div>';
-            attrEl.innerHTML = attrHtml;
+            document.getElementById('glBrentWatchCard').innerHTML =
+                '<div class="gl-brent-watch-title">👁 What to Watch</div>'
+                + (data.what_to_watch || []).map(function(w){ return '<div class="gl-brent-watch-item">' + glBrentEsc(w) + '</div>'; }).join('');
 
             /* ── Scenario risk ── */
-            document.getElementById('glBrentScenarioRisk').textContent = json.scenario_risk || '';
+            var srEl = document.getElementById('glBrentScenarioRisk');
+            if (data.scenario_risk) { srEl.style.display = 'block'; srEl.textContent = data.scenario_risk; }
+            else srEl.style.display = 'none';
 
-            /* ── Historical analogs ── */
-            var analogsEl = document.getElementById('glBrentAnalogsCard');
-            var analogs = json.analogs || [];
-            var analogHtml = '<div class="gl-brent-analogs-title">📅 Historical Analogs</div>';
-            if (!analogs.length) {
-                analogHtml += '<div style="color:#475569;font-size:13px;">No close historical analogs found for this scenario profile.</div>';
-            } else {
-                analogs.slice(0, 4).forEach(function(a) {
-                    analogHtml += '<div class="gl-brent-analog-row">'
-                        + '<div><div class="gl-brent-analog-date">' + (a.date_label || a.start || '') + '</div>'
-                        + '<div class="gl-brent-analog-desc">' + (a.description || a.context || '') + '</div>'
-                        + '<div class="gl-brent-analog-reaction">Brent reaction: ' + (a.brent_reaction || a.reaction || '—') + '</div></div>'
-                        + '<div class="gl-brent-analog-match">' + (a.match_pct !== undefined ? a.match_pct.toFixed(0) + '% match' : '') + '</div>'
-                        + '</div>';
-                });
+            /* ── Comparison panel ── */
+            document.getElementById('glBrentComparePanel').style.display = 'block';
+            glBrentRenderCompare();
+        }
+
+        var GL_BRENT_DRIVER_ORDER = [
+            ['geri',       'GERI Risk'],
+            ['supply',     'Supply Shock'],
+            ['gas_stress', 'EU Gas Stress'],
+            ['vix',        'Financial VIX'],
+            ['demand',     'Demand Outlook']
+        ];
+
+        function glBrentRenderDrivers(data) {
+            document.getElementById('glBrentDriversEmpty').style.display = 'none';
+            var content = document.getElementById('glBrentDriversContent');
+            content.style.display = 'flex';
+
+            var attr   = data.attribution || {};
+            var maxAbs = Math.max(0.1, Math.max.apply(null, GL_BRENT_DRIVER_ORDER.map(function(d){ return Math.abs(attr[d[0]] || 0); })));
+
+            var attrRowsEl = document.getElementById('glBrentAttrRows');
+            attrRowsEl.innerHTML = GL_BRENT_DRIVER_ORDER.map(function(d) {
+                var k = d[0], lbl = d[1];
+                var val = attr[k] || 0;
+                var w   = (Math.abs(val) / maxAbs) * 100;
+                var clr = val >= 0 ? '#22c55e' : '#ef4444';
+                return '<div class="gl-brent-attr-row" style="cursor:pointer;" data-driver="' + k + '">'
+                    + '<span class="gl-brent-attr-label">' + lbl + '</span>'
+                    + '<div class="gl-brent-attr-bar-wrap"><div class="gl-brent-attr-bar" style="width:' + Math.min(w, 100) + '%;background:' + clr + '"></div></div>'
+                    + '<span class="gl-brent-attr-val" style="color:' + clr + '">' + glBrentSign(val) + glBrentFmt(val) + '</span>'
+                    + '</div>';
+            }).join('')
+            + '<div class="gl-brent-attr-row" style="border-top:1px solid #1e293b;padding-top:8px;margin-top:4px;">'
+            + '<span class="gl-brent-attr-label" style="font-weight:700;color:#e2e8f0;">Total Impact</span>'
+            + '<div class="gl-brent-attr-bar-wrap"></div>'
+            + '<span class="gl-brent-attr-val" style="color:' + ((attr.total||0) >= 0 ? '#22c55e' : '#ef4444') + ';font-size:14px;">'
+            + glBrentSign(attr.total||0) + glBrentFmt(attr.total||0) + '%</span></div>';
+
+            attrRowsEl.onclick = function(e) {
+                var row = e.target.closest('[data-driver]');
+                if (!row) return;
+                var k  = row.getAttribute('data-driver');
+                var dd = (data.driver_details || {})[k];
+                var detailEl = document.getElementById('glBrentDriverDetail');
+                var wasSelected = row.classList.contains('selected');
+                attrRowsEl.querySelectorAll('[data-driver]').forEach(function(r){ r.classList.remove('selected'); r.style.background = ''; });
+                if (wasSelected || !dd) { detailEl.style.display = 'none'; return; }
+                row.classList.add('selected');
+                row.style.background = '#1a2744';
+                detailEl.style.display = 'block';
+                detailEl.innerHTML =
+                    '<div style="font-weight:700;color:#e2e8f0;margin-bottom:8px;">' + glBrentEsc(dd.name) + '</div>'
+                    + '<div><strong>Why this matters:</strong> ' + glBrentEsc(dd.why) + '</div>'
+                    + '<div><strong>Current value:</strong> ' + glBrentEsc(dd.current != null ? dd.current : '--') + '</div>'
+                    + '<div><strong>Scenario input:</strong> ' + glBrentEsc(dd.input) + '</div>'
+                    + '<div><strong>Contribution to Brent forecast:</strong> ' + glBrentSign(dd.contribution_pct) + glBrentFmt(dd.contribution_pct) + '%</div>'
+                    + '<div><strong>Historical sensitivity:</strong> ' + glBrentEsc(dd.sensitivity) + '</div>';
+            };
+
+            /* ── Risk score composite + gauges ── */
+            if (data.risk_score) {
+                var rs = data.risk_score;
+                document.getElementById('glBrentRiskCard').innerHTML =
+                    '<div class="gl-brent-risk-item"><div class="gl-brent-risk-label">Composite Risk</div>'
+                    + '<div class="gl-brent-risk-val">' + (rs.composite || '--') + '<span style="font-size:14px;color:#475569;">/100</span></div>'
+                    + '<span class="gl-brent-band-tag ' + glBrentBandCls(rs.composite_label) + '">' + glBrentEsc(rs.composite_label || '') + '</span></div>'
+                    + '<div class="gl-brent-risk-item"><div class="gl-brent-risk-label">Supply Risk</div><div class="gl-brent-risk-val">' + (rs.supply_risk || '--') + '</div></div>'
+                    + '<div class="gl-brent-risk-item"><div class="gl-brent-risk-label">Financial Stress</div><div class="gl-brent-risk-val">' + (rs.financial_stress || '--') + '</div></div>'
+                    + '<div class="gl-brent-risk-item"><div class="gl-brent-risk-label">Gas Stress</div><div class="gl-brent-risk-val">' + (rs.gas_stress || '--') + '</div></div>';
             }
-            analogsEl.innerHTML = analogHtml;
+
+            /* ── Regional risk ── */
+            if (data.regional_risk) {
+                document.getElementById('glBrentRegGrid').innerHTML = Object.entries(data.regional_risk).map(function([k, v]){
+                    return '<div class="gl-brent-reg-card"><span>' + glBrentEsc(k) + '</span><span>' + glBrentEsc(v) + '</span></div>';
+                }).join('');
+            }
+        }
+
+        function glBrentRenderAnalogs(data) {
+            document.getElementById('glBrentAnalogsEmpty').style.display = 'none';
+            var content = document.getElementById('glBrentAnalogsContent');
+            content.style.display = 'block';
+            var analogs = data.analogs || [];
+            var riskText = { faded: 'Risk premium faded', persisted: 'Risk premium persisted', recent: 'Too recent to judge' };
+            if (!analogs.length) {
+                content.innerHTML = '<div style="color:#475569;font-size:13px;padding:20px;text-align:center;">No relevant historical analog found for this scenario. Analogs appear when a real past episode closely matches your modeled risk shift.</div>';
+                return;
+            }
+            content.innerHTML = analogs.map(function(a, idx) {
+                var mp = a.move_to_peak_pct;
+                var m7 = a.move_7d_pct;
+                var m30= a.move_30d_pct;
+                return '<div class="gl-brent-analog-item">'
+                    + '<div class="gl-brent-analog-header">'
+                    + '<div class="gl-brent-analog-title">' + glBrentEsc(a.label) + '</div>'
+                    + '<div class="gl-brent-analog-meta">' + a.match_pct + '% Match</div>'
+                    + '</div>'
+                    + '<div class="gl-brent-analog-stats">'
+                    + '<div class="gl-brent-analog-stat"><div class="gl-brent-as-label">Brent before</div><div class="gl-brent-as-val">' + (a.brent_before != null ? '$' + glBrentFmt(a.brent_before) : '--') + '</div></div>'
+                    + '<div class="gl-brent-analog-stat"><div class="gl-brent-as-label">Brent at peak</div><div class="gl-brent-as-val">' + (a.brent_at_peak != null ? '$' + glBrentFmt(a.brent_at_peak) : '--') + '</div></div>'
+                    + '<div class="gl-brent-analog-stat"><div class="gl-brent-as-label">Move to peak</div><div class="gl-brent-as-val ' + ((mp||0)>=0?'up':'down') + '">' + (mp != null ? glBrentSign(mp) + mp + '%' : '--') + '</div></div>'
+                    + '<div class="gl-brent-analog-stat"><div class="gl-brent-as-label">7D move</div><div class="gl-brent-as-val ' + ((m7||0)>=0?'up':'down') + '">' + (m7 != null ? glBrentSign(m7) + m7 + '%' : '--') + '</div></div>'
+                    + '<div class="gl-brent-analog-stat"><div class="gl-brent-as-label">30D move</div><div class="gl-brent-as-val ' + ((m30||0)>=0?'up':'down') + '">' + (m30 != null ? glBrentSign(m30) + m30 + '%' : '--') + '</div></div>'
+                    + '<div class="gl-brent-analog-stat"><div class="gl-brent-as-label">Duration</div><div class="gl-brent-as-val">' + (a.duration_days || '--') + ' days</div></div>'
+                    + '</div>'
+                    + '<div class="gl-brent-analog-desc"><strong>' + glBrentEsc(riskText[a.risk_state] || '') + (a.faded_after_days ? ' after ' + a.faded_after_days + ' days' : '') + '.</strong><br>' + glBrentEsc(a.similarity_explanation || '') + '</div>'
+                    + '<button onclick="glBrentToggleAnalogCmp(' + idx + ')" style="font-size:11px;background:#1e293b;border:1px solid #334155;color:#94a3b8;padding:3px 10px;border-radius:5px;cursor:pointer;margin-top:8px;">Compare with current scenario</button>'
+                    + '<div class="gl-brent-analog-compare-box" id="glBrentAnalogCmp' + idx + '"></div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function glBrentToggleAnalogCmp(idx) {
+            var box = document.getElementById('glBrentAnalogCmp' + idx);
+            if (!box) return;
+            if (box.style.display === 'block') { box.style.display = 'none'; return; }
+            if (!glBrentCurrentResult) return;
+            var a  = (glBrentCurrentResult.analogs || [])[idx];
+            var hz = (glBrentCurrentResult.horizons || {})['7d'];
+            if (!a) return;
+            box.style.display = 'block';
+            box.innerHTML =
+                '<strong>Historical episode:</strong> Brent moved ' + (a.move_to_peak_pct != null ? glBrentSign(a.move_to_peak_pct) + a.move_to_peak_pct + '%' : '--') + ' into the peak.'
+                + (hz ? '<br><strong>Your scenario (7D model):</strong> ' + glBrentSign(hz.move_pct) + glBrentFmt(hz.move_pct) + '% to $' + glBrentFmt(hz.most_likely) + ' (range $' + glBrentFmt(hz.expected_low) + '–$' + glBrentFmt(hz.expected_high) + ').' : '')
+                + '<br><strong>Takeaway:</strong> ' + (a.risk_state === 'faded' ? 'Risk premium faded in the real episode — watch for retracement if physical supply stays intact.'
+                    : a.risk_state === 'persisted' ? 'Risk stayed elevated — a sustained premium is plausible.'
+                    : 'Too recent to judge whether the premium held.');
+        }
+
+        function glBrentAddCompare() {
+            if (!glBrentCurrentResult) return;
+            var r    = glBrentCurrentResult;
+            var geri = r.params.geri_change_pct || 0;
+            var sup  = (r.params.supply_scenario || 'normal').replace('_', ' ');
+            glBrentCompareRows.push({
+                label: glBrentSign(geri) + geri + '% GERI / ' + sup,
+                h24:  r.horizons && r.horizons['24_48h'] ? r.horizons['24_48h'].most_likely : null,
+                h72:  r.horizons && r.horizons['72h']    ? r.horizons['72h'].most_likely    : null,
+                h7d:  r.horizons && r.horizons['7d']     ? r.horizons['7d'].most_likely     : null,
+                bias: (r.scenario_summary || {}).bias || ((r.horizons || {})['24_48h'] || {}).bias || '--',
+            });
+            if (glBrentCompareRows.length > 6) glBrentCompareRows.shift();
+            glBrentRenderCompare();
+        }
+
+        function glBrentClearCompare() { glBrentCompareRows = []; glBrentRenderCompare(); }
+
+        function glBrentRenderCompare() {
+            var note  = document.getElementById('glBrentCompareNote');
+            var tbl   = document.getElementById('glBrentCompareTable');
+            var tbody = document.getElementById('glBrentCompareTbody');
+            if (!glBrentCompareRows.length) {
+                if (note)  note.style.display  = 'block';
+                if (tbl)   tbl.style.display   = 'none';
+                return;
+            }
+            if (note)  note.style.display  = 'none';
+            if (tbl)   tbl.style.display   = 'table';
+            if (tbody) tbody.innerHTML = glBrentCompareRows.map(function(r) {
+                var bCls = r.bias === 'Bullish' ? 'color:#22c55e' : r.bias === 'Bearish' ? 'color:#ef4444' : '';
+                return '<tr style="border-top:1px solid #1e293b;">'
+                    + '<td style="padding:5px 6px;color:#94a3b8;">' + glBrentEsc(r.label) + '</td>'
+                    + '<td style="padding:5px 6px;text-align:center;">$' + glBrentFmt(r.h24) + '</td>'
+                    + '<td style="padding:5px 6px;text-align:center;">$' + glBrentFmt(r.h72) + '</td>'
+                    + '<td style="padding:5px 6px;text-align:center;">$' + glBrentFmt(r.h7d) + '</td>'
+                    + '<td style="padding:5px 6px;text-align:center;' + bCls + '">' + glBrentEsc(r.bias) + '</td></tr>';
+            }).join('');
         }
 
         async function initGeriLiveBrentEngine() {
+            glBrentRenderPresets();
             await glBrentLoadMarket();
         }
 
