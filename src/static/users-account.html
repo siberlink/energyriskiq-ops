@@ -5352,6 +5352,437 @@
             margin-left: 4px;
         }
 
+        /* ── Brent Intelligence Forecast Engine (GERI Live embedded) ── */
+        .gl-brent-engine-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+        .gl-brent-engine-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2d3f55;
+        }
+        .gl-brent-engine-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .gl-brent-engine-title > span:nth-child(2) {
+            font-size: 17px;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        .gl-brent-engine-icon { font-size: 20px; }
+        .gl-brent-live-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: rgba(239,68,68,0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 4px;
+            padding: 2px 7px;
+        }
+        .gl-brent-engine-subtitle {
+            font-size: 13px;
+            color: #64748b;
+        }
+        .gl-brent-market-strip {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+        .gl-brent-market-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .gl-brent-regime-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px 12px;
+            grid-column: span 2;
+        }
+        .gl-brent-market-label {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .gl-brent-market-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 3px;
+        }
+        .gl-brent-market-change, .gl-brent-market-sub, .gl-brent-market-band {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .gl-brent-market-change.pos { color: #22c55e; }
+        .gl-brent-market-change.neg { color: #ef4444; }
+        .gl-brent-regime-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            line-height: 1.4;
+            margin-top: 4px;
+        }
+        .gl-brent-engine-body {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .gl-brent-builder {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .gl-brent-builder-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+        }
+        .gl-brent-presets-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .gl-brent-presets-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        .gl-brent-preset-btn {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .gl-brent-preset-btn:hover, .gl-brent-preset-btn.active {
+            background: #334155;
+            color: #e2e8f0;
+            border-color: #4f6484;
+        }
+        .gl-brent-drivers-grid { display: flex; flex-direction: column; gap: 14px; }
+        .gl-brent-driver-row { display: flex; flex-direction: column; gap: 6px; }
+        .gl-brent-driver-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        .gl-brent-driver-desc {
+            font-size: 11px;
+            color: #475569;
+        }
+        .gl-brent-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gl-brent-slider {
+            flex: 1;
+            accent-color: #3b82f6;
+            height: 4px;
+        }
+        .gl-brent-slider-val {
+            font-size: 12px;
+            font-weight: 700;
+            color: #3b82f6;
+            min-width: 38px;
+            text-align: right;
+        }
+        .gl-brent-select {
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #cbd5e1;
+            font-size: 13px;
+            padding: 7px 10px;
+        }
+        .gl-brent-run-btn {
+            width: 100%;
+            margin-top: 18px;
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 11px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .gl-brent-run-btn:hover { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .gl-brent-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .gl-brent-results { display: flex; flex-direction: column; gap: 16px; }
+        .gl-brent-horizons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .gl-brent-horizon-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .gl-brent-horizon-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .gl-brent-horizon-price {
+            font-size: 24px;
+            font-weight: 800;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+        .gl-brent-horizon-range {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        .gl-brent-horizon-diff {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .gl-brent-horizon-diff.pos { color: #22c55e; }
+        .gl-brent-horizon-diff.neg { color: #ef4444; }
+        .gl-brent-horizon-bias {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .gl-brent-horizon-conf { font-size: 11px; color: #64748b; }
+        .gl-brent-prob-table {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .gl-brent-prob-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .gl-brent-prob-row {
+            display: grid;
+            grid-template-columns: 90px repeat(4, 1fr);
+            gap: 8px;
+            font-size: 12px;
+            padding: 5px 0;
+            border-bottom: 1px solid #1e293b;
+            align-items: center;
+        }
+        .gl-brent-prob-row:last-child { border-bottom: none; }
+        .gl-brent-prob-header { font-weight: 700; color: #64748b; font-size: 11px; }
+        .gl-brent-prob-label { color: #94a3b8; font-weight: 600; }
+        .gl-brent-interp-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .gl-brent-interp-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        .gl-brent-interp-para {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        .gl-brent-interp-para:last-child { margin-bottom: 0; }
+        .gl-brent-watch-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .gl-brent-watch-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .gl-brent-watch-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: #94a3b8;
+            padding: 4px 0;
+        }
+        .gl-brent-watch-item::before {
+            content: '▸';
+            color: #f59e0b;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .gl-brent-attribution-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .gl-brent-attribution-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        .gl-brent-attr-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .gl-brent-attr-label { font-size: 12px; color: #94a3b8; width: 160px; flex-shrink: 0; }
+        .gl-brent-attr-bar-wrap { flex: 1; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+        .gl-brent-attr-bar { height: 100%; border-radius: 3px; transition: width 0.4s; }
+        .gl-brent-attr-val { font-size: 12px; font-weight: 700; min-width: 40px; text-align: right; }
+        .gl-brent-analogs-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .gl-brent-analogs-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        .gl-brent-analog-row {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px;
+        }
+        .gl-brent-analog-date { font-size: 12px; color: #64748b; }
+        .gl-brent-analog-desc { font-size: 13px; color: #cbd5e1; }
+        .gl-brent-analog-match { font-size: 12px; font-weight: 700; color: #f59e0b; }
+        .gl-brent-analog-reaction { font-size: 12px; color: #94a3b8; }
+        .gl-brent-loading-state {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            padding: 30px 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+        .gl-brent-risk-score-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        .gl-brent-risk-item { text-align: center; }
+        .gl-brent-risk-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .gl-brent-risk-val { font-size: 20px; font-weight: 800; color: #e2e8f0; }
+        .gl-brent-risk-sub { font-size: 11px; color: #64748b; }
+        .gl-brent-risk-bias {
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .gl-brent-scenario-risk {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .gl-brent-scenario-risk::before {
+            content: '⚠ Scenario Risk: ';
+            font-weight: 700;
+            color: #f59e0b;
+        }
+        .gl-brent-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: #475569;
+            text-align: center;
+            gap: 12px;
+        }
+        .gl-brent-empty-icon { font-size: 36px; }
+        .gl-brent-empty-title { font-size: 15px; font-weight: 600; color: #64748b; }
+        .gl-brent-empty-sub { font-size: 13px; }
+        @media (max-width: 1100px) {
+            .gl-brent-engine-body { grid-template-columns: 1fr; }
+            .gl-brent-market-strip { grid-template-columns: repeat(3, 1fr); }
+            .gl-brent-regime-card { grid-column: span 1; }
+            .gl-brent-horizons-grid { grid-template-columns: repeat(2, 1fr); }
+            .gl-brent-prob-row { grid-template-columns: 70px repeat(4, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .gl-brent-market-strip { grid-template-columns: repeat(2, 1fr); }
+            .gl-brent-horizons-grid { grid-template-columns: 1fr 1fr; }
+            .gl-brent-risk-score-card { grid-template-columns: 1fr 1fr; }
+        }
+
         .geri-live-pro-sections {
             margin-top: 28px;
         }
@@ -5656,7 +6087,7 @@
         }
 
         .geri-live-interpretation-card {
-            margin-top: 20px;
+            margin-top: 0;
         }
         .geri-live-interp-header {
             display: flex;
@@ -5731,7 +6162,8 @@
         }
         .geri-live-drivers-card,
         .geri-live-regions-card,
-        .geri-live-activity-card {
+        .geri-live-activity-card,
+        .geri-live-interpretation-card {
             background: #1e293b;
             border: 1px solid #334155;
             border-radius: 12px;
@@ -7263,23 +7695,165 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                             <p class="geri-live-empty">No activity yet</p>
                         </div>
                     </div>
+
+                    <div class="geri-live-interpretation-card" id="geriLiveInterpCard" style="display:none;">
+                        <div class="geri-live-interp-header">
+                            <span class="geri-live-interp-icon">🧠</span>
+                            <span>Analysis</span>
+                            <span class="geri-live-interp-time" id="geriLiveInterpTime"></span>
+                        </div>
+                        <div class="geri-live-interp-body" id="geriLiveInterpBody"></div>
+                        <div class="geri-live-interp-updating" id="geriLiveInterpUpdating" style="display:none;">
+                            <div class="spinner-small"></div>
+                            <span>Interpretation updating...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="geri-live-interpretation-card" id="geriLiveInterpCard" style="display:none;">
-                <div class="geri-live-interp-header">
-                    <span class="geri-live-interp-icon">🧠</span>
-                    <span>AI Analysis</span>
-                    <span class="geri-live-interp-time" id="geriLiveInterpTime"></span>
+            <!-- ══ Brent Intelligence Forecast Engine™ ══ -->
+            <div class="gl-brent-engine-section" id="glBrentEngineSection">
+                <div class="gl-brent-engine-header">
+                    <div class="gl-brent-engine-title">
+                        <span class="gl-brent-engine-icon">⚡</span>
+                        <span>Brent Intelligence Forecast Engine™</span>
+                        <span class="gl-brent-live-badge">LIVE</span>
+                    </div>
+                    <div class="gl-brent-engine-subtitle">AI-powered Brent crude scenario analysis · powered by GERI Live signals</div>
                 </div>
-                <div class="geri-live-interp-body" id="geriLiveInterpBody">
-                    <p class="geri-live-interp-text" id="geriLiveInterpText"></p>
+
+                <!-- Market snapshot strip -->
+                <div class="gl-brent-market-strip" id="glBrentMarketStrip">
+                    <div class="gl-brent-market-card">
+                        <div class="gl-brent-market-label">Brent Crude</div>
+                        <div class="gl-brent-market-value" id="glBrentMktBrent">—</div>
+                        <div class="gl-brent-market-change" id="glBrentMktBrentChg">—</div>
+                    </div>
+                    <div class="gl-brent-market-card">
+                        <div class="gl-brent-market-label">GERI Live</div>
+                        <div class="gl-brent-market-value" id="glBrentMktGeri">—</div>
+                        <div class="gl-brent-market-band" id="glBrentMktGeriBand">—</div>
+                    </div>
+                    <div class="gl-brent-market-card">
+                        <div class="gl-brent-market-label">VIX</div>
+                        <div class="gl-brent-market-value" id="glBrentMktVix">—</div>
+                        <div class="gl-brent-market-sub">Market volatility</div>
+                    </div>
+                    <div class="gl-brent-market-card">
+                        <div class="gl-brent-market-label">TTF Gas</div>
+                        <div class="gl-brent-market-value" id="glBrentMktTtf">—</div>
+                        <div class="gl-brent-market-sub">€/MWh</div>
+                    </div>
+                    <div class="gl-brent-market-card">
+                        <div class="gl-brent-market-label">EERI</div>
+                        <div class="gl-brent-market-value" id="glBrentMktEeri">—</div>
+                        <div class="gl-brent-market-sub">Europe risk index</div>
+                    </div>
+                    <div class="gl-brent-regime-card">
+                        <div class="gl-brent-market-label">Market Regime</div>
+                        <div class="gl-brent-regime-label" id="glBrentRegimeLabel">Loading...</div>
+                    </div>
                 </div>
-                <div class="geri-live-interp-updating" id="geriLiveInterpUpdating" style="display:none;">
-                    <div class="spinner-small"></div>
-                    <span>Interpretation updating...</span>
+
+                <!-- Builder + Results two-column body -->
+                <div class="gl-brent-engine-body">
+                    <!-- LEFT: Scenario builder -->
+                    <div class="gl-brent-builder">
+                        <div class="gl-brent-builder-title">Scenario Builder</div>
+
+                        <div class="gl-brent-presets-label">Quick Presets</div>
+                        <div class="gl-brent-presets-row">
+                            <button class="gl-brent-preset-btn" data-preset="base" onclick="glBrentApplyPreset('base')">Base Case</button>
+                            <button class="gl-brent-preset-btn" data-preset="opec_cut" onclick="glBrentApplyPreset('opec_cut')">OPEC+ Cut</button>
+                            <button class="gl-brent-preset-btn" data-preset="hormuz" onclick="glBrentApplyPreset('hormuz')">Hormuz Crisis</button>
+                            <button class="gl-brent-preset-btn" data-preset="escalation" onclick="glBrentApplyPreset('escalation')">ME Escalation</button>
+                            <button class="gl-brent-preset-btn" data-preset="russia" onclick="glBrentApplyPreset('russia')">Russia Shock</button>
+                            <button class="gl-brent-preset-btn" data-preset="recession" onclick="glBrentApplyPreset('recession')">US Recession</button>
+                            <button class="gl-brent-preset-btn" data-preset="china_surge" onclick="glBrentApplyPreset('china_surge')">China Surge</button>
+                            <button class="gl-brent-preset-btn" data-preset="eu_gas" onclick="glBrentApplyPreset('eu_gas')">EU Gas Crisis</button>
+                        </div>
+
+                        <div class="gl-brent-drivers-grid">
+                            <div class="gl-brent-driver-row">
+                                <div class="gl-brent-driver-label">GERI Change <span class="gl-brent-driver-desc">— Geopolitical risk shift</span></div>
+                                <div class="gl-brent-slider-row">
+                                    <input type="range" class="gl-brent-slider" id="glBrentGeriSlider" min="-50" max="100" step="1" value="0" oninput="glBrentSyncVal('geri',this.value)">
+                                    <span class="gl-brent-slider-val" id="glBrentGeriVal">0%</span>
+                                </div>
+                            </div>
+                            <div class="gl-brent-driver-row">
+                                <div class="gl-brent-driver-label">VIX Change <span class="gl-brent-driver-desc">— Financial volatility</span></div>
+                                <div class="gl-brent-slider-row">
+                                    <input type="range" class="gl-brent-slider" id="glBrentVixSlider" min="-50" max="100" step="1" value="0" oninput="glBrentSyncVal('vix',this.value)">
+                                    <span class="gl-brent-slider-val" id="glBrentVixVal">0%</span>
+                                </div>
+                            </div>
+                            <div class="gl-brent-driver-row">
+                                <div class="gl-brent-driver-label">European Gas Stress <span class="gl-brent-driver-desc">— TTF / storage pressure</span></div>
+                                <div class="gl-brent-slider-row">
+                                    <input type="range" class="gl-brent-slider" id="glBrentGasSlider" min="-50" max="100" step="1" value="0" oninput="glBrentSyncVal('gas',this.value)">
+                                    <span class="gl-brent-slider-val" id="glBrentGasVal">0%</span>
+                                </div>
+                            </div>
+                            <div class="gl-brent-driver-row">
+                                <div class="gl-brent-driver-label">Supply Scenario</div>
+                                <select class="gl-brent-select" id="glBrentSupplySelect">
+                                    <option value="normal">Normal — No disruption</option>
+                                    <option value="opec_cut">OPEC+ Surprise Cut (+4.5%)</option>
+                                    <option value="hormuz">Strait of Hormuz Crisis (+12%)</option>
+                                    <option value="pipeline_attack">Pipeline Attack (+3%)</option>
+                                    <option value="sanctions">Sanctions Tightening (+5.5%)</option>
+                                </select>
+                            </div>
+                            <div class="gl-brent-driver-row">
+                                <div class="gl-brent-driver-label">Demand Outlook</div>
+                                <select class="gl-brent-select" id="glBrentDemandSelect">
+                                    <option value="neutral">Neutral — Status quo</option>
+                                    <option value="strong">Strong — Demand surge (+2.5%)</option>
+                                    <option value="weak">Weak — Demand contraction (−2.5%)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="gl-brent-run-btn" id="glBrentRunBtn" onclick="glBrentRunScenario()">▶ Run Scenario</button>
+                    </div>
+
+                    <!-- RIGHT: Results panel -->
+                    <div id="glBrentResultsPanel">
+                        <!-- Empty state -->
+                        <div class="gl-brent-empty-state" id="glBrentEmptyState">
+                            <div class="gl-brent-empty-icon">📊</div>
+                            <div class="gl-brent-empty-title">Select a scenario and run the engine</div>
+                            <div class="gl-brent-empty-sub">Adjust the drivers on the left or pick a quick preset, then press Run Scenario to generate Brent price projections across four time horizons.</div>
+                        </div>
+                        <!-- Loading state -->
+                        <div class="gl-brent-loading-state" id="glBrentLoadingState" style="display:none;">
+                            <div class="spinner-small"></div>
+                            <span>Computing scenario projections...</span>
+                        </div>
+                        <!-- Results -->
+                        <div class="gl-brent-results" id="glBrentResults" style="display:none;">
+                            <!-- Risk score bar -->
+                            <div class="gl-brent-risk-score-card" id="glBrentRiskCard"></div>
+                            <!-- Horizon cards -->
+                            <div class="gl-brent-horizons-grid" id="glBrentHorizonsGrid"></div>
+                            <!-- Probability distribution table -->
+                            <div class="gl-brent-prob-table" id="glBrentProbTable"></div>
+                            <!-- AI interpretation -->
+                            <div class="gl-brent-interp-card" id="glBrentInterpCard"></div>
+                            <!-- What to watch -->
+                            <div class="gl-brent-watch-card" id="glBrentWatchCard"></div>
+                            <!-- Driver attribution -->
+                            <div class="gl-brent-attribution-card" id="glBrentAttributionCard"></div>
+                            <!-- Scenario risk -->
+                            <div class="gl-brent-scenario-risk" id="glBrentScenarioRisk"></div>
+                            <!-- Historical analogs -->
+                            <div class="gl-brent-analogs-card" id="glBrentAnalogsCard"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            <!-- ══ /Brent Intelligence Forecast Engine™ ══ -->
 
             <div class="geri-live-pro-sections" id="geriLiveProSections">
                 <div class="geri-live-pro-sections-title">Professional Intelligence Modules</div>
@@ -16803,6 +17377,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 glRenderBillingBar(st);
                 loadGeriLive();
                 loadTraderIntel();
+                initGeriLiveBrentEngine();
             } else {
                 glRenderPaywall(st);
                 if (paywall) paywall.style.display = 'block';
@@ -18427,15 +19002,32 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (data.interpretation) {
                 var interpCard = document.getElementById('geriLiveInterpCard');
                 interpCard.style.display = 'block';
-                var interpText = document.getElementById('geriLiveInterpText');
+                var interpBody = document.getElementById('geriLiveInterpBody');
+                function _renderInterpParagraphs(container, text) {
+                    container.innerHTML = '';
+                    var sentences = text.match(/[^.!?]+[.!?]+[\s]*/g) || [text];
+                    var grouped = [];
+                    for (var i = 0; i < sentences.length; i += 2) {
+                        grouped.push(sentences.slice(i, i + 2).join('').trim());
+                    }
+                    if (grouped.length === 1 && sentences.length > 1) grouped = sentences.map(function(s){return s.trim();});
+                    grouped.forEach(function(para) {
+                        if (!para) return;
+                        var p = document.createElement('p');
+                        p.className = 'geri-live-interp-text';
+                        p.style.marginBottom = '10px';
+                        p.textContent = para;
+                        container.appendChild(p);
+                    });
+                }
                 if (data.interpretation_updated) {
-                    interpText.style.opacity = '0';
+                    interpBody.style.opacity = '0';
                     setTimeout(function() {
-                        interpText.textContent = data.interpretation;
-                        interpText.style.opacity = '1';
+                        _renderInterpParagraphs(interpBody, data.interpretation);
+                        interpBody.style.opacity = '1';
                     }, 200);
                 } else {
-                    interpText.textContent = data.interpretation;
+                    _renderInterpParagraphs(interpBody, data.interpretation);
                 }
                 var interpTime = document.getElementById('geriLiveInterpTime');
                 if (data.computed_at) {
@@ -18750,6 +19342,268 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 el.removeChild(el.lastChild);
             }
         }
+
+        /* ════════════════════════════════════════════════════════
+           Brent Intelligence Forecast Engine™ — GERI Live embedded
+           ════════════════════════════════════════════════════════ */
+        var glBrentMarketData = null;
+        var glBrentActivePreset = null;
+
+        var GL_BRENT_PRESETS = {
+            base:       { geri: 0,   vix: 0,   gas: 0,  supply: 'normal',          demand: 'neutral', label: 'Base Case' },
+            opec_cut:   { geri: 15,  vix: 0,   gas: 0,  supply: 'opec_cut',        demand: 'neutral', label: 'OPEC+ Cut' },
+            hormuz:     { geri: 40,  vix: 30,  gas: 20, supply: 'hormuz',          demand: 'neutral', label: 'Hormuz Crisis' },
+            escalation: { geri: 30,  vix: 20,  gas: 15, supply: 'pipeline_attack', demand: 'neutral', label: 'ME Escalation' },
+            russia:     { geri: 25,  vix: 15,  gas: 30, supply: 'sanctions',       demand: 'neutral', label: 'Russia Shock' },
+            recession:  { geri: 0,   vix: 40,  gas: 0,  supply: 'normal',          demand: 'weak',    label: 'US Recession' },
+            china_surge:{ geri: 5,   vix: -10, gas: 0,  supply: 'normal',          demand: 'strong',  label: 'China Surge' },
+            eu_gas:     { geri: 10,  vix: 15,  gas: 40, supply: 'normal',          demand: 'neutral', label: 'EU Gas Crisis' },
+        };
+
+        function glBrentSyncVal(key, val) {
+            val = parseInt(val);
+            var suffix = (val >= 0 ? '+' : '') + val + '%';
+            if (key === 'geri') {
+                document.getElementById('glBrentGeriSlider').value = val;
+                document.getElementById('glBrentGeriVal').textContent = suffix;
+                document.getElementById('glBrentGeriVal').style.color = val > 0 ? '#f87171' : val < 0 ? '#34d399' : '#3b82f6';
+            } else if (key === 'vix') {
+                document.getElementById('glBrentVixSlider').value = val;
+                document.getElementById('glBrentVixVal').textContent = suffix;
+                document.getElementById('glBrentVixVal').style.color = val > 0 ? '#f87171' : val < 0 ? '#34d399' : '#3b82f6';
+            } else if (key === 'gas') {
+                document.getElementById('glBrentGasSlider').value = val;
+                document.getElementById('glBrentGasVal').textContent = suffix;
+                document.getElementById('glBrentGasVal').style.color = val > 0 ? '#f87171' : val < 0 ? '#34d399' : '#3b82f6';
+            }
+            glBrentActivePreset = null;
+            document.querySelectorAll('.gl-brent-preset-btn').forEach(function(b){ b.classList.remove('active'); });
+        }
+
+        function glBrentApplyPreset(key) {
+            var p = GL_BRENT_PRESETS[key];
+            if (!p) return;
+            glBrentSyncVal('geri', p.geri);
+            glBrentSyncVal('vix', p.vix);
+            glBrentSyncVal('gas', p.gas);
+            document.getElementById('glBrentSupplySelect').value = p.supply;
+            document.getElementById('glBrentDemandSelect').value = p.demand;
+            glBrentActivePreset = key;
+            document.querySelectorAll('.gl-brent-preset-btn').forEach(function(b){
+                b.classList.toggle('active', b.getAttribute('data-preset') === key);
+            });
+        }
+
+        async function glBrentLoadMarket() {
+            var token = sessionToken || '';
+            try {
+                var resp = await fetch('/api/geri-live/brent-engine/market', {
+                    headers: { 'X-User-Token': token }
+                });
+                if (!resp.ok) return;
+                var json = await resp.json();
+                if (json.success && json.market) {
+                    glBrentMarketData = json.market;
+                    glBrentRenderMarketStrip(json.market);
+                }
+            } catch(e) { console.error('glBrentLoadMarket:', e); }
+        }
+
+        function glBrentRenderMarketStrip(m) {
+            var brent = m.brent_intraday || m.brent;
+            if (brent) document.getElementById('glBrentMktBrent').textContent = '$' + brent.toFixed(2);
+            var chg = m.brent_change_pct;
+            if (chg !== undefined && chg !== null) {
+                var chgEl = document.getElementById('glBrentMktBrentChg');
+                chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '% today';
+                chgEl.className = 'gl-brent-market-change ' + (chg >= 0 ? 'pos' : 'neg');
+            }
+            var geri = m.geri_live || m.geri;
+            if (geri) {
+                document.getElementById('glBrentMktGeri').textContent = geri.toFixed(1);
+                var band = m.geri_live_band || m.geri_band || '';
+                document.getElementById('glBrentMktGeriBand').textContent = band.toUpperCase();
+            }
+            if (m.vix) document.getElementById('glBrentMktVix').textContent = m.vix.toFixed(1);
+            if (m.ttf) document.getElementById('glBrentMktTtf').textContent = m.ttf.toFixed(2);
+            if (m.eeri) document.getElementById('glBrentMktEeri').textContent = m.eeri.toFixed(1);
+            document.getElementById('glBrentRegimeLabel').textContent = m.geri_live_band
+                ? ((m.geri_live_band || '').toUpperCase() + ' geopolitical risk') : 'Awaiting data';
+        }
+
+        async function glBrentRunScenario() {
+            var token = sessionToken || '';
+            var btn = document.getElementById('glBrentRunBtn');
+            btn.disabled = true;
+            document.getElementById('glBrentEmptyState').style.display = 'none';
+            document.getElementById('glBrentLoadingState').style.display = 'flex';
+            document.getElementById('glBrentResults').style.display = 'none';
+
+            var payload = {
+                geri_change_pct: parseInt(document.getElementById('glBrentGeriSlider').value) || 0,
+                vix_change_pct:  parseInt(document.getElementById('glBrentVixSlider').value) || 0,
+                gas_stress_pct:  parseInt(document.getElementById('glBrentGasSlider').value) || 0,
+                supply_scenario: document.getElementById('glBrentSupplySelect').value,
+                demand_outlook:  document.getElementById('glBrentDemandSelect').value,
+            };
+            try {
+                var resp = await fetch('/api/geri-live/brent-engine/scenario', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-User-Token': token },
+                    body: JSON.stringify(payload),
+                });
+                var json = await resp.json();
+                if (!resp.ok || !json.success) {
+                    throw new Error(json.detail || 'Scenario failed');
+                }
+                document.getElementById('glBrentLoadingState').style.display = 'none';
+                document.getElementById('glBrentResults').style.display = 'flex';
+                glBrentRenderResults(json, payload);
+            } catch(e) {
+                document.getElementById('glBrentLoadingState').style.display = 'none';
+                document.getElementById('glBrentEmptyState').style.display = 'flex';
+                document.getElementById('glBrentEmptyState').querySelector('.gl-brent-empty-sub').textContent = 'Error: ' + e.message;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function glBrentBiasColor(bias) {
+            bias = (bias || '').toLowerCase();
+            if (bias.includes('bullish')) return { bg: 'rgba(34,197,94,0.15)', color: '#22c55e', border: 'rgba(34,197,94,0.3)' };
+            if (bias.includes('bearish')) return { bg: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'rgba(239,68,68,0.3)' };
+            return { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.3)' };
+        }
+
+        function glBrentRenderResults(json, payload) {
+            var horizons = json.horizons || {};
+            var brent = json.brent || 75;
+            var hz_order = ['0_24h', '24_48h', '72h', '7d'];
+            var hz_labels = { '0_24h': '0–24h', '24_48h': '24–48h', '72h': '72h', '7d': '7 Days' };
+
+            /* ── Risk Score bar ── */
+            var rs = json.risk_score || {};
+            var biasC = glBrentBiasColor(rs.overall_bias);
+            var riskHtml = '<div class="gl-brent-risk-item">';
+            riskHtml += '<div class="gl-brent-risk-label">Composite Risk</div>';
+            riskHtml += '<div class="gl-brent-risk-val">' + (rs.composite || '--') + '/100</div>';
+            riskHtml += '<div class="gl-brent-risk-sub">' + (rs.composite_label || '') + '</div></div>';
+            riskHtml += '<div class="gl-brent-risk-item">';
+            riskHtml += '<div class="gl-brent-risk-label">Supply Risk</div>';
+            riskHtml += '<div class="gl-brent-risk-val">' + (rs.supply_risk || '--') + '</div></div>';
+            riskHtml += '<div class="gl-brent-risk-item">';
+            riskHtml += '<div class="gl-brent-risk-label">Financial Stress</div>';
+            riskHtml += '<div class="gl-brent-risk-val">' + (rs.financial_stress || '--') + '</div></div>';
+            riskHtml += '<div class="gl-brent-risk-bias" style="background:' + biasC.bg + ';color:' + biasC.color + ';border:1px solid ' + biasC.border + '">' + (rs.overall_bias || 'NEUTRAL') + '</div>';
+            document.getElementById('glBrentRiskCard').innerHTML = riskHtml;
+
+            /* ── Horizon cards ── */
+            var hGrid = document.getElementById('glBrentHorizonsGrid');
+            hGrid.innerHTML = '';
+            hz_order.forEach(function(key) {
+                var h = horizons[key];
+                if (!h) return;
+                var diff = h.diff_vs_current || 0;
+                var diffSign = diff >= 0 ? '+' : '';
+                var bC = glBrentBiasColor(h.bias);
+                var card = document.createElement('div');
+                card.className = 'gl-brent-horizon-card';
+                card.innerHTML = '<div class="gl-brent-horizon-label">' + (hz_labels[key] || key) + '</div>'
+                    + '<div class="gl-brent-horizon-price">$' + h.most_likely.toFixed(2) + '</div>'
+                    + '<div class="gl-brent-horizon-range">$' + h.expected_low.toFixed(2) + ' – $' + h.expected_high.toFixed(2) + '</div>'
+                    + '<div class="gl-brent-horizon-diff ' + (diff >= 0 ? 'pos' : 'neg') + '">' + diffSign + '$' + diff.toFixed(2) + ' vs now</div>'
+                    + '<div class="gl-brent-horizon-bias" style="background:' + bC.bg + ';color:' + bC.color + '">' + (h.bias || 'Neutral').toUpperCase() + '</div>'
+                    + '<div class="gl-brent-horizon-conf">Confidence: ' + h.confidence + '%</div>';
+                hGrid.appendChild(card);
+            });
+
+            /* ── Probability distribution table ── */
+            var probEl = document.getElementById('glBrentProbTable');
+            var probHtml = '<div class="gl-brent-prob-title">Price Distribution</div>';
+            probHtml += '<div class="gl-brent-prob-row gl-brent-prob-header"><span class="gl-brent-prob-label">Scenario</span>';
+            hz_order.forEach(function(k){ probHtml += '<span>' + (hz_labels[k] || k) + '</span>'; });
+            probHtml += '</div>';
+            ['bearish', 'base', 'bullish', 'tail_risk'].forEach(function(scenario) {
+                var label = { bearish: '🔴 Bearish', base: '⚪ Base', bullish: '🟢 Bullish', tail_risk: '⚡ Tail Risk' }[scenario];
+                probHtml += '<div class="gl-brent-prob-row"><span class="gl-brent-prob-label">' + label + '</span>';
+                hz_order.forEach(function(k) {
+                    var val = ((horizons[k] || {}).distribution || {})[scenario];
+                    probHtml += '<span>' + (val !== undefined ? '$' + val.toFixed(2) : '—') + '</span>';
+                });
+                probHtml += '</div>';
+            });
+            probEl.innerHTML = probHtml;
+
+            /* ── Interpretation ── */
+            var interpEl = document.getElementById('glBrentInterpCard');
+            var lines = json.interpretation_lines || [];
+            var interpHtml = '<div class="gl-brent-interp-title">🧠 Scenario Interpretation</div>';
+            lines.forEach(function(line) {
+                interpHtml += '<p class="gl-brent-interp-para">' + line + '</p>';
+            });
+            interpEl.innerHTML = interpHtml;
+
+            /* ── What to watch ── */
+            var watchEl = document.getElementById('glBrentWatchCard');
+            var watch = json.what_to_watch || [];
+            var watchHtml = '<div class="gl-brent-watch-title">👁 What to Watch</div>';
+            watch.forEach(function(w) { watchHtml += '<div class="gl-brent-watch-item">' + w + '</div>'; });
+            watchEl.innerHTML = watchHtml;
+
+            /* ── Driver attribution ── */
+            var attrEl = document.getElementById('glBrentAttributionCard');
+            var attr = json.attribution || {};
+            var attrNames = { geri: 'Geopolitical Risk (GERI)', vix: 'Financial Volatility (VIX)',
+                gas_stress: 'European Gas Stress', supply: 'Supply Disruption', demand: 'Demand Outlook' };
+            var maxAbs = Math.max(0.01, ...Object.values(attr).filter(function(v,k){ return k !== 'total'; }).map(Math.abs));
+            var attrHtml = '<div class="gl-brent-attribution-title">📊 Driver Attribution</div>';
+            Object.keys(attrNames).forEach(function(k) {
+                var v = attr[k] || 0;
+                var pct = Math.abs(v) / maxAbs * 100;
+                var barColor = v > 0 ? '#22c55e' : v < 0 ? '#ef4444' : '#475569';
+                var valColor = v > 0 ? '#22c55e' : v < 0 ? '#ef4444' : '#94a3b8';
+                attrHtml += '<div class="gl-brent-attr-row">'
+                    + '<span class="gl-brent-attr-label">' + attrNames[k] + '</span>'
+                    + '<div class="gl-brent-attr-bar-wrap"><div class="gl-brent-attr-bar" style="width:' + pct.toFixed(1) + '%;background:' + barColor + '"></div></div>'
+                    + '<span class="gl-brent-attr-val" style="color:' + valColor + '">' + (v >= 0 ? '+' : '') + v.toFixed(2) + '%</span>'
+                    + '</div>';
+            });
+            var total = attr.total || 0;
+            var totColor = total > 0 ? '#22c55e' : total < 0 ? '#ef4444' : '#94a3b8';
+            attrHtml += '<div class="gl-brent-attr-row" style="border-top:1px solid #1e293b;padding-top:8px;margin-top:4px;">'
+                + '<span class="gl-brent-attr-label" style="font-weight:700;color:#e2e8f0;">Total Impact</span>'
+                + '<div class="gl-brent-attr-bar-wrap"></div>'
+                + '<span class="gl-brent-attr-val" style="color:' + totColor + ';font-size:14px;">' + (total >= 0 ? '+' : '') + total.toFixed(2) + '%</span>'
+                + '</div>';
+            attrEl.innerHTML = attrHtml;
+
+            /* ── Scenario risk ── */
+            document.getElementById('glBrentScenarioRisk').textContent = json.scenario_risk || '';
+
+            /* ── Historical analogs ── */
+            var analogsEl = document.getElementById('glBrentAnalogsCard');
+            var analogs = json.analogs || [];
+            var analogHtml = '<div class="gl-brent-analogs-title">📅 Historical Analogs</div>';
+            if (!analogs.length) {
+                analogHtml += '<div style="color:#475569;font-size:13px;">No close historical analogs found for this scenario profile.</div>';
+            } else {
+                analogs.slice(0, 4).forEach(function(a) {
+                    analogHtml += '<div class="gl-brent-analog-row">'
+                        + '<div><div class="gl-brent-analog-date">' + (a.date_label || a.start || '') + '</div>'
+                        + '<div class="gl-brent-analog-desc">' + (a.description || a.context || '') + '</div>'
+                        + '<div class="gl-brent-analog-reaction">Brent reaction: ' + (a.brent_reaction || a.reaction || '—') + '</div></div>'
+                        + '<div class="gl-brent-analog-match">' + (a.match_pct !== undefined ? a.match_pct.toFixed(0) + '% match' : '') + '</div>'
+                        + '</div>';
+                });
+            }
+            analogsEl.innerHTML = analogHtml;
+        }
+
+        async function initGeriLiveBrentEngine() {
+            await glBrentLoadMarket();
+        }
+
+        /* ════════════════════════════════════════════════════════ */
 
         var traderIntelLoaded = false;
         var traderIntelRefreshing = false;

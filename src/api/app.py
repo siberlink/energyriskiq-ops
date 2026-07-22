@@ -58,6 +58,7 @@ from src.api.wti_routes import router as wti_router
 from src.api.wti_widget_routes import router as wti_widget_router
 from src.api.gas_storage_widget_routes import router as gas_storage_widget_router
 from src.api.lng_widget_routes import router as lng_widget_router
+from src.api.geri_live_brent_routes import router as geri_live_brent_router
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -323,6 +324,7 @@ app.include_router(wti_router)
 app.include_router(wti_widget_router)
 app.include_router(gas_storage_widget_router)
 app.include_router(lng_widget_router)
+app.include_router(geri_live_brent_router)
 from src.api.contact_routes import run_contact_confirmation_migration
 try:
     run_contact_confirmation_migration()
