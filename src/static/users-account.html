@@ -407,6 +407,134 @@
         .snapshot-card-icon.digest { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
         .snapshot-card-icon.egsi { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
+        /* ===== Market Price Cards ===== */
+        .market-grid-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            margin-bottom: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .market-grid-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #1e293b;
+        }
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 900px) { .market-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .market-grid { grid-template-columns: 1fr; } }
+        .market-card {
+            background: #1a2332;
+            border: 1px solid #253347;
+            border-radius: 12px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.2s, transform 0.2s;
+            min-height: 148px;
+        }
+        .market-card:hover { transform: translateY(-2px); }
+        .market-card.brent:hover  { border-color: rgba(245,158,11,0.5); }
+        .market-card.ttf:hover    { border-color: rgba(34,211,238,0.5); }
+        .market-card.jkm:hover    { border-color: rgba(45,212,191,0.5); }
+        .market-card.vix:hover    { border-color: rgba(167,139,250,0.5); }
+        .market-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .market-card-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .market-card-icon.brent { background: rgba(245,158,11,0.12); }
+        .market-card-icon.ttf   { background: rgba(34,211,238,0.12); }
+        .market-card-icon.jkm   { background: rgba(45,212,191,0.12); }
+        .market-card-icon.vix   { background: rgba(167,139,250,0.12); }
+        .market-card-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #cbd5e1;
+            line-height: 1.2;
+        }
+        .market-card-unit {
+            font-size: 11px;
+            color: #475569;
+            font-weight: 500;
+        }
+        .market-card-price {
+            font-size: 26px;
+            font-weight: 800;
+            color: #f1f5f9;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        .market-card-price .mcp-unit {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            margin-left: 2px;
+        }
+        .market-card-changes {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .market-change-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .market-change-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 22px;
+            flex-shrink: 0;
+        }
+        .market-change-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .market-change-pill.up   { background: rgba(34,197,94,0.12); color: #22c55e; }
+        .market-change-pill.down { background: rgba(239,68,68,0.12);  color: #ef4444; }
+        .market-change-pill.flat { background: rgba(100,116,139,0.1); color: #64748b; }
+        .market-change-abs {
+            font-size: 11px;
+            color: #475569;
+        }
+        .market-card-footer {
+            margin-top: auto;
+            font-size: 10.5px;
+            color: #334155;
+            font-style: italic;
+        }
+        /* ===== End Market Price Cards ===== */
+
         /* ===== 3-Minute Routine ===== */
         .routine-section {
             margin-top: 40px;
@@ -6987,6 +7115,66 @@
                 </div>
             </div>
 
+            <!-- Market Price Cards -->
+            <div class="market-grid-label">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                Market Prices &mdash; Previous Closing
+            </div>
+            <div class="market-grid" id="marketPriceGrid">
+                <!-- Brent Oil -->
+                <div class="market-card brent">
+                    <div class="market-card-header">
+                        <div class="market-card-icon brent">🛢️</div>
+                        <div>
+                            <div class="market-card-name">Brent Oil</div>
+                            <div class="market-card-unit">$/bbl</div>
+                        </div>
+                    </div>
+                    <div class="market-card-price" id="mktBrentPrice"><span style="color:#334155;font-size:14px;">—</span></div>
+                    <div class="market-card-changes" id="mktBrentChanges"></div>
+                    <div class="market-card-footer" id="mktBrentDate">Previous closing</div>
+                </div>
+                <!-- TTF Gas -->
+                <div class="market-card ttf">
+                    <div class="market-card-header">
+                        <div class="market-card-icon ttf">🔵</div>
+                        <div>
+                            <div class="market-card-name">TTF Gas</div>
+                            <div class="market-card-unit">€/MWh</div>
+                        </div>
+                    </div>
+                    <div class="market-card-price" id="mktTtfPrice"><span style="color:#334155;font-size:14px;">—</span></div>
+                    <div class="market-card-changes" id="mktTtfChanges"></div>
+                    <div class="market-card-footer" id="mktTtfDate">Previous closing</div>
+                </div>
+                <!-- LNG JKM -->
+                <div class="market-card jkm">
+                    <div class="market-card-header">
+                        <div class="market-card-icon jkm">🚢</div>
+                        <div>
+                            <div class="market-card-name">LNG — JKM</div>
+                            <div class="market-card-unit">$/MMBtu</div>
+                        </div>
+                    </div>
+                    <div class="market-card-price" id="mktJkmPrice"><span style="color:#334155;font-size:14px;">—</span></div>
+                    <div class="market-card-changes" id="mktJkmChanges"></div>
+                    <div class="market-card-footer" id="mktJkmDate">Previous closing</div>
+                </div>
+                <!-- VIX -->
+                <div class="market-card vix">
+                    <div class="market-card-header">
+                        <div class="market-card-icon vix">📊</div>
+                        <div>
+                            <div class="market-card-name">VIX</div>
+                            <div class="market-card-unit">Fear Index · pts</div>
+                        </div>
+                    </div>
+                    <div class="market-card-price" id="mktVixPrice"><span style="color:#334155;font-size:14px;">—</span></div>
+                    <div class="market-card-changes" id="mktVixChanges"></div>
+                    <div class="market-card-footer" id="mktVixDate">Previous closing</div>
+                </div>
+            </div>
+
             <!-- GERI Live launch offer promo -->
             <div id="glDashPromo" style="display:none;">
                 <div class="gl-promo-banner" onclick="showSection('geri-live');">
@@ -10379,6 +10567,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             loadEeriSnapshot();
             loadDigestSnapshot();
             loadEgsiSnapshot();
+            loadMarketPrices();
             if (typeof glLoadDashPromo === 'function') glLoadDashPromo();
         }
 
@@ -15660,6 +15849,68 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 body.innerHTML = '<div class="snapshot-card-detail">Unable to load</div>';
             }
         }
+
+        async function loadMarketPrices() {
+            try {
+                const resp = await fetch('/api/dashboard/market-prices');
+                if (!resp.ok) return;
+                const data = await resp.json();
+
+                function _pill(pct, abs, absPrefix) {
+                    if (pct === null || pct === undefined) return '';
+                    const up = pct >= 0;
+                    const flat = Math.abs(pct) < 0.05;
+                    const cls = flat ? 'flat' : (up ? 'up' : 'down');
+                    const arrow = flat ? '&#8212;' : (up ? '&#9650;' : '&#9660;');
+                    const pctStr = (up && !flat ? '+' : '') + pct.toFixed(2) + '%';
+                    let absStr = '';
+                    if (abs !== null && abs !== undefined) {
+                        absStr = ' <span class="market-change-abs">(' + (up && !flat ? '+' : '') + (absPrefix || '') + Math.abs(abs).toFixed(2) + ')</span>';
+                    }
+                    return '<span class="market-change-pill ' + cls + '">' + arrow + ' ' + pctStr + '</span>' + absStr;
+                }
+
+                function _changeRows(asset, absPrefix) {
+                    const c1 = asset.change_1d_pct !== undefined ? asset.change_1d_pct : null;
+                    const c7 = asset.change_7d_pct !== undefined ? asset.change_7d_pct : null;
+                    let html = '';
+                    if (c1 !== null) {
+                        html += '<div class="market-change-row"><span class="market-change-label">1D</span>' + _pill(c1, asset.change_1d, absPrefix) + '</div>';
+                    }
+                    if (c7 !== null) {
+                        html += '<div class="market-change-row"><span class="market-change-label">7D</span>' + _pill(c7, null, null) + '</div>';
+                    }
+                    return html;
+                }
+
+                function _fmtDate(dateStr) {
+                    if (!dateStr) return 'Previous closing';
+                    try {
+                        const d = new Date(dateStr + 'T00:00:00');
+                        return 'Prev. closing · ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    } catch(e) { return 'Previous closing'; }
+                }
+
+                function _render(asset, priceId, changesId, dateId, decimals, prefix) {
+                    if (!asset || asset.price == null) return;
+                    const priceEl   = document.getElementById(priceId);
+                    const changesEl = document.getElementById(changesId);
+                    const dateEl    = document.getElementById(dateId);
+                    if (priceEl)   priceEl.innerHTML = prefix + asset.price.toFixed(decimals) + '<span class="mcp-unit">' + (asset.unit || '') + '</span>';
+                    if (changesEl) changesEl.innerHTML = _changeRows(asset, prefix);
+                    if (dateEl)    dateEl.textContent = _fmtDate(asset.date);
+                }
+
+                _render(data.brent, 'mktBrentPrice', 'mktBrentChanges', 'mktBrentDate', 2, '$');
+                _render(data.ttf,   'mktTtfPrice',   'mktTtfChanges',   'mktTtfDate',   2, '€');
+                _render(data.jkm,   'mktJkmPrice',   'mktJkmChanges',   'mktJkmDate',   2, '$');
+                _render(data.vix,   'mktVixPrice',   'mktVixChanges',   'mktVixDate',   2, '');
+
+            } catch (e) {
+                console.error('Market prices load error:', e);
+            }
+        }
+
         var egsiChart = null;
         var egsiChartData = null;
 

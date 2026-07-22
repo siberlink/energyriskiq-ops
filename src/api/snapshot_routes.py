@@ -63,6 +63,112 @@ async def hero_snapshot_api():
         logger.error("hero-snapshot API error: %s", exc)
         return JSONResponse({"error": str(exc)}, status_code=500)
 
+@router.get("/api/dashboard/market-prices")
+async def dashboard_market_prices():
+    """Market price snapshot for the user dashboard — Brent, TTF, JKM LNG, VIX."""
+    from fastapi.responses import JSONResponse
+    try:
+        def _f(v, default=None):
+            if v is None:
+                return default
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return default
+
+        def _7d_pct(rows, price_key):
+            if not rows or len(rows) < 2:
+                return None
+            latest = _f(rows[0].get(price_key))
+            old = _f(rows[min(7, len(rows) - 1)].get(price_key))
+            if latest is None or old is None or old == 0:
+                return None
+            return round((latest - old) / old * 100, 2)
+
+        brent_rows = execute_production_query(
+            "SELECT date, brent_price, brent_change_24h, brent_change_pct "
+            "FROM oil_price_snapshots ORDER BY date DESC LIMIT 8"
+        ) or []
+        ttf_rows = execute_production_query(
+            "SELECT date, ttf_price FROM ttf_gas_snapshots ORDER BY date DESC LIMIT 8"
+        ) or []
+        jkm_rows = execute_production_query(
+            "SELECT date, jkm_price, jkm_change_24h, jkm_change_pct "
+            "FROM lng_price_snapshots ORDER BY date DESC LIMIT 8"
+        ) or []
+        vix_rows = execute_production_query(
+            "SELECT date, vix_close FROM vix_snapshots ORDER BY date DESC LIMIT 8"
+        ) or []
+
+        def _brent():
+            if not brent_rows:
+                return {}
+            r = brent_rows[0]
+            return {
+                "price": _f(r.get("brent_price")),
+                "change_1d": _f(r.get("brent_change_24h")),
+                "change_1d_pct": _f(r.get("brent_change_pct")),
+                "change_7d_pct": _7d_pct(brent_rows, "brent_price"),
+                "date": str(r.get("date", "")),
+                "unit": "$/bbl",
+            }
+
+        def _ttf():
+            if not ttf_rows:
+                return {}
+            r = ttf_rows[0]
+            price = _f(r.get("ttf_price"))
+            prev = _f(ttf_rows[1].get("ttf_price")) if len(ttf_rows) > 1 else None
+            chg = round(price - prev, 2) if price is not None and prev else None
+            chg_pct = round((price - prev) / prev * 100, 2) if price and prev else None
+            return {
+                "price": price,
+                "change_1d": chg,
+                "change_1d_pct": chg_pct,
+                "change_7d_pct": _7d_pct(ttf_rows, "ttf_price"),
+                "date": str(r.get("date", "")),
+                "unit": "\u20ac/MWh",
+            }
+
+        def _jkm():
+            if not jkm_rows:
+                return {}
+            r = jkm_rows[0]
+            return {
+                "price": _f(r.get("jkm_price")),
+                "change_1d": _f(r.get("jkm_change_24h")),
+                "change_1d_pct": _f(r.get("jkm_change_pct")),
+                "change_7d_pct": _7d_pct(jkm_rows, "jkm_price"),
+                "date": str(r.get("date", "")),
+                "unit": "$/MMBtu",
+            }
+
+        def _vix():
+            if not vix_rows:
+                return {}
+            r = vix_rows[0]
+            price = _f(r.get("vix_close"))
+            prev = _f(vix_rows[1].get("vix_close")) if len(vix_rows) > 1 else None
+            chg = round(price - prev, 2) if price is not None and prev else None
+            chg_pct = round((price - prev) / prev * 100, 2) if price and prev else None
+            return {
+                "price": price,
+                "change_1d": chg,
+                "change_1d_pct": chg_pct,
+                "change_7d_pct": _7d_pct(vix_rows, "vix_close"),
+                "date": str(r.get("date", "")),
+                "unit": "pts",
+            }
+
+        return JSONResponse(
+            {"brent": _brent(), "ttf": _ttf(), "jkm": _jkm(), "vix": _vix()},
+            headers={"Cache-Control": "public, max-age=300"},
+        )
+    except Exception as exc:
+        logger.error("dashboard-market-prices API error: %s", exc)
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
+
 @router.get("/api/ceri-sparklines")
 async def ceri_sparklines_api():
     """30-day sparkline data for GERI, EERI, EGSI — used by Core Energy Risk Indices cards."""
