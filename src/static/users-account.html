@@ -5063,10 +5063,10 @@
         }
         .gl-cancel-btn:hover { background: rgba(248,113,113,0.1); }
         .gl-promo-banner {
-            display: flex; align-items: center; justify-content: space-between; gap: 16px;
-            flex-wrap: wrap; margin-top: 24px; padding: 18px 22px; cursor: pointer;
-            background: linear-gradient(120deg, rgba(212,160,23,0.12), rgba(16,26,43,0.9));
-            border: 1px solid rgba(212,160,23,0.4); border-radius: 14px;
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+            flex-wrap: wrap; margin-top: 24px; padding: 20px 22px; cursor: pointer;
+            background: linear-gradient(120deg, rgba(212,160,23,0.14), rgba(16,26,43,0.95));
+            border: 1px solid rgba(212,160,23,0.5); border-radius: 14px;
             transition: border-color .15s ease, transform .15s ease;
         }
         .gl-promo-banner:hover { border-color: #f0c243; transform: translateY(-1px); }
@@ -5075,13 +5075,56 @@
             background: linear-gradient(90deg, #d4a017, #f0c243); color: #101a2b;
             font-size: 10px; font-weight: 800; letter-spacing: 1.2px; border-radius: 999px;
         }
-        .gl-promo-title { color: #f1f5f9; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+        .gl-promo-off-badge {
+            display: inline-block; padding: 3px 10px; margin: 0 0 8px 8px;
+            background: #ef4444; color: #fff;
+            font-size: 11px; font-weight: 800; letter-spacing: 1px; border-radius: 999px;
+        }
+        .gl-promo-title { color: #f1f5f9; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .gl-promo-countdown {
+            font-size: 13px; font-weight: 700; color: #f0c243;
+            margin-bottom: 8px; font-variant-numeric: tabular-nums;
+        }
+        .gl-promo-countdown-label { color: #94a3b8; font-weight: 400; font-size: 12px; }
         .gl-promo-sub { color: #94a3b8; font-size: 12.5px; line-height: 1.5; }
+        .gl-promo-bonuses {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+        }
+        .gl-promo-bonus-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; background: rgba(212,160,23,0.12);
+            border: 1px solid rgba(212,160,23,0.3); border-radius: 999px;
+            font-size: 11px; color: #f0c243; font-weight: 600;
+        }
         .gl-promo-btn {
             flex-shrink: 0; padding: 11px 22px; border: none; cursor: pointer;
             background: linear-gradient(90deg, #d4a017, #f0c243); color: #101a2b;
-            font-size: 14px; font-weight: 800; border-radius: 9px;
+            font-size: 14px; font-weight: 800; border-radius: 9px; align-self: center;
         }
+        /* Paywall offer extras */
+        .gl-offer-header { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .gl-off-badge {
+            display: inline-block; padding: 5px 14px;
+            background: #ef4444; color: #fff;
+            font-size: 13px; font-weight: 800; letter-spacing: 1px; border-radius: 999px;
+        }
+        .gl-countdown-wrap {
+            margin: 0 0 18px;
+            padding: 10px 16px;
+            background: rgba(212,160,23,0.08);
+            border: 1px solid rgba(212,160,23,0.25);
+            border-radius: 10px;
+            font-size: 14px; color: #94a3b8;
+        }
+        .gl-countdown-timer {
+            font-size: 22px; font-weight: 800; color: #f0c243;
+            font-variant-numeric: tabular-nums; display: block; margin-top: 2px;
+        }
+        .gl-research-link {
+            display: inline-block; margin: 0 0 16px;
+            font-size: 13px; color: #60a5fa; text-decoration: underline; text-underline-offset: 3px;
+        }
+        .gl-research-link:hover { color: #93c5fd; }
 
         .geri-live-pulse-badge {
             display: inline-flex;
@@ -6160,10 +6203,24 @@
             <!-- GERI Live launch offer promo -->
             <div id="glDashPromo" style="display:none;">
                 <div class="gl-promo-banner" onclick="showSection('geri-live');">
-                    <div class="gl-promo-left">
-                        <div class="gl-promo-tag" id="glPromoTag">ONE-TIME ONLY LAUNCH OFFER</div>
+                    <div class="gl-promo-left" style="flex:1;min-width:0;">
+                        <div>
+                            <span class="gl-promo-tag" id="glPromoTag">ONE-TIME ONLY LAUNCH OFFER</span>
+                            <span class="gl-promo-off-badge" id="glPromoOffBadge">53% OFF</span>
+                        </div>
                         <div class="gl-promo-title">GERI Live — real-time energy risk index · <span id="glPromoPrice">14-day free trial, then €8/month</span></div>
-                        <div class="gl-promo-sub">Includes 5 free bonuses while active: Daily Intelligence Report · Pro Widget WTI · Pro Widget LNG · Pro Widget Gas · Indices History downloads</div>
+                        <div class="gl-promo-countdown" id="glPromoCountdown" style="display:none;">
+                            You got <strong id="glPromoTimer">--</strong> to decide
+                            <span class="gl-promo-countdown-label">· offer ends after 36h from first login</span>
+                        </div>
+                        <div class="gl-promo-sub">Understand what GERI is and how it measures geopolitical risk → <em>click to explore</em></div>
+                        <div class="gl-promo-bonuses" id="glPromoBonuses">
+                            <span class="gl-promo-bonus-pill">🗞 Daily Intelligence Report</span>
+                            <span class="gl-promo-bonus-pill">📊 Pro Widget WTI</span>
+                            <span class="gl-promo-bonus-pill">🚢 Pro Widget LNG</span>
+                            <span class="gl-promo-bonus-pill">🏭 Pro Widget Gas</span>
+                            <span class="gl-promo-bonus-pill">📁 Indices History Downloads</span>
+                        </div>
                     </div>
                     <button class="gl-promo-btn" id="glPromoBtn">Start free trial →</button>
                 </div>
@@ -7019,22 +7076,46 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             <!-- GERI Live paywall / trial presentation -->
             <div id="glPaywall" style="display:none;">
                 <div class="gl-paywall-card">
-                    <div class="gl-paywall-badge" id="glTrialBadge" style="display:none;">⏱ 14-DAY FREE TRIAL</div>
-                    <div class="gl-offer-ribbon">ONE-TIME ONLY LAUNCH OFFER</div>
+                    <!-- offer header: badges shown only during 36h window -->
+                    <div class="gl-offer-header" id="glOfferHeader">
+                        <div class="gl-paywall-badge" id="glTrialBadge" style="display:none;">⏱ 14-DAY FREE TRIAL</div>
+                        <div class="gl-offer-ribbon" id="glOfferRibbon" style="display:none;">ONE-TIME ONLY LAUNCH OFFER</div>
+                        <div class="gl-off-badge" id="glOffBadge" style="display:none;">53% OFF</div>
+                    </div>
+
                     <h2 class="gl-paywall-title">Unlock GERI Live — Real-Time Energy Risk Intelligence</h2>
                     <p class="gl-paywall-sub">The live Global Energy Risk Index dashboard: real-time index value, drivers, regional risk, live activity feed and intraday Brent, WTI &amp; natural gas charts — updating as alerts are processed.</p>
-                    <div class="gl-price-line"><span class="gl-price">€8</span><span class="gl-price-per">/month</span><span class="gl-price-note" id="glPriceNote">after your 14-day free trial · cancel anytime</span></div>
-                    <div class="gl-bonus-box">
+
+                    <a class="gl-research-link" href="/research/global-energy-risk-index" target="_blank" rel="noopener">
+                        Understand what GERI is and how it measures geopolitical risk →
+                    </a>
+
+                    <!-- countdown shown only during 36h offer window -->
+                    <div class="gl-countdown-wrap" id="glCountdownWrap" style="display:none;">
+                        You got <span class="gl-countdown-timer" id="glCountdownTimer">--</span> to decide at the launch price
+                    </div>
+
+                    <div class="gl-price-line">
+                        <span class="gl-price" id="glPriceDisplay">€8</span>
+                        <span class="gl-price-per">/month</span>
+                        <span class="gl-price-note" id="glPriceNote">after your 14-day free trial · cancel anytime</span>
+                    </div>
+
+                    <div class="gl-bonus-box" id="glBonusBox">
                         <div class="gl-bonus-head">🎁 Your One-Time Only Bonus — included free while your GERI Live subscription is active:</div>
                         <ul class="gl-bonus-list">
-                            <li><strong>Daily Intelligence Report</strong> — the full AI-powered daily geo-energy briefing (€2.99/mo value)</li>
-                            <li><strong>Pro Widget WTI</strong> — unbranded embeddable WTI crude oil widget (€1.49/mo value)</li>
-                            <li><strong>Pro Widget LNG</strong> — unbranded embeddable JKM LNG widget (€1.95/mo value)</li>
-                            <li><strong>Pro Widget Gas</strong> — unbranded embeddable EU gas storage widget (€1.49/mo value)</li>
-                            <li><strong>Indices History downloads</strong> — unlimited CSV/Excel exports of GERI, EERI &amp; EGSI history (€4.99/mo value)</li>
+                            <li><strong>Daily Intelligence Report</strong> — the full AI-powered daily geo-energy briefing <span style="color:#f0c243;font-weight:700;">(€2.99/mo value)</span></li>
+                            <li><strong>Pro Widget WTI</strong> — unbranded embeddable WTI crude oil widget <span style="color:#f0c243;font-weight:700;">(€1.49/mo value)</span></li>
+                            <li><strong>Pro Widget LNG</strong> — unbranded embeddable JKM LNG widget <span style="color:#f0c243;font-weight:700;">(€1.95/mo value)</span></li>
+                            <li><strong>Pro Widget Gas</strong> — unbranded embeddable EU gas storage widget <span style="color:#f0c243;font-weight:700;">(€1.49/mo value)</span></li>
+                            <li><strong>Indices History downloads</strong> — unlimited CSV/Excel exports of GERI, EERI &amp; EGSI history <span style="color:#f0c243;font-weight:700;">(€4.99/mo value)</span></li>
                         </ul>
+                        <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(212,160,23,0.2);font-size:13px;color:#94a3b8;">
+                            Total bonus value: <strong style="color:#f0c243;">€11.91/mo</strong> — yours FREE while active.
+                        </div>
                         <div class="gl-bonus-note">If you cancel the trial or subscription, bonus access ends automatically with it.</div>
                     </div>
+
                     <button class="gl-cta-btn" id="glSubscribeBtn" onclick="glStartCheckout()">Start your 14-day free trial</button>
                     <div class="gl-checkout-note" id="glCheckoutNote">Free for 14 days, then €8/month · cancel anytime · secure checkout via Stripe</div>
                 </div>
@@ -16728,21 +16809,107 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
         }
 
+        // ── Countdown helpers ────────────────────────────────────────────────
+        var _glCountdownInterval = null;
+        var _glPromoCountdownInterval = null;
+
+        function _glFmtRemaining(ms) {
+            if (ms <= 0) return null;
+            var totalSecs = Math.floor(ms / 1000);
+            var h = Math.floor(totalSecs / 3600);
+            var m = Math.floor((totalSecs % 3600) / 60);
+            var s = totalSecs % 60;
+            if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
+            if (m > 0) return m + 'm ' + s + 's';
+            return s + 's';
+        }
+
+        function _glStartPaywallCountdown(expiresAt) {
+            if (_glCountdownInterval) clearInterval(_glCountdownInterval);
+            var expMs = new Date(expiresAt).getTime();
+            function tick() {
+                var rem = expMs - Date.now();
+                var timerEl = document.getElementById('glCountdownTimer');
+                var wrapEl = document.getElementById('glCountdownWrap');
+                if (rem <= 0) {
+                    clearInterval(_glCountdownInterval);
+                    if (wrapEl) wrapEl.style.display = 'none';
+                    // Offer just expired — refresh to show €17 price
+                    glFetchStatus().then(function(st) { glRenderPaywall(st); });
+                    return;
+                }
+                var fmt = _glFmtRemaining(rem);
+                if (timerEl) timerEl.textContent = fmt;
+            }
+            tick();
+            _glCountdownInterval = setInterval(tick, 1000);
+        }
+
+        function _glStartPromoCountdown(expiresAt) {
+            if (_glPromoCountdownInterval) clearInterval(_glPromoCountdownInterval);
+            var expMs = new Date(expiresAt).getTime();
+            function tick() {
+                var rem = expMs - Date.now();
+                var timerEl = document.getElementById('glPromoTimer');
+                var wrap = document.getElementById('glPromoCountdown');
+                if (rem <= 0) {
+                    clearInterval(_glPromoCountdownInterval);
+                    if (wrap) wrap.style.display = 'none';
+                    var offBadge = document.getElementById('glPromoOffBadge');
+                    var tag = document.getElementById('glPromoTag');
+                    if (offBadge) offBadge.style.display = 'none';
+                    if (tag) { tag.textContent = 'GERI LIVE'; }
+                    var price = document.getElementById('glPromoPrice');
+                    if (price) price.textContent = '€17/month · cancel anytime';
+                    return;
+                }
+                var fmt = _glFmtRemaining(rem);
+                if (timerEl) timerEl.textContent = fmt;
+            }
+            tick();
+            _glPromoCountdownInterval = setInterval(tick, 1000);
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         function glRenderPaywall(st) {
             const eligible = !!(st && st.trial_eligible);
             const days = (st && st.trial_days) || 14;
+            const offerOn = !!(st && st.offer_active);
+            const priceEur = offerOn ? (st.offer_price_eur || 8) : (st.standard_price_eur || 17);
+
             const badge = document.getElementById('glTrialBadge');
+            const ribbon = document.getElementById('glOfferRibbon');
+            const offBadge = document.getElementById('glOffBadge');
             const btn = document.getElementById('glSubscribeBtn');
             const priceNote = document.getElementById('glPriceNote');
             const note = document.getElementById('glCheckoutNote');
+            const priceDisplay = document.getElementById('glPriceDisplay');
+            const countdownWrap = document.getElementById('glCountdownWrap');
+            const bonusBox = document.getElementById('glBonusBox');
+
+            // Trial badge
             if (badge) badge.style.display = eligible ? 'inline-block' : 'none';
-            if (btn) btn.textContent = eligible ? ('Start your ' + days + '-day free trial') : 'Subscribe — €8/month';
+
+            // Offer badges (only shown during 36h window)
+            if (ribbon) ribbon.style.display = offerOn ? 'inline-block' : 'none';
+            if (offBadge) offBadge.style.display = offerOn ? 'inline-block' : 'none';
+
+            // Countdown
+            if (countdownWrap) countdownWrap.style.display = offerOn ? 'block' : 'none';
+            if (offerOn && st.offer_expires_at) _glStartPaywallCountdown(st.offer_expires_at);
+
+            // Bonus box: always shown (it's a permanent feature)
+            if (bonusBox) bonusBox.style.display = 'block';
+
+            // Price
+            if (priceDisplay) priceDisplay.textContent = '€' + priceEur;
+            if (btn) btn.textContent = eligible ? ('Start your ' + days + '-day free trial') : ('Subscribe — €' + priceEur + '/month');
             if (priceNote) priceNote.textContent = eligible
                 ? ('after your ' + days + '-day free trial · cancel anytime')
                 : '· cancel anytime';
             if (note) note.textContent = eligible
-                ? ('Free for ' + days + ' days, then €8/month · cancel anytime · secure checkout via Stripe')
-                : 'Secure checkout via Stripe · cancel anytime';
+                ? ('Free for ' + days + ' days, then €' + priceEur + '/month · cancel anytime · secure checkout via Stripe')
+                : ('Secure checkout via Stripe · cancel anytime');
         }
 
         function glRenderBillingBar(st) {
@@ -16814,14 +16981,33 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         async function glLoadDashPromo() {
             const promo = document.getElementById('glDashPromo');
             if (!promo) return;
+            // Force fresh status so offer_expires_at is initialised server-side
+            glStatusCache = null;
             const st = await glFetchStatus();
             if (!st || st.active || st.plan_entitled) { promo.style.display = 'none'; return; }
             const eligible = !!st.trial_eligible;
+            const offerOn = !!(st.offer_active);
+            const priceEur = offerOn ? (st.offer_price_eur || 8) : (st.standard_price_eur || 17);
+            const days = st.trial_days || 14;
+
             const tag = document.getElementById('glPromoTag');
+            const offBadge = document.getElementById('glPromoOffBadge');
             const price = document.getElementById('glPromoPrice');
             const btn = document.getElementById('glPromoBtn');
-            if (tag) tag.textContent = eligible ? 'ONE-TIME ONLY LAUNCH OFFER' : 'GERI LIVE';
-            if (price) price.textContent = eligible ? ((st.trial_days || 14) + '-day free trial, then €8/month') : '€8/month · cancel anytime';
+            const countdown = document.getElementById('glPromoCountdown');
+
+            if (offerOn) {
+                if (tag) tag.textContent = 'ONE-TIME ONLY LAUNCH OFFER';
+                if (offBadge) offBadge.style.display = 'inline-block';
+                if (price) price.textContent = (eligible ? days + '-day free trial, then ' : '') + '€' + priceEur + '/month';
+                if (countdown) countdown.style.display = 'block';
+                if (st.offer_expires_at) _glStartPromoCountdown(st.offer_expires_at);
+            } else {
+                if (tag) tag.textContent = 'GERI LIVE';
+                if (offBadge) offBadge.style.display = 'none';
+                if (countdown) countdown.style.display = 'none';
+                if (price) price.textContent = (eligible ? days + '-day free trial, then ' : '') + '€' + priceEur + '/month';
+            }
             if (btn) btn.textContent = eligible ? 'Start free trial →' : 'Unlock GERI Live →';
             promo.style.display = 'block';
         }

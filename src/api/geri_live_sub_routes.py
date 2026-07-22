@@ -42,7 +42,9 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 
 PLAN_CODE = "geri_live"                # Stripe product metadata key + metadata.type
-PRICE_EUR_CENTS = 800                  # €8.00
+PRICE_EUR_CENTS = 800                  # €8.00 — 36-hour launch offer price
+PRICE_STANDARD_EUR_CENTS = 1700       # €17.00 — standard price after offer expires
+OFFER_HOURS = 36                       # launch offer window in hours
 TRIAL_DAYS = 14                        # 14-day free trial (once per user)
 SUB_NAME = "EnergyRiskIQ — GERI Live"
 SUB_DESC = ("Real-time GERI Live intelligence dashboard — live index, drivers, "
@@ -77,6 +79,11 @@ def run_geri_live_sub_migration():
                 "CREATE INDEX IF NOT EXISTS idx_geri_live_subs_sub "
                 "ON user_geri_live_subs(stripe_subscription_id)"
             )
+            # Add offer expiry column to users table (additive, idempotent)
+            cur.execute("""
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS geri_live_offer_expires_at TIMESTAMP WITHOUT TIME ZONE
+            """)
         logger.info("user_geri_live_subs migration complete")
     except Exception as e:
         logger.error(f"user_geri_live_subs migration failed: {e}")
@@ -114,33 +121,38 @@ def _store_price_id(price_id: str, product_id: str):
             """, (key, v))
 
 
-def ensure_geri_live_price_id() -> str:
-    cached = _get_stored_price_id()
-    if cached:
-        return cached
+def _get_or_create_product() -> object:
+    """Return the Stripe product for GERI Live (search then create)."""
     ensure_stripe_initialized()
-    product = None
     try:
         existing = stripe.Product.search(
             query=f"metadata['plan_code']:'{PLAN_CODE}'"
         )
         if existing.data:
-            product = existing.data[0]
+            return existing.data[0]
     except Exception as e:
         logger.warning(f"Stripe product search failed (will create): {e}")
-    if not product:
-        product = stripe.Product.create(
-            name=SUB_NAME,
-            description=SUB_DESC,
-            metadata={"plan_code": PLAN_CODE, "kind": "subscription"},
-        )
-        logger.info(f"Created Stripe product {product.id} for GERI Live")
+    product = stripe.Product.create(
+        name=SUB_NAME,
+        description=SUB_DESC,
+        metadata={"plan_code": PLAN_CODE, "kind": "subscription"},
+    )
+    logger.info(f"Created Stripe product {product.id} for GERI Live")
+    return product
+
+
+def ensure_geri_live_price_id() -> str:
+    """Return the launch-offer Stripe price ID (€8/month)."""
+    cached = _get_stored_price_id()
+    if cached:
+        return cached
+    product = _get_or_create_product()
     price_id = None
     for p in stripe.Price.list(product=product.id, active=True, limit=100).data:
         if (p.unit_amount == PRICE_EUR_CENTS
-            and p.currency == "eur"
-            and p.recurring
-            and p.recurring.get("interval") == "month"):
+                and p.currency == "eur"
+                and p.recurring
+                and p.recurring.get("interval") == "month"):
             price_id = p.id
             break
     if not price_id:
@@ -149,11 +161,50 @@ def ensure_geri_live_price_id() -> str:
             unit_amount=PRICE_EUR_CENTS,
             currency="eur",
             recurring={"interval": "month"},
-            metadata={"plan_code": PLAN_CODE},
+            metadata={"plan_code": PLAN_CODE, "tier": "launch"},
         )
         price_id = price.id
-        logger.info(f"Created Stripe price {price_id} for GERI Live")
+        logger.info(f"Created Stripe launch price {price_id} for GERI Live (€8)")
     _store_price_id(price_id, product.id)
+    return price_id
+
+
+def ensure_geri_live_standard_price_id() -> str:
+    """Return the standard Stripe price ID (€17/month, used after offer expires)."""
+    key = _settings_key("geri_live_standard_price_id")
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute("SELECT value FROM app_settings WHERE key = %s", (key,))
+            row = cur.fetchone()
+            if row:
+                return row["value"]
+    except Exception:
+        pass
+    product = _get_or_create_product()
+    price_id = None
+    for p in stripe.Price.list(product=product.id, active=True, limit=100).data:
+        if (p.unit_amount == PRICE_STANDARD_EUR_CENTS
+                and p.currency == "eur"
+                and p.recurring
+                and p.recurring.get("interval") == "month"):
+            price_id = p.id
+            break
+    if not price_id:
+        price = stripe.Price.create(
+            product=product.id,
+            unit_amount=PRICE_STANDARD_EUR_CENTS,
+            currency="eur",
+            recurring={"interval": "month"},
+            metadata={"plan_code": PLAN_CODE, "tier": "standard"},
+        )
+        price_id = price.id
+        logger.info(f"Created Stripe standard price {price_id} for GERI Live (€17)")
+    with get_cursor() as cur:
+        cur.execute("""
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES (%s, %s, NOW())
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+        """, (key, price_id))
     return price_id
 
 
@@ -177,12 +228,41 @@ def _get_user_from_token(token: Optional[str]):
         return None
     with get_cursor(commit=False) as cur:
         cur.execute("""
-            SELECT u.id, u.email, u.stripe_customer_id
+            SELECT u.id, u.email, u.stripe_customer_id, u.geri_live_offer_expires_at
             FROM sessions s
             JOIN users u ON u.id = s.user_id
-            WHERE s.token = %s AND s.expires_at > NOW()
+            WHERE s.token = %s AND s.expires_at > (NOW() AT TIME ZONE 'UTC')
         """, (token,))
         return cur.fetchone()
+
+
+def _ensure_offer_expiry(user_id: int, user_row) -> "datetime":
+    """Return the offer expiry for this user, initialising it to NOW()+36h if
+    the column is NULL (covers both new users and existing users who are treated
+    as first-time users)."""
+    expiry = user_row.get("geri_live_offer_expires_at") if user_row else None
+    if expiry is None:
+        with get_cursor() as cur:
+            cur.execute("""
+                UPDATE users
+                SET geri_live_offer_expires_at = NOW() + INTERVAL '%s hours'
+                WHERE id = %%s
+                RETURNING geri_live_offer_expires_at
+            """ % OFFER_HOURS, (user_id,))
+            row = cur.fetchone()
+            expiry = row["geri_live_offer_expires_at"] if row else None
+    return expiry
+
+
+def _offer_active(expiry) -> bool:
+    """True while the user is still inside the 36-hour launch-offer window."""
+    if expiry is None:
+        return True   # fallback: treat as active if we couldn't read it
+    from datetime import timezone as _tz
+    now = datetime.now(_tz.utc).replace(tzinfo=None)  # naive UTC for comparison
+    # expiry is stored as naive UTC
+    exp_naive = expiry.replace(tzinfo=None) if hasattr(expiry, "tzinfo") else expiry
+    return now < exp_naive
 
 
 def _get_or_create_row(user_id: int):
@@ -264,16 +344,27 @@ async def status(x_user_token: Optional[str] = Header(None)):
         plan_entitled = bool(prow and prow.get("plan") in ("pro", "enterprise"))
     except Exception as e:
         logger.error(f"geri-live status plan lookup failed: {e}")
+
+    # Ensure the 36-hour offer window is initialised (sets it on first call if NULL)
+    expiry = _ensure_offer_expiry(user["id"], user)
+    offer_on = _offer_active(expiry)
+    offer_price = PRICE_EUR_CENTS if offer_on else PRICE_STANDARD_EUR_CENTS
+
     return {
         "active": _active_for_mode(row),
         "plan_entitled": plan_entitled,
         "status": row["status"],
         "current_period_end": (row["current_period_end"].isoformat()
                                if row.get("current_period_end") else None),
-        "price_eur": PRICE_EUR_CENTS / 100.0,
+        "price_eur": offer_price / 100.0,
         "trial_eligible": _trial_eligible(row),
         "trial_days": TRIAL_DAYS,
         "trialing": row["status"] == "trialing",
+        # Offer fields
+        "offer_active": offer_on,
+        "offer_expires_at": expiry.isoformat() if expiry else None,
+        "offer_price_eur": PRICE_EUR_CENTS / 100.0,
+        "standard_price_eur": PRICE_STANDARD_EUR_CENTS / 100.0,
     }
 
 
@@ -286,9 +377,14 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
     if _active_for_mode(row) and row.get("stripe_subscription_id"):
         return {"already_active": True}
 
+    # Pick price based on whether the user is still in the 36-hour offer window
+    expiry = _ensure_offer_expiry(user["id"], user)
+    use_offer_price = _offer_active(expiry)
+
     init_stripe()
     try:
-        price_id = ensure_geri_live_price_id()
+        price_id = (ensure_geri_live_price_id() if use_offer_price
+                    else ensure_geri_live_standard_price_id())
     except Exception as e:
         logger.error(f"Could not ensure GERI Live price: {e}", exc_info=True)
         raise HTTPException(500, "Billing not available")
