@@ -5177,8 +5177,15 @@
         .geri-live-conn-dot.reconnecting { background: #f59e0b; animation: geriLivePulseNav 1s ease-in-out infinite; }
 
         .geri-live-grid {
-            display: grid;
-            grid-template-columns: 1fr 340px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .geri-live-left-col {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }
 
@@ -6225,9 +6232,8 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            grid-row: 1 / -1;
-            grid-column: 2;
-            align-self: start;
+            width: 340px;
+            flex-shrink: 0;
         }
         .geri-live-drivers-card,
         .geri-live-regions-card,
@@ -6328,11 +6334,10 @@
 
         @media (max-width: 1024px) {
             .geri-live-grid {
-                grid-template-columns: 1fr;
+                flex-direction: column;
             }
             .geri-live-sidebar {
-                grid-row: auto;
-                grid-column: 1;
+                width: 100%;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
             }
@@ -7634,6 +7639,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             </div>
 
             <div class="geri-live-grid">
+                <div class="geri-live-left-col">
                 <div class="geri-live-main-card" id="geriLiveMainCard">
                     <div class="geri-live-loading" id="geriLiveLoading">
                         <div class="spinner"></div>
@@ -7742,6 +7748,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     </div>
                     <div id="natgasChartEmpty" style="display:none;padding:20px;text-align:center;color:#64748b;font-size:13px;">No intraday Natural Gas data available yet today</div>
                 </div>
+                </div><!-- /.geri-live-left-col -->
 
                 <div class="geri-live-sidebar">
                     <div class="geri-live-drivers-card">
