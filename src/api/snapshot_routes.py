@@ -65,7 +65,7 @@ async def hero_snapshot_api():
 
 @router.get("/api/dashboard/market-prices")
 async def dashboard_market_prices():
-    """Market price snapshot for the user dashboard — Brent, TTF, JKM LNG, VIX."""
+    """Unified 10-card dashboard overview: GERI, EERI, EGSI-M, EGSI-S, Brent, WTI, TTF, LNG, VIX, NatGas."""
     from fastapi.responses import JSONResponse
     try:
         def _f(v, default=None):
@@ -76,6 +76,15 @@ async def dashboard_market_prices():
             except (TypeError, ValueError):
                 return default
 
+        def _pct(rows, key, n=1):
+            if not rows or len(rows) <= n:
+                return None
+            latest = _f(rows[0].get(key))
+            old = _f(rows[n].get(key))
+            if latest is None or old is None or old == 0:
+                return None
+            return round((latest - old) / old * 100, 2)
+
         def _7d_pct(rows, price_key):
             if not rows or len(rows) < 2:
                 return None
@@ -85,8 +94,27 @@ async def dashboard_market_prices():
                 return None
             return round((latest - old) / old * 100, 2)
 
-        brent_rows = execute_production_query(
-            "SELECT date, brent_price, brent_change_24h, brent_change_pct "
+        # ── Index tables ──────────────────────────────────────────────────
+        geri_rows = execute_production_query(
+            "SELECT date, value, band, trend_1d, trend_7d FROM intel_indices_daily "
+            "WHERE index_id='global:geo_energy_risk' ORDER BY date DESC LIMIT 8"
+        ) or []
+        eeri_rows = execute_production_query(
+            "SELECT date, value, band, trend_1d, trend_7d FROM reri_indices_daily "
+            "WHERE index_id='europe:eeri' ORDER BY date DESC LIMIT 8"
+        ) or []
+        egsi_m_rows = execute_production_query(
+            "SELECT index_date AS date, index_value AS value, band, trend_1d, trend_7d "
+            "FROM egsi_m_daily ORDER BY index_date DESC LIMIT 8"
+        ) or []
+        egsi_s_rows = execute_production_query(
+            "SELECT index_date AS date, index_value AS value, band, trend_1d, trend_7d "
+            "FROM egsi_s_daily ORDER BY index_date DESC LIMIT 8"
+        ) or []
+        # ── Market daily tables ───────────────────────────────────────────
+        oil_rows = execute_production_query(
+            "SELECT date, brent_price, brent_change_24h, brent_change_pct, "
+            "wti_price, wti_change_24h, wti_change_pct "
             "FROM oil_price_snapshots ORDER BY date DESC LIMIT 8"
         ) or []
         ttf_rows = execute_production_query(
@@ -99,73 +127,125 @@ async def dashboard_market_prices():
         vix_rows = execute_production_query(
             "SELECT date, vix_close FROM vix_snapshots ORDER BY date DESC LIMIT 8"
         ) or []
+        # ── Intraday ──────────────────────────────────────────────────────
+        def _one(q):
+            r = execute_production_query(q) or []
+            return r[0] if r else None
 
-        def _brent():
-            if not brent_rows:
-                return {}
-            r = brent_rows[0]
-            return {
-                "price": _f(r.get("brent_price")),
-                "change_1d": _f(r.get("brent_change_24h")),
-                "change_1d_pct": _f(r.get("brent_change_pct")),
-                "change_7d_pct": _7d_pct(brent_rows, "brent_price"),
-                "date": str(r.get("date", "")),
-                "unit": "$/bbl",
-            }
-
-        def _ttf():
-            if not ttf_rows:
-                return {}
-            r = ttf_rows[0]
-            price = _f(r.get("ttf_price"))
-            prev = _f(ttf_rows[1].get("ttf_price")) if len(ttf_rows) > 1 else None
-            chg = round(price - prev, 2) if price is not None and prev else None
-            chg_pct = round((price - prev) / prev * 100, 2) if price and prev else None
-            return {
-                "price": price,
-                "change_1d": chg,
-                "change_1d_pct": chg_pct,
-                "change_7d_pct": _7d_pct(ttf_rows, "ttf_price"),
-                "date": str(r.get("date", "")),
-                "unit": "\u20ac/MWh",
-            }
-
-        def _jkm():
-            if not jkm_rows:
-                return {}
-            r = jkm_rows[0]
-            return {
-                "price": _f(r.get("jkm_price")),
-                "change_1d": _f(r.get("jkm_change_24h")),
-                "change_1d_pct": _f(r.get("jkm_change_pct")),
-                "change_7d_pct": _7d_pct(jkm_rows, "jkm_price"),
-                "date": str(r.get("date", "")),
-                "unit": "$/MMBtu",
-            }
-
-        def _vix():
-            if not vix_rows:
-                return {}
-            r = vix_rows[0]
-            price = _f(r.get("vix_close"))
-            prev = _f(vix_rows[1].get("vix_close")) if len(vix_rows) > 1 else None
-            chg = round(price - prev, 2) if price is not None and prev else None
-            chg_pct = round((price - prev) / prev * 100, 2) if price and prev else None
-            return {
-                "price": price,
-                "change_1d": chg,
-                "change_1d_pct": chg_pct,
-                "change_7d_pct": _7d_pct(vix_rows, "vix_close"),
-                "date": str(r.get("date", "")),
-                "unit": "pts",
-            }
-
-        return JSONResponse(
-            {"brent": _brent(), "ttf": _ttf(), "jkm": _jkm(), "vix": _vix()},
-            headers={"Cache-Control": "public, max-age=300"},
+        brent_intra = _one(
+            "SELECT date, hour, price, change_24h, change_pct "
+            "FROM intraday_brent ORDER BY date DESC, hour DESC LIMIT 1"
         )
+        wti_intra = _one(
+            "SELECT date, hour, price, change_24h, change_pct "
+            "FROM intraday_wti ORDER BY date DESC, hour DESC LIMIT 1"
+        )
+        natgas_intra = _one(
+            "SELECT date, hour, price, change_24h, change_pct "
+            "FROM intraday_natgas ORDER BY date DESC, hour DESC LIMIT 1"
+        )
+        natgas_daily = execute_production_query(
+            "SELECT DISTINCT ON (date) date, price FROM intraday_natgas "
+            "ORDER BY date DESC, hour DESC LIMIT 8"
+        ) or []
+
+        # ── Builders ──────────────────────────────────────────────────────
+        def _intra(row):
+            if not row:
+                return None
+            return {
+                "price": _f(row.get("price")),
+                "hour": row.get("hour"),
+                "change_24h": _f(row.get("change_24h")),
+                "change_pct": _f(row.get("change_pct")),
+            }
+
+        def _idx(rows, name, sub, color):
+            base = {"name": name, "sub": sub, "color": color, "type": "index"}
+            if not rows:
+                return base
+            r = rows[0]
+            val = _f(r.get("value"))
+            pct1 = _pct(rows, "value", 1)
+            pct7 = _7d_pct(rows, "value")
+            t1 = _f(r.get("trend_1d"))
+            t7 = _f(r.get("trend_7d"))
+            if pct1 is None and t1 is not None and val:
+                prev = val - t1
+                if prev and prev != 0:
+                    pct1 = round(t1 / prev * 100, 2)
+            if pct7 is None and t7 is not None and val:
+                prev7 = val - t7
+                if prev7 and prev7 != 0:
+                    pct7 = round(t7 / prev7 * 100, 2)
+            return {**base,
+                "value": val, "band": r.get("band"),
+                "change_1d_pct": pct1, "change_7d_pct": pct7,
+                "change_1d_abs": t1, "date": str(r.get("date", "")), "intraday": None,
+            }
+
+        def _mkt(name, sub, unit, color, rows, vk, ck_abs, ck_pct, intra=None):
+            base = {"name": name, "sub": sub, "unit": unit, "color": color, "type": "market"}
+            if not rows:
+                return base
+            r = rows[0]
+            price = _f(r.get(vk))
+            cab = _f(r.get(ck_abs)) if ck_abs else None
+            cpct = _f(r.get(ck_pct)) if ck_pct else None
+            if cpct is None and price is not None and len(rows) > 1:
+                prev = _f(rows[1].get(vk))
+                if prev and prev != 0:
+                    cpct = round((price - prev) / prev * 100, 2)
+                    cab = round(price - prev, 2)
+            return {**base,
+                "value": price, "band": None,
+                "change_1d_pct": cpct, "change_7d_pct": _7d_pct(rows, vk),
+                "change_1d_abs": cab, "date": str(r.get("date", "")),
+                "intraday": _intra(intra),
+            }
+
+        wti_rows = [{"wti_price": _f(r.get("wti_price")),
+                     "wti_change_24h": _f(r.get("wti_change_24h")),
+                     "wti_change_pct": _f(r.get("wti_change_pct")),
+                     "date": r.get("date")} for r in oil_rows]
+
+        def _natgas():
+            base = {"name": "Nat. Gas", "sub": "Henry Hub", "unit": "$/MMBtu",
+                    "color": "#38bdf8", "type": "market"}
+            if not natgas_intra:
+                return base
+            price = _f(natgas_intra.get("price"))
+            ng_rows = [{"price": _f(x.get("price"))} for x in natgas_daily]
+            return {**base,
+                "value": price, "band": None,
+                "change_1d_pct": _f(natgas_intra.get("change_pct")),
+                "change_7d_pct": _7d_pct(ng_rows, "price"),
+                "change_1d_abs": _f(natgas_intra.get("change_24h")),
+                "date": str(natgas_intra.get("date", "")),
+                "intraday": _intra(natgas_intra),
+            }
+
+        cards = {
+            "geri":   _idx(geri_rows,   "GERI",     "Global Energy Risk Index",   "#f87171"),
+            "eeri":   _idx(eeri_rows,   "EERI",     "Energy Escalation Risk",     "#fbbf24"),
+            "egsi_m": _idx(egsi_m_rows, "EGSI-M",   "EU Gas Stress — Market",     "#34d399"),
+            "egsi_s": _idx(egsi_s_rows, "EGSI-S",   "EU Gas Stress — Supply",     "#2dd4bf"),
+            "brent":  _mkt("Brent Oil", "Crude Oil", "$/bbl",    "#f59e0b",
+                           oil_rows, "brent_price", "brent_change_24h", "brent_change_pct", brent_intra),
+            "wti":    _mkt("WTI Oil",   "Crude Oil", "$/bbl",    "#fb923c",
+                           wti_rows, "wti_price",   "wti_change_24h",   "wti_change_pct",   wti_intra),
+            "ttf":    _mkt("TTF Gas",   "Nat. Gas",  "\u20ac/MWh", "#22d3ee",
+                           ttf_rows, "ttf_price",   None, None),
+            "jkm":    _mkt("LNG \u2014 JKM", "Asia LNG", "$/MMBtu", "#2dd4bf",
+                           jkm_rows, "jkm_price",  "jkm_change_24h",   "jkm_change_pct"),
+            "vix":    _mkt("VIX",       "Fear Index", "pts",     "#a78bfa",
+                           vix_rows, "vix_close",  None, None),
+            "natgas": _natgas(),
+        }
+
+        return JSONResponse(cards, headers={"Cache-Control": "public, max-age=120"})
     except Exception as exc:
-        logger.error("dashboard-market-prices API error: %s", exc)
+        logger.error("dashboard-market-prices error: %s", exc)
         return JSONResponse({"error": str(exc)}, status_code=500)
 
 
