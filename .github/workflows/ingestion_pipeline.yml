@@ -49,10 +49,10 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -130,7 +130,7 @@ jobs:
           echo "risk_exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
       - name: Upload logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: ingestion-logs-${{ github.run_id }}

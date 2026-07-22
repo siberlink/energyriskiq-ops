@@ -94,10 +94,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5.3.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -378,7 +378,7 @@ jobs:
           python -m src.alerts.runner --health 2>&1 | tee health_output.txt || true
 
       - name: Upload logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: alerts-engine-logs-${{ github.run_id }}
