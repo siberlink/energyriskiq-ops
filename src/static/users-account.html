@@ -17894,6 +17894,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         /* ════════════════ GERI Live standalone subscription ════════════════ */
         let glStatusCache = null;
+        let _glStatusCacheTime = 0;          // epoch-ms when glStatusCache was last set
+        const GL_STATUS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
         function glPlanEntitled() {
             // Server-derived only: currentUser.plan is unreliable on the
@@ -17908,6 +17910,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 const r = await fetch('/api/geri-live/status', { headers: { 'x-user-token': token } });
                 if (!r.ok) return null;
                 glStatusCache = await r.json();
+                _glStatusCacheTime = Date.now();
                 return glStatusCache;
             } catch (e) { console.error('glFetchStatus', e); return null; }
         }
@@ -17916,18 +17919,45 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const loading = document.getElementById('glLoading');
             const paywall = document.getElementById('glPaywall');
             const content = document.getElementById('glContent');
+
+            // ── Fast path: use cached status if it is still fresh ──────────────
+            // Avoids the status round-trip on every tab-switch (common UX pattern).
+            const cacheAge = Date.now() - _glStatusCacheTime;
+            if (glStatusCache && cacheAge < GL_STATUS_CACHE_TTL) {
+                const entitled = !!(glStatusCache.plan_entitled || glStatusCache.active);
+                if (entitled) {
+                    if (loading) loading.style.display = 'none';
+                    if (paywall) paywall.style.display = 'none';
+                    if (content) content.style.display = 'block';
+                    glRenderBillingBar(glStatusCache);
+                    loadGeriLive();
+                    loadTraderIntel();
+                    initGeriLiveBrentEngine();
+                    // Refresh status silently in background for next visit
+                    glFetchStatus().catch(() => {});
+                    return;
+                }
+            }
+
+            // ── Normal path: show loading, kick off status + data in parallel ──
             if (loading) loading.style.display = 'block';
             if (paywall) paywall.style.display = 'none';
             if (content) content.style.display = 'none';
 
-            const st = await glFetchStatus();
+            // Start the status fetch AND the data fetch simultaneously.
+            // The data fetch is a no-op if status turns out to be not-entitled;
+            // for entitled users it means data arrives sooner (or already ready).
+            const statusPromise = glFetchStatus();
+            const dataPromise   = loadGeriLiveData();   // pre-fetches; doesn't touch UI yet
+
+            const st = await statusPromise;
             const entitled = !!(st && (st.plan_entitled || st.active));
 
             if (loading) loading.style.display = 'none';
             if (entitled) {
                 if (content) content.style.display = 'block';
                 glRenderBillingBar(st);
-                loadGeriLive();
+                loadGeriLive(dataPromise);   // pass the in-flight promise; avoids second fetch
                 loadTraderIntel();
                 initGeriLiveBrentEngine();
             } else {
@@ -18109,7 +18139,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const promo = document.getElementById('glDashPromo');
             if (!promo) return;
             // Force fresh status so offer_expires_at is initialised server-side
-            glStatusCache = null;
+            glStatusCache = null; _glStatusCacheTime = 0;
             const st = await glFetchStatus();
             if (!st || st.active || st.plan_entitled) { promo.style.display = 'none'; return; }
             const eligible = !!st.trial_eligible;
@@ -19134,19 +19164,29 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             return bgs[band] || 'rgba(100,116,139,0.15)';
         }
 
-        async function loadGeriLive() {
+        // Pre-fetches /latest without touching the UI — called in parallel with
+        // the status check so the data is (often) already resolved by the time
+        // glGate() confirms entitlement and calls loadGeriLive(dataPromise).
+        function loadGeriLiveData() {
+            var token = sessionToken || '';
+            if (!token) return Promise.resolve(null);
+            return fetch('/api/v1/indices/geri/live/latest', {
+                headers: { 'X-User-Token': token }
+            }).then(function(r) {
+                return r.ok ? r.json() : null;
+            }).catch(function() { return null; });
+        }
+
+        async function loadGeriLive(prefetchedPromise) {
             if (!currentUser) return;
 
             setGeriLiveConnection('reconnecting', 'Connecting...');
 
             try {
-                var token = sessionToken || '';
-                var resp = await fetch('/api/v1/indices/geri/live/latest', {
-                    headers: { 'X-User-Token': token }
-                });
-                if (!resp.ok) throw new Error('Failed to load');
-                var json = await resp.json();
-                if (json.success && json.data) {
+                // Use the pre-fetched promise when available (parallel path),
+                // otherwise fall back to a fresh fetch (cache-hit / direct call).
+                var json = prefetchedPromise ? await prefetchedPromise : await loadGeriLiveData();
+                if (json && json.success && json.data) {
                     updateGeriLiveUI(json.data);
                     if (json.data.timeline) {
                         renderGeriLiveSparkline(json.data.timeline);

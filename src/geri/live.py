@@ -45,6 +45,11 @@ logger = logging.getLogger(__name__)
 
 DEBOUNCE_SECONDS = 60
 
+# In-memory last-compute timestamp — eliminates the DB round-trip inside
+# _should_debounce() for the common case (last compute was < 60 s ago).
+# Falls back to the DB query on cold start (when _last_compute_time is None).
+_last_compute_time: Optional[datetime] = None
+
 TYPICAL_DAILY_ALERTS = 120
 SIGNAL_WEIGHT_MAX = 0.85
 
@@ -414,6 +419,16 @@ def _get_yesterday_geri_value() -> Optional[int]:
 
 
 def _should_debounce() -> bool:
+    global _last_compute_time
+    now = datetime.utcnow()
+    # Fast path: use in-memory timestamp — no DB query needed
+    if _last_compute_time is not None:
+        # Reset at midnight (don't carry yesterday's timestamp into today)
+        if _last_compute_time.date() < now.date():
+            _last_compute_time = None
+        else:
+            return (now - _last_compute_time).total_seconds() < DEBOUNCE_SECONDS
+    # Cold-start fallback: check DB once to initialise the in-memory timestamp
     today_start = datetime.combine(date.today(), datetime.min.time())
     row = execute_one(
         "SELECT computed_at FROM geri_live WHERE computed_at >= %s ORDER BY id DESC LIMIT 1",
@@ -421,9 +436,8 @@ def _should_debounce() -> bool:
     )
     if not row:
         return False
-    last_computed = row['computed_at']
-    elapsed = (datetime.utcnow() - last_computed).total_seconds()
-    return elapsed < DEBOUNCE_SECONDS
+    _last_compute_time = row['computed_at']
+    return (now - _last_compute_time).total_seconds() < DEBOUNCE_SECONDS
 
 
 BAND_THRESHOLDS = [
@@ -543,6 +557,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
         }
         _store_live_result(result)
         _store_history_snapshot(result, [])
+        _last_compute_time = datetime.utcnow()
         return result
 
     components = compute_components(alerts)
@@ -670,6 +685,7 @@ def compute_live_geri(force: bool = False) -> Optional[Dict[str, Any]]:
 
     _store_live_result(result)
     _store_history_snapshot(result, alerts)
+    _last_compute_time = datetime.utcnow()
     return result
 
 
