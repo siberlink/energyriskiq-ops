@@ -6409,84 +6409,6 @@
                 </span>
                 Dashboard
             </a>
-            <!-- My Alerts nav hidden -->
-
-            <a class="nav-item" id="geriNavItem" onclick="showSection('geri'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v20"/>
-                        <path d="M2 12h20"/>
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 6l4 6-4 6-4-6 4-6z"/>
-                    </svg>
-                </span>
-                GERI Dashboard
-            </a>
-            <a class="nav-item" id="geriLiveNavItem" onclick="showSection('geri-live'); closeMobileMenu();" style="display:none;">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </span>
-                GERI Live
-                <span class="geri-live-badge-nav">LIVE</span>
-            </a>
-            <a class="nav-item" id="geriHistoryNavItem" style="display:none;" onclick="showSection('geri-history'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <path d="M3 9h18M9 21V9"/>
-                    </svg>
-                </span>
-                GERI History
-            </a>
-            <a class="nav-item" id="eeriHistoryNavItem" style="display:none;" onclick="showSection('eeri-history'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <path d="M3 9h18M9 21V9"/>
-                    </svg>
-                </span>
-                EERI History
-            </a>
-            <a class="nav-item" id="eeriNavItem" onclick="showSection('eeri-pro'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                    </svg>
-                </span>
-                EERI Dashboard
-            </a>
-            <div class="eeri-upgrade-hint" id="eeriUpgradeHint" style="display: none;">
-                (Upgrade to Pro for full EERI access)
-            </div>
-            <a class="nav-item" id="egsiNavItem" onclick="showSection('egsi'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                    </svg>
-                </span>
-                EGSI Dashboard
-            </a>
-            <a class="nav-item" id="egsiMHistoryNavItem" style="display:none;" onclick="showSection('egsi-m-history'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <path d="M3 9h18M9 21V9"/>
-                    </svg>
-                </span>
-                EGSI-M History
-            </a>
-            <a class="nav-item" id="egsiSHistoryNavItem" style="display:none;" onclick="showSection('egsi-s-history'); closeMobileMenu();">
-                <span class="nav-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <path d="M3 9h18M9 21V9"/>
-                    </svg>
-                </span>
-                EGSI-S History
-            </a>
             <a class="nav-item" id="digestNavItem" onclick="showSection('digest'); closeMobileMenu();">
                 <span class="nav-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -6549,6 +6471,86 @@
                 </span>
                 Download Indices History
                 <span class="pro-badge-nav" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);font-size:9px;padding:2px 6px;">NEW</span>
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-title">Free Intelligence Access</div>
+            <a class="nav-item" id="geriNavItem" onclick="showSection('geri'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20"/>
+                        <path d="M2 12h20"/>
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6l4 6-4 6-4-6 4-6z"/>
+                    </svg>
+                </span>
+                GERI Dashboard
+            </a>
+            <a class="nav-item" id="geriLiveNavItem" onclick="showSection('geri-live'); closeMobileMenu();" style="display:none;">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </span>
+                GERI Live
+                <span class="geri-live-badge-nav">LIVE</span>
+            </a>
+            <a class="nav-item" id="geriHistoryNavItem" style="display:none;" onclick="showSection('geri-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                GERI History
+            </a>
+            <a class="nav-item" id="eeriNavItem" onclick="showSection('eeri-pro'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </span>
+                EERI Dashboard
+            </a>
+            <div class="eeri-upgrade-hint" id="eeriUpgradeHint" style="display: none;">
+                (Upgrade to Pro for full EERI access)
+            </div>
+            <a class="nav-item" id="eeriHistoryNavItem" style="display:none;" onclick="showSection('eeri-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                EERI History
+            </a>
+            <a class="nav-item" id="egsiNavItem" onclick="showSection('egsi'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </span>
+                EGSI Dashboard
+            </a>
+            <a class="nav-item" id="egsiMHistoryNavItem" style="display:none;" onclick="showSection('egsi-m-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                EGSI-M History
+            </a>
+            <a class="nav-item" id="egsiSHistoryNavItem" style="display:none;" onclick="showSection('egsi-s-history'); closeMobileMenu();">
+                <span class="nav-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <path d="M3 9h18M9 21V9"/>
+                    </svg>
+                </span>
+                EGSI-S History
             </a>
         </div>
 
