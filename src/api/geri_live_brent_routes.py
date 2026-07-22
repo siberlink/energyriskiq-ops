@@ -43,7 +43,17 @@ def _require_geri_live(token: Optional[str]):
     user = _get_user_from_token(token)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
-    if not user_has_geri_live(user["id"]):
+    user_id = user["id"]
+    # Check Pro/Enterprise plan first (free access)
+    try:
+        from src.db.db import execute_one
+        prow = execute_one("SELECT plan FROM user_plans WHERE user_id = %s", (user_id,))
+        if prow and prow.get("plan") in ("pro", "enterprise"):
+            return user
+    except Exception as e:
+        logger.error(f"geri-live brent plan check failed: {e}")
+    # Fall back to standalone GERI Live subscription
+    if not user_has_geri_live(user_id):
         raise HTTPException(status_code=403, detail="GERI Live subscription required")
     return user
 
