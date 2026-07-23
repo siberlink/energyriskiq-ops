@@ -5790,6 +5790,61 @@
             margin-left: 4px;
         }
 
+        /* ── GERI Live: Live section refresh indicators ── */
+        .gl-live-section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #22c55e;
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 20px;
+            padding: 2px 7px;
+            flex-shrink: 0;
+        }
+        .gl-live-section-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+            animation: geriLiveDotPulse 1.5s ease-in-out infinite;
+        }
+        .gl-section-update-ago {
+            font-size: 10px;
+            color: #475569;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            font-style: italic;
+        }
+        .gl-analysis-auto-note {
+            font-size: 10px;
+            color: #3b82f6;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            margin-left: auto;
+        }
+        @keyframes glSectionRefreshFlash {
+            0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+            30%  { box-shadow: 0 0 0 5px rgba(34,197,94,0.45); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+        .gl-refresh-flash {
+            animation: glSectionRefreshFlash 1s ease-out;
+        }
+        .gl-chart-live-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: -8px;
+            margin-bottom: 10px;
+        }
+
         /* ── Brent Intelligence Forecast Engine (GERI Live embedded) ── */
         .gl-brent-engine-section {
             background: #1e293b;
@@ -8357,6 +8412,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         <span>Brent Crude — Intraday</span>
                         <span class="geri-live-chart-count" id="brentChartMeta" style="color:#f59e0b;"></span>
                     </div>
+                    <div class="gl-chart-live-bar">
+                        <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE · auto-updates</span>
+                        <span class="gl-section-update-ago" id="brentChartUpdated"></span>
+                    </div>
                     <div class="geri-live-chart-container">
                         <canvas id="brentIntradayChart" height="160"></canvas>
                     </div>
@@ -8367,6 +8426,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     <div class="geri-live-chart-header">
                         <span>WTI Crude — Intraday</span>
                         <span class="geri-live-chart-count" id="wtiChartMeta" style="color:#3b82f6;"></span>
+                    </div>
+                    <div class="gl-chart-live-bar">
+                        <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE · auto-updates</span>
+                        <span class="gl-section-update-ago" id="wtiChartUpdated"></span>
                     </div>
                     <div class="geri-live-chart-container">
                         <canvas id="wtiIntradayChart" height="160"></canvas>
@@ -8379,6 +8442,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         <span>Natural Gas — Intraday</span>
                         <span class="geri-live-chart-count" id="natgasChartMeta" style="color:#a78bfa;"></span>
                     </div>
+                    <div class="gl-chart-live-bar">
+                        <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE · auto-updates</span>
+                        <span class="gl-section-update-ago" id="natgasChartUpdated"></span>
+                    </div>
                     <div class="geri-live-chart-container">
                         <canvas id="natgasIntradayChart" height="160"></canvas>
                     </div>
@@ -8387,15 +8454,23 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 </div><!-- /.geri-live-left-col -->
 
                 <div class="geri-live-sidebar">
-                    <div class="geri-live-drivers-card">
-                        <div class="geri-live-card-header">Top Drivers</div>
+                    <div class="geri-live-drivers-card" id="geriLiveDriversCard">
+                        <div class="geri-live-card-header" style="display:flex;align-items:center;gap:8px;">
+                            Top Drivers
+                            <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE</span>
+                            <span class="gl-section-update-ago" id="driversUpdated" style="margin-left:auto;"></span>
+                        </div>
                         <div class="geri-live-drivers-list" id="geriLiveDriversList">
                             <p class="geri-live-empty">No drivers yet</p>
                         </div>
                     </div>
 
-                    <div class="geri-live-regions-card">
-                        <div class="geri-live-card-header">Affected Regions</div>
+                    <div class="geri-live-regions-card" id="geriLiveRegionsCard">
+                        <div class="geri-live-card-header" style="display:flex;align-items:center;gap:8px;">
+                            Affected Regions
+                            <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE</span>
+                            <span class="gl-section-update-ago" id="regionsUpdated" style="margin-left:auto;"></span>
+                        </div>
                         <div class="geri-live-regions-list" id="geriLiveRegionsList">
                             <p class="geri-live-empty">No regions yet</p>
                         </div>
@@ -8412,7 +8487,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         <div class="geri-live-interp-header">
                             <span class="geri-live-interp-icon">🧠</span>
                             <span>Analysis</span>
+                            <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE</span>
+                            <span class="gl-analysis-auto-note">· auto-refreshes hourly</span>
                             <span class="geri-live-interp-time" id="geriLiveInterpTime"></span>
+                            <span class="gl-section-update-ago" id="analysisUpdatedAgo"></span>
                         </div>
                         <div class="geri-live-interp-body" id="geriLiveInterpBody"></div>
                         <div class="geri-live-interp-updating" id="geriLiveInterpUpdating" style="display:none;">
@@ -8590,7 +8668,11 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                             <div class="geri-live-pro-card-icon geri-live-pro-icon-trader">📊</div>
                             <div>
                                 <div class="geri-live-pro-card-title">Energy Commodity Traders</div>
-                                <div class="geri-live-pro-card-subtitle">Intraday risk overlay for trading decisions</div>
+                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;">
+                                    <div class="geri-live-pro-card-subtitle">Intraday risk overlay for trading decisions</div>
+                                    <span class="gl-live-section-badge"><span class="gl-live-section-dot"></span>LIVE</span>
+                                    <span class="gl-section-update-ago" id="traderIntelUpdated"></span>
+                                </div>
                             </div>
                         </div>
                         <div class="geri-live-pro-card-body" id="geriLiveProTraderBody">
@@ -19351,6 +19433,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (brentChartInstance) { brentChartInstance.destroy(); brentChartInstance = null; }
             if (wtiChartInstance) { wtiChartInstance.destroy(); wtiChartInstance = null; }
             if (natgasChartInstance) { natgasChartInstance.destroy(); natgasChartInstance = null; }
+            stopGeriLivePollers();
         }
 
         window.addEventListener('beforeunload', cleanupGeriLiveSSE);
@@ -19412,6 +19495,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
             connectGeriLiveSSE();
             loadEnergyPriceCharts();
+            startGeriLivePollers();
         }
 
         var brentChartInstance = null;
@@ -19532,6 +19616,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     }
                 }
             });
+            _glMarkUpdated('brent');
         }
 
         function renderWTIChart(data) {
@@ -19607,6 +19692,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     }
                 }
             });
+            _glMarkUpdated('wti');
         }
 
         function renderNatGasChart(data) {
@@ -19682,6 +19768,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     }
                 }
             });
+            _glMarkUpdated('natgas');
         }
 
         function connectGeriLiveSSE() {
@@ -19840,6 +19927,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     var d = new Date(data.computed_at);
                     interpTime.textContent = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + ' UTC';
                 }
+                _glMarkUpdated('analysis');
             }
 
             renderGeriLiveDrivers(data.top_drivers || []);
@@ -20080,6 +20168,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 row.appendChild(info);
                 el.appendChild(row);
             });
+            _glMarkUpdated('drivers');
         }
 
         function renderGeriLiveRegions(regions) {
@@ -20104,6 +20193,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 row.appendChild(risk);
                 el.appendChild(row);
             });
+            _glMarkUpdated('regions');
         }
 
         function addGeriLiveActivity(data) {
@@ -20632,6 +20722,134 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         /* ════════════════════════════════════════════════════════ */
 
+        // ── GERI Live: Auto-refresh pollers & live section indicators ─────────
+        var _glChartsInterval     = null;
+        var _glTraderPollInterval = null;
+        var _glAnalysisInterval   = null;
+        var _glSectionTimerIntvl  = null;
+        var _glLastUpdated        = {};
+
+        var _GL_CHART_REFRESH_MS    = 5  * 60 * 1000;
+        var _GL_TRADER_REFRESH_MS   = 5  * 60 * 1000;
+        var _GL_ANALYSIS_REFRESH_MS = 60 * 60 * 1000;
+
+        var _GL_SECTION_MAP = {
+            brent:    { card: 'brentChartCard',     ago: 'brentChartUpdated'  },
+            wti:      { card: 'wtiChartCard',       ago: 'wtiChartUpdated'    },
+            natgas:   { card: 'natgasChartCard',    ago: 'natgasChartUpdated' },
+            trader:   { card: 'geriLiveProTrader',  ago: 'traderIntelUpdated' },
+            drivers:  { card: 'geriLiveDriversCard',ago: 'driversUpdated'     },
+            regions:  { card: 'geriLiveRegionsCard',ago: 'regionsUpdated'     },
+            analysis: { card: 'geriLiveInterpCard', ago: 'analysisUpdatedAgo' },
+        };
+
+        function _glFlash(cardId) {
+            var el = document.getElementById(cardId);
+            if (!el) return;
+            el.classList.remove('gl-refresh-flash');
+            void el.offsetWidth;
+            el.classList.add('gl-refresh-flash');
+        }
+
+        function _glFmtAgo(ts) {
+            var s = Math.floor((Date.now() - ts) / 1000);
+            if (s < 10)   return 'just now';
+            if (s < 60)   return s + 's ago';
+            if (s < 3600) return Math.floor(s / 60) + 'm ago';
+            return Math.floor(s / 3600) + 'h ago';
+        }
+
+        function _glUpdateAgoSpan(key) {
+            var cfg = _GL_SECTION_MAP[key];
+            if (!cfg) return;
+            var span = document.getElementById(cfg.ago);
+            if (!span) return;
+            var ts = _glLastUpdated[key];
+            span.textContent = ts ? _glFmtAgo(ts) : '';
+        }
+
+        function _glMarkUpdated(key) {
+            _glLastUpdated[key] = Date.now();
+            var cfg = _GL_SECTION_MAP[key];
+            if (!cfg) return;
+            _glFlash(cfg.card);
+            _glUpdateAgoSpan(key);
+        }
+
+        function _glTickSectionTimers() {
+            Object.keys(_GL_SECTION_MAP).forEach(function(key) { _glUpdateAgoSpan(key); });
+        }
+
+        function startGeriLivePollers() {
+            stopGeriLivePollers();
+            _glSectionTimerIntvl  = setInterval(_glTickSectionTimers, 10000);
+            _glChartsInterval     = setInterval(function() { loadEnergyPriceCharts(); }, _GL_CHART_REFRESH_MS);
+            _glTraderPollInterval = setInterval(function() {
+                var s = document.getElementById('section-geri-live');
+                if (s && s.classList.contains('active')) refreshTraderIntel();
+            }, _GL_TRADER_REFRESH_MS);
+            _glAnalysisInterval   = setInterval(function() {
+                var s = document.getElementById('section-geri-live');
+                if (s && s.classList.contains('active')) refreshGeriLiveAnalysis();
+            }, _GL_ANALYSIS_REFRESH_MS);
+        }
+
+        function stopGeriLivePollers() {
+            if (_glChartsInterval)     { clearInterval(_glChartsInterval);     _glChartsInterval     = null; }
+            if (_glTraderPollInterval) { clearInterval(_glTraderPollInterval); _glTraderPollInterval = null; }
+            if (_glAnalysisInterval)   { clearInterval(_glAnalysisInterval);   _glAnalysisInterval   = null; }
+            if (_glSectionTimerIntvl)  { clearInterval(_glSectionTimerIntvl);  _glSectionTimerIntvl  = null; }
+        }
+
+        async function refreshGeriLiveAnalysis() {
+            var token = sessionToken || '';
+            if (!token) return;
+            try {
+                var resp = await fetch('/api/v1/indices/geri/live/latest', {
+                    headers: { 'X-User-Token': token }
+                });
+                if (!resp.ok) return;
+                var json = await resp.json();
+                if (!json || !json.success || !json.data) return;
+                var data = json.data;
+                if (data.interpretation) {
+                    var interpCard = document.getElementById('geriLiveInterpCard');
+                    if (interpCard) interpCard.style.display = 'block';
+                    var interpBody = document.getElementById('geriLiveInterpBody');
+                    if (interpBody) {
+                        interpBody.style.opacity = '0';
+                        setTimeout(function() {
+                            interpBody.textContent = '';
+                            var sentences = data.interpretation.match(/[^.!?]+[.!?]+[\s]*/g) || [data.interpretation];
+                            var grouped = [];
+                            for (var i = 0; i < sentences.length; i += 2) {
+                                grouped.push(sentences.slice(i, i + 2).join('').trim());
+                            }
+                            grouped.forEach(function(para) {
+                                if (!para) return;
+                                var p = document.createElement('p');
+                                p.className = 'geri-live-interp-text';
+                                p.style.marginBottom = '10px';
+                                p.textContent = para;
+                                interpBody.appendChild(p);
+                            });
+                            interpBody.style.opacity = '1';
+                        }, 200);
+                    }
+                    var interpTime = document.getElementById('geriLiveInterpTime');
+                    if (interpTime && data.computed_at) {
+                        var d = new Date(data.computed_at);
+                        interpTime.textContent = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + ' UTC';
+                    }
+                    _glMarkUpdated('analysis');
+                }
+                if (data.top_drivers) renderGeriLiveDrivers(data.top_drivers);
+                if (data.top_regions) renderGeriLiveRegions(data.top_regions);
+            } catch(e) {
+                console.error('refreshGeriLiveAnalysis error:', e);
+            }
+        }
+
         var traderIntelLoaded = false;
         var traderIntelRefreshing = false;
 
@@ -20660,6 +20878,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     loadingEl.style.display = 'none';
                     contentEl.style.display = 'block';
                     traderIntelLoaded = true;
+                    _glMarkUpdated('trader');
                 }
             } catch (e) {
                 console.error('Trader intel load error:', e);
@@ -20683,6 +20902,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     renderPositionRiskAlerts(json.data.position_risk_alerts);
                     renderIntradayRiskWindows(json.data.intraday_risk_windows);
                     renderFlashHeadlineFeed(json.data.flash_headline_feed);
+                    _glMarkUpdated('trader');
                 }
             } catch (e) {
                 console.error('Trader intel refresh error:', e);
