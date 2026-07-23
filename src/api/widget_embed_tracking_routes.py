@@ -24,6 +24,7 @@ router = APIRouter()
 WIDGET_LABELS = {
     "wti-free": "WTI Crude Oil — Free Widget",
     "gas-storage-free": "Europe Gas Storage — Free Widget",
+    "jkm-lng-free": "JKM LNG Price — Free Widget",
 }
 
 # Hosts we never want to count as an external embed location.
