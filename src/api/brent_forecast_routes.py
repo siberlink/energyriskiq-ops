@@ -272,11 +272,24 @@ def _market_snapshot() -> dict:
             snap["brent_change_pct"] = float(r["brent_change_pct"] or 0)
             snap["wti"] = float(r["wti_price"]) if r["wti_price"] else None
             snap["price_date"] = str(r["date"])
-        cur.execute("SELECT price, captured_at FROM intraday_brent ORDER BY captured_at DESC LIMIT 1")
+        cur.execute(
+            "SELECT price, change_pct, captured_at FROM intraday_brent "
+            "WHERE date = CURRENT_DATE ORDER BY hour DESC LIMIT 1"
+        )
         r = cur.fetchone()
         if r and r["price"]:
             snap["brent_intraday"] = float(r["price"])
+            snap["brent_intraday_change_pct"] = float(r["change_pct"] or 0)
             snap["brent_intraday_at"] = r["captured_at"].isoformat()
+        cur.execute(
+            "SELECT price, change_pct, captured_at FROM intraday_wti "
+            "WHERE date = CURRENT_DATE ORDER BY hour DESC LIMIT 1"
+        )
+        r = cur.fetchone()
+        if r and r["price"]:
+            snap["wti_intraday"] = float(r["price"])
+            snap["wti_intraday_change_pct"] = float(r["change_pct"] or 0)
+            snap["wti_intraday_at"] = r["captured_at"].isoformat()
         cur.execute("SELECT value, band, date FROM intel_indices_daily "
                     "WHERE index_id = 'global:geo_energy_risk' ORDER BY date DESC LIMIT 1")
         r = cur.fetchone()

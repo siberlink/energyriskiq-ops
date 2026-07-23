@@ -20366,8 +20366,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         : m.vix < 15 ? 'low volatility' : m.vix < 22 ? 'moderate volatility' : 'high volatility';
 
             var items = [
-                { label: 'Brent Crude',    val: '$' + glBrentFmt(m.brent_intraday || m.brent), sub: m.brent_intraday ? 'Intraday Live' : 'Daily Close' },
-                { label: 'WTI Crude',      val: '$' + glBrentFmt(m.wti),   sub: 'Daily Close' },
+                { label: 'Brent Crude',    val: '$' + glBrentFmt(m.brent_intraday || m.brent), sub: m.brent_intraday ? 'Intraday Live' : 'Daily Close', chg: m.brent_intraday != null ? m.brent_intraday_change_pct : m.brent_change_pct },
+                { label: 'WTI Crude',      val: '$' + glBrentFmt(m.wti_intraday   || m.wti),   sub: m.wti_intraday   ? 'Intraday Live' : 'Daily Close', chg: m.wti_intraday   != null ? m.wti_intraday_change_pct   : m.wti_change_pct   },
                 { label: 'GERI Daily',     val: glBrentFmt(m.geri),         band: glBrentLocalBand(m.geri, 25, 40, 60) },
                 { label: 'GERI Live',      val: glBrentFmt(m.geri_live),    sub: (m.geri_live_alerts || 0) + ' alerts', band: glBrentLocalBand(m.geri_live, 25, 40, 60) },
                 { label: 'VIX Volatility', val: glBrentFmt(m.vix),          band: glBrentLocalBand(m.vix, 15, 22, 30) },
@@ -20388,7 +20388,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 + items.map(function(i) {
                     return '<div class="gl-brent-snap-card">'
                         + '<div class="gl-brent-snap-label">' + i.label + '</div>'
-                        + '<div class="gl-brent-snap-val">' + i.val + '</div>'
+                        + '<div class="gl-brent-snap-val">' + i.val + (i.chg != null ? ' <span style="font-size:11px;font-weight:600;color:' + (i.chg > 0 ? '#22c55e' : i.chg < 0 ? '#ef4444' : '#94a3b8') + '">(' + (i.chg > 0 ? '+' : '') + i.chg.toFixed(2) + '%)</span>' : '') + '</div>'
                         + (i.sub  ? '<div class="gl-brent-snap-sub">' + i.sub + '</div>' : '')
                         + (i.band ? '<span class="gl-brent-band-tag ' + glBrentBandCls(i.band) + '">' + i.band + '</span>' : '')
                         + '</div>';
@@ -20415,7 +20415,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             document.getElementById('glBrentResults').style.display = 'none';
 
             var payload = {
-                brent:           glBrentMarketData ? (glBrentMarketData.brent_intraday || glBrentMarketData.brent) : null,
+                brent:           glBrentMarketData ? (glBrentMarketData.brent_intraday || glBrentMarketData.brent)   : null,
                 geri_change_pct: parseInt(document.getElementById('glBrentGeriSlider').value) || 0,
                 vix_change_pct:  parseInt(document.getElementById('glBrentVixSlider').value) || 0,
                 gas_stress_pct:  parseInt(document.getElementById('glBrentGasSlider').value) || 0,
