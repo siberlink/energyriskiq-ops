@@ -6455,6 +6455,17 @@
         .ti-signal-unit {
             font-size: 10px; color: #475569; margin-top: 2px;
         }
+        .ti-signal-closing-tag {
+            font-size: 9px;
+            color: #64748b;
+            background: rgba(100,116,139,0.12);
+            border: 1px solid rgba(100,116,139,0.2);
+            border-radius: 4px;
+            padding: 1px 5px;
+            margin-top: 4px;
+            display: inline-block;
+            font-style: italic;
+        }
         .ti-divergence-banner {
             background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
             border-radius: 8px; padding: 10px 14px; margin-top: 10px;
@@ -20931,6 +20942,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             signals.forEach(function(s) {
                 var chgClass = s.change_pct > 0 ? 'positive' : (s.change_pct < 0 ? 'negative' : 'neutral');
                 var chgPrefix = s.change_pct > 0 ? '+' : '';
+                var isIntraday = s.is_intraday !== false;
                 var card = document.createElement('div');
                 card.className = 'ti-signal-card';
                 card.style.borderTop = '2px solid ' + s.color;
@@ -20950,6 +20962,12 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 card.appendChild(priceDiv);
                 card.appendChild(chgDiv);
                 card.appendChild(unitDiv);
+                if (!isIntraday) {
+                    var closingTag = document.createElement('div');
+                    closingTag.className = 'ti-signal-closing-tag';
+                    closingTag.textContent = 'Last closing';
+                    card.appendChild(closingTag);
+                }
                 grid.appendChild(card);
             });
 

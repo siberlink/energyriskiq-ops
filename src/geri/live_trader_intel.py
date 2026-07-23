@@ -60,6 +60,24 @@ def _pearson(xs, ys):
 
 
 def get_price_risk_correlation() -> Dict[str, Any]:
+    from datetime import date as _date
+    today = _date.today()
+
+    # ── Try intraday tables first (today's latest snapshot) ──────────────────
+    intra_brent = execute_one(
+        "SELECT price, change_pct FROM intraday_brent WHERE date = %s ORDER BY hour DESC LIMIT 1",
+        (today,)
+    )
+    intra_wti = execute_one(
+        "SELECT price, change_pct FROM intraday_wti WHERE date = %s ORDER BY hour DESC LIMIT 1",
+        (today,)
+    )
+    intra_natgas = execute_one(
+        "SELECT price, change_pct FROM intraday_natgas WHERE date = %s ORDER BY hour DESC LIMIT 1",
+        (today,)
+    )
+
+    # ── Daily closing fallbacks (keep 14 rows for correlation calc) ───────────
     oil_rows = execute_query(
         "SELECT date, brent_price, wti_price FROM oil_price_snapshots ORDER BY date DESC LIMIT 14"
     ) or []
@@ -73,7 +91,6 @@ def get_price_risk_correlation() -> Dict[str, Any]:
     geri_latest = execute_one(
         "SELECT value, band FROM geri_live ORDER BY computed_at DESC LIMIT 1"
     )
-
     geri_daily = execute_query(
         """SELECT date, value FROM (
             SELECT DISTINCT ON (computed_at::date) computed_at::date as date, value
@@ -82,35 +99,72 @@ def get_price_risk_correlation() -> Dict[str, Any]:
     ) or []
 
     latest_oil = oil_rows[0] if oil_rows else None
-    prev_oil = oil_rows[1] if len(oil_rows) > 1 else None
+    prev_oil   = oil_rows[1] if len(oil_rows) > 1 else None
     latest_ttf = ttf_rows[0] if ttf_rows else None
-    prev_ttf = ttf_rows[1] if len(ttf_rows) > 1 else None
+    prev_ttf   = ttf_rows[1] if len(ttf_rows) > 1 else None
     latest_vix = vix_rows[0] if vix_rows else None
-    prev_vix = vix_rows[1] if len(vix_rows) > 1 else None
-    geri_val = geri_latest['value'] if geri_latest else 0
-    geri_band = geri_latest['band'] if geri_latest else 'LOW'
+    prev_vix   = vix_rows[1] if len(vix_rows) > 1 else None
+    geri_val   = geri_latest['value'] if geri_latest else 0
+    geri_band  = geri_latest['band']  if geri_latest else 'LOW'
 
     signals = []
 
-    if latest_oil and prev_oil:
+    # ── Brent Crude ───────────────────────────────────────────────────────────
+    if intra_brent:
+        bn = _sf(intra_brent['price'])
+        bchg = _sf(intra_brent['change_pct'])
+        if bn is not None:
+            signals.append({
+                'commodity': 'Brent Crude', 'price': round(bn, 2),
+                'change_pct': round(bchg, 2) if bchg is not None else 0.0,
+                'unit': 'USD/bbl', 'color': '#3b82f6', 'key': 'brent',
+                'is_intraday': True,
+            })
+    elif latest_oil and prev_oil:
         bn = _sf(latest_oil['brent_price'])
         bp = _sf(prev_oil['brent_price'])
-        wn = _sf(latest_oil['wti_price'])
-        wp = _sf(prev_oil['wti_price'])
         if bn and bp and bp > 0:
             signals.append({
                 'commodity': 'Brent Crude', 'price': round(bn, 2),
                 'change_pct': round(((bn - bp) / bp) * 100, 2),
                 'unit': 'USD/bbl', 'color': '#3b82f6', 'key': 'brent',
+                'is_intraday': False,
             })
+
+    # ── WTI Crude ─────────────────────────────────────────────────────────────
+    if intra_wti:
+        wn = _sf(intra_wti['price'])
+        wchg = _sf(intra_wti['change_pct'])
+        if wn is not None:
+            signals.append({
+                'commodity': 'WTI Crude', 'price': round(wn, 2),
+                'change_pct': round(wchg, 2) if wchg is not None else 0.0,
+                'unit': 'USD/bbl', 'color': '#8b5cf6', 'key': 'wti',
+                'is_intraday': True,
+            })
+    elif latest_oil and prev_oil:
+        wn = _sf(latest_oil['wti_price'])
+        wp = _sf(prev_oil['wti_price'])
         if wn and wp and wp > 0:
             signals.append({
                 'commodity': 'WTI Crude', 'price': round(wn, 2),
                 'change_pct': round(((wn - wp) / wp) * 100, 2),
                 'unit': 'USD/bbl', 'color': '#8b5cf6', 'key': 'wti',
+                'is_intraday': False,
             })
 
-    if latest_ttf and prev_ttf:
+    # ── TTF Gas (intraday_natgas when available) ───────────────────────────────
+    if intra_natgas:
+        tn = _sf(intra_natgas['price'])
+        tchg = _sf(intra_natgas['change_pct'])
+        if tn is not None:
+            signals.append({
+                'commodity': 'TTF Gas', 'price': round(tn, 2),
+                'change_pct': round(tchg, 2) if tchg is not None else 0.0,
+                'unit': 'EUR/MWh', 'color': '#f59e0b', 'key': 'ttf',
+                'is_intraday': True,
+            })
+    elif latest_ttf and prev_ttf:
         tn = _sf(latest_ttf['ttf_price'])
         tp = _sf(prev_ttf['ttf_price'])
         if tn and tp and tp > 0:
@@ -118,8 +172,10 @@ def get_price_risk_correlation() -> Dict[str, Any]:
                 'commodity': 'TTF Gas', 'price': round(tn, 2),
                 'change_pct': round(((tn - tp) / tp) * 100, 2),
                 'unit': 'EUR/MWh', 'color': '#f59e0b', 'key': 'ttf',
+                'is_intraday': False,
             })
 
+    # ── VIX (no intraday source) ───────────────────────────────────────────────
     if latest_vix and prev_vix:
         vn = _sf(latest_vix['vix_close'])
         vp = _sf(prev_vix['vix_close'])
@@ -128,6 +184,7 @@ def get_price_risk_correlation() -> Dict[str, Any]:
                 'commodity': 'VIX', 'price': round(vn, 2),
                 'change_pct': round(((vn - vp) / vp) * 100, 2),
                 'unit': '', 'color': '#ef4444', 'key': 'vix',
+                'is_intraday': False,
             })
 
     geri_daily_vals = [int(r['value']) for r in geri_daily]
