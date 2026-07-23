@@ -15,8 +15,9 @@ import html as _html
 import json as _json
 from datetime import datetime, timezone, date as _date, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse, Response
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import (
@@ -1709,7 +1710,8 @@ Custom Algorithm interpretation. Data sources: NYMEX WTI settlement, intraday WT
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/data/wti-crude-oil-price-today")
-async def wti_crude_oil_price_today():
+async def wti_crude_oil_price_today(request: Request):
+    check_scraping(request)
     async def generate():
         yield _WTI_LOADER_HTML
         try:

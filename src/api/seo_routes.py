@@ -70,78 +70,7 @@ router = APIRouter(tags=["seo"])
 
 BASE_URL = os.environ.get('ALERTS_APP_BASE_URL', 'https://energyriskiq.com')
 
-# Anti-scraping configuration
-RATE_LIMIT_WINDOW = 60  # seconds
-RATE_LIMIT_MAX_REQUESTS = 30  # max requests per window for GERI pages
-_request_counts = defaultdict(list)  # IP -> list of timestamps
-
-BLOCKED_USER_AGENTS = [
-    'scrapy', 'python-requests', 'httpclient', 'libwww',
-    'crawler', 'spider', 'scraper', 'harvest', 'extractor',
-    'dataminer', 'contentking', 'semrush', 'ahrefs', 'mj12bot',
-    'dotbot', 'petalbot', 'bytespider', 'claudebot', 'gptbot'
-]
-
-ALLOWED_BOTS = ['googlebot', 'bingbot', 'slurp', 'duckduckbot', 'facebookexternalhit', 'twitterbot']
-
-def get_client_fingerprint(request: Request) -> str:
-    """Generate a fingerprint for rate limiting."""
-    ip = request.client.host if request.client else "unknown"
-    ua = request.headers.get("user-agent", "")[:100]
-    return hashlib.md5(f"{ip}:{ua}".encode()).hexdigest()[:16]
-
-def check_rate_limit(fingerprint: str) -> bool:
-    """Check if request should be rate limited. Returns True if blocked."""
-    now = time.time()
-    window_start = now - RATE_LIMIT_WINDOW
-    
-    # Clean old entries
-    _request_counts[fingerprint] = [t for t in _request_counts[fingerprint] if t > window_start]
-    
-    # Check limit
-    if len(_request_counts[fingerprint]) >= RATE_LIMIT_MAX_REQUESTS:
-        return True
-    
-    # Record this request
-    _request_counts[fingerprint].append(now)
-    return False
-
-def is_blocked_scraper(request: Request) -> bool:
-    """Check if the request appears to be from a blocked scraper."""
-    ua = request.headers.get("user-agent", "").lower()
-    
-    # Allow legitimate search engine bots
-    for allowed in ALLOWED_BOTS:
-        if allowed in ua:
-            return False
-    
-    # Block known scraper signatures
-    for blocked in BLOCKED_USER_AGENTS:
-        if blocked in ua:
-            return True
-    
-    # Allow empty user agents - some legitimate proxies/iframes don't set them
-    # Rate limiting handles abuse instead
-    return False
-
-def get_anti_scrape_headers() -> dict:
-    """Return headers that discourage scraping/archiving."""
-    return {
-        "X-Robots-Tag": "noarchive, nosnippet",
-        "Cache-Control": "private, no-store, max-age=0",
-        "X-Content-Type-Options": "nosniff",
-    }
-
-async def apply_anti_scraping(request: Request) -> None:
-    """Apply anti-scraping checks. Raises HTTPException if blocked."""
-    # Check for blocked scrapers
-    if is_blocked_scraper(request):
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    # Check rate limit
-    fingerprint = get_client_fingerprint(request)
-    if check_rate_limit(fingerprint):
-        raise HTTPException(status_code=429, detail="Too many requests")
+from src.utils.anti_scraping import check_scraping
 
 
 def generate_why_matters_text(model: dict) -> str:
@@ -2023,8 +1952,7 @@ async def geri_page(request: Request):
     Googlebot always sees delayed version (not logged in).
     Protected: Anti-scraping measures applied.
     """
-    await apply_anti_scraping(request)
-    
+    check_scraping(request)
     track_page_view("geri", "/indices/global-energy-risk-index")
     
     user_id = None
@@ -6183,6 +6111,7 @@ async def geri_research_page(request: Request):
     GERI Research Page - Deep-dive asset page for the Global Energy Risk Index.
     Built incrementally section by section.
     """
+    check_scraping(request)
     import json as _json
     from datetime import date as _date
 

@@ -11,8 +11,9 @@ import asyncio
 import html as _html
 from datetime import datetime, timezone, date as _date, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse, Response
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import (
@@ -1104,7 +1105,8 @@ def _compute_forecast_data():
 
 
 @router.get("/data/global-energy-risk-forecast")
-async def global_energy_risk_forecast():
+async def global_energy_risk_forecast(request: Request):
+    check_scraping(request)
     async def generate():
         yield _FORECAST_LOADER_HTML
 

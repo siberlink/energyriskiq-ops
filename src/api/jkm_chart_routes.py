@@ -11,8 +11,9 @@ import asyncio
 import html as _html
 from datetime import datetime, timezone, date as _date, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import (
@@ -1764,9 +1765,9 @@ License: <a href="{BASE_URL}/data-license">{BASE_URL}/data-license</a>
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/data/jkm-lng-price-chart")
-async def jkm_price_chart_page():
+async def jkm_price_chart_page(request: Request):
     """JKM LNG Price Chart — daily Japan Korea Marker benchmark with full market context."""
-
+    check_scraping(request)
     async def _stream():
         yield _JKM_LOADER_HTML
         try:

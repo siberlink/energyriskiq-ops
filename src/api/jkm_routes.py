@@ -8,8 +8,9 @@ import csv
 import logging
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, StreamingResponse, Response
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import _PAGE_CSS, _LOADER_HTML, BAND_COLORS, _safe_float
@@ -1163,8 +1164,9 @@ jkmInitTable();
 # ── Route handlers ────────────────────────────────────────────────────────────
 
 @router.get("/data/jkm-lng-spot-price")
-async def jkm_page():
+async def jkm_page(request: Request):
     """JKM LNG Spot Price SEO page — streams loader then data."""
+    check_scraping(request)
     async def _stream():
         yield _JKM_LOADER
         try:

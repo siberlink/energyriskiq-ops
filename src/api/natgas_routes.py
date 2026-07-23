@@ -14,8 +14,9 @@ import asyncio
 import html as _html
 from datetime import datetime, timezone, date as _date, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse, Response
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import (
@@ -1535,7 +1536,8 @@ Custom Algorithm interpretation. Data sources: TTF settlement prices, AGSI+ / GI
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/data/natural-gas-price-today-europe")
-async def natural_gas_price_today_europe():
+async def natural_gas_price_today_europe(request: Request):
+    check_scraping(request)
     async def generate():
         # Cheap latest-price lookup so the live TTF value can be server-rendered
         # into the <title>/meta description (SEO) before the loader streams.

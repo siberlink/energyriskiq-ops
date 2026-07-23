@@ -18,8 +18,9 @@ import asyncio
 import html as _html
 from datetime import datetime, timezone, date as _date
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import _LOADER_HTML, BAND_COLORS, _safe_float
@@ -1084,11 +1085,12 @@ Data sources: AGSI+ / GIE (German storage), Yahoo Finance (TTF), EnergyRiskIQ Cu
 # ── Main Route ─────────────────────────────────────────────────────────────────
 
 @router.get("/gas-storage-levels-germany")
-async def gas_storage_levels_germany():
+async def gas_storage_levels_germany(request: Request):
     """
     Public SEO page: Germany Gas Storage Levels — Live Data & Risk Intelligence.
     Streams loader immediately, then fetches data and renders the full page.
     """
+    check_scraping(request)
     async def generate():
         yield _GERMANY_LOADER
 

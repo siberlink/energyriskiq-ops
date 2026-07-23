@@ -11,8 +11,9 @@ import asyncio
 import html as _html
 from datetime import datetime, timezone, date as _date, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
+from src.utils.anti_scraping import check_scraping
 
 from src.db.db import execute_production_one, execute_production_query
 from src.api.snapshot_routes import (
@@ -1715,7 +1716,8 @@ function switchRange(range) {{
 # ─────────────────────────────────────────────────────────────────────────────
 
 @router.get("/data/brent-crude-oil-price-today")
-async def brent_crude_oil_price():
+async def brent_crude_oil_price(request: Request):
+    check_scraping(request)
     async def generate():
         yield _BRENT_LOADER_HTML
 
