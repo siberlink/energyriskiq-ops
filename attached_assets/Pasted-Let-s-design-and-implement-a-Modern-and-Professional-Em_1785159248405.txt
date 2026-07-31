@@ -1,0 +1,267 @@
+Let's design and implement a Modern and Professional Email Template that will be sent to All users of the platform on every Friday. Use appropriate graphics and icons where necessary for visual aspect
+
+=== VERY IMPORTANT ===
+- Template gets injected with Data and AI Algorithms (Intelligence + Reasoning + Humanized Tool) when Admin click on Generate Button
+- Sent every Friday, manually, by Admin from inside Admin Account ("/admin") -- Admin should be able to Preview the email first, send a Test to "emilconstantin22@gmail.com" and then send it to All Users.
+- All the DATA inside the Email Template is dynamic -- meaning the latest data from Monday - Friday (including) is collected from Production Database and automatically inserted into Template.
+- All "Interpretations" and "Scenarios Outlook" has to be created by GPT 5.1 model with higher Reasoning & Humanized Tool -- and no mention of the AI in the Email Template (mention Customer Algorithms if necessary)
+
+
+
+
+This Week's Global Energy Risk Outlook -- Subject
+
+
+Message START -- Inside the Template all Data and interpretation is Dynamic
+===========================================================================
+
+Week of July 14–20, 2026 (use Dynamic Dates)
+
+
+Hello dear User of EnergyRiskIQ,
+
+
+Every Friday, we summarize the week's most important developments across global energy markets, geopolitical risks, and our proprietary EnergyRiskIQ indicators—so you know what deserves your attention before markets open next week. (This paragraph stay the same every week)
+
+
+Executive Summary: 
+==================
+
+Example:
+--------
+Global energy risk remains LOW, although geopolitical tensions continue to simmer beneath the surface. Markets remain relatively calm, but several developing themes could quickly shift sentiment if they escalate. (This executive summary should be created by GPT 5.1 model, using reasoning, intelligence and humanized tool)
+
+
+This Week at a Glance -- This should be a nicely designed Table
+---------------------
+
+Indicator	Current	Weekly Change	Signal
+GERI	26	▲ +3	🟡 Moderate
+EERI	14	▼ -2	🟢 Low
+EGSI-M	5.8	▼ -0.4	🟢 Low
+Brent	$74.35	▲ 1.6%	Neutral
+TTF	€43.80	▼ 2.1%	Bearish
+VIX	16.9	▲ 0.8	Stable
+(Replace with live values.)
+
+
+
+This Week's Biggest Story:
+==========================
+(This should be created with GPT 5.1 model using reasoning, Intelligence and humanized tool)
+
+Example:
+--------
+Middle East Shipping Risks Return to Focus
+
+Several security incidents near the Red Sea prompted renewed monitoring of maritime routes.
+
+While no major supply disruptions occurred this week, freight operators increased risk premiums and LNG shipping routes remain under close observation.
+
+Why it matters?
+
+If disruptions expand toward the Strait of Hormuz, Brent and LNG markets could react rapidly.
+
+
+
+EnergyRiskIQ Outlook
+====================
+
+Examples:
+---------
+
+🛢 Oil (Brent)
+
+Current View: Neutral
+
+Markets remain supported by geopolitical risk, but increasing production expectations continue to limit upside.
+
+Watch
+
+• OPEC+ commentary
+
+• Middle East shipping
+
+• US inventories
+
+
+🔥 European Gas (TTF)
+
+Current View: Mildly Bearish
+
+Storage injections remain healthy while demand stays seasonally weak.
+
+Watch
+
+• EU Storage
+
+• Norwegian maintenance
+
+• Ukraine infrastructure
+
+
+🚢 LNG
+
+Current View: Neutral to Bullish
+
+Freight markets remain stable, although maritime security continues to be the largest uncertainty.
+
+
+Watch:
+
+• Asian demand
+
+• Panama Canal
+
+• Red Sea shipping
+
+
+
+Risk Dashboard Snapshot:
+========================
+
+GERI 🟢 LOW
+Risk momentum remains stable.
+
+EERI 🟢 LOW
+European infrastructure continues operating normally.
+
+
+EGSI 🟢 LOW
+Storage and market stress remain well below seasonal averages.
+
+
+
+
+Top 3 Things to Watch Next Week:
+================================
+(This section should be created by AI Algorithm based on intelligence using GPT 5.1)
+
+① OPEC+ Policy Signals
+Unexpected production guidance could influence Brent volatility.
+
+② European Gas Storage
+Storage injections remain one of the strongest indicators heading into winter.
+
+③ Middle East Security
+Any escalation affecting shipping lanes may quickly reintroduce geopolitical risk premiums.
+
+
+
+
+Scenario Outlook:
+=================
+(This section should be created by AI Algorithm based on intelligence using GPT 5.1 and real data from production database)
+
+🟢 Base Case (65%)
+
+Markets remain stable.
+
+Brent trades between $72–76/bbl
+
+TTF remains €42–45/MWh
+
+GERI remains in LOW regime.
+
+
+🟡 Elevated Risk (25%)
+
+Regional escalation increases volatility.
+
+Brent approaches $80
+
+TTF rises toward €48
+
+Risk regime moves into MODERATE.
+
+
+🔴 High Impact Scenario (10%)
+
+Unexpected supply disruption.
+
+Rapid increase in geopolitical premium.
+
+Significant cross-market volatility.
+
+
+
+
+Chart of the Week:
+==================
+(This section should be created by AI Algorithm based on intelligence using GPT 5.1 and real data from production database -- This Section to Include just one chart which is more relevant -- Last 6 Days: Friday to Thursday including) 
+
+- Add chart GERI vs. BRENT (GERI 0-100 scale on the left, BRENT ($) scale on the right, use 1pt and 1$ ruler)
+OR
+- Add chart GERI vs. WTI (GERI 0-100 scale on the left, WTI ($) scale on the right, use 1pt and 1$ ruler)
+OR
+- Add chart EERI vs. TTF (EERI 0-100 scale on the left, TTF (Euro) scale on the right, use 1pt and 1Euro ruler)
+
+Interpretation of the Chart -- Example
+--------------------------------------
+This week's chart highlights how market prices diverged from measured geopolitical risk—a reminder that markets don't always react immediately to changing conditions.
+
+Add 5 most important Events (from Database) that influenced the Chart 
+
+
+
+Professional Insight:
+---------------------
+Markets rarely move because of one headline.
+
+They move because many seemingly small developments begin aligning.
+
+That's why EnergyRiskIQ combines geopolitical events, energy infrastructure, market indicators, and proprietary risk models into one daily intelligence platform.
+
+Did You Know?
+
+This week, EnergyRiskIQ processed
+
+2,487 news events (Example)
+
+across
+
+128 countries
+
+to calculate proprietary risk indicators.
+
+(Replace with real statistics.)
+
+
+
+Continue Your Analysis:
+-----------------------
+
+Explore today's intelligence:
+
+→ GERI Dashboard
+
+→ GERI Live
+
+→ EERI Dashboard
+
+→ EGSI Dashboard
+
+→ Daily Intelligence Report
+
+(Add "Login To Your Account" button to "/users/account")
+
+
+
+Need Help?
+
+Have a question about today's outlook or one of the dashboards?
+
+Open a support ticket from your account or use ERIQ, and we'll be happy to help.
+
+Thank you for being part of the EnergyRiskIQ community.
+
+Have a productive and well-informed week.
+
+
+
+Best regards,
+Emil C
+Founder of EnergyRiskIQ
+
+
+=========== END OF TEMPLATE ================

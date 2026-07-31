@@ -391,6 +391,8 @@ try:
     run_user_activity_migration()
 except Exception as _e:
     logger.error(f"user_activity migration error: {_e}")
+from src.api.weekly_outlook_routes import router as weekly_outlook_router
+app.include_router(weekly_outlook_router)
 logger.info("Tickets module enabled - routes registered")
 
 @app.on_event("startup")
