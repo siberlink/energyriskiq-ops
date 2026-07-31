@@ -18,14 +18,55 @@ import math
 import html as _html
 import requests
 import time
+import secrets
 import urllib.parse
 from datetime import date, timedelta
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Header, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Header, BackgroundTasks, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from src.db.db import get_cursor
 from src.api.admin_routes import verify_admin_token, _get_all_user_emails, _email_sender, _update_campaign
+
+# ── Public router (no admin auth — used for email tracking redirects) ─────────
+public_router = APIRouter()
+
+
+# ─────────────────────────────────────────────────────────────
+#  Click-tracking DB migration (runs at import time)
+# ─────────────────────────────────────────────────────────────
+
+def _run_wo_tracking_migration():
+    _log = logging.getLogger(__name__)
+    with get_cursor() as cur:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS wo_tracking_tokens (
+                token       VARCHAR(64) PRIMARY KEY,
+                campaign_id INTEGER     NOT NULL,
+                email       TEXT        NOT NULL,
+                link_type   VARCHAR(20) NOT NULL,
+                redirect_path TEXT      NOT NULL DEFAULT '',
+                created_at  TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS wo_clicks (
+                id          SERIAL      PRIMARY KEY,
+                campaign_id INTEGER     NOT NULL,
+                email       TEXT        NOT NULL,
+                link_type   VARCHAR(20) NOT NULL,
+                clicked_at  TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE INDEX IF NOT EXISTS idx_wo_clicks_campaign
+                ON wo_clicks (campaign_id);
+            CREATE INDEX IF NOT EXISTS idx_wo_tokens_campaign
+                ON wo_tracking_tokens (campaign_id);
+        """)
+    _log.info("wo_tracking migration complete")
+
+try:
+    _run_wo_tracking_migration()
+except Exception as _wo_mig_err:
+    logging.getLogger(__name__).warning(f"wo_tracking migration failed: {_wo_mig_err}")
 
 APP_URL = os.environ.get("APP_URL", "https://energyriskiq.com")
 TEST_EMAIL = "emilconstantin22@gmail.com"
@@ -1159,6 +1200,163 @@ def build_weekly_email_html(data: dict, ai: dict,
 
 
 # ─────────────────────────────────────────────────────────────
+#  Click-tracking helpers
+# ─────────────────────────────────────────────────────────────
+
+def _wo_batch_create_tokens(campaign_id: int, emails: List[str],
+                             chart_destination: str) -> dict:
+    """Create one login + one chart tracking token per email, bulk-insert, return map."""
+    rows = []
+    result = {}
+    for e in emails:
+        lt = secrets.token_hex(24)   # 48-char hex token
+        ct = secrets.token_hex(24)
+        rows.append((lt, campaign_id, e, "login", ""))
+        rows.append((ct, campaign_id, e, "chart", chart_destination))
+        result[e] = {"login": lt, "chart": ct}
+    if rows:
+        with get_cursor() as cur:
+            cur.executemany(
+                "INSERT INTO wo_tracking_tokens "
+                "(token, campaign_id, email, link_type, redirect_path) "
+                "VALUES (%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                rows,
+            )
+    return result
+
+
+def _wo_tracking_url(token: str) -> str:
+    return f"{APP_URL}/wo/track/{token}"
+
+
+# ─────────────────────────────────────────────────────────────
+#  Public: tracking redirect (email link → record click → login)
+# ─────────────────────────────────────────────────────────────
+
+@public_router.get("/wo/track/{token}")
+async def wo_track_click(token: str, request: Request):
+    """Record a click from a Weekly Outlook email, then redirect the user to
+    a fresh magic-login URL (optionally with a dashboard redirect)."""
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                "SELECT campaign_id, email, link_type, redirect_path "
+                "FROM wo_tracking_tokens WHERE token = %s",
+                (token,),
+            )
+            row = cur.fetchone()
+    except Exception:
+        row = None
+
+    if not row:
+        return RedirectResponse(url=APP_URL, status_code=302)
+
+    # Record the click (best-effort, don't fail the redirect)
+    try:
+        with get_cursor() as cur:
+            cur.execute(
+                "INSERT INTO wo_clicks (campaign_id, email, link_type) "
+                "VALUES (%s, %s, %s)",
+                (row["campaign_id"], row["email"], row["link_type"]),
+            )
+    except Exception as exc:
+        logger.warning(f"wo_track_click: failed to record click: {exc}")
+
+    # Generate a fresh magic-login token and redirect
+    redirect_path = row.get("redirect_path") or ""
+    try:
+        from src.api.user_routes import create_email_login_token
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                "SELECT id FROM users "
+                "WHERE LOWER(email) = LOWER(%s) AND email_verified = TRUE",
+                (row["email"],),
+            )
+            u = cur.fetchone()
+        if u:
+            tok = create_email_login_token(u["id"], row["email"])
+            dest = f"{APP_URL}/users/email-login?t={tok}"
+            if redirect_path:
+                dest += f"&next={urllib.parse.quote(redirect_path)}"
+        else:
+            dest = f"{APP_URL}/users/account"
+    except Exception:
+        dest = f"{APP_URL}{redirect_path}" if redirect_path else f"{APP_URL}/users/account"
+
+    return RedirectResponse(url=dest, status_code=302)
+
+
+# ─────────────────────────────────────────────────────────────
+#  Admin: tracking report for a campaign
+# ─────────────────────────────────────────────────────────────
+
+@router.get("/weekly-outlook/tracking/{campaign_id}")
+def wo_tracking_report(campaign_id: int,
+                        x_admin_token: Optional[str] = Header(None)):
+    """Return per-user click data for a Weekly Outlook campaign."""
+    verify_admin_token(x_admin_token)
+
+    with get_cursor(commit=False) as cur:
+        # Total emails for this campaign
+        cur.execute(
+            "SELECT total FROM admin_bulk_email_campaigns WHERE id = %s",
+            (campaign_id,),
+        )
+        camp = cur.fetchone()
+        total_sent = camp["total"] if camp else 0
+
+        # Per-user aggregated click data
+        cur.execute(
+            """
+            SELECT
+                email,
+                MIN(clicked_at)                              AS first_click,
+                COUNT(*)                                     AS total_clicks,
+                BOOL_OR(link_type = 'login')                 AS clicked_login,
+                BOOL_OR(link_type = 'chart')                 AS clicked_chart
+            FROM wo_clicks
+            WHERE campaign_id = %s
+            GROUP BY email
+            ORDER BY MIN(clicked_at) DESC
+            """,
+            (campaign_id,),
+        )
+        rows = cur.fetchall()
+
+        # Unique clickers & total clicks
+        cur.execute(
+            "SELECT COUNT(DISTINCT email) AS u, COUNT(*) AS t "
+            "FROM wo_clicks WHERE campaign_id = %s",
+            (campaign_id,),
+        )
+        agg = cur.fetchone()
+
+    unique_clickers = agg["u"] if agg else 0
+    total_clicks    = agg["t"] if agg else 0
+    click_rate      = round(unique_clickers / total_sent * 100, 1) if total_sent else 0.0
+
+    users = [
+        {
+            "email":         r["email"],
+            "first_click":   r["first_click"].isoformat() if r["first_click"] else None,
+            "total_clicks":  r["total_clicks"],
+            "clicked_login": r["clicked_login"],
+            "clicked_chart": r["clicked_chart"],
+        }
+        for r in rows
+    ]
+
+    return {
+        "campaign_id":     campaign_id,
+        "total_sent":      total_sent,
+        "unique_clickers": unique_clickers,
+        "total_clicks":    total_clicks,
+        "click_rate_pct":  click_rate,
+        "users":           users,
+    }
+
+
+# ─────────────────────────────────────────────────────────────
 #  Pydantic models
 # ─────────────────────────────────────────────────────────────
 
@@ -1189,34 +1387,22 @@ def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
     sender = _email_sender()
     fallback_login_url  = f"{APP_URL}/users/account"
     fallback_chart_url  = f"{APP_URL}{chart_destination}"
-    login_urls          = {}   # email → magic-login URL
-    chart_login_urls    = {}   # email → magic-login URL + ?next=<dest>
+    login_urls       = {}
+    chart_login_urls = {}
 
     try:
-        from src.api.user_routes import create_email_login_token
-        from src.db.db import get_cursor as _gc
-        with _gc(commit=False) as cur:
-            cur.execute(
-                "SELECT id, email FROM users "
-                "WHERE LOWER(email) = ANY(%s) AND email_verified = TRUE "
-                "AND password_hash IS NOT NULL",
-                ([e.lower() for e in emails],),
-            )
-            user_rows = {r["email"].lower(): r["id"] for r in cur.fetchall()}
-
-        next_encoded = urllib.parse.quote(chart_destination)
+        # Create tracking tokens for every recipient (batch DB insert)
+        token_map = _wo_batch_create_tokens(campaign_id, emails, chart_destination)
         for e in emails:
-            uid = user_rows.get(e.lower())
-            if uid:
-                tok1 = create_email_login_token(uid, e)
-                tok2 = create_email_login_token(uid, e)
-                login_urls[e]       = f"{APP_URL}/users/email-login?t={tok1}"
-                chart_login_urls[e] = f"{APP_URL}/users/email-login?t={tok2}&next={next_encoded}"
+            toks = token_map.get(e)
+            if toks:
+                login_urls[e]       = _wo_tracking_url(toks["login"])
+                chart_login_urls[e] = _wo_tracking_url(toks["chart"])
             else:
                 login_urls[e]       = fallback_login_url
                 chart_login_urls[e] = fallback_chart_url
     except Exception as exc:
-        logger.warning(f"Weekly outlook campaign {campaign_id}: login-link generation failed: {exc}")
+        logger.warning(f"Weekly outlook campaign {campaign_id}: tracking token creation failed: {exc}")
 
     sent = 0; failed = 0; last_error = None
     batch_size = 500; max_attempts = 4
@@ -1335,33 +1521,17 @@ def weekly_outlook_send_test(body: WeeklyOutlookSendRequest,
     if not brevo_api_key:
         raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
 
-    # Build per-recipient login URLs (with and without dashboard redirect)
     chart_dest = (body.chart_destination or "").strip() or "/geri"
-    fallback   = f"{APP_URL}/users/account"
+    fallback       = f"{APP_URL}/users/account"
     chart_fallback = f"{APP_URL}{chart_dest}"
+
+    # Use tracking tokens for test sends too (campaign_id 0 = test)
     try:
-        from src.api.user_routes import build_email_login_url, create_email_login_token
-        from src.db.db import get_cursor as _gc
-        base_url = build_email_login_url(to_email) or fallback
-        # Build chart-login URL with ?next= redirect
-        try:
-            with _gc(commit=False) as cur:
-                cur.execute(
-                    "SELECT id FROM users WHERE LOWER(email)=LOWER(%s) AND email_verified=TRUE",
-                    (to_email,)
-                )
-                u = cur.fetchone()
-            if u:
-                tok = create_email_login_token(u["id"], to_email)
-                chart_url = (f"{APP_URL}/users/email-login?t={tok}"
-                             f"&next={urllib.parse.quote(chart_dest)}")
-            else:
-                chart_url = chart_fallback
-        except Exception:
-            chart_url = chart_fallback
+        toks = _wo_batch_create_tokens(0, [to_email], chart_dest).get(to_email, {})
+        base_url  = _wo_tracking_url(toks["login"])  if toks.get("login")  else fallback
+        chart_url = _wo_tracking_url(toks["chart"])  if toks.get("chart")  else chart_fallback
     except Exception:
-        base_url  = fallback
-        chart_url = chart_fallback
+        base_url = fallback; chart_url = chart_fallback
 
     final_html = (html_body
                   .replace("{{params.login_url}}", base_url)

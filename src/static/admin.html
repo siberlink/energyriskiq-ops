@@ -1497,6 +1497,70 @@
                     </div>
                 </div>
 
+                <!-- TRACKING PANEL -->
+                <div id="woTrackingCard" style="display:none;margin-top:0;">
+                    <div class="card" style="border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;">
+                        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                            <span>📊 Campaign Click Tracking</span>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <input type="number" id="woTrackCampaignInput" placeholder="Campaign ID" min="1"
+                                    style="width:130px;padding:5px 9px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;color:#0f172a;">
+                                <button onclick="woLoadTracking()" class="edit-btn" style="padding:5px 14px;font-size:12px;">Load</button>
+                                <button onclick="woLoadTracking()" class="edit-btn" style="padding:5px 10px;font-size:13px;" title="Refresh">↻</button>
+                            </div>
+                        </div>
+                        <div style="padding:20px 24px;">
+                            <div id="woTrackMsg" style="display:none;font-size:13px;color:#64748b;padding:12px 0;"></div>
+
+                            <!-- Summary stats -->
+                            <div id="woTrackSummary" style="display:none;">
+                                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Emails Sent</div>
+                                        <div id="woTrackTotalSent" style="font-size:26px;font-weight:700;color:#0f172a;">—</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Unique Clickers</div>
+                                        <div id="woTrackUnique" style="font-size:26px;font-weight:700;color:#6366f1;">—</div>
+                                    </div>
+                                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px 16px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Click Rate</div>
+                                        <div id="woTrackRate" style="font-size:26px;font-weight:700;color:#15803d;">—</div>
+                                    </div>
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;text-align:center;">
+                                        <div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Total Clicks</div>
+                                        <div id="woTrackTotalClicks" style="font-size:26px;font-weight:700;color:#d4a017;">—</div>
+                                    </div>
+                                </div>
+
+                                <!-- Breakdown by click count -->
+                                <div style="margin-bottom:20px;">
+                                    <div style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Users by Engagement Level</div>
+                                    <div id="woTrackBreakdown" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+                                </div>
+
+                                <!-- Per-user table -->
+                                <div style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Click Detail</div>
+                                <div style="overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0;">
+                                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                                        <thead>
+                                            <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;">
+                                                <th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">Email</th>
+                                                <th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151;">First Opened</th>
+                                                <th style="text-align:center;padding:10px 14px;font-weight:600;color:#374151;">Links Clicked</th>
+                                                <th style="text-align:center;padding:10px 14px;font-weight:600;color:#374151;"># Clicks</th>
+                                                <th style="text-align:center;padding:10px 14px;font-weight:600;color:#374151;">vs. Sent</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="woTrackTbody"></tbody>
+                                    </table>
+                                </div>
+                                <div id="woTrackEmpty" style="display:none;text-align:center;padding:24px;color:#94a3b8;font-size:13px;">No clicks recorded yet for this campaign.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Preview modal -->
                 <div id="woPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;overflow-y:auto;padding:32px 16px;">
                     <div style="max-width:660px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.4);">
@@ -5934,6 +5998,90 @@
         let _woSubject = '';
         let _woChartDest = '/geri';
         let _woPollTimer = null;
+        let _woCampaignId = null;
+
+        async function woLoadTracking(campaignIdOverride) {
+            const idInput = document.getElementById('woTrackCampaignInput');
+            const id = campaignIdOverride || parseInt(idInput.value) || _woCampaignId;
+            if (!id) return;
+            if (idInput) idInput.value = id;
+            const card = document.getElementById('woTrackingCard');
+            const msg  = document.getElementById('woTrackMsg');
+            const summ = document.getElementById('woTrackSummary');
+            card.style.display = 'block';
+            msg.style.display = 'block';
+            msg.textContent = 'Loading tracking data…';
+            summ.style.display = 'none';
+            try {
+                const res = await fetch('/admin/weekly-outlook/tracking/' + id, {
+                    headers: { 'X-Admin-Token': sessionToken }
+                });
+                const d = await res.json();
+                if (!res.ok) throw new Error(d.detail || 'error');
+                msg.style.display = 'none';
+                summ.style.display = 'block';
+
+                // Summary stats
+                document.getElementById('woTrackTotalSent').textContent    = d.total_sent;
+                document.getElementById('woTrackUnique').textContent        = d.unique_clickers;
+                document.getElementById('woTrackRate').textContent          = d.click_rate_pct + '%';
+                document.getElementById('woTrackTotalClicks').textContent   = d.total_clicks;
+
+                // Engagement breakdown
+                const bands = { '1 click': 0, '2–3 clicks': 0, '4+ clicks': 0 };
+                for (const u of d.users) {
+                    if (u.total_clicks === 1)       bands['1 click']++;
+                    else if (u.total_clicks <= 3)   bands['2–3 clicks']++;
+                    else                             bands['4+ clicks']++;
+                }
+                const bandColors = { '1 click': '#6366f1', '2–3 clicks': '#d4a017', '4+ clicks': '#22c55e' };
+                document.getElementById('woTrackBreakdown').innerHTML = Object.entries(bands)
+                    .filter(([, n]) => n > 0)
+                    .map(([label, n]) =>
+                        `<div style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 14px;">
+                            <span style="width:10px;height:10px;border-radius:50%;background:${bandColors[label]};flex-shrink:0;"></span>
+                            <span style="font-size:13px;color:#374151;"><strong style="color:${bandColors[label]};">${n}</strong> user${n===1?'':'s'} — ${label}</span>
+                        </div>`
+                    ).join('') || '<span style="font-size:13px;color:#94a3b8;">No clicks yet</span>';
+
+                // Per-user table
+                const tbody  = document.getElementById('woTrackTbody');
+                const empty  = document.getElementById('woTrackEmpty');
+                const noData = d.users.length === 0;
+                empty.style.display = noData ? 'block' : 'none';
+                if (noData) { tbody.innerHTML = ''; return; }
+
+                const totalSent = d.total_sent || 1;
+                tbody.innerHTML = d.users.map(u => {
+                    const dt   = u.first_click
+                        ? new Date(u.first_click).toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                        : '—';
+                    const tags = [
+                        u.clicked_login ? '<span style="background:#e0e7ff;color:#3730a3;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;">🔑 Login</span>' : '',
+                        u.clicked_chart ? '<span style="background:#fef9c3;color:#92400e;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600;">📊 Chart</span>' : '',
+                    ].filter(Boolean).join(' ');
+                    const vsBar = Math.round((u.total_clicks / totalSent) * 100);
+                    const vsCol = vsBar >= 10 ? '#22c55e' : vsBar >= 3 ? '#d4a017' : '#6366f1';
+                    return `<tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:10px 14px;color:#0f172a;font-size:13px;">${u.email}</td>
+                        <td style="padding:10px 14px;color:#475569;font-size:12px;white-space:nowrap;">${dt}</td>
+                        <td style="padding:10px 14px;text-align:center;">${tags || '<span style="color:#94a3b8;font-size:12px;">—</span>'}</td>
+                        <td style="padding:10px 14px;text-align:center;font-weight:700;color:#0f172a;">${u.total_clicks}</td>
+                        <td style="padding:10px 14px;text-align:center;">
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <div style="flex:1;background:#e2e8f0;border-radius:4px;height:6px;min-width:60px;">
+                                    <div style="background:${vsCol};height:6px;border-radius:4px;width:${Math.min(vsBar,100)}%;"></div>
+                                </div>
+                                <span style="font-size:11px;color:#64748b;white-space:nowrap;">${u.total_clicks}/${totalSent}</span>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                msg.style.display = 'block';
+                msg.textContent   = '⚠️ ' + e.message;
+            }
+        }
 
         function _woPollStatus(campaignId, total) {
             const btn = document.getElementById('woBtnSendAll');
@@ -5968,6 +6116,11 @@
                     } else {
                         _woSendSetStatus(`❌ Sending failed${d.error ? ': ' + d.error : ''}.`, 'error');
                         showToast('Weekly Outlook send failed', 'error');
+                    }
+                    // Auto-load tracking panel once sending is done
+                    if (_woCampaignId) {
+                        document.getElementById('woTrackingCard').style.display = 'block';
+                        woLoadTracking(_woCampaignId);
                     }
                 } catch (e) {
                     clearInterval(_woPollTimer); _woPollTimer = null;
@@ -6089,6 +6242,8 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Send failed');
+                _woCampaignId = data.campaign_id;
+                document.getElementById('woTrackCampaignInput').value = data.campaign_id;
                 _woSendSetStatus('⏳ Campaign started (ID ' + data.campaign_id + ') — sending to ' + data.total + ' users…', 'info');
                 // btn stays disabled until polling reports a terminal state
                 _woPollStatus(data.campaign_id, data.total);
