@@ -5933,6 +5933,49 @@
         let _woHtml = '';
         let _woSubject = '';
         let _woChartDest = '/geri';
+        let _woPollTimer = null;
+
+        function _woPollStatus(campaignId, total) {
+            const btn = document.getElementById('woBtnSendAll');
+            if (_woPollTimer) clearInterval(_woPollTimer);
+            _woPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch('/admin/users/bulk-email-status/' + campaignId, {
+                        headers: { 'X-Admin-Token': sessionToken }
+                    });
+                    const d = await res.json();
+                    if (!res.ok) throw new Error(d.detail || 'status error');
+                    const done = d.sent + d.failed;
+                    const pct = d.total ? Math.round((done / d.total) * 100) : 0;
+                    const tail = d.failed ? ` · ${d.failed} failed` : '';
+                    // Live progress while still sending
+                    if (d.status === 'sending') {
+                        _woSendSetStatus(
+                            `⏳ Sending… ${done} / ${d.total} (${pct}%)${tail}`,
+                            'info'
+                        );
+                        return;
+                    }
+                    // Terminal states
+                    clearInterval(_woPollTimer); _woPollTimer = null;
+                    btn.disabled = false;
+                    if (d.status === 'completed') {
+                        _woSendSetStatus(`✅ Done — ${d.sent} of ${d.total} emails delivered successfully.`, 'success');
+                        showToast('Weekly Outlook sent (' + d.sent + ')', 'success');
+                    } else if (d.status === 'completed_with_errors') {
+                        _woSendSetStatus(`⚠️ Finished — ${d.sent} sent, ${d.failed} failed.`, 'error');
+                        showToast('Finished with ' + d.failed + ' failures', 'error');
+                    } else {
+                        _woSendSetStatus(`❌ Sending failed${d.error ? ': ' + d.error : ''}.`, 'error');
+                        showToast('Weekly Outlook send failed', 'error');
+                    }
+                } catch (e) {
+                    clearInterval(_woPollTimer); _woPollTimer = null;
+                    btn.disabled = false;
+                    _woSendSetStatus('⚠️ Lost connection to status updates — check the campaign log.', 'error');
+                }
+            }, 2000);
+        }
 
         function _woSetStatus(msg, type) {
             const bar = document.getElementById('woStatusBar');
@@ -6037,7 +6080,7 @@
             if (!confirm('Send this Weekly Energy Outlook to ALL platform users?\n\nSubject: ' + _woSubject + '\n\nThis cannot be undone.')) return;
             const btn = document.getElementById('woBtnSendAll');
             btn.disabled = true;
-            _woSendSetStatus('Sending to all users… this runs in the background.', 'info');
+            _woSendSetStatus('🚀 Starting campaign…', 'info');
             try {
                 const res = await fetch('/admin/weekly-outlook/send-all', {
                     method: 'POST',
@@ -6046,12 +6089,12 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Send failed');
-                _woSendSetStatus('🚀 Campaign started (ID ' + data.campaign_id + ') — sending to ' + data.total + ' users in the background.', 'success');
-                showToast('Campaign started for ' + data.total + ' users', 'success');
+                _woSendSetStatus('⏳ Campaign started (ID ' + data.campaign_id + ') — sending to ' + data.total + ' users…', 'info');
+                // btn stays disabled until polling reports a terminal state
+                _woPollStatus(data.campaign_id, data.total);
             } catch (e) {
                 _woSendSetStatus('❌ Send failed: ' + e.message, 'error');
                 showToast('Send failed', 'error');
-            } finally {
                 btn.disabled = false;
             }
         }
