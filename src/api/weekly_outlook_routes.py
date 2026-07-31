@@ -20,10 +20,10 @@ import requests
 import time
 import secrets
 import urllib.parse
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Header, BackgroundTasks, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel
 
 from src.db.db import get_cursor
@@ -56,10 +56,23 @@ def _run_wo_tracking_migration():
                 link_type   VARCHAR(20) NOT NULL,
                 clicked_at  TIMESTAMPTZ DEFAULT NOW()
             );
+            CREATE TABLE IF NOT EXISTS wo_opens (
+                id          SERIAL      PRIMARY KEY,
+                campaign_id INTEGER     NOT NULL,
+                email       TEXT        NOT NULL,
+                opened_at   TIMESTAMPTZ DEFAULT NOW()
+            );
             CREATE INDEX IF NOT EXISTS idx_wo_clicks_campaign
                 ON wo_clicks (campaign_id);
             CREATE INDEX IF NOT EXISTS idx_wo_tokens_campaign
                 ON wo_tracking_tokens (campaign_id);
+            CREATE INDEX IF NOT EXISTS idx_wo_opens_campaign
+                ON wo_opens (campaign_id);
+            -- Fix content_type for weekly outlook campaigns sent before the fix
+            UPDATE admin_bulk_email_campaigns
+               SET content_type = 'weekly_outlook'
+             WHERE content_type = 'html'
+               AND subject LIKE '%Energy Risk Outlook%';
         """)
     _log.info("wo_tracking migration complete")
 
@@ -801,7 +814,8 @@ def _view_str(v: Optional[str]) -> str:
 
 def build_weekly_email_html(data: dict, ai: dict,
                             login_url: str = "",
-                            chart_login_url: str = "") -> str:
+                            chart_login_url: str = "",
+                            pixel_url: str = "") -> str:
     if not login_url:
         login_url = f"{APP_URL}/users/account"
     if not chart_login_url:
@@ -1195,25 +1209,38 @@ def build_weekly_email_html(data: dict, ai: dict,
     </td>
   </tr>
 </table>
+{f'<img src="{pixel_url}" width="1" height="1" border="0" alt="" style="display:block;width:1px;height:1px;border:none;"/>' if pixel_url else ''}
 </body>
 </html>"""
 
 
 # ─────────────────────────────────────────────────────────────
-#  Click-tracking helpers
+#  Click / open tracking helpers
 # ─────────────────────────────────────────────────────────────
+
+# 1×1 transparent GIF (43 bytes)
+_PIXEL_GIF = bytes([
+    0x47,0x49,0x46,0x38,0x39,0x61,0x01,0x00,
+    0x01,0x00,0x80,0x00,0x00,0x00,0x00,0x00,
+    0xff,0xff,0xff,0x21,0xf9,0x04,0x00,0x00,
+    0x00,0x00,0x00,0x2c,0x00,0x00,0x00,0x00,
+    0x01,0x00,0x01,0x00,0x00,0x02,0x02,0x44,
+    0x01,0x00,0x3b,
+])
 
 def _wo_batch_create_tokens(campaign_id: int, emails: List[str],
                              chart_destination: str) -> dict:
-    """Create one login + one chart tracking token per email, bulk-insert, return map."""
+    """Create login + chart + pixel tracking tokens per email, bulk-insert, return map."""
     rows = []
     result = {}
     for e in emails:
         lt = secrets.token_hex(24)   # 48-char hex token
         ct = secrets.token_hex(24)
+        pt = secrets.token_hex(24)   # pixel open-tracking token
         rows.append((lt, campaign_id, e, "login", ""))
         rows.append((ct, campaign_id, e, "chart", chart_destination))
-        result[e] = {"login": lt, "chart": ct}
+        rows.append((pt, campaign_id, e, "pixel", ""))
+        result[e] = {"login": lt, "chart": ct, "pixel": pt}
     if rows:
         with get_cursor() as cur:
             cur.executemany(
@@ -1232,6 +1259,36 @@ def _wo_tracking_url(token: str) -> str:
 # ─────────────────────────────────────────────────────────────
 #  Public: tracking redirect (email link → record click → login)
 # ─────────────────────────────────────────────────────────────
+
+@public_router.get("/wo/pixel/{token}.gif")
+async def wo_track_open(token: str):
+    """Record an email open via 1×1 tracking pixel, return a transparent GIF."""
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                "SELECT campaign_id, email FROM wo_tracking_tokens "
+                "WHERE token = %s AND link_type = 'pixel'",
+                (token,),
+            )
+            row = cur.fetchone()
+        if row:
+            with get_cursor() as cur:
+                cur.execute(
+                    "INSERT INTO wo_opens (campaign_id, email) VALUES (%s, %s)",
+                    (row["campaign_id"], row["email"]),
+                )
+    except Exception as exc:
+        logger.warning(f"wo_track_open: {exc}")
+    return Response(
+        content=_PIXEL_GIF,
+        media_type="image/gif",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
+
 
 @public_router.get("/wo/track/{token}")
 async def wo_track_click(token: str, request: Request):
@@ -1290,10 +1347,39 @@ async def wo_track_click(token: str, request: Request):
 #  Admin: tracking report for a campaign
 # ─────────────────────────────────────────────────────────────
 
+@router.get("/weekly-outlook/campaigns")
+def wo_campaigns_list(x_admin_token: Optional[str] = Header(None)):
+    """List recent Weekly Outlook campaigns for the tracking dropdown."""
+    verify_admin_token(x_admin_token)
+    with get_cursor(commit=False) as cur:
+        cur.execute(
+            """
+            SELECT id, subject, status, total, created_at
+            FROM admin_bulk_email_campaigns
+            WHERE content_type = 'weekly_outlook'
+               OR subject LIKE '%Energy Risk Outlook%'
+            ORDER BY id DESC LIMIT 30
+            """,
+        )
+        rows = cur.fetchall()
+    return {
+        "campaigns": [
+            {
+                "id":         r["id"],
+                "subject":    r["subject"],
+                "status":     r["status"],
+                "total":      r["total"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            }
+            for r in rows
+        ]
+    }
+
+
 @router.get("/weekly-outlook/tracking/{campaign_id}")
 def wo_tracking_report(campaign_id: int,
                         x_admin_token: Optional[str] = Header(None)):
-    """Return per-user click data for a Weekly Outlook campaign."""
+    """Return per-user open + click data for a Weekly Outlook campaign."""
     verify_admin_token(x_admin_token)
 
     with get_cursor(commit=False) as cur:
@@ -1305,53 +1391,86 @@ def wo_tracking_report(campaign_id: int,
         camp = cur.fetchone()
         total_sent = camp["total"] if camp else 0
 
-        # Per-user aggregated click data
+        # Opens per user
         cur.execute(
             """
-            SELECT
-                email,
-                MIN(clicked_at)                              AS first_click,
-                COUNT(*)                                     AS total_clicks,
-                BOOL_OR(link_type = 'login')                 AS clicked_login,
-                BOOL_OR(link_type = 'chart')                 AS clicked_chart
-            FROM wo_clicks
-            WHERE campaign_id = %s
-            GROUP BY email
-            ORDER BY MIN(clicked_at) DESC
+            SELECT email, MIN(opened_at) AS first_open, COUNT(*) AS total_opens
+            FROM wo_opens WHERE campaign_id = %s GROUP BY email
             """,
             (campaign_id,),
         )
-        rows = cur.fetchall()
+        opens_by_email = {
+            r["email"]: {"first_open": r["first_open"], "total_opens": r["total_opens"]}
+            for r in cur.fetchall()
+        }
 
-        # Unique clickers & total clicks
+        # Clicks per user
+        cur.execute(
+            """
+            SELECT email,
+                   MIN(clicked_at)               AS first_click,
+                   COUNT(*)                      AS total_clicks,
+                   BOOL_OR(link_type = 'login')  AS clicked_login,
+                   BOOL_OR(link_type = 'chart')  AS clicked_chart
+            FROM wo_clicks WHERE campaign_id = %s GROUP BY email
+            """,
+            (campaign_id,),
+        )
+        clicks_by_email = {r["email"]: dict(r) for r in cur.fetchall()}
+
+        # Aggregate stats
+        cur.execute(
+            "SELECT COUNT(DISTINCT email) AS u, COUNT(*) AS t "
+            "FROM wo_opens WHERE campaign_id = %s",
+            (campaign_id,),
+        )
+        open_agg = cur.fetchone()
+
         cur.execute(
             "SELECT COUNT(DISTINCT email) AS u, COUNT(*) AS t "
             "FROM wo_clicks WHERE campaign_id = %s",
             (campaign_id,),
         )
-        agg = cur.fetchone()
+        click_agg = cur.fetchone()
 
-    unique_clickers = agg["u"] if agg else 0
-    total_clicks    = agg["t"] if agg else 0
-    click_rate      = round(unique_clickers / total_sent * 100, 1) if total_sent else 0.0
+    unique_openers  = open_agg["u"]  if open_agg  else 0
+    total_opens     = open_agg["t"]  if open_agg  else 0
+    unique_clickers = click_agg["u"] if click_agg else 0
+    total_clicks    = click_agg["t"] if click_agg else 0
+    open_rate  = round(unique_openers  / total_sent * 100, 1) if total_sent else 0.0
+    click_rate = round(unique_clickers / total_sent * 100, 1) if total_sent else 0.0
 
-    users = [
-        {
-            "email":         r["email"],
-            "first_click":   r["first_click"].isoformat() if r["first_click"] else None,
-            "total_clicks":  r["total_clicks"],
-            "clicked_login": r["clicked_login"],
-            "clicked_chart": r["clicked_chart"],
-        }
-        for r in rows
-    ]
+    # Merge: all users who opened OR clicked
+    all_emails = set(opens_by_email) | set(clicks_by_email)
+    _epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    users = []
+    for email in all_emails:
+        o = opens_by_email.get(email, {})
+        c = clicks_by_email.get(email, {})
+        first_open  = o.get("first_open")
+        first_click = c.get("first_click")
+        users.append({
+            "email":         email,
+            "first_open":    first_open.isoformat()  if first_open  else None,
+            "first_click":   first_click.isoformat() if first_click else None,
+            "total_opens":   o.get("total_opens",  0),
+            "total_clicks":  c.get("total_clicks", 0),
+            "clicked_login": c.get("clicked_login", False),
+            "clicked_chart": c.get("clicked_chart", False),
+            "opened":        bool(first_open),
+            "_sort":         first_open or first_click or _epoch,
+        })
+    users.sort(key=lambda u: u.pop("_sort"), reverse=True)
 
     return {
         "campaign_id":     campaign_id,
         "total_sent":      total_sent,
+        "unique_openers":  unique_openers,
+        "open_rate_pct":   open_rate,
+        "total_opens":     total_opens,
         "unique_clickers": unique_clickers,
-        "total_clicks":    total_clicks,
         "click_rate_pct":  click_rate,
+        "total_clicks":    total_clicks,
         "users":           users,
     }
 
@@ -1390,6 +1509,7 @@ def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
     login_urls       = {}
     chart_login_urls = {}
 
+    pixel_urls = {}
     try:
         # Create tracking tokens for every recipient (batch DB insert)
         token_map = _wo_batch_create_tokens(campaign_id, emails, chart_destination)
@@ -1398,6 +1518,7 @@ def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
             if toks:
                 login_urls[e]       = _wo_tracking_url(toks["login"])
                 chart_login_urls[e] = _wo_tracking_url(toks["chart"])
+                pixel_urls[e]       = f"{APP_URL}/wo/pixel/{toks['pixel']}.gif"
             else:
                 login_urls[e]       = fallback_login_url
                 chart_login_urls[e] = fallback_chart_url
@@ -1421,6 +1542,7 @@ def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
                     "params": {
                         "login_url":       login_urls.get(e, fallback_login_url),
                         "chart_login_url": chart_login_urls.get(e, fallback_chart_url),
+                        "pixel_url":       pixel_urls.get(e, ""),
                     },
                 }
                 for e in chunk
@@ -1481,11 +1603,12 @@ def weekly_outlook_generate(x_admin_token: Optional[str] = Header(None)):
     chart_choice = ai.get("chart_choice", "GERI_BRENT")
     chart_dest   = _chart_destination(chart_choice)
 
-    # Build the HTML with Brevo per-recipient placeholders for both login URLs
+    # Build the HTML with Brevo per-recipient placeholders for login + pixel URLs
     full_html = build_weekly_email_html(
         data, ai,
         login_url="{{params.login_url}}",
         chart_login_url="{{params.chart_login_url}}",
+        pixel_url="{{params.pixel_url}}",
     )
 
     return {
@@ -1530,12 +1653,14 @@ def weekly_outlook_send_test(body: WeeklyOutlookSendRequest,
         toks = _wo_batch_create_tokens(0, [to_email], chart_dest).get(to_email, {})
         base_url  = _wo_tracking_url(toks["login"])  if toks.get("login")  else fallback
         chart_url = _wo_tracking_url(toks["chart"])  if toks.get("chart")  else chart_fallback
+        pixel_url = f"{APP_URL}/wo/pixel/{toks['pixel']}.gif" if toks.get("pixel") else ""
     except Exception:
-        base_url = fallback; chart_url = chart_fallback
+        base_url = fallback; chart_url = chart_fallback; pixel_url = ""
 
     final_html = (html_body
                   .replace("{{params.login_url}}", base_url)
-                  .replace("{{params.chart_login_url}}", chart_url))
+                  .replace("{{params.chart_login_url}}", chart_url)
+                  .replace("{{params.pixel_url}}", pixel_url))
 
     try:
         resp = requests.post(
@@ -1583,7 +1708,7 @@ def weekly_outlook_send_all(body: WeeklyOutlookSendAllRequest,
             cur.execute(
                 "INSERT INTO admin_bulk_email_campaigns (subject, content_type, total, status) "
                 "VALUES (%s, %s, %s, 'sending') RETURNING id",
-                (subject, "html", len(emails)),
+                (subject, "weekly_outlook", len(emails)),
             )
             campaign_id = cur.fetchone()["id"]
     except Exception as exc:
