@@ -18,6 +18,7 @@ import math
 import html as _html
 import requests
 import time
+import urllib.parse
 from datetime import date, timedelta
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Header, BackgroundTasks
@@ -502,159 +503,212 @@ def _ai_fallback(data: dict) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────
-#  SVG chart builder
+#  QuickChart.io chart builder (email-safe PNG image)
 # ─────────────────────────────────────────────────────────────
 
-def _build_svg_chart(data: dict, chart_choice: str) -> str:
-    """Build an inline SVG dual-axis chart for email embedding."""
-    W, H = 560, 220
-    PAD_L, PAD_R, PAD_T, PAD_B = 52, 52, 20, 42
-
-    inner_w = W - PAD_L - PAD_R
-    inner_h = H - PAD_T - PAD_B
-
-    # Pick data series
+def _chart_destination(chart_choice: str) -> str:
+    """Return the dashboard path the chart click-through should land on."""
     if chart_choice == "EERI_TTF":
-        left_rows = data.get("eeri_rows", [])
-        left_vals = [float(r["value"]) for r in left_rows]
-        left_dates = [str(r["date"]) for r in left_rows]
-        right_rows = data.get("ttf_rows", [])
-        right_vals = [float(r["ttf_price"]) for r in right_rows]
-        right_dates = [str(r["date"]) for r in right_rows]
-        left_label = "EERI"
-        right_label = "TTF (€)"
-        left_color = "#6366f1"
-        right_color = "#f59e0b"
-    elif chart_choice == "GERI_WTI":
-        left_rows = data.get("geri_rows", [])
-        left_vals = [float(r["value"]) for r in left_rows]
-        left_dates = [str(r["date"]) for r in left_rows]
-        right_rows = data.get("wti_rows", [])
-        right_vals = [float(r["wti_price"]) for r in right_rows if r.get("wti_price")]
-        right_dates = [str(r["date"]) for r in right_rows if r.get("wti_price")]
-        left_label = "GERI"
-        right_label = "WTI ($)"
-        left_color = "#6366f1"
-        right_color = "#22c55e"
-    else:  # GERI_BRENT (default)
-        left_rows = data.get("geri_rows", [])
-        left_vals = [float(r["value"]) for r in left_rows]
-        left_dates = [str(r["date"]) for r in left_rows]
-        right_rows = data.get("brent_rows", [])
-        right_vals = [float(r["brent_price"]) for r in right_rows]
-        right_dates = [str(r["date"]) for r in right_rows]
-        left_label = "GERI"
-        right_label = "Brent ($)"
-        left_color = "#6366f1"
-        right_color = "#f59e0b"
+        return "/eeri"
+    return "/geri"
 
-    # Align by date
+
+def _build_quickchart_url(data: dict, chart_choice: str) -> str:
+    """Build a QuickChart.io PNG image URL for dual-axis chart.
+    Returns an empty string if insufficient data."""
+    from datetime import datetime as _dt
+
+    # Pick data series based on chart type
+    if chart_choice == "EERI_TTF":
+        left_rows  = data.get("eeri_rows", [])
+        left_vals  = [float(r["value"]) for r in left_rows]
+        left_dates = [str(r["date"]) for r in left_rows]
+        right_rows  = data.get("ttf_rows", [])
+        right_vals  = [float(r["ttf_price"]) for r in right_rows]
+        right_dates = [str(r["date"]) for r in right_rows]
+        left_label  = "EERI"
+        right_label = "TTF (€/MWh)"
+        left_color  = "rgb(99,102,241)"
+        right_color = "rgb(245,158,11)"
+        left_fill   = "rgba(99,102,241,0.18)"
+    elif chart_choice == "GERI_WTI":
+        left_rows  = data.get("geri_rows", [])
+        left_vals  = [float(r["value"]) for r in left_rows]
+        left_dates = [str(r["date"]) for r in left_rows]
+        right_rows  = data.get("wti_rows", [])
+        right_vals  = [float(r["wti_price"]) for r in right_rows if r.get("wti_price")]
+        right_dates = [str(r["date"]) for r in right_rows if r.get("wti_price")]
+        left_label  = "GERI"
+        right_label = "WTI ($/bbl)"
+        left_color  = "rgb(99,102,241)"
+        right_color = "rgb(34,197,94)"
+        left_fill   = "rgba(99,102,241,0.18)"
+    else:  # GERI_BRENT (default)
+        left_rows  = data.get("geri_rows", [])
+        left_vals  = [float(r["value"]) for r in left_rows]
+        left_dates = [str(r["date"]) for r in left_rows]
+        right_rows  = data.get("brent_rows", [])
+        right_vals  = [float(r["brent_price"]) for r in right_rows]
+        right_dates = [str(r["date"]) for r in right_rows]
+        left_label  = "GERI"
+        right_label = "Brent ($/bbl)"
+        left_color  = "rgb(99,102,241)"
+        right_color = "rgb(212,160,23)"
+        left_fill   = "rgba(99,102,241,0.18)"
+
+    # Align series by date, forward-fill gaps
     all_dates = sorted(set(left_dates) | set(right_dates))
     if not all_dates:
         return ""
 
-    left_map  = dict(zip(left_dates, left_vals))
-    right_map = dict(zip(right_dates, right_vals))
+    lmap = dict(zip(left_dates, left_vals))
+    rmap = dict(zip(right_dates, right_vals))
+    lv = [lmap.get(d) for d in all_dates]
+    rv = [rmap.get(d) for d in all_dates]
 
-    chart_dates = all_dates
-    lv = [left_map.get(d) for d in chart_dates]
-    rv = [right_map.get(d) for d in chart_dates]
-
-    # Fill gaps by forward-fill
     for i in range(1, len(lv)):
-        if lv[i] is None:
-            lv[i] = lv[i-1]
-        if rv[i] is None:
-            rv[i] = rv[i-1]
+        if lv[i] is None: lv[i] = lv[i - 1]
+        if rv[i] is None: rv[i] = rv[i - 1]
 
-    lv = [v for v in lv if v is not None]
-    rv = [v for v in rv if v is not None]
-    n = min(len(lv), len(rv), len(chart_dates))
-    if n < 2:
+    pairs = [(d, l, r) for d, l, r in zip(all_dates, lv, rv)
+             if l is not None and r is not None]
+    if len(pairs) < 2:
         return ""
 
-    lv = lv[:n]; rv = rv[:n]; chart_dates = chart_dates[:n]
+    dates_used, lv_used, rv_used = zip(*pairs)
 
-    # Scale
-    l_min = math.floor(min(lv) - 1);  l_max = math.ceil(max(lv) + 1)
-    r_min = math.floor(min(rv) - 1);  r_max = math.ceil(max(rv) + 1)
-    if l_max == l_min: l_max = l_min + 1
-    if r_max == r_min: r_max = r_min + 1
-
-    def lx(i):
-        return PAD_L + (i / (n - 1)) * inner_w if n > 1 else PAD_L
-
-    def ly_left(v):
-        return PAD_T + inner_h - (v - l_min) / (l_max - l_min) * inner_h
-
-    def ly_right(v):
-        return PAD_T + inner_h - (v - r_min) / (r_max - r_min) * inner_h
-
-    # Build polylines
-    def pts(vals, yfn):
-        return " ".join(f"{lx(i):.1f},{yfn(v):.1f}" for i, v in enumerate(vals))
-
-    left_pts  = pts(lv, ly_left)
-    right_pts = pts(rv, ly_right)
-
-    # X-axis labels (show first, middle, last)
-    def short_date(d: str) -> str:
-        from datetime import datetime
+    # Date labels
+    labels = []
+    for d in dates_used:
         try:
-            return datetime.strptime(d, "%Y-%m-%d").strftime("%-d %b")
+            labels.append(_dt.strptime(d, "%Y-%m-%d").strftime("%-d %b"))
         except Exception:
-            return d[-5:]
+            labels.append(str(d)[-5:])
 
-    x_labels = []
-    indices = [0, n // 2, n - 1] if n >= 3 else list(range(n))
-    for i in indices:
-        x = lx(i)
-        x_labels.append(f'<text x="{x:.1f}" y="{H - 8}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Arial,sans-serif">{short_date(chart_dates[i])}</text>')
+    # Right-axis scale: auto around the data, with 1-unit step size
+    r_min  = max(0, math.floor(min(rv_used)) - 2)
+    r_max  = math.ceil(max(rv_used)) + 2
+    r_range = max(r_max - r_min, 1)
+    r_step  = max(1, round(r_range / 8))   # ~8 ticks max
 
-    # Y-axis tick labels (left)
-    left_ticks = []
-    for tv in [l_min, (l_min + l_max) // 2, l_max]:
-        y = ly_left(tv)
-        left_ticks.append(f'<text x="{PAD_L - 6}" y="{y + 4:.1f}" text-anchor="end" font-size="9" fill="{left_color}" font-family="Arial,sans-serif">{tv:.0f}</text>')
+    cfg = {
+        "type": "line",
+        "data": {
+            "labels": list(labels),
+            "datasets": [
+                {
+                    "label": left_label,
+                    "data": [round(v, 1) for v in lv_used],
+                    "borderColor": left_color,
+                    "backgroundColor": left_fill,
+                    "fill": True,
+                    "tension": 0.35,
+                    "yAxisID": "y",
+                    "borderWidth": 2,
+                    "pointBackgroundColor": left_color,
+                    "pointBorderColor": left_color,
+                    "pointRadius": 5,
+                    "pointHoverRadius": 8,
+                },
+                {
+                    "label": right_label,
+                    "data": [round(v, 2) for v in rv_used],
+                    "borderColor": right_color,
+                    "backgroundColor": "transparent",
+                    "fill": False,
+                    "tension": 0.35,
+                    "yAxisID": "y1",
+                    "borderWidth": 2,
+                    "borderDash": [6, 3],
+                    "pointBackgroundColor": right_color,
+                    "pointBorderColor": right_color,
+                    "pointRadius": 5,
+                    "pointHoverRadius": 8,
+                },
+            ],
+        },
+        "options": {
+            "plugins": {
+                "legend": {
+                    "display": True,
+                    "labels": {
+                        "color": "rgb(226,232,240)",
+                        "font": {"size": 11},
+                        "usePointStyle": True,
+                        "padding": 16,
+                    },
+                },
+                "tooltip": {"mode": "index", "intersect": False},
+            },
+            "scales": {
+                "y": {
+                    "type": "linear",
+                    "position": "left",
+                    "min": 0,
+                    "max": 100,
+                    "title": {
+                        "display": True,
+                        "text": f"{left_label} (0\u2013100)",
+                        "color": left_color,
+                        "font": {"size": 11, "weight": "600"},
+                    },
+                    "ticks": {
+                        "color": left_color,
+                        "stepSize": 10,
+                        "font": {"size": 10},
+                    },
+                    "grid": {
+                        "color": "rgba(226,232,240,0.07)",
+                    },
+                    "border": {
+                        "display": False,
+                    },
+                },
+                "y1": {
+                    "type": "linear",
+                    "position": "right",
+                    "min": r_min,
+                    "max": r_max,
+                    "title": {
+                        "display": True,
+                        "text": right_label,
+                        "color": right_color,
+                        "font": {"size": 11, "weight": "600"},
+                    },
+                    "ticks": {
+                        "color": right_color,
+                        "stepSize": r_step,
+                        "font": {"size": 10},
+                    },
+                    "grid": {
+                        "drawOnChartArea": False,
+                    },
+                    "border": {
+                        "display": False,
+                    },
+                },
+                "x": {
+                    "ticks": {
+                        "color": "rgb(148,163,184)",
+                        "font": {"size": 10},
+                        "maxRotation": 0,
+                    },
+                    "grid": {
+                        "color": "rgba(226,232,240,0.04)",
+                    },
+                    "border": {
+                        "display": False,
+                    },
+                },
+            },
+            "animation": False,
+        },
+    }
 
-    # Y-axis tick labels (right)
-    right_ticks = []
-    for tv in [r_min, (r_min + r_max) / 2, r_max]:
-        y = ly_right(tv)
-        right_ticks.append(f'<text x="{W - PAD_R + 6}" y="{y + 4:.1f}" text-anchor="start" font-size="9" fill="{right_color}" font-family="Arial,sans-serif">{tv:.0f}</text>')
-
-    # Grid lines
-    grid = ""
-    for tv in [l_min, (l_min + l_max) // 2, l_max]:
-        y = ly_left(tv)
-        grid += f'<line x1="{PAD_L}" y1="{y:.1f}" x2="{W - PAD_R}" y2="{y:.1f}" stroke="#1e293b" stroke-width="1" />'
-
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" style="background:#0f172a;border-radius:8px;display:block;">
-  <!-- Grid -->
-  {grid}
-  <!-- Left axis label -->
-  <text transform="rotate(-90)" x="{-(PAD_T + inner_h/2):.0f}" y="14" text-anchor="middle" font-size="9" fill="{left_color}" font-family="Arial,sans-serif">{left_label}</text>
-  <!-- Right axis label -->
-  <text transform="rotate(90)" x="{(PAD_T + inner_h/2):.0f}" y="{-(W - 10):.0f}" text-anchor="middle" font-size="9" fill="{right_color}" font-family="Arial,sans-serif">{right_label}</text>
-  <!-- Chart area border -->
-  <rect x="{PAD_L}" y="{PAD_T}" width="{inner_w}" height="{inner_h}" fill="none" stroke="#1e293b" stroke-width="1" />
-  <!-- Left axis ticks -->
-  {''.join(left_ticks)}
-  <!-- Right axis ticks -->
-  {''.join(right_ticks)}
-  <!-- Left line -->
-  <polyline points="{left_pts}" fill="none" stroke="{left_color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-  <!-- Right line -->
-  <polyline points="{right_pts}" fill="none" stroke="{right_color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 2"/>
-  <!-- X-axis labels -->
-  {''.join(x_labels)}
-  <!-- Legend -->
-  <rect x="{PAD_L + 4}" y="{PAD_T + 6}" width="8" height="3" rx="1" fill="{left_color}"/>
-  <text x="{PAD_L + 16}" y="{PAD_T + 12}" font-size="9" fill="{left_color}" font-family="Arial,sans-serif">{left_label}</text>
-  <line x1="{PAD_L + 60}" y1="{PAD_T + 9}" x2="{PAD_L + 68}" y2="{PAD_T + 9}" stroke="{right_color}" stroke-width="2" stroke-dasharray="4 2"/>
-  <text x="{PAD_L + 72}" y="{PAD_T + 12}" font-size="9" fill="{right_color}" font-family="Arial,sans-serif">{right_label}</text>
-</svg>"""
-    return svg
+    cfg_str = json.dumps(cfg, separators=(",", ":"))
+    encoded = urllib.parse.quote(cfg_str)
+    bkg     = urllib.parse.quote("rgb(15,23,42)")
+    return f"https://quickchart.io/chart?c={encoded}&w=560&h=280&bkg={bkg}&f=png&v=4"
 
 
 # ─────────────────────────────────────────────────────────────
@@ -704,9 +758,13 @@ def _view_str(v: Optional[str]) -> str:
     return f'<span style="color:{color};font-weight:700;">{_esc(v)}</span>'
 
 
-def build_weekly_email_html(data: dict, ai: dict, login_url: str = "") -> str:
+def build_weekly_email_html(data: dict, ai: dict,
+                            login_url: str = "",
+                            chart_login_url: str = "") -> str:
     if not login_url:
         login_url = f"{APP_URL}/users/account"
+    if not chart_login_url:
+        chart_login_url = login_url
 
     logo_url = f"{APP_URL}/static/logo.png"
     week = _esc(data.get("week_label", ""))
@@ -844,10 +902,12 @@ def build_weekly_email_html(data: dict, ai: dict, login_url: str = "") -> str:
     )
 
     # ── Chart ────────────────────────────────────────────────
-    chart_choice = ai.get("chart_choice", "GERI_BRENT")
-    chart_svg    = _build_svg_chart(data, chart_choice)
-    chart_title  = _esc(ai.get("chart_title", "Chart of the Week"))
-    chart_interp = _nl2br(ai.get("chart_interpretation", ""))
+    chart_choice   = ai.get("chart_choice", "GERI_BRENT")
+    chart_img_url  = _build_quickchart_url(data, chart_choice)
+    chart_title    = _esc(ai.get("chart_title", "Chart of the Week"))
+    chart_interp   = _nl2br(ai.get("chart_interpretation", ""))
+    chart_dest     = _chart_destination(chart_choice)
+    chart_dest_label = "EERI Dashboard" if chart_choice == "EERI_TTF" else "GERI Dashboard"
 
     # Top 5 alert events for chart context
     top_events = data.get("alert_events", [])[:5]
@@ -998,11 +1058,16 @@ def build_weekly_email_html(data: dict, ai: dict, login_url: str = "") -> str:
             <div style="font-size:16px;font-weight:700;color:#0f172a;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e2e8f0;">
               📉 Chart of the Week
             </div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;background:#0f172a;border-radius:8px;overflow:hidden;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;background:#0f172a;border-radius:8px;overflow:hidden;">
               <tr>
-                <td style="padding:16px 20px;">
-                  <div style="font-size:13px;font-weight:700;color:#d4a017;margin-bottom:10px;">{chart_title}</div>
-                  {chart_svg}
+                <td style="padding:16px 20px 10px;">
+                  <div style="font-size:13px;font-weight:700;color:#d4a017;margin-bottom:12px;">{chart_title}</div>
+                  {'<a href="' + _esc(chart_login_url) + '" style="display:block;text-decoration:none;cursor:pointer;" title="Click to open ' + chart_dest_label + '">' + '<img src="' + _esc(chart_img_url) + '" alt="' + chart_title + '" width="528" style="display:block;width:100%;max-width:528px;border:0;border-radius:6px;" />' + '</a>' if chart_img_url else '<p style="color:#64748b;font-size:13px;text-align:center;padding:20px 0;">Chart data unavailable</p>'}
+                  <div style="margin-top:8px;text-align:center;">
+                    <a href="{_esc(chart_login_url)}" style="font-size:11px;color:#6366f1;text-decoration:none;">
+                      ↗ Click chart to open {_esc(chart_dest_label)} →
+                    </a>
+                  </div>
                 </td>
               </tr>
             </table>
@@ -1101,30 +1166,55 @@ class WeeklyOutlookSendRequest(BaseModel):
     html: str
     subject: str
     test_email: Optional[str] = TEST_EMAIL
+    chart_destination: Optional[str] = "/geri"   # e.g. "/geri" or "/eeri"
 
 
 class WeeklyOutlookSendAllRequest(BaseModel):
     html: str
     subject: str
+    chart_destination: Optional[str] = "/geri"   # e.g. "/geri" or "/eeri"
 
 
 # ─────────────────────────────────────────────────────────────
 #  Background sender (mirrors _run_bulk_email)
 # ─────────────────────────────────────────────────────────────
 
-def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str, emails: List[str]):
+def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
+                         emails: List[str], chart_destination: str = "/geri"):
     brevo_api_key = os.environ.get("BREVO_API_KEY")
     if not brevo_api_key:
         _update_campaign(campaign_id, status="failed", error="BREVO_API_KEY not configured")
         return
 
     sender = _email_sender()
-    fallback_login_url = f"{APP_URL}/users/account"
-    login_urls = {}
+    fallback_login_url  = f"{APP_URL}/users/account"
+    fallback_chart_url  = f"{APP_URL}{chart_destination}"
+    login_urls          = {}   # email → magic-login URL
+    chart_login_urls    = {}   # email → magic-login URL + ?next=<dest>
+
     try:
-        from src.api.user_routes import build_email_login_url
+        from src.api.user_routes import create_email_login_token
+        from src.db.db import get_cursor as _gc
+        with _gc(commit=False) as cur:
+            cur.execute(
+                "SELECT id, email FROM users "
+                "WHERE LOWER(email) = ANY(%s) AND email_verified = TRUE "
+                "AND password_hash IS NOT NULL",
+                ([e.lower() for e in emails],),
+            )
+            user_rows = {r["email"].lower(): r["id"] for r in cur.fetchall()}
+
+        next_encoded = urllib.parse.quote(chart_destination)
         for e in emails:
-            login_urls[e] = build_email_login_url(e) or fallback_login_url
+            uid = user_rows.get(e.lower())
+            if uid:
+                tok1 = create_email_login_token(uid, e)
+                tok2 = create_email_login_token(uid, e)
+                login_urls[e]       = f"{APP_URL}/users/email-login?t={tok1}"
+                chart_login_urls[e] = f"{APP_URL}/users/email-login?t={tok2}&next={next_encoded}"
+            else:
+                login_urls[e]       = fallback_login_url
+                chart_login_urls[e] = fallback_chart_url
     except Exception as exc:
         logger.warning(f"Weekly outlook campaign {campaign_id}: login-link generation failed: {exc}")
 
@@ -1135,19 +1225,17 @@ def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str, emails:
     for i in range(0, len(emails), batch_size):
         chunk = emails[i:i + batch_size]
 
-        # Inject per-recipient login URL as Brevo {{params.login_url}} placeholder
-        versioned_html = full_html.replace(
-            f"{APP_URL}/users/account", "{{{{params.login_url}}}}"
-        ) if "{{params.login_url}}" not in full_html else full_html
-
         payload = {
             "sender": sender,
             "subject": subject,
-            "htmlContent": versioned_html,
+            "htmlContent": full_html,
             "messageVersions": [
                 {
                     "to": [{"email": e}],
-                    "params": {"login_url": login_urls.get(e, fallback_login_url)},
+                    "params": {
+                        "login_url":       login_urls.get(e, fallback_login_url),
+                        "chart_login_url": chart_login_urls.get(e, fallback_chart_url),
+                    },
                 }
                 for e in chunk
             ],
@@ -1204,20 +1292,29 @@ def weekly_outlook_generate(x_admin_token: Optional[str] = Header(None)):
     end   = date.fromisoformat(data["week_end"])
     subject = f"This Week's Global Energy Risk Outlook — {_fmt_range(start, end)}"
 
-    full_html = build_weekly_email_html(data, ai)
+    chart_choice = ai.get("chart_choice", "GERI_BRENT")
+    chart_dest   = _chart_destination(chart_choice)
+
+    # Build the HTML with Brevo per-recipient placeholders for both login URLs
+    full_html = build_weekly_email_html(
+        data, ai,
+        login_url="{{params.login_url}}",
+        chart_login_url="{{params.chart_login_url}}",
+    )
 
     return {
         "success": True,
         "subject": subject,
         "html":    full_html,
         "week_label": data["week_label"],
+        "chart_destination": chart_dest,
         "stats": {
             "geri":    data.get("geri_latest"),
             "brent":   data.get("brent_latest"),
             "ttf":     data.get("ttf_latest"),
             "events":  data.get("events_processed", 0),
         },
-        "chart_choice": ai.get("chart_choice", "GERI_BRENT"),
+        "chart_choice": chart_choice,
     }
 
 
@@ -1238,14 +1335,37 @@ def weekly_outlook_send_test(body: WeeklyOutlookSendRequest,
     if not brevo_api_key:
         raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
 
-    # Inject real login URL for test recipient
+    # Build per-recipient login URLs (with and without dashboard redirect)
+    chart_dest = (body.chart_destination or "").strip() or "/geri"
+    fallback   = f"{APP_URL}/users/account"
+    chart_fallback = f"{APP_URL}{chart_dest}"
     try:
-        from src.api.user_routes import build_email_login_url
-        login_url = build_email_login_url(to_email) or f"{APP_URL}/users/account"
+        from src.api.user_routes import build_email_login_url, create_email_login_token
+        from src.db.db import get_cursor as _gc
+        base_url = build_email_login_url(to_email) or fallback
+        # Build chart-login URL with ?next= redirect
+        try:
+            with _gc(commit=False) as cur:
+                cur.execute(
+                    "SELECT id FROM users WHERE LOWER(email)=LOWER(%s) AND email_verified=TRUE",
+                    (to_email,)
+                )
+                u = cur.fetchone()
+            if u:
+                tok = create_email_login_token(u["id"], to_email)
+                chart_url = (f"{APP_URL}/users/email-login?t={tok}"
+                             f"&next={urllib.parse.quote(chart_dest)}")
+            else:
+                chart_url = chart_fallback
+        except Exception:
+            chart_url = chart_fallback
     except Exception:
-        login_url = f"{APP_URL}/users/account"
+        base_url  = fallback
+        chart_url = chart_fallback
 
-    final_html = html_body.replace("{{params.login_url}}", login_url)
+    final_html = (html_body
+                  .replace("{{params.login_url}}", base_url)
+                  .replace("{{params.chart_login_url}}", chart_url))
 
     try:
         resp = requests.post(
@@ -1299,5 +1419,6 @@ def weekly_outlook_send_all(body: WeeklyOutlookSendAllRequest,
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Could not create campaign: {exc}")
 
-    background_tasks.add_task(_run_weekly_send_all, campaign_id, subject, html_body, emails)
+    chart_dest = (body.chart_destination or "/geri").strip()
+    background_tasks.add_task(_run_weekly_send_all, campaign_id, subject, html_body, emails, chart_dest)
     return {"success": True, "campaign_id": campaign_id, "total": len(emails)}

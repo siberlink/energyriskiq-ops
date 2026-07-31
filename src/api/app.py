@@ -231,6 +231,17 @@ async def users_email_login_page():
   (async function() {
     var params = new URLSearchParams(window.location.search);
     var t = params.get('t');
+    // Optional redirect destination — only allow known safe paths
+    var nextRaw = params.get('next') || '';
+    var SAFE_PATHS = ['/geri', '/eeri', '/egsi', '/users/account', '/data'];
+    var nextPath = '/users/account';
+    if (nextRaw) {
+      for (var i = 0; i < SAFE_PATHS.length; i++) {
+        if (nextRaw === SAFE_PATHS[i] || nextRaw.startsWith(SAFE_PATHS[i] + '/')) {
+          nextPath = nextRaw; break;
+        }
+      }
+    }
     try { history.replaceState(null, '', '/users/email-login'); } catch (e) {}
     if (!t) { window.location.replace('/users'); return; }
     try {
@@ -246,7 +257,7 @@ async def users_email_login_page():
           user: data.user,
           expires: Date.now() + (7 * 24 * 60 * 60 * 1000)
         }));
-        window.location.replace('/users/account');
+        window.location.replace(nextPath);
       } else {
         document.getElementById('msg').textContent = 'This login link has expired. Redirecting to sign in…';
         setTimeout(function() { window.location.replace('/users'); }, 1800);

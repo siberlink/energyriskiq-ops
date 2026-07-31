@@ -5932,6 +5932,7 @@
         // ===== Weekly Energy Outlook =====
         let _woHtml = '';
         let _woSubject = '';
+        let _woChartDest = '/geri';
 
         function _woSetStatus(msg, type) {
             const bar = document.getElementById('woStatusBar');
@@ -5977,6 +5978,7 @@
 
                 _woHtml = data.html;
                 _woSubject = data.subject;
+                _woChartDest = data.chart_destination || '/geri';
 
                 // Populate stats
                 document.getElementById('woStatGeri').textContent  = data.stats.geri   != null ? Math.round(data.stats.geri)    : '—';
@@ -6016,7 +6018,7 @@
                 const res = await fetch('/admin/weekly-outlook/send-test', {
                     method: 'POST',
                     headers: { 'X-Admin-Token': sessionToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ html: _woHtml, subject: _woSubject })
+                    body: JSON.stringify({ html: _woHtml, subject: _woSubject, chart_destination: _woChartDest })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Send failed');
@@ -6040,7 +6042,7 @@
                 const res = await fetch('/admin/weekly-outlook/send-all', {
                     method: 'POST',
                     headers: { 'X-Admin-Token': sessionToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ html: _woHtml, subject: _woSubject })
+                    body: JSON.stringify({ html: _woHtml, subject: _woSubject, chart_destination: _woChartDest })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || 'Send failed');
