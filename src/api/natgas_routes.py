@@ -1079,7 +1079,7 @@ document.body.style.overflow='';
   <span class="ng-sticky-price ng-protected">&euro;{ttf_latest:.2f}/MWh</span>
   <span class="ng-sticky-chg" style="color:{color};">{arrow} {ttf_chg:+.2f} ({ttf_chg_pct:+.2f}%)</span>
   <span class="ng-sticky-time">Updated: {today_str}</span>
-  <a href="/users" class="ng-sticky-cta">Free Alerts &rarr;</a>
+  <a href="/users?tab=signup" class="ng-sticky-cta">Alerts &rarr;</a>
 </div>
 
 <!-- ── NAV ───────────────────────────────────────────────────────────── -->
@@ -1094,7 +1094,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-gas-stress-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/data/ttf-gas-price-today" style="font-size:13px;color:#94a3b8;text-decoration:none;">TTF Daily</a>
       <a href="/gas-storage-levels-in-europe" style="font-size:13px;color:#94a3b8;text-decoration:none;">Storage</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -1130,7 +1130,7 @@ document.body.style.overflow='';
       <div><b>Source:</b> EnergyRiskIQ Daily Pipeline</div>
     </div>
     <div class="ng-hero-cta-row">
-      <a href="/users" class="ng-cta-primary">Get Free Daily Energy Risk Alerts &rarr;</a>
+      <a href="/users?tab=signup" class="ng-cta-primary">Unlock Deeper Intelligence</a>
       <a href="/users/account" class="ng-cta-secondary">View Full Gas Market Dashboard</a>
     </div>
   </div>
@@ -1369,7 +1369,7 @@ document.body.style.overflow='';
     </a>
   </div>
   <div style="text-align:center;margin-bottom:40px;">
-    <a href="/users" class="ng-cta-primary">Unlock Real-Time Risk Signals &rarr;</a>
+    <a href="/users?tab=signup" class="ng-cta-primary">Unlock Deeper Intelligence</a>
   </div>
 
   <!-- ── 7. DAILY COMMENTARY ──────────────────────────────────────── -->
@@ -1472,7 +1472,7 @@ document.body.style.overflow='';
       &mdash; with Custom Algorithm risk indices, daily intelligence digests and real-time alert signals
       across European gas, LNG and global energy markets.
     </p>
-    <a href="/users" class="ng-cta-primary">Get Free Daily Risk Alerts &rarr;</a>
+    <a href="/users?tab=signup" class="ng-cta-primary">Unlock Deeper Intelligence</a>
     <a href="/energy-risk-intelligence-signals" class="ng-cta-secondary">Upgrade to Pro for Real-Time Signals</a>
   </div>
 

@@ -1009,7 +1009,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index"  style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/indices/europe-gas-stress-index"   style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/gas-storage-levels-in-europe"      style="font-size:13px;color:#94a3b8;text-decoration:none;">Storage</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -1438,9 +1438,9 @@ document.body.style.overflow='';
     <div class="lng-wheel-label">JKM LNG</div>
     <div class="lng-wheel-desc">Japan Korea Marker spot price &bull; daily data</div>
   </a>
-  <a href="/users" class="lng-wheel-link">
-    <div class="lng-wheel-icon">&#128272;</div>
-    <div class="lng-wheel-label">Free Access</div>
+  <a href="/users?tab=signup" class="lng-wheel-link">
+    <div class="lng-wheel-icon">&#128202;</div>
+    <div class="lng-wheel-label">Access Platform</div>
     <div class="lng-wheel-desc">Full dashboard &bull; GERI, EERI, EGSI, Alerts</div>
   </a>
 </div>

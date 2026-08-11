@@ -1139,7 +1139,7 @@ document.body.style.overflow='';
   <span class="brent-sticky-price">${brent_price:.2f}</span>
   <span class="brent-sticky-chg" style="color:{b_color}">{b_arrow} {brent_chg:+.2f} ({brent_chg_pct:+.2f}%)</span>
   <span class="brent-sticky-time">Updated: {today_str}</span>
-  <a href="/users" class="brent-sticky-cta">Free Alerts &rarr;</a>
+  <a href="/users?tab=signup" class="brent-sticky-cta">Alerts &rarr;</a>
 </div>
 
 <!-- ── NAV ────────────────────────────────────────────────────────── -->
@@ -1154,7 +1154,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/indices/europe-gas-stress-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/data/energy-risk-snapshot" style="font-size:13px;color:#94a3b8;text-decoration:none;">Snapshot</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -1190,8 +1190,8 @@ document.body.style.overflow='';
       <span class="brent-trust-dot">&#9679;</span>
       <span>Source: OilPriceAPI &bull; {brent_date}</span>
     </div>
-    <a href="/users" class="brent-hero-cta">
-      &#128276; Get real-time oil price alerts &amp; risk signals &rarr; Free Account
+    <a href="/users?tab=signup" class="brent-hero-cta">
+      Unlock Deeper Intelligence
     </a>
   </div>
 
@@ -1277,10 +1277,10 @@ document.body.style.overflow='';
 
   <!-- CTA under chart -->
   <div style="margin-top:18px;text-align:center;">
-    <a href="/users" style="font-size:13px;font-weight:700;color:#f97316;
+    <a href="/users?tab=signup" style="font-size:13px;font-weight:700;color:#f97316;
       border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:8px 22px;
       text-decoration:none;display:inline-block;">
-      &#128275; Unlock full risk correlation overlays &rarr; Free account
+      Unlock full risk correlation overlays
     </a>
   </div>
 </div>
@@ -1457,10 +1457,10 @@ document.body.style.overflow='';
     EERI at {eeri_val}/100 indicates European supply chain exposure
     {'at acute levels.' if eeri_val > 60 else 'is being managed within historical norms.'}
   </p>
-  <a href="/users" style="font-size:13px;font-weight:700;color:#f97316;
+  <a href="/users?tab=signup" style="font-size:13px;font-weight:700;color:#f97316;
     border:1px solid rgba(249,115,22,0.3);border-radius:8px;padding:8px 22px;
     text-decoration:none;display:inline-block;">
-    &#128275; Access full risk intelligence &rarr; Free account
+    Access full risk intelligence
   </a>
 </div>
 
@@ -1600,8 +1600,8 @@ document.body.style.overflow='';
     <span class="brent-cta-benefit">Daily market interpretation</span>
     <span class="brent-cta-benefit">Brent-WTI spread tracking</span>
   </div>
-  <a href="/users" class="brent-cta-btn-primary">
-    Create Free Account &rarr;
+  <a href="/users?tab=signup" class="brent-cta-btn-primary">
+    Unlock Deeper Intelligence
   </a>
   <div class="brent-cta-credits">No credit card required &bull; Free plan always available</div>
 </div>

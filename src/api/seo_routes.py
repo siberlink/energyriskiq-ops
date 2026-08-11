@@ -483,7 +483,7 @@ def render_nav() -> str:
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-btn">Get FREE Access</a>
+                <a href="/users?tab=signup" class="cta-btn">Unlock Deeper Intelligence</a>
             </div>
         </div>
     </nav>
@@ -515,7 +515,7 @@ def render_cta_section(position: str = "mid") -> str:
         return """
         <div class="hero-banner">
             <div class="container">
-                <strong>Get tomorrow's alerts before markets open.</strong> <a href="/users">Get FREE Access &rarr;</a>
+                <strong>Get tomorrow's alerts before markets open.</strong> <a href="/users?tab=signup">Unlock Deeper Intelligence &rarr;</a>
             </div>
         </div>
         """
@@ -524,7 +524,7 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section cta-mid">
             <h3>These are public summaries.</h3>
             <p>Pro users receive <strong>full custom algorithm analysis</strong>, <strong>instant multi-channel delivery</strong>, and <strong>priority alerts</strong> before they appear here.</p>
-            <a href="/users" class="cta-btn">Get FREE Access &rarr;</a>
+            <a href="/users?tab=signup" class="cta-btn">Unlock Deeper Intelligence &rarr;</a>
         </section>
         """
     elif position == "bottom":
@@ -532,7 +532,7 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section">
             <h3>Don't Miss Tomorrow's Risk Signals</h3>
             <p>Get real-time alerts delivered via Email, Telegram, or SMS — before markets react.</p>
-            <a href="/users" class="cta-btn">Get FREE Access &rarr;</a>
+            <a href="/users?tab=signup" class="cta-btn">Unlock Deeper Intelligence &rarr;</a>
         </section>
         """
     else:
@@ -540,7 +540,7 @@ def render_cta_section(position: str = "mid") -> str:
         <section class="cta-section">
             <h3>Stay Ahead of Market Risks</h3>
             <p>Subscribe for daily intelligence briefings and real-time risk signals.</p>
-            <a href="/users" class="cta-btn">Get FREE Access &rarr;</a>
+            <a href="/users?tab=signup" class="cta-btn">Unlock Deeper Intelligence &rarr;</a>
         </section>
         """
 
@@ -2242,7 +2242,7 @@ async def geri_page(request: Request):
         <div class="geri-cta">
             <h3>Get Real-time Access</h3>
             <p>Unlock instant GERI updates with a Pro subscription.</p>
-            <a href="/users" class="cta-button primary">Unlock Real-time GERI</a>
+            <a href="/users?tab=signup" class="cta-button primary">Unlock Deeper Intelligence</a>
         </div>
         """
     
@@ -2882,7 +2882,7 @@ async def geri_page(request: Request):
                     <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                    <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+                    <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
                 </div>
             </div>
         </nav>
@@ -3391,7 +3391,7 @@ async def geri_updates_page():
                 <a href="/indices/europe-energy-risk-index">EERI</a>
                 <a href="/indices/europe-gas-stress-index">EGSI</a>
                 <a href="/alerts">Alerts</a>
-                <a href="/users" class="cta-nav">Get FREE Access</a>
+                <a href="/users?tab=signup" class="cta-nav">Unlock Deeper Intelligence</a>
             </div>
         </div></nav>
         
@@ -4046,7 +4046,7 @@ async def geri_methodology_page():
             <div class="meth-cta">
                 <h3>Access Full GERI Intelligence</h3>
                 <p>Get real-time GERI values, component breakdowns, historical charts, cross-asset context, and custom algorithm interpretations with EnergyRiskIQ.</p>
-                <a href="/users" class="cta-button">Get FREE Access</a>
+                <a href="/users?tab=signup" class="cta-button">Unlock Deeper Intelligence</a>
             </div>
 
             <div class="disclaimer">
@@ -4981,7 +4981,7 @@ def render_digest_nav() -> str:
                 <a href="/alerts">Alerts</a>
                 <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                 <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+                <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
             </div>
         </div>
     </nav>
@@ -5566,7 +5566,7 @@ async def indices_hub_page(request: Request):
                     <a href="/indices/europe-gas-stress-index">EGSI</a>
                     <a href="/daily-geo-energy-intelligence-digest">Digest</a>
                     <a href="/daily-geo-energy-intelligence-digest/history">History</a>
-                    <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+                    <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
                 </div>
             </div>
         </nav>
@@ -5677,7 +5677,7 @@ async def indices_hub_page(request: Request):
                 <div class="idx-cta-section">
                     <h2>Monitor Energy Risk in Real Time</h2>
                     <p>Professional dashboards provide live charts, correlation analysis, and escalation signals across all indices.</p>
-                    <a href="/users" class="idx-cta-btn">Get FREE Access</a>
+                    <a href="/users?tab=signup" class="idx-cta-btn">Unlock Deeper Intelligence</a>
                 </div>
             </div>
         </main>
@@ -6094,7 +6094,7 @@ async def digest_latest_page():
             <div class="container" style="text-align: center; padding: 4rem 1rem;">
                 <h1 style="font-size: 1.75rem; color: #f1f5f9; margin-bottom: 1rem;">Daily Geo-Energy Intelligence Digest</h1>
                 <p style="color: #94a3b8; margin-bottom: 2rem;">No digest pages have been generated yet. Check back soon.</p>
-                <a href="/users" class="cta-btn-nav" style="display: inline-block; padding: 12px 32px; font-size: 16px;">Get Real-Time Alerts</a>
+                <a href="/users?tab=signup" class="cta-btn-nav" style="display: inline-block; padding: 12px 32px; font-size: 16px;">Unlock Deeper Intelligence</a>
             </div>
         </main>
         {render_digest_footer()}
@@ -7305,7 +7305,7 @@ async def geri_research_page(request: Request):
                     <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right: 0.5rem;">
                     EnergyRiskIQ
                 </a>
-                <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+                <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
             </div>
         </nav>
         <main>
@@ -9617,7 +9617,7 @@ async def global_energy_risk_timeline_page(request: Request):
                 <img src="/static/logo.png" alt="EnergyRiskIQ" width="36" height="36" style="margin-right:0.5rem;">
                 EnergyRiskIQ
             </a>
-            <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+            <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
         </div>
     </nav>
 
@@ -11352,7 +11352,7 @@ async def data_license_page():
         <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
         <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
         <a href="/data/global-energy-risk-forecast" style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
-        <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+        <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
       </div>
     </div>
   </nav>

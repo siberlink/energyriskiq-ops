@@ -784,7 +784,7 @@ document.body.style.overflow='';
       <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
       <a href="/indices/europe-energy-risk-index"  style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/data/global-energy-risk-forecast"  style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -797,7 +797,7 @@ document.body.style.overflow='';
     &nbsp;<span style="color:{chg_color};">{arrow} {sign}{chg:.2f} ({sign}{chg_pct:.2f}%)</span>
     &nbsp;<span style="color:#475569;font-weight:400;">&bull; Updated {date_str} &bull; Source: OilPriceAPI</span></span>
   </div>
-  <a href="/users" class="ttf-sticky-cta">Get daily alerts &rarr;</a>
+  <a href="/users?tab=signup" class="ttf-sticky-cta">Alerts &rarr;</a>
 </div>
 
 <!-- HERO -->
@@ -824,7 +824,7 @@ document.body.style.overflow='';
     <div class="ttf-price-meta">
       &#128197; {date_str} &nbsp;&bull;&nbsp; Source: OilPriceAPI<br>
       &#128202; {total_rows} daily records &bull; {_fmt_date(earliest)} &rarr; {_fmt_date(stat_latest)}<br>
-      <a href="/users">&#128276; Get real-time alerts &amp; risk signals &rarr;</a>
+      <a href="/users?tab=signup">Get real-time alerts &amp; risk signals</a>
     </div>
   </div>
 </header>
@@ -1087,7 +1087,7 @@ document.body.style.overflow='';
   </div>
   <div style="text-align:center;margin-bottom:40px;">
     <p style="font-size:13px;color:#475569;margin-bottom:12px;">Need TTF price history with energy risk context?</p>
-    <a href="/users" class="ttf-btn ttf-btn-blue" style="display:inline-flex;">\u2192 Create a free EnergyRiskIQ account</a>
+    <a href="/users?tab=signup" class="ttf-btn ttf-btn-blue" style="display:inline-flex;">Unlock Deeper Intelligence</a>
   </div>
 
   <!-- TODAY'S INSIGHT -->
@@ -1098,8 +1098,8 @@ document.body.style.overflow='';
     <p class="ttf-insight-para"><strong style="color:#e2e8f0;">Why it matters:</strong> {insight['avg_context']} {insight['risk_note']}</p>
     <p class="ttf-insight-para"><strong style="color:#e2e8f0;">What to watch next:</strong> {insight['watch']}</p>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(59,130,246,0.15);text-align:center;">
-      <a href="/users" style="font-size:13px;font-weight:600;color:#3b82f6;text-decoration:none;">
-        &#128276; Get daily TTF market insights delivered to your inbox &rarr;
+      <a href="/users?tab=signup" style="font-size:13px;font-weight:600;color:#3b82f6;text-decoration:none;">
+        Get daily TTF market insights delivered to your inbox
       </a>
     </div>
   </div>
@@ -1116,8 +1116,8 @@ document.body.style.overflow='';
       <div class="ttf-convert-benefit">LNG &amp; storage context</div>
       <div class="ttf-convert-benefit">Free plan, no credit card required</div>
     </div>
-    <a href="/users" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;margin-top:4px;">
-      Create Free Account &rarr;
+    <a href="/users?tab=signup" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;margin-top:4px;">
+      Unlock Deeper Intelligence
     </a>
   </div>
 
@@ -1213,7 +1213,7 @@ Data source: OilPriceAPI daily. {total_rows} records from {_fmt_date(earliest)}.
       TTF tells you what the market is doing. EnergyRiskIQ explains <em>why</em> &mdash;
       combining gas price data with real-time GERI, EERI, and EGSI risk signals.
     </p>
-    <a href="/users" class="cta-btn">Get Free Access &rarr;</a>
+    <a href="/users?tab=signup" class="cta-btn">Unlock Deeper Intelligence</a>
     <a href="/indices" class="cta-secondary">Explore All Risk Indices</a>
   </div>
 

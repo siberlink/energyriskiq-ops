@@ -1173,7 +1173,7 @@ document.body.style.overflow='';
   <span class="wti-sticky-price wti-protected">${wti_latest:.2f}/bbl</span>
   <span class="wti-sticky-chg" style="color:{color};">{arrow} {wti_chg:+.2f} ({wti_chg_pct:+.2f}%)</span>
   <span class="wti-sticky-time">Updated: {today_str}</span>
-  <a href="/users" class="wti-sticky-cta">Free Alerts &rarr;</a>
+  <a href="/users?tab=signup" class="wti-sticky-cta">Alerts &rarr;</a>
 </div>
 
 <!-- ── NAV ───────────────────────────────────────────────────────── -->
@@ -1188,7 +1188,7 @@ document.body.style.overflow='';
       <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/data/global-energy-risk-forecast" style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -1223,7 +1223,7 @@ document.body.style.overflow='';
       <div><b>Source:</b> EnergyRiskIQ Pipeline (NYMEX settlement)</div>
     </div>
     <div class="wti-hero-cta-row">
-      <a href="/users" class="wti-cta-primary">Get Free Daily Oil &amp; Energy Risk Alerts &rarr;</a>
+      <a href="/users?tab=signup" class="wti-cta-primary">Unlock Deeper Intelligence</a>
       <a href="/users/account" class="wti-cta-secondary">Unlock Real-Time Market Signals (Pro)</a>
     </div>
   </div>
@@ -1511,7 +1511,7 @@ document.body.style.overflow='';
     </a>
   </div>
   <div style="text-align:center;margin-bottom:40px;">
-    <a href="/users" class="wti-cta-primary">Unlock Real-Time Risk Signals &rarr;</a>
+    <a href="/users?tab=signup" class="wti-cta-primary">Unlock Deeper Intelligence</a>
   </div>
 
   <!-- ── 8. BRENT vs WTI ────────────────────────────────────────── -->
@@ -1646,7 +1646,7 @@ document.body.style.overflow='';
       <strong style="color:#cbd5e1;">geopolitical risk, volatility, LNG markets and global energy stress</strong>
       &mdash; so you see the risk before the price reacts.
     </p>
-    <a href="/users" class="wti-cta-primary">Get Free Daily Oil &amp; Energy Alerts &rarr;</a>
+    <a href="/users?tab=signup" class="wti-cta-primary">Unlock Deeper Intelligence</a>
     <a href="/energy-risk-intelligence-signals" class="wti-cta-secondary">Upgrade to Pro for Real-Time Signals</a>
   </div>
 

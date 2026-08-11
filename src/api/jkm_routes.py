@@ -631,7 +631,7 @@ document.body.style.overflow='';
       <a href="/indices/global-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">GERI</a>
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/data/global-energy-risk-forecast" style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -835,7 +835,7 @@ document.body.style.overflow='';
   </div>
   <div style="text-align:center;margin-bottom:40px;">
     <p style="font-size:13px;color:#475569;margin-bottom:12px;">Need LNG price history with risk context?</p>
-    <a href="/users" class="jkm-btn jkm-btn-gold" style="display:inline-flex;">Create a free EnergyRiskIQ account &rarr;</a>
+    <a href="/users?tab=signup" class="jkm-btn jkm-btn-gold" style="display:inline-flex;">Unlock Deeper Intelligence</a>
   </div>
 
   <!-- WHAT IS JKM -->
@@ -1028,7 +1028,7 @@ Data source: OilPrice / Firecrawl daily scrape. {total_rows} daily records from 
       JKM price tells you where the LNG market is. EnergyRiskIQ explains <em>why</em> it is moving —
       and what risk may come next.
     </p>
-    <a href="/users" class="cta-btn">Get Free Access &rarr;</a>
+    <a href="/users?tab=signup" class="cta-btn">Unlock Deeper Intelligence</a>
     <a href="/indices" class="cta-secondary">Explore All Risk Indices</a>
   </div>
 

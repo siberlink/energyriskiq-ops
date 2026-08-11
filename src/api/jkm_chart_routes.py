@@ -1097,7 +1097,7 @@ document.body.style.overflow='';
   <span class="jkm-sticky-price jkm-protected">${jkm_price:.2f}</span>
   <span class="jkm-sticky-chg" style="color:{j_color};">{j_arrow} {jkm_chg:+.2f} ({jkm_chg_pct:+.2f}%)</span>
   <span class="jkm-sticky-time">Updated: {today_str}</span>
-  <a href="/users" class="jkm-sticky-cta">Free Alerts &rarr;</a>
+  <a href="/users?tab=signup" class="jkm-sticky-cta">Alerts &rarr;</a>
 </div>
 
 <!-- ── NAV ───────────────────────────────────────────────────────────── -->
@@ -1112,7 +1112,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/indices/europe-gas-stress-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/data/energy-risk-snapshot" style="font-size:13px;color:#94a3b8;text-decoration:none;">Snapshot</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -1148,8 +1148,8 @@ document.body.style.overflow='';
       <span class="jkm-trust-dot">&#9679;</span>
       <span>Asia&rsquo;s primary LNG benchmark</span>
     </div>
-    <a href="/users" class="jkm-hero-cta">
-      &#128276; Get LNG price alerts &amp; risk signals &rarr; Free Account
+    <a href="/users?tab=signup" class="jkm-hero-cta">
+      Unlock Deeper Intelligence
     </a>
     <span class="jkm-watermark-attr">EnergyRiskIQ.com</span>
   </div>
@@ -1255,10 +1255,10 @@ document.body.style.overflow='';
     <span class="jkm-overlay-btn" title="Brent Oil overlay — unlock with free account">&#128137; Brent Oil</span>
     <span class="jkm-overlay-btn" title="EU Gas Storage overlay — unlock with free account">&#128201; EU Storage</span>
     <span class="jkm-overlay-btn" title="VIX overlay — unlock with free account">&#128200; VIX</span>
-    <a href="/users" style="font-size:10px;font-weight:700;color:#d4a017;text-decoration:none;
+    <a href="/users?tab=signup" style="font-size:10px;font-weight:700;color:#d4a017;text-decoration:none;
       padding:4px 12px;border-radius:20px;border:1px solid rgba(212,160,23,0.3);
       background:rgba(212,160,23,0.06);display:inline-flex;align-items:center;gap:5px;">
-      &#128275; Pro: Spread View &amp; Correlation Toggle
+      Pro: Spread View &amp; Correlation Toggle
     </a>
   </div>
 
@@ -1301,10 +1301,10 @@ document.body.style.overflow='';
 
   <!-- CTA under chart -->
   <div style="margin-top:18px;text-align:center;">
-    <a href="/users" style="font-size:13px;font-weight:700;color:{JKM_COLOR};
+    <a href="/users?tab=signup" style="font-size:13px;font-weight:700;color:{JKM_COLOR};
       border:1px solid rgba(212,160,23,0.3);border-radius:8px;padding:8px 22px;
       text-decoration:none;display:inline-block;">
-      &#128275; Unlock LNG spreads &amp; correlations &rarr; Free account
+      Unlock LNG spreads &amp; correlations
     </a>
   </div>
 </div>
@@ -1519,10 +1519,10 @@ function switchJKM(range) {{
     EnergyRiskIQ&rsquo;s proprietary indicators suggest
     {'supply chain pressures are elevating LNG price risk — early warning signals are active.' if geri_val > 60 else 'current risk levels are being priced in without unusual supply stress.'}
   </p>
-  <a href="/users" style="font-size:13px;font-weight:700;color:{JKM_COLOR};
+  <a href="/users?tab=signup" style="font-size:13px;font-weight:700;color:{JKM_COLOR};
     border:1px solid rgba(212,160,23,0.3);border-radius:8px;padding:8px 22px;
     text-decoration:none;display:inline-block;">
-    &#128275; Access full risk dashboard &rarr; Free account
+    Access full risk dashboard
   </a>
 </div>
 
@@ -1687,7 +1687,7 @@ function switchJKM(range) {{
     <span class="jkm-cta-benefit">GERI &amp; EERI risk signals</span>
     <span class="jkm-cta-benefit">Daily market interpretation</span>
   </div>
-  <a href="/users" class="jkm-cta-btn">&#128275; Create Free Account</a>
+  <a href="/users?tab=signup" class="jkm-cta-btn">Unlock Deeper Intelligence</a>
   <div class="jkm-cta-credits">No credit card required &bull; Free plan available</div>
 </div>
 
@@ -1729,7 +1729,7 @@ function switchJKM(range) {{
     </div>
   </div>
   <div class="jkm-link-section">
-    <div class="jkm-link-section-title">&#128275; License</div>
+    <div class="jkm-link-section-title">License</div>
     <div class="jkm-link-grid">
       <a href="/data-license" class="jkm-link-pill">&#128221; Data License &amp; Usage Terms</a>
     </div>

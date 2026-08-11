@@ -595,6 +595,14 @@
             hideMessages();
         }
 
+        // Default to Sign Up tab when ?tab=signup is in the URL
+        (function() {
+            try {
+                var _p = new URLSearchParams(window.location.search);
+                if (_p.get('tab') === 'signup') showTab('signup');
+            } catch(e) {}
+        })();
+
         function hideAllViews() {
             ['authView', 'emailSentView', 'setPasswordView', 'forgotView', 'resetView'].forEach(function(id) {
                 document.getElementById(id).style.display = 'none';

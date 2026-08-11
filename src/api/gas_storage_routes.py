@@ -1129,7 +1129,7 @@ document.body.style.overflow='';
       <a href="/indices/europe-energy-risk-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EERI</a>
       <a href="/indices/europe-gas-stress-index" style="font-size:13px;color:#94a3b8;text-decoration:none;">EGSI</a>
       <a href="/data/global-energy-risk-forecast" style="font-size:13px;color:#94a3b8;text-decoration:none;">Forecast</a>
-      <a href="/users" class="cta-btn-nav">Unlock Deeper Intelligence</a>
+      <a href="/users?tab=signup" class="cta-btn-nav">Unlock Deeper Intelligence</a>
     </div>
   </div>
 </nav>
@@ -1337,10 +1337,9 @@ document.body.style.overflow='';
 <div class="gs-cta-mid">
   <h2>Monitor Europe Gas Risk Before the Market Reacts</h2>
   <p>
-    Create a free EnergyRiskIQ account to follow gas storage trends, European energy risk signals,
-    and market stress indicators in one place.
+    Access gas storage trends, European energy risk signals, and market stress indicators — all in one professional dashboard.
   </p>
-  <a href="/users" class="gs-cta-btn-primary">Create Free Account</a>
+  <a href="/users?tab=signup" class="gs-cta-btn-primary">Unlock Deeper Intelligence</a>
 </div>
 
 <!-- ── SECTION: MARKET IMPLICATIONS ─────────────────────────────────────── -->
