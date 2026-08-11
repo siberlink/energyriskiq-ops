@@ -73,6 +73,11 @@ BASE_URL = os.environ.get('ALERTS_APP_BASE_URL', 'https://energyriskiq.com')
 from src.utils.anti_scraping import check_scraping
 
 
+async def apply_anti_scraping(request: Request) -> None:
+    """Async wrapper around check_scraping for use in async route handlers."""
+    check_scraping(request)
+
+
 def generate_why_matters_text(model: dict) -> str:
     """Generate contextual 'Why This Matters' text based on alert data."""
     stats = model.get('stats', {})
