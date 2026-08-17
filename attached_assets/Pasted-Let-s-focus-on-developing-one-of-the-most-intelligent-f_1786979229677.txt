@@ -1,0 +1,62 @@
+Let's focus on developing one of the most intelligent functionalities on EnergyRiskIQ app -- with a super nice design that will look very professional
+It's the "Slide-in" (from the right) Modal that should increase the Sign Up's to Users Account
+
+Position it 30 px from the right and bottom, around 400 px wide, and don't cover more than roughly 25–30% of the viewport. For mobile, I would change the behavior entirely: use a bottom sheet / bottom slide-up
+
+Desktop → bottom-right, slides in from right
+Mobile → bottom, slides upward
+
+The "Slide-In" Modal must be intelligent:
+=========================================
+For example, somebody looking at your Brent page doesn't necessarily want an EnergyRiskIQ account. They're trying to answer:
+
+“What is happening with Brent?”
+
+Once they've consumed the price/chart, the slide-in can introduce the unanswered questions:
+
+Brent is only part of the picture.
+See what geopolitical risk, volatility and EnergyRiskIQ's risk indicators are signaling next.
+
+Unlock Deeper Intelligence
+[Email Sign-Up Field] (like the one on the "/users/" sign up form)
+Button [Unlock Deeper Intelligence]
+
+Trigger when either:
+--------------------
+- visitor has spent ~25 seconds on the page, or
+- visitor has scrolled ~30%
+
+and only if:
+------------
+- visitor isn't logged in;
+- slide-in hasn't already been dismissed recently;
+- slide-in hasn't already been displayed repeatedly during the session.
+
+
+=== VERY IMPORTANT ===
+- The "Slide-in" on each page has to be contextual for that particular page -- E.g. for Brent Page I attached an image
+- The ["Email Sign-Up Field"] has to be on the Modal, and the button [Unlock Deeper Intelligence] below the Email field -- both centre align.  The rest of the Text inside the Modal should be Left Aligned.
+- The "Slide-In" Modal form should have a button "Dismiss" on the upper right-hand corner, so the visitor can close the modal
+- After the User Sign-Up through the Modal -- display a Thank You message, and the message "Please Verify Your Email to Activate Account" and a "Close This Window" button at the bottom.
+- Implement first for this public page: "/data/brent-crude-oil-price-today" -- I'll test it, and then implement for the other pages
+
+
+
+Here're the pages we need to implement the "Slide-In" Modal for
+
+/
+/gas-storage-levels-in-Europe
+/data/brent-crude-oil-price-today
+/data/wti-crude-oil-price-today
+/data/jkm-lng-price-chart
+/data/natural-gas-price-today-Europe
+/data/jkm-lng-spot-price
+/data/ttf-gas-price-today
+/indices/global-energy-risk-index
+/data/global-energy-risk-forecast
+/research/what-drives-lng-prices
+/data/europe-lng-supply-demand
+
+
+
+Let's go and implement

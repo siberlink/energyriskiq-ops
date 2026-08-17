@@ -1707,6 +1707,7 @@ function switchRange(range) {{
   if (clicked) clicked.classList.add('active');
 }}
 </script>
+{_brent_slide_in_modal()}
 </body>
 </html>"""
 
@@ -1714,6 +1715,372 @@ function switchRange(range) {{
 # ─────────────────────────────────────────────────────────────────────────────
 # Route Handler
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _brent_slide_in_modal() -> str:
+    """
+    Contextual slide-in signup modal for the Brent Crude Oil Price page.
+    Desktop: slides in from the right, fixed bottom-right.
+    Mobile:  bottom sheet, slides up.
+    Triggers after 25 s or 30 % scroll, only for non-logged-in first-time visitors.
+    """
+    return """
+<!-- ── BRENT SLIDE-IN MODAL ───────────────────────────────────────────── -->
+<style>
+#bsi-overlay {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 400px;
+  max-width: calc(100vw - 40px);
+  z-index: 9999;
+  transform: translateX(calc(100% + 40px));
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+  pointer-events: none;
+}
+#bsi-overlay.bsi-visible {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+#bsi-box {
+  background: #0d1421;
+  border: 1.5px dashed #334155;
+  border-radius: 6px;
+  padding: 24px 22px 22px;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  color: #e2e8f0;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(248,113,18,0.06);
+  position: relative;
+}
+#bsi-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.15s;
+  font-family: inherit;
+}
+#bsi-close:hover { color: #e2e8f0; }
+#bsi-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding-right: 24px;
+}
+#bsi-body p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin: 0 0 10px;
+}
+#bsi-bullets {
+  margin: 14px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+#bsi-bullets li {
+  font-size: 12.5px;
+  color: #94a3b8;
+  padding: 3px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+#bsi-bullets li::before {
+  content: '✓';
+  color: #22c55e;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+#bsi-divider {
+  border: none;
+  border-top: 1px dashed #1e293b;
+  margin: 16px 0;
+}
+#bsi-form-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#bsi-email {
+  width: 100%;
+  max-width: 320px;
+  padding: 10px 14px;
+  background: #0b0f1a;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+#bsi-email::placeholder { color: #475569; }
+#bsi-email:focus { border-color: #f97316; }
+#bsi-submit {
+  width: 100%;
+  max-width: 320px;
+  padding: 11px 16px;
+  background: #f97316;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, opacity 0.15s;
+}
+#bsi-submit:hover { background: #ea6e10; }
+#bsi-submit:disabled { opacity: 0.5; cursor: default; }
+#bsi-note {
+  font-size: 11px;
+  color: #475569;
+  margin-top: 2px;
+}
+#bsi-error {
+  font-size: 12px;
+  color: #ef4444;
+  display: none;
+  text-align: center;
+}
+/* Thank-you state */
+#bsi-thankyou {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 4px 0 6px;
+}
+#bsi-thankyou .bsi-ty-icon {
+  font-size: 28px;
+  margin-bottom: 2px;
+}
+#bsi-thankyou .bsi-ty-head {
+  font-size: 14px;
+  font-weight: 700;
+  color: #22c55e;
+}
+#bsi-thankyou .bsi-ty-sub {
+  font-size: 12.5px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+#bsi-thankyou button {
+  margin-top: 6px;
+  padding: 8px 20px;
+  background: none;
+  border: 1px dashed #334155;
+  border-radius: 4px;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+#bsi-thankyou button:hover { color: #e2e8f0; border-color: #64748b; }
+
+/* ── Mobile: bottom sheet ── */
+@media (max-width: 600px) {
+  #bsi-overlay {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    transform: translateY(calc(100% + 20px));
+  }
+  #bsi-overlay.bsi-visible {
+    transform: translateY(0);
+  }
+  #bsi-box {
+    border-radius: 12px 12px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: 20px 18px 28px;
+  }
+}
+</style>
+
+<div id="bsi-overlay" role="dialog" aria-modal="true" aria-label="Deeper Energy Intelligence">
+  <div id="bsi-box">
+    <button id="bsi-close" aria-label="Dismiss">&#x2715;</button>
+    <div id="bsi-title">Deeper Energy Intelligence</div>
+    <div id="bsi-body">
+      <p>Don't stop at the Brent price.</p>
+      <p>See the risk signals behind the market — and what to watch next.</p>
+      <ul id="bsi-bullets">
+        <li>Current risk regime</li>
+        <li>Risk acceleration signals</li>
+        <li>Market confirmation indicators</li>
+        <li>Key drivers &amp; watchlist</li>
+      </ul>
+    </div>
+    <hr id="bsi-divider">
+    <!-- Form state -->
+    <div id="bsi-form-wrap">
+      <input id="bsi-email" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address">
+      <div id="bsi-error"></div>
+      <button id="bsi-submit">[ Unlock Deeper Intelligence ]</button>
+      <div id="bsi-note">Free EnergyRiskIQ account &mdash; no card required</div>
+    </div>
+    <!-- Thank-you state -->
+    <div id="bsi-thankyou">
+      <div class="bsi-ty-icon">&#9989;</div>
+      <div class="bsi-ty-head">Thank You!</div>
+      <div class="bsi-ty-sub">
+        Please check your inbox and verify your email<br>to activate your account.
+      </div>
+      <button id="bsi-ty-close">Close This Window</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var DISMISS_KEY = 'eiriq_si_brent_dismissed';
+  var SESSION_KEY = 'eiriq_si_shown';
+  var DISMISS_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+  function isLoggedIn() {
+    return !!(localStorage.getItem('userToken') || localStorage.getItem('sessionToken'));
+  }
+
+  function isDismissedRecently() {
+    var ts = localStorage.getItem(DISMISS_KEY);
+    if (!ts) return false;
+    return (Date.now() - parseInt(ts, 10)) < DISMISS_TTL;
+  }
+
+  function hasShownThisSession() {
+    return !!sessionStorage.getItem(SESSION_KEY);
+  }
+
+  function shouldShow() {
+    return !isLoggedIn() && !isDismissedRecently() && !hasShownThisSession();
+  }
+
+  function showModal() {
+    if (!shouldShow()) return;
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('bsi-overlay').classList.add('bsi-visible');
+  }
+
+  function hideModal() {
+    document.getElementById('bsi-overlay').classList.remove('bsi-visible');
+  }
+
+  function dismiss() {
+    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    hideModal();
+  }
+
+  // Triggers
+  var triggered = false;
+  function trigger() {
+    if (triggered) return;
+    triggered = true;
+    showModal();
+  }
+
+  // 25-second timeout
+  var timeoutId = setTimeout(trigger, 25000);
+
+  // 30% scroll
+  function onScroll() {
+    var scrolled = (window.scrollY || window.pageYOffset);
+    var docH = document.documentElement.scrollHeight - window.innerHeight;
+    if (docH > 0 && scrolled / docH >= 0.30) {
+      clearTimeout(timeoutId);
+      trigger();
+      window.removeEventListener('scroll', onScroll, { passive: true });
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // Dismiss button
+  document.getElementById('bsi-close').addEventListener('click', dismiss);
+
+  // Thank-you close button
+  document.getElementById('bsi-ty-close').addEventListener('click', function() {
+    dismiss();
+  });
+
+  // Signup submit
+  document.getElementById('bsi-submit').addEventListener('click', function() {
+    var emailEl = document.getElementById('bsi-email');
+    var errEl   = document.getElementById('bsi-error');
+    var email   = emailEl.value.trim();
+
+    errEl.style.display = 'none';
+    errEl.textContent   = '';
+
+    if (!email || !email.includes('@')) {
+      errEl.textContent   = 'Please enter a valid email address.';
+      errEl.style.display = 'block';
+      emailEl.focus();
+      return;
+    }
+
+    var btn = document.getElementById('bsi-submit');
+    btn.disabled = true;
+    btn.textContent = '[ Sending… ]';
+
+    fetch('/users/signup', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email: email })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.success) {
+        // Show thank-you state
+        document.getElementById('bsi-title').style.display  = 'none';
+        document.getElementById('bsi-body').style.display   = 'none';
+        document.getElementById('bsi-divider').style.display = 'none';
+        document.getElementById('bsi-form-wrap').style.display = 'none';
+        var ty = document.getElementById('bsi-thankyou');
+        ty.style.display = 'flex';
+      } else {
+        var msg = (data && data.detail) ? data.detail : 'Something went wrong. Please try again.';
+        errEl.textContent   = msg;
+        errEl.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = '[ Unlock Deeper Intelligence ]';
+      }
+    })
+    .catch(function() {
+      errEl.textContent   = 'Network error. Please try again.';
+      errEl.style.display = 'block';
+      btn.disabled    = false;
+      btn.textContent = '[ Unlock Deeper Intelligence ]';
+    });
+  });
+
+  // Allow Enter key in email field
+  document.getElementById('bsi-email').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('bsi-submit').click();
+  });
+})();
+</script>
+<!-- ── END BRENT SLIDE-IN MODAL ──────────────────────────────────────── -->
+"""
+
 
 @router.get("/data/brent-crude-oil-price-today")
 async def brent_crude_oil_price(request: Request):
