@@ -2057,6 +2057,45 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Live Banner Preview -->
+                <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                        <div>
+                            <h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:#e2e8f0;">Live Preview</h3>
+                            <p style="font-size:12px;color:#94a3b8;">This is exactly what free-plan users see at the top of their account page.</p>
+                        </div>
+                        <span id="bannerPreviewBadge" style="display:none;font-size:11px;font-weight:700;letter-spacing:0.5px;padding:3px 10px;border-radius:20px;background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);">ACTIVE</span>
+                    </div>
+
+                    <!-- Banner replica -->
+                    <div id="bannerPreviewWrap" style="border-radius:8px;overflow:hidden;opacity:0.45;pointer-events:none;transition:opacity .3s;">
+                        <div style="position:relative;background:linear-gradient(135deg,#0c1929 0%,#1a1040 50%,#0c1929 100%);border-bottom:1px solid rgba(99,102,241,0.3);overflow:hidden;">
+                            <!-- glow -->
+                            <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 100% at 50% 0%,rgba(99,102,241,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+                            <div style="position:relative;display:flex;align-items:center;justify-content:center;gap:14px;padding:12px 56px 12px 20px;max-width:1400px;margin:0 auto;">
+                                <!-- icon -->
+                                <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 0 0 rgba(99,102,241,0.4);">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
+                                </div>
+                                <!-- text -->
+                                <div style="display:flex;flex-direction:column;gap:1px;">
+                                    <span style="font-size:14px;font-weight:700;color:#e0e7ff;letter-spacing:0.5px;text-transform:uppercase;">
+                                        Limited Time Offer
+                                        <span id="bannerPreviewCountdownBadge" style="display:none;font-size:11px;font-weight:600;color:#fbbf24;margin-left:8px;font-family:monospace;letter-spacing:0.5px;"></span>
+                                    </span>
+                                    <span id="bannerPreviewMsg" style="font-size:13px;color:#a5b4fc;line-height:1.3;">Upgrade to Pro for unlimited intelligence access.</span>
+                                </div>
+                                <!-- cta -->
+                                <button style="flex-shrink:0;padding:8px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:default;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Take Offer Today</button>
+                                <!-- close -->
+                                <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#64748b;font-size:20px;line-height:1;">&times;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="bannerPreviewOffNote" style="margin-top:12px;text-align:center;font-size:12px;color:#64748b;">Banner is OFF — enable it above to activate.</div>
+                </div>
             </div>
 
             <!-- API Section -->
@@ -3736,13 +3775,18 @@
 
         let bannerCountdownInterval = null;
 
+        let _bannerPreviewCountdownInterval = null;
+
         async function loadBannerSettings() {
             try {
-                const res = await fetch('/admin/banner-settings', {
-                    headers: { 'X-Admin-Token': sessionToken }
-                });
-                if (!res.ok) throw new Error('Failed to load');
-                const data = await res.json();
+                const [bannerRes, trialRes] = await Promise.all([
+                    fetch('/admin/banner-settings', { headers: { 'X-Admin-Token': sessionToken } }),
+                    fetch('/admin/free-trial', { headers: { 'X-Admin-Token': sessionToken } })
+                ]);
+                if (!bannerRes.ok) throw new Error('Failed to load banner settings');
+                const data = await bannerRes.json();
+                const trialData = trialRes.ok ? await trialRes.json() : null;
+                data._freeTrialDays = trialData ? (trialData.days ?? 0) : 0;
                 updateBannerUI(data);
             } catch (e) {
                 console.error('Error loading banner settings:', e);
@@ -3811,6 +3855,71 @@
                 bannerCountdownInterval = setInterval(updateCountdown, 1000);
             } else {
                 cdPreview.style.display = 'none';
+            }
+
+            // ── Live Preview ──────────────────────────────────────────────
+            updateBannerPreview(data);
+        }
+
+        function updateBannerPreview(data) {
+            const wrap = document.getElementById('bannerPreviewWrap');
+            const badge = document.getElementById('bannerPreviewBadge');
+            const offNote = document.getElementById('bannerPreviewOffNote');
+            const previewMsg = document.getElementById('bannerPreviewMsg');
+            const previewCdBadge = document.getElementById('bannerPreviewCountdownBadge');
+
+            if (_bannerPreviewCountdownInterval) {
+                clearInterval(_bannerPreviewCountdownInterval);
+                _bannerPreviewCountdownInterval = null;
+            }
+
+            // Set message with actual free trial days
+            const days = data._freeTrialDays || 0;
+            if (days > 0) {
+                previewMsg.innerHTML = `Try Our <b style="color:#c7d2fe;text-decoration:underline;">Premium</b> Institutional Grade Indices &amp; Daily Intelligence Digest <b style="color:#c7d2fe;text-decoration:underline;">Totally FREE</b> — For ${days} Days!`;
+            } else {
+                previewMsg.innerHTML = `Upgrade to unlock Institutional Grade Indices &amp; Daily Intelligence — start your free trial today.`;
+            }
+
+            if (data.banner_enabled) {
+                wrap.style.opacity = '1';
+                wrap.style.pointerEvents = 'none';
+                badge.style.display = 'inline-block';
+                offNote.style.display = 'none';
+            } else {
+                wrap.style.opacity = '0.35';
+                badge.style.display = 'none';
+                offNote.style.display = 'block';
+                previewCdBadge.style.display = 'none';
+                return;
+            }
+
+            // Countdown badge inside preview
+            if (data.banner_countdown_end && data.banner_countdown_end !== '') {
+                const endDate = new Date(data.banner_countdown_end);
+                previewCdBadge.style.display = 'inline';
+
+                function tickPreview() {
+                    const diff = endDate - new Date();
+                    if (diff <= 0) {
+                        previewCdBadge.textContent = '00d:00h:00m:00s';
+                        clearInterval(_bannerPreviewCountdownInterval);
+                        return;
+                    }
+                    const d = Math.floor(diff / 86400000);
+                    const h = Math.floor((diff % 86400000) / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    previewCdBadge.textContent =
+                        String(d).padStart(2,'0') + 'd : ' +
+                        String(h).padStart(2,'0') + 'h : ' +
+                        String(m).padStart(2,'0') + 'm : ' +
+                        String(s).padStart(2,'0') + 's';
+                }
+                tickPreview();
+                _bannerPreviewCountdownInterval = setInterval(tickPreview, 1000);
+            } else {
+                previewCdBadge.style.display = 'none';
             }
         }
 
