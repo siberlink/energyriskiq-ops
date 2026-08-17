@@ -7255,9 +7255,9 @@
                     <div class="gl-promo-left" style="flex:1;min-width:0;">
                         <div>
                             <span class="gl-promo-tag" id="glPromoTag">ONE-TIME ONLY LAUNCH OFFER</span>
-                            <span class="gl-promo-off-badge" id="glPromoOffBadge">53% OFF</span>
+                            <span class="gl-promo-off-badge" id="glPromoOffBadge">50% OFF</span>
                         </div>
-                        <div class="gl-promo-title">GERI Live — real-time energy risk index · <span id="glPromoPrice">14-day free trial, then €8/month</span></div>
+                        <div class="gl-promo-title">GERI Live — real-time energy risk index · <span id="glPromoPrice">14-day free trial, then €13.50/month</span></div>
                         <div class="gl-promo-countdown" id="glPromoCountdown" style="display:none;">
                             You got <strong id="glPromoTimer">--</strong> to decide
                             <span class="gl-promo-countdown-label">· offer ends after 36h from first login</span>
@@ -7270,6 +7270,7 @@
                             <span class="gl-promo-bonus-pill">🏭 Pro Widget Gas</span>
                             <span class="gl-promo-bonus-pill">📁 Indices History Downloads</span>
                         </div>
+                        <div style="margin-top:6px;font-size:11.5px;color:#f87171;font-weight:600;">⚠️ Bonuses only available if you subscribe during this 36h window. Not included after the offer expires.</div>
                     </div>
                     <button class="gl-promo-btn" id="glPromoBtn">Start free trial →</button>
                 </div>
@@ -8288,7 +8289,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     <div class="gl-offer-header" id="glOfferHeader">
                         <div class="gl-paywall-badge" id="glTrialBadge" style="display:none;">⏱ 14-DAY FREE TRIAL</div>
                         <div class="gl-offer-ribbon" id="glOfferRibbon" style="display:none;">ONE-TIME ONLY LAUNCH OFFER</div>
-                        <div class="gl-off-badge" id="glOffBadge" style="display:none;">53% OFF</div>
+                        <div class="gl-off-badge" id="glOffBadge" style="display:none;">50% OFF</div>
                     </div>
 
                     <h2 class="gl-paywall-title">Unlock GERI Live — Real-Time Energy Risk Intelligence</h2>
@@ -8304,13 +8305,13 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     </div>
 
                     <div class="gl-price-line">
-                        <span class="gl-price" id="glPriceDisplay">€8</span>
+                        <span class="gl-price" id="glPriceDisplay">€13.50</span>
                         <span class="gl-price-per">/month</span>
                         <span class="gl-price-note" id="glPriceNote">after your 14-day free trial · cancel anytime</span>
                     </div>
 
-                    <div class="gl-bonus-box" id="glBonusBox">
-                        <div class="gl-bonus-head">🎁 Your One-Time Only Bonus — included free while your GERI Live subscription is active:</div>
+                    <div class="gl-bonus-box" id="glBonusBox" style="display:none;">
+                        <div class="gl-bonus-head">🎁 36-Hour Launch Offer — Subscribe now and get these extras FREE while your subscription is active:</div>
                         <ul class="gl-bonus-list">
                             <li><strong>Daily Intelligence Report</strong> — the full AI-powered daily geo-energy briefing <span style="color:#f0c243;font-weight:700;">(€8.00/mo value)</span></li>
                             <li><strong>Pro Widget WTI</strong> — unbranded embeddable WTI crude oil widget <span style="color:#f0c243;font-weight:700;">(€4.95/mo value)</span></li>
@@ -8319,13 +8320,13 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                             <li><strong>Indices History downloads</strong> — unlimited CSV/Excel exports of GERI, EERI &amp; EGSI history <span style="color:#f0c243;font-weight:700;">(€12.00/mo value)</span></li>
                         </ul>
                         <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(212,160,23,0.2);font-size:13px;color:#94a3b8;">
-                            Total bonus value: <strong style="color:#f0c243;">€11.91/mo</strong> — yours FREE while active.
+                            Total bonus value: <strong style="color:#f0c243;">€34.85/mo</strong> — yours FREE while your subscription stays active.
                         </div>
-                        <div class="gl-bonus-note">If you cancel the trial or subscription, bonus access ends automatically with it.</div>
+                        <div class="gl-bonus-note" style="color:#f87171;font-weight:600;">⚠️ These bonuses are exclusively for subscribers who join during the 36-hour offer window. Once the offer expires, bonuses are no longer included — even at the standard price.</div>
                     </div>
 
                     <button class="gl-cta-btn" id="glSubscribeBtn" onclick="glStartCheckout()">Start your 14-day free trial</button>
-                    <div class="gl-checkout-note" id="glCheckoutNote">Free for 14 days, then €8/month · cancel anytime · secure checkout via Stripe</div>
+                    <div class="gl-checkout-note" id="glCheckoutNote">Free for 14 days, then €13.50/month · cancel anytime · secure checkout via Stripe</div>
                 </div>
             </div>
 
@@ -18335,7 +18336,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const eligible = !!(st && st.trial_eligible);
             const days = (st && st.trial_days) || 14;
             const offerOn = !!(st && st.offer_active);
-            const priceEur = offerOn ? (st.offer_price_eur || 8) : (st.standard_price_eur || 27);
+            const priceEur = offerOn ? (st.offer_price_eur || 13.5) : (st.standard_price_eur || 27);
 
             const badge = document.getElementById('glTrialBadge');
             const ribbon = document.getElementById('glOfferRibbon');
@@ -18358,8 +18359,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (countdownWrap) countdownWrap.style.display = offerOn ? 'block' : 'none';
             if (offerOn && st.offer_expires_at) _glStartPaywallCountdown(st.offer_expires_at);
 
-            // Bonus box: always shown (it's a permanent feature)
-            if (bonusBox) bonusBox.style.display = 'block';
+            // Bonus box: only shown during the 36h offer window
+            if (bonusBox) bonusBox.style.display = offerOn ? 'block' : 'none';
 
             // Price
             if (priceDisplay) priceDisplay.textContent = '€' + priceEur;
@@ -18378,14 +18379,15 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (!st || st.plan_entitled || !st.active) { bar.style.display = 'none'; return; }
             const meta = document.getElementById('glBillingMeta');
             const btn = document.getElementById('glCancelBtn');
+            const billingPrice = (st.price_eur ? '€' + st.price_eur : '€13.50') + '/month';
             let txt = st.status === 'trialing'
-                ? 'GERI Live — Free trial · €8/month starts '
+                ? ('GERI Live — Free trial · ' + billingPrice + ' starts ')
                 : (st.status === 'canceling' ? 'GERI Live — Cancelled · access until ' : 'GERI Live — Active · renews ');
             if (st.current_period_end) {
                 try { txt += new Date(st.current_period_end).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }); }
                 catch (e) { txt += st.current_period_end.slice(0, 10); }
             } else { txt = txt.replace(/ (starts|until|renews) $/, ''); }
-            txt += ' · includes bonus: Daily Report, Pro Widgets (WTI/LNG/Gas) & Indices History';
+            if (st.has_bonus) txt += ' · includes bonus: Daily Report, Pro Widgets (WTI/LNG/Gas) & Indices History';
             if (meta) meta.textContent = txt;
             if (btn) btn.style.display = st.status === 'canceling' ? 'none' : 'inline-block';
             bar.style.display = 'flex';
@@ -18447,7 +18449,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (!st || st.active || st.plan_entitled) { promo.style.display = 'none'; return; }
             const eligible = !!st.trial_eligible;
             const offerOn = !!(st.offer_active);
-            const priceEur = offerOn ? (st.offer_price_eur || 8) : (st.standard_price_eur || 27);
+            const priceEur = offerOn ? (st.offer_price_eur || 13.5) : (st.standard_price_eur || 27);
             const days = st.trial_days || 14;
 
             const tag = document.getElementById('glPromoTag');

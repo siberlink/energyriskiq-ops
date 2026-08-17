@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 
 PLAN_CODE = "geri_live"                # Stripe product metadata key + metadata.type
-PRICE_EUR_CENTS = 800                  # €8.00 — 36-hour launch offer price
+PRICE_EUR_CENTS = 1350                 # €13.50 — 36-hour launch offer price (50% of standard)
 PRICE_STANDARD_EUR_CENTS = 2700       # €27.00 — standard price after offer expires
 OFFER_HOURS = 36                       # launch offer window in hours
 TRIAL_DAYS = 14                        # 14-day free trial (once per user)
@@ -50,7 +50,7 @@ SUB_NAME = "EnergyRiskIQ — GERI Live"
 SUB_DESC = ("Real-time GERI Live intelligence dashboard — live index, drivers, "
             "regional risk and intraday energy prices. Includes launch bonus "
             "access to the Daily Intelligence Report, WTI/LNG/Gas Pro Widgets "
-            "and Indices History downloads. €8/month after a 14-day free trial.")
+            "and Indices History downloads. €13.50/month after a 14-day free trial.")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
