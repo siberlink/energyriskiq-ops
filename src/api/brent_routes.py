@@ -1734,7 +1734,7 @@ def _brent_slide_in_modal() -> str:
   max-width: calc(100vw - 40px);
   z-index: 9999;
   transform: translateX(calc(100% + 40px));
-  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
   pointer-events: none;
 }
 #bsi-overlay.bsi-visible {
@@ -1743,7 +1743,7 @@ def _brent_slide_in_modal() -> str:
 }
 #bsi-box {
   background: #0d1421;
-  border: 1.5px dashed #334155;
+  border: 1.5px solid #475569;
   border-radius: 6px;
   padding: 24px 22px 22px;
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
@@ -1817,7 +1817,7 @@ def _brent_slide_in_modal() -> str:
   max-width: 320px;
   padding: 10px 14px;
   background: #0b0f1a;
-  border: 1px solid #334155;
+  border: 1.5px solid #64748b;
   border-radius: 4px;
   color: #e2e8f0;
   font-size: 13px;
@@ -1936,7 +1936,7 @@ def _brent_slide_in_modal() -> str:
     <div id="bsi-form-wrap">
       <input id="bsi-email" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address">
       <div id="bsi-error"></div>
-      <button id="bsi-submit">[ Unlock Deeper Intelligence ]</button>
+      <button id="bsi-submit">Unlock Deeper Intelligence</button>
       <div id="bsi-note">Free EnergyRiskIQ account &mdash; no card required</div>
     </div>
     <!-- Thank-you state -->
