@@ -7346,7 +7346,7 @@
                     </div>
 
                     <!-- Step 3 -->
-                    <div class="routine-step" onclick="showSection('digest')">
+                    <div class="routine-step" onclick="drStep3Click(event)">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s3">3</div>
                         </div>
@@ -7370,21 +7370,21 @@
                             <div class="routine-insight s3">
                                 <p>This provides <strong>context instead of noise</strong> — structured intelligence, not another stream of headlines.</p>
                             </div>
-                            <span class="routine-step-cta s3">Open Intelligence Report →</span>
-                        </div>
-                    </div>
+                            <span class="routine-step-cta s3" onclick="event.stopPropagation();drStep3Click(event);">Open Intelligence Report →</span>
 
-                    <!-- Daily Intelligence Report promo (shown below Step 3 for non-subscribers) -->
-                    <div id="drDashPromo" style="display:none;padding-left:64px;margin-bottom:8px;">
-                        <div class="gl-promo-banner" onclick="showSection('digest');">
-                            <div class="gl-promo-left" style="flex:1;min-width:0;">
-                                <div>
-                                    <span class="gl-promo-tag" style="background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.3);">DAILY INTELLIGENCE REPORT</span>
+                            <!-- Daily Intelligence Report promo — shown inside Step 3 for non-subscribers -->
+                            <div id="drDashPromo" style="display:none;margin-top:14px;" onclick="event.stopPropagation();">
+                                <div class="gl-promo-banner" onclick="event.stopPropagation();drStartCheckout();">
+                                    <div class="gl-promo-left" style="flex:1;min-width:0;">
+                                        <div>
+                                            <span class="gl-promo-tag" style="background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.3);">DAILY INTELLIGENCE REPORT</span>
+                                        </div>
+                                        <div class="gl-promo-title">AI-powered daily geo-energy briefing · <span id="drPromoPrice">14-day free trial, then €8.00/month</span></div>
+                                        <div class="gl-promo-sub">Structured intelligence, not another stream of headlines — synthesised from alerts, indices &amp; geopolitical signals every morning → <em>click to read today's report</em></div>
+                                    </div>
+                                    <button class="gl-promo-btn" id="drPromoBtn" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);box-shadow:0 0 20px rgba(167,139,250,0.3);" onclick="event.stopPropagation();drStartCheckout();">Start free trial →</button>
                                 </div>
-                                <div class="gl-promo-title">AI-powered daily geo-energy briefing · <span id="drPromoPrice">14-day free trial, then €8.00/month</span></div>
-                                <div class="gl-promo-sub">Structured intelligence, not another stream of headlines — synthesised from alerts, indices &amp; geopolitical signals every morning → <em>click to read today's report</em></div>
                             </div>
-                            <button class="gl-promo-btn" id="drPromoBtn" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);box-shadow:0 0 20px rgba(167,139,250,0.3);" onclick="event.stopPropagation();showSection('digest');">Start free trial →</button>
                         </div>
                     </div>
 
@@ -18051,6 +18051,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 }
             } catch (e) {}
         });
+        let drDashPromoState = null; // cached DR status for drStep3Click
+
         async function drLoadDashPromo(_retry) {
             const promo = document.getElementById('drDashPromo');
             if (!promo) return;
@@ -18064,6 +18066,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 const r = await fetch('/api/daily-report/status', { headers: { 'x-user-token': token } });
                 if (!r.ok) return;
                 const data = await r.json();
+                drDashPromoState = data; // cache for drStep3Click
                 if (data.active) { promo.style.display = 'none'; return; }
                 // Non-subscriber: show the banner
                 const eligible = !!data.trial_eligible;
@@ -18075,6 +18078,18 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 promo.style.display = 'block';
             } catch (e) {
                 console.error('drLoadDashPromo', e);
+            }
+        }
+
+        function drStep3Click(event) {
+            // Entitled if: DR active, OR GERI Live active (which carries DR as bonus)
+            const drActive = !!(drDashPromoState && drDashPromoState.active)
+                          || !!(drState && drState.active);
+            const glActive = !!(glStatusCache && (glStatusCache.active || glStatusCache.plan_entitled));
+            if (drActive || glActive) {
+                showSection('digest');
+            } else {
+                drStartCheckout();
             }
         }
 
