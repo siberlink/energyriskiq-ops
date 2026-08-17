@@ -18698,9 +18698,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         let trialCountdownInterval = null;
 
         async function startBannerCheckout() {
-            const token = localStorage.getItem('userSession')
-                ? JSON.parse(localStorage.getItem('userSession')).token
-                : null;
+            const token = sessionToken;
             if (!token) { window.location.href = '/users'; return; }
             const btn = document.getElementById('trialBannerCta');
             if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout…'; }
