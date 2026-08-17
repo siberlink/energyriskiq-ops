@@ -7339,7 +7339,7 @@
                                     <span class="gl-promo-bonus-pill">🏭 Pro Widget Gas</span>
                                     <span class="gl-promo-bonus-pill">📁 Indices History Downloads</span>
                                 </div>
-                                <div style="margin-top:6px;font-size:11.5px;color:#f87171;font-weight:600;">⚠️ Bonuses only available if you subscribe during this 36h window. Not included after the offer expires.</div>
+                                <div id="glPromoBonusWarn" style="margin-top:6px;font-size:11.5px;color:#f87171;font-weight:600;">⚠️ Bonuses only available if you subscribe during this 36h window. Not included after the offer expires.</div>
                             </div>
                             <button class="gl-promo-btn" id="glPromoBtn">Start free trial →</button>
                         </div>
@@ -18499,6 +18499,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const price = document.getElementById('glPromoPrice');
             const btn = document.getElementById('glPromoBtn');
             const countdown = document.getElementById('glPromoCountdown');
+            const bonusPills = document.getElementById('glPromoBonuses');
+            const bonusWarn = document.getElementById('glPromoBonusWarn');
 
             if (offerOn) {
                 if (tag) tag.textContent = 'ONE-TIME ONLY LAUNCH OFFER';
@@ -18506,11 +18508,15 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 if (price) price.textContent = (eligible ? days + '-day free trial, then ' : '') + '€' + priceEur + '/month';
                 if (countdown) countdown.style.display = 'block';
                 if (st.offer_expires_at) _glStartPromoCountdown(st.offer_expires_at);
+                if (bonusPills) bonusPills.style.display = 'flex';
+                if (bonusWarn) bonusWarn.style.display = 'block';
             } else {
                 if (tag) tag.textContent = 'GERI LIVE';
                 if (offBadge) offBadge.style.display = 'none';
                 if (countdown) countdown.style.display = 'none';
                 if (price) price.textContent = (eligible ? days + '-day free trial, then ' : '') + '€' + priceEur + '/month';
+                if (bonusPills) bonusPills.style.display = 'none';
+                if (bonusWarn) bonusWarn.style.display = 'none';
             }
             if (btn) btn.textContent = eligible ? 'Start free trial →' : 'Unlock GERI Live →';
             promo.style.display = 'block';
