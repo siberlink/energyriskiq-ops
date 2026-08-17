@@ -18714,46 +18714,63 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const msg = document.getElementById('trialBannerMsg');
             if (!banner || !msg) return;
             const currentPlan = currentUser?.plan || 'free';
+            const isTestAccount = (currentUser?.email || '').toLowerCase() === 'emil.siberlink@gmail.com';
 
-            if (!cachedBannerEnabled || days <= 0 || currentPlan !== 'free') {
-                banner.style.display = 'none';
-                document.body.classList.remove('has-trial-banner');
-                if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
-                return;
-            }
-
-            if (cachedBannerCountdownEnd && cachedBannerCountdownEnd !== '') {
-                const endDate = new Date(cachedBannerCountdownEnd);
-                const now = new Date();
-                if (endDate <= now) {
-                    banner.style.display = 'none';
-                    document.body.classList.remove('has-trial-banner');
-                    cachedFreeTrialDays = 0;
-                    cachedBannerEnabled = false;
-                    rerenderPlanButtons();
-                    autoDisableExpiredBanner();
-                    return;
-                }
-            }
-
-            const dismissData = getBannerDismissData();
-            if (dismissData) {
-                if (dismissData.version !== cachedBannerVersion) {
-                    localStorage.removeItem('trialBannerDismissData');
-                } else {
-                    if (dismissData.count >= 3) {
+            if (isTestAccount) {
+                // Test account: only block if countdown has expired
+                if (cachedBannerCountdownEnd && cachedBannerCountdownEnd !== '') {
+                    const endDate = new Date(cachedBannerCountdownEnd);
+                    if (endDate <= new Date()) {
                         banner.style.display = 'none';
                         document.body.classList.remove('has-trial-banner');
-                        if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                        cachedFreeTrialDays = 0;
+                        cachedBannerEnabled = false;
+                        rerenderPlanButtons();
+                        autoDisableExpiredBanner();
                         return;
                     }
-                    const lastDismissed = new Date(dismissData.lastDismissed);
-                    const hoursSince = (Date.now() - lastDismissed.getTime()) / (1000 * 60 * 60);
-                    if (hoursSince < 48) {
+                }
+            } else {
+                // Normal users: all conditions apply
+                if (!cachedBannerEnabled || days <= 0 || currentPlan !== 'free') {
+                    banner.style.display = 'none';
+                    document.body.classList.remove('has-trial-banner');
+                    if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                    return;
+                }
+
+                if (cachedBannerCountdownEnd && cachedBannerCountdownEnd !== '') {
+                    const endDate = new Date(cachedBannerCountdownEnd);
+                    if (endDate <= new Date()) {
                         banner.style.display = 'none';
                         document.body.classList.remove('has-trial-banner');
-                        if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                        cachedFreeTrialDays = 0;
+                        cachedBannerEnabled = false;
+                        rerenderPlanButtons();
+                        autoDisableExpiredBanner();
                         return;
+                    }
+                }
+
+                const dismissData = getBannerDismissData();
+                if (dismissData) {
+                    if (dismissData.version !== cachedBannerVersion) {
+                        localStorage.removeItem('trialBannerDismissData');
+                    } else {
+                        if (dismissData.count >= 3) {
+                            banner.style.display = 'none';
+                            document.body.classList.remove('has-trial-banner');
+                            if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                            return;
+                        }
+                        const lastDismissed = new Date(dismissData.lastDismissed);
+                        const hoursSince = (Date.now() - lastDismissed.getTime()) / (1000 * 60 * 60);
+                        if (hoursSince < 48) {
+                            banner.style.display = 'none';
+                            document.body.classList.remove('has-trial-banner');
+                            if (trialCountdownInterval) { clearInterval(trialCountdownInterval); trialCountdownInterval = null; }
+                            return;
+                        }
                     }
                 }
             }
