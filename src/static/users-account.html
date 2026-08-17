@@ -7291,7 +7291,7 @@
                     </div>
 
                     <!-- Step 2 -->
-                    <div class="routine-step" onclick="showSection('geri-live')">
+                    <div class="routine-step" onclick="glStep2Click(event)">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s2">2</div>
                         </div>
@@ -7314,11 +7314,11 @@
                             <div class="routine-insight s2">
                                 <p>If nothing changed — <strong>great.</strong> If it changed significantly — <strong>you already know before most market participants.</strong></p>
                             </div>
-                            <span class="routine-step-cta s2">Open GERI Live →</span>
+                            <span class="routine-step-cta s2" onclick="event.stopPropagation();glStep2Click(event);">Open GERI Live →</span>
 
                             <!-- GERI Live launch offer promo — shown inside Step 2 for non-subscribers -->
                             <div id="glDashPromo" style="display:none;margin-top:14px;" onclick="event.stopPropagation();">
-                                <div class="gl-promo-banner" onclick="showSection('geri-live');">
+                                <div class="gl-promo-banner" onclick="event.stopPropagation();glStartCheckout();">
                                     <div class="gl-promo-left" style="flex:1;min-width:0;">
                                         <div>
                                             <span class="gl-promo-tag" id="glPromoTag">ONE-TIME ONLY LAUNCH OFFER</span>
@@ -7339,7 +7339,7 @@
                                         </div>
                                         <div id="glPromoBonusWarn" style="margin-top:6px;font-size:11.5px;color:#f87171;font-weight:600;">⚠️ Bonuses only available if you subscribe during this 36h window. Not included after the offer expires.</div>
                                     </div>
-                                    <button class="gl-promo-btn" id="glPromoBtn">Start free trial →</button>
+                                    <button class="gl-promo-btn" id="glPromoBtn" onclick="event.stopPropagation();glStartCheckout();">Start free trial →</button>
                                 </div>
                             </div>
                         </div>
@@ -18433,6 +18433,16 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (meta) meta.textContent = txt;
             if (btn) btn.style.display = st.status === 'canceling' ? 'none' : 'inline-block';
             bar.style.display = 'flex';
+        }
+
+        function glStep2Click(event) {
+            // Subscribed (cached) → open section; not subscribed → go straight to checkout
+            const entitled = !!(glStatusCache && (glStatusCache.active || glStatusCache.plan_entitled));
+            if (entitled) {
+                showSection('geri-live');
+            } else {
+                glStartCheckout();
+            }
         }
 
         async function glStartCheckout() {
