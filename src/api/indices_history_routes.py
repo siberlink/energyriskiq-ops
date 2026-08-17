@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 SUB_CODE = "indices-history"
 PLAN_CODE = "indices_history"          # Stripe product metadata key
-PRICE_EUR_CENTS = 499                  # €4.99
+PRICE_EUR_CENTS = 1200                 # €12.00
 SUB_NAME = "EnergyRiskIQ — Indices History Downloads"
 SUB_DESC = ("Unlimited CSV and Excel downloads of the full GERI, EERI, EGSI-M "
             "and EGSI-S risk-index history, plus full access to the GERI, EERI "

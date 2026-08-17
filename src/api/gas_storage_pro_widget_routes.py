@@ -60,7 +60,7 @@ logger = logging.getLogger(__name__)
 WIDGET_CODE = "gas-storage-pro"
 WIDGET_PLAN_CODE = "widget_gas_storage_pro"   # Stripe product metadata key
 WIDGET_TYPE = "gas_storage_pro_widget"        # Stripe/webhook routing key
-WIDGET_PRICE_EUR_CENTS = 149                  # €1.49
+WIDGET_PRICE_EUR_CENTS = 495                  # €4.95
 WIDGET_NAME = "EnergyRiskIQ Pro Widget — Europe Gas Storage"
 WIDGET_DESC = ("Professional embedded Europe gas storage intelligence widget — "
                "live EU storage %, winter readiness, 7D/30D charts, country "

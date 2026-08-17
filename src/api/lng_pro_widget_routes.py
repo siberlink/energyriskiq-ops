@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 WIDGET_CODE = "lng-pro"
 WIDGET_PLAN_CODE = "widget_lng_pro"   # Stripe product metadata key
 WIDGET_TYPE = "lng_pro_widget"        # checkout/subscription metadata.type
-WIDGET_PRICE_EUR_CENTS = 195          # €1.95
+WIDGET_PRICE_EUR_CENTS = 495          # €4.95
 WIDGET_NAME = "EnergyRiskIQ Pro Widget — Global LNG Intelligence"
 WIDGET_DESC = ("Professional embedded Global LNG market intelligence widget — "
                "live JKM price, 7D/30D charts, JKM–TTF spread, custom-algorithm "

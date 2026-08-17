@@ -50,7 +50,7 @@ logger = logging.getLogger(__name__)
 
 WIDGET_CODE = "wti-pro"
 WIDGET_PLAN_CODE = "widget_wti_pro"   # Stripe product metadata key
-WIDGET_PRICE_EUR_CENTS = 149          # €1.49
+WIDGET_PRICE_EUR_CENTS = 495          # €4.95
 WIDGET_NAME = "EnergyRiskIQ Pro Widget — WTI Crude Oil"
 WIDGET_DESC = ("Professional embedded WTI crude oil market intelligence widget — "
                "live price, 7D/30D charts, custom-algorithm market summary, "

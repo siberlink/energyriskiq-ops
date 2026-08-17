@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 PLAN_CODE = "geri_live"                # Stripe product metadata key + metadata.type
 PRICE_EUR_CENTS = 800                  # €8.00 — 36-hour launch offer price
-PRICE_STANDARD_EUR_CENTS = 1700       # €17.00 — standard price after offer expires
+PRICE_STANDARD_EUR_CENTS = 2700       # €27.00 — standard price after offer expires
 OFFER_HOURS = 36                       # launch offer window in hours
 TRIAL_DAYS = 14                        # 14-day free trial (once per user)
 SUB_NAME = "EnergyRiskIQ — GERI Live"

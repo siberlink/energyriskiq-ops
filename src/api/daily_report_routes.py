@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 SUB_CODE = "daily-report"
 PLAN_CODE = "daily_report"             # Stripe product metadata key
-PRICE_EUR_CENTS = 299                  # €2.99
+PRICE_EUR_CENTS = 800                  # €8.00
 TRIAL_DAYS = 14                        # 14-day free trial (once per user)
 SUB_NAME = "EnergyRiskIQ — Daily Intelligence Report"
 SUB_DESC = ("Full access to the AI-powered Daily Geo-Energy Intelligence Digest — "
