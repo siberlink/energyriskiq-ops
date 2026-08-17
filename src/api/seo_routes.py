@@ -594,7 +594,7 @@ def _alerts_paywall_response(page_title: str) -> HTMLResponse:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
+    <meta name="robots" content="index,follow">
     <title>{page_title} | EnergyRiskIQ</title>
     <link rel="icon" type="image/png" href="/static/favicon.png">
     {get_common_styles()}
@@ -715,7 +715,7 @@ def _indices_paywall_response(page_title: str) -> HTMLResponse:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex,nofollow">
+    <meta name="robots" content="index,follow">
     <title>{page_title} | EnergyRiskIQ</title>
     <link rel="icon" type="image/png" href="/static/favicon.png">
     {get_common_styles()}
@@ -1484,7 +1484,6 @@ async def daily_alerts_page(date_str: str, request: Request):
     
     headers = {
         "Cache-Control": "private, no-store",
-        "X-Robots-Tag": "noindex, nofollow, noarchive",
         "X-Content-Type-Options": "nosniff",
     }
     return HTMLResponse(content=html, headers=headers)
