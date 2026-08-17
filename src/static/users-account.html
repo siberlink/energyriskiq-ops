@@ -6862,10 +6862,10 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
             </div>
             <div class="trial-banner-text">
-                <span class="trial-banner-headline">Limited Time Offer <span id="trialCountdown" style="display:none;font-size:11px;font-weight:600;color:#fbbf24;margin-left:8px;font-family:monospace;letter-spacing:0.5px;"></span></span>
+                <span class="trial-banner-headline">Limited Time Offer &nbsp;<span style="background:#facc15;color:#0f172a;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;letter-spacing:0.4px;text-transform:uppercase;vertical-align:middle;">Special Pricing</span><span id="trialCountdown" style="display:none;font-size:11px;font-weight:600;color:#fbbf24;margin-left:8px;font-family:monospace;letter-spacing:0.5px;"></span></span>
                 <span class="trial-banner-msg" id="trialBannerMsg"></span>
             </div>
-            <button class="trial-banner-cta" onclick="showSection('plans'); closeMobileMenu();">Take Offer Today</button>
+            <button class="trial-banner-cta" id="trialBannerCta" onclick="startBannerCheckout();">Take Offer Today</button>
             <button class="trial-banner-close" onclick="dismissTrialBanner()" aria-label="Dismiss">&times;</button>
         </div>
     </div>
@@ -18697,6 +18697,31 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         let cachedBannerVersion = 'none';
         let trialCountdownInterval = null;
 
+        async function startBannerCheckout() {
+            const token = localStorage.getItem('userSession')
+                ? JSON.parse(localStorage.getItem('userSession')).token
+                : null;
+            if (!token) { window.location.href = '/users'; return; }
+            const btn = document.getElementById('trialBannerCta');
+            if (btn) { btn.disabled = true; btn.textContent = 'Starting checkout…'; }
+            try {
+                const r = await fetch('/billing/banner-checkout', {
+                    method: 'POST',
+                    headers: { 'X-User-Token': token }
+                });
+                const data = await r.json();
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                    return;
+                }
+                throw new Error(data.detail || 'No checkout URL returned');
+            } catch (e) {
+                console.error('startBannerCheckout error:', e);
+                if (btn) { btn.disabled = false; btn.textContent = 'Take Offer Today'; }
+                alert('Unable to start checkout. Please try again or contact support.');
+            }
+        }
+
         function getBannerDismissData() {
             try {
                 const raw = localStorage.getItem('trialBannerDismissData');
@@ -18775,7 +18800,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 }
             }
 
-            msg.innerHTML = `Try Our <b><u>Premium</u></b> Institutional Grade Indices &amp; Daily Intelligence Digest <b><u>Totally FREE</u></b> -- For ${days} Days!`;
+            msg.innerHTML = `Try Our <b><u>Unlimited Access to All Features</u></b>, Daily Intelligence &amp; Proprietary Indices <b><u>Totally FREE</u></b> — For ${days} Days!`;
             banner.style.display = 'block';
             document.body.classList.add('has-trial-banner');
 

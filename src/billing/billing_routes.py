@@ -8,7 +8,8 @@ import stripe
 
 from src.db.db import get_cursor
 from src.billing.stripe_client import (
-    init_stripe, 
+    init_stripe,
+    ensure_stripe_initialized,
     get_stripe_publishable_key,
     create_customer,
     create_checkout_session,
@@ -390,3 +391,198 @@ async def stripe_webhook(request: Request):
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail="Webhook processing failed")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Banner Offer — €28/month "Unlimited Access" checkout
+# ─────────────────────────────────────────────────────────────────────────────
+
+BANNER_OFFER_PLAN_CODE  = "banner_offer"
+BANNER_OFFER_EUR_CENTS  = 2800           # €28.00/month
+BANNER_OFFER_NAME       = "Unlimited Access to EnergyRiskIQ's Features"
+BANNER_OFFER_DESC       = ("Full unlimited access to all EnergyRiskIQ features: "
+                            "Proprietary Indices, Daily Intelligence Digest, Pro Widgets, "
+                            "Alerts, and Indices History. €28/month after a free trial.")
+# On successful payment, apply this base plan to the user
+BANNER_OFFER_GRANTS_PLAN = "pro"
+
+
+def _banner_settings_key(name: str) -> str:
+    return f"{name}_{get_stripe_mode()}"
+
+
+def _get_banner_offer_price_id() -> Optional[str]:
+    key = _banner_settings_key("banner_offer_price_id")
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute("SELECT value FROM app_settings WHERE key = %s", (key,))
+            row = cur.fetchone()
+            return row["value"] if row else None
+    except Exception:
+        return None
+
+
+def _store_banner_offer_price_id(price_id: str, product_id: str):
+    with get_cursor() as cur:
+        for k, v in (("banner_offer_price_id", price_id),
+                     ("banner_offer_product_id", product_id)):
+            key = _banner_settings_key(k)
+            cur.execute("""
+                INSERT INTO app_settings (key, value, updated_at)
+                VALUES (%s, %s, NOW())
+                ON CONFLICT (key) DO UPDATE
+                  SET value = EXCLUDED.value, updated_at = NOW()
+            """, (key, v))
+
+
+def _get_or_create_banner_offer_product():
+    ensure_stripe_initialized()
+    try:
+        existing = stripe.Product.search(
+            query=f"metadata['plan_code']:'{BANNER_OFFER_PLAN_CODE}'"
+        )
+        if existing.data:
+            return existing.data[0]
+    except Exception as e:
+        logger.warning(f"Stripe banner product search failed (will create): {e}")
+    product = stripe.Product.create(
+        name=BANNER_OFFER_NAME,
+        description=BANNER_OFFER_DESC,
+        metadata={"plan_code": BANNER_OFFER_PLAN_CODE, "kind": "subscription"},
+    )
+    logger.info(f"Created Stripe product {product.id} for Banner Offer")
+    return product
+
+
+def ensure_banner_offer_price_id() -> str:
+    """Return the Stripe price ID for the €28/month banner offer (lazy, idempotent)."""
+    cached = _get_banner_offer_price_id()
+    if cached:
+        return cached
+    ensure_stripe_initialized()
+    product = _get_or_create_banner_offer_product()
+    price_id = None
+    for p in stripe.Price.list(product=product.id, active=True, limit=100).data:
+        if (p.unit_amount == BANNER_OFFER_EUR_CENTS
+                and p.currency == "eur"
+                and p.recurring
+                and p.recurring.get("interval") == "month"):
+            price_id = p.id
+            break
+    if not price_id:
+        price = stripe.Price.create(
+            product=product.id,
+            unit_amount=BANNER_OFFER_EUR_CENTS,
+            currency="eur",
+            recurring={"interval": "month"},
+            metadata={"plan_code": BANNER_OFFER_PLAN_CODE},
+        )
+        price_id = price.id
+        logger.info(f"Created Stripe price {price_id} for Banner Offer (€28/mo)")
+    _store_banner_offer_price_id(price_id, product.id)
+    return price_id
+
+
+def handle_banner_offer_checkout_completed(session: dict) -> None:
+    """Webhook handler: activate pro plan for the user after banner offer payment."""
+    from src.plans.plan_helpers import apply_plan_settings_to_user
+    user_id = session.get("metadata", {}).get("user_id")
+    if not user_id:
+        logger.error("banner_offer webhook: no user_id in metadata")
+        return
+    user_id = int(user_id)
+    subscription_id = session.get("subscription")
+    try:
+        with get_cursor() as cur:
+            if subscription_id:
+                cur.execute("""
+                    UPDATE users
+                    SET stripe_subscription_id = %s,
+                        subscription_status = 'active'
+                    WHERE id = %s
+                """, (subscription_id, user_id))
+        apply_plan_settings_to_user(user_id, BANNER_OFFER_GRANTS_PLAN)
+        logger.info(f"Banner offer: user {user_id} upgraded to {BANNER_OFFER_GRANTS_PLAN}")
+    except Exception as e:
+        logger.error(f"Banner offer checkout handler error for user {user_id}: {e}", exc_info=True)
+
+
+def _base_url() -> str:
+    app_url = os.environ.get("APP_URL")
+    if app_url:
+        return app_url.rstrip("/")
+    domain = os.environ.get("REPLIT_DOMAINS", "").split(",")[0]
+    if domain:
+        return f"https://{domain}"
+    return "http://localhost:5000"
+
+
+@router.post("/banner-checkout")
+async def banner_checkout(x_user_token: Optional[str] = Header(None)):
+    """Start a Stripe checkout for the €28/month Unlimited Access banner offer."""
+    from src.api.user_routes import get_user_from_token
+    user = get_user_from_token(x_user_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    init_stripe()
+
+    try:
+        price_id = ensure_banner_offer_price_id()
+    except Exception as e:
+        logger.error(f"Could not ensure banner offer price: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Billing not available")
+
+    # Reuse or create Stripe customer
+    customer_id = user.get("stripe_customer_id")
+    if customer_id:
+        try:
+            stripe.Customer.retrieve(customer_id)
+        except stripe.InvalidRequestError:
+            customer_id = None
+            with get_cursor() as cur:
+                cur.execute(
+                    "UPDATE users SET stripe_customer_id = NULL WHERE id = %s",
+                    (user["id"],)
+                )
+    if not customer_id:
+        cust = await create_customer(email=user["email"], user_id=user["id"])
+        customer_id = cust["id"]
+        with get_cursor() as cur:
+            cur.execute(
+                "UPDATE users SET stripe_customer_id = %s WHERE id = %s",
+                (customer_id, user["id"])
+            )
+
+    trial_days = get_free_trial_days()
+    base = _base_url()
+
+    subscription_data = {
+        "metadata": {
+            "user_id": str(user["id"]),
+            "type": BANNER_OFFER_PLAN_CODE,
+        }
+    }
+    if trial_days and trial_days > 0:
+        subscription_data["trial_period_days"] = trial_days
+
+    try:
+        session = stripe.checkout.Session.create(
+            customer=customer_id,
+            payment_method_types=["card"],
+            line_items=[{"price": price_id, "quantity": 1}],
+            mode="subscription",
+            success_url=f"{base}/users/account?billing=success&plan={BANNER_OFFER_GRANTS_PLAN}",
+            cancel_url=f"{base}/users/account",
+            metadata={
+                "user_id": str(user["id"]),
+                "type": BANNER_OFFER_PLAN_CODE,
+            },
+            subscription_data=subscription_data,
+        )
+    except Exception as e:
+        logger.error(f"Banner offer checkout creation failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to start checkout")
+
+    logger.info(f"Banner offer checkout started for user {user['id']}")
+    return {"checkout_url": session.url}

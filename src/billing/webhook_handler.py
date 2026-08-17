@@ -118,6 +118,11 @@ async def handle_checkout_session_completed(session: dict):
         handle_alerts_access_checkout_completed(session)
         return
 
+    if session.get("metadata", {}).get("type") == "banner_offer":
+        from src.billing.billing_routes import handle_banner_offer_checkout_completed
+        handle_banner_offer_checkout_completed(session)
+        return
+
     subscription_id = session.get("subscription")
     
     if subscription_id:
