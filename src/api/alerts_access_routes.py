@@ -217,7 +217,9 @@ def _active_for_mode(row) -> bool:
 
 
 def user_has_alerts_access(user_id: int) -> bool:
-    """Mode-agnostic entitlement check for the gated alerts pages."""
+    """Mode-agnostic entitlement check for the gated alerts pages.
+    Also returns True for GERI Live subscribers (and pro/enterprise plan
+    holders) so banner-offer subscribers get alerts access automatically."""
     try:
         with get_cursor(commit=False) as cur:
             cur.execute(
@@ -225,7 +227,11 @@ def user_has_alerts_access(user_id: int) -> bool:
                 (user_id,)
             )
             row = cur.fetchone()
-        return _is_active(row)
+        if _is_active(row):
+            return True
+        # GERI Live (or plan-level pro/enterprise) also grants alerts access
+        from src.api.geri_live_sub_routes import user_has_geri_live
+        return user_has_geri_live(user_id)
     except Exception:
         return False
 

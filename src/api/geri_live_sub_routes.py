@@ -314,7 +314,9 @@ def _trial_eligible(row) -> bool:
 
 def user_has_geri_live(user_id: int) -> bool:
     """Mode-agnostic runtime entitlement check for GERI Live and its launch
-    bonus (Daily Intelligence Report, Pro Widgets, Indices History)."""
+    bonus (Daily Intelligence Report, Pro Widgets, Indices History).
+    Also returns True for users on the 'pro' or 'enterprise' plan (e.g.
+    banner-offer subscribers) so the full bonus cascade fires for them."""
     try:
         with get_cursor(commit=False) as cur:
             cur.execute(
@@ -322,7 +324,12 @@ def user_has_geri_live(user_id: int) -> bool:
                 (user_id,)
             )
             row = cur.fetchone()
-        return _is_active(row)
+        if _is_active(row):
+            return True
+        # Fall through to plan-level entitlement (banner offer / enterprise)
+        from src.db.db import execute_one
+        prow = execute_one("SELECT plan FROM user_plans WHERE user_id = %s", (user_id,))
+        return bool(prow and prow.get("plan") in ("pro", "enterprise"))
     except Exception:
         return False
 
