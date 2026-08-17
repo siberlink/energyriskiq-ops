@@ -798,6 +798,7 @@ Authoritative, factual, no bullets, no AI references."""
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _build_jkm_html(data: dict) -> str:
+    from src.api.slide_in_modal import slide_in_modal
     today_str = datetime.now(timezone.utc).strftime("%B %-d, %Y")
     today_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -1757,6 +1758,7 @@ License: <a href="{BASE_URL}/data-license">{BASE_URL}/data-license</a>
 </div>
 
 </main>
+{slide_in_modal('jkm-chart', 'Deeper LNG Market Intelligence', ['The JKM chart shows price — but not the full story.', 'See what is driving Asian LNG demand, supply constraints, and the risk signals behind the move.'], ['Asia-Pacific demand signals', 'LNG cargo diversion alerts', 'Supply disruption risk', 'Price regime &amp; forward outlook'])}
 """
 
 

@@ -786,6 +786,7 @@ def _filter_ytd(rows, date_key='date'):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _build_natgas_html(data, today_str, today_date):
+    from src.api.slide_in_modal import slide_in_modal
     ttf_rows     = data['ttf_rows']
     brent_rows   = data['brent_rows']
     vix_rows     = data['vix_rows']
@@ -1527,6 +1528,7 @@ Custom Algorithm interpretation. Data sources: TTF settlement prices, AGSI+ / GI
     &bull; Not financial advice.
   </div>
 </footer>
+{slide_in_modal('natgas-eu', 'Deeper European Gas Intelligence', ['European gas prices are driven by more than TTF.', 'See the storage deficits, supply routes, and geopolitical triggers shaping what comes next.'], ['Storage vs seasonal norm', 'Supply route risk', 'Demand &amp; temperature signals', 'LNG import cover'])}
 </body>
 </html>"""
 

@@ -539,6 +539,7 @@ def _build_forecast_html(
     watchlist_items,
     ai_texts,
 ) -> str:
+    from src.api.slide_in_modal import slide_in_modal
 
     gc = BAND_COLORS.get(geri_band, '#f97316')
     ec = BAND_COLORS.get(eeri_band, '#ef4444')
@@ -993,6 +994,7 @@ function downloadInfographic(id, btnId) {{
   }});
 }}
 </script>
+{slide_in_modal('forecast', 'Full Scenario Access', ['The forecast shows direction — scenarios are where the edge is.', 'Get the full probability-weighted outlook, risk regime projections, and the watchlist driving each scenario.'], ['Probability-weighted price scenarios', 'Risk regime probability', 'Supply shock sensitivity', 'Key driver watchlist'])}
 </body>
 </html>"""
 

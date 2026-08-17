@@ -783,6 +783,7 @@ def _fetch_lng_data() -> dict:
 # ── HTML Builder ──────────────────────────────────────────────────────────────
 
 def _build_lng_html(data: dict, analysis: str, today_str: str, import_sources: list = None) -> str:
+    from src.api.slide_in_modal import slide_in_modal
 
     lng_row     = data["lng_latest"] or {}
     lng_history = data["lng_history"]
@@ -1497,6 +1498,7 @@ Data sources: OilPriceAPI (JKM), Yahoo Finance (TTF), AGSI+ / GIE (EU storage), 
     </div>
   </div>
 </footer>
+{slide_in_modal('lng-eu', 'Deeper LNG Supply Intelligence', ['Supply and demand data sets the context.', 'See the geopolitical risks to European LNG supply routes — and which constraints to watch next.'], ['Import volume &amp; route risk', 'Regasification capacity signals', 'Floating storage alerts', 'Supply security outlook'])}
 
 </body>
 </html>"""

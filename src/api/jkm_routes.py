@@ -483,6 +483,7 @@ def _fetch_jkm_data():
 # ── Page HTML builder ─────────────────────────────────────────────────────────
 
 def _build_jkm_html(data: dict) -> str:
+    from src.api.slide_in_modal import slide_in_modal
     latest   = data["latest"]
     stats    = data["stats"]
     all_rows = data["all_rows"]   # newest first
@@ -1157,6 +1158,7 @@ document.querySelectorAll('#jkm-faq .jkm-faq-q').forEach(function(btn) {{
 // ── Init
 jkmInitTable();
 </script>
+{slide_in_modal('jkm-spot', 'Deeper LNG Spot Intelligence', ['JKM spot shows the current market clearing price.', 'See the supply signals, cargo flows, and Asian demand drivers behind the next move.'], ['Cargo diversion &amp; supply alerts', 'Asian demand pressure', 'LNG vs pipeline substitution', 'Price regime outlook'])}
 </body>
 </html>"""
 

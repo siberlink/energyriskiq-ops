@@ -886,6 +886,7 @@ def _filter_ytd(rows, date_key='date'):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _build_wti_html(data, today_str, today_date):
+    from src.api.slide_in_modal import slide_in_modal
     wti_rows      = data['wti_rows']
     brent_rows    = data['brent_rows']
     vix_rows      = data['vix_rows']
@@ -1701,6 +1702,7 @@ Custom Algorithm interpretation. Data sources: NYMEX WTI settlement, intraday WT
     &bull; Not financial advice.
   </div>
 </footer>
+{slide_in_modal('wti', 'Deeper Oil Market Intelligence', ['WTI is only part of the crude picture.', 'See the geopolitical risk, Brent-WTI spread dynamics, and supply signals driving the next move.'], ['GERI geopolitical risk score', 'Brent-WTI spread signals', 'Supply chain stress indicators', 'Market regime &amp; watchlist'])}
 </body>
 </html>"""
 

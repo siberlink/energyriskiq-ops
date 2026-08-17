@@ -876,6 +876,7 @@ def _fetch_gas_storage_data() -> dict:
 # ── HTML Builder ──────────────────────────────────────────────────────────────
 
 def _build_gas_storage_html(data: dict, ai_interp: str, today_str: str) -> str:
+    from src.api.slide_in_modal import slide_in_modal
 
     storage_row = data["storage_row"] or {}
     storage_history = data["storage_history"]
@@ -1774,7 +1775,7 @@ Data sources: AGSI+ / GIE (EU storage), Yahoo Finance (TTF), EnergyRiskIQ risk p
     </div>
   </div>
 </footer>
-
+{slide_in_modal('gss', 'Deeper Gas Storage Intelligence', ['Storage levels tell you where Europe stands.', 'See what the risk signals say about supply security and whether this winter looks different.'], ['Storage deficit vs seasonal norm', 'Supply disruption risk', 'Winter demand outlook', 'Injection pace &amp; LNG cover'])}
 </body>
 </html>"""
 

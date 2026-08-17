@@ -633,6 +633,7 @@ def _build_faq_html() -> str:
 
 
 def _build_drivers_html(data: dict) -> str:
+    from src.api.slide_in_modal import slide_in_modal
     today_str = datetime.now(timezone.utc).strftime("%B %-d, %Y")
     today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -1628,6 +1629,7 @@ License: <a href="{BASE_URL}/data-license">{BASE_URL}/data-license</a>
   }});
 }})();
 </script>
+{slide_in_modal('lng-drivers', 'Live LNG Risk Intelligence', ['You have read the fundamentals.', 'Now see how current risk signals — geopolitical, supply, demand — are playing out in real time.'], ['Live LNG price &amp; risk indicators', 'Supply disruption alerts', 'Asian demand vs European pull', 'Daily market interpretation'])}
 """
 
 

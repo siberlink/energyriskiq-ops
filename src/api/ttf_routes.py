@@ -598,6 +598,7 @@ def _fetch_ttf_data():
 # ── Page HTML Builder ─────────────────────────────────────────────────────────
 
 def _build_ttf_html(data: dict) -> str:
+    from src.api.slide_in_modal import slide_in_modal
     all_rows = data["all_rows"]   # newest first
     stats    = data["stats"]
     brent    = data["brent"]
@@ -1336,6 +1337,7 @@ document.querySelectorAll('#ttf-faq .ttf-faq-q').forEach(function(btn) {{
 
 ttfInitTable();
 </script>
+{slide_in_modal('ttf', 'Deeper TTF Gas Intelligence', ['TTF is the European gas benchmark — but one signal is not enough.', 'See the storage deficits, supply disruption risk, and demand drivers shaping where prices go next.'], ['Storage deficit vs 5-year norm', 'Pipeline &amp; LNG supply risk', 'Temperature &amp; demand signals', 'Forward price regime'])}
 </body>
 </html>"""
 

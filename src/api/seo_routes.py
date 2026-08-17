@@ -1958,6 +1958,7 @@ async def geri_page(request: Request):
     """
     check_scraping(request)
     track_page_view("geri", "/indices/global-energy-risk-index")
+    from src.api.slide_in_modal import slide_in_modal
     
     user_id = None
     x_user_token = request.headers.get('x-user-token')
@@ -3001,6 +3002,7 @@ async def geri_page(request: Request):
             }} catch(e) {{ console.error('Chart error:', e); }}
         }})();
         </script>
+    {slide_in_modal('geri-index', 'Deeper Risk Regime Intelligence', ['You are watching the GERI score — see what is driving it.', 'Understand which geopolitical signals are accelerating, what assets are exposed, and what to watch next.'], ['Risk acceleration signals', 'Asset exposure mapping', 'Geopolitical trigger watchlist', 'Daily regime interpretation'])}
     </body>
     </html>
     """

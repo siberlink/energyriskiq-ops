@@ -1734,7 +1734,7 @@ def _brent_slide_in_modal() -> str:
   max-width: calc(100vw - 40px);
   z-index: 9999;
   transform: translateX(calc(100% + 40px));
-  transition: transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition: transform 0.85s cubic-bezier(0.22, 0.61, 0.36, 1);
   pointer-events: none;
 }
 #bsi-overlay.bsi-visible {

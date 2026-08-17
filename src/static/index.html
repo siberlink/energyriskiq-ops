@@ -5603,5 +5603,109 @@
 
         loadDigestPublic();
     </script>
+<!-- SLIDE-IN MODAL (home) -->
+<style>
+#bsi-overlay{position:fixed;right:30px;bottom:30px;width:400px;max-width:calc(100vw - 40px);z-index:9999;transform:translateX(calc(100% + 40px));transition:transform 0.85s cubic-bezier(0.22,0.61,0.36,1);pointer-events:none}
+#bsi-overlay.bsi-visible{transform:translateX(0);pointer-events:auto}
+#bsi-box{background:#0d1421;border:1.5px solid #475569;border-radius:6px;padding:24px 22px 22px;font-family:'IBM Plex Mono','Courier New',monospace;color:#e2e8f0;box-shadow:0 8px 40px rgba(0,0,0,0.6);position:relative}
+#bsi-close{position:absolute;top:12px;right:14px;background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;padding:4px;font-family:inherit}
+#bsi-close:hover{color:#e2e8f0}
+#bsi-title{font-size:11px;font-weight:700;letter-spacing:.12em;color:#94a3b8;text-transform:uppercase;margin-bottom:14px;padding-right:24px}
+#bsi-body p{font-size:13.5px;line-height:1.6;color:#cbd5e1;margin:0 0 10px}
+#bsi-bullets{margin:14px 0 18px;padding:0;list-style:none}
+#bsi-bullets li{font-size:12.5px;color:#94a3b8;padding:3px 0;display:flex;align-items:flex-start;gap:8px}
+#bsi-bullets li::before{content:'✓';color:#22c55e;font-weight:700;flex-shrink:0;margin-top:1px}
+#bsi-divider{border:none;border-top:1px solid #1e293b;margin:16px 0}
+#bsi-form-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+#bsi-email{width:100%;max-width:320px;padding:10px 14px;background:#0b0f1a;border:1.5px solid #64748b;border-radius:4px;color:#e2e8f0;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box;text-align:center;transition:border-color .2s}
+#bsi-email::placeholder{color:#475569}
+#bsi-email:focus{border-color:#f97316}
+#bsi-submit{width:100%;max-width:320px;padding:11px 16px;background:#f97316;border:none;border-radius:4px;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:.03em;transition:background .15s}
+#bsi-submit:hover{background:#ea6e10}
+#bsi-submit:disabled{opacity:.5;cursor:default}
+#bsi-note{font-size:11px;color:#475569;margin-top:2px}
+#bsi-error{font-size:12px;color:#ef4444;display:none;text-align:center}
+#bsi-thankyou{display:none;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:4px 0 6px}
+#bsi-thankyou .bsi-ty-icon{font-size:28px}
+#bsi-thankyou .bsi-ty-head{font-size:14px;font-weight:700;color:#22c55e}
+#bsi-thankyou .bsi-ty-sub{font-size:12.5px;color:#94a3b8;line-height:1.5}
+#bsi-thankyou button{margin-top:6px;padding:8px 20px;background:none;border:1px solid #334155;border-radius:4px;color:#64748b;font-family:inherit;font-size:12px;cursor:pointer}
+#bsi-thankyou button:hover{color:#e2e8f0;border-color:#64748b}
+@media(max-width:600px){
+  #bsi-overlay{right:0;bottom:0;left:0;width:100%;max-width:100%;transform:translateY(calc(100% + 20px))}
+  #bsi-overlay.bsi-visible{transform:translateY(0)}
+  #bsi-box{border-radius:12px 12px 0 0;border-left:none;border-right:none;border-bottom:none;padding:20px 18px 28px}
+}
+</style>
+<div id="bsi-overlay" role="dialog" aria-modal="true">
+  <div id="bsi-box">
+    <button id="bsi-close" aria-label="Dismiss">&#x2715;</button>
+    <div id="bsi-title">What Is Moving Energy Markets</div>
+    <div id="bsi-body">
+      <p>You are watching the world's most critical energy signals.</p>
+      <p>See the risk regimes, geopolitical triggers, and market intelligence behind what happens next.</p>
+    </div>
+    <ul id="bsi-bullets">
+      <li>Live risk index (GERI &amp; EERI)</li>
+      <li>Daily market intelligence</li>
+      <li>Geopolitical supply signals</li>
+      <li>Price outlook &amp; key drivers</li>
+    </ul>
+    <hr id="bsi-divider">
+    <div id="bsi-form-wrap">
+      <input id="bsi-email" type="email" placeholder="your@email.com" autocomplete="email" aria-label="Email address">
+      <div id="bsi-error"></div>
+      <button id="bsi-submit">Unlock Deeper Intelligence</button>
+      <div id="bsi-note">Free EnergyRiskIQ account &mdash; no card required</div>
+    </div>
+    <div id="bsi-thankyou">
+      <div class="bsi-ty-icon">&#9989;</div>
+      <div class="bsi-ty-head">Thank You!</div>
+      <div class="bsi-ty-sub">Please check your inbox and verify your email<br>to activate your account.</div>
+      <button id="bsi-ty-close">Close This Window</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var DK='eiriq_si_home_dismissed',SK='eiriq_si_shown',TTL=7*24*60*60*1000;
+  function loggedIn(){return!!(localStorage.getItem('userToken')||localStorage.getItem('sessionToken'));}
+  function dismissed(){var t=localStorage.getItem(DK);return t?(Date.now()-parseInt(t,10))<TTL:false;}
+  function shown(){return!!sessionStorage.getItem(SK);}
+  function shouldShow(){return!loggedIn()&&!dismissed()&&!shown();}
+  function showModal(){if(!shouldShow())return;sessionStorage.setItem(SK,'1');document.getElementById('bsi-overlay').classList.add('bsi-visible');}
+  function hideModal(){document.getElementById('bsi-overlay').classList.remove('bsi-visible');}
+  function dismiss(){localStorage.setItem(DK,String(Date.now()));hideModal();}
+  var triggered=false;
+  function trigger(){if(triggered)return;triggered=true;showModal();}
+  var tid=setTimeout(trigger,25000);
+  window.addEventListener('scroll',function onS(){
+    var s=window.scrollY||window.pageYOffset,d=document.documentElement.scrollHeight-window.innerHeight;
+    if(d>0&&s/d>=0.30){clearTimeout(tid);trigger();window.removeEventListener('scroll',onS);}
+  },{passive:true});
+  document.getElementById('bsi-close').addEventListener('click',dismiss);
+  document.getElementById('bsi-ty-close').addEventListener('click',dismiss);
+  document.getElementById('bsi-submit').addEventListener('click',function(){
+    var eEl=document.getElementById('bsi-email'),errEl=document.getElementById('bsi-error'),email=eEl.value.trim();
+    errEl.style.display='none';errEl.textContent='';
+    if(!email||!email.includes('@')){errEl.textContent='Please enter a valid email address.';errEl.style.display='block';eEl.focus();return;}
+    var btn=document.getElementById('bsi-submit');btn.disabled=true;btn.textContent='Sending\u2026';
+    fetch('/users/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.success){
+        ['bsi-title','bsi-body','bsi-bullets','bsi-divider','bsi-form-wrap'].forEach(function(id){document.getElementById(id).style.display='none';});
+        document.getElementById('bsi-thankyou').style.display='flex';
+      }else{
+        var msg=(d&&d.detail)?d.detail:'Something went wrong. Please try again.';
+        errEl.textContent=msg;errEl.style.display='block';btn.disabled=false;btn.textContent='Unlock Deeper Intelligence';
+      }
+    })
+    .catch(function(){errEl.textContent='Network error. Please try again.';errEl.style.display='block';btn.disabled=false;btn.textContent='Unlock Deeper Intelligence';});
+  });
+  document.getElementById('bsi-email').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('bsi-submit').click();});
+})();
+</script>
+<!-- END SLIDE-IN MODAL (home) -->
 </body>
 </html>
