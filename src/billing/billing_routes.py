@@ -520,7 +520,6 @@ def _base_url() -> str:
 @router.post("/banner-checkout")
 async def banner_checkout(x_user_token: Optional[str] = Header(None)):
     """Start a Stripe checkout for the €28/month Unlimited Access banner offer."""
-    from src.api.user_routes import get_user_from_token
     user = get_user_from_token(x_user_token)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
