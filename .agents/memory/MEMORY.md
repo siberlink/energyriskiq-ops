@@ -17,3 +17,4 @@
 - [GH ops workflow silent failures](gh-ops-workflow-failures.md) — 0-1s curl step durations = calls never ran; most steps fake-success; backfill via /internal/run with local token.
 - [EUR/USD data source](eurusd-source.md) — OANDA retired; now FRED DEXUSEU primary + Yahoo EURUSD=X fallback; FRED lags ~2-4d so Yahoo fills fresh daily, FRED is authoritative for backfill.
 - [Bundled bonus entitlements](bundled-bonus-entitlements.md) — bonus features unlocked by a parent sub must derive access live (own_active OR parent_active) at every gate; never copy flags.
+- [Free index dashboards](free-index-dashboards.md) — authenticated Free accounts receive the complete GERI, EERI, and EGSI dashboards; keep dashboard gates aligned across UI and APIs.

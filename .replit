@@ -1,4 +1,4 @@
-modules = ["python-3.11", "postgresql-16"]
+modules = ["python-3.11", "postgresql-16", "nodejs-24"]
 [agent]
 expertMode = true
 integrations = ["python_openai_ai_integrations:1.0.0", "stripe:2.0.0", "notion:1.0.0"]

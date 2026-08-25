@@ -754,15 +754,16 @@ async def get_weekly_snapshot_endpoint(
     plan: str = Query("free", description="User plan: free, personal, trader, pro, enterprise"),
 ):
     """
-    Get plan-tiered EERI Weekly Snapshot for the user dashboard.
-    Returns progressively deeper intelligence based on subscription tier.
+    Get the EERI Weekly Snapshot for the user dashboard.
+    Free accounts receive the complete dashboard snapshot.
     """
     check_enabled()
 
     valid_plans = ['free', 'personal', 'trader', 'pro', 'enterprise']
     if plan not in valid_plans:
         plan = 'free'
-    plan = 'enterprise'
+    if plan == 'free':
+        plan = 'enterprise'
 
     snapshot = get_weekly_snapshot_tiered(plan=plan)
 

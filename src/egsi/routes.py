@@ -392,14 +392,14 @@ async def get_egsi_trader_intel_endpoint(
     """
     Get EGSI Trader Intelligence data.
     
-    Server-side plan enforcement: resolves user plan from session token.
-    - Trader (plan_level=2): All 9 base modules
-    - Pro (plan_level=3): All Trader + extended history overlay (365d)
-    - Enterprise (plan_level=4): All Pro features
+    Authenticated Free accounts have full EGSI dashboard access. Paid plans retain
+    their existing plan levels for the rest of the account experience.
     """
     check_enabled()
 
-    plan_level = 0
+    # An authenticated account defaults to the Free dashboard entitlement, even
+    # if a legacy account has no explicit user_plans row yet.
+    plan_level = 4
     try:
         from src.api.user_routes import verify_user_session
         from src.db.db import get_cursor
@@ -410,7 +410,7 @@ async def get_egsi_trader_intel_endpoint(
             row = cur.fetchone()
             if row:
                 plan_map = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}
-                plan_level = 4
+                plan_level = 4 if (row.get("plan") or "free") == "free" else plan_map.get(row.get("plan"), 0)
     except Exception as auth_err:
         logger.warning(f"Auth check for EGSI trader-intel: {auth_err}")
         return {
@@ -422,7 +422,7 @@ async def get_egsi_trader_intel_endpoint(
     if plan_level < 2:
         return {
             'success': False,
-            'message': 'EGSI Trader Intelligence requires Trader plan or above',
+            'message': 'EGSI Trader Intelligence is not available for this account',
             'upgrade_required': True,
         }
 
@@ -459,11 +459,12 @@ async def get_egsi_dashboard(
     """
     Combined EGSI dashboard endpoint for authenticated users.
     Returns EGSI-M + EGSI-S latest data, components, drivers, and history.
-    Plan-tiered: free users get 24h delayed data, paid users get real-time.
+    Free accounts receive the complete dashboard, including current data,
+    components, drivers, and the full available history.
     """
     check_enabled()
 
-    use_delayed = plan == 'free'
+    use_delayed = False
 
     if use_delayed:
         egsi_m = get_egsi_m_delayed(delay_days=1)
@@ -531,7 +532,7 @@ async def get_egsi_dashboard(
         }
 
     max_history = {
-        'free': 14,
+        'free': 365,
         'personal': 90,
         'trader': 365,
         'pro': 365,

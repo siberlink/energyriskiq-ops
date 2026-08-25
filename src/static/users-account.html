@@ -10876,23 +10876,26 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         const GERI_PLAN_CONFIG = {
             free: {
-                label: 'Awareness',
-                maxHistoryDays: 14,
-                maxOverlays: 1,
-                selectableAssets: ['brent'],
-                rangeOptions: ['14'],
-                showDriverRegions: false,
-                showDriverSeverity: false,
-                showTrendIndicators: false,
-                showOverlayToggles: false,
-                showSmoothing: false,
-                showNormalization: false,
-                showRegimeMarkers: false,
-                showEventMarkers: false,
-                showMomentumPanel: false,
+                label: 'Full Dashboard',
+                maxHistoryDays: -1,
+                maxOverlays: 5,
+                selectableAssets: ['brent', 'ttf', 'vix', 'eurusd', 'storage'],
+                rangeOptions: ['7', '30', '90', '365', 'all'],
+                showDriverRegions: true,
+                showDriverSeverity: true,
+                showTrendIndicators: true,
+                showOverlayToggles: true,
+                showSmoothing: true,
+                showNormalization: true,
+                showRegimeMarkers: true,
+                showEventMarkers: true,
+                showMomentumPanel: true,
                 showInterpretation: true,
                 useDelayedData: false,
-                showRealtimeBadge: false
+                showRealtimeBadge: true,
+                showAssetReaction: true,
+                showRiskWatchlist: true,
+                showChartAnnotations: true
             },
             personal: {
                 label: 'Monitoring',
@@ -11467,7 +11470,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 '</div>';
 
                 let driversHtml = '';
-                if (plan === 'free') {
+                if (!cfg.showDriverRegions) {
                     driversHtml = buildSimplifiedDrivers(topDrivers);
                 } else {
                     const driverItems = topDrivers.slice(0, 5).map((d, idx) => {
@@ -11517,7 +11520,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 let interpretationHtml = '';
                 if (cfg.showInterpretation && interpretation) {
                     const interpretationWords = interpretation.split(/\s+/);
-                    const previewLen = plan === 'free' ? 30 : 15;
+                    const previewLen = plan === 'free' ? interpretationWords.length : 15;
                     const interpretationPreview = interpretationWords.slice(0, previewLen).join(' ');
                     const hasMore = interpretationWords.length > previewLen;
                     interpretationHtml = '<div class="geri-interpretation-preview">' +
@@ -11534,12 +11537,12 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 }
 
                 let traderIntelHtml = '';
-                const isTraderPlus = ['trader', 'pro', 'enterprise'].includes(plan);
+                const isTraderPlus = ['free', 'trader', 'pro', 'enterprise'].includes(plan);
                 if (isTraderPlus) {
                     traderIntelHtml = '<div class="geri-trader-intel-section" id="geriTraderIntelSection"><div class="geri-trader-panel" style="text-align:center; color:#64748b; padding:30px;"><div class="spinner" style="margin:0 auto 10px;"></div>Loading Trader Intelligence...</div></div>';
                 }
 
-                let upgradeCardsHtml = buildGeriUpgradeCards(plan);
+                let upgradeCardsHtml = buildGeriUpgradeCards(plan === 'free' ? 'enterprise' : plan);
 
                 contentDiv.innerHTML = snapshotHtml + chartsHtml + driversHtml + interpretationHtml + traderIntelHtml + riskWatchlistHtml + upgradeCardsHtml;
                 
@@ -11563,7 +11566,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const section = document.getElementById('geriTraderIntelSection');
             if (!section) return;
             try {
-                const planLevel = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}[currentUser?.plan || 'trader'] || 2;
+                const planLevel = {'free': 4, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}[currentUser?.plan || 'trader'] || 2;
                 const resp = await fetch('/api/v1/indices/geri/trader-intel', { headers: { 'X-User-Token': sessionToken } });
                 const result = await resp.json();
                 if (!result.success || !result.data) {
@@ -13423,8 +13426,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         async function loadEeriProData() {
             const plan = currentUser?.plan || 'free';
-            const isProTier = ['pro', 'enterprise'].includes(plan);
-            const isTraderTier = ['trader', 'pro', 'enterprise'].includes(plan);
+            const hasFullEeriDashboard = plan === 'free';
+            const isProTier = hasFullEeriDashboard || ['pro', 'enterprise'].includes(plan);
+            const isTraderTier = hasFullEeriDashboard || ['trader', 'pro', 'enterprise'].includes(plan);
             
             const loadingEl = document.getElementById('eeriProLoading');
             const lockedEl = document.getElementById('eeriProLocked');
@@ -13507,7 +13511,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 }
                 
                 if (snapshotData.success && snapshotData.data) {
-                    renderWeeklySnapshot(snapshotData.data, plan);
+                        renderWeeklySnapshot(snapshotData.data, hasFullEeriDashboard ? 'enterprise' : plan);
                 } else {
                     var wsContent = document.getElementById('wsContent');
                     if (wsContent) {
@@ -15592,7 +15596,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         /* ========== EGSI Dashboard Module ========== */
         const EGSI_PLAN_CONFIG = {
-            free: { label: 'Free', realtime: false, historyDays: 14, showComponents: false, showDrivers: false, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Unlock full EGSI intelligence', upgradeDesc: 'Upgrade to Personal for real-time data, component breakdowns, and 90 days of history.' },
+            free: { label: 'Full Dashboard', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: true, showHistory: true, upgradeTitle: '', upgradeDesc: '' },
             personal: { label: 'Personal', realtime: true, historyDays: 90, showComponents: true, showDrivers: true, showChokepoints: false, showStorage: false, showInterpretation: false, showHistory: true, upgradeTitle: 'Go deeper with Trader intelligence', upgradeDesc: 'Upgrade to Trader to unlock: \u2713 Market impact intelligence \u2713 Asset divergence detection \u2713 Forward stress probabilities \u2713 Full historical analytics' },
             trader: { label: 'Trader', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: false, showHistory: true, upgradeTitle: 'Unlock AI interpretation with Pro', upgradeDesc: 'Upgrade to Pro for AI-powered market interpretation and scenario analysis.' },
             pro: { label: 'Pro', realtime: true, historyDays: 365, showComponents: true, showDrivers: true, showChokepoints: true, showStorage: true, showInterpretation: true, showHistory: true, upgradeTitle: 'Enterprise-grade intelligence', upgradeDesc: 'Contact us for institutional-grade features, API access, and team workspace.' },
@@ -15609,7 +15613,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const badge = document.getElementById('egsiHeaderBadge');
             if (badge) badge.textContent = config.label.toUpperCase();
             try {
-                const egsiPlanParam = plan === 'free' ? 'personal' : plan;
+                const egsiPlanParam = plan;
                 const resp = await fetch('/api/v1/indices/egsi/dashboard?plan=' + egsiPlanParam + '&history_days=' + config.historyDays, { headers: { 'X-User-Token': sessionToken } });
                 const json = await resp.json();
                 if (!json.success) {
@@ -16249,7 +16253,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         async function loadEgsiTraderIntel() {
             var planLevel = 0;
-            var planMap = {free: 0, personal: 1, trader: 2, pro: 3, enterprise: 4};
+            var planMap = {free: 4, personal: 1, trader: 2, pro: 3, enterprise: 4};
             if (currentUser && currentUser.plan) planLevel = planMap[currentUser.plan] || 0;
 
             if (planLevel < 2) {

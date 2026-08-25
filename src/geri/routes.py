@@ -304,14 +304,14 @@ async def get_geri_trader_intel_endpoint(
     """
     Get GERI Trader Intelligence data.
     
-    Server-side plan enforcement: resolves user plan from session token.
-    - Trader (plan_level=2): 7 base modules (lead/lag, divergence, confirmation, storage, regime, reaction, alerts)
-    - Pro (plan_level=3): All Trader + rolling correlations, risk decomposition, regime probability
-    - Enterprise (plan_level=4): All Pro + spillover analysis
+    Authenticated Free accounts have full GERI dashboard access. Paid plans retain
+    their existing plan levels for the rest of the account experience.
     """
     check_enabled()
     
-    plan_level = 0
+    # An authenticated account defaults to the Free dashboard entitlement, even
+    # if a legacy account has no explicit user_plans row yet.
+    plan_level = 4
     try:
         from src.api.user_routes import verify_user_session
         from src.db.db import get_cursor
@@ -322,7 +322,7 @@ async def get_geri_trader_intel_endpoint(
             row = cur.fetchone()
             if row:
                 plan_map = {'free': 0, 'personal': 1, 'trader': 2, 'pro': 3, 'enterprise': 4}
-                plan_level = 4
+                plan_level = 4 if (row.get("plan") or "free") == "free" else plan_map.get(row.get("plan"), 0)
     except Exception as auth_err:
         logger.warning(f"Auth check for trader-intel: {auth_err}")
         return {
@@ -334,7 +334,7 @@ async def get_geri_trader_intel_endpoint(
     if plan_level < 2:
         return {
             'success': False,
-            'message': 'GERI Trader Intelligence requires Trader plan or above',
+            'message': 'GERI Trader Intelligence is not available for this account',
             'upgrade_required': True,
         }
 
