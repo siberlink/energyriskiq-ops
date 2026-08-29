@@ -2,13 +2,19 @@
 
 ## Architecture Summary
 
-This document defines the proposed dashboard architecture in two layers. Layer 1 establishes the progressive-conversion principles and product psychology. Layer 2 turns those principles into the detailed acquisition, onboarding, premium-experience, pricing, analytics, and lifecycle model.
+This document defines the proposed dashboard architecture in three layers. Layer 1 establishes the progressive-conversion principles and product psychology. Layer 2 turns those principles into the detailed acquisition, onboarding, premium-experience, pricing, analytics, and lifecycle model. Layer 3 is the latest refinement of the premium-experience timing and conversion sequence.
 
 Core model:
 
 Newsletter teaches the method → Dashboard lets the user perform the method → Premium improves the method → Bundle completes the method.
 
 The central product rule is: never ask a new user to pay for intelligence they have not yet learned why they need. Every premium offer should appear immediately after the user encounters the problem that premium feature solves.
+
+### Current recommended direction
+
+Layer 3 is the latest refinement and supersedes Layer 2's 48-hour onboarding timing where the two differ. The current preferred model is a 7-Day Premium Welcome Experience that starts on the user's first dashboard visit, requires no card, introduces minimal selling during Days 1–2, introduces soft Complete Intelligence positioning around Day 3, uses the final 36 hours for conversion, and returns the user to a capable Free account after Day 7.
+
+The Layer 2 pricing and five-question intelligence methodology remain foundational: Daily Intelligence Report at €8/month, GERI Live at €27/month, and EnergyRiskIQ Complete Intelligence at €29/month.
 
 ## Layer 1 — Progressive Conversion Principles
 
@@ -2632,3 +2638,474 @@ GERI Live improves timeliness.
 DIR improves interpretation.
 
 And Complete Intelligence at €29/month becomes the natural product for someone who wants the entire workflow.
+
+## Layer 3 — Revised 7-Day Premium Welcome Experience
+
+Yes — with one important modification: I would increase the Premium Experience substantially, but I would not then offer a second conventional free trial immediately afterward.
+
+For EnergyRiskIQ, I think 48 hours is too short to demonstrate the real value of GERI Live + DIR. These are intelligence products whose value becomes clearer through repeated use and changing market conditions.
+
+My preferred model now would be:
+
+Registration → 7-Day Premium Welcome Experience → Free account or paid subscription
+
+And I would actually prefer this over the 48-hour model we designed above.
+
+Why 7 days fits EnergyRiskIQ better
+
+A new user needs time to see different market conditions. In 48 hours, GERI Live might barely move, there may be no meaningful geopolitical development, and the DIR may look similar on consecutive days. The user could conclude that the premium products aren't particularly valuable simply because they experienced them during a quiet two-day window.
+
+Seven days gives them up to:
+
+7 Daily Intelligence Reports
+multiple GERI Live sessions
+opportunities to see risk accelerate/fade
+several Brent/TTF/LNG movements
+repeated use of the Brent Intelligence Forecast Engine™
+an entire weekly Newsletter → Dashboard intelligence cycle
+enough repetition for the 3-Minute Intelligence Routine to begin becoming a habit
+
+That last point is especially valuable.
+
+I would change the model to this
+Day 0 — Registration
+
+Account created.
+
+The first dashboard message is not:
+
+Start your free trial.
+
+Instead:
+
+Welcome to EnergyRiskIQ
+
+Your 7-Day Premium Welcome Experience is active.
+
+For the next 7 days, you can experience the complete EnergyRiskIQ intelligence workflow — including GERI Live, the Daily Intelligence Report and the Brent Intelligence Forecast Engine™.
+
+Start Today's 3-Minute Intelligence Routine →
+
+No card.
+
+No checkout.
+
+No pricing wall.
+
+No aggressive timer.
+
+The user is simply inside the product.
+
+That is important.
+
+A subtle technical change
+
+I wouldn't actually start the seven-day clock at the instant they submit the registration form.
+
+Start it when they enter the dashboard for the first time.
+
+For example:
+
+registered_at
+first_dashboard_visit_at
+premium_experience_started_at
+premium_experience_expires_at
+
+So someone who registers Tuesday night but doesn't come back until Thursday hasn't wasted two days.
+
+From the user's perspective it still feels like:
+
+Premium access included when I joined.
+
+But technically the experience starts when they can actually use it.
+
+Days 0–2: absolutely minimal selling
+
+This is where I would modify our previous progressive-conversion plan.
+
+Because GERI Live and DIR are already unlocked, there is no reason to sell them during Steps 2 and 4.
+
+Instead, teach the user why they matter.
+
+For example:
+
+Step 2
+
+Is risk accelerating or fading?
+
+Your Premium Welcome Experience includes GERI Live.
+
+See how global energy risk has evolved since today's daily reading.
+
+Open GERI Live →
+
+Not:
+
+Subscribe to GERI Live.
+
+And Step 4:
+
+What does this mean for energy markets?
+
+Today's Daily Intelligence Report is included in your Premium Welcome Experience.
+
+Read Today's Intelligence →
+
+So the user experiences premium as part of EnergyRiskIQ rather than constantly being reminded that they're temporarily using paid features.
+
+This is actually psychologically stronger.
+
+Day 3 is when I would first introduce pricing
+
+By now the user has hopefully completed several routines.
+
+A very subtle dashboard card can appear after routine completion:
+
+You're experiencing EnergyRiskIQ Complete Intelligence
+
+Your Premium Welcome Experience includes:
+
+GERI Live
+Daily Intelligence Report
+Brent Intelligence Forecast Engine™
+
+After your Premium Experience, keep Complete Intelligence for €29/month.
+
+CTA:
+
+Learn About Complete Intelligence
+
+Still no urgency.
+
+No countdown.
+
+Days 4–5: establish ownership
+
+This is an important psychological stage.
+
+Instead of saying:
+
+Here's what you could buy.
+
+EnergyRiskIQ should reinforce:
+
+Here's what you've been using.
+
+For example after completing the routine:
+
+Today's Complete Intelligence Routine
+
+✓ Risk environment
+✓ Intraday risk
+✓ Market confirmation
+✓ Market interpretation
+✓ Watchlist
+
+Then underneath:
+
+Your Premium Welcome Experience keeps this complete workflow unlocked until [date].
+
+Now you're beginning to establish loss aversion naturally.
+
+The user understands what will disappear because they've actually used it.
+
+Day 6 — your 36-hour banner becomes excellent
+
+This is where I think your existing 36-hour countdown idea should survive.
+
+But instead of starting at registration, it becomes the final conversion phase of the seven-day experience.
+
+Approximately 36 hours before expiry:
+
+Your Premium Welcome Experience Ends in 36 Hours
+
+You've been using the complete EnergyRiskIQ intelligence workflow.
+
+Keep:
+
+GERI Live — €27/month
+Daily Intelligence Report — €8/month
+
+Or keep both with:
+
+EnergyRiskIQ Complete Intelligence
+
+€29/month
+
+Save €6/month compared with subscribing separately.
+
+Keep Complete Intelligence →
+
+This makes vastly more sense than showing the same banner shortly after registration.
+
+At this point the user actually knows what they would lose.
+
+Final 12 hours
+
+Now I would become much more conversion-focused.
+
+12 Hours Left
+
+Your Premium Welcome Experience ends today.
+
+After it ends, your free EnergyRiskIQ dashboard remains available. GERI Live and the full Daily Intelligence Report will return to Premium access.
+
+Keep Complete Intelligence — €29/month
+
+GERI Live + Daily Intelligence Report + Brent Intelligence Forecast Engine™
+
+Keep My Complete Intelligence Access →
+
+And I'd explicitly reassure:
+
+Your EnergyRiskIQ Free account will continue normally if you don't subscribe.
+
+That reduces pressure.
+
+After seven days
+
+No surprise credit-card charge because we never collected one.
+
+The account gracefully becomes Free.
+
+GERI Live becomes premium preview.
+
+DIR becomes premium preview.
+
+Free dashboard functionality continues.
+
+The message becomes:
+
+Your Premium Welcome Experience Has Ended
+
+Your EnergyRiskIQ Free account remains active.
+
+You can continue monitoring today's energy-risk environment using the free dashboard.
+
+Want the complete workflow again?
+
+Complete Intelligence — €29/month
+
+GERI Live + Daily Intelligence Report
+
+Restore Complete Intelligence →
+
+This is a much cleaner relationship with the user.
+
+Would I then offer another free trial?
+
+No — not as the normal onboarding flow.
+
+I would avoid:
+
+7 days Premium Experience
+↓
+Then 14-day free trial
+↓
+Then maybe pay
+
+because psychologically you're teaching the customer:
+
+“There will always be another free period.”
+
+And your monetization event gets pushed further and further away.
+
+Worse, someone could receive three weeks of premium intelligence before deciding whether €29/month is worth paying.
+
+That's unnecessary.
+
+Instead:
+
+The 7-Day Premium Welcome Experience IS the free trial — but don't call it a trial.
+
+That's the distinction I would make.
+
+Why “Premium Welcome Experience” is better than “Free Trial”
+
+“Free Trial” focuses on the transaction:
+
+Try before paying.
+
+“Premium Welcome Experience” focuses on onboarding:
+
+We're letting you experience EnergyRiskIQ properly.
+
+It also fits progressive conversion better.
+
+For your audience — traders, analysts, risk professionals — I prefer the latter.
+
+It feels less like conventional SaaS marketing.
+
+There is one place where I'd use another free-access opportunity later
+
+Not immediately.
+
+For users who didn't convert but remain engaged for, say, 30–60 days, you could occasionally offer:
+
+24-Hour Complete Intelligence Pass
+
+Triggered by a particularly significant market event.
+
+Example:
+
+Global energy risk has risen sharply today.
+
+We've temporarily reopened your Complete Intelligence access for the next 24 hours so you can follow the event using GERI Live and today's Daily Intelligence Report.
+
+That could be extremely effective.
+
+It's not another generic trial.
+
+It's event-driven reactivation.
+
+And because EnergyRiskIQ is an intelligence product, this approach fits the product exceptionally well.
+
+I also think seven days aligns much better with the Newsletter
+
+This might be the strongest argument for changing from 48 hours.
+
+Imagine somebody comes from Wednesday's LinkedIn Newsletter.
+
+Wednesday
+
+Reads newsletter.
+
+↓
+
+Creates EnergyRiskIQ account.
+
+↓
+
+7-Day Premium Welcome Experience begins.
+
+↓
+
+Runs first 3-Minute Routine.
+
+Thursday
+
+Returns and sees how signals changed.
+
+Friday
+
+Runs another routine.
+
+Reads DIR.
+
+Weekend
+
+Checks developments.
+
+Monday
+
+Compares conditions.
+
+Tuesday
+
+Next market setup begins developing.
+
+Wednesday
+
+Receives/sees the next Newsletter edition while still finishing their Premium Experience.
+
+That's very powerful.
+
+They have now experienced:
+
+Newsletter → live dashboard → GERI Live → DIR → another newsletter cycle.
+
+The entire EnergyRiskIQ ecosystem has been demonstrated.
+
+A 48-hour trial cannot do that.
+
+Therefore I would revise our funnel
+
+Instead of:
+
+Newsletter
+↓
+Signup
+↓
+Free Dashboard
+↓
+Step 2
+↓
+Activate 48h Premium
+↓
+36h countdown
+↓
+Pay
+
+I would now use:
+
+LINKEDIN NEWSLETTER
+        ↓
+SIGNUP
+        ↓
+FIRST DASHBOARD VISIT
+        ↓
+7-DAY PREMIUM WELCOME EXPERIENCE STARTS
+        ↓
+3-MINUTE INTELLIGENCE ROUTINE
+        ↓
+DAY 1–2
+LEARN + EXPERIENCE
+Almost no selling
+        ↓
+DAY 3
+Introduce Complete Intelligence
+€29/month
+        ↓
+DAY 4–5
+Reinforce habitual use
+        ↓
+FINAL 36 HOURS
+Conversion banner begins
+        ↓
+FINAL 12 HOURS
+Strong conversion CTA
+        ↓
+DAY 7
+Premium Experience ends
+        ↓
+FREE ACCOUNT REMAINS
+        ↓
+GERI Live/DIR previews
+        ↓
+€8 DIR / €27 GERI / €29 Complete
+And I'd make one more change to our previous plan
+
+With a seven-day Premium Welcome Experience, the bundle should probably not be prominently presented immediately after the user's very first completed routine.
+
+Previously I recommended that.
+
+I would now delay the strong €29 bundle presentation until approximately Day 3 or after the user's second/third routine, whichever comes first.
+
+The first completed routine should finish with:
+
+Great — you've completed today's Energy Intelligence Routine. Come back tomorrow to see what changed.
+
+That is more valuable at this stage than:
+
+Now buy €29/month.
+
+The first goal becomes repeat usage.
+
+The sale comes after repeated value.
+
+So my preference is now:
+
+7-Day Premium Welcome Experience — no card required
+
+Days 1–2: education and product experience
+Days 3–5: soft Complete Intelligence positioning
+Final 36h: conversion campaign
+After Day 7: Free account + contextual premium previews
+
+And keep:
+
+DIR — €8/month
+GERI Live — €27/month
+EnergyRiskIQ Complete Intelligence — €29/month
+
+I think this is materially stronger than the 48-hour model, especially because GERI Live and DIR need several market sessions to demonstrate why somebody would want them every day.
