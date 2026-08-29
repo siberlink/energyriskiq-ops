@@ -2,7 +2,7 @@
 
 ## Architecture Summary
 
-This document defines the proposed dashboard architecture in four layers. Layer 1 establishes the progressive-conversion principles and product psychology. Layer 2 turns those principles into the detailed acquisition, onboarding, premium-experience, pricing, analytics, and lifecycle model. Layer 3 is the latest refinement of the premium-experience timing for future new users. Layer 4 defines the migration and adoption path for users who already exist on the platform.
+This document defines the proposed dashboard architecture in five layers. Layer 1 establishes the progressive-conversion principles and product psychology. Layer 2 turns those principles into the detailed acquisition, onboarding, premium-experience, pricing, analytics, and lifecycle model. Layer 3 is the latest refinement of premium-experience timing for future new users. Layer 4 defines the migration and adoption path for users who already exist on the platform. Layer 5 maps the proposed experience onto the current dashboard and navigation structure.
 
 Core model:
 
@@ -15,6 +15,8 @@ The central product rule is: never ask a new user to pay for intelligence they h
 For future registrations, Layer 3 is the latest refinement and supersedes Layer 2's 48-hour onboarding timing where the two differ. The preferred new-user model is a 7-Day Premium Welcome Experience that starts on the user's first dashboard visit, requires no card, introduces minimal selling during Days 1–2, introduces soft Complete Intelligence positioning around Day 3, uses the final 36 hours for conversion, and returns the user to a capable Free account after Day 7.
 
 For the existing platform user base, Layer 4 provides a separate migration path. Existing users should not be treated as new registrations: existing free users receive a one-time opt-in 7-Day Complete Intelligence Experience, while existing subscribers keep their current subscriptions and receive temporary access to the complementary product. Nobody loses access or experiences an automatic billing change.
+
+For the dashboard surface itself, Layer 5 is the structural implementation direction: retain approximately 90% of the current professional workspace visual shell, but reorganize the sidebar taxonomy into Account, Intelligence, Risk Dashboards, Market Tools, Delivery, and Support. The Dashboard remains the home of the 3-Minute Intelligence Routine; the sidebar exposes the individual capabilities behind that method.
 
 The Layer 2 pricing and five-question intelligence methodology remain foundational: Daily Intelligence Report at €8/month, GERI Live at €27/month, and EnergyRiskIQ Complete Intelligence at €29/month.
 
@@ -3796,3 +3798,521 @@ Complete Intelligence:
 €29/month, introduced progressively after the user has actually experienced both GERI Live and DIR.
 
 That integrates your entire existing user base cleanly without resetting anyone, penalizing anyone, or undermining the two customers who have already chosen to pay.
+
+## Layer 5 — New Dashboard Structure and Navigation
+
+Should I still keep the left navigation as it is?
+
+I would keep the left navigation, because it gives EnergyRiskIQ a professional “workspace / intelligence terminal” feel and makes the platform easier to navigate as more features are added.
+
+But I would restructure it quite a bit. The current sidebar mixes product access, free intelligence, tools and delivery in a way that makes the platform feel more fragmented than it really is.
+
+The new sidebar should reinforce the same architecture as the dashboard:
+
+Monitor → Interpret → Explore → Deliver
+
+Recommended new left navigation
+ACCOUNT
+Dashboard
+INTELLIGENCE
+GERI Live LIVE
+Daily Intelligence Report
+Alerts
+Brent Intelligence Forecast
+RISK DASHBOARDS
+GERI Dashboard
+EERI Dashboard
+EGSI Dashboard
+MARKET TOOLS
+WTI Widget
+LNG Widget
+Gas Storage Widget
+Indices History
+DELIVERY
+Daily Delivery
+SUPPORT
+Tickets
+
+That is the structure I would use.
+
+1. Remove “Pro Widget —” from the names
+
+I would definitely change:
+
+Pro Widget — WTI
+Pro Widget — LNG
+Pro Widget — Gas Storage
+
+to simply:
+
+WTI Widget
+LNG Widget
+Gas Storage Widget
+
+“Pro” is an entitlement, not the product name.
+
+If access is premium, show a small badge:
+
+WTI Widget PRO
+
+rather than putting “Pro” into the permanent navigation title.
+
+This makes the sidebar substantially cleaner.
+
+2. Move the paid intelligence products into one section
+
+Right now the top account area contains:
+
+Dashboard
+GERI Live
+Daily Intelligence Report
+Alerts
+widgets
+history
+
+These have very different functions.
+
+I would create a clear:
+
+INTELLIGENCE
+
+section containing the products that actually deliver deeper intelligence:
+
+GERI Live
+Daily Intelligence Report
+Alerts
+Brent Intelligence Forecast
+
+This reinforces the product hierarchy you are creating.
+
+3. Add Brent Intelligence Forecast to the navigation
+
+Yes, I would expose the Brent Intelligence Forecast Engine™ more visibly.
+
+It is becoming an important part of the GERI Live value proposition and Step 5 of the routine.
+
+Currently, if it is buried inside GERI Live, users may never understand that they have access to it.
+
+I would probably label the sidebar entry simply:
+
+Brent Forecast
+
+or:
+
+Brent Intelligence
+
+The full trademarked name can remain on the page itself.
+
+4. Rename “Alerts Archive”
+
+I'd shorten:
+
+Alerts Archive
+
+to:
+
+Alerts
+
+Once the user enters the page, it can contain both active and archived alerts.
+
+“Archive” makes the feature sound historical rather than useful right now.
+
+If you later add real-time alerts, the naming is already correct.
+
+5. “Free Intelligence Access” should become “Risk Dashboards”
+
+I would definitely change this.
+
+Current:
+
+FREE INTELLIGENCE ACCESS
+
+followed by:
+
+GERI Dashboard
+EERI Dashboard
+EGSI Dashboard
+
+The “Free” label unintentionally frames these products as lower-value.
+
+Instead use:
+
+RISK DASHBOARDS
+
+The entitlement can still be free, but it doesn't need to be part of the information architecture.
+
+This is an important branding distinction:
+
+Free describes pricing. It shouldn't describe intelligence quality.
+
+6. The sidebar should adapt to user entitlement
+
+This is where the new architecture becomes much more sophisticated.
+
+New user during Premium Welcome Experience
+
+GERI Live UNLOCKED
+
+Daily Intelligence UNLOCKED
+
+Brent Forecast UNLOCKED
+
+No padlocks.
+
+Maybe a small subtle label at the top of the Intelligence section:
+
+PREMIUM EXPERIENCE
+
+Free user after experience expiry
+
+Keep all navigation items visible.
+
+Do not remove premium pages.
+
+For example:
+
+GERI Live PREMIUM
+Daily Intelligence PREMIUM
+Brent Forecast PREMIUM
+
+Clicking them should take the user to a meaningful preview page.
+
+That's much better than hiding them.
+
+GERI Live subscriber
+
+GERI Live LIVE
+
+Brent Forecast available normally.
+
+DIR could show:
+
+PREMIUM
+
+No GERI upgrade messaging.
+
+DIR subscriber
+
+Daily Intelligence available normally.
+
+GERI Live could show:
+
+PREMIUM
+
+Complete subscriber
+
+No Premium / Upgrade badges at all.
+
+They simply see:
+
+GERI Live LIVE
+
+Daily Intelligence
+
+Brent Forecast
+
+The interface should feel like a proper professional workstation once somebody pays.
+
+7. I would keep the LIVE badge
+
+The red LIVE badge next to GERI Live is good.
+
+It communicates something useful about the product rather than its payment status.
+
+Keep it.
+
+Similarly, you could eventually use meaningful operational badges such as:
+
+NEW REPORT
+
+3 ALERTS
+
+rather than generic marketing badges.
+
+8. Reduce the number of NEW badges
+
+The screenshot currently has quite a few:
+
+Daily Intelligence Report NEW
+
+Alerts Archive NEW
+
+Download Indices History NEW
+
+etc.
+
+These are useful temporarily but lose meaning if they persist.
+
+I would make NEW automatically disappear after perhaps:
+
+the user visits the feature once, or
+14–30 days after feature launch.
+
+Otherwise the sidebar eventually becomes visually noisy.
+
+9. Daily Delivery is correctly separated
+
+I like having:
+
+DELIVERY
+
+Daily Delivery
+
+separate from Intelligence.
+
+I'd keep that.
+
+However, SETUP is actually a useful badge because it describes an action the user needs to perform.
+
+So:
+
+Daily Delivery SETUP
+
+makes sense.
+
+Once configured:
+
+Daily Delivery ACTIVE
+
+could replace it.
+
+That's better than NEW.
+
+10. I would preserve collapsible groups
+
+You already have a collapsible indicator around “Free Intelligence Access.”
+
+I'd extend this behavior to:
+
+INTELLIGENCE
+RISK DASHBOARDS
+MARKET TOOLS
+DELIVERY
+
+Especially as EnergyRiskIQ grows.
+
+Potentially keep:
+
+Dashboard
+
+and
+
+INTELLIGENCE
+
+expanded by default, while secondary groups can collapse.
+
+11. Exact sidebar structure I would implement
+
+Something like this:
+
+EnergyRiskIQ
+
+ACCOUNT
+▦ Dashboard
+
+
+INTELLIGENCE
+◷ GERI Live                     LIVE
+▧ Daily Intelligence
+↗ Brent Forecast
+♢ Alerts
+
+
+RISK DASHBOARDS
+◉ GERI Dashboard
+ϟ EERI Dashboard
+⌁ EGSI Dashboard
+
+
+MARKET TOOLS
+▣ WTI Widget
+↗ LNG Widget
+▥ Gas Storage Widget
+⌁ Indices History
+
+
+DELIVERY
+▱ Daily Delivery                SETUP
+
+
+SUPPORT
+▣ Tickets
+
+For an expired free account:
+
+INTELLIGENCE
+◷ GERI Live                  PREMIUM
+▧ Daily Intelligence         PREMIUM
+↗ Brent Forecast             PREMIUM
+♢ Alerts
+
+During the seven-day experience:
+
+INTELLIGENCE                EXPERIENCE
+◷ GERI Live                    LIVE
+▧ Daily Intelligence
+↗ Brent Forecast
+♢ Alerts
+
+Much cleaner.
+
+12. The 3-Minute Routine should NOT become a sidebar menu item
+
+This is important.
+
+I would not add:
+
+3-Minute Routine
+
+to the sidebar.
+
+The routine is the organizing method of the Dashboard, not another destination.
+
+Otherwise the user gets:
+
+Dashboard
+3-Minute Routine
+GERI Dashboard
+GERI Live...
+
+and things become fragmented again.
+
+Instead:
+
+Dashboard = the home of the 3-Minute Intelligence Routine.
+
+That's much cleaner.
+
+13. Same for “Complete Intelligence”
+
+I would also not add:
+
+Complete Intelligence
+
+as a permanent sidebar menu item.
+
+It's a subscription plan, not a destination.
+
+The user accesses its components:
+
+GERI Live
+DIR
+Brent Forecast
+
+through the navigation.
+
+Complete Intelligence belongs on:
+
+pricing page,
+upgrade cards,
+Premium Experience banner,
+routine completion card,
+
+not as another dashboard module.
+
+14. One possible addition later: “My Intelligence”
+
+Eventually, as EnergyRiskIQ gets more alerts, saved scenarios, watchlists and reports, you could create:
+
+MY INTELLIGENCE
+
+Saved Scenarios
+Watchlist
+Alerts
+History
+
+But I would not add that yet.
+
+The current product still benefits more from simplicity.
+
+15. Recommended desktop width
+
+Your current sidebar width looks about right.
+
+I wouldn't make it larger.
+
+If anything, when you rename:
+
+Pro Widget — Gas Storage
+
+to:
+
+Gas Storage Widget
+
+you'll immediately reduce line wrapping and make the sidebar feel cleaner.
+
+The current two-line labels are contributing to visual density.
+
+16. I would also make the navigation reinforce the 5-step model indirectly
+
+Notice how the resulting structure now maps logically:
+
+Dashboard
+
+Runs the method.
+
+Risk Dashboards
+
+Supports RISK.
+
+GERI Live
+
+Supports CHANGE.
+
+Market tools
+
+Supports CONFIRM.
+
+Daily Intelligence
+
+Supports INTERPRET.
+
+Brent Forecast / Alerts
+
+Supports WATCH.
+
+That is excellent.
+
+You don't need to explicitly write the five steps in the sidebar because the product architecture itself now supports them.
+
+My recommended final version
+
+I would keep approximately 90% of the visual sidebar design, but change the taxonomy to:
+
+ACCOUNT
+Dashboard
+
+INTELLIGENCE
+GERI Live
+Daily Intelligence
+Brent Forecast
+Alerts
+
+RISK DASHBOARDS
+GERI Dashboard
+EERI Dashboard
+EGSI Dashboard
+
+MARKET TOOLS
+WTI Widget
+LNG Widget
+Gas Storage Widget
+Indices History
+
+DELIVERY
+Daily Delivery
+
+SUPPORT
+Tickets
+
+And then let badges reflect state, not clutter the product names:
+
+LIVE = operational state
+NEW = temporarily new
+SETUP = action required
+PREMIUM = entitlement required
+UNLOCKED = temporary Premium Experience
+
+So yes: keep the left navigation concept and visual style, but reorganize it.
+
+The dashboard itself becomes the EnergyRiskIQ methodology, while the sidebar becomes the clean navigation to the individual intelligence capabilities behind that methodology.
