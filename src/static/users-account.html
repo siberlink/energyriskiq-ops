@@ -7355,8 +7355,8 @@
                                         <div>
                                             <span class="gl-promo-tag" style="background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.3);">DAILY INTELLIGENCE REPORT</span>
                                         </div>
-                                        <div class="gl-promo-title">AI-powered daily geo-energy briefing · <span id="drPromoPrice">14-day free trial, then €8.00/month</span></div>
-                                        <div class="gl-promo-sub">Structured intelligence, not another stream of headlines — synthesised from alerts, indices &amp; geopolitical signals every morning → <em>click to read today's report</em></div>
+                                        <div class="gl-promo-title">Daily energy market decision intelligence · <span id="drPromoPrice">14-day free trial, then €8/month</span></div>
+                                        <div class="gl-promo-sub">Understand what changed, whether markets confirm it, what scenarios are developing and what to watch next.</div>
                                     </div>
                                     <button class="gl-promo-btn" id="drPromoBtn" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);box-shadow:0 0 20px rgba(167,139,250,0.3);" onclick="event.stopPropagation();drStartCheckout();">Start free trial →</button>
                                 </div>
@@ -18093,7 +18093,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 const days = data.trial_days || 14;
                 const btn = document.getElementById('drPromoBtn');
                 const price = document.getElementById('drPromoPrice');
-                if (price) price.textContent = eligible ? (days + '-day free trial, then €8.00/month') : '€8.00/month';
+                if (price) price.textContent = eligible ? (days + '-day free trial, then €8/month') : '€8/month';
                 if (btn) btn.textContent = eligible ? 'Start free trial →' : 'Unlock — €8.00/month';
                 promo.style.display = 'block';
             } catch (e) {
