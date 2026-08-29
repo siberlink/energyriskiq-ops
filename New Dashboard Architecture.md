@@ -2,7 +2,7 @@
 
 ## Architecture Summary
 
-This document defines the proposed dashboard architecture in five layers. Layer 1 establishes the progressive-conversion principles and product psychology. Layer 2 turns those principles into the detailed acquisition, onboarding, premium-experience, pricing, analytics, and lifecycle model. Layer 3 is the latest refinement of premium-experience timing for future new users. Layer 4 defines the migration and adoption path for users who already exist on the platform. Layer 5 maps the proposed experience onto the current dashboard and navigation structure.
+This document defines the proposed dashboard architecture in six layers. Layer 1 establishes the progressive-conversion principles and product psychology. Layer 2 turns those principles into the detailed acquisition, onboarding, premium-experience, pricing, analytics, and lifecycle model. Layer 3 is the latest refinement of premium-experience timing for future new users. Layer 4 defines the migration and adoption path for users who already exist on the platform. Layer 5 maps the proposed experience onto the current dashboard and navigation structure. Layer 6 defines the role, pricing, value proposition, and commercial positioning of the Pro Widgets.
 
 Core model:
 
@@ -18,7 +18,9 @@ For the existing platform user base, Layer 4 provides a separate migration path.
 
 For the dashboard surface itself, Layer 5 is the structural implementation direction: retain approximately 90% of the current professional workspace visual shell, but reorganize the sidebar taxonomy into Account, Intelligence, Risk Dashboards, Market Tools, Delivery, and Support. The Dashboard remains the home of the 3-Minute Intelligence Routine; the sidebar exposes the individual capabilities behind that method.
 
-The Layer 2 pricing and five-question intelligence methodology remain foundational: Daily Intelligence Report at €8/month, GERI Live at €27/month, and EnergyRiskIQ Complete Intelligence at €29/month.
+For Pro Widgets, Layer 6 recommends a separate commercial family rather than treating them as generic Premium access. Keep each standalone widget at €4.95/month for now, introduce a three-widget Professional Widgets Pack at €9.95/month, expose the tools contextually at Step 3, unlock them during the 7-day experience without listing every capability on the first screen, and use their rendered outputs selectively in the newsletter. The €29 GERI Live + DIR offer should be reconsidered as an Intelligence Bundle if the word Complete is reserved for a future all-capabilities plan.
+
+The Layer 2 pricing and five-question intelligence methodology remain foundational: Daily Intelligence Report at €8/month, GERI Live at €27/month, and the current €29 GERI Live + DIR bundle recommendation.
 
 ## Layer 1 — Progressive Conversion Principles
 
@@ -4316,3 +4318,1316 @@ UNLOCKED = temporary Premium Experience
 So yes: keep the left navigation concept and visual style, but reorganize it.
 
 The dashboard itself becomes the EnergyRiskIQ methodology, while the sidebar becomes the clean navigation to the individual intelligence capabilities behind that methodology.
+
+## Layer 6 — Pro Widgets and Professional Embeddable Intelligence
+
+Yes — I would keep the €4.95/month standalone price for each Pro Widget. I would, however, change how they are positioned.
+
+The most important distinction is that GERI Live and DIR are intelligence products, while the Pro Widgets are specialized market tools. They should therefore sit in a separate commercial layer rather than being mixed into the same sales flow.
+
+I would structure the product architecture like this
+1. Free intelligence layer
+
+Used to establish the daily picture:
+
+GERI Dashboard
+EERI Dashboard
+EGSI Dashboard
+basic Brent/WTI/TTF/JKM/VIX market snapshot
+3-Minute Energy Intelligence Routine
+2. Intelligence subscriptions
+
+Used to answer deeper questions:
+
+DIR — €8/month
+GERI Live — €27/month
+GERI Live + DIR — €29/month
+
+These correspond mainly to:
+
+CHANGE → INTERPRET
+
+3. Professional Market Tools
+
+Used when the user wants to go deeper into specific markets:
+
+WTI Pro Widget — €4.95/month
+LNG Pro Widget — €4.95/month
+Gas Storage Pro Widget — €4.95/month
+
+These correspond mainly to:
+
+CONFIRM → WATCH
+
+That separation is important.
+
+I would keep €4.95
+
+I think €4.95 is a good price for these.
+
+It has several advantages.
+
+It is low enough that a user who specifically follows LNG, WTI or European gas storage does not need to make a major subscription decision.
+
+Someone can essentially say:
+
+“I need the LNG tool.”
+
+and spend €4.95.
+
+That gives EnergyRiskIQ another entry point into paid usage.
+
+Your value ladder then becomes much stronger:
+
+FREE
+  ↓
+€4.95 Specialized Market Tool
+or
+€8 Daily Intelligence
+  ↓
+€27 GERI Live
+  ↓
+€29 Intelligence Bundle
+
+Not every customer needs to jump immediately from €0 to €27.
+
+That's a good thing.
+
+But I would add one additional option
+
+I would create:
+
+Pro Market Tools Pack
+
+All three widgets:
+
+WTI
+LNG
+Gas Storage
+
+for:
+
+€9.95/month
+
+Instead of €14.85 separately.
+
+That pricing works particularly well because:
+
+1 widget: €4.95
+2 widgets: €9.90
+All 3: €9.95
+
+So if someone wants two, the obvious decision is:
+
+“For €0.05 more, I might as well take all three.”
+
+That should naturally concentrate multi-widget customers into one subscription.
+
+I would therefore use this pricing architecture
+Product	Monthly
+EnergyRiskIQ Free	€0
+WTI Pro Widget	€4.95
+LNG Pro Widget	€4.95
+Gas Storage Pro Widget	€4.95
+Pro Market Tools Pack	€9.95
+Daily Intelligence Report	€8
+GERI Live	€27
+GERI Live + DIR	€29
+
+This is coherent.
+
+Where they fit in the 3-Minute Routine
+
+This is where things get interesting.
+
+The Pro Widgets fit extremely naturally into Step 3.
+
+Our new methodology is:
+
+RISK → CHANGE → CONFIRM → INTERPRET → WATCH
+
+So:
+
+STEP 1 — RISK
+
+GERI / EERI / EGSI
+
+STEP 2 — CHANGE
+
+GERI Live
+
+STEP 3 — CONFIRM
+
+Brent / WTI / TTF / LNG / Storage / VIX
+
+STEP 4 — INTERPRET
+
+DIR
+
+STEP 5 — WATCH
+
+Forecasts, scenarios, catalysts
+
+Therefore the Pro Widgets should primarily be introduced during:
+
+STEP 3 — Are Markets Confirming the Risk Signal?
+
+That is their natural commercial moment.
+
+How Step 3 could work
+
+The free user already sees the basic market snapshot.
+
+For example:
+
+WTI: $83.44
+JKM: $23.17
+EU Storage: X%
+
+That's enough to complete the basic routine.
+
+Then underneath:
+
+Want to investigate the confirmation signal?
+
+Use EnergyRiskIQ's professional market tools for deeper market monitoring.
+
+WTI Pro — deeper crude-oil market view
+
+LNG Pro — deeper LNG market intelligence
+
+Gas Storage Pro — deeper European storage monitoring
+
+Then:
+
+€4.95/month each
+
+or
+
+All 3 Pro Market Tools — €9.95/month
+
+CTA:
+
+Explore Pro Market Tools →
+
+That's much better than putting three subscription banners on the homepage.
+
+Important: do not make Step 3 dependent on buying them
+
+The user must still be able to complete the routine for free.
+
+That means:
+
+Free snapshot = enough to answer the basic question.
+
+Pro Tool = deeper investigation.
+
+So the hierarchy becomes:
+
+See the signal → understand that deeper data exists → upgrade only if relevant.
+
+This remains consistent with progressive conversion.
+
+What happens during the 7-Day Premium Welcome Experience?
+
+I would actually unlock the three Pro Widgets as well.
+
+If we're calling this:
+
+7-Day Premium Welcome Experience
+
+then I would make it genuinely premium.
+
+The new user gets:
+
+GERI Live
+DIR
+Brent Intelligence Forecast Engine™
+WTI Pro
+LNG Pro
+Gas Storage Pro
+
+But — this is important — do not advertise all six capabilities on the first screen.
+
+That would recreate the original problem.
+
+Instead they discover them progressively:
+
+Step 2
+
+Discover GERI Live.
+
+Step 3
+
+Discover WTI / LNG / Gas Storage Pro tools.
+
+Step 4
+
+Discover DIR.
+
+Step 5
+
+Discover Brent Forecast.
+
+Now the trial itself becomes a guided product tour without feeling like one.
+
+I would slightly change the Premium Welcome copy
+
+Instead of enumerating everything at registration:
+
+GERI Live + DIR + WTI Pro + LNG Pro + Gas Storage + Forecast...
+
+use:
+
+Your 7-Day Premium Welcome Experience is active
+
+Experience the complete EnergyRiskIQ intelligence workflow for the next seven days.
+
+Start Your 3-Minute Intelligence Routine →
+
+Then the user discovers the individual premium capabilities at the relevant moment.
+
+Much cleaner.
+
+What about the €29 bundle?
+
+Here I would make an important naming distinction.
+
+I would stop calling €29 “Complete Intelligence” if it doesn't contain the Pro Widgets.
+
+Because eventually someone will reasonably ask:
+
+“Why is Complete Intelligence not complete?”
+
+Instead I would call the €29 offer something like:
+
+EnergyRiskIQ Intelligence
+
+or:
+
+Intelligence Bundle
+
+with:
+
+GERI Live + Daily Intelligence Report
+
+€29/month.
+
+Then reserve the term:
+
+Complete Intelligence
+
+for a future plan that genuinely includes everything.
+
+There is potentially a very attractive higher bundle
+
+You could eventually create:
+
+EnergyRiskIQ Complete
+
+Containing:
+
+GERI Live
+Daily Intelligence Report
+Brent Intelligence Forecast Engine™
+WTI Pro
+LNG Pro
+Gas Storage Pro
+
+Separate total:
+
+€27 + €8 + €14.85 =
+
+€49.85/month
+
+You could price EnergyRiskIQ Complete around:
+
+€34/month
+
+or perhaps €34.95.
+
+That would create:
+
+Plan	Price
+DIR	€8
+Pro Market Tools	€9.95
+GERI Live	€27
+Intelligence Bundle — GERI + DIR	€29
+Complete — Everything	€34
+
+And the commercial psychology becomes very strong.
+
+Someone considering GERI Live:
+
+GERI = €27
+
+Then:
+
+GERI + DIR = €29
+
+Then:
+
+Everything = €34
+
+That's a very sensible upgrade ladder.
+
+But I would NOT introduce the €34 plan immediately
+
+This is important.
+
+You currently have a small user base and we're already introducing a substantial dashboard architecture change.
+
+Adding:
+
+€4.95 products
+€9.95 bundle
+€8 DIR
+€27 GERI
+€29 bundle
+€34 Complete
+
+all at the same time could become too complex.
+
+I would implement this in stages.
+
+Phase 1
+
+Keep:
+
+€4.95 individually
+
+Add:
+
+Pro Market Tools Pack — €9.95
+
+Keep:
+
+DIR €8
+
+GERI €27
+
+GERI + DIR €29
+
+Use those for now.
+
+Phase 2
+
+Collect actual buying behavior.
+
+See how many users subscribe to:
+
+one widget
+multiple widgets
+DIR
+GERI
+GERI+DIR
+
+Then decide whether:
+
+EnergyRiskIQ Complete €34
+
+is justified.
+
+Don't create pricing complexity before actual demand requires it.
+
+How I would change the sidebar now that we know these are paid
+
+I would modify my previous recommendation slightly.
+
+Instead of:
+
+MARKET TOOLS
+
+I'd probably use:
+
+PRO MARKET TOOLS
+
+and show:
+
+WTI Widget PRO
+LNG Widget PRO
+Gas Storage Widget PRO
+
+That actually works here because Pro describes the entire category.
+
+I would still remove “Pro Widget —” from every individual title because that's repetitive.
+
+So instead of:
+
+Pro Widget — WTI
+Pro Widget — LNG
+Pro Widget — Gas Storage
+
+use:
+
+PRO MARKET TOOLS
+
+WTI
+LNG
+Gas Storage
+
+or:
+
+WTI Widget
+LNG Widget
+Gas Storage Widget
+
+Much cleaner.
+
+The badge behavior
+Premium Experience
+
+WTI Widget UNLOCKED
+LNG Widget UNLOCKED
+Gas Storage UNLOCKED
+
+Free account
+
+WTI Widget PRO
+LNG Widget PRO
+Gas Storage PRO
+
+Subscriber
+
+No need for PRO to mean locked.
+
+If subscribed, you could simply remove the badge or use:
+
+ACTIVE
+
+I'd prefer no badge in most cases.
+
+The bigger strategic point
+
+These three products solve a problem the earlier architecture didn't fully solve.
+
+We had:
+
+RISK — excellent
+CHANGE — GERI Live
+CONFIRM — mostly free price cards
+INTERPRET — DIR
+WATCH — Forecast
+
+The Pro Widgets can become your premium depth inside CONFIRM.
+
+That means every stage of the methodology now potentially has a deeper intelligence layer:
+
+Routine	Free	Deeper
+RISK	GERI/EERI/EGSI	dashboards/history
+CHANGE	daily GERI	GERI Live
+CONFIRM	basic market prices	Pro Market Tools
+INTERPRET	preview/basic context	DIR
+WATCH	basic watchlist	Brent Forecast / scenarios
+
+That's actually very strong.
+
+EnergyRiskIQ is becoming a layered intelligence system, rather than a random collection of paid pages.
+
+My recommendation
+
+Keep the €4.95 individual prices.
+
+Introduce:
+
+Pro Market Tools Pack — €9.95/month
+
+Keep those tools commercially separate from GERI Live and DIR for now.
+
+During the 7-Day Premium Welcome Experience, unlock them all — but reveal them progressively in Step 3, rather than advertising them immediately after registration.
+
+And I would rename the €29 “Complete Intelligence” bundle to something closer to:
+
+EnergyRiskIQ Intelligence Bundle
+GERI Live + Daily Intelligence Report — €29/month
+
+because once we acknowledge the three paid Pro Market Tools, “Complete” should eventually mean genuinely complete.
+
+Later, once there is enough usage data, I would strongly consider:
+
+EnergyRiskIQ Complete — approximately €34/month
+
+including GERI Live + DIR + all three Pro Market Tools + Brent Forecast Engine.
+
+That could ultimately become your flagship subscription.
+
+I'm attaching images of the Widget Pages (for paid users) -- Let me know what you think and if they're valuable enough for the price
+
+Should I include them in the Newsletter?
+Should I add more value to them?
+
+After seeing the actual paid-widget pages, I would keep them and I would keep the €4.95/month price for now. They are more valuable than I had assumed from the sidebar alone.
+
+The important change I would make is conceptual: I would not treat these as ordinary “premium market tools.” They are really a separate product family:
+
+EnergyRiskIQ Professional Embeddable Intelligence
+
+because the customer is not merely buying access to data. They are buying a configurable, live, embeddable intelligence product with a commercial license.
+
+1. At €4.95, I think they're very good value
+
+Look at what the WTI customer receives:
+
+live WTI price
+market movement
+7D/30D chart
+Brent-WTI spread
+GERI overlay
+VIX context
+natural-gas context
+Macro / Trader / Energy intelligence modes
+generated market-intelligence interpretation
+regime / risk / volatility classification
+multiple themes
+multiple sizes
+configurable accent color
+iframe embedding
+JavaScript embedding
+no attribution requirement
+
+The LNG widget similarly combines:
+
+JKM
+JKM-TTF spread
+GERI
+EU storage
+market regime
+market intelligence
+selectable modes
+configurable presentation
+
+And the Gas Storage widget is particularly strong because it's not just showing a percentage. It includes:
+
+storage level
+weekly movement
+deviation from normal
+winter-readiness classification
+storage-risk classification
+progress toward the winter target
+historical trend
+country leaderboard
+country comparison
+market interpretation
+
+For €4.95/month, that's inexpensive.
+
+I would not reduce these prices.
+
+2. In fact, your biggest pricing problem may eventually be the opposite
+
+This line caught my attention in all three screenshots:
+
+Professional License Included — No attribution or citation required. Use on any number of your sites and apps.
+
+That's a lot of licensing value for €4.95.
+
+A consultant, publisher or agency could potentially put one subscription on several properties.
+
+So my recommendation is:
+
+For now
+
+Keep:
+
+€4.95/month per widget
+
+because you're still building adoption.
+
+But tighten the license definition
+
+Instead of simply:
+
+Use on any number of sites and apps.
+
+I'd make it something like:
+
+Professional License Included
+No EnergyRiskIQ attribution required. Embed on websites and applications owned or operated by your organization.
+
+And state in the terms:
+
+Resale, redistribution or embedding as a service for unrelated third-party clients requires an Agency/Enterprise license.
+
+That's much safer.
+
+Otherwise €4.95 could inadvertently become an unlimited agency license.
+
+3. I would still create the three-widget bundle
+
+I like:
+
+Professional Intelligence Widgets
+
+WTI + Global LNG + Europe Gas Storage
+
+€9.95/month
+
+versus:
+
+€4.95 × 3 = €14.85 separately.
+
+That gives you:
+
+Product	Price
+WTI Professional Widget	€4.95
+Global LNG Professional Widget	€4.95
+Europe Gas Storage Widget	€4.95
+Professional Widgets Pack — all 3	€9.95
+
+And I'd probably stop there initially.
+
+Don't create six different widget tiers yet.
+
+4. I would revise one thing from my previous architecture
+
+I previously put these primarily under CONFIRM in the intelligence routine.
+
+Having now seen them, I'd make a distinction.
+
+The intelligence inside the widgets certainly supports Step 3:
+
+CONFIRM
+
+But the product itself has a second purpose:
+
+Publish / Embed EnergyRiskIQ intelligence elsewhere.
+
+So I would not make the widgets central to the conversion flow for every ordinary trader.
+
+Instead:
+
+Core EnergyRiskIQ intelligence products
+
+GERI Live
+Daily Intelligence Report
+Brent Forecast
+
+These are directly part of the personal intelligence workflow.
+
+Professional publishing products
+
+WTI Professional Widget
+Global LNG Professional Widget
+Europe Gas Storage Professional Widget
+
+These are primarily for:
+
+energy websites
+analysts' dashboards
+consultants
+newsletters/publications
+trading communities
+research portals
+corporate intranets
+energy-market applications
+
+That's actually a broader commercial opportunity.
+
+5. I'd therefore change the sidebar category
+
+Instead of:
+
+PRO MARKET TOOLS
+
+I now prefer:
+
+PROFESSIONAL WIDGETS
+
+and underneath simply:
+
+WTI Oil
+Global LNG
+Gas Storage
+
+That tells people immediately what these are.
+
+You don't need:
+
+Pro Widget — WTI
+
+because the section already conveys the category.
+
+So:
+
+INTELLIGENCE
+GERI Live                    LIVE
+Daily Intelligence
+Brent Forecast
+Alerts
+
+RISK DASHBOARDS
+GERI Dashboard
+EERI Dashboard
+EGSI Dashboard
+
+PROFESSIONAL WIDGETS
+WTI Oil
+Global LNG
+Gas Storage
+
+DELIVERY
+Daily Delivery
+
+Much cleaner.
+
+6. Should they be included in the 7-Day Premium Welcome Experience?
+Yes.
+
+I would unlock all three.
+
+But don't advertise six products on registration.
+
+The user simply sees:
+
+Your 7-Day Premium Welcome Experience is active.
+
+Experience the complete EnergyRiskIQ platform for the next seven days.
+
+Then they discover the products naturally.
+
+When they reach Step 3:
+
+Are Markets Confirming the Risk Signal?
+
+You can have a small section:
+
+Go deeper with Professional Market Intelligence
+
+During your Premium Welcome Experience, your WTI, LNG and European Gas Storage Professional Widgets are also unlocked.
+
+Then:
+
+Explore Professional Widgets →
+
+That's enough.
+
+7. Should they be included in the Newsletter?
+Absolutely — but selectively.
+
+I would not promote all three widgets in every newsletter.
+
+That would make the newsletter increasingly look like a catalogue.
+
+Instead, the relevant widget should become visual evidence supporting the week's thesis.
+
+For example:
+
+Oil-focused newsletter
+
+Use a crop/screenshot of the rendered WTI widget, not the widget configuration page.
+
+The article might say:
+
+WTI remains neutral despite elevated geopolitical risk, while the Brent-WTI spread is providing an additional confirmation signal.
+
+Then insert the WTI widget image.
+
+Underneath:
+
+This is the EnergyRiskIQ Professional WTI Intelligence Widget.
+
+At the end:
+
+Explore the WTI Intelligence Widget →
+
+8. LNG newsletters
+
+Suppose an edition is discussing:
+
+Why European gas and Asian LNG competition matters.
+
+The LNG widget is perfect because it visually shows:
+
+JKM
+JKM-TTF spread
+GERI
+EU storage
+market regime
+
+That's a very compelling newsletter image.
+
+Instead of telling readers:
+
+“EnergyRiskIQ has an LNG widget.”
+
+you're demonstrating:
+
+“Here is the intelligence view we used to analyze the situation.”
+
+That's much stronger marketing.
+
+9. The Gas Storage widget may be the strongest newsletter asset
+
+For European gas articles, the storage widget is especially useful because it compresses a lot of analysis into one visual:
+
+EU storage level
+weekly injection
+deviation from normal
+winter readiness
+storage risk
+progress toward 90%
+country comparison
+
+This is practically made for visual newsletter analysis.
+
+A newsletter section could be:
+
+Is Europe Actually Ready for Winter?
+
+Then insert the widget snapshot.
+
+Then explain what the data means.
+
+Then:
+
+Monitor European storage with the EnergyRiskIQ Professional Gas Storage Widget.
+
+That's a natural CTA rather than an advertisement inserted into unrelated content.
+
+10. Don't use screenshots of the configuration page in the newsletter
+
+The images you showed me are excellent for a product page.
+
+But for the newsletter, use only the right-hand rendered widget itself.
+
+For example:
+
+┌──────────────────────┐
+│ Global LNG · JKM     │
+│ $23.17               │
+│ JKM–TTF +$1.19       │
+│ GERI Low             │
+│ EU storage 64%       │
+│                      │
+│ [chart]              │
+│                      │
+│ MARKET INTELLIGENCE  │
+│ ...                  │
+│                      │
+│ Regime: Bullish      │
+└──────────────────────┘
+
+That's clean editorial content.
+
+The controls, embed code and customization interface belong on the product page.
+
+11. I would actually automate newsletter images from these widgets
+
+This could become very useful.
+
+Every Tuesday when you're preparing the newsletter data, EnergyRiskIQ could automatically produce:
+
+Newsletter Snapshot
+
+for each relevant widget.
+
+For example:
+
+WTI-newsletter-2026-09-08.png
+
+LNG-newsletter-2026-09-15.png
+
+Storage-newsletter-2026-09-22.png
+
+Rendered at an optimized LinkedIn article width.
+
+Then our weekly newsletter workflow becomes:
+
+latest EnergyRiskIQ data → widget snapshot → editorial analysis → CTA.
+
+That would make the newsletter visually recognizable over time.
+
+12. Should you add more value?
+
+Yes — but I would not add lots more market data yet.
+
+The widgets already have enough data to justify €4.95.
+
+The next improvements should strengthen the actual professional product, not make every widget overloaded.
+
+I see five upgrades with high value.
+
+13. Upgrade #1 — Saved configurations
+
+This is probably the first one I would build.
+
+Right now the customer chooses:
+
+Theme
+Size
+Mode
+Overlays
+Accent
+Radius
+
+That's good.
+
+Let them save:
+
+My Website — Dark / Trader / Large
+
+Research Portal — Light / Macro / Medium
+
+Sidebar Widget — Transparent / Compact
+
+Then:
+
+Saved Presets
+
+Trading Dashboard
+Homepage
+Research Page
+
+Each gets its own embed code.
+
+That significantly increases the professional usefulness.
+
+14. Upgrade #2 — Embed management
+
+For a professional embeddable product, add:
+
+My Embeds
+
+For example:
+
+Embed	Widget	Domain	Status
+Homepage	LNG	example.com	Active
+Research	WTI	example.com	Active
+Gas Page	Storage	energyportal.com	Active
+
+Then offer:
+
+Regenerate token
+
+Disable embed
+
+Duplicate configuration
+
+Edit
+
+This makes the product feel substantially more SaaS-like.
+
+15. Upgrade #3 — Usage analytics
+
+This could dramatically increase perceived value.
+
+Give widget owners:
+
+Widget Analytics
+
+Widget loads this month: 4,821
+
+Unique visitors: 2,306
+
+Top domain: example.com
+
+Most viewed mode: Trader
+
+7-day change: +18%
+
+Now the customer isn't merely buying a widget.
+
+They're managing a deployed intelligence component.
+
+This could eventually justify higher pricing.
+
+16. Upgrade #4 — Domain/security controls
+
+Because the embed credentials are necessarily exposed to browsers in some form, I'd give customers:
+
+Allowed Domains
+
+For example:
+
+mywebsite.com
+
+research.mywebsite.com
+
+Then allow:
+
+Add domain
+
+Remove
+
+Regenerate key
+
+This is particularly important if you're offering no-attribution professional use.
+
+It prevents another website from simply copying someone's embed configuration.
+
+17. Upgrade #5 — “What Changed?” intelligence
+
+The actual widget intelligence could improve slightly.
+
+For example, above the AI interpretation:
+
+WHAT CHANGED
+
+WTI: −0.05% intraday
+Brent-WTI spread: widened by $0.32
+GERI: stable
+VIX: −0.4
+
+Then:
+
+WHAT IT MEANS
+
+Short-term WTI bias remains neutral...
+
+This creates a very clear intelligence hierarchy:
+
+DATA → CHANGE → INTERPRETATION
+
+which matches EnergyRiskIQ's overall positioning.
+
+18. WTI-specific improvements
+
+The WTI widget is already good.
+
+If your existing datasets support it without expensive new providers, I'd eventually consider:
+
+Brent-WTI spread trend, not just current spread.
+
+For example:
+
+Spread: +$4.85
+7D: widening
+
+That's more informative than simply displaying the number.
+
+Also:
+
+Risk Confirmation: WEAK / PARTIAL / STRONG
+
+derived from WTI + Brent + GERI + VIX.
+
+That connects directly to the EnergyRiskIQ methodology.
+
+19. LNG-specific improvements
+
+The LNG widget already has the ingredients for a very interesting signal:
+
+JKM
+TTF
+JKM-TTF spread
+EU storage
+GERI
+
+I would eventually calculate:
+
+LNG COMPETITION SIGNAL
+
+For example:
+
+ASIA-PULL
+
+BALANCED
+
+EUROPE-PULL
+
+You already appear to have a CARGO FLOW Asia-Pull concept.
+
+I like that direction.
+
+Make it more central.
+
+It's differentiated and easily understood.
+
+20. Storage-specific improvements
+
+This one has especially strong potential.
+
+I'd eventually add:
+
+Required Injection Pace
+
+For example:
+
+Required to reach 90% by target date: +0.41 pts/day
+
+versus:
+
+Current 7D pace: +0.27 pts/day
+
+Then:
+
+Target Status
+
+BEHIND REQUIRED PACE
+
+That is much more useful than simply:
+
+Storage = 64%.
+
+You're turning physical inventory data into an actionable risk signal.
+
+This fits EnergyRiskIQ extremely well.
+
+21. I would not add too much visually
+
+The previews are already close to the maximum density I'd want.
+
+Especially Gas Storage.
+
+Do not turn them into mini-Bloomberg terminals.
+
+For each new data item ask:
+
+Does this help somebody reach a conclusion faster?
+
+If not, don't include it.
+
+The differentiation should be:
+
+EnergyRiskIQ compresses information into intelligence.
+
+not:
+
+EnergyRiskIQ shows more numbers than everyone else.
+
+22. Pricing after those upgrades
+
+Once you have:
+
+saved configurations,
+embed management,
+domain controls,
+analytics,
+
+I think €4.95 may become obviously too low.
+
+Then I could see:
+
+Standard
+
+€6.95/widget/month
+
+or:
+
+Professional Widgets Pack
+
+€14.95/month
+
+with existing customers grandfathered.
+
+But I would not do that now.
+
+At your current stage, €4.95 is a very attractive entry-price product.
+
+Use that to get the first widget customers.
+
+Then pricing decisions can be based on actual usage rather than assumptions.
+
+23. There is another strategic audience you should consider
+
+These products may attract people who would never subscribe to GERI Live.
+
+For example:
+
+an energy blogger
+a commodity website owner
+an LNG consultant
+a shipping portal
+a trading education website
+a research analyst
+an energy consultancy
+an industrial-energy website
+
+Their problem isn't:
+
+“I need an energy-risk terminal.”
+
+Their problem is:
+
+“I need high-quality live energy intelligence on my website without building it myself.”
+
+At €4.95, that's an extremely easy proposition.
+
+This is why I would preserve these as their own product line.
+
+24. The architecture now becomes clearer
+
+I would think about EnergyRiskIQ commercially as three product families.
+
+A. CORE INTELLIGENCE
+
+GERI
+EERI
+EGSI
+Dashboard
+3-Minute Routine
+
+Purpose:
+
+Understand the energy-risk environment.
+
+B. PREMIUM INTELLIGENCE
+
+GERI Live — €27
+DIR — €8
+GERI + DIR bundle — €29
+Brent Forecast included with GERI
+
+Purpose:
+
+Monitor, interpret and anticipate risk.
+
+C. PROFESSIONAL EMBEDDABLE INTELLIGENCE
+
+WTI — €4.95
+LNG — €4.95
+Gas Storage — €4.95
+All 3 — €9.95
+
+Purpose:
+
+Bring EnergyRiskIQ intelligence into your own website, dashboard or application.
+
+This is much more coherent than putting every paid thing into one generic “Premium” bucket.
+
+25. And the Newsletter can promote both commercial paths
+
+A trader reads an oil newsletter and thinks:
+
+I want the underlying intelligence.
+
+CTA:
+
+Run Today's 3-Minute Routine
+
+→ potentially GERI Live / DIR.
+
+A website owner reads the same newsletter and sees the WTI visual:
+
+I want that on my website.
+
+CTA:
+
+Embed This Intelligence Widget
+
+→ €4.95.
+
+You've just created two monetization routes from the same content.
+
+That's very attractive.
+
+My overall assessment
+
+After seeing the actual products, I would rate their value proposition higher than I did before.
+
+At €4.95/month, I don't think the challenge is currently “do they provide enough value?”
+
+They do.
+
+The bigger challenges are:
+
+making users understand what they are,
+showing them in the right context,
+getting potential customers to experience the rendered widget, and
+building professional deployment features around the widget itself.
+
+I would therefore keep the current price, create the €9.95 three-widget pack, expose all three during the 7-Day Premium Welcome Experience, and selectively use their rendered outputs throughout the LinkedIn Newsletter when the subject matches.
+
+For development, I would prioritize Saved Presets → Embed Management → Domain Controls → Usage Analytics before piling substantially more market data into the widgets.
+
+The intelligence content is already good enough. The next leap in value is turning them from “nice embeddable widgets” into a small professional intelligence-publishing platform.
