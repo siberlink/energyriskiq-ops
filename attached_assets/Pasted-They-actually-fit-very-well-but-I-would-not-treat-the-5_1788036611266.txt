@@ -1,0 +1,682 @@
+They actually fit very well — but I would not treat the 53 existing free users as if they had just registered, and I would definitely not disrupt the 2 people already paying.
+
+I’d create a migration layer between the old dashboard architecture and the new one.
+
+The clean model becomes:
+
+User type	Count	Treatment
+Existing Free	53	One-time 7-Day Complete Intelligence Experience
+Existing GERI Live subscriber	1	Keep subscription + temporarily unlock DIR
+Existing DIR subscriber	1	Keep subscription + temporarily unlock GERI Live
+Future new users	—	Normal 7-Day Premium Welcome Experience
+
+The important principle is:
+
+Nobody loses anything. Existing paying customers receive additional value, and existing free users get one opportunity to experience the new EnergyRiskIQ architecture properly.
+
+1. Do not automatically start the 7 days for the 53 free users
+
+This is probably the most important migration rule.
+
+If you simply deploy the new dashboard and start:
+
+7 days... 6 days... 5 days...
+
+many users may not log in during that week.
+
+Their experience would expire without them ever seeing it.
+
+Instead, existing free users should see:
+
+A New EnergyRiskIQ Experience Is Available
+
+We've redesigned the EnergyRiskIQ workflow around a simple 3-Minute Energy Intelligence Routine.
+
+As an existing EnergyRiskIQ user, you can experience the complete intelligence workflow free for 7 days.
+
+Activate My 7-Day Experience →
+
+No payment information required.
+
+The seven days start only when they click Activate.
+
+2. Give the 53 users a reasonable activation window
+
+I would make the offer available for approximately:
+
+14 days after launch
+
+That gives existing users enough time to come back.
+
+For example:
+
+Available until September 20
+
+but once activated:
+
+7 full days of premium access
+
+This introduces a little urgency around activation, but doesn't waste the experience.
+
+3. Don't call it the “Welcome Experience” for existing users
+
+They're not new.
+
+For future registrations:
+
+7-Day Premium Welcome Experience
+
+For the 53 existing free users:
+
+7-Day Complete Intelligence Experience
+
+or even:
+
+Your 7-Day Complete Intelligence Experience
+
+I'd probably use that.
+
+It acknowledges their existing relationship with EnergyRiskIQ.
+
+4. What the 53 users receive
+
+Once activated, unlock exactly the same environment a new user receives:
+
+GERI Live
+
+Fully unlocked.
+
+Daily Intelligence Report
+
+Fully unlocked.
+
+Brent Intelligence Forecast Engine™
+
+Unlocked because it belongs to GERI Live.
+
+3-Minute Routine
+
+Full premium version.
+
+Any other premium components included in those plans
+
+Unlocked according to their respective entitlement.
+
+Then let them use it for seven days.
+
+5. But there is a difference from new-user onboarding
+
+Existing users already have some familiarity with the dashboard.
+
+So their initial message should acknowledge the change rather than teaching EnergyRiskIQ from zero.
+
+I would use:
+
+EnergyRiskIQ Has a New Daily Intelligence Workflow
+
+We've reorganized the dashboard around five questions:
+
+1. Where is risk now?
+2. Is risk accelerating or fading?
+3. Are markets confirming it?
+4. What does it mean?
+5. What should I watch next?
+
+It takes approximately 3 minutes.
+
+As an existing EnergyRiskIQ user, you're invited to experience the complete workflow free for 7 days.
+
+Start My 7-Day Experience →
+
+That's better than pretending they've never used the product.
+
+6. What about the existing GERI Live subscriber?
+
+This person should not see a free-trial offer for something they're already paying for.
+
+That would be a poor experience.
+
+Their existing subscription continues completely unchanged:
+
+GERI Live — Active
+
+But now we have an excellent opportunity to demonstrate the Complete Intelligence bundle.
+
+Give this subscriber:
+
+7 days complimentary access to DIR
+
+Not another GERI Live trial.
+
+Essentially:
+
+Already owns:
+GERI Live €27
+
+Temporarily unlock:
+DIR
+
+Experience:
+Complete Intelligence
+
+I would frame it as an existing-customer benefit.
+
+7. Exact message for the GERI Live subscriber
+
+Something like:
+
+Complete Your Intelligence Workflow — On Us
+
+You're already using GERI Live to monitor how global energy risk changes throughout the day.
+
+For the next 7 days, we've also unlocked the Daily Intelligence Report so you can experience the complete EnergyRiskIQ workflow:
+
+GERI Live — Know when risk is changing
+Daily Intelligence Report — Understand what those changes may mean
+
+Your existing GERI Live subscription remains unchanged.
+
+Explore Complete Intelligence →
+
+No payment.
+
+No subscription change.
+
+No risk.
+
+8. And after seven days?
+
+This is where your €29 bundle becomes extremely compelling.
+
+This person currently pays:
+
+GERI Live = €27/month
+
+At the end of their DIR access:
+
+Keep Complete Intelligence
+
+You've been using GERI Live together with the Daily Intelligence Report.
+
+Switch to Complete Intelligence for €29/month — just €2/month more than your current GERI Live subscription.
+
+Upgrade to Complete Intelligence →
+
+This may be your easiest first bundle conversion.
+
+Because the incremental decision is only €2.
+
+9. The existing DIR subscriber is different
+
+This customer currently has:
+
+DIR = €8/month
+
+They should keep their DIR subscription exactly as-is.
+
+For seven days, unlock:
+
+GERI Live + Brent Intelligence Forecast Engine™
+
+This gives them the complete workflow.
+
+Message:
+
+Experience Live Risk Intelligence
+
+You're already using the Daily Intelligence Report to understand today's energy-market implications.
+
+For the next 7 days, we've unlocked GERI Live so you can also see how global energy risk evolves intraday.
+
+Your current Daily Intelligence subscription remains unchanged.
+
+Explore GERI Live →
+
+Again, this feels like a reward for already being a customer.
+
+10. Converting the DIR subscriber to €29 is a harder sale
+
+Because this user goes from:
+
+€8 → €29
+
+That's a €21 increase.
+
+So don't use:
+
+Just upgrade!
+
+Instead sell the additional capability.
+
+At the end of their complimentary access:
+
+Keep Live Risk Monitoring
+
+Your Daily Intelligence Report subscription remains €8/month.
+
+If you also want to keep GERI Live and the Brent Intelligence Forecast Engine™, switch to Complete Intelligence for €29/month.
+
+Continue With DIR — €8/month
+
+Upgrade to Complete Intelligence — €29/month
+
+That is important.
+
+Make the existing subscription option visibly safe.
+
+Don't make them think you're trying to force them into the more expensive plan.
+
+11. Never downgrade or automatically convert either subscriber
+
+This should be a hard rule.
+
+If the GERI subscriber doesn't upgrade:
+
+stays GERI Live €27.
+
+If the DIR subscriber doesn't upgrade:
+
+stays DIR €8.
+
+No automatic bundle conversion.
+
+No automatic cancellation/recreation.
+
+No billing surprise.
+
+12. I would actually give the two paying users a slightly better experience than free users
+
+They are your first paying customers.
+
+That matters.
+
+So I would give them the complementary product automatically rather than making them “activate a trial.”
+
+That distinction is subtle but good:
+
+Free user
+
+Activate your 7-Day Complete Intelligence Experience.
+
+Paying customer
+
+We've unlocked Complete Intelligence for you for 7 days.
+
+It communicates:
+
+Customers receive privileges.
+
+That reinforces the value of subscribing.
+
+13. I would also consider grandfathering their existing plan price
+
+Because you're introducing a new product architecture, I wouldn't disturb either existing price.
+
+If those existing accounts are already subscribed at their current price, leave those Stripe subscriptions alone.
+
+Then simply offer migration to the bundle if they choose it.
+
+This makes the rollout operationally much safer too.
+
+14. The first dashboard state after rollout
+
+I'd split the 55 users into three dashboard states.
+
+Existing free — first visit after redesign
+
+Top banner:
+
+Your New EnergyRiskIQ Intelligence Workflow Is Ready
+
+Discover the new 3-Minute Energy Intelligence Routine and unlock the complete premium experience for 7 days.
+
+See What's New →
+
+Once they enter:
+
+Activate My 7-Day Experience
+
+GERI Live subscriber
+
+Top dashboard:
+
+GERI Live — Active
+
+Routine works normally.
+
+Step 4 contains:
+
+Daily Intelligence Report unlocked complimentary for 7 days
+
+No general Premium Experience sales banner.
+
+DIR subscriber
+
+Top dashboard:
+
+Daily Intelligence — Active
+
+Step 2 contains:
+
+GERI Live unlocked complimentary for 7 days
+
+Again, no generic trial message.
+
+15. What happens to the 3-Minute Routine for existing users?
+
+Everybody gets it.
+
+The routine itself is not premium.
+
+That's important.
+
+The methodology is free.
+
+Premium determines the depth available inside certain steps.
+
+So after everyone's introductory experiences expire:
+
+Free user
+
+Step 1: Free
+Step 2: GERI Live preview
+Step 3: Free
+Step 4: DIR preview
+Step 5: Free/basic watchlist
+
+GERI subscriber
+
+Step 1: Free
+Step 2: Full GERI Live
+Step 3: Free
+Step 4: DIR preview
+Step 5: Enhanced based on available data
+
+DIR subscriber
+
+Step 1: Free
+Step 2: GERI Live preview
+Step 3: Free
+Step 4: Full DIR
+Step 5: Enhanced interpretation
+
+Complete subscriber
+
+Everything fully unlocked.
+
+That makes the routine itself the universal EnergyRiskIQ interface.
+
+16. This gives you a very elegant entitlement matrix
+Routine	Free	DIR €8	GERI €27	Complete €29
+Step 1 — Risk Environment	✅	✅	✅	✅
+Step 2 — Risk Direction	Preview	Preview	✅ Full	✅ Full
+Step 3 — Market Confirmation	✅	✅	✅	✅
+Step 4 — Interpretation	Preview	✅ Full	Preview	✅ Full
+Step 5 — Watchlist	Basic	Enhanced	Enhanced	✅ Complete
+Brent Forecast Engine	—/Preview	—/Preview	✅	✅
+
+This is how I would structure the product going forward.
+
+17. There's another opportunity with these 55 users
+
+They are an ideal controlled rollout group.
+
+I would not launch the new conversion architecture to thousands of users first even if you could.
+
+Your 55 existing accounts give you an excellent real-world test.
+
+Track:
+
+How many log back in?
+
+How many activate the seven days?
+
+How many start the routine?
+
+How many complete it?
+
+How many open GERI Live?
+
+How many read DIR?
+
+How many return on Day 2?
+
+Day 3?
+
+Day 7?
+
+How many click pricing?
+
+How many convert?
+
+That's tremendously useful product information.
+
+18. You could even stage the rollout
+
+I would probably implement it like this:
+
+Phase A — current subscribers
+
+Test the new routine and entitlement architecture with the two paying users first internally/quietly.
+
+Verify:
+
+GERI-only access
+DIR-only access
+Complete temporary access
+proper restoration after complimentary period
+
+Phase B — existing 53 users
+
+Launch:
+
+7-Day Complete Intelligence Experience
+
+Track results.
+
+Phase C — future registrations
+
+Once you're confident it works:
+
+7-Day Premium Welcome Experience
+
+becomes the permanent new-user flow.
+
+This reduces risk significantly.
+
+19. Email the 53 existing users
+
+Don't depend on them discovering the new dashboard accidentally.
+
+I'd send them a one-off launch email with a subject in the direction of:
+
+Your EnergyRiskIQ account just got a major upgrade
+
+The message should focus first on:
+
+The new 3-Minute Intelligence Routine
+
+and only secondly:
+
+7 days of Complete Intelligence included.
+
+That's important.
+
+We want:
+
+Product improvement → premium experience
+
+rather than:
+
+Free trial promotion → product improvement.
+
+20. Email the subscribers separately
+
+Do not send the same marketing email to the two paying customers.
+
+They should get a customer message such as:
+
+We've added something to your EnergyRiskIQ account
+
+Then:
+
+As an existing subscriber, we're temporarily unlocking the complementary intelligence layer so you can experience the new Complete Intelligence workflow.
+
+That feels much better.
+
+21. I would also give existing subscribers a small “Founding Customer” treatment
+
+Not necessarily a visible badge yet.
+
+But commercially I'd consider their status special.
+
+For example:
+
+Existing GERI subscriber gets first access to switch to €29 Complete Intelligence.
+
+And if pricing changes later, you could decide to protect early pricing.
+
+You only have two paying customers currently, so the cost of being generous with them is almost zero, while their goodwill is disproportionately valuable.
+
+22. What about bonuses?
+
+Existing subscribers should receive bonuses before free users do.
+
+For example, if we later create the:
+
+Newsletter Intelligence Companion
+
+Complete subscribers receive it automatically.
+
+Current standalone subscribers can receive a temporary preview.
+
+Free users see a limited version.
+
+This reinforces hierarchy:
+
+Free
+↓
+Standalone Premium
+↓
+Complete Intelligence
+
+rather than treating everybody identically.
+
+23. The migration lifecycle I'd implement
+
+For the 53 existing free users:
+
+EXISTING FREE USER
+       ↓
+New dashboard released
+       ↓
+"See What's New"
+       ↓
+Learn 5-step method
+       ↓
+Activate 7-Day Complete Intelligence
+       ↓
+Days 1–2
+Use GERI + DIR
+       ↓
+Days 3–5
+Soft €29 Complete positioning
+       ↓
+Final 36 hours
+Conversion campaign
+       ↓
+Converted?
+   ↙           ↘
+YES             NO
+ ↓               ↓
+Paid          Free account
+                 ↓
+           Premium previews
+
+For the GERI subscriber:
+
+GERI LIVE €27
+      ↓
+New routine
+      ↓
+DIR unlocked 7 days
+      ↓
+Experiences Complete workflow
+      ↓
+€29 Complete offer
+      ↓
+YES → Complete €29
+NO  → stays GERI €27
+
+For the DIR subscriber:
+
+DIR €8
+      ↓
+New routine
+      ↓
+GERI Live unlocked 7 days
+      ↓
+Experiences Complete workflow
+      ↓
+€29 Complete offer
+      ↓
+YES → Complete €29
+NO  → stays DIR €8
+24. One thing I would not do
+
+I would not give the 53 free users seven days of Complete Intelligence while giving the two paying customers nothing new.
+
+That creates the wrong relationship:
+
+Free customers get a reward. Paying customers get what they already had.
+
+Instead, migration should feel like:
+
+Free users
+
+“Try what you've been missing.”
+
+Paying users
+
+“Thank you for already supporting the product — here's additional access.”
+
+That's the correct hierarchy.
+
+25. This also gives you a very interesting first target
+
+You currently have:
+
+55 accounts
+
+and:
+
+2 paying accounts
+
+So rather than thinking immediately about hundreds of new registrations, I would use this architecture to answer a more fundamental question:
+
+Can we turn some of the existing 53 free users into recurring subscribers when they properly experience the product?
+
+If even several of those users convert after the new onboarding, that's meaningful validation that the problem wasn't simply the product itself — it may have been that users weren't being guided to experience its value properly.
+
+And equally important, watch whether the two existing subscribers prefer Complete Intelligence once they have experienced both halves together.
+
+That is your earliest evidence for whether the €29 bundle architecture is working.
+
+My recommended rollout therefore is:
+
+53 existing free users:
+One-time, opt-in 7-Day Complete Intelligence Experience.
+
+Existing GERI Live customer:
+Keep €27 subscription + automatically unlock DIR for seven days → offer Complete for €29.
+
+Existing DIR customer:
+Keep €8 subscription + automatically unlock GERI Live for seven days → offer Complete for €29.
+
+All future new users:
+Automatic 7-Day Premium Welcome Experience beginning on first dashboard visit.
+
+Complete Intelligence:
+€29/month, introduced progressively after the user has actually experienced both GERI Live and DIR.
+
+That integrates your entire existing user base cleanly without resetting anyone, penalizing anyone, or undermining the two customers who have already chosen to pay.
