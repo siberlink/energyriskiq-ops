@@ -7297,15 +7297,15 @@
                                 <div class="gl-promo-banner" onclick="event.stopPropagation();glStartCheckout();">
                                     <div class="gl-promo-left" style="flex:1;min-width:0;">
                                         <div>
-                                            <span class="gl-promo-tag" id="glPromoTag">ONE-TIME ONLY LAUNCH OFFER</span>
+                                            <span class="gl-promo-tag" id="glPromoTag">GERI LIVE</span>
                                             <span class="gl-promo-off-badge" id="glPromoOffBadge">50% OFF</span>
                                         </div>
-                                        <div class="gl-promo-title">GERI Live — real-time energy risk index · <span id="glPromoPrice">14-day free trial, then €13.50/month</span></div>
+                                        <div class="gl-promo-title">Real-time global energy risk intelligence · <span id="glPromoPrice">€27/month</span></div>
                                         <div class="gl-promo-countdown" id="glPromoCountdown" style="display:none;">
                                             You got <strong id="glPromoTimer">--</strong> to decide
                                             <span class="gl-promo-countdown-label">· offer ends after 36h from first login</span>
                                         </div>
-                                        <div class="gl-promo-sub">Understand what GERI is and how it measures geopolitical risk → <em>click to explore</em></div>
+                                        <div class="gl-promo-sub">Detect emerging geopolitical energy risk, monitor market reaction and model potential Brent outcomes in real time.</div>
                                         <div class="gl-promo-bonuses" id="glPromoBonuses">
                                             <span class="gl-promo-bonus-pill">🗞 Daily Intelligence Report</span>
                                             <span class="gl-promo-bonus-pill">📊 Pro Widget WTI</span>
@@ -18558,9 +18558,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const bonusWarn = document.getElementById('glPromoBonusWarn');
 
             if (offerOn) {
-                if (tag) tag.textContent = 'ONE-TIME ONLY LAUNCH OFFER';
+                if (tag) tag.textContent = 'GERI LIVE';
                 if (offBadge) offBadge.style.display = 'inline-block';
-                if (price) price.textContent = (eligible ? days + '-day free trial, then ' : '') + '€' + priceEur + '/month';
+                if (price) price.textContent = '€27/month';
                 if (countdown) countdown.style.display = 'block';
                 if (st.offer_expires_at) _glStartPromoCountdown(st.offer_expires_at);
                 if (bonusPills) bonusPills.style.display = 'flex';
@@ -18569,7 +18569,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 if (tag) tag.textContent = 'GERI LIVE';
                 if (offBadge) offBadge.style.display = 'none';
                 if (countdown) countdown.style.display = 'none';
-                if (price) price.textContent = (eligible ? days + '-day free trial, then ' : '') + '€' + priceEur + '/month';
+                if (price) price.textContent = '€27/month';
                 if (bonusPills) bonusPills.style.display = 'none';
                 if (bonusWarn) bonusWarn.style.display = 'none';
             }
