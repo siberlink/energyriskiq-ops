@@ -5496,11 +5496,28 @@
         .gl-promo-banner {
             display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
             flex-wrap: wrap; margin-top: 24px; padding: 20px 22px; cursor: pointer;
+            position: relative;
             background: linear-gradient(120deg, rgba(212,160,23,0.14), rgba(16,26,43,0.95));
             border: 1px solid rgba(212,160,23,0.5); border-radius: 14px;
             transition: border-color .15s ease, transform .15s ease;
         }
         .gl-promo-banner:hover { border-color: #f0c243; transform: translateY(-1px); }
+        .gl-promo-banner.is-loading { cursor: wait; transform: none; border-color: #f0c243; }
+        .gl-promo-banner.is-loading::before {
+            content: ''; position: absolute; z-index: 2;
+            width: 28px; height: 28px; left: 50%; top: 50%;
+            margin: -14px; border: 3px solid rgba(240,194,67,0.25);
+            border-top-color: #f0c243; border-right-color: #f8fafc;
+            border-radius: 50%; animation: glPromoSpin .7s linear infinite;
+        }
+        .gl-promo-banner.is-loading::after {
+            content: ''; position: absolute; z-index: 1; inset: 0;
+            border-radius: inherit; background: rgba(8,15,28,0.68);
+            backdrop-filter: blur(2px);
+        }
+        .gl-promo-banner.is-loading .gl-promo-left,
+        .gl-promo-banner.is-loading .gl-promo-btn { opacity: .55; }
+        @keyframes glPromoSpin { to { transform: rotate(360deg); } }
         .gl-promo-tag {
             display: inline-block; padding: 3px 10px; margin-bottom: 8px;
             background: linear-gradient(90deg, #d4a017, #f0c243); color: #101a2b;
@@ -7294,7 +7311,7 @@
 
                             <!-- GERI Live launch offer promo — shown inside Step 2 for non-subscribers -->
                             <div id="glDashPromo" style="display:none;margin-top:14px;" onclick="event.stopPropagation();">
-                                <div class="gl-promo-banner" onclick="event.stopPropagation();glStartCheckout();">
+                                <div class="gl-promo-banner" onclick="event.stopPropagation();if (startPromoLoading(this)) glStartCheckout();">
                                     <div class="gl-promo-left" style="flex:1;min-width:0;">
                                         <div>
                                             <span class="gl-promo-tag" id="glPromoTag">GERI LIVE</span>
@@ -7315,7 +7332,7 @@
                                         </div>
                                         <div id="glPromoBonusWarn" style="margin-top:6px;font-size:11.5px;color:#f87171;font-weight:600;">⚠️ Bonuses only available if you subscribe during this 36h window. Not included after the offer expires.</div>
                                     </div>
-                                    <button class="gl-promo-btn" id="glPromoBtn" onclick="event.stopPropagation();glStartCheckout();">Start free trial →</button>
+                                    <button class="gl-promo-btn" id="glPromoBtn" onclick="event.stopPropagation();if (startPromoLoading(this)) glStartCheckout();">Start free trial →</button>
                                 </div>
                             </div>
                         </div>
@@ -7350,7 +7367,7 @@
 
                             <!-- Daily Intelligence Report promo — shown inside Step 3 for non-subscribers -->
                             <div id="drDashPromo" style="display:none;margin-top:14px;" onclick="event.stopPropagation();">
-                                <div class="gl-promo-banner" onclick="event.stopPropagation();drStartCheckout();">
+                                <div class="gl-promo-banner" onclick="event.stopPropagation();if (startPromoLoading(this)) drStartCheckout();">
                                     <div class="gl-promo-left" style="flex:1;min-width:0;">
                                         <div>
                                             <span class="gl-promo-tag" style="background:rgba(167,139,250,0.15);color:#a78bfa;border-color:rgba(167,139,250,0.3);">DAILY INTELLIGENCE REPORT</span>
@@ -7358,7 +7375,7 @@
                                         <div class="gl-promo-title">Daily energy market decision intelligence · <span id="drPromoPrice">14-day free trial, then €8/month</span></div>
                                         <div class="gl-promo-sub">Understand what changed, whether markets confirm it, what scenarios are developing and what to watch next.</div>
                                     </div>
-                                    <button class="gl-promo-btn" id="drPromoBtn" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);box-shadow:0 0 20px rgba(167,139,250,0.3);" onclick="event.stopPropagation();drStartCheckout();">Start free trial →</button>
+                                    <button class="gl-promo-btn" id="drPromoBtn" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);box-shadow:0 0 20px rgba(167,139,250,0.3);" onclick="event.stopPropagation();if (startPromoLoading(this)) drStartCheckout();">Start free trial →</button>
                                 </div>
                             </div>
                         </div>
@@ -18020,12 +18037,17 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             try {
                 const r = await fetch('/api/daily-report/checkout', { method:'POST', headers:{ 'x-user-token': token }});
                 const data = await r.json();
-                if (data.already_active) { drLoadStatus(); return; }
+                if (data.already_active) {
+                    resetPromoLoading(document.getElementById('drDashPromo'));
+                    drLoadStatus();
+                    return;
+                }
                 if (data.checkout_url) { window.location.href = data.checkout_url; return; }
                 throw new Error('No checkout URL');
             } catch (e) {
                 console.error('drStartCheckout', e);
                 if (btn) { btn.disabled = false; }
+                resetPromoLoading(document.getElementById('drDashPromo'));
                 drLoadStatus();
                 alert('Unable to start checkout. Please try again.');
             }
@@ -18490,6 +18512,42 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
         }
 
+        function startPromoLoading(source) {
+            const banner = source && source.closest ? source.closest('.gl-promo-banner') : null;
+            if (!banner || banner.classList.contains('is-loading')) return false;
+            banner.classList.add('is-loading');
+            banner.setAttribute('aria-busy', 'true');
+            const button = banner.querySelector('.gl-promo-btn');
+            if (button) {
+                button.disabled = true;
+                button.dataset.promoOriginalText = button.textContent;
+                button.textContent = 'Opening…';
+            }
+            return true;
+        }
+
+        function resetPromoLoading(source) {
+            let banner = null;
+            if (typeof source === 'string') source = document.querySelector(source);
+            if (source && source.classList && source.classList.contains('gl-promo-banner')) {
+                banner = source;
+            } else if (source && source.querySelector) {
+                banner = source.querySelector('.gl-promo-banner');
+            }
+            if (!banner && source && source.closest) banner = source.closest('.gl-promo-banner');
+            if (!banner) return;
+            banner.classList.remove('is-loading');
+            banner.removeAttribute('aria-busy');
+            const button = banner.querySelector('.gl-promo-btn');
+            if (button) {
+                button.disabled = false;
+                if (button.dataset.promoOriginalText) {
+                    button.textContent = button.dataset.promoOriginalText;
+                    delete button.dataset.promoOriginalText;
+                }
+            }
+        }
+
         async function glStartCheckout() {
             const token = drGetAuthToken();
             if (!token) { window.location.href = '/users'; return; }
@@ -18498,12 +18556,17 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             try {
                 const r = await fetch('/api/geri-live/checkout', { method:'POST', headers:{ 'x-user-token': token }});
                 const data = await r.json();
-                if (data.already_active) { glGate(); return; }
+                if (data.already_active) {
+                    resetPromoLoading(document.getElementById('glDashPromo'));
+                    glGate();
+                    return;
+                }
                 if (data.checkout_url) { window.location.href = data.checkout_url; return; }
                 throw new Error('No checkout URL');
             } catch (e) {
                 console.error('glStartCheckout', e);
                 if (btn) { btn.disabled = false; }
+                resetPromoLoading(document.getElementById('glDashPromo'));
                 glGate();
                 alert('Unable to start checkout. Please try again.');
             }
