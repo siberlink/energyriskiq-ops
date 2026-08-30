@@ -1,0 +1,1121 @@
+# Dashboard V2 Resolved Decisions
+
+## Status
+
+**Canonical decision record for Dashboard V2 development.** These decisions resolve the remaining questions identified across the New Dashboard Architecture, New Dashboard Implementation Decisions, and Dashboard V2 Technical Blueprint.
+
+This document preserves the complete consolidated answer set below. Where earlier documents contain provisional or conflicting recommendations, this record is authoritative for Release 1 implementation.
+
+## Related documents
+
+- [New Dashboard Architecture.md](New%20Dashboard%20Architecture.md) — strategic seven-layer architecture.
+- [New Dashboard Implementation Decisions.md](New%20Dashboard%20Implementation%20Decisions.md) — earlier strategic decision record.
+- [Dashboard V2 Technical Blueprint.md](Dashboard%20V2%20Technical%20Blueprint.md) — engineering structure and implementation sequence.
+
+## Final locked implementation position
+
+- Welcome begins on the first successful server-side meaningful intent, not on Dashboard render or a Newsletter click.
+- Welcome grants full internal intelligence breadth but never external Widget embedding rights.
+- The €9.95 Widget Pack is deferred beyond Release 1.
+- The €29 Bundle offer is behavior/context triggered and never the automatic conclusion of Routine #1.
+- V2 uses the definitive Dashboard, Intelligence, Risk Dashboards, Market Tools, Delivery, Support, and Account navigation structure.
+- The initial API uses a hybrid bootstrap-plus-targeted-endpoints model.
+- Entitlements are capability-based, additive, server-authoritative, and protected by a 24-hour last-known-good positive cache during verification outages.
+- Existing-user Migration is opt-in with a 14-day claim window; paid subscriptions are never modified.
+- Freshness, methodology, billing, Newsletter context, privacy, flags, rollback, and test gates are now explicitly specified in the full record below.
+
+## Full consolidated decision specification
+
+---
+
+Yes. Below is the consolidated Dashboard V2 decision specification I would treat as the baseline for development. Where a numerical value should remain configurable, I say so explicitly.
+
+1. Welcome Experience
+1. When does the 7-Day Premium Welcome Experience begin?
+
+Definitive rule: first meaningful intent.
+
+The 168-hour clock starts on the first successful server-side occurrence of either:
+
+user clicks Start Today’s Routine; or
+user intentionally opens a premium capability.
+
+A Dashboard V2 render alone does not activate it.
+
+A Newsletter click alone does not activate it.
+
+A Newsletter deep link into a Free/contextual Routine step does not activate it.
+
+A Newsletter deep link that actually opens full DIR, GERI Live, Brent Forecast, or a full internal Pro Widget does activate it, because that constitutes premium intent.
+
+Activation must be atomic/idempotent so two tabs/devices cannot start two experiences.
+
+2. Welcome capabilities
+
+Welcome grants:
+
+Capability	Welcome
+Daily Risk	✅
+Intraday Risk / GERI Live	✅
+Full DIR	✅
+Brent Forecast	✅
+WTI internal Widget	✅
+LNG internal Widget	✅
+Storage internal Widget	✅
+External Widget embedding	❌
+
+Important architectural rule:
+
+widget_lng_internal and widget_lng_embed are different entitlements.
+
+The Welcome Experience exposes the breadth of the premium product, but does not grant publishing/embed rights.
+
+2. Commercial scope and offers
+3. €9.95 Widget Pack
+
+Deferred beyond Release 1.
+
+Release 1 has:
+
+WTI €4.95
+LNG €4.95
+Storage €4.95
+
+There should be:
+
+no €9.95 Stripe Product yet;
+no Pack checkout;
+no Pack CTA;
+no Pack billing-transition logic.
+
+Design the entitlement architecture so it can be added later.
+
+4. When can the €29 Bundle first appear?
+
+Use a behavior/context rule, not merely Day 3.
+
+A non-subscriber becomes eligible when:
+
+A. They have completed Routine #1, returned on Visit 2+, and shown meaningful interest in GERI Live/DIR/Brent Forecast;
+
+OR
+
+B. They intentionally encounter a locked Bundle capability after Welcome/Migration access has expired.
+
+Do not show the €29 Bundle as the automatic conclusion of Routine #1.
+
+Routine #1 should end with:
+
+Today’s intelligence complete. Come back tomorrow to see what changed.
+
+5. Commercial-offer precedence
+
+Use this hard precedence:
+
+Priority	Message
+1	Critical service/security/account issue
+2	Billing/payment action required
+3	Migration activation/expiry where applicable
+4	Welcome Experience expiry
+5	Contextual locked-feature offer
+6	Newsletter-contextual offer
+7	Usage-based cross-sell
+8	Generic campaign
+
+Only one primary commercial offer may be visible at once.
+
+Contextual locked cards inside the currently opened Routine step are allowed, but there should never be several competing banners.
+
+Never advertise a product the user already owns.
+
+Existing Bundle users should see virtually no generic intelligence upselling.
+
+3. Navigation
+6. Definitive sidebar
+
+Use:
+
+DASHBOARD
+  Today
+
+INTELLIGENCE
+  GERI Live
+  Daily Intelligence Report
+  Brent Forecast
+  Alerts
+
+RISK DASHBOARDS
+  Global Energy Risk — GERI
+  Europe Energy Risk — EERI
+  Europe Gas Stress — EGSI
+
+MARKET TOOLS
+  WTI Intelligence
+  LNG Intelligence
+  Gas Storage Intelligence
+
+DELIVERY
+  Email Delivery
+  Notification Preferences
+
+SUPPORT
+  Help & Support
+  My Tickets
+
+ACCOUNT
+  Subscription & Billing
+  Account & Preferences
+
+Recommended routes:
+
+/dashboard
+
+/dashboard/intelligence/geri-live
+/dashboard/intelligence/daily-report
+/dashboard/intelligence/brent-forecast
+/dashboard/intelligence/alerts
+
+/dashboard/risk/global
+/dashboard/risk/europe
+/dashboard/risk/gas-stress
+
+/dashboard/tools/wti
+/dashboard/tools/lng
+/dashboard/tools/gas-storage
+
+/dashboard/delivery/email
+/dashboard/delivery/preferences
+
+/dashboard/support
+/dashboard/support/tickets
+
+/dashboard/account/subscription
+/dashboard/account/preferences
+
+Default open groups:
+
+Dashboard + Intelligence.
+
+Routine remains exclusively inside Dashboard.
+
+4. API and data architecture
+7. Initial API structure
+
+Use the Hybrid model.
+
+Initial render:
+
+GET /api/dashboard/v2/bootstrap
+
+Bootstrap contains:
+
+user/account identity;
+effective entitlements;
+Welcome/Migration status;
+current Routine state;
+Newsletter context;
+primary banner/offer;
+freshness summary;
+lightweight Step 1–5 summaries.
+
+Heavy/live content uses targeted endpoints.
+
+Examples:
+
+/api/dashboard/v2/routine
+/api/intelligence/geri-live
+/api/intelligence/daily-report
+/api/intelligence/brent-forecast
+/api/markets/confirmation
+/api/widgets/wti
+/api/widgets/lng
+/api/widgets/storage
+
+The rule is:
+
+Bootstrap contains everything required to render immediately, not every detailed dataset.
+
+8. Cache/refresh policy
+
+User identity / authorization
+
+No unsafe client caching.
+
+Entitlements
+
+Server-side short cache; invalidate immediately after:
+
+Stripe change;
+Welcome/Migration activation;
+admin grant/revoke.
+
+Routine state
+
+Server authoritative. Write-through.
+
+Daily intelligence
+
+Cache by:
+
+snapshot_id / intelligence_date.
+
+Intraday/live markets
+
+Refresh independently according to source cadence.
+
+Newsletter context/offers
+
+Short per-user/context cache is acceptable.
+
+Partial bootstrap responses are explicitly allowed:
+
+risk: ready
+market_confirmation: partial
+dir: delayed
+newsletter_context: unavailable
+
+A TTF failure must not make /bootstrap return 500.
+
+Identity/authorization failures are different: those are critical.
+
+9. Methodology
+
+Use a deterministic, documented, versioned methodology layer.
+
+Acceleration
+
+Use rate-of-change relative to metric-specific baselines and persistence.
+
+Output:
+
+FALLING_FAST
+FALLING
+STABLE
+RISING
+RISING_FAST
+
+Exact thresholds/windows should be historically validated and approved by the domain owner.
+
+Confirmation
+
+Each market produces:
+
+CONFIRMS
+PARTIALLY_CONFIRMS
+NEUTRAL
+CONTRADICTS
+INSUFFICIENT_DATA
+
+Aggregate transparently into:
+
+CONFIRMED
+PARTIAL
+MIXED
+NOT_CONFIRMED
+INSUFFICIENT_DATA
+
+Do not create an opaque AI score in Release 1.
+
+Conflicting markets should produce Mixed, not be forced into one conclusion.
+
+Forecast
+
+The existing Brent Forecast Engine is authoritative.
+
+Dashboard consumes its result; Dashboard does not create a second independent forecast methodology.
+
+Watch conditions
+
+Every Watch signal should define:
+
+metric
+operator
+threshold
+window
+persistence
+priority
+expiry
+methodology_version
+Governance
+
+Developers implement methodology.
+
+The domain/product owner approves methodology changes.
+
+Every derived result carries:
+
+methodology_version.
+
+Historical published results retain their original methodology version.
+
+10. Freshness/fallback rules
+
+Use:
+
+FRESH → DELAYED → STALE → UNAVAILABLE
+
+Recommended registry:
+
+Dataset	Normal cadence	Grace	Stale	Last-good maximum
+GERI/EERI/EGSI	Daily	90 min	~30h	48h
+GERI Live	Pipeline cadence	+15 min	~60 min	4h
+Brent/WTI/TTF/VIX	Intraday	10–15 min	30–60 min market-hours	~1h
+JKM	Daily	6h	36h	72h
+Storage	Daily	6h	36h	72h
+DIR	Daily	90 min	30h	48h
+Forecast	On demand	N/A	Input-driven	Do not regenerate from unusably stale inputs
+Widgets	Source-driven	Inherit	Inherit	Inherit
+
+These values belong in configuration.
+
+Market-closed data is not automatically stale:
+
+Market closed — latest available price.
+
+Hard rule:
+
+Old data can be displayed. Old data can never masquerade as current data.
+
+Routine completion remains possible using valid last-good data, clearly labelled.
+
+If a step has insufficient usable data, exclude it from the denominator:
+
+4 of 4 available steps complete
+
+rather than falsely showing 4/5.
+
+11. Entitlement-service outage
+
+Use a last-known-good positive entitlement cache for maximum 24 hours.
+
+During that window:
+
+preserve already verified paid access;
+preserve already verified temporary access until its known expiry;
+never create new premium access from cache;
+never extend access beyond a known expiry.
+
+If verification remains unavailable after 24h:
+
+preserve the account/subscription status in UI;
+serve safe baseline intelligence;
+stop serving unverified premium depth;
+trigger operational escalation.
+
+Message:
+
+We’re temporarily unable to verify your premium access. Your subscription has not been changed.
+
+Never downgrade someone simply because one entitlement API request failed.
+
+5. Entitlements and migration
+12. Existing-user Migration Experience
+
+Existing users at the defined migration cutoff become:
+
+ELIGIBLE
+
+They receive a 14-day claim window.
+
+Activation is opt-in.
+
+ELIGIBLE
+   ├── Activate → ACTIVE → EXPIRED
+   ├── Dismiss → DISMISSED → reclaim → ELIGIBLE
+   └── deadline → CLAIM_WINDOW_EXPIRED
+
+Store timestamps in UTC.
+
+Activation creates:
+
+ends_at = started_at + 168 hours.
+
+Dismissal is reversible until the claim deadline.
+
+Existing GERI subscriber gets complementary:
+
+DIR;
+internal Widgets.
+
+Existing DIR subscriber gets:
+
+GERI Live;
+Brent Forecast;
+internal Widgets.
+
+Their paid subscription is never modified.
+
+If they subscribe/upgrade while Migration remains active, paid and temporary grants coexist. Temporary access expires normally.
+
+13. Complete capability mapping
+Account state	Daily risk	Intraday/GERI	DIR	Forecast	Internal Widgets	Embed
+Free	✅	Preview	Preview	Preview/limited	Preview	❌
+Welcome	✅	✅	✅	✅	✅ all	❌
+Migration Free	✅	✅	✅	✅	✅ all	❌
+GERI subscriber	✅	✅	Preview	✅	Preview	❌
+DIR subscriber	✅	Preview	✅	Preview	Preview	❌
+€29 Bundle	✅	✅	✅	✅	Preview	❌
+WTI subscriber	✅	Preview	Preview	Preview	WTI ✅	WTI ✅
+LNG subscriber	✅	Preview	Preview	Preview	LNG ✅	LNG ✅
+Storage subscriber	✅	Preview	Preview	Preview	Storage ✅	Storage ✅
+Cancellation pending	Existing paid access until period end					
+Failed-payment grace	Preserve verified paid access during grace					
+Restricted	Free baseline + account/billing recovery	❌ premium	❌	❌	❌	❌
+Suspended	Account-management/security-only according to suspension reason					
+
+A user can have combined entitlements.
+
+Example:
+
+Bundle + LNG Widget means full Bundle intelligence plus LNG internal/embed access.
+
+14. Lifecycle rules
+
+Welcome and Migration never overlap.
+
+Cutoff rule:
+
+registered before migration_cohort_cutoff
+→ Migration cohort
+
+registered after cutoff
+→ Welcome cohort
+
+Experiences are one-time.
+
+Changing email does not reset eligibility.
+
+Account deletion/recreation should not automatically generate another Welcome if identity/history can reasonably be linked.
+
+Do not introduce invasive fingerprinting solely to prevent abuse.
+
+Activation from multiple tabs/devices must be protected by an atomic database transaction:
+
+first activation wins.
+
+Admin may:
+
+revoke;
+extend;
+issue support grants.
+
+Every change requires:
+
+reason;
+actor;
+timestamp;
+audit record.
+6. Billing
+15. Stripe billing policy
+
+Treat this behavior as locked:
+
+€29 Bundle is a real Stripe product;
+upgrade to Bundle = immediate with proration;
+downgrade = period end;
+cancellation = access through current billing period;
+failed-payment grace = configurable;
+existing legacy subscription pricing remains while subscription stays continuously active.
+
+Actual Stripe Product/Price IDs remain configuration values.
+
+16. Billing edge cases
+
+Failed payment
+
+ACTIVE
+→ GRACE
+→ ACTIVE if recovered
+→ RESTRICTED if retries/grace fail
+
+Recommended initial grace: 3 days, configurable.
+
+Refund
+
+Manual Release-1 handling. Refund decision and entitlement decision should be explicit rather than blindly coupled.
+
+Chargeback/dispute
+
+Flag for manual review; allow immediate restriction when justified.
+
+Price change
+
+New customers use new Price ID.
+
+Existing customers remain on legacy Price ID unless deliberately migrated.
+
+Legacy pricing
+
+Continuous active legacy subscriptions preserve their current price.
+
+Cancel and resubscribe → current catalog pricing.
+
+Tax/VAT
+
+Stripe/billing configuration is authoritative.
+
+Dashboard should never calculate VAT itself.
+
+Clearly state whether shown price includes/excludes VAT according to actual commerce setup.
+
+Checkout vs Customer Portal
+
+Use your controlled checkout for:
+
+first subscription;
+Bundle upgrades where custom logic is required;
+Widget purchases.
+
+Customer Portal is appropriate for:
+
+payment methods;
+invoices;
+cancellation;
+supported straightforward subscription-management actions.
+
+Do not expose Portal actions that bypass your entitlement-transition rules unless tested.
+
+17. Stripe vs internal conflicts
+
+Responsibility:
+
+Stripe = authoritative for financial subscription state.
+
+EnergyRiskIQ = authoritative for effective product entitlement.
+
+Internal entitlements are derived from:
+
+Stripe billing state
++
+temporary grants
++
+admin grants
++
+Free baseline
+
+Periodic reconciliation should automatically repair safe deterministic differences, such as:
+
+Stripe says active Bundle
+internal subscription mirror missing Bundle.
+
+Alert/manual review for:
+
+conflicting customer IDs;
+unexpected duplicate subscriptions;
+disputed subscription ownership;
+repeated webhook mismatch;
+paid access disappearing;
+internal entitlement existing with no identifiable valid source.
+
+Never let reconciliation modify Stripe subscriptions merely to make internal state match.
+
+7. Newsletter
+18. Deep-link contract
+
+Canonical URL:
+
+https://energyriskiq.com/n/{edition-slug}
+
+Allowed public query parameters:
+
+cta
+utm_source
+utm_medium
+utm_campaign
+utm_content
+
+Server-side edition mapping determines:
+
+topic;
+entry Routine step;
+featured product;
+Companion content.
+
+Users cannot alter the actual entry-step/product mapping by editing URL parameters.
+
+Context durations
+
+Active Dashboard contextual treatment:
+
+24h or Routine completion, whichever comes first.
+
+Newsletter edition route itself remains usable indefinitely while edition exists.
+
+Anonymous
+Newsletter
+→ context stored
+→ Signup
+→ Dashboard
+→ mapped step
+Logged out existing user
+Newsletter
+→ Login
+→ Dashboard
+→ mapped step
+Logged in
+
+Direct to mapped Dashboard context.
+
+Earlier Routine steps are not marked completed or viewed automatically.
+
+Premium deep-link activation:
+
+contextual Free Step 3 → no Welcome activation;
+actual full LNG Widget / DIR / GERI Live / Forecast open → activates Welcome.
+
+Invalid/deleted edition:
+
+→ Today's Routine
+
+plus diagnostic event.
+
+19. Featured product unavailable
+
+Fallback order:
+
+preserve Newsletter topic;
+open the mapped relevant Routine step;
+show available current intelligence;
+omit/replace unavailable product-specific continuation with generic contextual continuation;
+record:
+
+newsletter_featured_product_unavailable.
+
+Do not route the visitor to an error page.
+
+Do not silently substitute an unrelated commercial product.
+
+20. Newsletter attribution
+
+Store separately:
+
+First touch
+
+Original acquisition edition/source.
+
+Last meaningful touch
+
+Most recent Newsletter/content interaction materially preceding conversion.
+
+Conversion attribution
+
+Initial window: 30 days.
+
+After login, cross-device sessions can associate to user_id.
+
+Before authentication, do not fingerprint users.
+
+If cookies/consent are unavailable, preserve only what can legitimately survive the immediate navigation/signup flow; do not break the user experience because attribution is unavailable.
+
+8. Privacy and retention
+21. Consent policy
+
+Separate three categories.
+
+Essential
+
+authentication;
+security;
+billing;
+entitlements;
+account-level Routine state;
+operational reliability;
+consent settings.
+
+Analytics
+
+Behavioral/product analytics according to your applicable consent implementation.
+
+Marketing/personalization
+
+Persistent campaign attribution and usage-based commercial personalization should be consent-aware.
+
+Opt-out must not remove access to normal Dashboard functionality.
+
+Avoid putting PII such as email/name into analytics events.
+
+Use:
+
+user_id
+visitor_id
+session_id.
+
+22. Retention policy
+
+Recommended initial policy:
+
+Data	Retention
+Anonymous visitor ID	6 months where permitted
+Active Newsletter context	24h/Routine completion
+Conversion attribution	30 days
+Raw product analytics	13 months
+Personalization interest data	Rolling 90 days
+Routine progress	Keep while operationally useful; historical summary may remain
+Temporary entitlement records	Permanent/audit retention unless policy requires otherwise
+Entitlement audit log	Long-term operational/audit retention
+Billing records	Legal/accounting requirement
+Truly anonymized aggregate statistics	Long-term
+
+On deletion request:
+
+unlink/delete personal analytics as applicable;
+remove visitor→user association;
+remove personalization;
+preserve only legally required financial records and genuinely anonymized aggregates.
+23. Existing legal/privacy policy
+
+Rule:
+
+The currently published EnergyRiskIQ Privacy/Cookie Policy remains authoritative where it is stricter than this technical design.
+
+Dashboard V2 must not silently introduce new tracking purposes outside the published disclosure/consent structure.
+
+If V2 introduces new persistent attribution, personalization or analytics categories, update the legal/cookie disclosures before enabling those features.
+
+Do not treat this product architecture as legal advice; actual implementation should be aligned with your deployed policy and applicable EU/NL requirements.
+
+9. Feature flags and administration
+24. Governance
+
+Logical roles:
+
+Role	Responsibility
+Owner/Super Admin	Rollout, emergency rollback, sensitive config
+Product Admin	Dashboard flags, campaigns, offers, cohorts
+Billing Admin	Catalog/reconciliation/billing support
+Editorial Admin	Newsletter/context mappings
+Support Admin	Limited expiring support grants
+Read-only	Analytics/audit
+
+Major rollout and billing-sensitive changes require Owner authorization.
+
+All material changes are audited.
+
+25. Feature flags
+
+Release 1:
+
+dashboard_v2_enabled
+
+legacy_dashboard_override
+
+routine_enabled
+
+welcome_experience_enabled
+
+migration_experience_enabled
+
+intelligence_bundle_checkout_enabled
+
+newsletter_context_enabled
+
+internal_widgets_enabled
+
+offer_rules_enabled
+
+Dependencies:
+
+welcome_experience
+→ requires entitlement service
+
+migration_experience
+→ requires entitlement service
+
+bundle checkout
+→ requires Stripe catalog + entitlement mapping
+
+newsletter context
+→ requires Dashboard V2
+
+offer rules
+→ requires Dashboard V2 + entitlement state
+
+Dangerous/new flags default OFF until rollout approval.
+
+26. Cohorts
+
+Recommended ordered cohorts:
+
+INTERNAL
+
+PAID_PILOT
+
+FREE_PILOT
+
+EXISTING_FREE_MIGRATION
+
+NEW_REGISTRATIONS
+
+NEWSLETTER_TRAFFIC
+
+Support:
+
+percentage rollout;
+explicit included accounts;
+explicit excluded accounts;
+admin override.
+
+Migration cohort assignment should be deterministic using the migration cutoff.
+
+Every manual override is audited.
+
+27. Admin-editable vs version-controlled
+
+Admin-editable
+
+campaign/offer copy;
+dates/deadlines;
+Newsletter mapping;
+featured product;
+Companion editorial text;
+rollout percentage;
+offer suppression windows;
+feature flags.
+
+Protected/version-controlled
+
+capability definitions;
+entitlement precedence;
+Routine semantics;
+Routine canonical names;
+core navigation architecture;
+methodology logic;
+security rules;
+product-to-capability mapping, except controlled catalog configuration.
+
+Product pricing/Stripe IDs belong to protected Product Catalog configuration, not free-form marketing fields.
+
+10. Operations and rollback
+28. Go/no-go criteria
+
+Before any external cohort:
+
+100% critical acceptance tests passing
+0 Severity-1 billing defects
+0 Severity-1 entitlement defects
+0 known paid users incorrectly losing access
+0 temporary grants surviving beyond expected expiry
+0 stale data presented as current
+successful Stripe/internal reconciliation for pilot accounts
+tested rollback.
+
+Before larger cohort:
+
+≥7 stable pilot days;
+Dashboard critical API error rate <1%;
+entitlement discrepancies = 0 unexplained;
+Routine analytics functioning.
+
+Newsletter stage additionally requires deep-link/login/signup routing and consent behavior.
+
+I would use a Newsletter routing-error objective of <1%, excluding user/network errors.
+
+Checkout failures should be monitored against the baseline; any systemic failure affecting payment completion is a rollout stop regardless of exact percentage.
+
+29. Incident ownership
+
+For a small operation, you do not need a giant enterprise on-call framework, but ownership must be explicit.
+
+Critical
+
+Stripe/access mismatch;
+paid entitlement loss;
+widespread authentication issue;
+entitlement expiry corruption.
+
+Owner/Engineering response target:
+
+immediate alert; investigation ideally within 15–30 minutes while actively operating the service.
+
+High
+
+Daily intelligence pipeline delayed;
+GERI Live stale;
+major market-data outage.
+
+Data/Operations owner.
+
+Medium
+
+Newsletter context failures;
+analytics failures;
+isolated Widget issue.
+
+Product/Engineering.
+
+Alert destinations should initially be something you actively monitor—email plus one immediate notification channel—not logs alone.
+
+30. Rollback
+
+Rollback procedure:
+
+dashboard_v2_enabled = false
+
+welcome_experience_enabled = false
+  // stops NEW activations only
+
+migration_experience_enabled = false
+  // stops NEW claims only
+
+newsletter_context_enabled = false
+
+intelligence_bundle_checkout_enabled = false
+  // only if billing flow is affected
+
+Already granted Welcome/Migration entitlements remain valid until their promised expiry unless there is a security reason to revoke them.
+
+Existing Stripe subscriptions remain completely untouched.
+
+Routine/analytics history remains stored.
+
+Legacy Dashboard becomes the presentation layer again.
+
+31. Legacy retirement
+
+Do not use an arbitrary calendar date.
+
+Retire only after:
+
+100% Dashboard V2 rollout;
+minimum 30 days production stability;
+at least 14 consecutive days with no Severity-1 entitlement/billing issue;
+no unresolved rollback dependency;
+acceptable support volume;
+two stable production releases is preferable.
+
+Then disable Legacy for normal users.
+
+Keep code/recovery path through one further stable release before permanent removal.
+
+11. Testing and release gates
+32. Mandatory tests before first external cohort
+
+Hard-gate tests:
+
+Free → Welcome → Free
+Migration Free → Migration → Free
+GERI + complimentary DIR → restored GERI
+DIR + complimentary GERI → restored DIR
+GERI → Bundle
+DIR → Bundle
+cancellation at period end
+failed-payment grace/recovery/restriction
+Welcome Widget internal access without embed access
+entitlement API outage/cache
+stale/partial/missing data
+Stripe reconciliation
+multi-tab activation race
+feature-flag rollback
+security/authorization boundaries.
+
+Before broader rollout also require:
+
+mobile;
+cross-device Routine state;
+Newsletter routing;
+invalid Newsletter link;
+accessibility critical paths;
+performance;
+consent/attribution behavior.
+33. Cohort promotion/rollback thresholds
+
+Internal → Paid pilot
+
+All critical tests 100%.
+
+Paid pilot → Free pilot
+
+No paid-access corruption; reconciliation exact.
+
+Free pilot → all existing Free
+
+At least 7 stable days, no Severity-1 issues, <1% critical Dashboard API failures.
+
+Existing → New registrations
+
+Welcome lifecycle verified in real production conditions.
+
+New registrations → Newsletter
+
+Signup/login context return, attribution and contextual deep links fully verified.
+
+Immediate rollback trigger:
+
+incorrect billing mutation;
+paid-access loss;
+premium access granted to unauthorized accounts;
+temporary entitlement expiry failure at scale;
+security issue;
+stale data materially represented as current;
+systemic checkout failure.
+
+Conversion being lower than hoped is not itself a technical rollback trigger.
+
+34. Routine persistence
+
+Yes. Account-level and intelligence-snapshot-specific.
+
+Recommended structure:
+
+user_id
+routine_id
+intelligence_snapshot_id
+intelligence_date
+
+started_at
+completed_at
+
+step_1_completed_at
+step_2_completed_at
+step_3_completed_at
+step_4_completed_at
+step_5_completed_at
+
+Users may navigate directly to later steps.
+
+Viewing does not equal completion.
+
+Each step completes through a meaningful explicit interaction—preferably the step's Continue action after the content has successfully loaded.
+
+A user deep-linked to Step 3 therefore sees:
+
+Step 1 ○
+Step 2 ○
+Step 3 active
+
+not fake completion.
+
+Delayed but usable data may still be completed when clearly labelled.
+
+Partial data may be completed if enough valid information exists to support that step.
+
+If insufficient data exists:
+
+Step unavailable
+
+and remove it from the completion denominator.
+
+Progress follows the authenticated user across devices.
+
+The five backend authorities I would lock
+
+At this point Dashboard V2 should be built around five clear authorities:
+
+INTELLIGENCE SNAPSHOT SERVICE
+What valid intelligence exists?
+
+ENTITLEMENT SERVICE
+What may this user access?
+
+ROUTINE SERVICE
+Where is this user in today's workflow?
+
+BILLING / PRODUCT CATALOG
+What products does this user commercially own?
+
+CONTEXT SERVICE
+Why is this user here and what should be emphasized?
+
+Then Dashboard V2 becomes largely a presentation layer over those authorities.
+
+That is the architecture I would now consider sufficiently defined to begin implementation without reopening the strategic fundamentals.

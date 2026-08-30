@@ -10,9 +10,12 @@
 
 - [New Dashboard Architecture.md](New%20Dashboard%20Architecture.md) — strategic architecture across seven layers.
 - [New Dashboard Implementation Decisions.md](New%20Dashboard%20Implementation%20Decisions.md) — product, commercial, entitlement, Newsletter, and rollout decisions.
+- [Dashboard V2 Resolved Decisions.md](Dashboard%20V2%20Resolved%20Decisions.md) — canonical final answers that supersede earlier provisional or conflicting recommendations.
 - [Full implementation answer set](#appendix-a--full-implementation-answer-set) — preserved at the end of this document.
 
 This document is the bridge between strategy and implementation. It distinguishes decisions that are already locked from technical details that should be confirmed while the first vertical slice is built.
+
+For final decisions that must govern implementation, use [Dashboard V2 Resolved Decisions.md](Dashboard%20V2%20Resolved%20Decisions.md).
 
 ## 1. Release 1 objective and boundary
 

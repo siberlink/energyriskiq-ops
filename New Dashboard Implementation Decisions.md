@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document is the implementation-decision companion to [New Dashboard Architecture.md](New%20Dashboard%20Architecture.md). The architecture document describes the strategic model across seven layers; this document records the answers that turn that model into concrete product, entitlement, navigation, funnel, analytics, and rollout rules.
+This document is the implementation-decision companion to [New Dashboard Architecture.md](New%20Dashboard%20Architecture.md). The architecture document describes the strategic model across seven layers; this document records the answers that turn that model into concrete product, entitlement, navigation, funnel, analytics, and rollout rules. The later, canonical resolutions are preserved in [Dashboard V2 Resolved Decisions.md](Dashboard%20V2%20Resolved%20Decisions.md).
 
 ## Implementation position
 

@@ -15,8 +15,8 @@ The three architectural backbones are an Intelligence Snapshot Service, an Entit
 
 **How to apply:** Build the snapshot contract, capability vocabulary, temporary experience/grant records, audit trail, and server-side APIs before expanding the React surface. Never label stale data as current, silently fall back to Free on entitlement lookup failure, or let an expired temporary grant override paid access.
 
-Newsletter context should use a first-party canonical redirect and a database-backed edition record; historical Newsletter evidence must remain immutable while the click-through Dashboard may show current intelligence. Analytics should use one versioned event envelope, with commercial and entitlement events generated server-side and attribution separated from essential product telemetry.
+The canonical final decisions are stored in [Dashboard V2 Resolved Decisions.md](../../Dashboard%20V2%20Resolved%20Decisions.md). They lock meaningful-intent Welcome activation, the hybrid bootstrap API, the 14-day opt-in Migration Experience, a 24-hour last-known-good entitlement cache, deferred Widget Pack, behavior-triggered Bundle offers, and the definitive seven-group sidebar.
 
 **Why:** This preserves editorial credibility, prevents URL parameters from changing funnel logic, and keeps conversion reporting trustworthy without requiring invasive cross-device tracking.
 
-**How to apply:** Treat the blueprint as the engineering baseline and keep unresolved physical schema/API naming decisions documented during technical design rather than scattering them through UI components.
+**How to apply:** Treat the resolved-decision document as authoritative for Release 1 behavior, the technical blueprint as the engineering structure, and the architecture document as the strategic context. Keep physical schema names and implementation details consistent with those sources rather than reopening locked product decisions in UI components.
