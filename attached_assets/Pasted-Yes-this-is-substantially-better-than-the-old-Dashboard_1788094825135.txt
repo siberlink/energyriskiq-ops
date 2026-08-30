@@ -1,0 +1,633 @@
+Yes — this is substantially better than the old Dashboard architecture. It now feels like an intelligence product rather than a collection of separate tools.
+
+The most important improvement is that the Dashboard has a clear hierarchy:
+
+Today → Risk → Change → Confirm → Interpret → Watch
+
+That is exactly the mental model EnergyRiskIQ should be teaching users. I would keep this architecture. I would, however, make several changes before considering Dashboard V2 finished.
+
+Overall assessment
+
+I would rate the current version around 8.5/10 architecturally.
+
+Visually, it already looks credible and professional. More importantly, it is starting to answer the question:
+
+"What should I do when I log into EnergyRiskIQ?"
+
+instead of asking the user to figure out which tool to open.
+
+The biggest remaining opportunity is to make the page feel less like a dashboard navigation screen and more like a daily intelligence briefing.
+
+Right now I can see the workflow, but I still have to do some work to discover the actual intelligence.
+
+1. The 5-step Routine is the strongest part — make it the centerpiece
+
+This is the right architecture:
+
+01 Risk
+What is the current risk level?
+
+02 Change
+What changed since the last snapshot?
+
+03 Confirm
+Which market signals confirm the move?
+
+04 Interpret
+What does today's intelligence mean?
+
+05 Watch
+What should you monitor next?
+
+Keep this permanently.
+
+But there is an immediate UI inconsistency:
+
+0 / 4 available
+
+while there are five steps.
+
+I would change the wording entirely.
+
+Instead of:
+
+0 / 4 available
+
+use:
+
+0 / 5 completed
+
+or, even better:
+
+Step 1 of 5
+
+"Available" sounds like product access/permissions rather than routine progress.
+
+2. Don't make users manually "Mark step complete"
+
+This is one of the main things I would change.
+
+Currently you have:
+
+Mark step complete
+
+and
+
+Start today's routine
+
+The Dashboard itself should know when the user has meaningfully interacted with a step.
+
+For example, opening Risk and spending a few seconds on it, expanding the analysis, or clicking "Continue to Change" can automatically complete the step.
+
+Then the primary CTA becomes:
+
+Continue → Change
+
+rather than:
+
+Mark step complete
+
+That feels much more like a guided intelligence workflow.
+
+The sequence should behave almost like onboarding, but repeat every day:
+
+Risk → Continue → Change → Continue → Confirm → Continue → Interpret → Continue → Watch
+
+And after Step 5:
+
+Today's intelligence routine complete ✓
+
+Potentially followed by:
+
+Next update expected: 01:30 UTC
+
+This creates habit.
+
+3. The current Risk section needs one layer of interpretation
+
+At the moment I see:
+
+GERI — 10 — LOW
+EERI — 17 — LOW
+EGSI-M — 6.29 — LOW
+
+That's useful data.
+
+But the Dashboard should immediately tell me what those three numbers mean together.
+
+Under the three cards, before the buttons, I would add something like:
+
+Current risk picture
+
+Global and European energy risk remain low. European gas stress is also contained, with no material escalation currently visible across the three risk indicators.
+
+Then perhaps:
+
+What matters: No major risk escalation signal is currently active.
+
+That sentence becomes extremely important because it turns EnergyRiskIQ from a data display into an intelligence system.
+
+The individual indices provide evidence.
+
+EnergyRiskIQ provides the conclusion.
+
+4. Your STALE treatment is correct — but make it more informative
+
+I strongly agree with your decision to visibly label stale data.
+
+"Old data is never presented as current."
+
+Excellent architectural rule.
+
+But instead of simply:
+
+GERI ● STALE
+
+I would ideally show:
+
+GERI · Updated 14h ago · STALE
+
+or:
+
+Last update: Aug 29, 01:30 UTC
+
+This immediately answers:
+
+"How stale?"
+
+Because there is a very different psychological reaction between data being 30 minutes late versus 36 hours old.
+
+You could also give a subtle tooltip:
+
+Daily GERI normally updates at approximately 01:30 UTC.
+
+5. Your Welcome Experience banner needs a stronger CTA
+
+Current:
+
+Your 7-day intelligence welcome is active
+Explore the full daily workflow, including live risk, reports, and internal widgets.
+
+Then the only prominent action is:
+
+Dismiss
+
+That wastes valuable real estate.
+
+I would change it to something like:
+
+Your 7-Day Intelligence Welcome — Day 1 of 7
+
+Full access to GERI Live, Daily Intelligence Report, Brent Forecast and internal market intelligence is active until September 5.
+
+Then have:
+
+Explore Premium Intelligence →
+
+and a smaller:
+
+Dismiss
+
+Even better, show:
+
+6 days remaining
+
+This does two things simultaneously:
+
+explains why premium functionality is available;
+creates a natural, non-aggressive time boundary.
+
+Importantly, I would not plaster pricing everywhere during these seven days.
+
+The goal during the Welcome period should be:
+
+Experience → habit → perceived value → conversion
+
+not:
+
+signup → immediately sell.
+
+6. "Effective access" is technically accurate but sounds like developer terminology
+
+This section is useful internally, but:
+
+Effective access
+
+doesn't sound like customer-facing language.
+
+I'd rename it:
+
+Your access
+
+or, during Welcome:
+
+Included in your 7-Day Welcome
+
+Then:
+
+Daily Risk — Available
+GERI Live — Available
+Daily Intelligence Report — Available
+Brent Forecast — Available
+WTI Intelligence — Available
+LNG Intelligence — Available
+Gas Storage Intelligence — Available
+
+That's much easier to understand.
+
+And I would explicitly tag temporary premium access:
+
+GERI Live — PREMIUM · INCLUDED
+
+rather than simply:
+
+AVAILABLE
+
+This is important commercially.
+
+Otherwise the user has no idea they're experiencing something they would normally need to pay for.
+
+7. Move "External WTI embedding" out of this panel
+
+This is the one item that feels out of place.
+
+You have:
+
+External WTI embedding — PREVIEW
+Publishing / external embed right
+
+That's an entirely different product concept from intelligence consumption.
+
+Your Dashboard user is thinking:
+
+What is happening in energy markets?
+
+Suddenly they are being told about:
+
+external widget publishing rights.
+
+I would remove it from the Today page.
+
+It belongs under something like:
+
+Widgets → Publishing / Embed
+
+or
+
+Subscription & Billing → Widget licenses
+
+This keeps the Today experience focused.
+
+8. I would actually reduce the left navigation slightly
+
+The left navigation looks considerably better than the old layout, and I would keep the left navigation.
+
+But there are still many destinations.
+
+Currently:
+
+Dashboard
+Intelligence
+Risk Dashboards
+Market Tools
+Delivery
+Support
+Account
+
+This is acceptable because the categories are collapsed/structured.
+
+However, I would reconsider the names inside Market Tools.
+
+Instead of:
+
+WTI Intelligence
+LNG Intelligence
+Gas Storage Intelligence
+
+this is good branding, provided the pages are genuinely more than widgets.
+
+That's much better than calling them:
+
+Pro Widgets
+
+because "Widget" sounds like a small commodity feature worth €2–€5.
+
+"Intelligence" sounds like part of the EnergyRiskIQ analysis layer.
+
+That repositioning fits your new architecture extremely well.
+
+9. I'd make "Today" visually different from the rest of the navigation
+
+You're already doing this somewhat.
+
+I would go further.
+
+"Today" shouldn't feel like another page.
+
+It should feel like:
+
+Home / Mission Control
+
+I'd probably retain the yellow/gold accent for Today and premium/intelligence events, while keeping everything else quieter.
+
+The user's default behavior should eventually become:
+
+Open EnergyRiskIQ → Today → complete 3–5 minute intelligence routine.
+
+That's exactly the habit we discussed earlier.
+
+10. Step 02 "Change" will probably become your highest-value daily section
+
+This is where Dashboard V2 can become genuinely differentiated.
+
+Risk gives me:
+
+GERI = 10.
+
+Change should tell me:
+
+GERI ↓ 3 since yesterday
+
+EERI unchanged
+
+EGSI-M ↑ 1.4
+
+Brent +1.8%
+
+TTF −0.7%
+
+JKM unchanged
+
+Then EnergyRiskIQ synthesizes it:
+
+Risk declined globally, while European gas stress increased slightly. The signals are currently divergent rather than systemic.
+
+This is much more valuable than individual dashboards.
+
+And it's the type of information that Bloomberg/TradingView users don't necessarily receive as a ready-made risk interpretation.
+
+11. Step 03 "Confirm" could become a powerful differentiator
+
+This section should answer:
+
+Are markets agreeing with the risk signal?
+
+For example:
+
+Market confirmation
+
+Brent: confirming ↑
+TTF: neutral →
+JKM: neutral →
+VIX: confirming ↑
+GERI Live: accelerating ↑
+
+Then:
+
+Confirmation strength: 3 / 5
+
+And finally:
+
+Moderate confirmation — the risk increase is visible in oil and volatility but has not propagated into European gas or LNG.
+
+Now you're building a real intelligence framework.
+
+12. Step 04 "Interpret" should connect directly to DIR
+
+This is where the Daily Intelligence Report should become deeply integrated rather than looking like an unrelated subscription product in the navigation.
+
+For free users during normal access, perhaps they see:
+
+Today's interpretation
+
+Energy risk remains low, but a modest increase in European gas stress warrants monitoring.
+
+Read full Daily Intelligence Report →
+
+During the 7-day Welcome:
+
+full report accessible.
+
+After Welcome:
+
+summary remains visible, deeper interpretation becomes premium.
+
+This creates a very natural conversion pathway.
+
+Not:
+
+"Buy DIR."
+
+But:
+
+"You just received the answer; deeper reasoning is available here."
+
+Much stronger.
+
+13. Step 05 "Watch" should become one of your stickiest features
+
+I would structure it almost like a personalized watchlist:
+
+What to watch next
+
+GERI Live
+Watch for movement above 15.
+
+Brent
+Watch $XX resistance.
+
+European Storage
+Watch weekly injection pace.
+
+TTF
+Monitor response to storage change.
+
+Next scheduled intelligence update
+01:30 UTC.
+
+Then:
+
+Create alert
+
+That's how you turn a daily dashboard into something users come back to.
+
+14. One thing is missing at the top: a one-sentence Daily Intelligence Summary
+
+Immediately below:
+
+Today's intelligence
+
+I would add something stronger than the current description.
+
+For example:
+
+Energy risk remains low today, with no broad market confirmation of escalation. European gas stress is the main signal to watch.
+
+Then underneath in small text:
+
+Last intelligence refresh: Aug 30 · 01:34 UTC
+
+This becomes the answer to:
+
+"I only have 10 seconds. What do I need to know?"
+
+The Routine is what users do when they have 3 minutes.
+
+DIR is what they use when they want 5–10 minutes.
+
+GERI Live is what they use when they need continuous monitoring.
+
+That creates a beautiful information hierarchy.
+
+15. I'd change the top area hierarchy slightly
+
+The page currently goes:
+
+Today's Intelligence
+Welcome Banner
+Today's Routine
+Risk information
+
+I would probably make it:
+
+Today's Intelligence
+
+One-line intelligence summary
+
+Welcome banner
+
+Today's Routine
+
+Active Step intelligence
+
+That means the user receives value before being asked to do anything.
+
+Very important psychologically.
+
+16. There should be a visible relationship between the Routine and the underlying products
+
+This could become one of the smartest aspects of the architecture.
+
+For example:
+
+Routine	EnergyRiskIQ intelligence
+01 Risk	GERI / EERI / EGSI
+02 Change	Daily changes + GERI Live
+03 Confirm	Brent / WTI / TTF / LNG / Storage / VIX
+04 Interpret	Daily Intelligence Report + Brent Forecast
+05 Watch	Alerts + GERI Live
+
+Users gradually learn what the EnergyRiskIQ tools do without you having to sell them individually.
+
+That's excellent for conversion.
+
+17. The page should progressively change after the Welcome period
+
+This is important.
+
+I would not build separate dashboards for free, Welcome and paid users.
+
+Use the same architecture.
+
+The difference is depth.
+
+For example:
+
+Free
+
+Risk → full
+Change → basic
+Confirm → selected signals
+Interpret → summary
+Watch → basic
+
+7-Day Welcome
+
+Everything → full
+
+Paid Intelligence Bundle
+
+Everything → full
+
+Individual product subscriber
+
+Free intelligence + their subscribed premium capability.
+
+So even someone paying only for DIR or GERI Live never gets a "broken" Dashboard.
+
+They get the same intelligence workflow, with premium depth appearing where their subscription applies.
+
+That's the architecture I strongly prefer.
+
+18. Consider making the cards less visually uniform
+
+There is currently quite a lot of:
+
+dark card inside dark card inside dark container.
+
+It's clean, but the information hierarchy gets slightly flattened.
+
+I'd use the visual emphasis selectively:
+
+Current active step → strongest border/accent.
+
+Important intelligence conclusion → medium emphasis.
+
+Supporting data → quieter.
+
+Administrative/access info → weakest.
+
+Right now "Effective access" visually competes too much with the actual Risk intelligence.
+
+That's backwards from the user's perspective.
+
+19. The biggest strategic improvement I would make
+
+I'd design Dashboard V2 around three layers:
+
+Layer 1 — 10 seconds
+
+What matters today?
+
+One sentence.
+
+Layer 2 — 3 minutes
+
+Today's Intelligence Routine
+
+Risk → Change → Confirm → Interpret → Watch.
+
+Layer 3 — investigation
+
+GERI Live
+DIR
+Brent Forecast
+WTI Intelligence
+LNG Intelligence
+Storage Intelligence
+Risk dashboards.
+
+This would make EnergyRiskIQ feel dramatically more coherent.
+
+The current screenshot is already about 80–85% toward this model.
+
+My priority changes before you continue development
+
+If I were giving Codex the next development instructions, I would do these in this order:
+
+Fix 0/4 → 0/5 and change "available" to progress/completion.
+Add the one-line "Today's Intelligence Summary" at the top.
+Replace manual "Mark step complete" with Continue → next step behavior.
+Add short intelligence interpretation beneath raw Risk values.
+Rename Effective Access → Your Access / Included in Your Welcome.
+Show PREMIUM · INCLUDED beside temporarily unlocked capabilities.
+Add Day X of 7 / days remaining to the Welcome banner.
+Add a real CTA to the Welcome banner, not just Dismiss.
+Remove External WTI Embedding from Today.
+Make Steps 2–5 progressively connect to GERI Live, market intelligence, DIR, Forecast and Alerts.
+Reduce visual prominence of access/account information.
+Add precise data freshness timestamps wherever STALE appears.
+
+If those changes are implemented, I think you've got the core Dashboard V2 architecture right. I would not redesign it again. From here, the important work is making each of the five Routine stages exceptionally useful.
+
+And strategically, this also gives us the architecture we need for the LinkedIn Newsletter funnel: a newsletter can deep-link users directly into Risk, Change, Confirm, Interpret, or Watch, while the Dashboard naturally exposes the premium intelligence surrounding that specific question. That is considerably more powerful than sending newsletter traffic to isolated product pages.
