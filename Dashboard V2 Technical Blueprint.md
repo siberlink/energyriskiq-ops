@@ -1,4 +1,234 @@
-# Dashboard V2 Technical Blueprint\n\n## Document status\n\n**Status:** Technical design baseline for Release 1\n\n**Purpose:** Translate the approved New Dashboard Architecture and implementation answer set into an engineering-ready blueprint for Dashboard V2 development.\n\n**Companion documents:**\n\n- [New Dashboard Architecture.md](New%20Dashboard%20Architecture.md) — strategic architecture across seven layers.\n- [New Dashboard Implementation Decisions.md](New%20Dashboard%20Implementation%20Decisions.md) — product, commercial, entitlement, Newsletter, and rollout decisions.\n- [Full implementation answer set](#appendix-a--full-implementation-answer-set) — preserved at the end of this document.\n\nThis document is the bridge between strategy and implementation. It distinguishes decisions that are already locked from technical details that should be confirmed while the first vertical slice is built.\n\n## 1. Release 1 objective and boundary\n\nRelease 1 must prove one product loop:\n\n> A registered user completes a useful daily intelligence routine, returns, discovers premium depth, and can upgrade safely.\n\nEverything that does not directly support that loop should be simplified or postponed.\n\n### Required in Release 1\n\n| Capability | Treatment |\n|---|---|\n| Dashboard V2 shell | Required |\n| New left navigation | Required |\n| Five-step 3-Minute Intelligence Routine | Core product |\n| Free versus Premium depth | Required |\n| Server-side capability-based entitlement service | Required; security-critical |\n| 7-Day Premium Welcome Experience | Required |\n| Existing-user Migration Experience | Required |\n| Temporary entitlement system | Required |\n| Existing GERI Live and DIR subscriptions | Preserve without automatic changes |\n| Intelligence Bundle at €29/month | Real product and price |\n| Individual €4.95 Widgets | Existing commercial layer; internal access in V2 |\n| Internal Widget access and previews | Required |\n| Contextual Newsletter deep links | Basic version |\n| Newsletter attribution | Basic first-touch, last-touch, and conversion touch |\n| Canonical analytics events | Required |\n| Rules-based contextual offers | Simple version |\n| Advanced Newsletter Companion | Basic Release 1 version; expand later |\n\n### Explicitly deferred\n\nFull personalization scoring, the €9.95 Widget Pack, Complete Intelligence, event-driven 24-hour passes, the external Widget embedding overhaul, embedded Widget usage analytics, Saved Widget Presets, automated Newsletter mapping, AI recommendations, agency licensing, extensive customization, and user-defined Routine structures must not block Release 1.\n\nInternal WTI, LNG, and Gas Storage intelligence is in scope. Existing external embeds must continue to work where customers already depend on them, but a new embed-management platform is not a Release 1 blocker.\n\n## 2. Parallel Dashboard architecture and rollout\n\nDashboard V2 must be built in parallel with the legacy Dashboard, not spliced into it and not destructively replacing it.\n\nConceptual routing:\n\n    /dashboard\n        ↓\n    dashboard_v2_enabled(user)\n        YES → Dashboard V2\n        NO  → Legacy Dashboard\n\nAdministrators need a temporary way to force Legacy Dashboard for diagnosis and rollback. Retain the legacy implementation through at least two stable production releases, ideally about 30 days after full migration.\n\nRollout order: internal users → two existing paid accounts → approximately ten existing Free users → remaining existing users → new registrations → Newsletter traffic.\n\nIndependent controls should exist for Dashboard V2 rendering, Welcome activation, Migration activation, Bundle checkout visibility, Newsletter contextual routing, internal Widget access, and contextual offer rules. These controls must not alter existing Stripe subscriptions.\n\n## 3. Backbone service architecture\n\nDashboard V2 has three core backend services. Everything else is presentation or an integration around them.\n\n### Intelligence Snapshot Service\nAnswers: **What intelligence exists right now?** It normalizes source data, identifies the snapshot, evaluates freshness, represents partial failures, and preserves the historical snapshot identity used by the Routine and Newsletter evidence.\n\n### Entitlement Service\nAnswers: **How much of the intelligence may this user access?** It resolves Free baseline access, paid subscriptions, temporary experiences, and separate internal versus external Widget permissions. The browser never decides access.\n\n### Routine Service\nAnswers: **Where is this user in today's workflow?** It identifies the current intelligence snapshot, persists step completion, supports cross-device continuation, and reports honest progress during partial failure.\n\nThe Dashboard should conceptually request today's intelligence, effective entitlements, Routine state, Newsletter context, and current offer state, then render the appropriate experience.\n\n## 4. Normalized intelligence data model\n\nEvery Routine dataset must use a common semantic envelope containing:\n\n- snapshot_id\n- intelligence_date\n- generated_at_utc\n- data_as_of_utc\n- status: fresh, delayed, stale, partial, or unavailable\n- freshness: expected interval, maximum age, and delay reason\n- payload\n- available sections\n- errors\n\nFreshness is evaluated by a server-side dataset registry with dataset identifier, expected cadence, maximum age, grace period, source, fallback policy, and status rules. Frontend components must not contain supplier-specific age thresholds.\n\nHard rule: never display older data as though it were today's current intelligence. When data is late, show the actual data-as-of time and a delayed message. When one input fails, show a partial state and allow independent work to continue. When all inputs for one step fail, show that step as unavailable and report progress honestly, such as 4 of 5 available steps completed.\n\n## 5. Five-step Routine contracts\n\n### Step 1 — What's happening to risk?\nSources: GERI, EERI, EGSI-M, and EGSI-S. Required normalized fields: index code, current value, previous value, absolute change, methodologically valid percentage change, direction, regime, intelligence date, and data-as-of time. Free includes the daily reading, regime, direction, change, and concise explanation. Premium may add intraday context, acceleration, regime-transition context, and relevant GERI Live intelligence.\n\n### Step 2 — Is risk accelerating?\nSources: GERI Live, daily GERI movement, and recent intraday trajectory. Required fields: current value, session-start value, change, change rate, direction, recent high, recent low, regime, regime-changed state, and last update. Initially classify movement as Rising, Rising rapidly, Stable, Falling, or Falling rapidly using documented thresholds. Do not expose an acceleration metric until its methodology is defensible.\n\n### Step 3 — Are markets confirming it?\nUse a normalized Market Confirmation Engine for Brent, WTI, TTF, JKM, EU Gas Storage, and VIX. Each market provides value, unit, previous value, change, percentage change, data-as-of time, direction, and confirmation state: confirms, partially confirms, contradicts, neutral, or insufficient data. The step should explain relationships among markets, not merely display six prices.\n\n### Step 4 — What does it mean?\nDIR provides headline, summary, drivers, implications, oil/gas/LNG market groups, scenarios, risk-management notes, generated time, and data-as-of time. Free receives one short interpretation. DIR access adds full interpretation, scenarios, implications, and actionable takeaways.\n\n### Step 5 — What should I watch next?\nEach watch item contains ID, title, market, category, why it matters, condition, time horizon, importance, and source product. Free receives two or three principal watch items. DIR, GERI Live, and Bundle users receive deeper Watch and Scenario context.\n\n## 6. Entitlement architecture\n\nUse capability-based permissions rather than product-name checks. Initial capabilities include risk_daily, risk_intraday, dir_full, forecast_brent_full, widget_wti_internal, widget_lng_internal, widget_storage_internal, widget_wti_embed, widget_lng_embed, widget_storage_embed, alerts_basic, and alerts_advanced.\n\nEffective access is additive: account suspension/security block first, then active paid subscription, active temporary entitlement, and Free baseline. A capability is available when at least one valid non-blocked source grants it. Do not create casual DENY records when a temporary grant expires; the expired grant simply stops contributing.\n\nThe authoritative browser-facing contract should be conceptually similar to GET /api/me/entitlements and return allowed state, access level, source, expiration, and subscription/product context per capability.\n\nStore temporary access in an experience record and separate entitlement-grant records. Experience types include welcome, migration, promotion, event pass, and admin grant. Retain expired records permanently for analytics, debugging, migration, abuse detection, support, and audit history. Maintain an entitlement audit log.\n\nIf entitlement resolution fails, do not silently assume Free and remove a paying user's access. Show that subscription verification is temporarily unavailable, preserve account state, retry server-side, and alert on persistent failure.\n\n## 7. Billing and product catalog\n\nMaintain one authoritative Product Catalog. Initial product codes are DIR, GERI_LIVE, INTELLIGENCE_BUNDLE, WIDGET_WTI, WIDGET_LNG, and WIDGET_STORAGE. Configuration supplies display name, billing model, currency, display price, tax behavior, Stripe Product ID, Stripe Price ID, and active state.\n\nThe €29/month Intelligence Bundle is a real Stripe Product and Price mapping to risk_intraday, dir_full, and forecast_brent_full. Actual Stripe IDs must come from the configured Stripe account, never invented in application code.\n\nStripe is billing authority; EnergyRiskIQ is effective-entitlement authority. Recommended behavior: GERI Live or DIR to Bundle is an immediate prorated upgrade; Bundle downgrades occur at period end; cancellation retains access through current_period_end; failed payment uses a configurable retry/grace policy; tax and VAT stay in Stripe/billing infrastructure.\n\nRun periodic reconciliation across Stripe subscription state, internal billing state, and effective entitlements. Alert and reconcile safely on disagreement; do not rely only on webhooks.\n\n## 8. Dashboard V2 presentation contract\n\nAbove the fold: greeting/date, latest intelligence time, at most one priority banner, the 3-Minute Routine, progress, and Step 1. Pricing, multiple Widget cards, and product advertisements must not appear before the user sees intelligence.\n\nDuring the seven-day experience use a compact status such as Premium Intelligence · 5 days remaining. Escalate to a primary banner only when 24 hours or less remain.\n\nEvery intelligence component supports loading, ready, partial, delayed, stale, unavailable, locked, and subscription-error states. Use skeletons rather than spinner-only loading. Locked states show genuine Free information before premium depth.\n\nOn mobile, one primary Routine step is expanded at a time; Continue collapses the current step, expands the next, and scrolls naturally; deep links open the requested step; a small sticky Continue action is allowed only during an active step; permanent Buy Premium actions are not fixed to the bottom; primary banners should occupy less than approximately 20% of the initial viewport.\n\nTarget WCAG 2.2 AA. Accordions must be keyboard-operable, aria-expanded must be correct, focus must move logically, color must not be the only signal, contrast must be sufficient, live updates must be restrained, reduced motion must be honored, loading and locked states must be announced, and countdowns must have readable date/time equivalents.\n\nKeep Routine names, methodology, product names, entitlement explanations, capability mapping, completion behavior, access/security wording, and structural navigation version-controlled. Admin may edit safe campaign, expiry, Newsletter Companion, product-mapping, offer, badge, deadline, and campaign-date content.\n\nAuthenticated offer dismissals are stored per user, offer, and offer version with suppression timing and dismissal type. Anonymous visitors may use temporary browser storage until authentication.\n\n## 9. Newsletter context and attribution\n\nUse a stable first-party redirect such as /n/ERIQ-2026-01 or /go/newsletter/2026-01. Keep optional UTM and CTA parameters for analytics, but let the database determine entry step, featured product, and Companion context.\n\nA Newsletter edition record contains ID, slug, publication time, title, topic, entry step, featured and optional secondary products, Free and Premium Companion copy, and draft/scheduled/published/archived status. Release 1 mapping is manual through Admin.\n\nAnonymous visitors preserve context through signup and return to the contextual Routine. Logged-in visitors open the selected step directly. Invalid or deleted editions fall back to the current Routine and record a diagnostic event. Historical editions retain historical editorial evidence while the click-through Dashboard can show current intelligence.\n\nPublished Newsletter images use frozen historical snapshots. Store edition, image role, generation time, data-as-of time, dataset snapshot ID, and version. Corrections create a new version instead of silently overwriting the original.\n\nThe Newsletter Companion answers what has changed relative to the article topic. Free gets context, a relevant indicator, one interpretation, and Continue Routine. Entitled users receive the relevant temporarily unlocked or paid depth.\n\n## 10. Widgets\n\nInternal WTI, LNG, and Storage intelligence is in scope. Internal Widget permission and external embed permission are separate capabilities. Welcome users may receive internal access while embed access remains false.\n\nWhen embedding is expanded, use allowed domains, revocable site keys, signed short-lived bootstrap authorization, server-side subscription checks, origin validation, rate limits, revocation, graceful inactive rendering, and key rotation. Do not rely on Referer alone.\n\nThe first Widget value milestone is What Changed? rather than Saved Presets. It should explain movement against yesterday or a recent baseline and turn the Widget into decision support.\n\n## 11. Analytics and privacy\n\nUse one versioned event envelope with event ID, event name, event version, UTC occurrence time, nullable user and visitor IDs, session ID, source, campaign, Newsletter edition, topic, product, Routine step, entitlement state, experience type, experiment variant, and properties.\n\nUse stable names such as dashboard_viewed, routine_started, routine_step_completed, premium_experience_started, offer_viewed, checkout_started, subscription_started, newsletter_context_opened, and widget_opened. Server-generate commercial and entitlement events; client events may record UI interactions.\n\nCreate a first-party random visitor ID, store Newsletter touch data, associate it with user ID after authentication, and retain first acquisition and last meaningful acquisition separately. Do not fingerprint users. The core product works without persistent attribution when cookies or consent are unavailable.\n\nSeparate essential telemetry, product analytics, and marketing attribution/personalization. Store consent version, analytics permission, marketing permission, and update time. Avoid email addresses in event payloads and support removal or pseudonymization of behavioral and visitor-linkage data where required.\n\n## 12. Operations, rollback, and migration safety\n\nAlert immediately on unexpected paid-access loss, mass entitlement discrepancies, or temporary-entitlement corruption. Alert at high severity for late daily intelligence, stale GERI Live, and Stripe synchronization failure. Monitor Newsletter deep-link errors, valid embed rejection, and analytics ingestion failures.\n\nRollback sequence: disable Dashboard V2; disable new Welcome activations if needed; disable new Migration activations if needed; preserve grants already promised; suppress affected Bundle checkout if billing is implicated; never modify existing Stripe subscriptions during UI rollback.\n\nPrefer additive, backward-compatible schema changes so Legacy Dashboard can continue while V2 uses new entitlement, experience, Newsletter context, Routine, and analytics structures.\n\n## 13. Routine persistence and acceptance gates\n\nRoutine progress belongs to the account. Persist user ID, Routine ID, intelligence date, start/completion times, and per-step completion times. This enables cross-device continuation, time-to-complete, abandonment, and retention analysis.\n\nMandatory acceptance coverage includes Welcome and Migration lifecycles, preserved paid subscriptions, GERI-to-Bundle and DIR-to-Bundle billing, cancellation period-end access, failed-payment grace/restriction, internal-versus-embed Widget permissions, Newsletter routing and invalid-edition fallback, all freshness/failure states, cross-device Routine state, and cross-device offer dismissals.\n\nThe UI must never label old intelligence as current.\n\n## 14. Recommended implementation sequence\n\n1. Define and version the capability vocabulary.\n2. Define the normalized snapshot envelope and dataset registry.\n3. Add persistence for experiences, grants, audit events, Newsletter context, and Routine progress.\n4. Implement effective entitlement resolution and its server-side API.\n5. Implement the Routine service and snapshot-aware progress persistence.\n6. Build Dashboard V2 in parallel behind the Dashboard V2 flag.\n7. Add basic Newsletter redirect/context flow.\n8. Add Product Catalog and Bundle billing mapping without changing existing subscriptions.\n9. Add canonical analytics events and operational alerts.\n10. Run lifecycle, freshness, billing, Newsletter, mobile, and cross-device acceptance tests.\n11. Roll out by cohort while retaining Legacy Dashboard rollback.\n\n## 15. Non-goals for the first implementation\n\nAI recommendations, sophisticated product-interest scores, embedded Widget analytics, agency licensing, Widget Pack, Complete Intelligence, automatic Newsletter mapping, dynamic event passes, extensive customization, drag-and-drop cards, and user-defined Routine structures must not delay the first vertical slice.\n\n> Routine → return → premium discovery → subscription.\n\n## Appendix A — Full implementation answer set\n\nThe complete answer set supplied for this blueprint is preserved below so that no implementation nuance is lost during summarization.\n\n---\n\nYes. These questions are the point where the strategy becomes an engineering specification. The attached set correctly identifies the remaining implementation blockers.
+# Dashboard V2 Technical Blueprint
+
+## Document status
+
+**Status:** Technical design baseline for Release 1
+
+**Purpose:** Translate the approved New Dashboard Architecture and implementation answer set into an engineering-ready blueprint for Dashboard V2 development.
+
+**Companion documents:**
+
+- [New Dashboard Architecture.md](New%20Dashboard%20Architecture.md) — strategic architecture across seven layers.
+- [New Dashboard Implementation Decisions.md](New%20Dashboard%20Implementation%20Decisions.md) — product, commercial, entitlement, Newsletter, and rollout decisions.
+- [Full implementation answer set](#appendix-a--full-implementation-answer-set) — preserved at the end of this document.
+
+This document is the bridge between strategy and implementation. It distinguishes decisions that are already locked from technical details that should be confirmed while the first vertical slice is built.
+
+## 1. Release 1 objective and boundary
+
+Release 1 must prove one product loop:
+
+> A registered user completes a useful daily intelligence routine, returns, discovers premium depth, and can upgrade safely.
+
+Everything that does not directly support that loop should be simplified or postponed.
+
+### Required in Release 1
+
+| Capability | Treatment |
+|---|---|
+| Dashboard V2 shell | Required |
+| New left navigation | Required |
+| Five-step 3-Minute Intelligence Routine | Core product |
+| Free versus Premium depth | Required |
+| Server-side capability-based entitlement service | Required; security-critical |
+| 7-Day Premium Welcome Experience | Required |
+| Existing-user Migration Experience | Required |
+| Temporary entitlement system | Required |
+| Existing GERI Live and DIR subscriptions | Preserve without automatic changes |
+| Intelligence Bundle at €29/month | Real product and price |
+| Individual €4.95 Widgets | Existing commercial layer; internal access in V2 |
+| Internal Widget access and previews | Required |
+| Contextual Newsletter deep links | Basic version |
+| Newsletter attribution | Basic first-touch, last-touch, and conversion touch |
+| Canonical analytics events | Required |
+| Rules-based contextual offers | Simple version |
+| Advanced Newsletter Companion | Basic Release 1 version; expand later |
+
+### Explicitly deferred
+
+Full personalization scoring, the €9.95 Widget Pack, Complete Intelligence, event-driven 24-hour passes, the external Widget embedding overhaul, embedded Widget usage analytics, Saved Widget Presets, automated Newsletter mapping, AI recommendations, agency licensing, extensive customization, and user-defined Routine structures must not block Release 1.
+
+Internal WTI, LNG, and Gas Storage intelligence is in scope. Existing external embeds must continue to work where customers already depend on them, but a new embed-management platform is not a Release 1 blocker.
+
+## 2. Parallel Dashboard architecture and rollout
+
+Dashboard V2 must be built in parallel with the legacy Dashboard, not spliced into it and not destructively replacing it.
+
+Conceptual routing:
+
+    /dashboard
+        ↓
+    dashboard_v2_enabled(user)
+        YES → Dashboard V2
+        NO  → Legacy Dashboard
+
+Administrators need a temporary way to force Legacy Dashboard for diagnosis and rollback. Retain the legacy implementation through at least two stable production releases, ideally about 30 days after full migration.
+
+Rollout order: internal users → two existing paid accounts → approximately ten existing Free users → remaining existing users → new registrations → Newsletter traffic.
+
+Independent controls should exist for Dashboard V2 rendering, Welcome activation, Migration activation, Bundle checkout visibility, Newsletter contextual routing, internal Widget access, and contextual offer rules. These controls must not alter existing Stripe subscriptions.
+
+## 3. Backbone service architecture
+
+Dashboard V2 has three core backend services. Everything else is presentation or an integration around them.
+
+### Intelligence Snapshot Service
+Answers: **What intelligence exists right now?** It normalizes source data, identifies the snapshot, evaluates freshness, represents partial failures, and preserves the historical snapshot identity used by the Routine and Newsletter evidence.
+
+### Entitlement Service
+Answers: **How much of the intelligence may this user access?** It resolves Free baseline access, paid subscriptions, temporary experiences, and separate internal versus external Widget permissions. The browser never decides access.
+
+### Routine Service
+Answers: **Where is this user in today's workflow?** It identifies the current intelligence snapshot, persists step completion, supports cross-device continuation, and reports honest progress during partial failure.
+
+The Dashboard should conceptually request today's intelligence, effective entitlements, Routine state, Newsletter context, and current offer state, then render the appropriate experience.
+
+## 4. Normalized intelligence data model
+
+Every Routine dataset must use a common semantic envelope containing:
+
+- snapshot_id
+- intelligence_date
+- generated_at_utc
+- data_as_of_utc
+- status: fresh, delayed, stale, partial, or unavailable
+- freshness: expected interval, maximum age, and delay reason
+- payload
+- available sections
+- errors
+
+Freshness is evaluated by a server-side dataset registry with dataset identifier, expected cadence, maximum age, grace period, source, fallback policy, and status rules. Frontend components must not contain supplier-specific age thresholds.
+
+Hard rule: never display older data as though it were today's current intelligence. When data is late, show the actual data-as-of time and a delayed message. When one input fails, show a partial state and allow independent work to continue. When all inputs for one step fail, show that step as unavailable and report progress honestly, such as 4 of 5 available steps completed.
+
+## 5. Five-step Routine contracts
+
+### Step 1 — What's happening to risk?
+Sources: GERI, EERI, EGSI-M, and EGSI-S. Required normalized fields: index code, current value, previous value, absolute change, methodologically valid percentage change, direction, regime, intelligence date, and data-as-of time. Free includes the daily reading, regime, direction, change, and concise explanation. Premium may add intraday context, acceleration, regime-transition context, and relevant GERI Live intelligence.
+
+### Step 2 — Is risk accelerating?
+Sources: GERI Live, daily GERI movement, and recent intraday trajectory. Required fields: current value, session-start value, change, change rate, direction, recent high, recent low, regime, regime-changed state, and last update. Initially classify movement as Rising, Rising rapidly, Stable, Falling, or Falling rapidly using documented thresholds. Do not expose an acceleration metric until its methodology is defensible.
+
+### Step 3 — Are markets confirming it?
+Use a normalized Market Confirmation Engine for Brent, WTI, TTF, JKM, EU Gas Storage, and VIX. Each market provides value, unit, previous value, change, percentage change, data-as-of time, direction, and confirmation state: confirms, partially confirms, contradicts, neutral, or insufficient data. The step should explain relationships among markets, not merely display six prices.
+
+### Step 4 — What does it mean?
+DIR provides headline, summary, drivers, implications, oil/gas/LNG market groups, scenarios, risk-management notes, generated time, and data-as-of time. Free receives one short interpretation. DIR access adds full interpretation, scenarios, implications, and actionable takeaways.
+
+### Step 5 — What should I watch next?
+Each watch item contains ID, title, market, category, why it matters, condition, time horizon, importance, and source product. Free receives two or three principal watch items. DIR, GERI Live, and Bundle users receive deeper Watch and Scenario context.
+
+## 6. Entitlement architecture
+
+Use capability-based permissions rather than product-name checks. Initial capabilities include risk_daily, risk_intraday, dir_full, forecast_brent_full, widget_wti_internal, widget_lng_internal, widget_storage_internal, widget_wti_embed, widget_lng_embed, widget_storage_embed, alerts_basic, and alerts_advanced.
+
+Effective access is additive: account suspension/security block first, then active paid subscription, active temporary entitlement, and Free baseline. A capability is available when at least one valid non-blocked source grants it. Do not create casual DENY records when a temporary grant expires; the expired grant simply stops contributing.
+
+The authoritative browser-facing contract should be conceptually similar to GET /api/me/entitlements and return allowed state, access level, source, expiration, and subscription/product context per capability.
+
+Store temporary access in an experience record and separate entitlement-grant records. Experience types include welcome, migration, promotion, event pass, and admin grant. Retain expired records permanently for analytics, debugging, migration, abuse detection, support, and audit history. Maintain an entitlement audit log.
+
+If entitlement resolution fails, do not silently assume Free and remove a paying user's access. Show that subscription verification is temporarily unavailable, preserve account state, retry server-side, and alert on persistent failure.
+
+## 7. Billing and product catalog
+
+Maintain one authoritative Product Catalog. Initial product codes are DIR, GERI_LIVE, INTELLIGENCE_BUNDLE, WIDGET_WTI, WIDGET_LNG, and WIDGET_STORAGE. Configuration supplies display name, billing model, currency, display price, tax behavior, Stripe Product ID, Stripe Price ID, and active state.
+
+The €29/month Intelligence Bundle is a real Stripe Product and Price mapping to risk_intraday, dir_full, and forecast_brent_full. Actual Stripe IDs must come from the configured Stripe account, never invented in application code.
+
+Stripe is billing authority; EnergyRiskIQ is effective-entitlement authority. Recommended behavior: GERI Live or DIR to Bundle is an immediate prorated upgrade; Bundle downgrades occur at period end; cancellation retains access through current_period_end; failed payment uses a configurable retry/grace policy; tax and VAT stay in Stripe/billing infrastructure.
+
+Run periodic reconciliation across Stripe subscription state, internal billing state, and effective entitlements. Alert and reconcile safely on disagreement; do not rely only on webhooks.
+
+## 8. Dashboard V2 presentation contract
+
+Above the fold: greeting/date, latest intelligence time, at most one priority banner, the 3-Minute Routine, progress, and Step 1. Pricing, multiple Widget cards, and product advertisements must not appear before the user sees intelligence.
+
+During the seven-day experience use a compact status such as Premium Intelligence · 5 days remaining. Escalate to a primary banner only when 24 hours or less remain.
+
+Every intelligence component supports loading, ready, partial, delayed, stale, unavailable, locked, and subscription-error states. Use skeletons rather than spinner-only loading. Locked states show genuine Free information before premium depth.
+
+On mobile, one primary Routine step is expanded at a time; Continue collapses the current step, expands the next, and scrolls naturally; deep links open the requested step; a small sticky Continue action is allowed only during an active step; permanent Buy Premium actions are not fixed to the bottom; primary banners should occupy less than approximately 20% of the initial viewport.
+
+Target WCAG 2.2 AA. Accordions must be keyboard-operable, aria-expanded must be correct, focus must move logically, color must not be the only signal, contrast must be sufficient, live updates must be restrained, reduced motion must be honored, loading and locked states must be announced, and countdowns must have readable date/time equivalents.
+
+Keep Routine names, methodology, product names, entitlement explanations, capability mapping, completion behavior, access/security wording, and structural navigation version-controlled. Admin may edit safe campaign, expiry, Newsletter Companion, product-mapping, offer, badge, deadline, and campaign-date content.
+
+Authenticated offer dismissals are stored per user, offer, and offer version with suppression timing and dismissal type. Anonymous visitors may use temporary browser storage until authentication.
+
+## 9. Newsletter context and attribution
+
+Use a stable first-party redirect such as /n/ERIQ-2026-01 or /go/newsletter/2026-01. Keep optional UTM and CTA parameters for analytics, but let the database determine entry step, featured product, and Companion context.
+
+A Newsletter edition record contains ID, slug, publication time, title, topic, entry step, featured and optional secondary products, Free and Premium Companion copy, and draft/scheduled/published/archived status. Release 1 mapping is manual through Admin.
+
+Anonymous visitors preserve context through signup and return to the contextual Routine. Logged-in visitors open the selected step directly. Invalid or deleted editions fall back to the current Routine and record a diagnostic event. Historical editions retain historical editorial evidence while the click-through Dashboard can show current intelligence.
+
+Published Newsletter images use frozen historical snapshots. Store edition, image role, generation time, data-as-of time, dataset snapshot ID, and version. Corrections create a new version instead of silently overwriting the original.
+
+The Newsletter Companion answers what has changed relative to the article topic. Free gets context, a relevant indicator, one interpretation, and Continue Routine. Entitled users receive the relevant temporarily unlocked or paid depth.
+
+## 10. Widgets
+
+Internal WTI, LNG, and Storage intelligence is in scope. Internal Widget permission and external embed permission are separate capabilities. Welcome users may receive internal access while embed access remains false.
+
+When embedding is expanded, use allowed domains, revocable site keys, signed short-lived bootstrap authorization, server-side subscription checks, origin validation, rate limits, revocation, graceful inactive rendering, and key rotation. Do not rely on Referer alone.
+
+The first Widget value milestone is What Changed? rather than Saved Presets. It should explain movement against yesterday or a recent baseline and turn the Widget into decision support.
+
+## 11. Analytics and privacy
+
+Use one versioned event envelope with event ID, event name, event version, UTC occurrence time, nullable user and visitor IDs, session ID, source, campaign, Newsletter edition, topic, product, Routine step, entitlement state, experience type, experiment variant, and properties.
+
+Use stable names such as dashboard_viewed, routine_started, routine_step_completed, premium_experience_started, offer_viewed, checkout_started, subscription_started, newsletter_context_opened, and widget_opened. Server-generate commercial and entitlement events; client events may record UI interactions.
+
+Create a first-party random visitor ID, store Newsletter touch data, associate it with user ID after authentication, and retain first acquisition and last meaningful acquisition separately. Do not fingerprint users. The core product works without persistent attribution when cookies or consent are unavailable.
+
+Separate essential telemetry, product analytics, and marketing attribution/personalization. Store consent version, analytics permission, marketing permission, and update time. Avoid email addresses in event payloads and support removal or pseudonymization of behavioral and visitor-linkage data where required.
+
+## 12. Operations, rollback, and migration safety
+
+Alert immediately on unexpected paid-access loss, mass entitlement discrepancies, or temporary-entitlement corruption. Alert at high severity for late daily intelligence, stale GERI Live, and Stripe synchronization failure. Monitor Newsletter deep-link errors, valid embed rejection, and analytics ingestion failures.
+
+Rollback sequence: disable Dashboard V2; disable new Welcome activations if needed; disable new Migration activations if needed; preserve grants already promised; suppress affected Bundle checkout if billing is implicated; never modify existing Stripe subscriptions during UI rollback.
+
+Prefer additive, backward-compatible schema changes so Legacy Dashboard can continue while V2 uses new entitlement, experience, Newsletter context, Routine, and analytics structures.
+
+## 13. Routine persistence and acceptance gates
+
+Routine progress belongs to the account. Persist user ID, Routine ID, intelligence date, start/completion times, and per-step completion times. This enables cross-device continuation, time-to-complete, abandonment, and retention analysis.
+
+Mandatory acceptance coverage includes Welcome and Migration lifecycles, preserved paid subscriptions, GERI-to-Bundle and DIR-to-Bundle billing, cancellation period-end access, failed-payment grace/restriction, internal-versus-embed Widget permissions, Newsletter routing and invalid-edition fallback, all freshness/failure states, cross-device Routine state, and cross-device offer dismissals.
+
+The UI must never label old intelligence as current.
+
+## 14. Recommended implementation sequence
+
+1. Define and version the capability vocabulary.
+2. Define the normalized snapshot envelope and dataset registry.
+3. Add persistence for experiences, grants, audit events, Newsletter context, and Routine progress.
+4. Implement effective entitlement resolution and its server-side API.
+5. Implement the Routine service and snapshot-aware progress persistence.
+6. Build Dashboard V2 in parallel behind the Dashboard V2 flag.
+7. Add basic Newsletter redirect/context flow.
+8. Add Product Catalog and Bundle billing mapping without changing existing subscriptions.
+9. Add canonical analytics events and operational alerts.
+10. Run lifecycle, freshness, billing, Newsletter, mobile, and cross-device acceptance tests.
+11. Roll out by cohort while retaining Legacy Dashboard rollback.
+
+## 15. Non-goals for the first implementation
+
+AI recommendations, sophisticated product-interest scores, embedded Widget analytics, agency licensing, Widget Pack, Complete Intelligence, automatic Newsletter mapping, dynamic event passes, extensive customization, drag-and-drop cards, and user-defined Routine structures must not delay the first vertical slice.
+
+> Routine → return → premium discovery → subscription.
+
+## Appendix A — Full implementation answer set
+
+The complete answer set supplied for this blueprint is preserved below so that no implementation nuance is lost during summarization.
+
+---
+
+Yes. These questions are the point where the strategy becomes an engineering specification. The attached set correctly identifies the remaining implementation blockers.
 
 My strongest recommendation is to resist building every part of the long-term architecture in the first release. Release 1 should prove one thing:
 
@@ -2119,4 +2349,4 @@ and then render the appropriate experience.
 
 That separation is what will make the Dashboard stable, reversible, personalization-ready and commercially flexible.
 
-At this point, I would consider the strategic architecture sufficiently locked to begin technical design. The next artifact I would create before writing frontend code is a Dashboard V2 Technical Blueprint containing the database tables, API endpoints and response schemas, entitlement mappings for every plan, Routine state machine, feature flags, Newsletter context schema, Stripe webhook flows, and the exact React component tree. That would bridge these decisions directly into development.\n
+At this point, I would consider the strategic architecture sufficiently locked to begin technical design. The next artifact I would create before writing frontend code is a Dashboard V2 Technical Blueprint containing the database tables, API endpoints and response schemas, entitlement mappings for every plan, Routine state machine, feature flags, Newsletter context schema, Stripe webhook flows, and the exact React component tree. That would bridge these decisions directly into development.
