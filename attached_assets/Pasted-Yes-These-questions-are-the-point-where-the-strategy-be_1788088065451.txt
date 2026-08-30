@@ -1,0 +1,2122 @@
+Yes. These questions are the point where the strategy becomes an engineering specification. The attached set correctly identifies the remaining implementation blockers.
+
+My strongest recommendation is to resist building every part of the long-term architecture in the first release. Release 1 should prove one thing:
+
+Can EnergyRiskIQ turn a registered user into someone who completes a useful daily intelligence routine, returns, discovers premium depth, and can upgrade safely?
+
+Everything that doesn't directly support that outcome should either be simplified or postponed.
+
+1. Exact Release 1 boundary
+
+I would lock Release 1 as follows.
+
+Capability	Release 1?	Decision
+New Dashboard shell	✅	Required
+New left navigation	✅	Required
+Five-step 3-Minute Routine	✅	Core product
+Free vs Premium depth	✅	Required
+Server-side entitlement service	✅	Absolutely required
+7-Day Premium Welcome Experience	✅	Required
+Existing-user Migration Experience	✅	Required
+Temporary entitlement system	✅	Required
+Existing GERI/DIR subscriptions preserved	✅	Required
+Intelligence Bundle €29	✅	Yes
+Individual €4.95 Widgets	✅	Existing commercial layer
+Internal Widget access/previews	✅	Yes
+Newsletter contextual deep links	✅	Basic version
+Newsletter attribution	✅	Basic first/last/conversion touch
+Canonical analytics events	✅	Required
+Rules-based contextual offers	✅	Simple version
+Full personalization scoring engine	❌	Phase 2
+€9.95 Widget Pack	❌	Phase 2
+Complete Intelligence plan	❌	Phase 2
+Event-driven 24h passes	❌	Architecture only
+Advanced Newsletter Companion	◐	Basic R1, advanced later
+External Widget embedding overhaul	❌*	Phase 1.1 unless already commercially required
+Usage analytics for embedded Widgets	❌	Later
+Saved Widget Presets	❌	Later
+Automated Newsletter-product mapping	❌	Later
+Important distinction on Widgets
+
+I would not delay the internal Pro Widgets.
+
+I would delay building a sophisticated external embedding platform.
+
+So Release 1 can expose:
+
+WTI Intelligence
+LNG Intelligence
+Gas Storage Intelligence
+
+inside EnergyRiskIQ.
+
+If existing customers already depend on external embedding, preserve what exists. But don't make a complete new embed-management infrastructure a blocker for Dashboard V2.
+
+That keeps Release 1 focused.
+
+2. What happens to the existing Dashboard?
+
+Do not replace it destructively.
+
+And do not gradually splice V2 components into the old Dashboard.
+
+Build Dashboard V2 in parallel.
+
+Conceptually:
+
+/dashboard
+
+        ↓
+
+dashboard_v2_enabled(user)
+
+       YES → New Dashboard
+       NO  → Legacy Dashboard
+
+Keep the old implementation intact behind:
+
+dashboard_v2_enabled
+
+for the rollout period.
+
+I would also maintain an administrator-only way to force Legacy Dashboard temporarily.
+
+Rollout
+Internal users
+      ↓
+2 existing paid accounts
+      ↓
+~10 existing Free users
+      ↓
+Remaining existing users
+      ↓
+New registrations
+      ↓
+Newsletter traffic
+
+This is much safer than replacing components one-by-one.
+
+A half-old/half-new Dashboard creates especially dangerous ambiguity around:
+
+access;
+premium status;
+banners;
+Routine completion;
+analytics.
+How long to retain Legacy?
+
+I would keep the legacy implementation available through at least:
+
+two stable production releases, ideally around 30 days after full migration.
+
+Then retire it.
+
+3. The canonical data architecture for the Routine
+
+Do not let each React component independently call GERI, Brent, TTF, DIR, Storage, etc.
+
+Create a normalized intelligence layer.
+
+Every Routine dataset should conform to a common envelope:
+
+snapshot_id
+intelligence_date
+generated_at_utc
+data_as_of_utc
+
+status:
+  fresh
+  delayed
+  stale
+  partial
+  unavailable
+
+freshness:
+  expected_interval
+  max_age
+  delay_reason
+
+payload:
+  ...
+
+available_sections:
+  ...
+
+errors:
+  ...
+
+That gives the Dashboard one consistent way of answering:
+
+Is this intelligence safe to display as current?
+
+4. Exact contracts for the five Routine steps
+Step 1 — What's happening to risk?
+
+Primary data:
+
+GERI
+EERI
+EGSI-M
+EGSI-S
+
+Required normalized fields:
+
+index_code
+current_value
+previous_value
+absolute_change
+percentage_change   // when methodologically valid
+direction
+regime
+intelligence_date
+data_as_of
+
+Free should get:
+
+current daily reading;
+regime;
+direction;
+daily change;
+concise explanation.
+
+Premium can add:
+
+intraday/live context;
+acceleration;
+regime-transition context;
+relevant GERI Live intelligence.
+Step 2 — Is risk accelerating?
+
+Primary:
+
+GERI Live
+daily GERI movement
+recent intraday trajectory
+
+Contract:
+
+current_value
+session_start_value
+change
+change_rate
+direction
+recent_high
+recent_low
+regime
+regime_changed
+last_update
+
+I would avoid exposing a mathematically impressive-looking acceleration number until you have a methodology you are comfortable defending.
+
+The application can initially classify:
+
+Rising
+Rising rapidly
+Stable
+Falling
+Falling rapidly
+
+using your own documented thresholds.
+
+Free:
+
+daily change.
+
+Premium:
+
+intraday trajectory + live acceleration/change.
+
+Step 3 — Are markets confirming it?
+
+This should be a normalized Market Confirmation Engine, rather than six unrelated cards.
+
+Inputs:
+
+Brent
+WTI
+TTF
+JKM
+EU Gas Storage
+VIX
+
+Each market produces:
+
+market
+value
+unit
+previous_value
+change
+change_pct
+data_as_of
+
+direction:
+  higher
+  lower
+  unchanged
+
+confirmation_state:
+  confirms
+  partially_confirms
+  contradicts
+  neutral
+  insufficient_data
+
+Then Step 3 can say something like:
+
+Market confirmation: Mixed
+
+followed by the evidence.
+
+The intelligence lies in the relationship between markets—not simply showing six prices.
+
+This Step can later become extremely valuable.
+
+Step 4 — What does it mean?
+
+This is where DIR integrates naturally.
+
+Normalized contract:
+
+headline
+summary
+
+drivers[]
+implications[]
+
+markets:
+  oil
+  gas
+  lng
+
+scenarios[]
+risk_management_notes[]
+
+generated_at
+data_as_of
+
+Free:
+
+one short interpretation.
+
+Example:
+
+Rising geopolitical risk is being partially confirmed by oil while European gas remains comparatively stable.
+
+DIR:
+
+full interpretation:
+
+Oil
+Gas
+LNG
+scenarios
+implications
+actionable takeaways.
+Step 5 — What should I watch next?
+
+Contract:
+
+watch_items[]
+
+watch_item:
+  id
+  title
+  market
+  category
+  why_it_matters
+  condition
+  time_horizon
+  importance
+  source_product
+
+Examples:
+
+GERI regime transition
+
+Brent breaks recent high
+
+Storage injection pace deteriorates
+
+LNG premium versus Europe widens
+
+Free gets perhaps:
+
+2–3 principal watch items.
+
+DIR/GERI/Bundle users receive deeper Watch/Scenario context.
+
+5. Data freshness must be metadata-driven
+
+Do not write frontend logic such as:
+
+if Brent older than 15 minutes → stale
+
+Create a dataset registry:
+
+Dataset        Expected cadence    Max allowed age
+GERI           configured          configured
+GERI Live      configured          configured
+Brent          configured          configured
+TTF            configured          configured
+JKM            configured          configured
+Storage        configured          configured
+DIR            daily              configured
+...
+
+Then your backend decides the state.
+
+That means if you later change a data supplier or cadence, you don't change Dashboard code.
+
+6. What happens when today's intelligence is late?
+
+This deserves a hard rule:
+
+Never replace missing current intelligence with yesterday's value without explicitly labelling it.
+
+Suppose today's GERI pipeline is late.
+
+Show:
+
+Latest available intelligence
+
+GERI 24
+As of August 29, 2026, 01:30 UTC
+
+Today's update is delayed.
+
+Never simply show:
+
+GERI 24
+
+on August 30 as though it were August 30 data.
+
+Routine behaviour during delayed data
+
+Do not disable the entire Routine.
+
+Users should be able to complete a Routine using the latest available intelligence when reasonable.
+
+Example:
+
+STEP 1
+⚠ Latest available GERI data
+As of Aug 29
+
+Continue →
+
+Completion remains possible.
+
+Why?
+
+Because making your entire product unavailable because one pipeline is late is worse than transparently showing slightly older intelligence.
+
+Partial failure
+
+Suppose:
+
+GERI ✅
+Brent ✅
+WTI ✅
+TTF ❌
+LNG ✅
+
+Step 3 should say:
+
+Market confirmation: Partial
+
+TTF data is temporarily unavailable.
+
+Don't fail Step 3.
+
+Complete core failure
+
+Suppose all Risk indices fail.
+
+Then Step 1 becomes:
+
+Risk intelligence is temporarily unavailable.
+
+The user can still open other independent sections.
+
+Routine completion can be marked:
+
+4 of 5 available steps completed
+
+rather than pretending everything worked.
+
+7. The authoritative entitlement API
+
+This is perhaps the single most important backend rule:
+
+The browser must never decide whether someone has access.
+
+Create something conceptually like:
+
+GET /api/me/entitlements
+
+Response:
+
+daily_risk:
+  allowed: true
+  level: free
+
+intraday_risk:
+  allowed: true
+  level: premium
+  source: welcome_experience
+  expires_at: ...
+
+dir_full:
+  allowed: true
+  source: subscription
+
+brent_forecast_full:
+  allowed: true
+  source: geri_live_subscription
+
+widget_lng_internal:
+  allowed: false
+
+widget_lng_embed:
+  allowed: false
+8. Recommended capability names
+
+I would make entitlements capability-based, not product-name-based.
+
+For example:
+
+risk_daily
+
+risk_intraday
+
+dir_full
+
+forecast_brent_full
+
+widget_wti_internal
+widget_lng_internal
+widget_storage_internal
+
+widget_wti_embed
+widget_lng_embed
+widget_storage_embed
+
+alerts_basic
+alerts_advanced
+
+Why separate:
+
+widget_lng_internal
+
+from:
+
+widget_lng_embed?
+
+Because Welcome users may receive:
+
+widget_lng_internal = true
+widget_lng_embed = false
+
+Exactly what you want.
+
+9. Entitlement precedence
+
+Use an additive model.
+
+Highest priority
+
+Security/account suspension.
+
+Then:
+
+Paid subscription
+
+Then:
+
+Temporary entitlement
+
+Then:
+
+Free baseline.
+
+Conceptually:
+
+effective_access =
+max(
+  free_entitlement,
+  active_subscription,
+  temporary_entitlement
+)
+
+Example:
+
+DIR subscriber:
+
+DIR → paid subscription
+GERI → migration experience
+
+Migration expires.
+
+Result:
+
+DIR → still paid
+GERI → removed
+
+No Stripe changes.
+
+10. Don't use explicit DENY records casually
+
+A temporary entitlement expiring should not create:
+
+GERI = DENIED
+
+Because the user might simultaneously have purchased GERI.
+
+Instead, that grant simply ceases to contribute.
+
+Access exists if at least one valid access source exists.
+
+That's much safer.
+
+11. Temporary entitlement storage
+
+Use two layers.
+
+Experience
+access_experience
+
+id
+user_id
+
+type:
+ welcome
+ migration
+ promotion
+ event_pass
+ admin_grant
+
+status:
+ eligible
+ active
+ expired
+ revoked
+
+eligible_at
+activation_deadline
+started_at
+ends_at
+consumed_at
+
+created_at
+updated_at
+
+And then:
+
+Grants
+entitlement_grant
+
+experience_id
+capability
+starts_at
+ends_at
+status
+
+Example Welcome Experience:
+
+welcome_123
+
+  risk_intraday
+  dir_full
+  forecast_brent_full
+  widget_wti_internal
+  widget_lng_internal
+  widget_storage_internal
+
+Notice:
+
+No Widget embedding entitlement.
+
+12. Never delete expired entitlement records
+
+Keep them permanently for:
+
+analytics;
+debugging;
+migration;
+abuse detection;
+customer support;
+audit history.
+
+Mark them:
+
+expired
+
+rather than deleting them.
+
+Also maintain an entitlement audit log.
+
+Example:
+
+WELCOME_ACTIVATED
+DIR_GRANTED
+GERI_GRANTED
+WELCOME_EXPIRED
+DIR_TEMPORARY_GRANT_ENDED
+
+This will save you considerable debugging time.
+
+13. Stripe product architecture
+
+There should be one Product Catalog inside EnergyRiskIQ.
+
+Not price literals scattered throughout React components.
+
+Example:
+
+product_code:
+  DIR
+
+display_name:
+  Daily Intelligence Report
+
+billing_model:
+  monthly
+
+stripe_product_id:
+  prod_...
+
+stripe_price_id:
+  price_...
+
+status:
+  active
+
+Same for:
+
+GERI_LIVE
+INTELLIGENCE_BUNDLE
+WIDGET_WTI
+WIDGET_LNG
+WIDGET_STORAGE
+
+The actual Stripe IDs must be populated from your live Stripe account before deployment; they should not be invented in application code.
+
+14. €29 Bundle Stripe architecture
+
+Create it as a real Stripe product/price.
+
+Not:
+
+GERI €27 + dynamically discount DIR.
+
+Prefer:
+
+INTELLIGENCE_BUNDLE
+€29/month
+
+whose internal entitlement mapping grants:
+
+risk_intraday
+dir_full
+forecast_brent_full
+
+If future capabilities become included, you change the entitlement mapping—not every Dashboard component.
+
+15. Upgrade behaviour
+
+GERI €27 → Bundle €29:
+
+Immediate upgrade + proration.
+
+DIR €8 → Bundle €29:
+
+Immediate upgrade + proration.
+
+Access becomes available as soon as the subscription change succeeds.
+
+16. Downgrades
+
+Schedule for:
+
+end of billing period
+
+Example:
+
+Bundle → DIR.
+
+User keeps Bundle access until period end.
+
+Then entitlements change to DIR only.
+
+17. Cancellation
+
+If Stripe says:
+
+cancel_at_period_end = true
+
+EnergyRiskIQ should still treat the subscription as active until:
+
+current_period_end.
+
+Do not immediately remove access.
+
+18. Failed payments
+
+Do not let the frontend interpret Stripe statuses directly.
+
+Your billing service maps Stripe state into:
+
+active
+grace
+restricted
+cancelled
+
+I would permit a configurable payment-retry/grace policy instead of instantly removing access on the first failed charge.
+
+Stripe remains billing authority.
+
+EnergyRiskIQ remains entitlement authority.
+
+19. VAT and tax
+
+Do not build custom EU VAT logic into the Dashboard.
+
+Keep taxation in Stripe/billing infrastructure.
+
+Product configuration should carry things such as:
+
+tax_behavior
+currency
+display_price
+billing_interval
+
+For EU consumer/business treatment, VAT IDs and whether your displayed consumer price includes VAT, configure Stripe appropriately and confirm the accounting treatment with your accountant.
+
+The Dashboard should receive:
+
+€29/month
+
+from the product catalog—not calculate it.
+
+20. Exact above-the-fold Dashboard layout
+
+For normal Dashboard traffic:
+
+┌──────────────────────────────────────────────┐
+│ Good morning                     30 Aug 2026 │
+│ Latest intelligence: 01:30 UTC              │
+├──────────────────────────────────────────────┤
+│ [ONE PRIORITY BANNER — only if required]     │
+├──────────────────────────────────────────────┤
+│ TODAY'S 3-MINUTE INTELLIGENCE                │
+│                                              │
+│  ● Risk                                      │
+│  ○ Change                                    │
+│  ○ Confirm                                   │
+│  ○ Interpret                                 │
+│  ○ Watch                                     │
+│                                              │
+│  0 / 5 complete                              │
+├──────────────────────────────────────────────┤
+│ STEP 1 — WHAT'S HAPPENING TO RISK?           │
+│                                              │
+│ GERI     EERI      EGSI                      │
+│ ...                                          │
+│                                              │
+│                         Continue →           │
+└──────────────────────────────────────────────┘
+
+That is the above-the-fold priority.
+
+Not pricing.
+
+Not four Pro Widget cards.
+
+Not product advertisements.
+
+21. Premium Experience status
+
+Do not use a giant banner during all seven days.
+
+Instead show a compact status:
+
+Premium Intelligence · 5 days remaining
+
+Only escalate to a primary banner when:
+
+24 hours or less remain.
+
+Example:
+
+Your Premium Intelligence Experience ends tomorrow.
+
+That preserves Dashboard calm.
+
+22. Newsletter traffic changes the layout slightly
+
+If the user arrived from an LNG Newsletter:
+
+From this week's EnergyRiskIQ Newsletter:
+LNG Tightness Is Increasing
+
+Continue today's analysis ↓
+
+Then open:
+
+Step 3 — Confirm
+
+with LNG already emphasized.
+
+The Newsletter context should not replace the Dashboard.
+
+It should orient the Dashboard.
+
+23. Component state model
+
+Every intelligence component should support the same core states:
+
+loading
+ready
+partial
+delayed
+stale
+unavailable
+locked
+subscription_error
+
+Do not improvise separate error UX in each feature.
+
+Examples:
+
+Loading
+
+Skeleton—not spinner-only.
+
+Delayed
+
+Today's update is delayed. Showing the latest available intelligence.
+
+Stale
+
+Data as of Aug 29, 18:00 UTC.
+
+Partial
+
+TTF unavailable. Other market signals remain current.
+
+Unavailable
+
+This intelligence is temporarily unavailable.
+
+Locked
+
+Show genuine Free information first, followed by contextual premium depth.
+
+Subscription lookup failure
+
+Do not assume Free.
+
+This is important.
+
+If entitlement service temporarily fails, avoid accidentally stripping a paying customer's UI.
+
+Show:
+
+We're having trouble verifying your subscription. Your account has not been changed.
+
+Retry server-side.
+
+24. Mobile Routine model
+
+On mobile:
+
+one primary Routine step expanded at a time.
+
+User can still open another.
+
+When they tap Continue:
+
+Step 1 collapses
+Step 2 expands
+viewport scrolls naturally to Step 2.
+
+Deep-link to Step 3:
+
+Step 3 opens directly.
+
+Sticky mobile action
+
+A small bottom action is useful:
+
+Continue →
+
+But only while a Routine step is active.
+
+Do not keep:
+
+BUY PREMIUM €29
+
+permanently stuck to the bottom of the screen.
+
+Banner rule on mobile
+
+Primary banners should ideally occupy less than roughly 20% of the initial viewport.
+
+Countdown banners should compress.
+
+No giant sales hero before users can see their intelligence.
+
+25. Accessibility
+
+Target:
+
+WCAG 2.2 AA
+
+from the start.
+
+Particularly:
+
+every accordion keyboard operable;
+proper aria-expanded;
+focus moves logically after Continue;
+no information communicated solely by red/green;
+sufficient contrast;
+live data updates should not constantly interrupt screen readers;
+reduced-motion preference honoured;
+loading state announced properly;
+locked controls described;
+countdown expressed textually.
+
+Instead of only:
+
+17:23:41
+
+also provide:
+
+Premium access ends Monday, September 7 at 18:27.
+
+This is both more accessible and clearer.
+
+26. What Admin may edit
+
+I would not make everything CMS-configurable.
+
+Version controlled
+
+Keep these in application/product configuration:
+
+Five Routine step names;
+methodological meaning;
+core product names;
+entitlement explanations;
+capability mapping;
+completion behaviour;
+access/security wording;
+structural navigation.
+
+For example:
+
+WHAT'S HAPPENING TO RISK?
+
+shouldn't accidentally become:
+
+CHECK TODAY'S HOT TRADES 🚀
+
+because someone edited an Admin field.
+
+Admin configurable
+
+Safe marketing/editorial content:
+
+campaign banners;
+expiry-support text;
+Newsletter Companion editorial copy;
+featured product;
+Newsletter mappings;
+offer copy;
+campaign CTA;
+NEW badge;
+migration deadline;
+temporary campaign dates.
+27. Dismissals should be per-user
+
+For authenticated users store:
+
+user_id
+offer_id
+offer_version
+dismissed_at
+suppress_until
+dismissal_type
+
+Thus:
+
+Mobile dismissal
+
+→ also suppressed on Desktop.
+
+If the commercial offer changes materially, increment:
+
+offer_version
+
+so the new proposition may be shown.
+
+Anonymous visitors can use browser storage temporarily.
+
+Once they authenticate, user-level state becomes authoritative.
+
+28. Canonical Newsletter link
+
+I would actually simplify your proposed query-string design.
+
+Do not expose all business logic in URLs like:
+
+/dashboard?
+entry_step=3&
+featured_product=lng&
+...
+
+Use a canonical EnergyRiskIQ redirect:
+
+energyriskiq.com/n/ERIQ-2026-01
+
+or:
+
+energyriskiq.com/go/newsletter/2026-01
+
+Optional:
+
+?cta=primary
+
+Your database knows:
+
+edition_id
+topic
+entry_step
+featured_product
+companion_id
+
+Therefore someone changing:
+
+featured_product=GERI
+
+in their browser doesn't modify your intended funnel.
+
+UTMs can remain:
+
+utm_source=linkedin
+utm_medium=newsletter
+utm_campaign=...
+
+for external analytics.
+
+29. Newsletter context record
+
+Create:
+
+newsletter_edition
+
+id
+slug
+published_at
+title
+topic_id
+
+entry_step
+featured_product
+secondary_product
+
+companion_free
+companion_premium
+
+status:
+ draft
+ scheduled
+ published
+ archived
+
+The Newsletter redirect looks up this object.
+
+That becomes your editorial-to-product control layer.
+
+30. Invalid or deleted Newsletter links
+
+Never show:
+
+Invalid Edition ID
+
+to a visitor.
+
+Fallback:
+
+Invalid Newsletter context
+          ↓
+Current EnergyRiskIQ Dashboard
+          ↓
+Today's Routine
+
+Record:
+
+newsletter_context_invalid
+
+for diagnostics.
+
+31. Old Newsletter links
+
+Old Editions should still work years later.
+
+But distinguish:
+
+Historical editorial claim
+
+In the September 2026 edition we discussed...
+
+from:
+
+Current market intelligence
+
+Today's GERI is...
+
+Do not silently replace the historical chart inside an old Newsletter with new data.
+
+The click-through Dashboard can, however, show current intelligence.
+
+That's an important distinction.
+
+32. Newsletter-to-product mapping workflow
+
+Release 1 should be manual through Admin.
+
+Before publishing each Edition:
+
+Edition
+↓
+Topic
+↓
+Primary Routine Step
+↓
+Featured Product
+↓
+Secondary Product (optional)
+↓
+Primary CTA
+
+Example:
+
+Edition:
+Europe's Gas Storage...
+
+Topic:
+EU_STORAGE
+
+Entry Step:
+3 — Confirm
+
+Featured Product:
+STORAGE_WIDGET
+
+Secondary Product:
+DIR
+
+You should control this editorially while learning what converts.
+
+Automation comes later.
+
+33. Newsletter images
+
+Use frozen historical snapshots.
+
+Once an Edition is published, do not replace its rendered Widget evidence with a new market snapshot.
+
+Workflow:
+
+Current Widget/Data
+        ↓
+Generate editorial image
+        ↓
+Stamp "Data as of..."
+        ↓
+Manual approval
+        ↓
+Publish
+        ↓
+Store immutable version
+
+Recommended metadata:
+
+edition_id
+image_role
+generated_at
+data_as_of
+dataset_snapshot_id
+version
+
+If correcting an error:
+
+create:
+
+v2
+
+rather than overwriting v1 invisibly.
+
+This creates editorial credibility.
+
+34. Newsletter Companion
+
+The Companion should answer:
+
+What has changed since / relative to the topic you just read about?
+
+Not simply reproduce the article.
+
+Free
+Article Context
+↓
+Today's relevant indicator
+↓
+One interpretation
+↓
+Continue Routine
+Welcome Experience
+
+Adds all temporarily unlocked relevant intelligence.
+
+DIR
+
+Adds full interpretation/scenarios where relevant.
+
+GERI Live
+
+Adds live risk movement.
+
+Widget owner
+
+Adds full corresponding market intelligence.
+
+Bundle
+
+Adds GERI Live + DIR interpretation.
+
+This means the Companion is entitlement-aware without becoming six entirely separate components.
+
+35. Separate internal Widget permission from embedding
+
+Hard requirement:
+
+widget_lng_internal
+
+is completely different from:
+
+widget_lng_embed
+
+The Welcome Experience grants the former.
+
+It does not grant the latter.
+
+Likewise:
+
+widget_storage_internal = true
+widget_storage_embed = false
+
+during Welcome.
+
+36. External Widget minimum security model
+
+I would not make this a Release-1 Dashboard blocker.
+
+But when you implement embedding, minimum acceptable architecture should include:
+
+Allowed domains
+example.com
+www.example.com
+Site/embed key
+
+Each installation receives a revocable identifier.
+
+Signed bootstrap
+
+Widget requests receive short-lived authorization from EnergyRiskIQ.
+
+Server-side subscription verification
+
+Never rely on Javascript hiding the data.
+
+Domain/origin validation
+
+Validate the requesting embedding context against the permitted domain.
+
+Rate limits
+
+Per subscription/site key.
+
+Revocation
+
+Disable domain or embed key immediately.
+
+Expired subscription
+
+Embed should render gracefully:
+
+EnergyRiskIQ Widget subscription inactive.
+
+Do not simply produce JavaScript errors.
+
+Token rotation
+
+Allow keys to be replaced if exposed.
+
+And importantly:
+
+Don't rely on Referer alone as your security model.
+
+37. Future Widget Pack billing
+
+Do not build it yet.
+
+When introduced:
+
+Individual widgets:
+
+WTI €4.95
+LNG €4.95
+Storage €4.95
+
+If a user purchases multiple:
+
+eventually offer:
+
+Market Tools Pack €9.95
+
+Upgrade:
+
+Individual → Pack = immediate/prorated.
+
+Downgrade:
+
+Pack → individual = period-end.
+
+Never temporarily remove the customer's existing Widget while the billing transition occurs.
+
+38. First Widget value milestone
+
+This should unquestionably be:
+
+WHAT CHANGED?
+
+not Saved Presets.
+
+Why?
+
+Saved Presets make the software more convenient.
+
+What Changed? makes the intelligence more valuable.
+
+Example Storage:
+
+Instead of:
+
+EU Storage: 68.3%
+
+show:
+
+What changed?
+
++0.31 percentage points since yesterday.
+
+Injection pace has slowed versus the recent 7-day average.
+
+LNG:
+
+JKM rose 4.2% over seven days while TTF was broadly stable.
+
+WTI:
+
+WTI is rising while Brent-WTI spread is narrowing.
+
+That moves these products from widgets into decision-support tools.
+
+39. Canonical analytics schema
+
+Do not allow developers to invent random event properties.
+
+Every event uses a standard envelope:
+
+event_id
+event_name
+event_version
+
+occurred_at_utc
+
+user_id          nullable
+visitor_id       nullable
+session_id
+
+source
+campaign
+
+newsletter_edition_id
+topic_id
+
+product_code
+routine_step
+
+entitlement_state
+experience_type
+
+experiment_variant
+
+properties {}
+
+Not every field must contain a value.
+
+But every event uses the same structure.
+
+40. Event naming
+
+Use stable machine names.
+
+Examples:
+
+dashboard_viewed
+
+routine_started
+routine_step_viewed
+routine_step_completed
+routine_completed
+
+premium_experience_started
+premium_experience_expired
+
+product_opened
+premium_feature_encountered
+
+offer_viewed
+offer_clicked
+offer_dismissed
+
+checkout_started
+subscription_started
+subscription_upgraded
+
+newsletter_context_opened
+
+widget_opened
+widget_interacted
+
+Don't mix:
+
+GERI clicked
+
+geriOpen
+
+open_geri
+
+across different developers.
+
+41. Critical events should be server-generated
+
+Commercial events such as:
+
+subscription_started
+
+must come from server/Stripe state.
+
+Not browser Javascript.
+
+Likewise:
+
+premium_experience_started
+
+should be created server-side.
+
+Client analytics are appropriate for:
+
+card opened;
+accordion viewed;
+CTA clicked;
+Routine UI behaviour.
+
+This reduces analytics corruption.
+
+42. Anonymous Newsletter attribution
+
+At first EnergyRiskIQ visit create:
+
+visitor_id = random UUID
+
+Prefer a first-party/server-managed identifier.
+
+Store Newsletter touch:
+
+visitor_id
+edition_id
+timestamp
+cta
+
+Signup later:
+
+visitor_id
+      ↓
+user_id
+
+Then persist:
+
+first acquisition touch
+
+and:
+
+last meaningful acquisition touch
+
+separately.
+
+43. Cross-device attribution
+
+Before login:
+
+You cannot reliably know that:
+
+Phone visitor X
+
+=
+
+Desktop visitor Y.
+
+Do not fingerprint users to solve this.
+
+Once they authenticate:
+
+both sessions become associated with:
+
+user_id.
+
+If they read LinkedIn on a phone and subscribe three days later on an unrelated desktop without ever logging in on the phone, attribution may be lost.
+
+That's acceptable.
+
+Don't build invasive tracking to solve a minor attribution problem.
+
+44. Cookies blocked / consent unavailable
+
+The core user experience must still work.
+
+At minimum, URL context can survive:
+
+Newsletter
+↓
+Signup
+↓
+immediate redirect
+
+within the current flow.
+
+If persistent attribution isn't permitted/available:
+
+Don't persist it.
+
+The person should still be able to use EnergyRiskIQ normally.
+
+45. Privacy/consent architecture
+
+Separate:
+
+Essential product telemetry
+
+Needed for:
+
+entitlement security;
+billing;
+system reliability;
+fraud/security;
+core session behaviour.
+
+from:
+
+Product analytics
+
+Used to understand behaviour.
+
+from:
+
+Marketing attribution/personalization
+
+Used for campaign measurement and offers.
+
+Store consent state:
+
+consent_version
+analytics_allowed
+marketing_allowed
+updated_at
+
+Then analytics ingestion honours the state.
+
+For GDPR/privacy implementation, retention periods and cookie classification should ultimately be checked against your actual implementation and legal/accounting requirements rather than relying only on product design assumptions.
+
+46. Data deletion
+
+Prepare for:
+
+User requests deletion
+
+You should be able to:
+
+remove/pseudonymize behavioural history linked to the individual where required;
+remove visitor→user linkage;
+remove personalization data;
+preserve only records you are legally required to retain, such as applicable accounting records.
+
+This is easier if analytics does not contain raw personal information everywhere.
+
+Avoid storing email addresses inside event payloads.
+
+Use:
+
+user_id.
+
+47. Operational alerts
+
+I would divide them by severity.
+
+Critical — immediate
+Paid entitlement disappears unexpectedly
+
+Stripe says active:
+
+EnergyRiskIQ says no access.
+
+Mass entitlement discrepancy
+
+Several users simultaneously affected.
+
+Temporary entitlement system corrupt
+
+Users gaining/losing capabilities incorrectly.
+
+High
+Daily intelligence late
+
+Expected snapshot missed its grace window.
+
+GERI Live stale
+
+No updates within defined threshold.
+
+Stripe webhook failures
+
+Internal billing state not synchronized.
+
+Medium
+Newsletter deep-link error rate increases
+
+For example > a defined percentage within a window.
+
+Widget embed unexpectedly rejected
+
+Valid subscriber/domain failing repeatedly.
+
+Analytics event pipeline failure
+
+Conversion funnel data missing.
+
+These should go into operational monitoring—not merely logs that nobody reads.
+
+48. Stripe reconciliation job
+
+Do not depend only on webhooks.
+
+Run a periodic reconciliation process:
+
+Stripe subscription state
+          ↕
+Internal billing state
+          ↕
+Effective entitlements
+
+If disagreement occurs:
+
+alert + reconcile safely.
+
+This is especially important because access to paid products becomes central to the Dashboard.
+
+49. Rollback procedure
+
+The rollback should be documented before rollout.
+
+Problem detected
+
+↓
+
+1. Disable new Dashboard
+dashboard_v2_enabled = false
+
+Users return to Legacy Dashboard.
+
+↓
+
+2. Stop new Welcome activations if necessary
+welcome_experience_enabled = false
+
+↓
+
+3. Stop Migration activations
+migration_experience_enabled = false
+
+↓
+
+4. Preserve existing temporary grants
+
+This is important.
+
+A rollback should not automatically cancel Premium Experiences already promised to users.
+
+↓
+
+5. Disable affected checkout if necessary
+
+If Bundle billing itself is the issue, temporarily suppress new Bundle purchases.
+
+↓
+
+6. Never modify existing Stripe subscriptions during UI rollback.
+
+This should be a hard operational rule.
+
+50. Database changes must be backward-compatible
+
+Especially early on, prefer additive schema migrations:
+
+CREATE entitlement_grants
+CREATE access_experiences
+CREATE newsletter_context
+...
+
+rather than destructively changing existing billing/user fields immediately.
+
+Legacy Dashboard can continue functioning while V2 learns to use the new infrastructure.
+
+Later, old fields can be retired.
+
+This is effectively a strangler migration, and it's ideal here.
+
+51. Automated acceptance tests
+
+I would make these mandatory before production.
+
+Entitlement lifecycle
+Free
+→ Welcome eligible
+→ Welcome activated
+→ Premium access
+→ 168h expiry
+→ Free
+Existing Free
+→ Migration eligible
+→ Migration activated
+→ Premium
+→ Free
+DIR subscriber
+→ Migration GERI grant
+→ expiry
+→ DIR preserved
+GERI subscriber
+→ Migration DIR grant
+→ expiry
+→ GERI preserved
+Billing
+GERI → Bundle
+
+Expected:
+
+GERI remains available
+DIR appears
+Forecast remains
+Stripe transition succeeds
+no duplicate subscription.
+
+And:
+
+DIR → Bundle
+
+Same checks.
+
+Cancellation
+
+Bundle cancellation:
+
+access remains until billing-period end.
+
+Then falls back to correct Free state.
+
+Failed payment
+
+Test:
+
+active
+→ payment failure
+→ configured grace state
+→ recovery
+
+and:
+
+active
+→ failed retries
+→ restricted
+52. Welcome Widget tests
+
+During Welcome:
+
+widget_lng_internal = true
+widget_lng_embed = false
+
+After expiry:
+
+widget_lng_internal = preview/free state
+widget_lng_embed = false
+
+Paid LNG subscriber:
+
+widget_lng_internal = true
+widget_lng_embed = true
+
+if embedding is part of the paid entitlement.
+
+53. Newsletter tests
+
+Anonymous:
+
+Newsletter LNG
+→ EnergyRiskIQ
+→ Signup
+→ Dashboard
+→ Step 3 open
+→ LNG emphasized
+
+Logged-in:
+
+Newsletter LNG
+→ Dashboard
+→ Step 3 directly
+
+Existing LNG subscriber:
+
+Same experience—but no LNG upgrade offer.
+
+Existing Bundle subscriber:
+
+Full intelligence.
+
+Invalid Edition:
+
+Current Routine opens normally.
+
+54. Data-failure tests
+
+Must test:
+
+GERI late
+
+TTF unavailable
+
+Storage stale
+
+DIR generation missing
+
+GERI Live API timeout
+
+mixed stale/current signals
+
+complete Step-3 partial failure.
+
+The UI must never label old intelligence as current.
+
+55. Device/state tests
+
+Test:
+
+Desktop → dismiss offer → mobile.
+
+Expected:
+
+offer remains suppressed.
+
+Desktop → start Routine → mobile.
+
+I would sync completion server-side.
+
+So:
+
+Step 1–3 completed on desktop
+
+→ mobile shows:
+
+3/5 completed.
+
+That means Routine state belongs to the account—not browser local storage.
+
+56. Routine persistence contract
+
+Store:
+
+user_id
+routine_id
+intelligence_date
+
+started_at
+completed_at
+
+step_1_completed_at
+step_2_completed_at
+step_3_completed_at
+step_4_completed_at
+step_5_completed_at
+
+You can later derive:
+
+time to complete
+abandonment step
+cross-device continuation
+retention.
+
+Much better than keeping Routine progress purely in React state.
+
+57. A practical Release-1 backend structure
+
+I would expect something conceptually like:
+
+USERS
+  ↓
+
+SUBSCRIPTIONS
+  ↓
+PRODUCT CATALOG
+  ↓
+PAID ENTITLEMENTS
+        +
+ACCESS EXPERIENCES
+  ↓
+TEMPORARY ENTITLEMENTS
+        ↓
+EFFECTIVE ENTITLEMENT SERVICE
+
+--------------------------------
+
+INTELLIGENCE DATA
+        ↓
+NORMALIZED SNAPSHOT SERVICE
+        ↓
+ROUTINE API
+        ↓
+DASHBOARD
+
+--------------------------------
+
+NEWSLETTER EDITIONS
+        ↓
+CONTEXT ROUTER
+        ↓
+VISITOR / USER ATTRIBUTION
+        ↓
+DASHBOARD ROUTINE
+
+--------------------------------
+
+EVENTS
+        ↓
+ANALYTICS
+        ↓
+CONVERSION FUNNEL
+
+That's the architecture I would develop around.
+
+58. What I would deliberately not build yet
+
+This list is just as important.
+
+Do not let Release 1 get delayed by:
+
+AI recommendation engine;
+sophisticated product-interest scores;
+external Widget analytics dashboard;
+agency Widget licenses;
+Widget Pack;
+Complete Intelligence plan;
+automatic Newsletter mapping;
+dynamic event passes;
+dozens of Dashboard customizations;
+complicated drag-and-drop cards;
+user-defined Routine structures.
+
+First prove:
+
+Routine → return → premium discovery → subscription.
+
+59. The ten implementation decisions are therefore resolved
+1. Release 1
+
+Routine + entitlement + Welcome/Migration + Newsletter context + analytics + safe billing.
+
+Not every long-term commercial feature.
+
+2. Current Dashboard
+
+Keep it intact behind a feature flag as rollback. Build V2 in parallel.
+
+3. Data contract
+
+One normalized snapshot envelope + defined contract for each of the five Routine steps.
+
+4. Entitlements
+
+One server-side capability API. Additive grants. Paid access never overwritten by temporary access.
+
+5. Stripe
+
+Authoritative Product Catalog, real €29 Bundle product, individual Widget products, immediate prorated upgrades, period-end downgrades.
+
+6. Newsletter identity
+
+First-party anonymous visitor ID → user association after authentication. No fingerprinting. Graceful behaviour without tracking.
+
+7. Widget security
+
+Separate internal and embed permissions. Sophisticated external embedding does not block Dashboard R1.
+
+8. Analytics
+
+One versioned event envelope shared by acquisition, Routine, products and billing.
+
+9. Rollback
+
+Feature flags disable V2/activation while preserving subscriptions and already granted temporary access.
+
+10. Tests
+
+Entitlement lifecycle + billing + Newsletter context + stale data + mobile/multi-device tests are deployment gates.
+
+The most important architectural consequence
+
+We now have three things that must become the backbone of Dashboard V2:
+
+1. INTELLIGENCE SNAPSHOT SERVICE
+   "What intelligence exists right now?"
+
+2. ENTITLEMENT SERVICE
+   "How much of it may this user access?"
+
+3. ROUTINE SERVICE
+   "Where is this user in today's workflow?"
+
+Everything else becomes presentation.
+
+The React Dashboard should essentially ask:
+
+GET today's intelligence
+GET my entitlements
+GET my Routine state
+GET my current context
+
+and then render the appropriate experience.
+
+That separation is what will make the Dashboard stable, reversible, personalization-ready and commercially flexible.
+
+At this point, I would consider the strategic architecture sufficiently locked to begin technical design. The next artifact I would create before writing frontend code is a Dashboard V2 Technical Blueprint containing the database tables, API endpoints and response schemas, entitlement mappings for every plan, Routine state machine, feature flags, Newsletter context schema, Stripe webhook flows, and the exact React component tree. That would bridge these decisions directly into development.

@@ -17,6 +17,8 @@ The primary implementation decisions are:
 - Newsletter traffic enters through contextual routines rather than a generic pricing page.
 - Rollout is feature-flagged, additive, and staged by cohort.
 
+For the engineering handoff, see [Dashboard V2 Technical Blueprint.md](Dashboard%20V2%20Technical%20Blueprint.md). It defines the Release 1 boundary, parallel legacy/V2 rollout, normalized intelligence contracts, capability-based entitlement model, billing responsibilities, Newsletter context, analytics, rollback, and acceptance-test requirements.
+
 ## Embedded decision tables
 
 The supplied visual tables are embedded next to the corresponding answer sections below. They are implementation references, not replacements for the detailed answers.
