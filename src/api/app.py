@@ -87,7 +87,11 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     """Redirect all 404 Not Found responses to the main landing page,
     except admin API paths which need real JSON errors."""
     if exc.status_code == 404:
-        if request.url.path.startswith("/admin/"):
+        if (
+            request.url.path.startswith("/admin/")
+            or request.url.path.startswith("/api/dashboard/v2")
+            or request.url.path.startswith("/api/intelligence/")
+        ):
             return JSONResponse(status_code=404, content={"detail": str(exc.detail)})
         return RedirectResponse(url="/", status_code=302)
     return JSONResponse(status_code=exc.status_code, content={"detail": str(exc.detail)})
@@ -148,6 +152,18 @@ class ClickjackingProtectionMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(ClickjackingProtectionMiddleware)
+
+
+class DashboardV2StaticGuardMiddleware(BaseHTTPMiddleware):
+    """The pilot shell may only be served by its authenticated route."""
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path == "/static/dashboard-v2.html":
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        return await call_next(request)
+
+
+app.add_middleware(DashboardV2StaticGuardMiddleware)
 
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
 

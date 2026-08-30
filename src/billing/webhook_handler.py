@@ -1,10 +1,136 @@
 import logging
+import json
 import stripe
 from typing import Optional
 from src.db.db import get_cursor
 from src.plans.plan_helpers import apply_plan_settings_to_user
 
 logger = logging.getLogger(__name__)
+
+
+def _update_dashboard_v2_invoice_state(subscription_id: str, paid: bool) -> bool:
+    with get_cursor() as cur:
+        if paid:
+            cur.execute(
+                """UPDATE dashboard_v2_subscription_mirror
+                   SET stripe_status='active',grace_until=NULL,updated_at=NOW()
+                   WHERE stripe_subscription_id=%s""",
+                (subscription_id,),
+            )
+        else:
+            cur.execute(
+                """UPDATE dashboard_v2_subscription_mirror
+                   SET stripe_status='past_due',
+                       grace_until=NOW() + (%s * INTERVAL '1 day'),updated_at=NOW()
+                   WHERE stripe_subscription_id=%s""",
+                (int(__import__("os").environ.get("DASHBOARD_V2_PAYMENT_GRACE_DAYS", "3")),
+                 subscription_id),
+            )
+        return cur.rowcount > 0
+
+
+def _invoice_is_dashboard_v2(invoice: dict) -> bool:
+    """Classify V2 invoices without relying on webhook delivery order."""
+    metadata_candidates = []
+    parent = invoice.get("parent") or {}
+    metadata_candidates.append(
+        ((parent.get("subscription_details") or {}).get("metadata") or {})
+    )
+    for line in ((invoice.get("lines") or {}).get("data") or []):
+        metadata_candidates.append(line.get("metadata") or {})
+    if any(meta.get("dashboard_v2_product") for meta in metadata_candidates):
+        return True
+    price_ids = set()
+    for line in ((invoice.get("lines") or {}).get("data") or []):
+        price = line.get("price") or {}
+        if price.get("id"):
+            price_ids.add(price["id"])
+        price_detail = (
+            ((line.get("pricing") or {}).get("price_details") or {}).get("price")
+        )
+        if price_detail:
+            price_ids.add(price_detail)
+    if price_ids:
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                """SELECT 1 FROM dashboard_v2_catalog_prices
+                   WHERE stripe_price_id = ANY(%s) LIMIT 1""",
+                (list(price_ids),),
+            )
+            if cur.fetchone():
+                return True
+    subscription_id = invoice.get("subscription")
+    if subscription_id:
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            return bool(
+                (subscription.get("metadata") or {}).get("dashboard_v2_product")
+            )
+        except Exception as exc:
+            logger.warning("Could not inspect invoice subscription metadata: %s", exc)
+            return False
+    return False
+
+
+def _handle_dashboard_v2_subscription(subscription: dict) -> bool:
+    """Mirror only explicitly-labelled V2 products.
+
+    This deliberately has no writes to users/user_plans and no Stripe mutation:
+    legacy subscriptions remain outside the V2 reconciliation boundary until a
+    separately approved rollout enables a transition.
+    """
+    metadata = subscription.get("metadata") or {}
+    product_code = metadata.get("dashboard_v2_product")
+    user_id = metadata.get("user_id")
+    if product_code not in {"intelligence_bundle", "widget_wti", "widget_lng", "widget_storage"}:
+        return False
+    try:
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        logger.error("Dashboard V2 subscription missing valid user_id metadata")
+        return True
+    items = (subscription.get("items") or {}).get("data") or []
+    price_id = ((items[0].get("price") or {}).get("id")) if items else None
+    stripe_mode = "live" if subscription.get("livemode") else "sandbox"
+    price_column = "stripe_price_id_live" if stripe_mode == "live" else "stripe_price_id_sandbox"
+    with get_cursor(commit=False) as cur:
+        cur.execute(
+            """SELECT product_code FROM dashboard_v2_subscription_mirror
+               WHERE stripe_subscription_id=%s""",
+            (subscription.get("id"),),
+        )
+        mirrored = cur.fetchone()
+        if mirrored:
+            product_code = mirrored["product_code"]
+        else:
+            cur.execute(
+                """SELECT product_code FROM dashboard_v2_catalog_prices
+                   WHERE stripe_price_id=%s AND stripe_mode=%s""",
+                (price_id, stripe_mode),
+            )
+            mapped = cur.fetchone()
+            if not mapped or mapped["product_code"] != product_code:
+                logger.error("Rejected Dashboard V2 subscription with unrecognized product/price mapping")
+                return True
+    from datetime import datetime
+    period = subscription.get("current_period_end")
+    period_end = datetime.utcfromtimestamp(period) if period else None
+    with get_cursor() as cur:
+        cur.execute(
+            """INSERT INTO dashboard_v2_subscription_mirror
+               (stripe_subscription_id,user_id,product_code,stripe_mode,stripe_price_id,
+                stripe_status,current_period_end,raw_event,updated_at)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,%s::jsonb,NOW())
+               ON CONFLICT(stripe_subscription_id) DO UPDATE SET
+                 stripe_mode=EXCLUDED.stripe_mode,
+                 stripe_price_id=COALESCE(EXCLUDED.stripe_price_id,dashboard_v2_subscription_mirror.stripe_price_id),
+                 stripe_status=EXCLUDED.stripe_status,current_period_end=EXCLUDED.current_period_end,
+                 raw_event=EXCLUDED.raw_event,updated_at=NOW()""",
+            (subscription.get("id"), user_id, product_code, stripe_mode, price_id,
+             subscription.get("status", "unknown"),
+             period_end, json.dumps({"id": subscription.get("id"), "status": subscription.get("status")})),
+        )
+    return True
 
 
 def get_plan_code_from_price_id(price_id: str) -> Optional[str]:
@@ -55,6 +181,12 @@ def get_user_id_from_customer(customer_id: str) -> Optional[int]:
 
 async def handle_checkout_session_completed(session: dict):
     logger.info(f"Processing checkout.session.completed: {session['id']}")
+    # V2 checkout products are reconciled exclusively by V2 subscription events.
+    # In particular, do not let their session fall through to user_plans.
+    if (session.get("metadata") or {}).get("dashboard_v2_product") in {
+        "intelligence_bundle", "widget_wti", "widget_lng", "widget_storage",
+    }:
+        return
     
     # Anonymous sub-product checkouts (no main-app user) must be dispatched
     # BEFORE user_id resolution, or they would be dropped by the early return.
@@ -155,6 +287,8 @@ async def handle_checkout_session_completed(session: dict):
 
 async def handle_subscription_updated(subscription: dict):
     logger.info(f"Processing customer.subscription.updated: {subscription['id']}")
+    if _handle_dashboard_v2_subscription(subscription):
+        return
 
     try:
         from src.api.wti_pro_widget_routes import handle_widget_subscription_event
@@ -242,6 +376,8 @@ async def handle_subscription_updated(subscription: dict):
 
 async def handle_subscription_deleted(subscription: dict):
     logger.info(f"Processing customer.subscription.deleted: {subscription['id']}")
+    if _handle_dashboard_v2_subscription(subscription):
+        return
 
     try:
         from src.api.wti_pro_widget_routes import handle_widget_subscription_deleted
@@ -324,11 +460,22 @@ async def handle_invoice_paid(invoice: dict):
     subscription_id = invoice.get("subscription")
     if not subscription_id:
         return
+    if _invoice_is_dashboard_v2(invoice):
+        _update_dashboard_v2_invoice_state(subscription_id, paid=True)
+        logger.info(f"invoice.paid {invoice['id']} is for Dashboard V2 — skipping legacy state")
+        return
 
     # Widget invoices must never touch main user subscription state
     try:
         from src.db.db import get_cursor as _gc
         with _gc(commit=False) as _cur:
+            _cur.execute(
+                "SELECT 1 FROM dashboard_v2_subscription_mirror WHERE stripe_subscription_id = %s",
+                (subscription_id,)
+            )
+            if _cur.fetchone():
+                logger.info(f"invoice.paid {invoice['id']} is for a Dashboard V2 subscription — skipping main user_plans logic")
+                return
             _cur.execute(
                 "SELECT 1 FROM user_pro_widgets WHERE stripe_subscription_id = %s",
                 (subscription_id,)
@@ -400,10 +547,21 @@ async def handle_invoice_payment_failed(invoice: dict):
     logger.info(f"Processing invoice.payment_failed: {invoice['id']}")
 
     subscription_id = invoice.get("subscription")
+    if subscription_id and _invoice_is_dashboard_v2(invoice):
+        _update_dashboard_v2_invoice_state(subscription_id, paid=False)
+        logger.info(f"invoice.payment_failed {invoice['id']} is for Dashboard V2 — skipping legacy state")
+        return
     if subscription_id:
         try:
             from src.db.db import get_cursor as _gc
             with _gc(commit=False) as _cur:
+                _cur.execute(
+                    "SELECT 1 FROM dashboard_v2_subscription_mirror WHERE stripe_subscription_id = %s",
+                    (subscription_id,)
+                )
+                if _cur.fetchone():
+                    logger.info(f"invoice.payment_failed {invoice['id']} is for a Dashboard V2 subscription — skipping main user_plans logic")
+                    return
                 _cur.execute(
                     "SELECT 1 FROM user_pro_widgets WHERE stripe_subscription_id = %s",
                     (subscription_id,)
@@ -464,6 +622,7 @@ async def process_webhook_event(event: stripe.Event):
     
     handlers = {
         "checkout.session.completed": handle_checkout_session_completed,
+        "customer.subscription.created": handle_subscription_updated,
         "customer.subscription.updated": handle_subscription_updated,
         "customer.subscription.deleted": handle_subscription_deleted,
         "invoice.paid": handle_invoice_paid,

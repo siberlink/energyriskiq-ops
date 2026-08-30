@@ -15,6 +15,8 @@
     * { box-sizing: border-box; }
     body { margin: 0; background: radial-gradient(circle at 75% -10%, #17365b 0, transparent 38%), var(--bg); color: var(--text); min-height: 100vh; }
     button { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .62; }
     .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
     .sidebar { padding: 25px 16px; border-right: 1px solid var(--line); background: rgba(7,17,31,.82); }
     .brand { padding: 0 12px 29px; font-weight: 760; letter-spacing: -.03em; font-size: 18px; }
@@ -24,6 +26,13 @@
     .nav-item.active, .nav-item:hover { background: var(--panel-2); color: var(--text); }
     .nav-item.active { box-shadow: inset 2px 0 var(--gold); }
     .nav-dot { width: 7px; height: 7px; border: 1px solid currentColor; border-radius: 50%; opacity: .8; }
+    .nav-group { margin-bottom: 4px; }
+    .nav-group > summary { list-style: none; cursor: pointer; }
+    .nav-group > summary::-webkit-details-marker { display: none; }
+    .nav-group > summary::after { content: "⌄"; float: right; color: #647d9a; font-size: 13px; }
+    .nav-group:not([open]) > summary::after { transform: rotate(-90deg); }
+    .nav-group .nav-label { margin-top: 16px; }
+    .mobile-nav-toggle { display: none; }
     .main { min-width: 0; padding: 28px clamp(20px, 4vw, 56px) 60px; }
     .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 26px; }
     .eyebrow { color: var(--gold); text-transform: uppercase; letter-spacing: .14em; font-size: 10px; font-weight: 750; margin-bottom: 8px; }
@@ -70,11 +79,18 @@
     .message { padding: 28px; border: 1px dashed var(--line); color: var(--muted); border-radius: 12px; line-height: 1.6; font-size: 13px; }
     .complete { margin-top: 18px; }
     .notice { display: none; color: var(--muted); font-size: 12px; padding: 12px 0 0; }
+    .notice.warning { display: block; border-left: 2px solid var(--orange); padding: 10px 12px; background: rgba(255,184,107,.08); }
+    .context { display: none; margin-bottom: 16px; padding: 11px 14px; border-radius: 10px; border: 1px solid #27516e; color: #c8dce8; background: rgba(18,36,59,.72); font-size: 12px; line-height: 1.5; }
+    .offer-actions { display: flex; gap: 9px; align-items: center; }
+    .quiet { border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); padding: 9px 11px; cursor: pointer; font-size: 12px; }
+    .access-label { display: block; color: #71859e; font-size: 10px; margin-top: 4px; }
     @media (max-width: 820px) {
       .app { grid-template-columns: 1fr; }
-      .sidebar { position: sticky; top: 0; z-index: 3; display: flex; overflow-x: auto; align-items: center; gap: 4px; padding: 10px; border-right: 0; border-bottom: 1px solid var(--line); }
-      .brand { padding: 0 15px 0 5px; white-space: nowrap; } .nav-label { display: none; }
-      .nav-item { white-space: nowrap; padding: 9px 11px; } .nav-dot { display: none; }
+      .sidebar { position: sticky; top: 0; z-index: 3; display: block; padding: 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
+      .brand { padding: 0 15px 0 5px; white-space: nowrap; } .mobile-nav-toggle { display: block; }
+      .sidebar-nav { display: none; max-height: 65vh; overflow: auto; } .sidebar.open .sidebar-nav { display: block; }
+      .nav-label { display: block; } .nav-item { white-space: nowrap; padding: 9px 11px; } .nav-dot { display: none; }
       .main { padding: 24px 16px 40px; } .account { display: none; }
     }
     @media (max-width: 560px) {
@@ -87,21 +103,16 @@
 <body>
   <div class="app">
     <aside class="sidebar" aria-label="Dashboard navigation">
-      <div class="brand">EnergyRisk<span>IQ</span></div>
-      <a class="nav-item active" href="/dashboard"><i class="nav-dot"></i>Today</a>
-      <div class="nav-label">INTELLIGENCE</div>
-      <a class="nav-item" href="#intelligence"><i class="nav-dot"></i>GERI Live</a>
-      <a class="nav-item" href="#intelligence"><i class="nav-dot"></i>Daily Intelligence Report</a>
-      <a class="nav-item" href="#intelligence"><i class="nav-dot"></i>Brent Forecast</a>
-      <a class="nav-item" href="#intelligence"><i class="nav-dot"></i>Alerts</a>
-      <div class="nav-label">RISK DASHBOARDS</div>
-      <a class="nav-item" href="#risk"><i class="nav-dot"></i>GERI</a>
-      <a class="nav-item" href="#risk"><i class="nav-dot"></i>EERI</a>
-      <a class="nav-item" href="#risk"><i class="nav-dot"></i>EGSI</a>
-      <div class="nav-label">MARKET TOOLS</div>
-      <a class="nav-item" href="#markets"><i class="nav-dot"></i>WTI · LNG · Storage</a>
-      <div class="nav-label">ACCOUNT</div>
-      <a class="nav-item" href="/users/account"><i class="nav-dot"></i>Legacy Dashboard</a>
+      <div class="sidebar-head"><div class="brand">EnergyRisk<span>IQ</span></div><button class="quiet mobile-nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="sidebar-nav">Menu</button></div>
+      <nav class="sidebar-nav" id="sidebar-nav">
+        <details class="nav-group" open><summary class="nav-label">DASHBOARD</summary><a class="nav-item active" href="/dashboard" aria-current="page"><i class="nav-dot"></i>Today</a></details>
+        <details class="nav-group" open><summary class="nav-label">INTELLIGENCE</summary><a class="nav-item premium-link" data-capability="intraday_risk" href="/dashboard/intelligence/geri-live"><i class="nav-dot"></i>GERI Live</a><a class="nav-item premium-link" data-capability="dir_full" href="/dashboard/intelligence/daily-report"><i class="nav-dot"></i>Daily Intelligence Report</a><a class="nav-item premium-link" data-capability="brent_forecast" href="/dashboard/intelligence/brent-forecast"><i class="nav-dot"></i>Brent Forecast</a><a class="nav-item" href="/dashboard/intelligence/alerts"><i class="nav-dot"></i>Alerts</a></details>
+        <details class="nav-group"><summary class="nav-label">RISK DASHBOARDS</summary><a class="nav-item" href="/dashboard/risk/global"><i class="nav-dot"></i>Global Energy Risk — GERI</a><a class="nav-item" href="/dashboard/risk/europe"><i class="nav-dot"></i>Europe Energy Risk — EERI</a><a class="nav-item" href="/dashboard/risk/gas-stress"><i class="nav-dot"></i>Europe Gas Stress — EGSI</a></details>
+        <details class="nav-group"><summary class="nav-label">MARKET TOOLS</summary><a class="nav-item premium-link" data-capability="widget_wti_internal" href="/dashboard/tools/wti"><i class="nav-dot"></i>WTI Intelligence</a><a class="nav-item premium-link" data-capability="widget_lng_internal" href="/dashboard/tools/lng"><i class="nav-dot"></i>LNG Intelligence</a><a class="nav-item premium-link" data-capability="widget_storage_internal" href="/dashboard/tools/gas-storage"><i class="nav-dot"></i>Gas Storage Intelligence</a></details>
+        <details class="nav-group"><summary class="nav-label">DELIVERY</summary><a class="nav-item" href="/dashboard/delivery/email"><i class="nav-dot"></i>Email Delivery</a><a class="nav-item" href="/dashboard/delivery/preferences"><i class="nav-dot"></i>Notification Preferences</a></details>
+        <details class="nav-group"><summary class="nav-label">SUPPORT</summary><a class="nav-item" href="/dashboard/support"><i class="nav-dot"></i>Help &amp; Support</a><a class="nav-item" href="/dashboard/support/tickets"><i class="nav-dot"></i>My Tickets</a></details>
+        <details class="nav-group"><summary class="nav-label">ACCOUNT</summary><a class="nav-item" href="/dashboard/account/subscription"><i class="nav-dot"></i>Subscription &amp; Billing</a><a class="nav-item" href="/dashboard/account/preferences"><i class="nav-dot"></i>Account &amp; Preferences</a></details>
+      </nav>
     </aside>
     <main class="main">
       <header class="topbar">
@@ -109,11 +120,12 @@
         <div class="account"><span id="email"></span><span class="avatar" id="avatar">E</span></div>
       </header>
       <section id="offer" class="offer" hidden></section>
+       <section id="newsletter-context" class="context" aria-live="polite"></section>
       <section class="routine-card" aria-labelledby="routine-title">
         <div class="routine-head"><div><h2 id="routine-title">Today’s Routine</h2><p id="routine-copy">Complete the intelligence loop in a few minutes.</p></div><div class="progress-label" id="progress-label">Loading…</div></div>
         <div class="progress" aria-label="Routine progress"><i id="progress-bar"></i></div>
         <div id="steps" class="steps" role="list"></div>
-        <div id="notice" class="notice" role="status"></div>
+        <div id="notice" class="notice" role="status" aria-live="polite"></div>
       </section>
       <section class="content-grid">
         <div class="panel" id="intelligence">
@@ -129,13 +141,17 @@
     </main>
   </div>
   <script>
-    const state = { data: null, selected: "risk" };
+    const state = { data: null, selected: "risk", offerDismissed: false };
     const $ = (id) => document.getElementById(id);
     const esc = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    function sameOrigin(value) { try { const target = new URL(value, location.origin); return target.origin === location.origin ? target.pathname + target.search : null; } catch (_) { return null; } }
+    function checkoutDestination(value) { try { const target = new URL(value, location.origin); return target.protocol === "https:" && (target.origin === location.origin || target.hostname === "checkout.stripe.com") ? target.href : null; } catch (_) { return null; } }
+    function notice(message, warning = false) { const n = $("notice"); n.textContent = message; n.className = `notice${warning ? " warning" : ""}`; n.style.display = "block"; }
     async function api(url, options = {}) {
-      const response = await fetch(url, { credentials: "include", ...options, headers: {"Content-Type": "application/json", ...(options.headers || {})} });
+      const endpoint = sameOrigin(url); if (!endpoint) throw new Error("Only EnergyRiskIQ services may be used here.");
+      const response = await fetch(endpoint, { credentials: "include", ...options, headers: {"Content-Type": "application/json", ...(options.headers || {})} });
       if (response.status === 401 || response.status === 404) throw new Error("Your V2 pilot session is not available.");
-      if (!response.ok) throw new Error((await response.json()).detail || "Request failed");
+      if (!response.ok) { const problem = await response.json().catch(() => ({})); throw new Error(problem.detail || "Request failed"); }
       return response.json();
     }
     function dataset(name) { return state.data.snapshot.datasets[name] || {data: null, state: {state: "UNAVAILABLE"}}; }
@@ -148,33 +164,92 @@
       $("steps").innerHTML = routine.steps.map((step, index) => `<button role="listitem" class="step ${step.key === state.selected ? "selected" : ""} ${step.status === "completed" ? "done" : ""}" data-step="${esc(step.key)}" ${step.available ? "" : "disabled"}><span class="step-number">0${index + 1}</span><span class="step-title">${esc(step.title)} ${step.status === "completed" ? "✓" : ""}</span><span class="step-summary">${esc(step.summary)}</span></button>`).join("");
       document.querySelectorAll(".step").forEach(button => button.addEventListener("click", () => { state.selected = button.dataset.step; render(); }));
       renderDetail();
-      $("capabilities").innerHTML = [["daily_risk","Daily risk"],["intraday_risk","GERI Live"],["dir_full","Daily Intelligence Report"],["brent_forecast","Brent Forecast"],["widget_wti_internal","WTI internal widget"],["widget_lng_internal","LNG internal widget"],["widget_storage_internal","Storage internal widget"],["widget_wti_embed","External WTI embedding"]].map(([key,label]) => `<div class="cap ${data.entitlements.capabilities[key] ? "" : "locked"}"><span>${label}</span><b>${data.entitlements.capabilities[key] ? "Available" : "Preview"}</b></div>`).join("");
+      $("capabilities").innerHTML = [["daily_risk","Daily risk"],["intraday_risk","GERI Live"],["dir_full","Daily Intelligence Report"],["brent_forecast","Brent Forecast"],["widget_wti_internal","WTI internal widget"],["widget_lng_internal","LNG internal widget"],["widget_storage_internal","Storage internal widget"],["widget_wti_embed","External WTI embedding"]].map(([key,label]) => `<div class="cap ${data.entitlements.capabilities[key] ? "" : "locked"}"><span>${label}${key.endsWith("_embed") ? '<span class="access-label">Publishing / external embed right</span>' : ""}</span><b>${data.entitlements.capabilities[key] ? "Available" : "Preview"}</b></div>`).join("");
+      const verification = data.entitlements.verification || {};
+      if (verification.state && verification.state !== "VERIFIED") notice(verification.message || "We’re temporarily unable to verify your premium access. Your subscription has not been changed.", true);
+      const context = data.newsletter_context || {}, contextBox = $("newsletter-context");
+      contextBox.style.display = context.state === "ACTIVE" && context.context ? "block" : "none";
+      if (contextBox.style.display === "block") contextBox.textContent = `Newsletter context${context.context.topic ? ` · ${context.context.topic}` : ""}. Earlier Routine steps are not marked complete.`;
+      const experience = data.experience;
+      if (experience && experience.experience_type === "MIGRATION") {
+        const migrationMessages = {ELIGIBLE:"Migration access is eligible to claim before its deadline.",DISMISSED:"Migration access is dismissed and may be reclaimed before its deadline.",CLAIM_WINDOW_EXPIRED:"Your migration claim window has ended.",ACTIVE:"Migration access is active; your paid subscription is unchanged.",EXPIRED:"Migration access has ended; paid subscriptions remain unchanged."};
+        notice(migrationMessages[experience.status] || "Migration status is being updated.", experience.status !== "ACTIVE");
+        if (experience.status === "ELIGIBLE" || experience.status === "DISMISSED") {
+          const action = experience.status === "ELIGIBLE" ? "Claim migration access" : "Reclaim migration access";
+          $("notice").insertAdjacentHTML("beforeend", ` <button class="quiet" type="button" id="migration-claim">${action}</button>${experience.status === "ELIGIBLE" ? ' <button class="quiet" type="button" id="migration-dismiss">Dismiss</button>' : ""}`);
+          $("migration-claim").onclick = () => migrationAction("activate");
+          const dismiss = $("migration-dismiss"); if (dismiss) dismiss.onclick = () => migrationAction("dismiss");
+        }
+      }
       const offer = data.primary_offer;
-      $("offer").hidden = !offer;
-      if (offer) $("offer").innerHTML = `<div><h2>${esc(offer.title)}</h2><p>${esc(offer.body)}</p></div>${offer.kind === "bundle_discovery" ? '<button type="button" disabled title="Checkout is intentionally deferred for Release 1">Coming soon</button>' : ""}`;
+      const checkout = offer && sameOrigin(offer.checkout_endpoint || offer.checkout_url);
+      $("offer").hidden = !offer || state.offerDismissed;
+      if (offer && !state.offerDismissed) {
+        $("offer").innerHTML = `<div><h2>${esc(offer.title)}</h2><p>${esc(offer.body)}</p></div><div class="offer-actions">${offer.kind === "bundle_discovery" ? `<button class="bundle" type="button" ${checkout ? "" : 'disabled title="Checkout is not offered by the server for this pilot"'}>${checkout ? "Continue to checkout" : "Checkout unavailable"}</button>` : ""}<button class="quiet dismiss" type="button">Dismiss</button></div>`;
+        const bundle = document.querySelector(".bundle"); if (bundle) bundle.onclick = () => checkoutBundle(checkout);
+        document.querySelector(".dismiss").onclick = async () => {
+          try { await api("/api/dashboard/v2/offers/dismiss", {method:"POST", body:JSON.stringify({offer_key:offer.kind})}); }
+          catch (error) { notice(error.message, true); return; }
+          state.offerDismissed = true; render();
+        };
+      }
     }
     function renderDetail() {
       const d = state.data.snapshot.datasets, key = state.selected;
       const map = {risk: [["geri_daily","GERI"],["eeri_daily","EERI"],["egsi_m_daily","EGSI-M"]], change: [["geri_daily","GERI"],["eeri_daily","EERI"],["geri_live","GERI Live"]], confirm: [["brent","Brent"],["ttf","TTF"],["vix","VIX"]], interpret: [["geri_daily","GERI"],["geri_live","GERI Live"],["storage","Storage"]], watch: [["storage","Storage"],["geri_live","GERI Live"],["lng","LNG"]]};
       const items = map[key] || map.risk;
       $("detail-title").textContent = `${key[0].toUpperCase() + key.slice(1)} · current signals`;
-      $("detail").innerHTML = `<div class="metrics">${items.map(([name,label]) => { const row = d[name] || {}; const value = row.data || {}; const metric = value.value ?? value.index_value ?? value.brent_price ?? value.ttf_price ?? value.vix_close ?? value.jkm_price ?? value.eu_storage_percent ?? "—"; const band = value.band || value.risk_band || ""; return `<div class="metric"><span class="metric-name">${label} <span class="state ${row.state.state.toLowerCase()}">${row.state.state}</span></span><span class="metric-value">${esc(metric)}</span><div class="metric-band">${esc(band || "latest available")}</div></div>`; }).join("")}</div><p class="asof">Old data is never presented as current. Each signal is labelled ${items.some(([name]) => ["delayed","stale"].includes((d[name] || {}).state?.state?.toLowerCase())) ? "when delayed or stale" : "with its source state"}.</p><button class="primary complete" type="button" id="complete-step">${state.data.routine.steps.find(s => s.key === key)?.status === "completed" ? "Completed" : "Mark step complete"}</button>`;
+      $("detail").innerHTML = `<div class="metrics">${items.map(([name,label]) => { const row = d[name] || {}, freshness = row.state || {state:"UNAVAILABLE"}; const value = row.data || {}; const metric = value.value ?? value.index_value ?? value.brent_price ?? value.ttf_price ?? value.vix_close ?? value.jkm_price ?? value.eu_storage_percent ?? "—"; const band = value.band || value.risk_band || ""; return `<div class="metric"><span class="metric-name">${esc(label)} <span class="state ${esc(String(freshness.state).toLowerCase())}">${esc(freshness.state)}</span></span><span class="metric-value">${esc(metric)}</span><div class="metric-band">${esc(band || "latest available")}</div></div>`; }).join("")}</div><p class="asof">Old data is never presented as current. Each signal is labelled ${items.some(([name]) => ["delayed","stale"].includes((d[name] || {}).state?.state?.toLowerCase())) ? "when delayed or stale" : "with its source state"}.</p><button class="primary complete" type="button" id="complete-step">${state.data.routine.steps.find(s => s.key === key)?.status === "completed" ? "Completed" : "Mark step complete"}</button>${state.data.routine.completed === 0 ? '<button class="quiet complete" type="button" id="start-routine">Start today’s routine</button>' : ""}`;
       $("complete-step").addEventListener("click", completeStep);
+      const start = $("start-routine"); if (start) start.addEventListener("click", startRoutine);
     }
     async function completeStep() {
       const snapshotId = state.data.routine.snapshot_id;
       try {
         await api("/api/dashboard/v2/routine/step", {method:"POST", body: JSON.stringify({step_key: state.selected, snapshot_id: snapshotId, complete: true})});
         state.data = await api("/api/dashboard/v2/bootstrap"); render();
-      } catch (error) { $("notice").style.display = "block"; $("notice").textContent = error.message; }
+      } catch (error) { notice(error.message, true); }
     }
     async function startRoutine() {
       try { await api("/api/dashboard/v2/intent", {method:"POST", body: JSON.stringify({intent:"routine_start"})}); state.data = await api("/api/dashboard/v2/bootstrap"); render(); }
-      catch (error) { $("notice").style.display = "block"; $("notice").textContent = error.message; }
+      catch (error) { notice(error.message, true); }
+    }
+    async function openPremium(capability, href) {
+      try {
+        await api("/api/dashboard/v2/intent", {method:"POST", body:JSON.stringify({intent:"premium_open", capability})});
+        await api("/api/dashboard/v2/bootstrap");
+        location.assign(href);
+      } catch (error) { notice(error.message, true); }
+    }
+    async function checkoutBundle(endpoint) {
+      try {
+        const result = await api(endpoint, {method:"POST", body:JSON.stringify({product_code:"intelligence_bundle"})});
+        if (result.upgraded) {
+          state.data = await api("/api/dashboard/v2/bootstrap"); render(); return;
+        }
+        const destination = checkoutDestination(result.checkout_url || result.url);
+        if (!destination) throw new Error("Checkout was not made available by the server.");
+        location.assign(destination);
+      } catch (error) { notice(error.message, true); }
+    }
+    async function migrationAction(action) {
+      try {
+        await api("/api/dashboard/v2/migration", {method:"POST", body:JSON.stringify({action})});
+        state.data = await api("/api/dashboard/v2/bootstrap"); render();
+      } catch (error) { notice(error.message, true); }
     }
     (async function init() {
       $("current-date").textContent = new Intl.DateTimeFormat(undefined, {weekday:"long", month:"short", day:"numeric"}).format(new Date());
-      try { state.data = await api("/api/dashboard/v2/bootstrap"); render(); $("steps").addEventListener("click", (event) => { if (event.target.closest(".step")) startRoutine(); }); }
+      $("nav-toggle").addEventListener("click", () => { const sidebar = document.querySelector(".sidebar"), open = sidebar.classList.toggle("open"); $("nav-toggle").setAttribute("aria-expanded", String(open)); });
+      document.querySelectorAll(".premium-link").forEach(link => link.addEventListener("click", event => {
+        if (!state.data?.entitlements.capabilities[link.dataset.capability]) { event.preventDefault(); openPremium(link.dataset.capability, link.href); }
+      }));
+      try {
+        state.data = await api("/api/dashboard/v2/bootstrap");
+        const mappedStep = state.data.newsletter_context?.context?.entry_step;
+        if (["risk","change","confirm","interpret","watch"].includes(mappedStep)) state.selected = mappedStep;
+        render();
+      }
       catch (error) { $("detail-title").textContent = "Dashboard unavailable"; $("detail").textContent = error.message; }
     })();
   </script>
