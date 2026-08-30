@@ -3,7 +3,7 @@ import secrets
 import bcrypt
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, HTTPException, Header, Request
+from fastapi import APIRouter, HTTPException, Header, Request, Response
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
@@ -352,7 +352,7 @@ class EmailLoginExchangeRequest(BaseModel):
 
 
 @router.post("/email-login/exchange")
-def email_login_exchange(body: EmailLoginExchangeRequest, request: Request = None):
+def email_login_exchange(body: EmailLoginExchangeRequest, request: Request = None, response: Response = None):
     """Exchange a magic-login token (from a newsletter email) for a session.
     Tokens are valid for EMAIL_LOGIN_TOKEN_DAYS and single-use: the row is
     atomically deleted on exchange so a leaked/forwarded link cannot be
@@ -393,6 +393,11 @@ def email_login_exchange(body: EmailLoginExchangeRequest, request: Request = Non
             (session_token, user_id, expires_at),
         )
         cursor.execute("UPDATE users SET last_login_at = NOW() WHERE id = %s", (user_id,))
+    if response is not None:
+        response.set_cookie(
+            "v2_session", session_token, max_age=SESSION_DURATION,
+            httponly=True, secure=True, samesite="lax", path="/",
+        )
 
     try:
         from src.api.user_activity_tracking_routes import record_activity_event
@@ -587,7 +592,7 @@ def verify_email(body: VerifyRequest):
 
 
 @router.post("/set-password")
-def set_password(body: SetPasswordRequest):
+def set_password(body: SetPasswordRequest, response: Response = None):
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     
@@ -639,6 +644,11 @@ def set_password(body: SetPasswordRequest):
             VALUES (%s, %s, %s)
         """, (session_token, user_id, expires_at))
         cursor.execute("UPDATE users SET last_login_at = NOW() WHERE id = %s", (user_id,))
+    if response is not None:
+        response.set_cookie(
+            "v2_session", session_token, max_age=SESSION_DURATION,
+            httponly=True, secure=True, samesite="lax", path="/",
+        )
     
     try:
         welcome_text, welcome_html = _build_welcome_email()
@@ -660,7 +670,7 @@ def set_password(body: SetPasswordRequest):
 
 
 @router.post("/signin")
-def signin(body: SigninRequest, request: Request = None):
+def signin(body: SigninRequest, request: Request = None, response: Response = None):
     email = body.email.lower().strip()
     
     with get_cursor() as cursor:
@@ -705,6 +715,11 @@ def signin(body: SigninRequest, request: Request = None):
             VALUES (%s, %s, %s)
         """, (session_token, user_id, expires_at))
         cursor.execute("UPDATE users SET last_login_at = NOW() WHERE id = %s", (user_id,))
+    if response is not None:
+        response.set_cookie(
+            "v2_session", session_token, max_age=SESSION_DURATION,
+            httponly=True, secure=True, samesite="lax", path="/",
+        )
     
     try:
         from src.api.user_activity_tracking_routes import record_activity_event
@@ -728,10 +743,12 @@ def signin(body: SigninRequest, request: Request = None):
 
 
 @router.post("/signout")
-def signout(x_user_token: Optional[str] = Header(None)):
+def signout(x_user_token: Optional[str] = Header(None), response: Response = None):
     if x_user_token:
         with get_cursor() as cursor:
             cursor.execute("DELETE FROM sessions WHERE token = %s", (x_user_token,))
+    if response is not None:
+        response.delete_cookie("v2_session", path="/")
     return {"success": True}
 
 

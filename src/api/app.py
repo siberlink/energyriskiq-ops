@@ -59,6 +59,7 @@ from src.api.wti_widget_routes import router as wti_widget_router
 from src.api.gas_storage_widget_routes import router as gas_storage_widget_router
 from src.api.lng_widget_routes import router as lng_widget_router
 from src.api.geri_live_brent_routes import router as geri_live_brent_router
+from src.dashboard_v2.routes import router as dashboard_v2_router, run_dashboard_v2_migration
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -336,6 +337,7 @@ app.include_router(wti_widget_router)
 app.include_router(gas_storage_widget_router)
 app.include_router(lng_widget_router)
 app.include_router(geri_live_brent_router)
+app.include_router(dashboard_v2_router)
 from src.api.contact_routes import run_contact_confirmation_migration
 try:
     run_contact_confirmation_migration()
@@ -423,6 +425,8 @@ async def startup_event():
         run_signal_quality_migration()
         _recalculate_stale_bands()
         run_stripe_mode_migration()
+        run_dashboard_v2_migration()
+        logger.info("Dashboard V2 additive migration completed")
         if ENABLE_ERIQ:
             run_eriq_migration()
             logger.info("ERIQ Expert Analyst module is ENABLED")
