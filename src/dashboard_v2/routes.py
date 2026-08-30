@@ -21,6 +21,7 @@ from src.dashboard_v2.services import (
     activate_welcome,
     mark_routine_step,
     require_v2_access,
+    routine_started,
     routine_state,
 )
 from src.api.user_routes import verify_user_session
@@ -436,11 +437,20 @@ def dashboard_v2_intent(
     from src.dashboard_v2.services import PREMIUM_INTENT_CAPABILITIES, record_event
     if body.intent == "routine_start" or body.capability in PREMIUM_INTENT_CAPABILITIES:
         experience = activate_welcome(user["id"], body.intent)
+        snapshot_id = (
+            build_snapshot()["snapshot_id"]
+            if body.intent == "routine_start"
+            else None
+        )
         record_event(
             user["id"],
             "routine_started" if body.intent == "routine_start" else "premium_intent",
             "essential",
-            {"capability": body.capability, "intent": body.intent},
+            {
+                "capability": body.capability,
+                "intent": body.intent,
+                "snapshot_id": snapshot_id,
+            },
             True,
         )
         return {"success": True, "experience": experience}
@@ -454,16 +464,11 @@ def dashboard_v2_routine_step(
     v2_session: Optional[str] = Cookie(None),
 ):
     user = _session_user(x_user_token, v2_session)
-    with get_cursor(commit=False) as cursor:
-        cursor.execute(
-            """SELECT 1 FROM dashboard_v2_events
-               WHERE user_id=%s AND event_name='routine_started' LIMIT 1""",
-            (user["id"],),
-        )
-        if not cursor.fetchone():
-            raise HTTPException(status_code=409, detail="Start today’s Routine first")
+    snapshot = build_snapshot()
+    if not routine_started(user["id"], snapshot["snapshot_id"]):
+        raise HTTPException(status_code=409, detail="Start today’s Routine first")
     result = mark_routine_step(
-        user["id"], body.step_key, build_snapshot(), body.complete
+        user["id"], body.step_key, snapshot, body.complete
     )
     return {"success": True, "progress": result}
 

@@ -13,7 +13,7 @@ The three architectural backbones are an Intelligence Snapshot Service, an Entit
 
 **Why:** These separations prevent each frontend component from inventing data freshness, access, or progress rules and make the Dashboard reversible, measurable, and ready for later personalization.
 
-**How to apply:** Build the snapshot contract, capability vocabulary, temporary experience/grant records, audit trail, and server-side APIs before expanding the React surface. Never label stale data as current, silently fall back to Free on entitlement lookup failure, or let an expired temporary grant override paid access.
+**How to apply:** Build the snapshot contract, capability vocabulary, temporary experience/grant records, audit trail, and server-side APIs before expanding the React surface. Treat a changed daily intelligence payload as a new Routine snapshot; require fresh measured anchor data before scoring confirmation. Never label stale data as current, silently fall back to Free on entitlement lookup failure, or let an expired temporary grant override paid access.
 
 The canonical final decisions are stored in [Dashboard V2 Resolved Decisions.md](../../Dashboard%20V2%20Resolved%20Decisions.md). They lock meaningful-intent Welcome activation, the hybrid bootstrap API, the 14-day opt-in Migration Experience, a 24-hour last-known-good entitlement cache, deferred Widget Pack, behavior-triggered Bundle offers, and the definitive seven-group sidebar.
 

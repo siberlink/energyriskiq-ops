@@ -8,6 +8,7 @@ market tables through a normalized, freshness-aware snapshot boundary.
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import os
 from datetime import date, datetime, timedelta, timezone
@@ -65,6 +66,14 @@ DATASET_RULES = {
     "lng": (timedelta(hours=6), timedelta(hours=36), timedelta(hours=72)),
     "storage": (timedelta(hours=6), timedelta(hours=36), timedelta(hours=72)),
 }
+
+ROUTINE_STEPS = (
+    ("risk", "Risk", "What is the current risk level?"),
+    ("change", "Change", "What changed since the last snapshot?"),
+    ("confirm", "Confirm", "Which market signals confirm the move?"),
+    ("interpret", "Interpret", "What does today’s intelligence mean?"),
+    ("watch", "Watch", "What should you monitor next?"),
+)
 
 
 def _truthy(value: str | None, default: bool = False) -> bool:
@@ -189,7 +198,12 @@ def _freshness(record: Optional[dict], dataset: str) -> dict:
     if not record:
         return {"state": "UNAVAILABLE", "as_of": None, "age_seconds": None}
 
-    raw = record.get("date") or record.get("computed_at") or record.get("created_at")
+    raw = (
+        record.get("computed_at")
+        or record.get("captured_at")
+        or record.get("created_at")
+        or record.get("date")
+    )
     if isinstance(raw, date) and not isinstance(raw, datetime):
         as_of = datetime.combine(raw, datetime.min.time(), tzinfo=timezone.utc)
     elif isinstance(raw, datetime):
@@ -283,14 +297,296 @@ def build_snapshot() -> dict:
     ]
     snapshot_date = max(daily_dates) if daily_dates else None
     ready = sum(1 for item in datasets.values() if item["state"]["state"] in {"FRESH", "DELAYED", "STALE"})
+    routine_snapshot_datasets = (
+        "geri_daily", "eeri_daily", "egsi_m_daily", "egsi_s_daily",
+        "brent", "ttf", "vix", "lng", "storage",
+    )
+    identity = {
+        key: {
+            "data": datasets[key].get("data"),
+            "state": (datasets[key].get("state") or {}).get("state"),
+            "as_of": (datasets[key].get("state") or {}).get("as_of"),
+        }
+        for key in routine_snapshot_datasets
+    }
+    fingerprint = hashlib.sha256(
+        json.dumps(identity, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()[:12]
     return {
-        "snapshot_id": f"intelligence:{snapshot_date or 'unavailable'}",
+        "snapshot_id": f"intelligence:{snapshot_date or 'unavailable'}:{fingerprint}",
         "intelligence_date": snapshot_date,
         "datasets": datasets,
         "freshness": {
             "state": "READY" if ready else "UNAVAILABLE",
             "ready_count": ready,
             "dataset_count": len(datasets),
+        },
+    }
+
+
+def _number(value: Any) -> Optional[float]:
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _direction(value: Any) -> str:
+    number = _number(value)
+    if number is not None:
+        if number > 0.05:
+            return "up"
+        if number < -0.05:
+            return "down"
+        return "flat"
+    text = str(value or "").strip().lower()
+    if any(word in text for word in ("up", "rise", "higher", "increase", "accelerat")):
+        return "up"
+    if any(word in text for word in ("down", "fall", "lower", "decrease", "declin")):
+        return "down"
+    return "flat"
+
+
+def _briefing_item(
+    snapshot: dict,
+    dataset: str,
+    label: str,
+    value_fields: tuple[str, ...],
+    *,
+    change_fields: tuple[str, ...] = (),
+    note_field: Optional[str] = None,
+) -> dict:
+    row = snapshot["datasets"].get(dataset) or {}
+    data = row.get("data") or {}
+    freshness = row.get("state") or {
+        "state": "UNAVAILABLE", "as_of": None, "age_seconds": None,
+    }
+    value = next((data.get(field) for field in value_fields if data.get(field) is not None), None)
+    change = next((data.get(field) for field in change_fields if data.get(field) is not None), None)
+    return {
+        "dataset": dataset,
+        "label": label,
+        "value": _json_value(value),
+        "band": data.get("band") or data.get("risk_band"),
+        "state": freshness.get("state", "UNAVAILABLE"),
+        "as_of": freshness.get("as_of"),
+        "age_seconds": freshness.get("age_seconds"),
+        "change": _json_value(change),
+        "direction": _direction(change),
+        "note": data.get(note_field) if note_field else None,
+    }
+
+
+def _latest_refresh(
+    snapshot: dict, datasets: Optional[tuple[str, ...]] = None
+) -> Optional[str]:
+    latest: Optional[datetime] = None
+    rows = (
+        (snapshot["datasets"].get(key) or {} for key in datasets)
+        if datasets
+        else snapshot["datasets"].values()
+    )
+    for row in rows:
+        raw = (row.get("state") or {}).get("as_of")
+        if not raw:
+            continue
+        try:
+            parsed = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.astimezone(timezone.utc)
+        except (TypeError, ValueError):
+            continue
+        if latest is None or parsed > latest:
+            latest = parsed
+    return latest.isoformat() if latest else None
+
+
+def _next_daily_update() -> str:
+    now = datetime.now(timezone.utc)
+    expected = now.replace(hour=1, minute=30, second=0, microsecond=0)
+    if expected <= now:
+        expected += timedelta(days=1)
+    return expected.isoformat()
+
+
+def build_briefing(snapshot: dict) -> dict:
+    """Create concise, deterministic conclusions from the normalized snapshot."""
+    risk_items = [
+        _briefing_item(snapshot, "geri_daily", "GERI", ("value",), change_fields=("trend_1d",), note_field="interpretation"),
+        _briefing_item(snapshot, "eeri_daily", "EERI", ("value",), change_fields=("trend_1d",), note_field="interpretation"),
+        _briefing_item(snapshot, "egsi_m_daily", "EGSI-M", ("index_value",), change_fields=("trend_1d",), note_field="interpretation"),
+    ]
+    core_states = [item["state"] for item in risk_items]
+    usable_risk = [
+        item for item in risk_items
+        if item["state"] in {"FRESH", "DELAYED"} and item["value"] is not None
+    ]
+    severity = {"LOW": 0, "MODERATE": 1, "ELEVATED": 2, "HIGH": 3, "CRITICAL": 4}
+    highest = max(
+        usable_risk,
+        key=lambda item: severity.get(str(item.get("band") or "").upper(), 1),
+        default=None,
+    )
+    if "UNAVAILABLE" in core_states or not highest:
+        briefing_state = "UNAVAILABLE"
+        summary = "Today’s normalized risk indicators are unavailable, so no current risk conclusion can be issued."
+        what_matters = "Wait for the next verified intelligence refresh before treating older signals as current."
+    elif "STALE" in core_states:
+        briefing_state = "DEGRADED"
+        summary = "One or more core risk inputs are stale; the latest readings are shown for context, not as today’s current conclusion."
+        what_matters = "Wait for the stale core indicator to refresh before relying on a combined risk picture."
+    elif "DELAYED" in core_states:
+        briefing_state = "DEGRADED"
+        if severity.get(str(highest.get("band") or "").upper(), 1) == 0:
+            summary = "Core risk inputs are delayed; the latest readings indicate low risk, but today’s combined picture is not yet fully current."
+        else:
+            summary = f"Core risk inputs are delayed; {highest['label']} is the strongest latest reading, pending a current refresh."
+        what_matters = "Treat the latest risk readings as provisional until all three core indicators are current."
+    elif severity.get(str(highest.get("band") or "").upper(), 1) == 0:
+        briefing_state = "FRESH"
+        summary = "Global and European energy risk remain low, with no broad escalation signal across the core indicators."
+        what_matters = "No major risk escalation signal is currently active."
+    else:
+        briefing_state = "FRESH"
+        band = str(highest.get("band") or "elevated").lower()
+        summary = f"Energy risk is not uniformly calm: {highest['label']} is the strongest current signal at {band}."
+        what_matters = f"Watch {highest['label']} for confirmation or reversal before treating the move as systemic."
+
+    change_items = [
+        *risk_items,
+        _briefing_item(snapshot, "brent", "Brent", ("brent_price",), change_fields=("brent_change_pct",)),
+        _briefing_item(snapshot, "lng", "JKM LNG", ("jkm_price",), change_fields=("jkm_change_pct",)),
+    ]
+    changed = [
+        item for item in change_items
+        if item["direction"] != "flat" and item["state"] in {"FRESH", "DELAYED"}
+    ]
+    if changed:
+        rising = sum(item["direction"] == "up" for item in changed)
+        falling = sum(item["direction"] == "down" for item in changed)
+        change_conclusion = (
+            "The latest signals are mixed rather than systemic; risk and market moves are not all pointing in one direction."
+            if rising and falling
+            else f"The latest available signals are broadly moving {'higher' if rising else 'lower'}."
+        )
+    else:
+        change_conclusion = "No broad day-over-day move is visible in the latest available signals."
+
+    geri_item = risk_items[0]
+    geri_direction_is_current = (
+        geri_item["state"] == "FRESH"
+        and geri_item["value"] is not None
+        and geri_item["change"] is not None
+    )
+    geri_direction = geri_item["direction"] if geri_direction_is_current else None
+    confirm_items = [
+        _briefing_item(snapshot, "brent", "Brent", ("brent_price",), change_fields=("brent_change_pct",)),
+        _briefing_item(snapshot, "ttf", "TTF", ("ttf_price",)),
+        _briefing_item(snapshot, "lng", "JKM LNG", ("jkm_price",), change_fields=("jkm_change_pct",)),
+        _briefing_item(snapshot, "vix", "VIX", ("vix_close",)),
+        _briefing_item(snapshot, "geri_live", "GERI Live", ("value",), change_fields=("trend_vs_yesterday",), note_field="interpretation"),
+    ]
+    vix_data = (snapshot["datasets"].get("vix") or {}).get("data") or {}
+    vix_open = _number(vix_data.get("vix_open"))
+    vix_close = _number(vix_data.get("vix_close"))
+    vix_move = (
+        vix_close - vix_open
+        if vix_open is not None and vix_close is not None
+        else None
+    )
+    confirm_items[3]["change"] = round(vix_move, 2) if vix_move is not None else None
+    confirm_items[3]["direction"] = _direction(vix_move)
+    measured_confirmation = []
+    for item in confirm_items:
+        has_change = item.get("change") is not None
+        if not geri_direction_is_current or item["state"] not in {"FRESH", "DELAYED"} or not has_change:
+            item["confirmation"] = "not measured"
+        elif item["direction"] == "flat" or geri_direction == "flat":
+            item["confirmation"] = "neutral"
+        elif item["direction"] == geri_direction:
+            item["confirmation"] = "confirming"
+        else:
+            item["confirmation"] = "diverging"
+        if item["confirmation"] != "not measured":
+            measured_confirmation.append(item)
+    strength = sum(item["confirmation"] == "confirming" for item in measured_confirmation)
+    measured_total = len(measured_confirmation)
+    if not geri_direction_is_current:
+        confirm_conclusion = "A current measured GERI daily direction is unavailable, so no market-confirmation score can be issued."
+    elif not measured_total:
+        confirm_conclusion = "Current change data is insufficient to issue a market-confirmation score."
+    elif geri_direction == "flat":
+        confirm_conclusion = "There is no broad daily risk move requiring confirmation; markets remain a monitoring signal."
+    elif strength / measured_total >= 0.6:
+        confirm_conclusion = f"Broad confirmation: {strength} of {measured_total} measured signals agree with the daily risk direction."
+    elif strength:
+        confirm_conclusion = f"Moderate confirmation: {strength} of {measured_total} measured signals agree; the move has not propagated broadly."
+    else:
+        confirm_conclusion = "Weak confirmation: tracked markets are neutral or diverging from the daily risk direction."
+
+    interpretations = [
+        item["note"] for item in risk_items
+        if item.get("note") and item["state"] != "UNAVAILABLE"
+    ]
+    interpretation = interpretations[0] if interpretations else summary
+    watch_items = [
+        _briefing_item(snapshot, "geri_live", "GERI Live", ("value",), change_fields=("trend_vs_yesterday",)),
+        _briefing_item(snapshot, "brent", "Brent", ("brent_price",), change_fields=("brent_change_pct",)),
+        _briefing_item(snapshot, "storage", "European storage", ("eu_storage_percent",), note_field="interpretation"),
+        _briefing_item(snapshot, "ttf", "TTF", ("ttf_price",)),
+    ]
+    watch_notes = {
+        "GERI Live": "Monitor for acceleration away from the daily risk signal.",
+        "Brent": "Watch whether the next move confirms or rejects today’s risk direction.",
+        "European storage": "Monitor the next update and any change in deviation from seasonal norms.",
+        "TTF": "Watch for a response to European gas and storage conditions.",
+    }
+    for item in watch_items:
+        item["note"] = watch_notes[item["label"]]
+
+    return {
+        "state": briefing_state,
+        "summary": summary,
+        "what_matters": what_matters,
+        "refreshed_at": _latest_refresh(
+            snapshot, ("geri_daily", "eeri_daily", "egsi_m_daily")
+        ),
+        "next_update_at": _next_daily_update(),
+        "steps": {
+            "risk": {
+                "title": "Current risk picture",
+                "conclusion": summary,
+                "what_matters": what_matters,
+                "product_label": "GERI · EERI · EGSI",
+                "items": risk_items,
+            },
+            "change": {
+                "title": "What changed",
+                "conclusion": change_conclusion,
+                "product_label": "Daily changes · GERI Live",
+                "items": change_items,
+            },
+            "confirm": {
+                "title": "Market confirmation",
+                "conclusion": confirm_conclusion,
+                "confirmation_strength": {"confirmed": strength, "total": measured_total},
+                "product_label": "Brent · TTF · LNG · VIX · GERI Live",
+                "items": confirm_items,
+            },
+            "interpret": {
+                "title": "Today’s interpretation",
+                "conclusion": interpretation,
+                "summary": summary,
+                "product_label": "Daily Intelligence Report · Brent Forecast",
+                "items": risk_items,
+            },
+            "watch": {
+                "title": "What to watch next",
+                "conclusion": "Focus on whether live risk and traded markets begin to move together before the next daily update.",
+                "product_label": "Alerts · GERI Live",
+                "items": watch_items,
+            },
         },
     }
 
@@ -325,37 +621,39 @@ def _resolve_entitlements_live(user_id: int, user: Optional[dict] = None) -> dic
     paid = {"daily_risk"}
     sources: dict[str, list[str]] = {"daily_risk": ["free_baseline"]}
 
+    def add_capability(capability: str, source: str) -> None:
+        paid.add(capability)
+        capability_sources = sources.setdefault(capability, [])
+        if source not in capability_sources:
+            capability_sources.append(source)
+
     # Preserve the broad access already represented by the legacy plan mirror.
     if plan in {"trader", "pro", "enterprise"}:
-        paid.update({"intraday_risk", "dir_full", "brent_forecast"})
         for capability in ("intraday_risk", "dir_full", "brent_forecast"):
-            sources[capability] = ["legacy_plan"]
+            add_capability(capability, "legacy_plan")
 
     geri = _strict_one(
         "SELECT status, current_period_end FROM user_geri_live_subs WHERE user_id = %s",
         (user_id,),
     )
     if geri and geri.get("status") in {"active", "trialing", "canceling"}:
-        paid.update({"intraday_risk", "dir_full"})
-        sources["intraday_risk"] = ["geri_live_subscription"]
-        sources["dir_full"] = ["geri_live_complimentary"]
+        add_capability("intraday_risk", "geri_live_subscription")
+        add_capability("dir_full", "geri_live_complimentary")
 
     daily = _strict_one(
         "SELECT status, current_period_end FROM user_daily_report_subs WHERE user_id = %s",
         (user_id,),
     )
     if daily and daily.get("status") in {"active", "trialing", "canceling"}:
-        paid.update({"dir_full", "intraday_risk"})
-        sources["dir_full"] = ["daily_report_subscription"]
-        sources["intraday_risk"] = ["daily_report_complimentary"]
+        add_capability("dir_full", "daily_report_subscription")
+        add_capability("intraday_risk", "daily_report_complimentary")
 
     forecast = _strict_one(
         "SELECT paid, status FROM paid_brent_forecast_users WHERE LOWER(email) = LOWER(%s)",
         (user.get("email", ""),),
     )
     if forecast and forecast.get("paid") and forecast.get("status") in {"active", "trialing", "canceling", "paid"}:
-        paid.add("brent_forecast")
-        sources["brent_forecast"] = ["brent_forecast_subscription"]
+        add_capability("brent_forecast", "brent_forecast_subscription")
 
     # Existing paid Widget products retain both in-dashboard and external embed
     # rights. Temporary experiences only ever add the internal capability.
@@ -373,8 +671,7 @@ def _resolve_entitlements_live(user_id: int, user: Optional[dict] = None) -> dic
     }
     for widget_row in widget_rows:
         for capability in widget_map.get(widget_row["widget_code"], ()):
-            paid.add(capability)
-            sources[capability] = ["legacy_widget_subscription"]
+            add_capability(capability, "legacy_widget_subscription")
 
     # V2 billing is isolated in its own mirror. It is additive and therefore
     # cannot overwrite, cancel, or otherwise alter any legacy subscription.
@@ -390,14 +687,12 @@ def _resolve_entitlements_live(user_id: int, user: Optional[dict] = None) -> dic
     for subscription in v2_subscriptions:
         product = PRODUCT_CATALOG.get(subscription["product_code"])
         if product:
-            paid.update(product["capabilities"])
             for capability in product["capabilities"]:
-                sources[capability] = ["dashboard_v2_billing"]
+                add_capability(capability, "dashboard_v2_billing")
 
     grants = _active_grants(user_id)
-    paid.update(grants)
     for capability in grants:
-        sources[capability] = ["temporary_grant"]
+        add_capability(capability, "temporary_grant")
 
     active_experience = _strict_one(
         """
@@ -409,9 +704,8 @@ def _resolve_entitlements_live(user_id: int, user: Optional[dict] = None) -> dic
         (user_id,),
     )
     if active_experience:
-        paid.update(PREMIUM_INTENT_CAPABILITIES)
         for capability in PREMIUM_INTENT_CAPABILITIES:
-            sources[capability] = [active_experience["experience_type"].lower()]
+            add_capability(capability, active_experience["experience_type"].lower())
 
     return {
         "capabilities": {capability: capability in paid for capability in CAPABILITIES},
@@ -459,7 +753,14 @@ def resolve_entitlements(user_id: int, user: Optional[dict] = None) -> dict:
                 try:
                     if datetime.fromisoformat(experience["ends_at"]).replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc):
                         for capability in PREMIUM_INTENT_CAPABILITIES:
-                            if result.get("sources", {}).get(capability) in (["welcome"], ["migration"], ["temporary_grant"]):
+                            capability_sources = result.get("sources", {}).get(capability, [])
+                            if any(
+                                source in {"welcome", "migration", "temporary_grant"}
+                                for source in capability_sources
+                            ) and not any(
+                                source not in {"welcome", "migration", "temporary_grant"}
+                                for source in capability_sources
+                            ):
                                 result["capabilities"][capability] = False
                 except (TypeError, ValueError):
                     pass
@@ -605,6 +906,31 @@ def dismiss_migration(user_id: int) -> None:
     record_event(user_id, "migration_dismissed", "essential", {}, True)
 
 
+def routine_started(user_id: int, snapshot_id: str) -> bool:
+    row = _one(
+        """
+        SELECT 1
+        FROM dashboard_v2_events
+        WHERE user_id = %s
+          AND event_name = 'routine_started'
+          AND event_envelope->'payload'->>'snapshot_id' = %s
+        LIMIT 1
+        """,
+        (user_id, snapshot_id),
+    )
+    if row:
+        return True
+    return bool(
+        _one(
+            """
+            SELECT 1 FROM dashboard_v2_routine_progress
+            WHERE user_id = %s AND snapshot_id = %s LIMIT 1
+            """,
+            (user_id, snapshot_id),
+        )
+    )
+
+
 def routine_state(user_id: int, snapshot: dict) -> dict:
     snapshot_id = snapshot["snapshot_id"]
     rows = _many(
@@ -617,13 +943,7 @@ def routine_state(user_id: int, snapshot: dict) -> dict:
     )
     by_step = {row["step_key"]: row for row in rows}
     steps = []
-    for key, title, summary in (
-        ("risk", "Risk", "What is the current risk level?"),
-        ("change", "Change", "What changed since the last snapshot?"),
-        ("confirm", "Confirm", "Which market signals confirm the move?"),
-        ("interpret", "Interpret", "What does today’s intelligence mean?"),
-        ("watch", "Watch", "What should you monitor next?"),
-    ):
+    for key, title, summary in ROUTINE_STEPS:
         available = _step_available(key, snapshot)
         row = by_step.get(key, {})
         steps.append({
@@ -636,12 +956,22 @@ def routine_state(user_id: int, snapshot: dict) -> dict:
             "completed_at": _json_value(row.get("completed_at")),
         })
     available_steps = [step for step in steps if step["available"]]
-    completed = sum(step["status"] == "completed" for step in available_steps)
+    completed = sum(step["status"] == "completed" for step in steps)
+    current = next(
+        (
+            step["key"] for step in steps
+            if step["available"] and step["status"] != "completed"
+        ),
+        None,
+    )
     return {
         "snapshot_id": snapshot_id,
         "steps": steps,
         "completed": completed,
         "available": len(available_steps),
+        "total_steps": len(ROUTINE_STEPS),
+        "current_step": current,
+        "started": routine_started(user_id, snapshot_id),
         "complete": bool(available_steps) and completed == len(available_steps),
     }
 
@@ -729,12 +1059,37 @@ def primary_offer(user_id: int, entitlements: dict, routine: dict) -> Optional[d
         return None
     experience = entitlements.get("experience")
     if experience and experience.get("ends_at") and not _offer_is_dismissed(user_id, "welcome"):
+        now = datetime.now(timezone.utc)
+        try:
+            started_at = datetime.fromisoformat(
+                str(experience.get("started_at")).replace("Z", "+00:00")
+            )
+            ends_at = datetime.fromisoformat(
+                str(experience["ends_at"]).replace("Z", "+00:00")
+            )
+            if started_at.tzinfo is None:
+                started_at = started_at.replace(tzinfo=timezone.utc)
+            if ends_at.tzinfo is None:
+                ends_at = ends_at.replace(tzinfo=timezone.utc)
+            elapsed_days = max(0, int((now - started_at).total_seconds() // 86400))
+            remaining_seconds = max(0, (ends_at - now).total_seconds())
+            days_remaining = min(7, max(1, int((remaining_seconds + 86399) // 86400)))
+            day_number = min(7, elapsed_days + 1)
+        except (TypeError, ValueError):
+            day_number = 1
+            days_remaining = 7
         return {
             "kind": "welcome",
             "priority": 4,
-            "title": "Your 7-day intelligence welcome is active",
-            "body": "Explore the full daily workflow, including live risk, reports, and internal widgets.",
+            "title": f"Your 7-Day Intelligence Welcome — Day {day_number} of 7",
+            "body": "Full internal access to GERI Live, Daily Intelligence Report, Brent Forecast, and market intelligence is active.",
+            "started_at": experience.get("started_at"),
             "ends_at": experience["ends_at"],
+            "day_number": day_number,
+            "total_days": 7,
+            "days_remaining": days_remaining,
+            "cta_href": "/dashboard/intelligence/geri-live",
+            "cta_label": "Explore Premium Intelligence",
         }
     behavior = _one(
         """SELECT
@@ -780,7 +1135,7 @@ def primary_offer(user_id: int, entitlements: dict, routine: dict) -> Optional[d
     ) or {}
     premium_sources = entitlements.get("sources", {})
     owns_legacy_plan = any(
-        premium_sources.get(capability) == ["legacy_plan"]
+        "legacy_plan" in premium_sources.get(capability, [])
         for capability in ("intraday_risk", "dir_full", "brent_forecast")
     )
     standalone_count = int(ownership.get("standalone_count") or 0)
@@ -1108,5 +1463,6 @@ def bootstrap(user_id: int, edition_slug: Optional[str] = None) -> dict:
         "routine": routine,
         "newsletter_context": newsletter_context(user_id, edition_slug),
         "primary_offer": primary_offer(user_id, entitlements, routine),
+        "briefing": build_briefing(snapshot),
         "snapshot": snapshot,
     }
