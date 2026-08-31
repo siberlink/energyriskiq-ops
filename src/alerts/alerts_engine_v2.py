@@ -774,21 +774,18 @@ def create_delivery(
     reason: Optional[str] = None,
     delivery_kind: str = 'instant'
 ) -> Optional[int]:
-    try:
-        with get_cursor() as cursor:
-            cursor.execute(
-                """INSERT INTO user_alert_deliveries
-                   (user_id, alert_event_id, channel, status, reason, delivery_kind)
-                   VALUES (%s, %s, %s, %s, %s, %s)
-                   ON CONFLICT (user_id, alert_event_id, channel) DO NOTHING
-                   RETURNING id""",
-                (user_id, alert_event_id, channel, status, reason, delivery_kind)
-            )
-            result = cursor.fetchone()
-            return result['id'] if result else None
-    except Exception as e:
-        logger.error(f"Error creating delivery: {e}")
-        return None
+    with get_cursor() as cursor:
+        cursor.execute(
+            """INSERT INTO user_alert_deliveries
+               (user_id, alert_event_id, channel, status, reason, delivery_kind)
+               VALUES (%s, %s, %s, %s, %s, %s)
+               ON CONFLICT (alert_event_id, user_id, channel, delivery_kind)
+               DO NOTHING
+               RETURNING id""",
+            (user_id, alert_event_id, channel, status, reason, delivery_kind)
+        )
+        result = cursor.fetchone()
+        return result['id'] if result else None
 
 
 def update_delivery_status(delivery_id: int, status: str, provider_message_id: Optional[str] = None, reason: Optional[str] = None):

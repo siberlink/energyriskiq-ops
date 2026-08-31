@@ -50,165 +50,72 @@ on:
         type: choice
         options: ['true', 'false']
 
-# Deliberately no Actions concurrency group. Every cron event gets a runner.
-# The API's PostgreSQL advisory lock returns 409 when a prior run is active,
-# avoiding GitHub's one-pending-run replacement behavior.
+# The direct runner invokes the protected handlers in this process. PostgreSQL
+# owns overlap prevention; no public HTTP request crosses Cloudflare.
 jobs:
   run-alerts-engine-v2:
     runs-on: ubuntu-latest
-    # 480s engine + two 90s deliveries + two minutes of runner/summary margin.
     timeout-minutes: 13
     env:
-      APP_URL: ${{ secrets.APP_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      ALERTS_V2_ENABLED: ${{ github.event.inputs.alerts_enabled || 'true' }}
+      ALERTS_ENABLED: ${{ github.event.inputs.alerts_enabled || 'true' }}
       PHASE: ${{ github.event.inputs.phase || 'all' }}
       DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
       SINCE_HOURS: ${{ github.event.inputs.since_hours || '24' }}
       BATCH_SIZE: ${{ github.event.inputs.batch_size || '200' }}
       SKIP_PREFLIGHT: ${{ github.event.inputs.skip_preflight || 'false' }}
-      ALERTS_ENABLED: ${{ github.event.inputs.alerts_enabled || 'true' }}
       INCLUDE_PRO_DELIVERY: ${{ github.event.inputs.include_pro_delivery || 'true' }}
       INCLUDE_TRADER_DELIVERY: ${{ github.event.inputs.include_trader_delivery || 'true' }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+      TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+      ALERTS_SEND_ALLOWLIST_USER_IDS: ${{ secrets.ALERTS_SEND_ALLOWLIST_USER_IDS }}
+      ALERTS_MAX_SEND_PER_RUN: ${{ secrets.ALERTS_MAX_SEND_PER_RUN || '1000' }}
+      GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
+      PYTHONPATH: '.'
+      SKIP_MIGRATIONS: 'true'
 
     steps:
-      - name: Validate configuration
-        run: |
-          if [ -z "$APP_URL" ] || [ -z "$INTERNAL_RUNNER_TOKEN" ]; then
-            echo "::error::APP_URL and INTERNAL_RUNNER_TOKEN must be configured"
-            exit 1
-          fi
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
 
-      - name: Trigger protected Alerts Engine
+      - name: Setup Python
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Alerts Engine and deliveries directly
         id: alerts
         run: |
-          if [ "$ALERTS_ENABLED" != "true" ]; then
-            echo '{"status":"disabled"}' | tee alerts_engine_output.txt
-            echo "status=disabled" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          curl_exit=0
-          response=$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 480 \
-            --get -w "\n%{http_code}" -X POST \
-            "$APP_URL/internal/run/alerts" \
-            --data-urlencode "phase=$PHASE" \
-            --data-urlencode "dry_run=$DRY_RUN" \
-            --data-urlencode "since_hours=$SINCE_HOURS" \
-            --data-urlencode "batch_size=$BATCH_SIZE" \
-            --data-urlencode "skip_preflight=$SKIP_PREFLIGHT" \
-            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN" \
-            -H "Content-Type: application/json") || curl_exit=$?
-          if [ "$curl_exit" -ne 0 ]; then
-            printf '{"error":"request_failed","curl_exit":%s}\n' "$curl_exit" |
-              tee alerts_engine_output.txt
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          printf '%s\n' "$body" | tee alerts_engine_output.txt
-
-          if [ "$http_code" = "409" ]; then
-            echo "::notice::A protected Alerts Engine run is already active"
-            echo "status=busy" >> "$GITHUB_OUTPUT"
-          elif [ "$http_code" = "200" ]; then
-            echo "status=success" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::Alerts Engine returned HTTP $http_code"
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
-      - name: Pro Plan Alert Delivery
-        id: pro_delivery
-        if: >-
-          always() &&
-          steps.alerts.outputs.status == 'success' &&
-          env.DRY_RUN != 'true' &&
-          env.INCLUDE_PRO_DELIVERY == 'true'
-        run: |
-          curl_exit=0
-          response=$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 90 \
-            -w "\n%{http_code}" -X POST \
-            "$APP_URL/internal/run/pro-delivery?since_minutes=15&include_geri=true" \
-            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN" \
-            -H "Content-Type: application/json") || curl_exit=$?
-          if [ "$curl_exit" -ne 0 ]; then
-            printf '{"error":"request_failed","curl_exit":%s}\n' "$curl_exit" |
-              tee pro_delivery_output.txt
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          printf '%s\n' "$body" | tee pro_delivery_output.txt
-          if [ "$http_code" = "409" ]; then
-            echo "::notice::Pro delivery is already active"
-            echo "status=busy" >> "$GITHUB_OUTPUT"
-          elif [ "$http_code" = "200" ]; then
-            echo "status=success" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::Pro delivery returned HTTP $http_code"
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
-      - name: Trader Plan Alert Delivery
-        id: trader_delivery
-        if: >-
-          always() &&
-          steps.alerts.outputs.status == 'success' &&
-          env.DRY_RUN != 'true' &&
-          env.INCLUDE_TRADER_DELIVERY == 'true'
-        run: |
-          curl_exit=0
-          response=$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 90 \
-            -w "\n%{http_code}" -X POST \
-            "$APP_URL/internal/run/trader-delivery?since_minutes=30" \
-            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN" \
-            -H "Content-Type: application/json") || curl_exit=$?
-          if [ "$curl_exit" -ne 0 ]; then
-            printf '{"error":"request_failed","curl_exit":%s}\n' "$curl_exit" |
-              tee trader_delivery_output.txt
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          printf '%s\n' "$body" | tee trader_delivery_output.txt
-          if [ "$http_code" = "409" ]; then
-            echo "::notice::Trader delivery is already active"
-            echo "status=busy" >> "$GITHUB_OUTPUT"
-          elif [ "$http_code" = "200" ]; then
-            echo "status=success" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::Trader delivery returned HTTP $http_code"
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
+          set -o pipefail
+          python scripts/replit_scheduled_job.py --job alerts \
+            2>&1 | tee alerts_engine_output.txt
 
       - name: Upload logs
         uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: alerts-engine-logs-${{ github.run_id }}
-          path: |
-            alerts_engine_output.txt
-            pro_delivery_output.txt
-            trader_delivery_output.txt
+          path: alerts_engine_output.txt
           if-no-files-found: ignore
           retention-days: 7
 
       - name: Summary
         if: always()
         env:
-          ALERTS_STATUS: ${{ steps.alerts.outputs.status || steps.alerts.outcome }}
-          PRO_STATUS: ${{ steps.pro_delivery.outputs.status || steps.pro_delivery.outcome }}
-          TRADER_STATUS: ${{ steps.trader_delivery.outputs.status || steps.trader_delivery.outcome }}
+          ALERTS_STATUS: ${{ steps.alerts.outcome }}
           TRIGGER_NAME: ${{ github.event_name }}
         run: |
           {
@@ -219,32 +126,7 @@ jobs:
             printf '| Trigger | %s |\n' "$TRIGGER_NAME"
             printf '| Phase | %s |\n' "$PHASE"
             printf '| Dry run | %s |\n' "$DRY_RUN"
-            printf '| Alerts engine | %s |\n' "$ALERTS_STATUS"
-            printf '| Pro delivery | %s |\n' "$PRO_STATUS"
-            printf '| Trader delivery | %s |\n' "$TRADER_STATUS"
+            printf '| Alerts and deliveries | %s |\n' "$ALERTS_STATUS"
             echo
-            echo "Auxiliary market and index captures run independently."
+            echo "The application handlers ran directly; no public HTTP timeout applies."
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Verify required steps
-        if: always()
-        env:
-          ALERTS_STATUS: ${{ steps.alerts.outputs.status }}
-          PRO_STATUS: ${{ steps.pro_delivery.outputs.status }}
-          TRADER_STATUS: ${{ steps.trader_delivery.outputs.status }}
-        run: |
-          failed=""
-          [ "$ALERTS_STATUS" = "failed" ] && failed="$failed alerts_engine"
-          [ -z "$ALERTS_STATUS" ] && failed="$failed alerts_engine"
-          [ "$PRO_STATUS" = "failed" ] && failed="$failed pro_delivery"
-          [ "$TRADER_STATUS" = "failed" ] && failed="$failed trader_delivery"
-          if [ "$ALERTS_STATUS" = "success" ] && [ "$DRY_RUN" != "true" ]; then
-            [ "$INCLUDE_PRO_DELIVERY" = "true" ] && [ -z "$PRO_STATUS" ] &&
-              failed="$failed pro_delivery_missing"
-            [ "$INCLUDE_TRADER_DELIVERY" = "true" ] && [ -z "$TRADER_STATUS" ] &&
-              failed="$failed trader_delivery_missing"
-          fi
-          if [ -n "$failed" ]; then
-            echo "::error::Required steps failed:$failed"
-            exit 1
-          fi

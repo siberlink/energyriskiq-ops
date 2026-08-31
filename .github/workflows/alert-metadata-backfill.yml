@@ -12,64 +12,39 @@ on:
         type: choice
         options: ['false', 'true']
 
-# The endpoint's PostgreSQL advisory lock owns overlap prevention. Avoid an
-# Actions concurrency group, which can discard older pending schedule events.
+# The direct runner invokes the protected handler under its PostgreSQL lock.
 jobs:
   backfill:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      APP_URL: ${{ secrets.PROD_API_URL || secrets.APP_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
       DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+      PYTHONPATH: '.'
+      SKIP_MIGRATIONS: 'true'
 
     steps:
-      - name: Validate configuration
-        run: |
-          if [ -z "$APP_URL" ] || [ -z "$INTERNAL_RUNNER_TOKEN" ]; then
-            echo "::error::PROD_API_URL (or APP_URL) and INTERNAL_RUNNER_TOKEN must be configured"
-            exit 1
-          fi
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
 
-      - name: Backfill Alert Metadata
+      - name: Setup Python
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Backfill Alert Metadata directly
         id: backfill
         run: |
-          curl_exit=0
-          response=$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 480 \
-            --get -w "\n%{http_code}" -X POST \
-            "$APP_URL/internal/backfill-alert-metadata" \
-            --data-urlencode "dry_run=$DRY_RUN" \
-            -H "Content-Type: application/json" \
-            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN") || curl_exit=$?
-
-          if [ "$curl_exit" -ne 0 ]; then
-            printf '{"error":"request_failed","curl_exit":%s}\n' "$curl_exit" |
-              tee backfill_output.txt
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          printf '%s\n' "$body" | tee backfill_output.txt
-
-          if [ "$http_code" = "409" ]; then
-            echo "::notice::Metadata backfill is already active"
-            echo "status=busy" >> "$GITHUB_OUTPUT"
-          elif [ "$http_code" = "200" ]; then
-            errors=$(printf '%s' "$body" | jq -r '.details.errors // 0' 2>/dev/null || echo "invalid")
-            if [ "$errors" != "0" ]; then
-              echo "::error::Metadata backfill completed with $errors row errors"
-              echo "status=failed" >> "$GITHUB_OUTPUT"
-              exit 1
-            fi
-            echo "status=success" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::Metadata backfill returned HTTP $http_code"
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
+          set -o pipefail
+          python scripts/replit_scheduled_job.py --job metadata \
+            2>&1 | tee backfill_output.txt
 
       - name: Upload logs
         uses: actions/upload-artifact@v4.6.2
@@ -83,7 +58,7 @@ jobs:
       - name: Summary
         if: always()
         env:
-          BACKFILL_STATUS: ${{ steps.backfill.outputs.status || steps.backfill.outcome }}
+          BACKFILL_STATUS: ${{ steps.backfill.outcome }}
           TRIGGER_NAME: ${{ github.event_name }}
         run: |
           {
@@ -94,14 +69,6 @@ jobs:
             printf '| Trigger | %s |\n' "$TRIGGER_NAME"
             printf '| Dry run | %s |\n' "$DRY_RUN"
             printf '| Backfill | %s |\n' "$BACKFILL_STATUS"
+            echo
+            echo "The application handler ran directly; no public HTTP timeout applies."
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Verify required result
-        if: always()
-        env:
-          BACKFILL_STATUS: ${{ steps.backfill.outputs.status }}
-        run: |
-          if [ -z "$BACKFILL_STATUS" ] || [ "$BACKFILL_STATUS" = "failed" ]; then
-            echo "::error::Metadata backfill did not complete"
-            exit 1
-          fi

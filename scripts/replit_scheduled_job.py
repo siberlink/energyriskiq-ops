@@ -54,6 +54,31 @@ def _configuration() -> str:
     return token
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise RuntimeError(f"{name} must be true or false")
+
+
+def _env_int(name: str, default: int, minimum: int, maximum: int) -> int:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except ValueError as error:
+        raise RuntimeError(f"{name} must be an integer") from error
+    if not minimum <= parsed <= maximum:
+        raise RuntimeError(f"{name} must be between {minimum} and {maximum}")
+    return parsed
+
+
 def _handler(name: str):
     from src.api import internal_routes
 
@@ -89,28 +114,34 @@ def _invoke(name: str, handler_name: str, token: str, **kwargs) -> int:
 def run_job(name: str) -> None:
     token = _configuration()
     if name == "alerts":
+        if not _env_bool("ALERTS_ENABLED", True):
+            print(json.dumps({"job": name, "status": "disabled"}, sort_keys=True))
+            return
         alert_status = _invoke(
             name,
             ALERTS_JOB.handler_name,
             token,
-            phase="all",
-            dry_run=False,
-            since_hours=24,
-            batch_size=200,
-            skip_preflight=False,
+            phase=os.environ.get("PHASE", "all"),
+            dry_run=_env_bool("DRY_RUN", False),
+            since_hours=_env_int("SINCE_HOURS", 24, 1, 168),
+            batch_size=_env_int("BATCH_SIZE", 200, 1, 1000),
+            skip_preflight=_env_bool("SKIP_PREFLIGHT", False),
         )
         if alert_status == 409:
             return
-        _invoke(
-            "pro_delivery",
-            "run_pro_delivery",
-            token,
-        )
-        _invoke(
-            "trader_delivery",
-            "run_trader_delivery",
-            token,
-        )
+        if not _env_bool("DRY_RUN", False):
+            if _env_bool("INCLUDE_PRO_DELIVERY", True):
+                _invoke(
+                    "pro_delivery",
+                    "run_pro_delivery",
+                    token,
+                )
+            if _env_bool("INCLUDE_TRADER_DELIVERY", True):
+                _invoke(
+                    "trader_delivery",
+                    "run_trader_delivery",
+                    token,
+                )
         return
 
     if name == "ingestion":
@@ -118,22 +149,22 @@ def run_job(name: str) -> None:
             name,
             JOBS[name].handler_name,
             token,
-            skip_ai=False,
-            skip_risk=False,
+            skip_ai=_env_bool("SKIP_AI", False),
+            skip_risk=_env_bool("SKIP_RISK", False),
         )
     elif name == "metadata":
         _invoke(
             name,
             JOBS[name].handler_name,
             token,
-            dry_run=False,
+            dry_run=_env_bool("DRY_RUN", False),
         )
     elif name == "daily":
         _invoke(
             name,
             JOBS[name].handler_name,
             token,
-            include_delivery=True,
+            include_delivery=_env_bool("INCLUDE_DELIVERY", True),
         )
     else:
         _invoke(name, JOBS[name].handler_name, token)

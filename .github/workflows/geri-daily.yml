@@ -12,68 +12,45 @@ on:
         type: choice
         options: ['true', 'false']
 
-# The protected endpoint owns the lock for the complete ordered sequence.
-# Avoid a GitHub concurrency group, which can replace an older pending run.
+# The direct runner owns the complete ordered sequence under one PostgreSQL lock.
 jobs:
   compute-indices:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      APP_URL: ${{ secrets.APP_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
       INCLUDE_DELIVERY: ${{ github.event.inputs.include_delivery || 'true' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      PYTHONPATH: '.'
+      SKIP_MIGRATIONS: 'true'
 
     steps:
-      - name: Validate configuration
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
         run: |
-          if [ -z "$APP_URL" ] || [ -z "$INTERNAL_RUNNER_TOKEN" ]; then
-            echo "::error::APP_URL and INTERNAL_RUNNER_TOKEN must be configured"
-            exit 1
-          fi
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-          curl_exit=0
-          code=$(curl --silent --show-error --output /dev/null \
-            --write-out "%{http_code}" --connect-timeout 10 --max-time 30 \
-            --retry 2 --retry-delay 5 --retry-all-errors \
-            "$APP_URL/health") || curl_exit=$?
-          if [ "$curl_exit" -ne 0 ] || [ "$code" != "200" ]; then
-            echo "::error::Application health check failed (curl=$curl_exit, HTTP=$code)"
-            exit 1
-          fi
-
-      - name: Run protected daily index pipeline
+      - name: Run daily index pipeline directly
         id: daily
         run: |
-          curl_exit=0
-          response=$(curl --silent --show-error \
-            --connect-timeout 10 --max-time 2250 \
-            --get -w "\n%{http_code}" -X POST \
-            "$APP_URL/internal/run/daily-index-pipeline" \
-            --data-urlencode "include_delivery=$INCLUDE_DELIVERY" \
-            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN" \
-            -H "Content-Type: application/json") || curl_exit=$?
-
-          if [ "$curl_exit" -ne 0 ]; then
-            printf '{"error":"request_failed","curl_exit":%s}\n' "$curl_exit" |
-              tee daily_output.txt
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          printf '%s\n' "$body" | tee daily_output.txt
-
-          if [ "$http_code" = "409" ]; then
-            echo "::notice::The protected daily pipeline is already active"
-            echo "status=busy" >> "$GITHUB_OUTPUT"
-          elif [ "$http_code" = "200" ]; then
-            echo "status=success" >> "$GITHUB_OUTPUT"
-          else
-            echo "::error::Daily index pipeline returned HTTP $http_code"
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
+          set -o pipefail
+          python scripts/replit_scheduled_job.py --job daily \
+            2>&1 | tee daily_output.txt
 
       - name: Upload logs
         uses: actions/upload-artifact@v4.6.2
@@ -87,7 +64,7 @@ jobs:
       - name: Summary
         if: always()
         env:
-          DAILY_STATUS: ${{ steps.daily.outputs.status || steps.daily.outcome }}
+          DAILY_STATUS: ${{ steps.daily.outcome }}
           TRIGGER_NAME: ${{ github.event_name }}
         run: |
           {
@@ -98,14 +75,6 @@ jobs:
             printf '| Trigger | %s |\n' "$TRIGGER_NAME"
             printf '| Include delivery | %s |\n' "$INCLUDE_DELIVERY"
             printf '| Daily pipeline | %s |\n' "$DAILY_STATUS"
+            echo
+            echo "The application handler ran directly; no public HTTP timeout applies."
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Verify required result
-        if: always()
-        env:
-          DAILY_STATUS: ${{ steps.daily.outputs.status }}
-        run: |
-          if [ -z "$DAILY_STATUS" ] || [ "$DAILY_STATUS" = "failed" ]; then
-            echo "::error::Daily index pipeline did not complete"
-            exit 1
-          fi
