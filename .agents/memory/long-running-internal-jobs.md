@@ -23,5 +23,16 @@ session, implicitly releasing the lock before the work finishes.
 when releasing its advisory lock, while a retry appeared to overlap the first
 execution.
 
-**How to apply:** Long jobs need a lock lease/heartbeat or another durable
-running-state guard in addition to a session-level advisory lock.
+**How to apply:** Every outer and nested lock held during long work needs a
+keepalive heartbeat; protecting only the orchestration lock is insufficient.
+Treat heartbeat loss as a job failure.
+
+Apply send-rate limits when rows are claimed, not after a larger batch has been
+changed from `queued` to `sending`.
+
+**Why:** Claiming more rows than the per-run circuit breaker left untouched rows
+stranded in `sending`, where later workers could not retry them.
+
+**How to apply:** Use the smaller of the batch limit and run limit in the
+locking query. Recovery may requeue only rows with no provider ID, sent
+timestamp, or error; stale alerts should be explicitly skipped rather than sent.
