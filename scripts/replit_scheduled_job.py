@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run one production background job from a Replit Scheduled Deployment.
 
-The scheduled deployment is intentionally a thin HTTP client. The API remains
-the single owner of business logic, authentication, advisory locks, and
-idempotency.
+The scheduled deployment invokes the existing protected handlers directly.
+That keeps business logic, authentication, advisory locks, and idempotency in
+one place without sending a scheduler request through the public Cloudflare
+front door.
 """
 
 from __future__ import annotations
@@ -14,153 +15,128 @@ import os
 import sys
 from dataclasses import dataclass
 from typing import Any
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+
+from fastapi import HTTPException
+
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 
 @dataclass(frozen=True)
 class Job:
-    path: str
-    params: tuple[tuple[str, str], ...] = ()
-    timeout: int = 480
+    handler_name: str
 
 
 JOBS = {
     "intraday": Job(
-        path="/internal/run/intraday-price-capture",
-        timeout=60,
+        handler_name="run_intraday_price_capture",
     ),
     "ingestion": Job(
-        path="/internal/run/ingestion-pipeline",
-        params=(("skip_ai", "false"), ("skip_risk", "false")),
-        timeout=1500,
+        handler_name="run_ingestion_pipeline",
     ),
     "metadata": Job(
-        path="/internal/backfill-alert-metadata",
-        params=(("dry_run", "false"),),
-        timeout=480,
+        handler_name="backfill_alert_metadata_endpoint",
     ),
     "daily": Job(
-        path="/internal/run/daily-index-pipeline",
-        params=(("include_delivery", "true"),),
-        timeout=2250,
+        handler_name="run_daily_index_pipeline",
     ),
 }
 
-ALERTS_JOB = Job(
-    path="/internal/run/alerts",
-    params=(
-        ("phase", "all"),
-        ("dry_run", "false"),
-        ("since_hours", "24"),
-        ("batch_size", "200"),
-        ("skip_preflight", "false"),
-    ),
-    timeout=480,
-)
-
-DELIVERY_JOBS = (
-    (
-        "pro_delivery",
-        Job(
-            path="/internal/run/pro-delivery",
-            params=(("since_minutes", "15"), ("include_geri", "true")),
-            timeout=90,
-        ),
-    ),
-    (
-        "trader_delivery",
-        Job(
-            path="/internal/run/trader-delivery",
-            params=(("since_minutes", "30"),),
-            timeout=90,
-        ),
-    ),
-)
+ALERTS_JOB = Job(handler_name="run_alerts")
 
 
-def _configuration() -> tuple[str, str]:
-    app_url = os.environ.get("APP_URL", "").strip().rstrip("/")
+def _configuration() -> str:
     token = os.environ.get("INTERNAL_RUNNER_TOKEN", "")
-    missing = [
-        name
-        for name, value in (
-            ("APP_URL", app_url),
-            ("INTERNAL_RUNNER_TOKEN", token),
-        )
-        if not value
-    ]
-    if missing:
-        raise RuntimeError(
-            "Missing scheduled-job configuration: " + ", ".join(missing)
-        )
-    return app_url, token
+    if not token:
+        raise RuntimeError("Missing scheduled-job configuration: INTERNAL_RUNNER_TOKEN")
+    return token
 
 
-def _request(app_url: str, token: str, job: Job) -> tuple[int, dict[str, Any]]:
-    query = urlencode(job.params)
-    url = f"{app_url}{job.path}"
-    if query:
-        url = f"{url}?{query}"
-
-    request = Request(
-        url,
-        method="POST",
-        headers={
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "X-Runner-Token": token,
-        },
-        data=b"",
-    )
-    try:
-        with urlopen(request, timeout=job.timeout) as response:
-            status = response.status
-            body = response.read().decode("utf-8")
-    except HTTPError as error:
-        status = error.code
-        body = error.read().decode("utf-8", errors="replace")
-    except (TimeoutError, URLError) as error:
-        raise RuntimeError(f"Request to {job.path} failed: {error}") from error
+def _handler(name: str):
+    from src.api import internal_routes
 
     try:
-        payload = json.loads(body) if body else {}
-    except json.JSONDecodeError as error:
-        raise RuntimeError(
-            f"{job.path} returned non-JSON HTTP {status}: {body[:300]}"
-        ) from error
+        return getattr(internal_routes, name)
+    except AttributeError as error:
+        raise RuntimeError(f"Scheduled job handler is unavailable: {name}") from error
+
+
+def _invoke(name: str, handler_name: str, token: str, **kwargs) -> int:
+    handler = _handler(handler_name)
+    try:
+        payload = handler(x_runner_token=token, **kwargs)
+        status = 200
+    except HTTPException as error:
+        status = error.status_code
+        payload = error.detail
 
     if not isinstance(payload, dict):
-        raise RuntimeError(f"{job.path} returned an invalid response")
-    return status, payload
-
-
-def _run_one(app_url: str, token: str, name: str, job: Job) -> int:
-    status, payload = _request(app_url, token, job)
-    print(json.dumps({"job": name, "http_status": status, "response": payload}, sort_keys=True))
+        payload = {"detail": payload}
+    print(json.dumps({"job": name, "status": status, "response": payload}, sort_keys=True))
 
     if status == 409:
         print(f"{name}: busy; the protected job is already running")
         return status
     if status != 200:
-        raise RuntimeError(f"{name} returned HTTP {status}")
+        raise RuntimeError(f"{name} returned HTTP {status}: {payload}")
     if payload.get("status") in {"error", "failed"}:
         raise RuntimeError(f"{name} reported failure: {payload}")
     return status
 
 
 def run_job(name: str) -> None:
-    app_url, token = _configuration()
+    token = _configuration()
     if name == "alerts":
-        alert_status = _run_one(app_url, token, name, ALERTS_JOB)
+        alert_status = _invoke(
+            name,
+            ALERTS_JOB.handler_name,
+            token,
+            phase="all",
+            dry_run=False,
+            since_hours=24,
+            batch_size=200,
+            skip_preflight=False,
+        )
         if alert_status == 409:
             return
-        for delivery_name, delivery_job in DELIVERY_JOBS:
-            _run_one(app_url, token, delivery_name, delivery_job)
+        _invoke(
+            "pro_delivery",
+            "run_pro_delivery",
+            token,
+        )
+        _invoke(
+            "trader_delivery",
+            "run_trader_delivery",
+            token,
+        )
         return
 
-    _run_one(app_url, token, name, JOBS[name])
+    if name == "ingestion":
+        _invoke(
+            name,
+            JOBS[name].handler_name,
+            token,
+            skip_ai=False,
+            skip_risk=False,
+        )
+    elif name == "metadata":
+        _invoke(
+            name,
+            JOBS[name].handler_name,
+            token,
+            dry_run=False,
+        )
+    elif name == "daily":
+        _invoke(
+            name,
+            JOBS[name].handler_name,
+            token,
+            include_delivery=True,
+        )
+    else:
+        _invoke(name, JOBS[name].handler_name, token)
 
 
 def main() -> int:

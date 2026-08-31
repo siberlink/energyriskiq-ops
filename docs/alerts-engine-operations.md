@@ -32,11 +32,12 @@ Deployments that use the same project code and production environment values:
 | Alert metadata backfill | Every hour at minute 16 | `python scripts/replit_scheduled_job.py --job metadata` | 10 minutes |
 | Daily index pipeline | Every day at 01:30 | `python scripts/replit_scheduled_job.py --job daily` | 40 minutes |
 
-Each scheduled deployment needs `APP_URL` and `INTERNAL_RUNNER_TOKEN` in its
-deployment environment. The command calls the protected production endpoint;
-the API remains the single owner of advisory locks, validation, and business
-logic. A `409 busy` result is treated as an expected overlap and does not start
-duplicate work.
+Each scheduled deployment needs `INTERNAL_RUNNER_TOKEN` in its deployment
+environment. The command imports and invokes the existing protected handlers
+directly, avoiding a public HTTP request that could be blocked by Cloudflare.
+Those handlers remain the single owner of advisory locks, validation, and
+business logic. A `409 busy` result is treated as an expected overlap and does
+not start duplicate work.
 
 During migration, leave GitHub cron enabled until every Replit schedule has
 completed one successful production run. Then remove only the `schedule`
