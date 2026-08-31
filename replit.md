@@ -58,6 +58,7 @@ EnergyRiskIQ employs a modular architecture, separating concerns into distinct s
 **System Design Choices:**
 - **Database:** PostgreSQL is used for persistence with a single production database.
 - **Background Workers:** Ingestion, AI, Risk, and Alerts components are designed as separate, orchestratable workers.
+- **Mission-Critical Schedules:** Ingestion Pipeline, Alerts Engine v2, Alert Metadata Backfill, Daily Index Computation (GERI + EERI + EGSI), and Intraday Market Data Capture are production-critical. Keep GitHub cron enabled until each Replit Scheduled Deployment replacement has completed a successful live run.
 - **Concurrency:** FastAPI with uvicorn for asynchronous API operations.
 - **Alerting Production Safety:** Employs advisory locks, unique constraints, and robust retry/backoff mechanisms.
 - **Production Hardening:** Includes preflight checks, health checks, user allowlisting, and circuit breakers.
