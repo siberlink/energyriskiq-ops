@@ -63,6 +63,7 @@ def test_intraday_capture_has_independent_bounded_schedule():
 def test_daily_workflow_uses_one_locked_bounded_pipeline():
     workflow = _workflow("geri-daily.yml")
 
+    assert "cron: '30 1 * * *'" in workflow
     assert "group: daily-index-computation" not in workflow
     assert "timeout-minutes: 40" in workflow
     assert "--connect-timeout 10" in workflow
