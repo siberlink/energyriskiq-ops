@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime, date, timedelta
 from typing import Optional
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Query
 
 from src.db.db import advisory_lock
 
@@ -190,17 +190,41 @@ def run_risk(x_runner_token: Optional[str] = Header(None)):
 
 
 @router.post("/run/alerts")
-def run_alerts(x_runner_token: Optional[str] = Header(None)):
+def run_alerts(
+    phase: str = Query("all"),
+    dry_run: bool = Query(False),
+    since_hours: int = Query(24, ge=1, le=168),
+    batch_size: int = Query(200, ge=1, le=1000),
+    skip_preflight: bool = Query(False),
+    x_runner_token: Optional[str] = Header(None),
+):
     validate_runner_token(x_runner_token)
+
+    if phase not in {'a', 'b', 'c', 'd', 'all'}:
+        raise HTTPException(
+            status_code=400,
+            detail="phase must be one of: a, b, c, d, all",
+        )
     
     alerts_v2 = os.environ.get('ALERTS_V2_ENABLED', 'true').lower() == 'true'
     
     if alerts_v2:
-        from src.alerts.alerts_engine_v2 import run_alerts_engine_v2
+        from src.alerts.runner import execute_phases, run_preflight
         
         def alerts_job():
-            result = run_alerts_engine_v2(dry_run=False)
-            return result
+            if not skip_preflight:
+                preflight = run_preflight(log_json=False)
+                if preflight['errors']:
+                    raise RuntimeError(
+                        "Alerts preflight failed: " + "; ".join(preflight['errors'])
+                    )
+
+            return execute_phases(
+                phase=phase,
+                dry_run=dry_run,
+                since_hours=since_hours,
+                batch_size=batch_size,
+            )
         
         response, status_code = run_job_with_lock('alerts', alerts_job)
     else:

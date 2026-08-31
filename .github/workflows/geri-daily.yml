@@ -5,12 +5,17 @@ on:
     - cron: '10 1 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: daily-index-computation
+  cancel-in-progress: false
+
 env:
   APP_URL: ${{ secrets.APP_URL }}
 
 jobs:
   compute-indices:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - name: Validate configuration
         run: |
@@ -34,7 +39,7 @@ jobs:
         id: market_data
         run: |
           echo "Capturing VIX and TTF gas market data..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/market-data" \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/market-data" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -52,11 +57,63 @@ jobs:
             echo "status=failed" >> $GITHUB_OUTPUT
           fi
 
+      - name: Capture Daily Oil Prices
+        id: oil_price
+        if: always()
+        run: |
+          echo "Capturing daily Brent and WTI prices..."
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
+            "${{ env.APP_URL }}/internal/run/oil-price-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "Daily oil price capture successful"
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          elif [ "$http_code" -eq 409 ]; then
+            echo "::notice::Daily oil price capture is already running"
+            echo "status=busy" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Daily oil price capture returned HTTP $http_code"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Capture Gas Storage
+        id: gas_storage
+        if: always()
+        run: |
+          echo "Capturing EU and country gas storage data..."
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
+            "${{ env.APP_URL }}/internal/run/gas-storage-capture" \
+            -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          echo "Response: $body"
+          echo "HTTP Code: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "Gas storage capture successful"
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          elif [ "$http_code" -eq 409 ]; then
+            echo "::notice::Gas storage capture is already running"
+            echo "status=busy" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Gas storage capture returned HTTP $http_code"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Compute GERI for yesterday
         id: geri
         run: |
           echo "Computing GERI v1.1 index for yesterday..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
             "${{ env.APP_URL }}/internal/run/geri-compute?mode=yesterday&force=false" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
@@ -81,7 +138,7 @@ jobs:
         if: always()
         run: |
           echo "Computing EERI index for yesterday..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/eeri-compute" \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/eeri-compute" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -104,7 +161,7 @@ jobs:
         if: always()
         run: |
           echo "Capturing JKM LNG price from OilPriceAPI..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/lng-price-capture" \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/lng-price-capture" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -127,7 +184,7 @@ jobs:
         if: always()
         run: |
           echo "Computing EGSI-M (Market) index for yesterday..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-compute" \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-compute" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -151,7 +208,7 @@ jobs:
         run: |
           echo "Computing EGSI-S (System) index for yesterday..."
           echo "Using real AGSI+ storage data + OilPriceAPI TTF prices..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-s-compute" \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/egsi-s-compute" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
           
@@ -174,7 +231,7 @@ jobs:
         if: always()
         run: |
           echo "Warming Daily Intelligence Report cache after indices are computed..."
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/daily-report" \
+          response=$(curl -sS --connect-timeout 10 --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST "${{ env.APP_URL }}/internal/run/daily-report" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
 
@@ -200,7 +257,7 @@ jobs:
           echo "Waiting 30s for index data to settle..."
           sleep 30
           
-          response=$(curl -sS --retry 3 --retry-delay 20 --retry-all-errors -m 180 -w "\n%{http_code}" -X POST \
+          response=$(curl -sS --connect-timeout 10 -m 180 -w "\n%{http_code}" -X POST \
             "${{ env.APP_URL }}/internal/run/pro-delivery" \
             -H "X-Runner-Token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
             -H "Content-Type: application/json")
@@ -227,6 +284,8 @@ jobs:
           echo "| Task | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Market Data | ${{ steps.market_data.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Daily Oil Prices | ${{ steps.oil_price.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Gas Storage | ${{ steps.gas_storage.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| GERI | ${{ steps.geri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| EERI | ${{ steps.eeri.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| LNG Price | ${{ steps.lng_price.outputs.status || 'unknown' }} |" >> $GITHUB_STEP_SUMMARY
@@ -240,6 +299,8 @@ jobs:
         run: |
           failed=""
           [ "${{ steps.market_data.outputs.status }}" = "failed" ] && failed="$failed market_data"
+          [ "${{ steps.oil_price.outputs.status }}" = "failed" ] && failed="$failed oil_price"
+          [ "${{ steps.gas_storage.outputs.status }}" = "failed" ] && failed="$failed gas_storage"
           [ "${{ steps.geri.outputs.status }}" = "failed" ] && failed="$failed geri"
           [ "${{ steps.eeri.outputs.status }}" = "failed" ] && failed="$failed eeri"
           [ "${{ steps.lng_price.outputs.status }}" = "failed" ] && failed="$failed lng_price"
