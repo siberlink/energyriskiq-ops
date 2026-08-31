@@ -77,6 +77,20 @@ def run_indices_history_migration():
                 "CREATE INDEX IF NOT EXISTS idx_index_history_subs_sub "
                 "ON user_index_history_subs(stripe_subscription_id)"
             )
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS user_index_history_access_grants (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL UNIQUE,
+                    status TEXT NOT NULL DEFAULT 'inactive',
+                    reason TEXT,
+                    granted_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+            """)
+            cur.execute(
+                "CREATE INDEX IF NOT EXISTS idx_index_history_access_grants_user "
+                "ON user_index_history_access_grants(user_id)"
+            )
         logger.info("user_index_history_subs migration complete")
     except Exception as e:
         logger.error(f"user_index_history_subs migration failed: {e}")
@@ -215,9 +229,25 @@ def _geri_live_bonus(user_id) -> bool:
         return False
 
 
+def _manual_access(user_id: int) -> bool:
+    try:
+        with get_cursor(commit=False) as cur:
+            cur.execute(
+                """SELECT status FROM user_index_history_access_grants
+                   WHERE user_id = %s""",
+                (user_id,),
+            )
+            row = cur.fetchone()
+        return bool(row and row.get("status") == "active")
+    except Exception:
+        return False
+
+
 def user_has_indices_history(user_id) -> bool:
-    """Mode-agnostic runtime entitlement: active/trialing/canceling sub or the
-    GERI Live launch-offer bonus."""
+    """Mode-agnostic runtime entitlement: manual access, an active/trialing/
+    canceling subscription, or the GERI Live launch-offer bonus."""
+    if _manual_access(user_id):
+        return True
     try:
         with get_cursor(commit=False) as cur:
             cur.execute(
@@ -271,8 +301,10 @@ async def status(x_user_token: Optional[str] = Header(None)):
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
     bonus = _geri_live_bonus(user["id"])
+    manual = _manual_access(user["id"])
     return {
-        "active": _active_for_mode(row) or bonus,
+        "active": _active_for_mode(row) or bonus or manual,
+        "manual_access": manual,
         "geri_live_bonus": bonus,
         "status": row["status"],
         "current_period_end": (row["current_period_end"].isoformat()
@@ -287,6 +319,8 @@ async def checkout(x_user_token: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
+    if _manual_access(user["id"]):
+        return {"already_active": True, "manual_access": True}
     if _active_for_mode(row) and row.get("stripe_subscription_id"):
         return {"already_active": True}
 
@@ -352,6 +386,8 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
+    if _manual_access(user["id"]):
+        return {"active": True, "manual_access": True, "status": "active"}
 
     if _active_for_mode(row) and row.get("stripe_subscription_id"):
         return {"active": True, "status": row["status"]}
@@ -431,6 +467,8 @@ async def cancel(x_user_token: Optional[str] = Header(None)):
     if not user:
         raise HTTPException(401, "Authentication required")
     row = _get_or_create_row(user["id"])
+    if _manual_access(user["id"]):
+        raise HTTPException(400, "Manual access does not have a subscription to cancel")
     if not row["stripe_subscription_id"]:
         raise HTTPException(400, "No active subscription")
     if not _active_for_mode(row):

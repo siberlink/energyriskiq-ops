@@ -17800,15 +17800,18 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (loader) loader.style.display = 'none';
             const badge = document.getElementById('ihStatusBadge');
             if (ihState.active) {
-                badge.textContent = (data.status === 'canceling') ? 'Active · Cancelling' :
-                                    (data.status === 'trialing' ? 'Trial Active' : 'Active');
+                badge.textContent = data.manual_access ? 'Access Granted' :
+                                    ((data.status === 'canceling') ? 'Active · Cancelling' :
+                                    (data.status === 'trialing' ? 'Trial Active' : 'Active'));
                 badge.style.background = (data.status === 'canceling') ? '#f59e0b' : '#10b981';
                 badge.style.color = '#0b1220';
                 document.getElementById('ihInactive').style.display = 'none';
                 document.getElementById('ihActive').style.display = 'block';
                 const meta = document.getElementById('ihBillingMeta');
                 if (meta) {
-                    if (data.current_period_end) {
+                    if (data.manual_access) {
+                        meta.textContent = 'Granted access · downloads enabled';
+                    } else if (data.current_period_end) {
                         const d = new Date(data.current_period_end);
                         meta.textContent = '€12.00 / month · ' +
                             (data.status === 'canceling' ? 'Ends ' : 'Renews ') + d.toLocaleDateString();
@@ -17816,9 +17819,12 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         meta.textContent = '€12.00 / month';
                     }
                 }
-                if (data.status === 'canceling') {
-                    const btn = document.getElementById('ihCancelBtn');
-                    if (btn) { btn.disabled = true; btn.textContent = 'Cancellation Scheduled'; btn.style.opacity = 0.5; btn.style.cursor = 'default'; }
+                const cancelBtn = document.getElementById('ihCancelBtn');
+                if (cancelBtn) {
+                    cancelBtn.style.display = data.manual_access ? 'none' : '';
+                }
+                if (!data.manual_access && data.status === 'canceling') {
+                    if (cancelBtn) { cancelBtn.disabled = true; cancelBtn.textContent = 'Cancellation Scheduled'; cancelBtn.style.opacity = 0.5; cancelBtn.style.cursor = 'default'; }
                 }
             } else {
                 badge.textContent = 'Inactive';
