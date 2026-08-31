@@ -28,7 +28,7 @@ def test_alerts_workflow_runs_directly_with_manual_controls():
     workflow = _assert_direct_job("alerts_engine_v2.yml", "alerts")
 
     assert "cron: '*/10 * * * *'" in workflow
-    assert "timeout-minutes: 13" in workflow
+    assert "timeout-minutes: 30" in workflow
     assert "group: alerts-engine-v2" not in workflow
     assert "PHASE: ${{ github.event.inputs.phase || 'all' }}" in workflow
     assert "DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}" in workflow

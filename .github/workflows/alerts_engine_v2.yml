@@ -55,7 +55,7 @@ on:
 jobs:
   run-alerts-engine-v2:
     runs-on: ubuntu-latest
-    timeout-minutes: 13
+    timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}

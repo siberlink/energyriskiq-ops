@@ -9,7 +9,7 @@ import hashlib
 import logging
 from typing import Optional
 
-from src.db.db import get_cursor
+from src.db.db import advisory_lock, get_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -95,45 +95,24 @@ class AdvisoryLock:
     def __init__(self, key: str):
         self.key = key
         self.acquired = False
-        self._connection = None
-        self._cursor = None
+        self._context = None
     
     def __enter__(self):
-        import psycopg2
-        from psycopg2.extras import RealDictCursor
-        from src.db.db import get_database_url
-        
-        try:
-            self._connection = psycopg2.connect(get_database_url())
-            self._cursor = self._connection.cursor(cursor_factory=RealDictCursor)
-            
-            lock_id = _key_to_bigint(self.key)
-            self._cursor.execute("SELECT pg_try_advisory_lock(%s) AS acquired", (lock_id,))
-            result = self._cursor.fetchone()
-            self.acquired = result['acquired'] if result else False
-            
-            if self.acquired:
-                logger.info(f"Advisory lock acquired via context manager: {self.key}")
-            else:
-                logger.warning(f"Advisory lock NOT acquired via context manager: {self.key}")
-        except Exception as e:
-            logger.error(f"Error acquiring advisory lock: {e}")
-            self.acquired = False
-        
+        self._context = advisory_lock(_key_to_bigint(self.key))
+        self.acquired = self._context.__enter__()
+        if self.acquired:
+            logger.info(
+                "Advisory lock acquired via context manager: %s",
+                self.key,
+            )
+        else:
+            logger.warning(
+                "Advisory lock NOT acquired via context manager: %s",
+                self.key,
+            )
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        try:
-            if self.acquired and self._cursor:
-                lock_id = _key_to_bigint(self.key)
-                self._cursor.execute("SELECT pg_advisory_unlock(%s)", (lock_id,))
-                logger.debug(f"Advisory lock released via context manager: {self.key}")
-        except Exception as e:
-            logger.error(f"Error releasing advisory lock: {e}")
-        finally:
-            if self._cursor:
-                self._cursor.close()
-            if self._connection:
-                self._connection.close()
-        
-        return False
+        if not self._context:
+            return False
+        return self._context.__exit__(exc_type, exc_val, exc_tb)
