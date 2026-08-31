@@ -19,6 +19,7 @@ from src.plans.plan_helpers import (
 )
 from src.db.db import get_cursor
 from src.billing.stripe_client import get_stripe_mode, set_stripe_mode, get_free_trial_days, set_free_trial_days, get_banner_settings, set_banner_settings
+from src.api.admin_historical_exports import build_export_response, export_catalog
 
 APP_URL = os.environ.get("APP_URL", "https://energyriskiq.replit.app")
 
@@ -150,6 +151,22 @@ def verify_admin_token(x_admin_token: Optional[str] = Header(None)):
         return True
 
     raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+
+@router.get("/historical-data/catalog")
+def admin_historical_data_catalog(x_admin_token: Optional[str] = Header(None)):
+    verify_admin_token(x_admin_token)
+    return {"datasets": export_catalog()}
+
+
+@router.get("/historical-data/download/{dataset}/{file_format}")
+def admin_historical_data_download(
+    dataset: str,
+    file_format: str,
+    x_admin_token: Optional[str] = Header(None),
+):
+    verify_admin_token(x_admin_token)
+    return build_export_response(dataset, file_format)
 
 
 @router.post("/login")
