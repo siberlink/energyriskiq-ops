@@ -64,3 +64,27 @@ def test_create_delivery_propagates_database_errors(monkeypatch):
             status="queued",
             delivery_kind="instant",
         )
+
+
+def test_sender_claims_no_more_than_per_run_limit(monkeypatch):
+    cursor = _Cursor(result=None)
+    cursor.fetchall = lambda: []
+
+    @contextmanager
+    def fake_cursor():
+        yield cursor
+
+    monkeypatch.setattr(alerts_engine_v2, "get_cursor", fake_cursor)
+    monkeypatch.setattr(
+        alerts_engine_v2,
+        "get_allowlisted_user_ids",
+        lambda: None,
+    )
+
+    result = alerts_engine_v2.send_queued_deliveries(
+        batch_size=200,
+        max_per_run=20,
+    )
+
+    assert result["queued_selected"] == 0
+    assert cursor.params == (20,)

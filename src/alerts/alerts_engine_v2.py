@@ -1046,12 +1046,17 @@ def send_queued_deliveries(batch_size: int = 100, max_per_run: int = None) -> Di
         'stopped_early': False,
         'allowlist_active': allowlist is not None
     }
+
+    selection_limit = min(batch_size, max_per_run)
+    if selection_limit <= 0:
+        logger.warning(
+            "Delivery selection skipped because batch/run limit is zero"
+        )
+        return counts
     
     allowlist_clause = ""
-    params = [batch_size]
     if allowlist:
         allowlist_clause = "AND d.user_id = ANY(%s)"
-        params = [list(allowlist), batch_size]
     
     with get_cursor() as cursor:
         query = f"""
@@ -1072,9 +1077,9 @@ def send_queued_deliveries(batch_size: int = 100, max_per_run: int = None) -> Di
             FOR UPDATE OF d SKIP LOCKED
         """
         if allowlist:
-            cursor.execute(query, (list(allowlist), batch_size))
+            cursor.execute(query, (list(allowlist), selection_limit))
         else:
-            cursor.execute(query, (batch_size,))
+            cursor.execute(query, (selection_limit,))
         deliveries = cursor.fetchall()
         
         if not deliveries:
