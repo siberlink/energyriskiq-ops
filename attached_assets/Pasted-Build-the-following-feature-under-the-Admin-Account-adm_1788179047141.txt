@@ -1,0 +1,39 @@
+Build the following feature under the Admin Account ("/admin") -- add an entry on the Left Navigation -- "Historical Data". They all should be available for downloads in the same way as "Download Indices History" inside the User's Account at ("/users/account")
+
+
+- GERI Live History -- Last 14 Days of Hourly Records -- Value + Timestamp -- saved as CSV and Excel
+- GERI Daily History -- All Records -- Value + Timestamp + Regime(Low, Moderate, Elevated, etc) -- saved as CSV and Excel
+- Brent Historical (Daily) -- All Records with same dates as "GERI Daily" -- Close Value + Timestamp -- saved as CSV and Excel
+- Brent Historical (Intraday) -- All records -- Value + Timestamp -- saved as CSV and Excel
+- VIX (Daily) -- All Records with same dates as "GERI Daily" & "Brent Daily" -- Value + Timestamp -- saved as CSV and Excel
+- LNG (Daily) -- All Records -- Value + Timestamp -- saved as CSV and Excel
+- TTF (Daily) -- All Records -- Value + Timestamp -- saved as CSV and Excel
+- WTI (Daily) -- All Records -- Value + Timestamp -- saved as CSV and Excel
+- WTI (Intraday) -- All Records -- Value + Timestamp -- saved as CSV and Excel
+- Natural Gas (Intraday) -- All Records -- Value + Timestamp -- saved as CSV and Excel
+- EU Gas Storage (Daily) -- All Records -- Value + Timestamp -- saved as CSV and Excel
+- EU Country Gas Storage for "DE, FR, NR, IT, AT, PL, CZ, HU, SK, BE" -- Coutry, Value and Timestamp -- saved as CSV and Excel
+- A dataset with the top 3–5 factors currently pushing GERI higher or lower, together with their contribution/change if available. I do not need every internal variable. I mainly want to be able to say something such as: “GERI is rising, but the increase is being driven primarily by X and Y rather than broad-based market stress.” -- Saved as CSV and Excel
+
+Tables with Data:
+----------------
+Alert Events -- "alert_events" Table
+GERI Daily --> "intel_indices_daily" Table
+GERI Live History --> "geri_live_history" Table
+EERI Daily -->  "reri_indices_daily" Table
+GERI Intraday Data --> "geri_live" Table (GERI calculated intraday)
+EGSI-M Daily --> "egsi_m_daily" Table
+EGSI-S Daily --> "egsi_s_daily" Table 
+
+Brent Daily --> "oil_price_snapshots" Table
+Brent Intraday --> "intraday_brent" Table
+
+TTF Daily --> "ttf_gas_snapshots" Table
+VIX Daily --> "vix_snapshots" Table
+LNG Daily --> "lng_price_snapshots" Table
+
+Intraday NatGas --> "intraday_natgas" Table
+Intraday WTI --> "intraday_wti" Table
+
+Gas Storage Levels --> "gas_storage_snapshots"
+Gas Storage Levels for individual Countries: DE, FR, NR, IT, AT, PL, CZ, HU, SK, BE -- Table: "gas_storage_country_snapshots"
