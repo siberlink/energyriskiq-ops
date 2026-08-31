@@ -1,0 +1,78 @@
+name: Intraday Market Data Capture
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: intraday-market-data
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    env:
+      APP_URL: ${{ secrets.APP_URL }}
+      INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+
+    steps:
+      - name: Validate configuration
+        run: |
+          if [ -z "$APP_URL" ] || [ -z "$INTERNAL_RUNNER_TOKEN" ]; then
+            echo "::error::APP_URL and INTERNAL_RUNNER_TOKEN must be configured"
+            exit 1
+          fi
+
+      - name: Capture intraday prices
+        id: capture
+        run: |
+          curl_exit=0
+          response=$(curl --silent --show-error \
+            --connect-timeout 10 --max-time 60 \
+            --retry 2 --retry-delay 5 --retry-max-time 180 --retry-all-errors \
+            -w "\n%{http_code}" -X POST \
+            "$APP_URL/internal/run/intraday-price-capture" \
+            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN" \
+            -H "Content-Type: application/json") || curl_exit=$?
+          if [ "$curl_exit" -ne 0 ]; then
+            printf '{"error":"request_failed","curl_exit":%s}\n' "$curl_exit" |
+              tee intraday_prices_output.txt
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          printf '%s\n' "$body" | tee intraday_prices_output.txt
+          if [ "$http_code" = "409" ]; then
+            echo "::notice::A capture is already running; the protected operation remains active"
+            echo "status=busy" >> "$GITHUB_OUTPUT"
+          elif [ "$http_code" = "200" ]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Intraday capture returned HTTP $http_code"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+      - name: Upload capture log
+        uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: intraday-market-data-${{ github.run_id }}
+          path: intraday_prices_output.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Intraday Market Data"
+            echo
+            echo "- Trigger: ${{ github.event_name }}"
+            echo "- Capture: ${{ steps.capture.outputs.status || steps.capture.outcome }}"
+            echo
+            echo "HTTP requests are bounded and transient transport failures are retried."
+          } >> "$GITHUB_STEP_SUMMARY"
