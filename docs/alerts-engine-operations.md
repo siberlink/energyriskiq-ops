@@ -19,6 +19,31 @@ GitHub cron schedules use UTC and are best-effort. A run can begin late during
 GitHub load, but each workflow has a fixed timeout and bounded HTTP requests so
 it cannot wait forever.
 
+## Replit Scheduled Deployment cutover
+
+Keep the existing Autoscale deployment for the API. Create separate Scheduled
+Deployments that use the same project code and production environment values:
+
+| Scheduled job | Schedule (UTC) | Run command | Suggested timeout |
+|---|---|---|---|
+| Alerts and plan delivery | Every 10 minutes | `python scripts/replit_scheduled_job.py --job alerts` | 15 minutes |
+| Intraday market capture | Every 10 minutes | `python scripts/replit_scheduled_job.py --job intraday` | 7 minutes |
+| Ingestion, AI, and risk | Every hour at minute 00 | `python scripts/replit_scheduled_job.py --job ingestion` | 28 minutes |
+| Alert metadata backfill | Every hour at minute 16 | `python scripts/replit_scheduled_job.py --job metadata` | 10 minutes |
+| Daily index pipeline | Every day at 01:30 | `python scripts/replit_scheduled_job.py --job daily` | 40 minutes |
+
+Each scheduled deployment needs `APP_URL` and `INTERNAL_RUNNER_TOKEN` in its
+deployment environment. The command calls the protected production endpoint;
+the API remains the single owner of advisory locks, validation, and business
+logic. A `409 busy` result is treated as an expected overlap and does not start
+duplicate work.
+
+During migration, leave GitHub cron enabled until every Replit schedule has
+completed one successful production run. Then remove only the `schedule`
+trigger from the corresponding GitHub workflow while retaining
+`workflow_dispatch` for manual recovery. Do not run GitHub and Replit schedules
+indefinitely, even though application locks prevent duplicate execution.
+
 ## Overlap and retry safety
 
 The alert workflow intentionally has no GitHub Actions concurrency group.
