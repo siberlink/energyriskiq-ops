@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import time
 from datetime import datetime, date, timedelta
 from typing import Optional
 from fastapi import APIRouter, Header, HTTPException, Query
@@ -37,6 +38,9 @@ LOCK_IDS = {
     'intraday_price_capture': 6002,
     'linkedin_post': 6003,
     'daily_report': 6004,
+    'ingestion_pipeline': 7001,
+    'alert_metadata_backfill': 7002,
+    'daily_index_pipeline': 7003,
 }
 
 
@@ -146,6 +150,198 @@ def run_ingest(x_runner_token: Optional[str] = Header(None)):
     if status_code == 500:
         raise HTTPException(status_code=500, detail=response)
     
+    return response
+
+
+@router.post("/run/ingestion-pipeline")
+def run_ingestion_pipeline(
+    skip_ai: bool = Query(False),
+    skip_risk: bool = Query(False),
+    x_runner_token: Optional[str] = Header(None),
+):
+    """Run the hourly ingestion pipeline under one process-level lock.
+
+    The workflow calls this endpoint instead of importing pipeline functions
+    on the runner. That keeps overlap safety in PostgreSQL even when GitHub
+    starts another scheduled run.
+    """
+    validate_runner_token(x_runner_token)
+
+    from src.ingest.ingest_runner import run_ingestion
+
+    def pipeline_job():
+        ingestion_result = run_ingestion()
+        inserted, skipped, ingestion_errors = ingestion_result
+        if ingestion_errors:
+            raise RuntimeError(
+                f"Ingestion completed with {ingestion_errors} item errors"
+            )
+
+        result = {
+            'ingestion': {
+                'inserted': inserted,
+                'skipped': skipped,
+                'errors': ingestion_errors,
+            }
+        }
+
+        if not skip_ai:
+            if not (
+                os.environ.get('AI_INTEGRATIONS_OPENAI_API_KEY')
+                or os.environ.get('OPENAI_API_KEY')
+            ):
+                raise RuntimeError(
+                    "AI enrichment requested but no OpenAI API key is configured"
+                )
+            from src.ai.ai_worker import run_ai_worker
+            ai_success, ai_failures = run_ai_worker()
+            if ai_failures:
+                raise RuntimeError(
+                    f"AI enrichment completed with {ai_failures} failures"
+                )
+            result['ai'] = {
+                'success': ai_success,
+                'failures': ai_failures,
+            }
+
+        if not skip_risk:
+            from src.risk.risk_engine import run_risk_engine
+            result['risk'] = {'scored': run_risk_engine()}
+
+        return result
+
+    response, status_code = run_job_with_lock('ingestion_pipeline', pipeline_job)
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+
+    return response
+
+
+def _validate_daily_stage(stage: str, response: dict) -> dict:
+    """Reject successful HTTP wrappers that contain failed required work."""
+    if not isinstance(response, dict):
+        raise RuntimeError(f"{stage} returned an invalid result")
+
+    if response.get('status') in {'error', 'failed'}:
+        raise RuntimeError(f"{stage} failed: {response}")
+    if response.get('status') == 'skipped':
+        intentionally_disabled = (
+            stage in {'eeri', 'egsi_m', 'egsi_s'}
+            and 'disabled' in str(response.get('message', '')).lower()
+        )
+        if intentionally_disabled:
+            return response
+        raise RuntimeError(f"{stage} is disabled or skipped: {response}")
+
+    details = response.get('details', response)
+    if not isinstance(details, dict):
+        raise RuntimeError(f"{stage} returned invalid details")
+
+    if details.get('status') in {'error', 'failed'}:
+        raise RuntimeError(f"{stage} failed: {details}")
+    if stage == 'gas_storage' and details.get('status') == 'skipped':
+        raise RuntimeError(f"{stage} has no required source data: {details}")
+    if details.get('errors', 0) or details.get('failed', 0):
+        raise RuntimeError(f"{stage} completed with errors: {details}")
+
+    sources = details.get('sources')
+    if isinstance(sources, dict):
+        failed_sources = [
+            name for name, source in sources.items()
+            if not isinstance(source, dict)
+            or source.get('status') not in {'success', 'skipped'}
+        ]
+        if failed_sources:
+            raise RuntimeError(
+                f"{stage} failed sources: {', '.join(failed_sources)}"
+            )
+
+    country_capture = details.get('country_capture')
+    if isinstance(country_capture, dict) and (
+        country_capture.get('error')
+        or country_capture.get('failed', 0)
+    ):
+        raise RuntimeError(
+            f"{stage} country capture failed: {country_capture}"
+        )
+
+    if details.get('computed') is False:
+        raise RuntimeError(f"{stage} did not produce a result: {details}")
+    if stage == 'geri' and 'value' not in details:
+        raise RuntimeError(f"{stage} did not produce a result: {details}")
+
+    return response
+
+
+@router.post("/run/daily-index-pipeline")
+def run_daily_index_pipeline(
+    include_delivery: bool = Query(True),
+    x_runner_token: Optional[str] = Header(None),
+):
+    """Run the ordered daily capture, computation, and delivery sequence."""
+    validate_runner_token(x_runner_token)
+
+    def daily_job():
+        results = {}
+
+        def execute_stage(stage, operation, **kwargs):
+            stage_response = operation(
+                x_runner_token=x_runner_token,
+                **kwargs,
+            )
+            results[stage] = _validate_daily_stage(stage, stage_response)
+            return stage_response
+
+        execute_stage('market_data', run_market_data_capture)
+        execute_stage('oil_price', run_oil_price_capture)
+        execute_stage('gas_storage', run_gas_storage_capture)
+        execute_stage(
+            'geri',
+            run_geri_compute,
+            mode='yesterday',
+            force=False,
+        )
+        eeri_response = execute_stage('eeri', run_eeri_compute)
+        execute_stage('lng_price', run_lng_price_capture)
+
+        if eeri_response.get('status') == 'skipped':
+            results['egsi_m'] = {
+                'status': 'skipped',
+                'message': 'EGSI-M depends on disabled EERI',
+            }
+        else:
+            execute_stage('egsi_m', run_egsi_compute)
+
+        execute_stage('egsi_s', run_egsi_s_compute)
+        execute_stage('daily_report', run_daily_report)
+
+        if include_delivery:
+            time.sleep(30)
+            delivery_response = run_pro_delivery(
+                x_runner_token=x_runner_token,
+            )
+            results['delivery'] = _validate_daily_stage(
+                'delivery',
+                delivery_response,
+            )
+        else:
+            results['delivery'] = {'status': 'skipped'}
+
+        return results
+
+    response, status_code = run_job_with_lock(
+        'daily_index_pipeline',
+        daily_job,
+    )
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+
     return response
 
 
@@ -485,7 +681,7 @@ def run_seo_generator(
 
 
 @router.post("/backfill-alert-metadata")
-async def backfill_alert_metadata_endpoint(
+def backfill_alert_metadata_endpoint(
     dry_run: bool = False,
     x_runner_token: Optional[str] = Header(None)
 ):
@@ -497,15 +693,25 @@ async def backfill_alert_metadata_endpoint(
     
     from src.alerts.backfill_metadata import backfill_alert_metadata
     
-    try:
+    def backfill_job():
         summary = backfill_alert_metadata(dry_run=dry_run)
-        return {
-            "status": "success",
-            "summary": summary
-        }
-    except Exception as e:
-        logger.error(f"Error during alert metadata backfill: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        if summary.get('errors', 0):
+            raise RuntimeError(
+                f"Metadata backfill completed with {summary['errors']} row errors"
+            )
+        return summary
+
+    response, status_code = run_job_with_lock(
+        'alert_metadata_backfill',
+        backfill_job,
+    )
+
+    if status_code == 409:
+        raise HTTPException(status_code=409, detail=response)
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail=response)
+
+    return response
 
 
 @router.post("/run/pro-delivery")

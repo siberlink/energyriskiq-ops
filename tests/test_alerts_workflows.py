@@ -60,23 +60,24 @@ def test_intraday_capture_has_independent_bounded_schedule():
     assert 'if [ "$http_code" = "409" ]' in workflow
 
 
-def test_daily_workflow_owns_daily_captures_with_bounded_requests():
+def test_daily_workflow_uses_one_locked_bounded_pipeline():
     workflow = _workflow("geri-daily.yml")
 
-    oil = workflow.index("/internal/run/oil-price-capture")
-    geri = workflow.index("/internal/run/geri-compute")
-    storage = workflow.index("/internal/run/gas-storage-capture")
-    egsi_system = workflow.index("/internal/run/egsi-s-compute")
-
-    assert oil < geri
-    assert storage < egsi_system
-    assert "group: daily-index-computation" in workflow
+    assert "group: daily-index-computation" not in workflow
     assert "timeout-minutes: 40" in workflow
+    assert "--connect-timeout 10" in workflow
+    assert "--max-time 2250" in workflow
+    assert "/internal/run/daily-index-pipeline" in workflow
+    assert '--data-urlencode "include_delivery=$INCLUDE_DELIVERY"' in workflow
+    assert 'if [ "$http_code" = "409" ]' in workflow
+    assert "/internal/run/intraday-price-capture" not in workflow
+    assert "--retry 2" in workflow  # Read-only health check only.
+    mutation = workflow.split("Run protected daily index pipeline", 1)[1]
+    assert "--retry" not in mutation
 
-    curl_lines = [line for line in workflow.splitlines() if "response=$(curl" in line]
-    assert curl_lines
-    assert all("--connect-timeout 10" in line for line in curl_lines)
-    assert all("-m 180" in line for line in curl_lines)
+    job_timeout = int(re.search(r"timeout-minutes: (\d+)", workflow).group(1))
+    request_timeout = int(re.search(r"--max-time (\d{4})", workflow).group(1))
+    assert job_timeout * 60 >= request_timeout + 120
 
 
 def test_delivery_posts_are_not_retried_after_unknown_provider_outcome():
@@ -96,3 +97,40 @@ def test_dispatch_inputs_are_not_interpolated_in_summary_shell():
     assert "${{ github.event.inputs.phase" not in summary
     assert "${{ github.event.inputs.dry_run" not in summary
     assert 'printf \'| Phase | %s |\\n\' "$PHASE"' in summary
+
+
+def test_ingestion_pipeline_uses_one_protected_bounded_operation():
+    workflow = _workflow("ingestion_pipeline.yml")
+
+    assert "cron: '0 * * * *'" in workflow
+    assert "group: ingestion-pipeline" not in workflow
+    assert "timeout-minutes: 28" in workflow
+    assert "/internal/run/ingestion-pipeline" in workflow
+    assert "--connect-timeout 10 --max-time 1500" in workflow
+    assert '--data-urlencode "skip_ai=$SKIP_AI"' in workflow
+    assert '--data-urlencode "skip_risk=$SKIP_RISK"' in workflow
+    assert 'if [ "$http_code" = "409" ]' in workflow
+    assert "/internal/run/intraday-price-capture" not in workflow
+    assert "actions/checkout" not in workflow
+    assert "setup-python" not in workflow
+    assert "--retry" not in workflow
+
+    summary = workflow.split("- name: Summary", 1)[1]
+    assert "${{ github.event.inputs.skip_ai" not in summary
+    assert "${{ github.event.inputs.skip_risk" not in summary
+
+
+def test_metadata_backfill_is_locked_bounded_and_reports_row_errors():
+    workflow = _workflow("alert-metadata-backfill.yml")
+
+    assert "cron: '16 * * * *'" in workflow
+    assert "timeout-minutes: 10" in workflow
+    assert "--connect-timeout 10 --max-time 480" in workflow
+    assert "/internal/backfill-alert-metadata" in workflow
+    assert '--data-urlencode "dry_run=$DRY_RUN"' in workflow
+    assert 'if [ "$http_code" = "409" ]' in workflow
+    assert ".details.errors // 0" in workflow
+    assert "--retry" not in workflow
+
+    summary = workflow.split("- name: Summary", 1)[1]
+    assert "${{ github.event.inputs.dry_run" not in summary

@@ -9,6 +9,11 @@ The production alert path is intentionally isolated from data collection:
 - **Intraday Market Data Capture** runs every ten minutes in a separate
   concurrency group. Provider latency cannot occupy the Alerts Engine slot.
 - **Daily Index Computation** owns daily market, oil, storage, and index work.
+- **Ingestion Pipeline** runs hourly through one protected application endpoint.
+  Ingestion, optional AI enrichment, and optional risk scoring therefore keep
+  their required ordering under one PostgreSQL advisory lock.
+- **Alert Metadata Backfill** runs hourly through its own protected endpoint.
+  Overlap is reported as `busy`, and row-level errors fail the workflow.
 
 GitHub cron schedules use UTC and are best-effort. A run can begin late during
 GitHub load, but each workflow has a fixed timeout and bounded HTTP requests so
@@ -31,6 +36,23 @@ has an unknown outcome, and immediately retrying could duplicate delivery.
 HTTP `409` from an alert or capture endpoint means another protected operation
 is already running. That is reported as `busy`, not as a second execution.
 
+The ingestion and metadata workflows also intentionally omit GitHub Actions
+concurrency groups. Every trigger can reach the application lock instead of
+being silently replaced in GitHub's single pending slot. Their mutation
+requests are not retried after an unknown response; the server continues a
+synchronous job after the client disconnects, while its advisory lock prevents
+another trigger from starting the same operation.
+
+The hourly ingestion workflow no longer captures intraday prices. That work is
+owned exclusively by the independent Intraday Market Data workflow, preventing
+duplicate provider calls and shortening the critical ingestion path.
+
+The daily workflow submits the complete ordered sequence as one protected
+request and does not retry it because the sequence includes user delivery.
+The application holds a pipeline-wide lock, validates required stage results,
+and stops dependent computation after a failed prerequisite. Its 40-minute job
+budget exceeds the bounded request plus setup margin.
+
 ## Diagnosing a missed run
 
 1. Open GitHub **Actions** and select the specific workflow.
@@ -42,6 +64,12 @@ is already running. That is reported as `busy`, not as a second execution.
    repository inactivity, branch, or Actions configuration.
 5. Manually dispatch the workflow to distinguish scheduler configuration from
    application failures.
+
+For ingestion, `busy` means an earlier full ingestion/AI/risk pipeline still
+owns the application lock. For daily computation, the workflow summary reports
+the pipeline result and the uploaded response artifact identifies the operation
+that failed. For metadata backfill, inspect the artifact when the summary
+reports row errors.
 
 ## Git credential action required
 
