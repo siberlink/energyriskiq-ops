@@ -7154,94 +7154,6 @@
                 </div>
             </div>
 
-            <!-- Overview Grid: Risk Indices + Market Prices (10 cards, 5 per row) -->
-            <div class="ov-section-label">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-                Risk Indices &amp; Market Prices &mdash; Closing &amp; Live
-            </div>
-            <div class="ov-grid">
-                <!-- GERI -->
-                <div class="ov-card" onclick="showSection('geri')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(248,113,113,0.12)">🌐</div>
-                        <div><div class="ov-name">GERI</div><div class="ov-sub">Global Energy Risk</div></div>
-                    </div>
-                    <div id="ov_geri_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- EERI -->
-                <div class="ov-card" onclick="showSection('eeri-pro')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(251,191,36,0.12)">⚡</div>
-                        <div><div class="ov-name">EERI</div><div class="ov-sub">Energy Escalation Risk</div></div>
-                    </div>
-                    <div id="ov_eeri_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- EGSI-M -->
-                <div class="ov-card" onclick="showSection('egsi')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(52,211,153,0.12)">📦</div>
-                        <div><div class="ov-name">EGSI-M</div><div class="ov-sub">EU Gas Stress · Market</div></div>
-                    </div>
-                    <div id="ov_egsi_m_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- EGSI-S -->
-                <div class="ov-card" onclick="showSection('egsi')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(45,212,191,0.12)">🔗</div>
-                        <div><div class="ov-name">EGSI-S</div><div class="ov-sub">EU Gas Stress · Supply</div></div>
-                    </div>
-                    <div id="ov_egsi_s_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- Brent Oil -->
-                <div class="ov-card" onclick="window.open('/data/brent-crude-oil-price-today','_blank')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(245,158,11,0.12)">🛢️</div>
-                        <div><div class="ov-name">Brent Oil</div><div class="ov-sub">$/bbl</div></div>
-                    </div>
-                    <div id="ov_brent_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- WTI Oil -->
-                <div class="ov-card" onclick="window.open('/data/wti-crude-oil-price-today','_blank')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(251,146,60,0.12)">🏗️</div>
-                        <div><div class="ov-name">WTI Oil</div><div class="ov-sub">$/bbl</div></div>
-                    </div>
-                    <div id="ov_wti_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- TTF Gas -->
-                <div class="ov-card" onclick="window.open('/data/ttf-gas-price-today','_blank')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(34,211,238,0.12)">🔵</div>
-                        <div><div class="ov-name">TTF Gas</div><div class="ov-sub">€/MWh</div></div>
-                    </div>
-                    <div id="ov_ttf_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- LNG JKM -->
-                <div class="ov-card" onclick="window.open('/data/jkm-lng-spot-price','_blank')">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(45,212,191,0.12)">🚢</div>
-                        <div><div class="ov-name">LNG — JKM</div><div class="ov-sub">$/MMBtu</div></div>
-                    </div>
-                    <div id="ov_jkm_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- VIX -->
-                <div class="ov-card">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(167,139,250,0.12)">📊</div>
-                        <div><div class="ov-name">VIX</div><div class="ov-sub">Fear Index · pts</div></div>
-                    </div>
-                    <div id="ov_vix_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-                <!-- Nat. Gas -->
-                <div class="ov-card">
-                    <div class="ov-header">
-                        <div class="ov-icon" style="background:rgba(56,189,248,0.12)">🔥</div>
-                        <div><div class="ov-name">Nat. Gas</div><div class="ov-sub">Henry Hub · $/MMBtu</div></div>
-                    </div>
-                    <div id="ov_natgas_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
-                </div>
-            </div>
-
             <!-- 3-Minute Intelligence Routine -->
             <div class="routine-section">
                 <div class="routine-header">
@@ -7440,6 +7352,94 @@
 
                 </div><!-- end routine-timeline -->
             </div><!-- end routine-section -->
+
+            <!-- Overview Grid: Risk Indices + Market Prices (10 cards, 5 per row) -->
+            <div class="ov-section-label">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                Risk Indices &amp; Market Prices &mdash; Closing &amp; Live
+            </div>
+            <div class="ov-grid">
+                <!-- GERI -->
+                <div class="ov-card" onclick="showSection('geri')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(248,113,113,0.12)">🌐</div>
+                        <div><div class="ov-name">GERI</div><div class="ov-sub">Global Energy Risk</div></div>
+                    </div>
+                    <div id="ov_geri_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- EERI -->
+                <div class="ov-card" onclick="showSection('eeri-pro')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(251,191,36,0.12)">⚡</div>
+                        <div><div class="ov-name">EERI</div><div class="ov-sub">Energy Escalation Risk</div></div>
+                    </div>
+                    <div id="ov_eeri_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- EGSI-M -->
+                <div class="ov-card" onclick="showSection('egsi')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(52,211,153,0.12)">📦</div>
+                        <div><div class="ov-name">EGSI-M</div><div class="ov-sub">EU Gas Stress · Market</div></div>
+                    </div>
+                    <div id="ov_egsi_m_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- EGSI-S -->
+                <div class="ov-card" onclick="showSection('egsi')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(45,212,191,0.12)">🔗</div>
+                        <div><div class="ov-name">EGSI-S</div><div class="ov-sub">EU Gas Stress · Supply</div></div>
+                    </div>
+                    <div id="ov_egsi_s_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- Brent Oil -->
+                <div class="ov-card" onclick="window.open('/data/brent-crude-oil-price-today','_blank')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(245,158,11,0.12)">🛢️</div>
+                        <div><div class="ov-name">Brent Oil</div><div class="ov-sub">$/bbl</div></div>
+                    </div>
+                    <div id="ov_brent_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- WTI Oil -->
+                <div class="ov-card" onclick="window.open('/data/wti-crude-oil-price-today','_blank')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(251,146,60,0.12)">🏗️</div>
+                        <div><div class="ov-name">WTI Oil</div><div class="ov-sub">$/bbl</div></div>
+                    </div>
+                    <div id="ov_wti_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- TTF Gas -->
+                <div class="ov-card" onclick="window.open('/data/ttf-gas-price-today','_blank')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(34,211,238,0.12)">🔵</div>
+                        <div><div class="ov-name">TTF Gas</div><div class="ov-sub">€/MWh</div></div>
+                    </div>
+                    <div id="ov_ttf_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- LNG JKM -->
+                <div class="ov-card" onclick="window.open('/data/jkm-lng-spot-price','_blank')">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(45,212,191,0.12)">🚢</div>
+                        <div><div class="ov-name">LNG — JKM</div><div class="ov-sub">$/MMBtu</div></div>
+                    </div>
+                    <div id="ov_jkm_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- VIX -->
+                <div class="ov-card">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(167,139,250,0.12)">📊</div>
+                        <div><div class="ov-name">VIX</div><div class="ov-sub">Fear Index · pts</div></div>
+                    </div>
+                    <div id="ov_vix_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+                <!-- Nat. Gas -->
+                <div class="ov-card">
+                    <div class="ov-header">
+                        <div class="ov-icon" style="background:rgba(56,189,248,0.12)">🔥</div>
+                        <div><div class="ov-name">Nat. Gas</div><div class="ov-sub">Henry Hub · $/MMBtu</div></div>
+                    </div>
+                    <div id="ov_natgas_body"><div class="ov-no-data" style="color:#334155">Loading…</div></div>
+                </div>
+            </div>
 
         </div>
 
