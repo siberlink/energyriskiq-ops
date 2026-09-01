@@ -1,0 +1,561 @@
+emilconstantin22@cloudshell:~/energyriskiq-ops (energyriskiq)$ git checkout main && git pull origin main && bash scripts/deploy_gcp_scheduled_jobs.sh energyriskiq europe-west4
+Already on 'main'
+Your branch is up to date with 'origin/main'.
+From https://github.com/siberlink/energyriskiq-ops
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+
+[gcp-scheduled-jobs] Using project energyriskiq in region europe-west4
+Updated property [core/project].
+
+[gcp-scheduled-jobs] Enabling required Google Cloud APIs
+Operation "operations/acat.p2-152839355019-3ad7d286-305f-4a90-b0eb-4de6c8c74126" finished successfully.
+
+[gcp-scheduled-jobs] Checking required Secret Manager secret names
+
+[gcp-scheduled-jobs] Ensuring Artifact Registry repository exists
+Create request issued for: [energyriskiq-jobs]
+Waiting for operation [projects/energyriskiq/locations/europe-west4/operations/f8108b2e-d1eb-42cd-be2a-a8ef9a4028e5
+] to complete...done.                                                                                              
+Created repository [energyriskiq-jobs].
+
+[gcp-scheduled-jobs] Granting Cloud Build permission to publish the image
+
+[gcp-scheduled-jobs] Ensuring runtime and scheduler service accounts exist
+Created service account [energyriskiq-job-runtime].
+Service account email: energyriskiq-job-runtime@energyriskiq.iam.gserviceaccount.com
+Created service account [energyriskiq-scheduler].
+Service account email: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+[gcp-scheduled-jobs] Granting the runtime service account access to required secrets
+Updated IAM policy for secret [DATABASE_URL].
+Updated IAM policy for secret [INTERNAL_RUNNER_TOKEN].
+Updated IAM policy for secret [OPENAI_API_KEY].
+Updated IAM policy for secret [AI_INTEGRATIONS_OPENAI_API_KEY].
+Updated IAM policy for secret [AI_INTEGRATIONS_OPENAI_BASE_URL].
+Updated IAM policy for secret [GIE_API_KEY].
+Updated IAM policy for secret [OIL_PRICE_API_KEY].
+Updated IAM policy for secret [BREVO_API_KEY].
+Updated IAM policy for secret [EMAIL_PROVIDER].
+Updated IAM policy for secret [EMAIL_FROM].
+Updated IAM policy for secret [TELEGRAM_BOT_TOKEN].
+
+[gcp-scheduled-jobs] Building image europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:84b7499
+Creating temporary archive of 652 file(s) totalling 46.9 MiB before compression.
+Some files were not included in the source upload.
+
+Check the gcloud log [/tmp/tmp.BJvtlVRkjs/logs/2026.09.01/14.10.18.793447.log] to see which files and the contents of the
+default gcloudignore file used (see `$ gcloud topic gcloudignore` to learn
+more).
+
+Uploading tarball of [.] to [gs://energyriskiq_cloudbuild/source/1788271819.117943-5668997689a04b18a08c0ae72a28e53a.tgz]
+Created [https://cloudbuild.googleapis.com/v1/projects/energyriskiq/locations/global/builds/05fc4745-f1c1-4786-b15c-b389b1be0cd7].
+Logs are available at [ https://console.cloud.google.com/cloud-build/builds/05fc4745-f1c1-4786-b15c-b389b1be0cd7?project=152839355019 ].
+Waiting for build to complete. Polling interval: 1 second(s).
+----------------------------------------------- REMOTE BUILD OUTPUT ------------------------------------------------
+starting build "05fc4745-f1c1-4786-b15c-b389b1be0cd7"
+
+FETCHSOURCE
+Fetching storage object: gs://energyriskiq_cloudbuild/source/1788271819.117943-5668997689a04b18a08c0ae72a28e53a.tgz#1788271862206431
+Copying gs://energyriskiq_cloudbuild/source/1788271819.117943-5668997689a04b18a08c0ae72a28e53a.tgz#1788271862206431...
+/ [1 files][ 38.6 MiB/ 38.6 MiB]                                                
+Operation completed over 1 objects/38.6 MiB.
+BUILD
+Already have image (with digest): gcr.io/cloud-builders/gcb-internal
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+Sending build context to Docker daemon  17.33MB
+Step 1/9 : FROM python:3.11-slim
+3.11-slim: Pulling from library/python
+6310eb16bf42: Pulling fs layer
+3678bb828654: Pulling fs layer
+db840d086b65: Pulling fs layer
+f9efa1b83d06: Pulling fs layer
+f9efa1b83d06: Verifying Checksum
+f9efa1b83d06: Download complete
+db840d086b65: Verifying Checksum
+db840d086b65: Download complete
+3678bb828654: Verifying Checksum
+3678bb828654: Download complete
+6310eb16bf42: Verifying Checksum
+6310eb16bf42: Download complete
+6310eb16bf42: Pull complete
+3678bb828654: Pull complete
+db840d086b65: Pull complete
+f9efa1b83d06: Pull complete
+Digest: sha256:d1e9ca7c4e78d1e8ecadb5d44bfc8e956e7a65b659a9950f569f243d72b326d0
+Status: Downloaded newer image for python:3.11-slim
+ b8fe4ce3655e
+Step 2/9 : ENV PYTHONDONTWRITEBYTECODE=1     PYTHONUNBUFFERED=1     PYTHONPATH=/app
+ Running in 212443532b01
+Removing intermediate container 212443532b01
+ d8629e307e37
+Step 3/9 : WORKDIR /app
+ Running in 355f5211c4f9
+Removing intermediate container 355f5211c4f9
+ d91e003983f0
+Step 4/9 : RUN apt-get update     && apt-get install -y --no-install-recommends ca-certificates     && rm -rf /var/lib/apt/lists/*
+ Running in d8a1b9efaae7
+Hit:1 http://deb.debian.org/debian trixie InRelease
+Get:2 http://deb.debian.org/debian trixie-updates InRelease [47.3 kB]
+Hit:3 http://deb.debian.org/debian-security trixie-security InRelease
+Get:4 http://deb.debian.org/debian trixie/main amd64 Packages [9673 kB]
+Get:5 http://deb.debian.org/debian trixie-updates/main amd64 Packages [4412 B]
+Get:6 http://deb.debian.org/debian-security trixie-security/main amd64 Packages [251 kB]
+Fetched 9975 kB in 1s (7566 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+ca-certificates is already the newest version (20250419).
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Removing intermediate container d8a1b9efaae7
+ 7883e0c62254
+Step 5/9 : COPY requirements.txt .
+ eb4232ac9d11
+Step 6/9 : RUN python -m pip install --no-cache-dir --upgrade pip     && python -m pip install --no-cache-dir -r requirements.txt
+ Running in 3a4c6967e6cf
+Requirement already satisfied: pip in /usr/local/lib/python3.11/site-packages (24.0)
+Collecting pip
+  Downloading pip-26.2.1-py3-none-any.whl.metadata (4.6 kB)
+Downloading pip-26.2.1-py3-none-any.whl (1.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 85.1 MB/s eta 0:00:00
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 24.0
+    Uninstalling pip-24.0:
+      Successfully uninstalled pip-24.0
+Successfully installed pip-26.2.1
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+Collecting bcrypt>=5.0.0 (from -r requirements.txt (line 1))
+  Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_x86_64.whl.metadata (10 kB)
+Collecting email-validator>=2.3.0 (from -r requirements.txt (line 2))
+  Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+Collecting fastapi>=0.128.0 (from -r requirements.txt (line 3))
+  Downloading fastapi-0.141.1-py3-none-any.whl.metadata (27 kB)
+Collecting feedparser>=6.0.12 (from -r requirements.txt (line 4))
+  Downloading feedparser-6.0.14-py3-none-any.whl.metadata (2.7 kB)
+Collecting openai>=2.14.0 (from -r requirements.txt (line 5))
+  Downloading openai-3.6.0-py3-none-any.whl.metadata (41 kB)
+Collecting psycopg2-binary>=2.9.11 (from -r requirements.txt (line 6))
+  Downloading psycopg2_binary-2.9.12-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (4.9 kB)
+Collecting python-dotenv>=1.2.1 (from -r requirements.txt (line 7))
+  Downloading python_dotenv-1.2.3-py3-none-any.whl.metadata (29 kB)
+Collecting requests>=2.32.5 (from -r requirements.txt (line 8))
+  Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+Collecting stripe>=14.2.0 (from -r requirements.txt (line 9))
+  Downloading stripe-15.6.0-py3-none-any.whl.metadata (21 kB)
+Collecting uvicorn>=0.40.0 (from -r requirements.txt (line 10))
+  Downloading uvicorn-0.52.4-py3-none-any.whl.metadata (6.6 kB)
+Collecting yfinance>=1.1.0 (from -r requirements.txt (line 11))
+  Downloading yfinance-1.7.0-py3-none-any.whl.metadata (6.7 kB)
+Collecting python-multipart (from -r requirements.txt (line 12))
+  Downloading python_multipart-0.0.32-py3-none-any.whl.metadata (2.1 kB)
+Collecting dnspython>=2.0.0 (from email-validator>=2.3.0->-r requirements.txt (line 2))
+  Downloading dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+Collecting idna>=2.0.0 (from email-validator>=2.3.0->-r requirements.txt (line 2))
+  Downloading idna-3.19-py3-none-any.whl.metadata (9.2 kB)
+Collecting starlette>=0.46.0 (from fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading starlette-1.6.0-py3-none-any.whl.metadata (6.4 kB)
+Collecting pydantic>=2.9.0 (from fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading pydantic-2.13.5-py3-none-any.whl.metadata (110 kB)
+Collecting typing-extensions>=4.8.0 (from fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+Collecting typing-inspection>=0.4.2 (from fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+Collecting annotated-doc>=0.0.2 (from fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+Collecting feedparser-sgmllib<3,>=2 (from feedparser>=6.0.12->-r requirements.txt (line 4))
+  Downloading feedparser_sgmllib-2.1.0-py3-none-any.whl.metadata (926 bytes)
+Collecting anyio<5,>=4.10.0 (from openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+Collecting httpx2<3,>=2.7.0 (from openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading httpx2-2.12.0-py3-none-any.whl.metadata (9.5 kB)
+Collecting jiter<1,>=0.16.0 (from openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading jiter-0.16.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+Collecting sniffio (from openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+Collecting httpcore2==2.12.0 (from httpx2<3,>=2.7.0->openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading httpcore2-2.12.0-py3-none-any.whl.metadata (25 kB)
+Collecting truststore>=0.10 (from httpx2<3,>=2.7.0->openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading truststore-0.10.4-py3-none-any.whl.metadata (4.4 kB)
+Collecting h11>=0.16 (from httpcore2==2.12.0->httpx2<3,>=2.7.0->openai>=2.14.0->-r requirements.txt (line 5))
+  Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting annotated-types>=0.6.0 (from pydantic>=2.9.0->fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+Collecting pydantic-core==2.46.5 (from pydantic>=2.9.0->fastapi>=0.128.0->-r requirements.txt (line 3))
+  Downloading pydantic_core-2.46.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+Collecting charset_normalizer<4,>=2 (from requests>=2.32.5->-r requirements.txt (line 8))
+  Downloading charset_normalizer-3.5.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (45 kB)
+Collecting urllib3<3,>=1.26 (from requests>=2.32.5->-r requirements.txt (line 8))
+  Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+Collecting certifi>=2023.5.7 (from requests>=2.32.5->-r requirements.txt (line 8))
+  Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+Collecting click>=7.0 (from uvicorn>=0.40.0->-r requirements.txt (line 10))
+  Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting beautifulsoup4>=4.11.1 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading beautifulsoup4-4.15.0-py3-none-any.whl.metadata (3.8 kB)
+Collecting curl_cffi>=0.15 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading curl_cffi-0.16.2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (17 kB)
+Collecting lxml>=4.9.0 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading lxml-6.1.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.3 kB)
+Collecting multitasking>=0.0.7 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading multitasking-0.0.13-py3-none-any.whl.metadata (16 kB)
+Collecting numpy>=1.16.5 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+Collecting pandas>=1.3.0 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
+Collecting peewee>=3.16.2 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading peewee-4.4.0-py3-none-any.whl.metadata (10 kB)
+Collecting platformdirs>=2.0.0 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading platformdirs-4.11.7-py3-none-any.whl.metadata (5.5 kB)
+Collecting protobuf>=3.19.0 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading protobuf-7.36.1-cp310-abi3-manylinux2014_x86_64.whl.metadata (595 bytes)
+Collecting pytz>=2022.5 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading pytz-2026.3.post1-py2.py3-none-any.whl.metadata (22 kB)
+Collecting websockets>=13.0 (from yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading websockets-17.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
+Collecting soupsieve>=1.6.1 (from beautifulsoup4>=4.11.1->yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading soupsieve-2.9.2-py3-none-any.whl.metadata (4.6 kB)
+Collecting cffi>=2.0.0 (from curl_cffi>=0.15->yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+Collecting pycparser (from cffi>=2.0.0->curl_cffi>=0.15->yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Collecting python-dateutil>=2.8.2 (from pandas>=1.3.0->yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas>=1.3.0->yfinance>=1.1.0->-r requirements.txt (line 11))
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Downloading bcrypt-5.0.0-cp39-abi3-manylinux_2_34_x86_64.whl (278 kB)
+Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+Downloading fastapi-0.141.1-py3-none-any.whl (131 kB)
+Downloading feedparser-6.0.14-py3-none-any.whl (80 kB)
+Downloading feedparser_sgmllib-2.1.0-py3-none-any.whl (11 kB)
+Downloading openai-3.6.0-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 397.0 MB/s  0:00:00
+Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+Downloading httpx2-2.12.0-py3-none-any.whl (95 kB)
+Downloading httpcore2-2.12.0-py3-none-any.whl (83 kB)
+Downloading jiter-0.16.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (347 kB)
+Downloading pydantic-2.13.5-py3-none-any.whl (472 kB)
+Downloading pydantic_core-2.46.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 452.4 MB/s  0:00:00
+Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+Downloading psycopg2_binary-2.9.12-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.3/4.3 MB 381.8 MB/s  0:00:00
+Downloading python_dotenv-1.2.3-py3-none-any.whl (22 kB)
+Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+Downloading charset_normalizer-3.5.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (262 kB)
+Downloading idna-3.19-py3-none-any.whl (68 kB)
+Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+Downloading stripe-15.6.0-py3-none-any.whl (2.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 316.8 MB/s  0:00:00
+Downloading uvicorn-0.52.4-py3-none-any.whl (79 kB)
+Downloading yfinance-1.7.0-py3-none-any.whl (149 kB)
+Downloading python_multipart-0.0.32-py3-none-any.whl (30 kB)
+Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+Downloading beautifulsoup4-4.15.0-py3-none-any.whl (109 kB)
+Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+Downloading click-8.5.0-py3-none-any.whl (125 kB)
+Downloading curl_cffi-0.16.2-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (13.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.5/13.5 MB 363.2 MB/s  0:00:00
+Downloading cffi-2.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (217 kB)
+Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Downloading lxml-6.1.2-cp311-cp311-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 396.2 MB/s  0:00:00
+Downloading multitasking-0.0.13-py3-none-any.whl (16 kB)
+Downloading numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 389.2 MB/s  0:00:00
+Downloading pandas-3.0.5-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.3/11.3 MB 379.0 MB/s  0:00:00
+Downloading peewee-4.4.0-py3-none-any.whl (191 kB)
+Downloading platformdirs-4.11.7-py3-none-any.whl (23 kB)
+Downloading protobuf-7.36.1-cp310-abi3-manylinux2014_x86_64.whl (343 kB)
+Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Downloading pytz-2026.3.post1-py2.py3-none-any.whl (508 kB)
+Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Downloading soupsieve-2.9.2-py3-none-any.whl (37 kB)
+Downloading starlette-1.6.0-py3-none-any.whl (75 kB)
+Downloading truststore-0.10.4-py3-none-any.whl (18 kB)
+Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+Downloading websockets-17.1-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (224 kB)
+Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+Installing collected packages: pytz, multitasking, websockets, urllib3, typing-extensions, truststore, soupsieve, sniffio, six, python-multipart, python-dotenv, pycparser, psycopg2-binary, protobuf, platformdirs, peewee, numpy, lxml, jiter, idna, h11, feedparser-sgmllib, dnspython, click, charset_normalizer, certifi, bcrypt, annotated-types, annotated-doc, uvicorn, typing-inspection, requests, python-dateutil, pydantic-core, httpcore2, feedparser, email-validator, cffi, beautifulsoup4, anyio, stripe, starlette, pydantic, pandas, httpx2, curl_cffi, yfinance, openai, fastapi
+
+Successfully installed annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.14.2 bcrypt-5.0.0 beautifulsoup4-4.15.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 click-8.5.0 curl_cffi-0.16.2 dnspython-2.8.0 email-validator-2.3.0 fastapi-0.141.1 feedparser-6.0.14 feedparser-sgmllib-2.1.0 h11-0.16.0 httpcore2-2.12.0 httpx2-2.12.0 idna-3.19 jiter-0.16.0 lxml-6.1.2 multitasking-0.0.13 numpy-2.4.6 openai-3.6.0 pandas-3.0.5 peewee-4.4.0 platformdirs-4.11.7 protobuf-7.36.1 psycopg2-binary-2.9.12 pycparser-3.0 pydantic-2.13.5 pydantic-core-2.46.5 python-dateutil-2.9.0.post0 python-dotenv-1.2.3 python-multipart-0.0.32 pytz-2026.3.post1 requests-2.34.2 six-1.17.0 sniffio-1.3.1 soupsieve-2.9.2 starlette-1.6.0 stripe-15.6.0 truststore-0.10.4 typing-extensions-4.16.0 typing-inspection-0.4.4 urllib3-2.7.0 uvicorn-0.52.4 websockets-17.1 yfinance-1.7.0
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+Removing intermediate container 3a4c6967e6cf
+ 7c00a270658e
+Step 7/9 : COPY src ./src
+ 61a7bc80bc67
+Step 8/9 : COPY scripts ./scripts
+ 4a0fadfac75d
+Step 9/9 : ENTRYPOINT ["python", "scripts/replit_scheduled_job.py"]
+ Running in 54a8e0045ad4
+Removing intermediate container 54a8e0045ad4
+ 71f6f5f40958
+Successfully built 71f6f5f40958
+Successfully tagged europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:84b7499
+PUSH
+Pushing europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:84b7499
+The push refers to repository [europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs]
+87a55b71fa1f: Preparing
+1d1132bb64b5: Preparing
+e45b2dda7e08: Preparing
+39c701b00617: Preparing
+0251b58f8e6e: Preparing
+605dce46a3c0: Preparing
+164ea7718b24: Preparing
+7895f75e926a: Preparing
+4d43b7f98e4c: Preparing
+411a86676185: Preparing
+605dce46a3c0: Pushed
+0251b58f8e6e: Pushed
+87a55b71fa1f: Pushed
+39c701b00617: Pushed
+164ea7718b24: Pushed
+1d1132bb64b5: Pushed
+4d43b7f98e4c: Pushed
+411a86676185: Pushed
+7895f75e926a: Pushed
+e45b2dda7e08: Pushed
+84b7499: digest: sha256:416ebe282665c2d113b6e68a77eb5cb1b1010c3bdcc61fdefc3dceca4433d10f size: 2412
+DONE
+--------------------------------------------------------------------------------------------------------------------
+ID: 05fc4745-f1c1-4786-b15c-b389b1be0cd7
+CREATE_TIME: 2026-09-01T14:11:02+00:00
+DURATION: 1M21S
+SOURCE: gs://energyriskiq_cloudbuild/source/1788271819.117943-5668997689a04b18a08c0ae72a28e53a.tgz
+IMAGES: europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:84b7499
+STATUS: SUCCESS
+
+[gcp-scheduled-jobs] Deploying Cloud Run Job energyriskiq-alerts
+Deploying container to Cloud Run job [energyriskiq-alerts] in project [energyriskiq] region [europe-west4]
+Creating job...                                                                                                    
+Done.                                                                                                              
+Job [energyriskiq-alerts] has successfully been deployed.
+
+To execute this job, use:
+gcloud run jobs execute energyriskiq-alerts
+Updated IAM policy for job [energyriskiq-alerts].
+
+[gcp-scheduled-jobs] Deploying Cloud Run Job energyriskiq-intraday
+Deploying container to Cloud Run job [energyriskiq-intraday] in project [energyriskiq] region [europe-west4]
+Creating job...                                                                                                    
+Done.                                                                                                              
+Job [energyriskiq-intraday] has successfully been deployed.
+
+To execute this job, use:
+gcloud run jobs execute energyriskiq-intraday
+Updated IAM policy for job [energyriskiq-intraday].
+
+[gcp-scheduled-jobs] Deploying Cloud Run Job energyriskiq-ingestion
+Deploying container to Cloud Run job [energyriskiq-ingestion] in project [energyriskiq] region [europe-west4]
+Creating job...                                                                                                    
+Done.                                                                                                              
+Job [energyriskiq-ingestion] has successfully been deployed.
+
+To execute this job, use:
+gcloud run jobs execute energyriskiq-ingestion
+Updated IAM policy for job [energyriskiq-ingestion].
+
+[gcp-scheduled-jobs] Deploying Cloud Run Job energyriskiq-metadata
+Deploying container to Cloud Run job [energyriskiq-metadata] in project [energyriskiq] region [europe-west4]
+Creating job...                                                                                                    
+Done.                                                                                                              
+Job [energyriskiq-metadata] has successfully been deployed.
+
+To execute this job, use:
+gcloud run jobs execute energyriskiq-metadata
+Updated IAM policy for job [energyriskiq-metadata].
+
+[gcp-scheduled-jobs] Deploying Cloud Run Job energyriskiq-daily
+Deploying container to Cloud Run job [energyriskiq-daily] in project [energyriskiq] region [europe-west4]
+Creating job...                                                                                                    
+Done.                                                                                                              
+Job [energyriskiq-daily] has successfully been deployed.
+
+To execute this job, use:
+gcloud run jobs execute energyriskiq-daily
+Updated IAM policy for job [energyriskiq-daily].
+
+[gcp-scheduled-jobs] Configuring Cloud Scheduler job energyriskiq-alerts (*/10 * * * * UTC)
+attemptDeadline: 60s
+httpTarget:
+  body: e30=
+  headers:
+    Content-Type: application/json
+    User-Agent: Google-Cloud-Scheduler
+  httpMethod: POST
+  oauthToken:
+    scope: https://www.googleapis.com/auth/cloud-platform
+    serviceAccountEmail: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+  uri: https://run.googleapis.com/v2/projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-alerts:run
+name: projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-alerts
+retryConfig:
+  maxBackoffDuration: 3600s
+  maxDoublings: 5
+  maxRetryDuration: 0s
+  minBackoffDuration: 5s
+  retryCount: 3
+schedule: '*/10 * * * *'
+scheduleTime: '2026-09-01T14:20:00Z'
+state: ENABLED
+status:
+  code: -1
+timeZone: Etc/UTC
+userUpdateTime: '2026-09-01T14:13:17.999038Z'
+
+[gcp-scheduled-jobs] Configuring Cloud Scheduler job energyriskiq-intraday (*/10 * * * * UTC)
+attemptDeadline: 60s
+httpTarget:
+  body: e30=
+  headers:
+    Content-Type: application/json
+    User-Agent: Google-Cloud-Scheduler
+  httpMethod: POST
+  oauthToken:
+    scope: https://www.googleapis.com/auth/cloud-platform
+    serviceAccountEmail: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+  uri: https://run.googleapis.com/v2/projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-intraday:run
+name: projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-intraday
+retryConfig:
+  maxBackoffDuration: 3600s
+  maxDoublings: 5
+  maxRetryDuration: 0s
+  minBackoffDuration: 5s
+  retryCount: 3
+schedule: '*/10 * * * *'
+scheduleTime: '2026-09-01T14:20:00Z'
+state: ENABLED
+status:
+  code: -1
+timeZone: Etc/UTC
+userUpdateTime: '2026-09-01T14:13:20.752938Z'
+
+[gcp-scheduled-jobs] Configuring Cloud Scheduler job energyriskiq-ingestion (0 * * * * UTC)
+attemptDeadline: 60s
+httpTarget:
+  body: e30=
+  headers:
+    Content-Type: application/json
+    User-Agent: Google-Cloud-Scheduler
+  httpMethod: POST
+  oauthToken:
+    scope: https://www.googleapis.com/auth/cloud-platform
+    serviceAccountEmail: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+  uri: https://run.googleapis.com/v2/projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-ingestion:run
+name: projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-ingestion
+retryConfig:
+  maxBackoffDuration: 3600s
+  maxDoublings: 5
+  maxRetryDuration: 0s
+  minBackoffDuration: 5s
+  retryCount: 3
+schedule: 0 * * * *
+scheduleTime: '2026-09-01T15:00:00Z'
+state: ENABLED
+status:
+  code: -1
+timeZone: Etc/UTC
+userUpdateTime: '2026-09-01T14:13:23.340445Z'
+
+[gcp-scheduled-jobs] Configuring Cloud Scheduler job energyriskiq-metadata (16 * * * * UTC)
+attemptDeadline: 60s
+httpTarget:
+  body: e30=
+  headers:
+    Content-Type: application/json
+    User-Agent: Google-Cloud-Scheduler
+  httpMethod: POST
+  oauthToken:
+    scope: https://www.googleapis.com/auth/cloud-platform
+    serviceAccountEmail: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+  uri: https://run.googleapis.com/v2/projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-metadata:run
+name: projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-metadata
+retryConfig:
+  maxBackoffDuration: 3600s
+  maxDoublings: 5
+  maxRetryDuration: 0s
+  minBackoffDuration: 5s
+  retryCount: 3
+schedule: 16 * * * *
+scheduleTime: '2026-09-01T14:16:00Z'
+state: ENABLED
+status:
+  code: -1
+timeZone: Etc/UTC
+userUpdateTime: '2026-09-01T14:13:25.950459Z'
+
+[gcp-scheduled-jobs] Configuring Cloud Scheduler job energyriskiq-daily (30 1 * * * UTC)
+attemptDeadline: 60s
+httpTarget:
+  body: e30=
+  headers:
+    Content-Type: application/json
+    User-Agent: Google-Cloud-Scheduler
+  httpMethod: POST
+  oauthToken:
+    scope: https://www.googleapis.com/auth/cloud-platform
+    serviceAccountEmail: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+  uri: https://run.googleapis.com/v2/projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-daily:run
+name: projects/energyriskiq/locations/europe-west4/jobs/energyriskiq-daily
+retryConfig:
+  maxBackoffDuration: 3600s
+  maxDoublings: 5
+  maxRetryDuration: 0s
+  minBackoffDuration: 5s
+  retryCount: 3
+schedule: 30 1 * * *
+scheduleTime: '2026-09-02T01:30:00Z'
+state: ENABLED
+status:
+  code: -1
+timeZone: Etc/UTC
+userUpdateTime: '2026-09-01T14:13:28.636774Z'
+
+[gcp-scheduled-jobs] Deployment complete
+Project: energyriskiq
+Region: europe-west4
+Image: europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:84b7499
+
+Cloud Run Jobs:
+NAME: energyriskiq-alerts
+LATEST_CREATED_TIME: 
+
+NAME: energyriskiq-daily
+LATEST_CREATED_TIME: 
+
+NAME: energyriskiq-ingestion
+LATEST_CREATED_TIME: 
+
+NAME: energyriskiq-intraday
+LATEST_CREATED_TIME: 
+
+NAME: energyriskiq-metadata
+LATEST_CREATED_TIME: 
+
+Cloud Scheduler jobs:
+ID: energyriskiq-alerts
+SCHEDULE: */10 * * * *
+STATE: ENABLED
+
+ID: energyriskiq-metadata
+SCHEDULE: 16 * * * *
+STATE: ENABLED
+
+ID: energyriskiq-ingestion
+SCHEDULE: 0 * * * *
+STATE: ENABLED
+
+ID: energyriskiq-daily
+SCHEDULE: 30 1 * * *
+STATE: ENABLED
+
+ID: energyriskiq-intraday
+SCHEDULE: */10 * * * *
+STATE: ENABLED
+emilconstantin22@cloudshell:~/energyriskiq-ops (energyriskiq)$ 
