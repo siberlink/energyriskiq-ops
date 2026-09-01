@@ -120,15 +120,15 @@
             top: 64px;
             left: 0;
             bottom: 0;
-            width: 260px;
+            width: 240px;
             background: #06191b;
             border-right: 1px solid #102d30;
-            padding: 16px 12px;
+            padding: 24px 12px;
             overflow-y: auto;
         }
 
         .sidebar-section {
-            margin-bottom: 26px;
+            margin-bottom: 24px;
         }
 
         .sidebar-title {
@@ -176,8 +176,8 @@
             display: flex;
             align-items: center;
             gap: 9px;
-            padding: 8px 10px;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border-radius: 11px;
             color: #a8b7ba;
             font-size: 13px;
             font-weight: 400;
@@ -202,14 +202,23 @@
         }
 
         .nav-item.active {
-            background: transparent;
+            background: #1a383d;
+            border-left: 2px solid #e8c56a;
             color: #e8f1f1;
             font-weight: 500;
+            padding-left: 10px;
         }
 
         .nav-item.active::before { color: #d8e7e8; }
 
         .nav-item .nav-icon { display: none; }
+
+        #accountPreferencesCard,
+        #notificationPreferencesCard,
+        #emailDeliveryCard,
+        #createTicketForm {
+            scroll-margin-top: 88px;
+        }
 
         .pro-badge-nav {
             background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
@@ -298,7 +307,7 @@
         }
 
         .main {
-            margin-left: 260px;
+            margin-left: 240px;
             margin-top: 64px;
             padding: 32px;
             min-height: calc(100vh - 64px);
@@ -6924,7 +6933,21 @@
     <div class="sidebar-overlay" onclick="closeMobileMenu()"></div>
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-section">
-            <div class="nav-group-toggle">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
+                <span class="nav-group-toggle-label">Dashboard</span>
+                <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="nav-group-items">
+                <a class="nav-item active" id="dashboardNavItem" onclick="showSection('dashboard'); closeMobileMenu();">
+                    Today
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
                 <span class="nav-group-toggle-label">Intelligence</span>
                 <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9"/>
@@ -6947,7 +6970,7 @@
         </div>
 
         <div class="sidebar-section">
-            <div class="nav-group-toggle">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
                 <span class="nav-group-toggle-label">Risk Dashboards</span>
                 <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9"/>
@@ -6967,7 +6990,7 @@
         </div>
 
         <div class="sidebar-section">
-            <div class="nav-group-toggle">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
                 <span class="nav-group-toggle-label">Market Tools</span>
                 <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9"/>
@@ -6982,6 +7005,57 @@
                 </a>
                 <a class="nav-item" id="gasProWidgetNavItem" onclick="showSection('gas-pro-widget'); closeMobileMenu();">
                     Gas Storage Intelligence
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
+                <span class="nav-group-toggle-label">Delivery</span>
+                <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="nav-group-items">
+                <a class="nav-item" id="emailDeliveryNavItem" onclick="openSettingsPanel('emailDeliveryCard'); closeMobileMenu();">
+                    Email Delivery
+                </a>
+                <a class="nav-item" id="notificationPreferencesNavItem" onclick="openSettingsPanel('notificationPreferencesCard'); closeMobileMenu();">
+                    Notification Preferences
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
+                <span class="nav-group-toggle-label">Support</span>
+                <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="nav-group-items">
+                <a class="nav-item" id="helpSupportNavItem" onclick="openHelpSupport(); closeMobileMenu();">
+                    Help &amp; Support
+                </a>
+                <a class="nav-item" id="myTicketsNavItem" onclick="showSection('tickets'); closeMobileMenu();">
+                    My Tickets
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="nav-group-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleNavGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup(this);}">
+                <span class="nav-group-toggle-label">Account</span>
+                <svg class="nav-group-chevron open" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="nav-group-items">
+                <a class="nav-item" id="subscriptionBillingNavItem" onclick="showSection('plans'); closeMobileMenu();">
+                    Subscription &amp; Billing
+                </a>
+                <a class="nav-item" id="accountPreferencesNavItem" onclick="openSettingsPanel('accountPreferencesCard'); closeMobileMenu();">
+                    Account &amp; Preferences
                 </a>
             </div>
         </div>
@@ -9299,11 +9373,11 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         <!-- Daily Delivery Section -->
         <div class="section-content" id="section-settings">
             <div class="page-header">
-                <h1 class="page-title">Daily Delivery</h1>
-                <p class="page-subtitle">Manage your daily index & digest delivery preferences</p>
+                <h1 class="page-title">Account &amp; Preferences</h1>
+                <p class="page-subtitle">Manage your account details, email delivery, and notification preferences</p>
             </div>
 
-            <div class="content-card">
+            <div class="content-card" id="accountPreferencesCard">
                 <div class="card-header">
                     <h2 class="card-title">Account Information</h2>
                 </div>
@@ -9323,9 +9397,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 </div>
             </div>
 
-            <div class="content-card" style="margin-top: 24px;">
+            <div class="content-card" id="notificationPreferencesCard" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h2 class="card-title">Telegram Notifications</h2>
+                    <h2 class="card-title">Notification Preferences</h2>
                 </div>
                 <div class="card-body">
                     <div id="telegramNotAvailable" style="display: none;">
@@ -9409,9 +9483,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             </div>
 
             <!-- Delivery Preferences Section -->
-            <div class="content-card" style="margin-top: 24px; display:none;">
+            <div class="content-card" id="emailDeliveryCard" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h2 class="card-title">Daily Delivery Preferences</h2>
+                    <h2 class="card-title">Email Delivery</h2>
                 </div>
                 <div class="card-body">
                     <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">
@@ -10438,6 +10512,61 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const overlay = document.querySelector('.sidebar-overlay');
             sidebar.classList.remove('open');
             overlay.classList.remove('active');
+        }
+
+        function toggleNavGroup(toggle) {
+            const group = toggle.closest('.sidebar-section');
+            const items = group ? group.querySelector('.nav-group-items') : null;
+            const chevron = toggle.querySelector('.nav-group-chevron');
+            if (!items || !chevron) return;
+
+            const isOpen = toggle.getAttribute('aria-expanded') !== 'false';
+            toggle.setAttribute('aria-expanded', String(!isOpen));
+            chevron.classList.toggle('open', !isOpen);
+            chevron.classList.toggle('closed', isOpen);
+
+            if (isOpen) {
+                items.style.maxHeight = items.scrollHeight + 'px';
+                requestAnimationFrame(() => { items.style.maxHeight = '0px'; });
+            } else {
+                items.style.maxHeight = items.scrollHeight + 'px';
+            }
+        }
+
+        function activateNavItem(navItem) {
+            if (!navItem) return;
+            navItem.classList.add('active');
+            const group = navItem.closest('.sidebar-section');
+            const toggle = group ? group.querySelector('.nav-group-toggle') : null;
+            if (toggle && toggle.getAttribute('aria-expanded') === 'false') {
+                toggleNavGroup(toggle);
+            }
+        }
+
+        function openSettingsPanel(targetId) {
+            showSection('settings');
+            const navIds = {
+                accountPreferencesCard: 'accountPreferencesNavItem',
+                notificationPreferencesCard: 'notificationPreferencesNavItem',
+                emailDeliveryCard: 'emailDeliveryNavItem'
+            };
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            activateNavItem(document.getElementById(navIds[targetId]));
+            requestAnimationFrame(() => {
+                const target = document.getElementById(targetId);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+
+        function openHelpSupport() {
+            showSection('tickets');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            activateNavItem(document.getElementById('helpSupportNavItem'));
+            showCreateTicketForm();
+            requestAnimationFrame(() => {
+                const form = document.getElementById('createTicketForm');
+                if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
         }
 
         function toggleFreeIntelligence() {
@@ -16507,10 +16636,31 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-            document.getElementById('section-' + sectionId).classList.add('active');
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
+            const section = document.getElementById('section-' + sectionId);
+            if (!section) return;
+            section.classList.add('active');
+
+            const navIds = {
+                dashboard: 'dashboardNavItem',
+                'geri-live': 'geriLiveNavItem',
+                digest: 'digestNavItem',
+                'brent-forecast': 'brentForecastNavItem',
+                'alerts-access': 'alertsAccessNavItem',
+                geri: 'geriNavItem',
+                'eeri-pro': 'eeriNavItem',
+                egsi: 'egsiNavItem',
+                'wti-pro-widget': 'wtiProWidgetNavItem',
+                'lng-pro-widget': 'lngProWidgetNavItem',
+                'gas-pro-widget': 'gasProWidgetNavItem',
+                tickets: 'myTicketsNavItem',
+                plans: 'subscriptionBillingNavItem',
+                settings: 'accountPreferencesNavItem'
+            };
+            const eventTarget = typeof event !== 'undefined' && event && event.currentTarget;
+            const eventNavItem = eventTarget && eventTarget.classList && eventTarget.classList.contains('nav-item')
+                ? eventTarget
+                : null;
+            activateNavItem(eventNavItem || document.getElementById(navIds[sectionId]));
 
             if (sectionId !== 'geri-live') {
                 cleanupGeriLiveSSE();
@@ -16538,8 +16688,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 aaLoadStatus();
             } else if (sectionId === 'egsi') {
                 loadEgsiDashboard();
-             } else if (sectionId === 'brent-forecast') {
-                 glForecastGate();
+            } else if (sectionId === 'brent-forecast') {
+                glForecastGate();
             } else if (sectionId === 'tickets') {
                 loadUserTickets();
             } else if (sectionId === 'geri-live') {
