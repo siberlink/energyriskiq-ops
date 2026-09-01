@@ -272,6 +272,37 @@
             color: rgba(255, 255, 255, 0.6) !important;
         }
 
+        .coming-soon-nav-badge {
+            margin-left: auto;
+            padding: 3px 7px;
+            border: 1px solid rgba(232, 197, 106, 0.35);
+            border-radius: 5px;
+            color: #d8b85f;
+            background: rgba(232, 197, 106, 0.08);
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.45px;
+            line-height: 1;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .disabled-section .card-body {
+            opacity: 0.5;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .disabled-section .card-title {
+            color: #94a3b8;
+        }
+
+        .card-title .coming-soon-nav-badge {
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
         .delivery-setup-badge {
             background: linear-gradient(135deg, #f59e0b, #ef4444);
             color: #fff;
@@ -7017,8 +7048,9 @@
                 </svg>
             </div>
             <div class="nav-group-items" style="max-height: 0px;">
-                <a class="nav-item" id="emailDeliveryNavItem" onclick="openSettingsPanel('emailDeliveryCard'); closeMobileMenu();">
+                <a class="nav-item nav-item-disabled" id="emailDeliveryNavItem" aria-disabled="true" tabindex="-1">
                     Email Delivery
+                    <span class="coming-soon-nav-badge">Coming soon</span>
                 </a>
                 <a class="nav-item" id="notificationPreferencesNavItem" onclick="openSettingsPanel('notificationPreferencesCard'); closeMobileMenu();">
                     Notification Preferences
@@ -7034,9 +7066,6 @@
                 </svg>
             </div>
             <div class="nav-group-items" style="max-height: 0px;">
-                <a class="nav-item" id="helpSupportNavItem" onclick="openHelpSupport(); closeMobileMenu();">
-                    Help &amp; Support
-                </a>
                 <a class="nav-item" id="myTicketsNavItem" onclick="showSection('tickets'); closeMobileMenu();">
                     My Tickets
                 </a>
@@ -7051,11 +7080,12 @@
                 </svg>
             </div>
             <div class="nav-group-items" style="max-height: 0px;">
-                <a class="nav-item" id="subscriptionBillingNavItem" onclick="showSection('plans'); closeMobileMenu();">
+                <a class="nav-item nav-item-disabled" id="subscriptionBillingNavItem" aria-disabled="true" tabindex="-1">
                     Subscription &amp; Billing
+                    <span class="coming-soon-nav-badge">Coming soon</span>
                 </a>
-                <a class="nav-item" id="accountPreferencesNavItem" onclick="openSettingsPanel('accountPreferencesCard'); closeMobileMenu();">
-                    Account &amp; Preferences
+                <a class="nav-item" id="accountSettingsNavItem" onclick="showSection('account-settings'); closeMobileMenu();">
+                    Account Settings
                 </a>
             </div>
         </div>
@@ -9370,11 +9400,11 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             </div>
         </div>
 
-        <!-- Daily Delivery Section -->
+        <!-- Notification Preferences Section -->
         <div class="section-content" id="section-settings">
             <div class="page-header">
-                <h1 class="page-title">Account &amp; Preferences</h1>
-                <p class="page-subtitle">Manage your account details, email delivery, and notification preferences</p>
+                <h1 class="page-title">Notification Preferences</h1>
+                <p class="page-subtitle">Manage your notification connections and report delivery preferences</p>
             </div>
 
             <div class="content-card" id="accountPreferencesCard">
@@ -9483,9 +9513,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             </div>
 
             <!-- Delivery Preferences Section -->
-            <div class="content-card" id="emailDeliveryCard" style="margin-top: 24px;">
+            <div class="content-card disabled-section" id="emailDeliveryCard" aria-disabled="true" style="margin-top: 24px;">
                 <div class="card-header">
-                    <h2 class="card-title">Email Delivery</h2>
+                    <h2 class="card-title">Email Delivery <span class="coming-soon-nav-badge">Coming soon</span></h2>
                 </div>
                 <div class="card-body">
                     <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">
@@ -9587,6 +9617,15 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 </div>
             </div>
         </div>
+
+        <!-- Account Settings Section -->
+        <div class="section-content" id="section-account-settings">
+            <div class="page-header">
+                <h1 class="page-title">Account Settings</h1>
+                <p class="page-subtitle">Account settings will be available here soon.</p>
+            </div>
+        </div>
+
         <div class="section-content" id="section-tickets">
             <div class="page-header">
                 <h1 class="page-title">Support Tickets</h1>
@@ -10546,7 +10585,6 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         function openSettingsPanel(targetId) {
             showSection('settings');
             const navIds = {
-                accountPreferencesCard: 'accountPreferencesNavItem',
                 notificationPreferencesCard: 'notificationPreferencesNavItem',
                 emailDeliveryCard: 'emailDeliveryNavItem'
             };
@@ -16654,7 +16692,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 'gas-pro-widget': 'gasProWidgetNavItem',
                 tickets: 'myTicketsNavItem',
                 plans: 'subscriptionBillingNavItem',
-                settings: 'accountPreferencesNavItem'
+                settings: 'notificationPreferencesNavItem',
+                'account-settings': 'accountSettingsNavItem'
             };
             const eventTarget = typeof event !== 'undefined' && event && event.currentTarget;
             const eventNavItem = eventTarget && eventTarget.classList && eventTarget.classList.contains('nav-item')
