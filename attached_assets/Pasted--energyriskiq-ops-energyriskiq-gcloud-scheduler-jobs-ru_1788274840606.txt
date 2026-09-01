@@ -1,0 +1,284 @@
+:~/energyriskiq-ops (energyriskiq)$ gcloud scheduler jobs run energyriskiq-intraday --location=europe-west4 --project=energyriskiq
+emilconstantin22@cloudshell:~/energyriskiq-ops (energyriskiq)$ gcloud run jobs executions list --job=energyriskiq-intraday --region=europe-west4 --project=energyriskiq --limit=3
+✔
+JOB: energyriskiq-intraday
+EXECUTION: energyriskiq-intraday-7qcfh
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 14:52:13 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-intraday
+EXECUTION: energyriskiq-intraday-gx852
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 14:50:04 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-intraday
+EXECUTION: energyriskiq-intraday-h7wdg
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 14:40:05 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+emilconstantin22@cloudshell:~/energyriskiq-ops (energyriskiq)$ ^C
+emilconstantin22@cloudshell:~/energyriskiq-ops (energyriskiq)$ gcloud logging read 'resource.type="cloud_run_job" AND resource.labels.job_name="energyriskiq-intraday" AND labels."run.googleapis.com/execution_name"="energyriskiq-intraday-7qcfh"' --project=energyriskiq --limit=100 --order=asc --format=json
+[
+  {
+    "insertId": "6a96e6bc000c822e0d8076d6",
+    "jsonPayload": {
+      "job": "intraday",
+      "response": {
+        "details": {
+          "assets": {
+            "brent": {
+              "change_24h": 1.85,
+              "change_pct": 2.0444,
+              "label": "Brent Crude",
+              "price": 92.33999633789062,
+              "source": "yfinance",
+              "status": "captured"
+            },
+            "natgas": {
+              "change_24h": -0.057,
+              "change_pct": -1.9421,
+              "label": "Natural Gas (US)",
+              "price": 2.878000020980835,
+              "source": "yfinance",
+              "status": "captured"
+            },
+            "wti": {
+              "change_24h": 2.18,
+              "change_pct": 2.542,
+              "label": "WTI Crude",
+              "price": 87.94000244140625,
+              "source": "yfinance",
+              "status": "captured"
+            }
+          },
+          "captured_at": "2026-09-01T14:52:35.701958",
+          "date": "2026-09-01",
+          "hour": 14
+        },
+        "duration_seconds": 9.778137,
+        "finished_at": "2026-09-01T14:52:44.728371",
+        "job": "intraday_price_capture",
+        "started_at": "2026-09-01T14:52:34.950234",
+        "status": "ok"
+      },
+      "status": 200
+    },
+    "labels": {
+      "instanceId": "00a41e8c1dee424cf78fb8561413cb342b16810a12e245d5ce7e1e3c0e23baaa25a0b4d608295e1e0d4e63cd71620f629ec06cd80503cb0048a4b2a20abe23d837cf523c251b4b97bdc22449362587ff582063975e769785e3c0",
+      "run.googleapis.com/execution_name": "energyriskiq-intraday-7qcfh",
+      "run.googleapis.com/task_attempt": "0",
+      "run.googleapis.com/task_index": "0"
+    },
+    "logName": "projects/energyriskiq/logs/run.googleapis.com%2Fstdout",
+    "receiveTimestamp": "2026-09-01T14:52:44.830401194Z",
+    "resource": {
+      "labels": {
+        "job_name": "energyriskiq-intraday",
+        "location": "europe-west4",
+        "project_id": "energyriskiq"
+      },
+      "type": "cloud_run_job"
+    },
+    "timestamp": "2026-09-01T14:52:44.819758Z"
+  },
+  {
+    "insertId": "6a96e6bd00006bc9f0a0756a",
+    "labels": {
+      "container_name": "worker",
+      "instanceId": "00a41e8c1dee424cf78fb8561413cb342b16810a12e245d5ce7e1e3c0e23baaa25a0b4d608295e1e0d4e63cd71620f629ec06cd80503cb0048a4b2a20abe23d837cf523c251b4b97bdc22449362587ff582063975e769785e3c0",
+      "run.googleapis.com/execution_name": "energyriskiq-intraday-7qcfh",
+      "run.googleapis.com/task_attempt": "0",
+      "run.googleapis.com/task_index": "0"
+    },
+    "logName": "projects/energyriskiq/logs/run.googleapis.com%2Fvarlog%2Fsystem",
+    "receiveTimestamp": "2026-09-01T14:52:45.037025701Z",
+    "resource": {
+      "labels": {
+        "job_name": "energyriskiq-intraday",
+        "location": "europe-west4",
+        "project_id": "energyriskiq"
+      },
+      "type": "cloud_run_job"
+    },
+    "severity": "INFO",
+    "textPayload": "Container called exit(0).",
+    "timestamp": "2026-09-01T14:52:45.027493Z"
+  },
+  {
+    "insertId": "32yk5xdfksk",
+    "labels": {
+      "run.googleapis.com/execution_name": "energyriskiq-intraday-7qcfh"
+    },
+    "logName": "projects/energyriskiq/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "methodName": "/Jobs.RunJob",
+      "resourceName": "namespaces/energyriskiq/executions/energyriskiq-intraday-7qcfh",
+      "response": {
+        "@type": "type.googleapis.com/google.cloud.run.v1.Execution",
+        "apiVersion": "run.googleapis.com/v1",
+        "kind": "Execution",
+        "metadata": {
+          "annotations": {
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "581.0.0",
+            "run.googleapis.com/creator": "energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com",
+            "run.googleapis.com/execution-environment": "gen2",
+            "run.googleapis.com/lastModifier": "energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com",
+            "run.googleapis.com/operation-id": "503dea05-2742-45ad-b241-0088ba4fba13"
+          },
+          "creationTimestamp": "2026-09-01T14:52:13.607009Z",
+          "generation": 1,
+          "labels": {
+            "client.knative.dev/nonce": "gik_dah_des",
+            "cloud.googleapis.com/location": "europe-west4",
+            "run.googleapis.com/job": "energyriskiq-intraday",
+            "run.googleapis.com/jobGeneration": "1",
+            "run.googleapis.com/jobResourceVersion": "1788274245396781",
+            "run.googleapis.com/jobUid": "10412957-0bf9-455a-ba7d-7aaa8a58d5e5"
+          },
+          "name": "energyriskiq-intraday-7qcfh",
+          "namespace": "152839355019",
+          "ownerReferences": [
+            {
+              "apiVersion": "serving.knative.dev/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "Job",
+              "name": "energyriskiq-intraday",
+              "uid": "10412957-0bf9-455a-ba7d-7aaa8a58d5e5"
+            }
+          ],
+          "resourceVersion": "AAZabRJwSE4",
+          "selfLink": "/apis/run.googleapis.com/v1/namespaces/152839355019/executions/energyriskiq-intraday-7qcfh",
+          "uid": "66b170ee-ea45-4ec3-893b-294f948d443b"
+        },
+        "spec": {
+          "parallelism": 1,
+          "taskCount": 1,
+          "template": {
+            "spec": {
+              "containers": [
+                {
+                  "args": [
+                    "scripts/replit_scheduled_job.py",
+                    "--job",
+                    "intraday"
+                  ],
+                  "command": [
+                    "python"
+                  ],
+                  "env": [
+                    {
+                      "name": "PYTHONPATH",
+                      "value": "/app"
+                    },
+                    {
+                      "name": "SKIP_MIGRATIONS",
+                      "value": "true"
+                    },
+                    {
+                      "name": "DATABASE_URL",
+                      "valueFrom": {
+                        "secretKeyRef": {
+                          "key": "latest",
+                          "name": "DATABASE_URL"
+                        }
+                      }
+                    },
+                    {
+                      "name": "INTERNAL_RUNNER_TOKEN",
+                      "valueFrom": {
+                        "secretKeyRef": {
+                          "key": "latest",
+                          "name": "INTERNAL_RUNNER_TOKEN"
+                        }
+                      }
+                    }
+                  ],
+                  "image": "europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs@sha256:416ebe282665c2d113b6e68a77eb5cb1b1010c3bdcc61fdefc3dceca4433d10f",
+                  "resources": {
+                    "limits": {
+                      "cpu": "1",
+                      "memory": "2Gi"
+                    }
+                  }
+                }
+              ],
+              "maxRetries": 0,
+              "serviceAccountName": "energyriskiq-job-runtime@energyriskiq.iam.gserviceaccount.com",
+              "timeoutSeconds": "420"
+            }
+          }
+        },
+        "status": {
+          "completionTime": "2026-09-01T14:52:47.437651Z",
+          "conditions": [
+            {
+              "lastTransitionTime": "2026-09-01T14:52:47.437651Z",
+              "message": "Execution completed successfully in 29.44s.",
+              "status": "True",
+              "type": "Completed"
+            },
+            {
+              "lastTransitionTime": "2026-09-01T14:52:14.730064Z",
+              "message": "Provisioned imported containers.",
+              "status": "True",
+              "type": "ResourcesAvailable"
+            },
+            {
+              "lastTransitionTime": "2026-09-01T14:52:32.813060Z",
+              "message": "Started deployed execution in 18.08s.",
+              "status": "True",
+              "type": "Started"
+            },
+            {
+              "lastTransitionTime": "2026-09-01T14:52:14.349669Z",
+              "message": "Imported container image.",
+              "status": "True",
+              "type": "ContainerReady"
+            },
+            {
+              "lastTransitionTime": "2026-09-01T14:52:47.547470Z",
+              "message": "System will retry after 00:00 from lastTransitionTime for attempt 0.",
+              "reason": "ImmediateRetry",
+              "severity": "Info",
+              "status": "True",
+              "type": "Retry"
+            }
+          ],
+          "logUri": "https://console.cloud.google.com/logs/viewer?project=energyriskiq&advancedFilter=resource.type%3D%22cloud_run_job%22%0Aresource.labels.job_name%3D%22energyriskiq-intraday%22%0Aresource.labels.location%3D%22europe-west4%22%0Alabels.%22run.googleapis.com/execution_name%22%3D%22energyriskiq-intraday-7qcfh%22",
+          "observedGeneration": 1,
+          "startTime": "2026-09-01T14:52:17.995817Z",
+          "succeededCount": 1
+        }
+      },
+      "serviceName": "run.googleapis.com",
+      "status": {
+        "message": "Execution energyriskiq-intraday-7qcfh has completed successfully."
+      }
+    },
+    "receiveTimestamp": "2026-09-01T14:52:47.943375979Z",
+    "resource": {
+      "labels": {
+        "job_name": "energyriskiq-intraday",
+        "location": "europe-west4",
+        "project_id": "energyriskiq"
+      },
+      "type": "cloud_run_job"
+    },
+    "severity": "INFO",
+    "timestamp": "2026-09-01T14:52:47.566819Z"
+  }
+]
+emilconstantin22@cloudshell:~/energyriskiq-ops (energyriskiq)$ 
