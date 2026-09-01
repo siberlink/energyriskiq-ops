@@ -1,0 +1,119 @@
+emilconstantin22@cloudshell:~ (energyriskiq)$ for job in energyriskiq-alerts energyriskiq-intraday energyriskiq-ingestion energyriskiq-metadata energyriskiq-daily; do
+  echo "===== $job ====="
+  gcloud run jobs executions list \
+    --job="$job" \
+    --region=europe-west4 \
+    --project=energyriskiq \
+    --limit=3
+done
+===== energyriskiq-alerts =====
+✔
+JOB: energyriskiq-alerts
+EXECUTION: energyriskiq-alerts-69g5p
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 18:10:05 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-alerts
+EXECUTION: energyriskiq-alerts-xk46r
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 18:00:04 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-alerts
+EXECUTION: energyriskiq-alerts-4nvtd
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 17:50:05 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+===== energyriskiq-intraday =====
+✔
+JOB: energyriskiq-intraday
+EXECUTION: energyriskiq-intraday-w89wx
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 18:10:04 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-intraday
+EXECUTION: energyriskiq-intraday-hjp5z
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 18:00:04 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-intraday
+EXECUTION: energyriskiq-intraday-9jh87
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 17:50:04 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+===== energyriskiq-ingestion =====
+…
+JOB: energyriskiq-ingestion
+EXECUTION: energyriskiq-ingestion-b9c5h
+REGION: europe-west4
+RUNNING: 1
+COMPLETE: 0 / 1
+CREATED: 2026-09-01 18:00:01 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-ingestion
+EXECUTION: energyriskiq-ingestion-npl55
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 17:00:01 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-ingestion
+EXECUTION: energyriskiq-ingestion-hdq49
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 16:00:01 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+===== energyriskiq-metadata =====
+✔
+JOB: energyriskiq-metadata
+EXECUTION: energyriskiq-metadata-8gwgr
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 17:16:01 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-metadata
+EXECUTION: energyriskiq-metadata-dml72
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 16:16:01 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+
+✔
+JOB: energyriskiq-metadata
+EXECUTION: energyriskiq-metadata-mr5fb
+REGION: europe-west4
+RUNNING: 0
+COMPLETE: 1 / 1
+CREATED: 2026-09-01 15:16:01 UTC
+RUN BY: energyriskiq-scheduler@energyriskiq.iam.gserviceaccount.com
+===== energyriskiq-daily =====
+Listed 0 items.
+emilconstantin22@cloudshell:~ (energyriskiq)$ 
