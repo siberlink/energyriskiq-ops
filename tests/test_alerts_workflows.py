@@ -63,6 +63,11 @@ def test_daily_workflow_uses_one_direct_locked_pipeline():
 
     assert "cron: '30 1 * * *'" in workflow
     assert "timeout-minutes: 40" in workflow
+    assert (
+        "OIL_PRICE_API_KEY: "
+        "${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}"
+    ) in workflow
+    assert "Validate daily data-source configuration" in workflow
     assert "group: daily-index-computation" not in workflow
     assert (
         "INCLUDE_DELIVERY: "

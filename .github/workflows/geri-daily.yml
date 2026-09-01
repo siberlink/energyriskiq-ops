@@ -23,6 +23,7 @@ jobs:
       INCLUDE_DELIVERY: ${{ github.event.inputs.include_delivery || 'true' }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
+      OIL_PRICE_API_KEY: ${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
       EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
@@ -44,6 +45,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Validate daily data-source configuration
+        run: |
+          if [ -z "$OIL_PRICE_API_KEY" ]; then
+            echo "::error::OIL_PRICE_API_KEY is missing; add it to GitHub repository Actions secrets"
+            exit 1
+          fi
 
       - name: Run daily index pipeline directly
         id: daily
