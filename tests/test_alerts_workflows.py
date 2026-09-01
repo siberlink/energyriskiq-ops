@@ -68,6 +68,10 @@ def test_daily_workflow_uses_one_direct_locked_pipeline():
         "${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}"
     ) in workflow
     assert "Validate daily data-source configuration" in workflow
+    assert "ENABLE_GERI: 'true'" in workflow
+    assert "ENABLE_EERI: 'true'" in workflow
+    assert "ENABLE_EGSI: 'true'" in workflow
+    assert "EGSI_S_DATA_SOURCE: 'composite'" in workflow
     assert "group: daily-index-computation" not in workflow
     assert (
         "INCLUDE_DELIVERY: "

@@ -28,6 +28,10 @@ jobs:
       EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER }}
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      ENABLE_GERI: 'true'
+      ENABLE_EERI: 'true'
+      ENABLE_EGSI: 'true'
+      EGSI_S_DATA_SOURCE: 'composite'
       PYTHONPATH: '.'
       SKIP_MIGRATIONS: 'true'
 
