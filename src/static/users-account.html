@@ -8169,44 +8169,6 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         </a>
                     </div>
 
-                    <!-- Forecast Engine context: shown when arriving from Step 5 -->
-                    <div id="glPaywallForecastCtx" style="display:none;">
-                        <h2 class="gl-paywall-title">Unlock Forecast &amp; Scenarios Engine</h2>
-                        <p class="gl-paywall-sub">The <strong>Brent Intelligence Forecast Engine™</strong> is built inside GERI Live — the only forecast tool that derives price direction from <em>live geopolitical risk signals</em>, not lagged market indicators. Subscribe to GERI Live to access it.</p>
-                        <div style="margin:18px 0;display:flex;flex-direction:column;gap:10px;">
-                            <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#cbd5e1;line-height:1.5;">
-                                <span style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px;">✓</span>
-                                <span><strong style="color:#f1f5f9;">Brent Crude Price Forecast</strong> — AI-driven daily projection built on live GERI readings, not historical averages</span>
-                            </div>
-                            <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#cbd5e1;line-height:1.5;">
-                                <span style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px;">✓</span>
-                                <span><strong style="color:#f1f5f9;">Bull / Base / Bear Scenario Analysis</strong> — three probability-weighted paths updated every morning before markets open</span>
-                            </div>
-                            <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#cbd5e1;line-height:1.5;">
-                                <span style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px;">✓</span>
-                                <span><strong style="color:#f1f5f9;">Risk-Price Correlation</strong> — see exactly which GERI drivers are exerting upward or downward pressure on prices right now</span>
-                            </div>
-                            <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#cbd5e1;line-height:1.5;">
-                                <span style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px;">✓</span>
-                                <span><strong style="color:#f1f5f9;">Expected Risk Direction</strong> — know whether geopolitical pressure is building or easing before it moves the market</span>
-                            </div>
-                            <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#cbd5e1;line-height:1.5;">
-                                <span style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px;">✓</span>
-                                <span><strong style="color:#f1f5f9;">Geopolitical Event Calendar</strong> — forward-looking view of upcoming events most likely to move energy prices</span>
-                            </div>
-                            <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;color:#cbd5e1;line-height:1.5;">
-                                <span style="color:#10b981;font-size:16px;flex-shrink:0;margin-top:1px;">✓</span>
-                                <span><strong style="color:#f1f5f9;">Real-Time Signal Integration</strong> — forecasts refresh intraday as new geopolitical alerts are processed, not just overnight</span>
-                            </div>
-                        </div>
-                        <div style="margin-bottom:16px;padding:12px 16px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;font-size:13px;color:#94a3b8;line-height:1.6;">
-                            💡 <strong style="color:#f1f5f9;">Why this matters:</strong> Most forecast tools tell you where prices <em>might</em> go. This engine tells you <em>why</em> — because it runs on the same geopolitical risk data that moves markets in the first place. Knowing the cause before it becomes the consequence is the edge.
-                        </div>
-                        <a class="gl-research-link" href="/research/global-energy-risk-index" target="_blank" rel="noopener">
-                            Understand what GERI is and how it powers the Engine →
-                        </a>
-                    </div>
-
                     <!-- countdown shown only during 36h offer window -->
                     <div class="gl-countdown-wrap" id="glCountdownWrap" style="display:none;">
                         You got <span class="gl-countdown-timer" id="glCountdownTimer">--</span> to decide at the launch price
@@ -8713,6 +8675,36 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             </div>
             </div><!-- /glContent -->
         </div>
+
+         <!-- Brent Forecast Section -->
+         <div class="section-content" id="section-brent-forecast">
+             <div class="page-header">
+                 <h1 class="page-title">Brent Forecast</h1>
+                 <p class="page-subtitle">AI-powered Brent crude scenario analysis, powered by live GERI signals</p>
+             </div>
+
+             <div id="brentForecastLoading" style="text-align:center;padding:40px;color:#94a3b8;">
+                 <div class="spinner"></div>
+             </div>
+
+             <div id="brentForecastPaywall" style="display:none;">
+                 <div class="gl-paywall-card">
+                     <div class="gl-paywall-title">Unlock Brent Intelligence Forecast Engine™</div>
+                     <p class="gl-paywall-sub">Model Brent price direction across multiple time horizons with live geopolitical risk signals, market drivers, and scenario analysis.</p>
+                     <div class="gl-price-line">
+                         <span class="gl-price" id="brentForecastPriceDisplay">€27</span>
+                         <span class="gl-price-per">/month</span>
+                         <span class="gl-price-note">GERI Live access included · cancel anytime</span>
+                     </div>
+                     <button class="gl-cta-btn" id="brentForecastSubscribeBtn" onclick="glStartForecastCheckout()">Unlock Brent Forecast</button>
+                     <div class="gl-checkout-note">Secure checkout via Stripe · cancel anytime</div>
+                 </div>
+             </div>
+
+             <div id="brentForecastContent" style="display:none;">
+                 <div id="brentForecastEngineMount"></div>
+             </div>
+         </div>
 
         <!-- EERI Pro Section -->
         <div class="section-content" id="section-eeri-pro">
@@ -16546,6 +16538,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 aaLoadStatus();
             } else if (sectionId === 'egsi') {
                 loadEgsiDashboard();
+             } else if (sectionId === 'brent-forecast') {
+                 glForecastGate();
             } else if (sectionId === 'tickets') {
                 loadUserTickets();
             } else if (sectionId === 'geri-live') {
@@ -18202,7 +18196,6 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     glRenderBillingBar(glStatusCache);
                     loadGeriLive();
                     loadTraderIntel();
-                    initGeriLiveBrentEngine();
                     // Refresh status silently in background for next visit
                     glFetchStatus().catch(() => {});
                     return;
@@ -18229,12 +18222,34 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 glRenderBillingBar(st);
                 loadGeriLive(dataPromise);   // pass the in-flight promise; avoids second fetch
                 loadTraderIntel();
-                initGeriLiveBrentEngine();
             } else {
                 glRenderPaywall(st);
                 if (paywall) paywall.style.display = 'block';
             }
         }
+
+         async function glForecastGate() {
+             const loading = document.getElementById('brentForecastLoading');
+             const paywall = document.getElementById('brentForecastPaywall');
+             const content = document.getElementById('brentForecastContent');
+             if (!loading || !paywall || !content) return;
+
+             loading.style.display = 'block';
+             paywall.style.display = 'none';
+             content.style.display = 'none';
+
+             const st = await glFetchStatus();
+             const entitled = !!(st && (st.plan_entitled || st.active));
+             loading.style.display = 'none';
+
+             if (entitled) {
+                 content.style.display = 'block';
+                 await initGeriLiveBrentEngine();
+             } else {
+                 glRenderForecastPaywall(st);
+                 paywall.style.display = 'block';
+             }
+         }
 
         // ── Countdown helpers ────────────────────────────────────────────────
         var _glCountdownInterval = null;
@@ -18298,8 +18313,6 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         }
         // ─────────────────────────────────────────────────────────────────────
 
-        var _glForecastContext = false; // set true when arriving from Step 5
-
         function glRenderPaywall(st) {
             const eligible = !!(st && st.trial_eligible);
             const days = (st && st.trial_days) || 14;
@@ -18316,13 +18329,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const countdownWrap = document.getElementById('glCountdownWrap');
             const bonusBox = document.getElementById('glBonusBox');
             const defaultCtx = document.getElementById('glPaywallDefaultCtx');
-            const forecastCtx = document.getElementById('glPaywallForecastCtx');
 
-            // Switch copy context based on entry point, then consume the flag
-            const _isForecastCtx = _glForecastContext;
-            _glForecastContext = false;
-            if (defaultCtx) defaultCtx.style.display = _isForecastCtx ? 'none' : 'block';
-            if (forecastCtx) forecastCtx.style.display = _isForecastCtx ? 'block' : 'none';
+             if (defaultCtx) defaultCtx.style.display = 'block';
 
             // Trial badge
             if (badge) badge.style.display = eligible ? 'inline-block' : 'none';
@@ -18348,6 +18356,48 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 ? ('Free for ' + days + ' days, then €' + priceEur + '/month · cancel anytime · secure checkout via Stripe')
                 : ('Secure checkout via Stripe · cancel anytime');
         }
+
+         function glRenderForecastPaywall(st) {
+             const eligible = !!(st && st.trial_eligible);
+             const days = (st && st.trial_days) || 14;
+             const offerOn = !!(st && st.offer_active);
+             const priceEur = offerOn ? (st.offer_price_eur || 13.5) : (st.standard_price_eur || 27);
+             const price = document.getElementById('brentForecastPriceDisplay');
+             const btn = document.getElementById('brentForecastSubscribeBtn');
+             if (price) price.textContent = '€' + priceEur;
+             if (btn) {
+                 btn.textContent = eligible
+                     ? ('Start your ' + days + '-day free trial')
+                     : 'Unlock Brent Forecast';
+             }
+         }
+
+         async function glStartForecastCheckout() {
+             const token = drGetAuthToken();
+             if (!token) { window.location.href = '/users'; return; }
+             const btn = document.getElementById('brentForecastSubscribeBtn');
+             if (btn) { btn.disabled = true; btn.textContent = 'Starting secure checkout…'; }
+             try {
+                 const r = await fetch('/api/geri-live/checkout', {
+                     method: 'POST',
+                     headers: { 'x-user-token': token }
+                 });
+                 const data = await r.json();
+                 if (data.already_active) {
+                     glStatusCache = null;
+                     _glStatusCacheTime = 0;
+                     glForecastGate();
+                     return;
+                 }
+                 if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+                 throw new Error('No checkout URL');
+             } catch (e) {
+                 console.error('glStartForecastCheckout', e);
+                 if (btn) { btn.disabled = false; }
+                 glForecastGate();
+                 alert('Unable to start checkout. Please try again.');
+             }
+         }
 
         function glRenderBillingBar(st) {
             const bar = document.getElementById('glBillingBar');
@@ -19207,6 +19257,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         };
 
         try {
+             mountBrentForecastEngine();
             initFreeIntelligenceAccordion();
             if (checkSession()) {
                 loadDashboard().catch(function(err) {
@@ -20269,27 +20320,18 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
         }
 
-        /* ════ Brent Intelligence Forecast Engine™ (GERI Live Embedded) ════ */
+        /* ════ Brent Intelligence Forecast Engine™ ════ */
+
+        function mountBrentForecastEngine() {
+            const engine = document.getElementById('glBrentEngineSection');
+            const mount = document.getElementById('brentForecastEngineMount');
+            if (engine && mount && engine.parentElement !== mount) {
+                mount.appendChild(engine);
+            }
+        }
 
         function goToBrentEngine() {
-            const entitled = !!(glStatusCache && (glStatusCache.active || glStatusCache.plan_entitled));
-            _glForecastContext = !entitled; // show forecast-specific paywall copy when not subscribed
-            showSection('geri-live');
-            if (entitled) {
-                // Subscribed: scroll down to the engine
-                var attempts = 0;
-                var maxAttempts = 60;
-                var poll = setInterval(function() {
-                    attempts++;
-                    var el = document.getElementById('glBrentEngineSection');
-                    if (el && el.offsetParent !== null) {
-                        clearInterval(poll);
-                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                    if (attempts >= maxAttempts) clearInterval(poll);
-                }, 100);
-            }
-            // Not subscribed: glGate() will render the paywall with _glForecastContext = true
+            showSection('brent-forecast');
         }
 
         var glBrentMarketData   = null;
