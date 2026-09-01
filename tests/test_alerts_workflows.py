@@ -67,6 +67,15 @@ def test_daily_workflow_uses_one_direct_locked_pipeline():
         "OIL_PRICE_API_KEY: "
         "${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}"
     ) in workflow
+    assert (
+        "AI_INTEGRATIONS_OPENAI_API_KEY: "
+        "${{ secrets.AI_INTEGRATIONS_OPENAI_API_KEY || secrets.OPENAI_API_KEY }}"
+    ) in workflow
+    assert (
+        "AI_INTEGRATIONS_OPENAI_BASE_URL: "
+        "${{ secrets.AI_INTEGRATIONS_OPENAI_BASE_URL || "
+        "'https://api.openai.com/v1' }}"
+    ) in workflow
     assert "Validate daily data-source configuration" in workflow
     assert "ENABLE_GERI: 'true'" in workflow
     assert "ENABLE_EERI: 'true'" in workflow

@@ -22,6 +22,8 @@ jobs:
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
       INCLUDE_DELIVERY: ${{ github.event.inputs.include_delivery || 'true' }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      AI_INTEGRATIONS_OPENAI_API_KEY: ${{ secrets.AI_INTEGRATIONS_OPENAI_API_KEY || secrets.OPENAI_API_KEY }}
+      AI_INTEGRATIONS_OPENAI_BASE_URL: ${{ secrets.AI_INTEGRATIONS_OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
       GIE_API_KEY: ${{ secrets.GIE_API_KEY }}
       OIL_PRICE_API_KEY: ${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}
       BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
