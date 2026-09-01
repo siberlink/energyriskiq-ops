@@ -1,0 +1,14 @@
+.git
+.github
+.local
+.agents
+attached_assets
+tests
+__pycache__
+*.py[cod]
+*.log
+.env
+.env.*
+.replit
+replit.md
+docs
