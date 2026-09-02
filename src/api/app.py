@@ -460,10 +460,16 @@ async def startup_event():
         from src.api.admin_routes import _init_admin_sessions_table, _init_bulk_email_table
         _init_admin_sessions_table()
         _init_bulk_email_table()
-        from src.api.user_routes import _init_email_login_tokens_table, _init_password_reset_tokens_table, _init_last_login_column
+        from src.api.user_routes import (
+            _init_email_login_tokens_table,
+            _init_password_reset_tokens_table,
+            _init_last_login_column,
+            run_user_profile_migration,
+        )
         _init_email_login_tokens_table()
         _init_password_reset_tokens_table()
         _init_last_login_column()
+        run_user_profile_migration()
         logger.info("Database migrations completed")
         app_url = os.environ.get("APP_URL", "")
         if app_url and os.environ.get("TELEGRAM_BOT_TOKEN"):

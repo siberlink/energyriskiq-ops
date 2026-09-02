@@ -4,7 +4,8 @@ import bcrypt
 import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Header, Request, Response
-from typing import Optional
+from enum import Enum
+from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 
 from src.db.db import get_cursor
@@ -22,6 +23,102 @@ SESSION_DURATION = 7 * 24 * 60 * 60
 APP_URL = os.environ.get("APP_URL", "https://energyriskiq.replit.app")
 
 WELCOME_EMAIL_SUBJECT = "Welcome to EnergyRiskIQ – Your Energy Risk Intelligence Dashboard"
+
+
+class IndustryInterest(str, Enum):
+    """Canonical industry interests collected during account onboarding."""
+
+    OIL_TRADING = "oil_trading"
+    GAS_TRADING = "gas_trading"
+    LNG_TRADING = "lng_trading"
+    ENERGY_MARKET_ANALYSIS = "energy_market_analysis"
+    RISK_MANAGEMENT = "risk_management"
+    PORTFOLIO_MANAGEMENT = "portfolio_management"
+    ENERGY_PROCUREMENT = "energy_procurement"
+    ENERGY_POLICY_GEOPOLITICS = "energy_policy_geopolitics"
+    INVESTMENT_RESEARCH = "investment_research"
+    CORPORATE_STRATEGY = "corporate_strategy"
+
+
+INDUSTRY_INTEREST_LABELS = {
+    IndustryInterest.OIL_TRADING.value: "Oil Trading",
+    IndustryInterest.GAS_TRADING.value: "Gas Trading",
+    IndustryInterest.LNG_TRADING.value: "LNG Trading",
+    IndustryInterest.ENERGY_MARKET_ANALYSIS.value: "Energy Market Analysis",
+    IndustryInterest.RISK_MANAGEMENT.value: "Risk Management",
+    IndustryInterest.PORTFOLIO_MANAGEMENT.value: "Portfolio Management",
+    IndustryInterest.ENERGY_PROCUREMENT.value: "Energy Procurement",
+    IndustryInterest.ENERGY_POLICY_GEOPOLITICS.value: "Energy Policy & Geopolitics",
+    IndustryInterest.INVESTMENT_RESEARCH.value: "Investment & Research",
+    IndustryInterest.CORPORATE_STRATEGY.value: "Corporate Strategy",
+}
+
+_INDUSTRY_INTEREST_VALUES = tuple(item.value for item in IndustryInterest)
+_USER_PROFILE_DDL = """
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS industry_interests TEXT[];
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conname = 'users_industry_interests_check'
+        ) THEN
+            ALTER TABLE users
+            ADD CONSTRAINT users_industry_interests_check
+            CHECK (
+                industry_interests IS NULL
+                OR industry_interests <@ ARRAY[
+                    'oil_trading',
+                    'gas_trading',
+                    'lng_trading',
+                    'energy_market_analysis',
+                    'risk_management',
+                    'portfolio_management',
+                    'energy_procurement',
+                    'energy_policy_geopolitics',
+                    'investment_research',
+                    'corporate_strategy'
+                ]::TEXT[]
+            );
+        END IF;
+    END $$;
+    CREATE INDEX IF NOT EXISTS idx_users_industry_interests
+        ON users USING GIN (industry_interests);
+"""
+
+
+def run_user_profile_migration():
+    """Add onboarding profile fields to the primary DB and mirror the schema.
+
+    The application uses the primary/Neon database at runtime. Mirroring the
+    additive schema to the managed DB keeps future publish diffs clean when
+    both database URLs are configured.
+    """
+    import psycopg2
+
+    try:
+        with get_cursor() as cursor:
+            cursor.execute(_USER_PROFILE_DDL)
+    except Exception as exc:
+        logger.warning(f"Could not initialize user profile fields: {exc}")
+
+    production_url = os.environ.get("PRODUCTION_DATABASE_URL")
+    managed_url = os.environ.get("DATABASE_URL")
+    if not managed_url or not production_url or managed_url == production_url:
+        return
+
+    conn = None
+    try:
+        conn = psycopg2.connect(managed_url)
+        with conn.cursor() as cursor:
+            cursor.execute(_USER_PROFILE_DDL)
+        conn.commit()
+    except Exception as exc:
+        logger.warning(f"Managed DB user profile schema sync skipped: {exc}")
+    finally:
+        if conn:
+            conn.close()
 
 
 def _build_welcome_email():
@@ -437,6 +534,12 @@ class SigninRequest(BaseModel):
     pin: str
 
 
+class UserProfileRequest(BaseModel):
+    first_name: str
+    last_name: str
+    industry_interests: List[IndustryInterest]
+
+
 class UserSettingRequest(BaseModel):
     alert_type: str
     region: Optional[str] = None
@@ -758,7 +861,8 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
     
     with get_cursor() as cursor:
         cursor.execute("""
-            SELECT u.id, u.email, u.telegram_chat_id, u.created_at,
+            SELECT u.id, u.email, u.first_name, u.last_name,
+                   u.industry_interests, u.telegram_chat_id, u.created_at,
                    COALESCE(up.plan, 'free') as plan
             FROM users u
             LEFT JOIN user_plans up ON u.id = up.user_id
@@ -775,6 +879,14 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
         return {
             "id": user['id'],
             "email": user['email'],
+            "first_name": user['first_name'],
+            "last_name": user['last_name'],
+            "industry_interests": user['industry_interests'] or [],
+            "profile_complete": bool(
+                (user['first_name'] or '').strip()
+                and (user['last_name'] or '').strip()
+                and user['industry_interests']
+            ),
             "telegram_chat_id": user['telegram_chat_id'],
             "created_at": user['created_at'].isoformat() if user['created_at'] else None,
             "plan": plan_code,
@@ -785,6 +897,51 @@ def get_current_user(x_user_token: Optional[str] = Header(None)):
                 "delivery_config": plan_settings.get("delivery_config", {})
             }
         }
+
+
+@router.post("/profile")
+def save_user_profile(
+    body: UserProfileRequest,
+    x_user_token: Optional[str] = Header(None),
+):
+    """Save the required account profile collected during onboarding."""
+    session = verify_user_session(x_user_token)
+    first_name = body.first_name.strip()
+    last_name = body.last_name.strip()
+
+    if not first_name or not last_name:
+        raise HTTPException(status_code=400, detail="First and last name are required")
+    if len(first_name) > 80 or len(last_name) > 80:
+        raise HTTPException(status_code=400, detail="Names must be 80 characters or fewer")
+
+    interests = list(dict.fromkeys(item.value for item in body.industry_interests))
+    if not interests:
+        raise HTTPException(status_code=400, detail="Select at least one industry interest")
+    if any(item not in _INDUSTRY_INTEREST_VALUES for item in interests):
+        raise HTTPException(status_code=400, detail="Invalid industry interest")
+
+    with get_cursor() as cursor:
+        cursor.execute("""
+            UPDATE users
+            SET first_name = %s,
+                last_name = %s,
+                industry_interests = %s,
+                updated_at = NOW()
+            WHERE id = %s
+            RETURNING id, email, first_name, last_name, industry_interests
+        """, (first_name, last_name, interests, session["user_id"]))
+        user = cursor.fetchone()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "success": True,
+        "first_name": user["first_name"],
+        "last_name": user["last_name"],
+        "industry_interests": user["industry_interests"] or [],
+        "profile_complete": True,
+    }
 
 
 @router.get("/alerts")
@@ -1512,7 +1669,8 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
     
     with get_cursor() as cursor:
         cursor.execute("""
-            SELECT u.id, u.email, u.telegram_chat_id, u.created_at,
+            SELECT u.id, u.email, u.first_name, u.last_name,
+                   u.industry_interests, u.telegram_chat_id, u.created_at,
                    COALESCE(up.plan, 'free') as plan
             FROM users u
             LEFT JOIN user_plans up ON u.id = up.user_id
@@ -1716,6 +1874,14 @@ def get_user_dashboard(x_user_token: Optional[str] = Header(None), alerts_limit:
         "user": {
             "id": user['id'],
             "email": user['email'],
+            "first_name": user['first_name'],
+            "last_name": user['last_name'],
+            "industry_interests": user['industry_interests'] or [],
+            "profile_complete": bool(
+                (user['first_name'] or '').strip()
+                and (user['last_name'] or '').strip()
+                and user['industry_interests']
+            ),
             "telegram_chat_id": user['telegram_chat_id'],
             "created_at": user['created_at'].isoformat() if user['created_at'] else None,
             "plan": plan_code,

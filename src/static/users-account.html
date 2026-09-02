@@ -6926,6 +6926,282 @@
     </style>
 </head>
 <body>
+    <style>
+        .profile-onboarding-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+        }
+        .profile-onboarding-modal.is-visible {
+            display: block;
+        }
+        .profile-onboarding-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 8, 23, 0.84);
+            backdrop-filter: blur(8px);
+        }
+        .profile-onboarding-dialog {
+            position: relative;
+            width: min(640px, calc(100% - 32px));
+            max-height: calc(100vh - 32px);
+            margin: 16px auto;
+            overflow-y: auto;
+            border: 1px solid rgba(96, 165, 250, 0.28);
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.16), transparent 34%),
+                linear-gradient(145deg, #172554 0%, #0f172a 48%, #0b1220 100%);
+            box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(15, 23, 42, 0.8);
+            color: #f8fafc;
+        }
+        .profile-onboarding-content {
+            padding: 36px 40px 40px;
+        }
+        .profile-onboarding-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(125, 211, 252, 0.35);
+            border-radius: 14px;
+            background: rgba(14, 165, 233, 0.14);
+            color: #7dd3fc;
+        }
+        .profile-onboarding-kicker {
+            margin: 0 0 8px;
+            color: #7dd3fc;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+        }
+        .profile-onboarding-title {
+            margin: 0;
+            color: #f8fafc;
+            font-size: clamp(24px, 4vw, 31px);
+            font-weight: 750;
+            letter-spacing: -0.6px;
+            line-height: 1.15;
+        }
+        .profile-onboarding-intro {
+            max-width: 520px;
+            margin: 12px 0 28px;
+            color: #a5b4fc;
+            font-size: 14px;
+            line-height: 1.65;
+        }
+        .profile-onboarding-section-label {
+            display: block;
+            margin: 0 0 10px;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .profile-onboarding-name-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 25px;
+        }
+        .profile-onboarding-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .profile-onboarding-field input[type="text"] {
+            box-sizing: border-box;
+            width: 100%;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            outline: none;
+            background: rgba(15, 23, 42, 0.8);
+            color: #f8fafc;
+            font: inherit;
+            font-size: 14px;
+            padding: 12px 13px;
+            transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .profile-onboarding-field input[type="text"]:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.13);
+        }
+        .profile-onboarding-interest-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .profile-onboarding-interest {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-height: 48px;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #263858;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.62);
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s, transform 0.18s;
+        }
+        .profile-onboarding-interest:hover {
+            border-color: #38bdf8;
+            background: rgba(14, 116, 144, 0.14);
+            transform: translateY(-1px);
+        }
+        .profile-onboarding-interest input {
+            width: 16px;
+            height: 16px;
+            flex: 0 0 auto;
+            margin: 0 10px 0 0;
+            accent-color: #06b6d4;
+        }
+        .profile-onboarding-interest span {
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        .profile-onboarding-interest:has(input:checked) {
+            border-color: #22d3ee;
+            background: rgba(8, 145, 178, 0.18);
+            box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.15);
+        }
+        .profile-onboarding-interest:has(input:checked) span {
+            color: #ecfeff;
+        }
+        .profile-onboarding-hint {
+            margin: 10px 0 0;
+            color: #64748b;
+            font-size: 11px;
+        }
+        .profile-onboarding-error {
+            display: none;
+            margin: 18px 0 0;
+            padding: 10px 12px;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            border-radius: 9px;
+            background: rgba(127, 29, 29, 0.24);
+            color: #fca5a5;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+        .profile-onboarding-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 28px;
+            padding-top: 21px;
+            border-top: 1px solid rgba(71, 85, 105, 0.55);
+        }
+        .profile-onboarding-required {
+            color: #64748b;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+        .profile-onboarding-submit {
+            min-width: 156px;
+            border: 0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #06b6d4, #2563eb);
+            color: white;
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 750;
+            padding: 12px 18px;
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
+            transition: filter 0.18s, transform 0.18s, opacity 0.18s;
+        }
+        .profile-onboarding-submit:hover:not(:disabled) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+        .profile-onboarding-submit:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+        .profile-onboarding-submit.is-loading {
+            cursor: wait;
+        }
+        @media (max-width: 560px) {
+            .profile-onboarding-dialog {
+                width: calc(100% - 20px);
+                max-height: calc(100vh - 20px);
+                margin: 10px auto;
+                border-radius: 18px;
+            }
+            .profile-onboarding-content {
+                padding: 27px 20px 24px;
+            }
+            .profile-onboarding-name-grid,
+            .profile-onboarding-interest-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-onboarding-footer {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .profile-onboarding-submit {
+                width: 100%;
+            }
+        }
+    </style>
+    <div id="profileOnboardingModal" class="profile-onboarding-modal" aria-hidden="true">
+        <div class="profile-onboarding-backdrop"></div>
+        <div class="profile-onboarding-dialog" role="dialog" aria-modal="true" aria-labelledby="profileOnboardingTitle" tabindex="-1">
+            <div class="profile-onboarding-content">
+                <div class="profile-onboarding-mark" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="8" r="3"></circle>
+                        <path d="M5.5 20c.7-3.1 2.8-5 6.5-5s5.8 1.9 6.5 5"></path>
+                    </svg>
+                </div>
+                <p class="profile-onboarding-kicker">Complete your profile</p>
+                <h1 id="profileOnboardingTitle" class="profile-onboarding-title">Make your intelligence feed yours</h1>
+                <p class="profile-onboarding-intro">Tell us who you are and which parts of the energy market matter most to you. This helps us tailor your EnergyRiskIQ experience.</p>
+
+                <form id="profileOnboardingForm" novalidate onsubmit="submitProfileOnboarding(event)">
+                    <div class="profile-onboarding-name-grid">
+                        <div class="profile-onboarding-field">
+                            <label for="profileFirstName">First name</label>
+                            <input id="profileFirstName" name="first_name" type="text" autocomplete="given-name" maxlength="80" required>
+                        </div>
+                        <div class="profile-onboarding-field">
+                            <label for="profileLastName">Last name</label>
+                            <input id="profileLastName" name="last_name" type="text" autocomplete="family-name" maxlength="80" required>
+                        </div>
+                    </div>
+
+                    <span class="profile-onboarding-section-label">What are you interested in?</span>
+                    <div class="profile-onboarding-interest-grid">
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="oil_trading"><span>Oil Trading</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="gas_trading"><span>Gas Trading</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="lng_trading"><span>LNG Trading</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="energy_market_analysis"><span>Energy Market Analysis</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="risk_management"><span>Risk Management</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="portfolio_management"><span>Portfolio Management</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="energy_procurement"><span>Energy Procurement</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="energy_policy_geopolitics"><span>Energy Policy &amp; Geopolitics</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="investment_research"><span>Investment &amp; Research</span></label>
+                        <label class="profile-onboarding-interest"><input type="checkbox" name="industry_interests" value="corporate_strategy"><span>Corporate Strategy</span></label>
+                    </div>
+                    <p class="profile-onboarding-hint">Select at least one area. You can update your interests later.</p>
+                    <div id="profileOnboardingError" class="profile-onboarding-error" role="alert"></div>
+                    <div class="profile-onboarding-footer">
+                        <span class="profile-onboarding-required">All fields are required to continue.</span>
+                        <button id="profileOnboardingSubmit" class="profile-onboarding-submit" type="submit" disabled>Continue to Dashboard</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div class="trial-banner" id="trialBanner" style="display:none;">
         <div class="trial-banner-glow"></div>
         <div class="trial-banner-content">
@@ -10629,6 +10905,147 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
         }
 
+        let profileOnboardingVisible = false;
+
+        function updateProfileOnboardingFormState() {
+            const form = document.getElementById('profileOnboardingForm');
+            const submit = document.getElementById('profileOnboardingSubmit');
+            if (!form || !submit) return;
+
+            const firstName = (document.getElementById('profileFirstName')?.value || '').trim();
+            const lastName = (document.getElementById('profileLastName')?.value || '').trim();
+            const interests = form.querySelectorAll('input[name="industry_interests"]:checked');
+            submit.disabled = !firstName || !lastName || interests.length === 0;
+        }
+
+        function showProfileOnboarding(user) {
+            if (!user) return;
+            const profileComplete = user.profile_complete === true ||
+                (!!(user.first_name || '').trim() &&
+                 !!(user.last_name || '').trim() &&
+                 Array.isArray(user.industry_interests) &&
+                 user.industry_interests.length > 0);
+            if (profileComplete) return;
+
+            const modal = document.getElementById('profileOnboardingModal');
+            const form = document.getElementById('profileOnboardingForm');
+            if (!modal || !form) return;
+
+            const firstName = document.getElementById('profileFirstName');
+            const lastName = document.getElementById('profileLastName');
+            if (firstName && !firstName.value) firstName.value = user.first_name || '';
+            if (lastName && !lastName.value) lastName.value = user.last_name || '';
+
+            const selectedInterests = new Set(user.industry_interests || []);
+            form.querySelectorAll('input[name="industry_interests"]').forEach(function(input) {
+                if (selectedInterests.has(input.value)) input.checked = true;
+                input.addEventListener('change', updateProfileOnboardingFormState, { once: false });
+            });
+            [firstName, lastName].forEach(function(input) {
+                if (input) input.addEventListener('input', updateProfileOnboardingFormState, { once: false });
+            });
+
+            modal.classList.add('is-visible');
+            modal.setAttribute('aria-hidden', 'false');
+            profileOnboardingVisible = true;
+            document.body.style.overflow = 'hidden';
+            updateProfileOnboardingFormState();
+
+            window.requestAnimationFrame(function() {
+                const focusTarget = firstName && !firstName.value ? firstName :
+                    (lastName && !lastName.value ? lastName : modal.querySelector('input'));
+                if (focusTarget) focusTarget.focus();
+            });
+        }
+
+        function hideProfileOnboarding() {
+            const modal = document.getElementById('profileOnboardingModal');
+            if (!modal) return;
+            modal.classList.remove('is-visible');
+            modal.setAttribute('aria-hidden', 'true');
+            profileOnboardingVisible = false;
+            document.body.style.overflow = '';
+        }
+
+        function profileOnboardingBackdrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        async function submitProfileOnboarding(event) {
+            event.preventDefault();
+            const form = document.getElementById('profileOnboardingForm');
+            const submit = document.getElementById('profileOnboardingSubmit');
+            const error = document.getElementById('profileOnboardingError');
+            const firstName = (document.getElementById('profileFirstName')?.value || '').trim();
+            const lastName = (document.getElementById('profileLastName')?.value || '').trim();
+            const interests = Array.from(form.querySelectorAll('input[name="industry_interests"]:checked'))
+                .map(function(input) { return input.value; });
+
+            if (!firstName || !lastName || interests.length === 0) {
+                error.textContent = !firstName || !lastName
+                    ? 'Please enter your first and last name.'
+                    : 'Please select at least one industry interest.';
+                error.style.display = 'block';
+                updateProfileOnboardingFormState();
+                return;
+            }
+
+            error.style.display = 'none';
+            submit.disabled = true;
+            submit.classList.add('is-loading');
+            submit.textContent = 'Saving profile…';
+
+            try {
+                const response = await fetch('/users/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Token': sessionToken
+                    },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        industry_interests: interests
+                    })
+                });
+                const data = await response.json().catch(function() { return {}; });
+                if (!response.ok) {
+                    const detail = Array.isArray(data.detail)
+                        ? data.detail.map(function(item) { return item.msg; }).join(' ')
+                        : data.detail;
+                    throw new Error(detail || 'We could not save your profile. Please try again.');
+                }
+
+                currentUser = Object.assign({}, currentUser, data, {
+                    first_name: firstName,
+                    last_name: lastName,
+                    industry_interests: interests,
+                    profile_complete: true
+                });
+                hideProfileOnboarding();
+                updateUI();
+                showSection('dashboard');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (submitError) {
+                console.error('Profile onboarding error:', submitError);
+                error.textContent = submitError.message || 'We could not save your profile. Please try again.';
+                error.style.display = 'block';
+                submit.disabled = false;
+                updateProfileOnboardingFormState();
+            } finally {
+                submit.classList.remove('is-loading');
+                submit.textContent = 'Continue to Dashboard';
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (profileOnboardingVisible && event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+
         function checkSession() {
             try {
                 const session = localStorage.getItem('userSession');
@@ -10721,6 +11138,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 }
                 
                 pollTicketUnread();
+                showProfileOnboarding(currentUser);
                 console.log(`Dashboard loaded in ${(performance.now() - startTime).toFixed(0)}ms`);
             } catch (error) {
                 clearTimeout(timeout);
@@ -10789,6 +11207,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
                 currentUser = await response.json();
                 updateUI();
+                showProfileOnboarding(currentUser);
                 loadAlerts();
             } catch (error) {
                 console.error('Error loading user:', error);
