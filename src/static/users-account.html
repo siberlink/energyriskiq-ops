@@ -359,6 +359,20 @@
             color: #94a3b8;
             font-size: 15px;
         }
+        .welcome-value-prop {
+            max-width: 760px;
+            color: #a5b4fc;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .sidebar-date {
+            display: block;
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.45;
+            white-space: normal;
+        }
 
         .stats-grid {
             display: grid;
@@ -628,6 +642,89 @@
             text-align: center;
             margin-bottom: 36px;
         }
+        .routine-progress {
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto 28px;
+            padding: 0 10px;
+        }
+        .routine-progress-track {
+            position: absolute;
+            top: 18px;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            overflow: hidden;
+            border-radius: 99px;
+            background: #263858;
+        }
+        .routine-progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #3b82f6, #22d3ee, #a78bfa, #f59e0b, #10b981);
+            transition: width 0.35s ease;
+        }
+        .routine-progress-steps {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+        }
+        .routine-progress-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            border: 0;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            font: inherit;
+            padding: 0;
+        }
+        .routine-progress-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border: 2px solid #334155;
+            border-radius: 50%;
+            background: #0f172a;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 800;
+            transition: all 0.25s ease;
+        }
+        .routine-progress-item:hover .routine-progress-marker {
+            border-color: #60a5fa;
+            color: #bfdbfe;
+            transform: translateY(-2px);
+        }
+        .routine-progress-item.is-complete .routine-progress-marker {
+            border-color: #22d3ee;
+            background: #0891b2;
+            color: #ecfeff;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.1), 0 0 18px rgba(34, 211, 238, 0.25);
+        }
+        .routine-progress-item.is-complete .routine-progress-marker::after {
+            content: '✓';
+            font-size: 16px;
+        }
+        .routine-progress-item.is-complete .routine-progress-number {
+            display: none;
+        }
+        .routine-progress-label {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: color 0.25s ease;
+        }
+        .routine-progress-item.is-complete .routine-progress-label {
+            color: #67e8f9;
+        }
         .routine-eyebrow {
             display: inline-flex;
             align-items: center;
@@ -853,6 +950,22 @@
         .routine-step-cta.s5 { border-color: rgba(16,185,129,0.4); color: #34d399; }
         .routine-step-cta.s5:hover { background: rgba(16,185,129,0.12); }
         @media (max-width: 640px) {
+            .routine-progress {
+                padding: 0;
+            }
+            .routine-progress-track {
+                left: 8%;
+                right: 8%;
+            }
+            .routine-progress-marker {
+                width: 32px;
+                height: 32px;
+                font-size: 11px;
+            }
+            .routine-progress-label {
+                font-size: 9px;
+                letter-spacing: 0.2px;
+            }
             .routine-timeline::before { left: 22px; }
             .routine-step-node { width: 46px; }
             .routine-step-circle { width: 38px; height: 38px; font-size: 14px; }
@@ -7248,7 +7361,7 @@
             </div>
             <div class="nav-group-items">
                 <a class="nav-item active" id="dashboardNavItem" onclick="showSection('dashboard'); closeMobileMenu();">
-                    Today
+                    <span class="sidebar-date" id="sidebarTodayDate">Today</span>
                 </a>
             </div>
         </div>
@@ -7372,8 +7485,8 @@
         <!-- Dashboard Section -->
         <div class="section-content active" id="section-dashboard">
             <div class="page-header">
-                <h1 class="page-title">Welcome back!</h1>
-                <p class="page-subtitle">Your energy risk intelligence dashboard</p>
+                <h1 class="page-title">Welcome back<span id="welcomeUserName"></span>!</h1>
+                <p class="page-subtitle welcome-value-prop">Your daily edge starts with three focused minutes. Follow the five-step routine to move from global risk to live signals, market context, and forward-looking scenarios — so you can spot what matters before the market reacts.</p>
             </div>
 
             <div id="upgradeBanner" class="upgrade-banner" style="display: none;">
@@ -7398,6 +7511,33 @@
             <!-- 3-Minute Intelligence Routine -->
             <div class="routine-section">
                 <div class="routine-header">
+                    <div class="routine-progress" aria-label="Five-step intelligence routine progress">
+                        <div class="routine-progress-track" aria-hidden="true">
+                            <div class="routine-progress-fill" id="routineProgressFill"></div>
+                        </div>
+                        <div class="routine-progress-steps">
+                            <button type="button" class="routine-progress-item" data-routine-step="1" onclick="openRoutineProgressStep(event, 1)">
+                                <span class="routine-progress-marker"><span class="routine-progress-number">1</span></span>
+                                <span class="routine-progress-label">Global Risk</span>
+                            </button>
+                            <button type="button" class="routine-progress-item" data-routine-step="2" onclick="openRoutineProgressStep(event, 2)">
+                                <span class="routine-progress-marker"><span class="routine-progress-number">2</span></span>
+                                <span class="routine-progress-label">Live Signal</span>
+                            </button>
+                            <button type="button" class="routine-progress-item" data-routine-step="3" onclick="openRoutineProgressStep(event, 3)">
+                                <span class="routine-progress-marker"><span class="routine-progress-number">3</span></span>
+                                <span class="routine-progress-label">Intelligence</span>
+                            </button>
+                            <button type="button" class="routine-progress-item" data-routine-step="4" onclick="openRoutineProgressStep(event, 4)">
+                                <span class="routine-progress-marker"><span class="routine-progress-number">4</span></span>
+                                <span class="routine-progress-label">Markets</span>
+                            </button>
+                            <button type="button" class="routine-progress-item" data-routine-step="5" onclick="openRoutineProgressStep(event, 5)">
+                                <span class="routine-progress-marker"><span class="routine-progress-number">5</span></span>
+                                <span class="routine-progress-label">Scenarios</span>
+                            </button>
+                        </div>
+                    </div>
                     <div class="routine-eyebrow">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         3 Minutes · 5 Steps
@@ -7409,7 +7549,7 @@
                 <div class="routine-timeline">
 
                     <!-- Step 1 -->
-                    <div class="routine-step" onclick="showSection('geri')">
+                    <div class="routine-step" onclick="markRoutineStep(1);showSection('geri')">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s1">1</div>
                         </div>
@@ -7437,7 +7577,7 @@
                     </div>
 
                     <!-- Step 2 -->
-                    <div class="routine-step" onclick="glStep2Click(event)">
+                    <div class="routine-step" onclick="markRoutineStep(2);glStep2Click(event)">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s2">2</div>
                         </div>
@@ -7460,7 +7600,7 @@
                             <div class="routine-insight s2">
                                 <p>If nothing changed — <strong>great.</strong> If it changed significantly — <strong>you already know before most market participants.</strong></p>
                             </div>
-                            <span class="routine-step-cta s2" onclick="event.stopPropagation();glStep2Click(event);">Open GERI Live →</span>
+                            <span class="routine-step-cta s2" onclick="event.stopPropagation();markRoutineStep(2);glStep2Click(event);">Open GERI Live →</span>
 
                             <!-- GERI Live launch offer promo — shown inside Step 2 for non-subscribers -->
                             <div id="glDashPromo" style="display:none;margin-top:14px;" onclick="event.stopPropagation();">
@@ -7492,7 +7632,7 @@
                     </div>
 
                     <!-- Step 3 -->
-                    <div class="routine-step" onclick="drStep3Click(event)">
+                    <div class="routine-step" onclick="markRoutineStep(3);drStep3Click(event)">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s3">3</div>
                         </div>
@@ -7516,7 +7656,7 @@
                             <div class="routine-insight s3">
                                 <p>This provides <strong>context instead of noise</strong> — structured intelligence, not another stream of headlines.</p>
                             </div>
-                            <span class="routine-step-cta s3" onclick="event.stopPropagation();drStep3Click(event);">Open Intelligence Report →</span>
+                            <span class="routine-step-cta s3" onclick="event.stopPropagation();markRoutineStep(3);drStep3Click(event);">Open Intelligence Report →</span>
 
                             <!-- Daily Intelligence Report promo — shown inside Step 3 for non-subscribers -->
                             <div id="drDashPromo" style="display:none;margin-top:14px;" onclick="event.stopPropagation();">
@@ -7535,7 +7675,7 @@
                     </div>
 
                     <!-- Step 4 -->
-                    <div class="routine-step">
+                    <div class="routine-step" onclick="markRoutineStep(4)">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s4">4</div>
                         </div>
@@ -7563,7 +7703,7 @@
                     </div>
 
                     <!-- Step 5 -->
-                    <div class="routine-step" onclick="goToBrentEngine();">
+                    <div class="routine-step" onclick="markRoutineStep(5);goToBrentEngine();">
                         <div class="routine-step-node">
                             <div class="routine-step-circle s5">5</div>
                         </div>
@@ -7587,7 +7727,7 @@
                             <div class="routine-insight s5">
                                 <p>Knowing what might happen next — <strong>before it happens</strong> — is the edge that separates informed decisions from reactive ones.</p>
                             </div>
-                            <span class="routine-step-cta s5" onclick="event.stopPropagation();goToBrentEngine();">Open Brent Intelligence Forecast Engine™ →</span>
+                            <span class="routine-step-cta s5" onclick="event.stopPropagation();markRoutineStep(5);goToBrentEngine();">Open Brent Intelligence Forecast Engine™ →</span>
                         </div>
                     </div>
 
@@ -10972,6 +11112,93 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             event.stopPropagation();
         }
 
+        let routineProgressCompleted = new Set();
+
+        function routineProgressStorageKey() {
+            const userKey = currentUser && (currentUser.id || currentUser.email);
+            return userKey ? 'energyriskiq:routine-progress:' + userKey : null;
+        }
+
+        function renderRoutineProgress() {
+            document.querySelectorAll('.routine-progress-item').forEach(function(item) {
+                const step = Number(item.dataset.routineStep);
+                item.classList.toggle('is-complete', routineProgressCompleted.has(step));
+                item.setAttribute('aria-pressed', routineProgressCompleted.has(step) ? 'true' : 'false');
+            });
+
+            const fill = document.getElementById('routineProgressFill');
+            if (fill) {
+                const highestStep = routineProgressCompleted.size
+                    ? Math.max.apply(null, Array.from(routineProgressCompleted))
+                    : 1;
+                fill.style.width = ((highestStep - 1) / 4 * 100) + '%';
+            }
+        }
+
+        function initRoutineProgress() {
+            routineProgressCompleted = new Set();
+            const storageKey = routineProgressStorageKey();
+            if (storageKey) {
+                try {
+                    const stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    if (Array.isArray(stored)) {
+                        stored.forEach(function(step) {
+                            const normalizedStep = Number(step);
+                            if (normalizedStep >= 1 && normalizedStep <= 5) {
+                                routineProgressCompleted.add(normalizedStep);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.warn('Could not restore routine progress:', error);
+                }
+            }
+            renderRoutineProgress();
+        }
+
+        function markRoutineStep(step) {
+            const normalizedStep = Number(step);
+            if (normalizedStep < 1 || normalizedStep > 5) return;
+            routineProgressCompleted.add(normalizedStep);
+            const storageKey = routineProgressStorageKey();
+            if (storageKey) {
+                try {
+                    localStorage.setItem(storageKey, JSON.stringify(Array.from(routineProgressCompleted).sort()));
+                } catch (error) {
+                    console.warn('Could not save routine progress:', error);
+                }
+            }
+            renderRoutineProgress();
+        }
+
+        function openRoutineProgressStep(event, step) {
+            if (event) event.stopPropagation();
+            markRoutineStep(step);
+            if (step === 1) {
+                showSection('geri');
+            } else if (step === 2) {
+                glStep2Click(event);
+            } else if (step === 3) {
+                drStep3Click(event);
+            } else if (step === 4) {
+                const marketOverview = document.querySelector('.ov-section-label');
+                if (marketOverview) marketOverview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else if (step === 5) {
+                goToBrentEngine();
+            }
+        }
+
+        function updateSidebarToday() {
+            const dateElement = document.getElementById('sidebarTodayDate');
+            if (!dateElement) return;
+            const formattedDate = new Intl.DateTimeFormat('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            }).format(new Date());
+            dateElement.textContent = 'Today - ' + formattedDate;
+        }
+
         async function submitProfileOnboarding(event) {
             event.preventDefault();
             const form = document.getElementById('profileOnboardingForm');
@@ -11216,6 +11443,13 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         function updateUI() {
             if (!currentUser) return;
+
+            const welcomeName = document.getElementById('welcomeUserName');
+            if (welcomeName) {
+                welcomeName.textContent = currentUser.first_name ? ' ' + currentUser.first_name : '';
+            }
+            updateSidebarToday();
+            initRoutineProgress();
 
             const elUserEmail = document.getElementById('userEmail');
             const elUserAvatar = document.getElementById('userAvatar');
@@ -19865,7 +20099,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         };
 
         try {
-             mountBrentForecastEngine();
+            updateSidebarToday();
+            mountBrentForecastEngine();
             initFreeIntelligenceAccordion();
             if (checkSession()) {
                 loadDashboard().catch(function(err) {
