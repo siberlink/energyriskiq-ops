@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+import importlib
 
 import pytest
 from fastapi import HTTPException
@@ -456,16 +457,17 @@ def test_daily_pipeline_allows_disabled_optional_indices(monkeypatch):
 
 
 def test_daily_stage_validation_allows_explicit_existing_geri_skip():
-    response = {
-        "status": "ok",
-        "details": {
-            "status": "skipped",
-            "reason": "already_exists",
-            "date": "2026-09-02",
-        },
-    }
+    for stage in ("geri", "eeri", "egsi_m", "egsi_s"):
+        response = {
+            "status": "ok",
+            "details": {
+                "status": "skipped",
+                "reason": "already_exists",
+                "date": "2026-09-02",
+            },
+        }
 
-    assert internal_routes._validate_daily_stage("geri", response) is response
+        assert internal_routes._validate_daily_stage(stage, response) is response
 
 
 def test_daily_stage_validation_rejects_ambiguous_geri_no_result():
@@ -523,6 +525,83 @@ def test_geri_compute_skips_existing_yesterday_without_writing(monkeypatch):
     assert response["details"]["date"] == (
         internal_routes.date.today() - internal_routes.timedelta(days=1)
     ).isoformat()
+
+
+@pytest.mark.parametrize(
+    (
+        "route_name",
+        "repo_module_name",
+        "getter_name",
+        "service_module_name",
+        "compute_name",
+        "expected_stage",
+    ),
+    [
+        (
+            "run_eeri_compute",
+            "src.reri.repo",
+            "get_reri_for_date",
+            "src.reri.service",
+            "compute_eeri_for_date",
+            "EERI",
+        ),
+        (
+            "run_egsi_compute",
+            "src.egsi.repo",
+            "get_egsi_m_for_date",
+            "src.egsi.service",
+            "compute_egsi_m_for_date",
+            "EGSI-M",
+        ),
+        (
+            "run_egsi_s_compute",
+            "src.egsi.repo",
+            "get_egsi_s_for_date",
+            "src.egsi.service_egsi_s",
+            "compute_egsi_s_for_date",
+            "EGSI-S",
+        ),
+    ],
+)
+def test_daily_index_routes_skip_existing_date_without_writing(
+    monkeypatch,
+    route_name,
+    repo_module_name,
+    getter_name,
+    service_module_name,
+    compute_name,
+    expected_stage,
+):
+    repo_module = importlib.import_module(repo_module_name)
+    service_module = importlib.import_module(service_module_name)
+
+    monkeypatch.setattr(internal_routes, "validate_runner_token", lambda token: True)
+    monkeypatch.setattr(repo_module, getter_name, lambda *_args: {"value": 42})
+    monkeypatch.setattr(
+        service_module,
+        compute_name,
+        lambda *_args, **_kwargs: pytest.fail(
+            f"existing {expected_stage} must not be recomputed or written"
+        ),
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_job_with_lock",
+        lambda name, job: ({"status": "ok", "details": job()}, 200),
+    )
+
+    response = getattr(internal_routes, route_name)(
+        target_date="2026-09-02",
+        force=False,
+        x_runner_token="valid",
+    )
+
+    assert response["details"] == {
+        "status": "skipped",
+        "reason": "already_exists",
+        "date": "2026-09-02",
+        "message": f"{expected_stage} for 2026-09-02 already exists",
+    }
 
 
 def test_daily_pipeline_continues_after_optional_gas_storage_failure(monkeypatch):
