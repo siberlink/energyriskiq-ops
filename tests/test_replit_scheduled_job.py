@@ -39,6 +39,33 @@ def test_busy_alerts_do_not_launch_deliveries(monkeypatch):
     assert calls == ["alerts"]
 
 
+def test_daily_runner_fails_after_all_stages_report_degraded(monkeypatch):
+    monkeypatch.setattr(
+        replit_scheduled_job,
+        "_handler",
+        lambda _handler_name: lambda **_kwargs: {
+            "status": "ok",
+            "details": {
+                "pipeline_status": "degraded",
+                "failed_stages": ["gas_storage", "geri"],
+            },
+        },
+    )
+
+    try:
+        replit_scheduled_job._invoke(
+            "daily",
+            "run_daily_index_pipeline",
+            "token",
+        )
+    except RuntimeError as error:
+        assert str(error) == (
+            "daily completed with stage errors: ['gas_storage', 'geri']"
+        )
+    else:
+        raise AssertionError("degraded daily work must remain visibly failed")
+
+
 def test_named_job_uses_expected_endpoint(monkeypatch):
     calls = []
     monkeypatch.setattr(
