@@ -21,3 +21,4 @@
 - [Dashboard V2 technical blueprint](dashboard-v2-technical-blueprint.md) — V2 is a focused, parallel, feature-flagged workflow built around snapshot, entitlement, and Routine services.
 - [Long-running internal jobs](long-running-internal-jobs.md) — public synchronous calls hit Cloudflare 524; idle advisory-lock DB sessions may disconnect before lengthy work ends.
 - [Scheduled-job environment parity](scheduled-job-environment-parity.md) — direct runners must explicitly receive API feature flags and provider aliases; process defaults can silently disable required stages.
+- [Forecast release gating](forecast-release-gating.md) — price-risk forecasts stay research-only unless purged walk-forward tests beat causal baselines on accuracy and calibration.

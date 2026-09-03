@@ -6650,6 +6650,45 @@
             display: inline-block;
             font-style: italic;
         }
+        /* Price-risk model layer: kept intentionally separate from the live tape. */
+        .ti-model-summary {
+            display:flex; align-items:center; justify-content:space-between; gap:12px;
+            margin: 0 0 14px; padding:11px 13px; border:1px solid rgba(96,165,250,.18);
+            border-radius:9px; background:linear-gradient(90deg,rgba(30,41,59,.96),rgba(16,35,53,.72));
+        }
+        .ti-model-kicker { color:#7dd3fc; font-size:10px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; }
+        .ti-model-meta { color:#64748b; font-size:11px; line-height:1.5; }
+        .ti-model-status { color:#86efac; font-size:10px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
+        .ti-model-status.limited { color:#fbbf24; }
+        .ti-model-warning { grid-column:1/-1; width:100%; padding:8px 10px; border:1px solid rgba(245,158,11,.35); border-radius:7px; background:rgba(245,158,11,.08); color:#fcd34d; font-size:11px; line-height:1.45; }
+        .ti-forecast-line { border-top:1px solid rgba(148,163,184,.1); margin-top:9px; padding-top:8px; text-align:left; }
+        .ti-forecast-label { color:#64748b; font-size:9px; font-weight:700; letter-spacing:.45px; text-transform:uppercase; }
+        .ti-forecast-value { color:#cbd5e1; font-size:12px; font-weight:700; margin-top:3px; }
+        .ti-forecast-value.up { color:#4ade80; } .ti-forecast-value.down { color:#fb7185; }
+        .ti-model-output-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:10px; }
+        .ti-model-card { min-height:142px; padding:13px; border:1px solid #24344a; border-radius:10px; background:#111d2d; }
+        .ti-model-card-title { color:#94a3b8; font-size:10px; font-weight:800; letter-spacing:.55px; text-transform:uppercase; }
+        .ti-model-card-main { color:#f1f5f9; font-size:20px; font-weight:800; margin:9px 0 3px; }
+        .ti-model-card-sub { color:#64748b; font-size:11px; line-height:1.45; }
+        .ti-model-card-detail { display:flex; justify-content:space-between; gap:8px; border-top:1px solid rgba(148,163,184,.1); margin-top:10px; padding-top:8px; color:#94a3b8; font-size:11px; }
+        .ti-model-card-detail strong { color:#cbd5e1; }
+        .ti-analysis-button { border:1px solid rgba(125,211,252,.38); background:rgba(14,116,144,.12); color:#bae6fd; border-radius:7px; padding:8px 11px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; }
+        .ti-analysis-button:hover { background:rgba(14,116,144,.24); border-color:#67e8f9; }
+        .ti-analysis-empty { padding:12px; border:1px dashed #334155; border-radius:9px; color:#64748b; font-size:12px; line-height:1.5; }
+        .ti-analysis-modal { position:fixed; inset:0; z-index:10020; display:flex; align-items:center; justify-content:center; padding:18px; background:rgba(2,8,23,.82); }
+        .ti-analysis-modal[hidden] { display:none; }
+        .ti-analysis-dialog { width:min(760px,100%); max-height:min(720px,92vh); overflow:auto; border:1px solid #334155; border-radius:14px; background:#172235; box-shadow:0 24px 80px rgba(0,0,0,.45); }
+        .ti-analysis-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:20px 22px 14px; border-bottom:1px solid #26364c; }
+        .ti-analysis-head h2 { color:#f1f5f9; font-size:18px; margin:0 0 5px; }
+        .ti-analysis-head p { color:#64748b; font-size:11px; margin:0; }
+        .ti-analysis-close { border:0; background:transparent; color:#94a3b8; font-size:25px; line-height:1; cursor:pointer; padding:0 2px; }
+        .ti-analysis-close:hover { color:#f1f5f9; }
+        .ti-analysis-body { padding:18px 22px 24px; }
+        .ti-analysis-section { margin:0 0 18px; } .ti-analysis-section:last-child { margin-bottom:0; }
+        .ti-analysis-section h3 { color:#7dd3fc; font-size:11px; letter-spacing:.65px; text-transform:uppercase; margin:0 0 6px; }
+        .ti-analysis-section p { color:#cbd5e1; font-size:13px; line-height:1.65; margin:0; white-space:pre-line; }
+        @media (max-width: 760px) { .ti-model-output-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .ti-model-summary { align-items:flex-start; flex-direction:column; } }
+        @media (max-width: 440px) { .ti-model-output-grid { grid-template-columns:1fr; } .ti-analysis-dialog { max-height:94vh; } .ti-analysis-head,.ti-analysis-body { padding-left:16px; padding-right:16px; } }
         .ti-divergence-banner {
             background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
             border-radius: 8px; padding: 10px 14px; margin-top: 10px;
@@ -9086,9 +9125,11 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
                                 <div class="trader-intel-section" id="tiPriceRisk">
                                     <div class="trader-intel-section-header">
-                                        <span class="ti-icon">📈</span> Price-Risk Correlation Signal
+                                        <span class="ti-icon" aria-hidden="true">PR</span> Price-Risk Correlation Signal
                                     </div>
+                                    <div id="tiModelSummary"></div>
                                     <div class="ti-signal-grid" id="tiSignalGrid"></div>
+                                    <div id="tiModelOutputs"></div>
                                     <div id="tiDivergenceBanner"></div>
                                     <div id="tiCorrelationRow"></div>
                                 </div>
@@ -21842,6 +21883,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         }
 
         function renderPriceRiskCorrelation(data) {
+            data = data || {};
             var grid = document.getElementById('tiSignalGrid');
             var divBanner = document.getElementById('tiDivergenceBanner');
             var corrRow = document.getElementById('tiCorrelationRow');
@@ -21850,7 +21892,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             grid.innerHTML = '';
             var signals = data.signals || [];
             if (signals.length === 0) {
-                grid.innerHTML = '<div style="color:#475569;font-size:12px;padding:8px;">No price data available</div>';
+                grid.innerHTML = '<div class="ti-analysis-empty">Live price data is temporarily unavailable. Model outputs below will appear when a valid analysis is returned.</div>';
             }
             signals.forEach(function(s) {
                 var chgClass = s.change_pct > 0 ? 'positive' : (s.change_pct < 0 ? 'negative' : 'neutral');
@@ -21881,8 +21923,44 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     closingTag.textContent = 'Last closing';
                     card.appendChild(closingTag);
                 }
+                var model = data.ml_analysis || {};
+                var forecastTitle = '';
+                var forecastText = '';
+                if (s.key === 'brent' && model.brent_1_3d) {
+                    forecastTitle = 'Brent · next 1–3 days';
+                    forecastText = 'Rise ' + _mlValue(model.brent_1_3d.rise_probability, '%') +
+                        ' · Fall ' + _mlValue(model.brent_1_3d.fall_probability, '%');
+                } else if (s.key === 'wti' && model.risk_regime) {
+                    forecastTitle = 'Risk regime forecast';
+                    forecastText = '24h ' + _mlValue(model.risk_regime.elevated_24h, '%') +
+                        ' · 48h ' + _mlValue(model.risk_regime.elevated_48h, '%') +
+                        ' · 72h ' + _mlValue(model.risk_regime.elevated_72h, '%');
+                } else if (s.key === 'ttf' && model.brent_next_day) {
+                    forecastTitle = 'Next-day Brent direction';
+                    forecastText = _mlDirection(model.brent_next_day.direction) + ' · ' +
+                        _mlValue(model.brent_next_day.range_low_pct, '%') + ' to ' +
+                        _mlValue(model.brent_next_day.range_high_pct, '%');
+                } else if (s.key === 'vix' && model.ttf_next_day) {
+                    forecastTitle = 'Next-day TTF direction';
+                    forecastText = _mlDirection(model.ttf_next_day.direction) + ' · ' +
+                        _mlValue(model.ttf_next_day.probability, '%') + ' confidence';
+                }
+                if (forecastText) {
+                    var forecastLine = document.createElement('div');
+                    forecastLine.className = 'ti-forecast-line';
+                    var forecastLabel = document.createElement('div');
+                    forecastLabel.className = 'ti-forecast-label';
+                    forecastLabel.textContent = forecastTitle;
+                    var forecastValue = document.createElement('div');
+                    forecastValue.className = 'ti-forecast-value';
+                    forecastValue.textContent = forecastText +
+                        (model.status === 'research_only' ? ' · Research only' : '');
+                    forecastLine.appendChild(forecastLabel); forecastLine.appendChild(forecastValue); card.appendChild(forecastLine);
+                }
                 grid.appendChild(card);
             });
+
+            renderPriceRiskModel(data.ml_analysis, signals.length);
 
             divBanner.innerHTML = '';
             if (data.divergence) {
@@ -21914,6 +21992,83 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 row.appendChild(badge);
                 corrRow.appendChild(row);
             }
+        }
+
+        function _mlValue(value, suffix) {
+            return value === null || value === undefined || value === '' || !isFinite(Number(value)) ? 'Unavailable' : Number(value).toFixed(1) + (suffix || '');
+        }
+        function _mlText(value) { return value === null || value === undefined || value === '' ? 'Unavailable' : String(value); }
+        function _mlDirection(value) { return _mlText(value); }
+        function renderPriceRiskModel(model, liveCount) {
+            var summary = document.getElementById('tiModelSummary');
+            var outputs = document.getElementById('tiModelOutputs');
+            if (!summary || !outputs) return;
+            summary.innerHTML = ''; outputs.innerHTML = '';
+            if (!model || typeof model !== 'object' || !model.status) {
+                summary.innerHTML = '<div class="ti-analysis-empty">Forecast analysis is not available for this update. Live prices remain visible without inferred values.</div>';
+                return;
+            }
+            var status = String(model.status);
+            var confidenceName = String(model.confidence || '').toLowerCase();
+            var limited = !model.sample_size || !model.confidence ||
+                confidenceName === 'low' || confidenceName === 'insufficient' ||
+                status === 'research_only' ||
+                status.toLowerCase().indexOf('limited') !== -1;
+            var meta = (model.model_name ? _esc(model.model_name) : 'Forecast model') + (model.model_version ? ' · ' + _esc(model.model_version) : '') +
+                (model.sample_size ? ' · ' + _esc(model.sample_size) + ' observations' : '') +
+                (model.forecast_as_of ? ' · Completed data through ' + _esc(model.forecast_as_of) : '');
+            var regime = model.risk_regime || {};
+            var threeDay = model.brent_1_3d || {};
+            var context = 'Brent 1–3d rise ' + _mlValue(threeDay.rise_probability, '%') + ' · fall ' + _mlValue(threeDay.fall_probability, '%') +
+                ' · elevated risk ' + _mlValue(regime.elevated_24h, '%') + ' / ' + _mlValue(regime.elevated_48h, '%') + ' / ' + _mlValue(regime.elevated_72h, '%') + ' (24h / 48h / 72h)' +
+                (model.major_geri_reaction ? ' · GERI reaction Brent ' + _mlValue(model.major_geri_reaction.expected_brent_change_pct, '%') + ', TTF ' + _mlValue(model.major_geri_reaction.expected_ttf_change_pct, '%') : '');
+            summary.innerHTML = '<div><div class="ti-model-kicker">Machine-learning forecast layer</div><div class="ti-model-meta">' + meta + '</div></div>' +
+                '<div style="text-align:right"><div class="ti-model-status' + (limited ? ' limited' : '') + '">' + _esc(status) + '</div><div class="ti-model-meta">Confidence ' + _esc(_mlText(model.confidence)) + '</div></div>' +
+                '<div class="ti-model-meta" style="grid-column:1/-1;width:100%;padding-top:4px;">' + _esc(context) + '</div>' +
+                (status === 'research_only' ? '<div class="ti-model-warning">Research only: walk-forward testing has not beaten the simple historical direction baseline. These probabilities are context, not a demonstrated trading edge.</div>' : '');
+            var cards = [
+                { title:'Significant oil / gas move', main:_mlValue(model.significant_move && model.significant_move.probability, '%'), sub:'Probability of a material market move', a:'Threshold', av:_mlValue(model.significant_move && model.significant_move.threshold_pct, '%'), b:'Horizon', bv:_mlValue(model.significant_move && model.significant_move.horizon_days, ' days') },
+                { title:'GERI higher risk band', main:_mlValue(model.higher_risk_band && model.higher_risk_band.probability, '%'), sub:'Probability of moving into a higher band', a:'Forecast window', av:_mlValue(model.higher_risk_band && model.higher_risk_band.horizon_hours, ' hours'), b:'Model confidence', bv:_mlText(model.confidence) },
+                { title:'Risk underpriced by market', main:_mlValue(model.underpriced_risk && model.underpriced_risk.probability, '%'), sub:'Probability prices lag the current risk signal', a:'Classification', av:_mlText(model.underpriced_risk && model.underpriced_risk.classification), b:'Analogues', bv:_mlText(model.analogue_count) },
+                { title:'Reaction after major GERI move', main:_mlValue(model.major_geri_reaction && model.major_geri_reaction.expected_brent_change_pct, '%'), sub:'Expected Brent reaction after a major risk change', a:'Expected TTF', av:_mlValue(model.major_geri_reaction && model.major_geri_reaction.expected_ttf_change_pct, '%'), b:'Horizon', bv:_mlValue(model.major_geri_reaction && model.major_geri_reaction.horizon_days, ' days') }
+            ];
+            var html = '<div class="ti-model-output-grid">';
+            cards.forEach(function(c) { html += '<article class="ti-model-card"><div class="ti-model-card-title">' + _esc(c.title) + '</div><div class="ti-model-card-main">' + _esc(c.main) + '</div><div class="ti-model-card-sub">' + _esc(c.sub) + (status === 'research_only' ? ' · Research only' : '') + '</div><div class="ti-model-card-detail"><span>' + _esc(c.a) + '<br><strong>' + _esc(c.av) + '</strong></span><span style="text-align:right">' + _esc(c.b) + '<br><strong>' + _esc(c.bv) + '</strong></span></div></article>'; });
+            html += '</div><div style="display:flex;justify-content:flex-end;margin-top:10px;"><button type="button" class="ti-analysis-button" onclick="openPriceRiskAnalysis()">Read Full Analysis</button></div>';
+            outputs.innerHTML = html;
+            window.priceRiskModel = model;
+        }
+
+        var priceRiskAnalysisOpener = null;
+        function openPriceRiskAnalysis() {
+            var modal = document.getElementById('tiAnalysisModal');
+            var body = document.getElementById('tiAnalysisBody');
+            var model = window.priceRiskModel;
+            if (!modal || !body || !model || !model.analysis) return;
+            priceRiskAnalysisOpener = document.activeElement;
+            var labels = { executive_summary:'Executive summary', market_interpretation:'Market interpretation', risk_regime_outlook:'Risk regime outlook', trader_implications:'Trader implications', methodology:'Methodology', model_validation:'Historical model validation', limitations:'Limitations' };
+            body.innerHTML = Object.keys(labels).map(function(key) {
+                return '<section class="ti-analysis-section"><h3>' + labels[key] + '</h3><p>' + _esc(_mlText(model.analysis[key])) + '</p></section>';
+            }).join('');
+            var asOf = document.getElementById('tiAnalysisAsOf');
+            if (asOf) {
+                asOf.textContent = model.forecast_as_of ?
+                    'Forecast based on completed daily observations through ' + model.forecast_as_of :
+                    'Completed daily observation date unavailable';
+            }
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+            document.getElementById('tiAnalysisClose').focus();
+        }
+        function closePriceRiskAnalysis(event) {
+            if (event && event.target !== document.getElementById('tiAnalysisModal')) return;
+            var modal = document.getElementById('tiAnalysisModal');
+            if (modal) modal.hidden = true;
+            document.body.style.overflow = '';
+            if (priceRiskAnalysisOpener && priceRiskAnalysisOpener.focus) {
+                priceRiskAnalysisOpener.focus();
+            }
+            priceRiskAnalysisOpener = null;
         }
 
         function renderTradingRiskHeatmap(data) {
@@ -22981,6 +23136,15 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         }
     </style>
 <!-- GERI Interpretation Modal -->
+    <div id="tiAnalysisModal" class="ti-analysis-modal" hidden role="dialog" aria-modal="true" aria-labelledby="tiAnalysisTitle" onclick="closePriceRiskAnalysis(event)">
+        <div class="ti-analysis-dialog" role="document" onclick="event.stopPropagation()">
+            <div class="ti-analysis-head">
+                <div><h2 id="tiAnalysisTitle">Price-risk model analysis</h2><p id="tiAnalysisAsOf">Completed daily observation date unavailable</p></div>
+                <button type="button" class="ti-analysis-close" id="tiAnalysisClose" aria-label="Close full analysis" onclick="closePriceRiskAnalysis()">&times;</button>
+            </div>
+            <div id="tiAnalysisBody" class="ti-analysis-body"></div>
+        </div>
+    </div>
     <div id="interpretationModal" class="interpretation-modal-overlay" onclick="closeInterpretationModal(event)">
         <div class="interpretation-modal-content" onclick="event.stopPropagation()">
             <button class="interpretation-modal-close" onclick="closeInterpretationModal()">&times;</button>
@@ -22990,6 +23154,26 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
     </div>
 
     <script>
+        document.addEventListener('keydown', function(event) {
+            var modal = document.getElementById('tiAnalysisModal');
+            if (!modal || modal.hidden) return;
+            if (event.key === 'Escape') {
+                closePriceRiskAnalysis();
+            } else if (event.key === 'Tab') {
+                var focusable = Array.from(modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+                    .filter(function(element) { return !element.disabled; });
+                if (!focusable.length) return;
+                var first = focusable[0];
+                var last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
         let eriqCtxHistory = { geri: [], eeri: [], egsi: [] };
         let eriqCtxLoading = { geri: false, eeri: false, egsi: false };
 

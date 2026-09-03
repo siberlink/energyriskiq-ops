@@ -250,6 +250,20 @@ Shows latest prices for Brent Crude, WTI Crude, TTF Gas, and VIX with day-over-d
 
 Data sources: `oil_price_snapshots`, `ttf_gas_snapshots`, `vix_snapshots`, `geri_live` (daily aggregation).
 
+The section also includes the GERI Price-Risk Historical Analogue Model. It
+standardizes daily GERI level/change and Brent, WTI, TTF, and VIX changes,
+finds the closest historical states, and weights their following 24–72 hour
+outcomes by similarity. It provides probabilistic Brent/TTF direction and
+range forecasts, GERI regime probabilities, significant-move and underpriced-
+risk probabilities, and expected reactions after major GERI changes. Every
+response includes sample size, history range, confidence, methodology, and
+limitations. With fewer than eight aligned historical observations, the UI
+shows an insufficient-data state rather than inventing a forecast.
+Inference uses the latest fully completed daily observation shared by all five
+inputs, matching the frequency used in purged walk-forward validation. Live
+intraday prices remain visible in the price cards but are not fed into the
+daily model.
+
 #### 2. Trading Risk Heatmap
 Four-cell grid showing risk intensity (0-100%) for Oil, Natural Gas, Freight/Shipping, and Power/Electricity. Intensity is computed from today's alert events — combines average severity with alert count for each commodity. Alerts are mapped to commodities via `scope_assets` array and headline keyword matching. Color-coded severity bars with regional attribution. Risk levels: critical (>75%), high (>50%), moderate (>25%), low (>0%), none (0%).
 

@@ -194,6 +194,12 @@ def get_price_risk_correlation() -> Dict[str, Any]:
 
     divergence = _detect_divergence(geri_trend_pct, signals)
     correlation_7d = _compute_7d_correlation(oil_rows, geri_daily)
+    from src.geri.price_risk_ml import get_price_risk_ml_analysis
+    ml_analysis = get_price_risk_ml_analysis(
+        current_signals=signals,
+        geri_value=float(geri_val),
+        geri_trend_pct=float(geri_trend_pct),
+    )
 
     return {
         'geri_value': geri_val,
@@ -202,6 +208,7 @@ def get_price_risk_correlation() -> Dict[str, Any]:
         'signals': signals,
         'divergence': divergence,
         'correlation_7d': correlation_7d,
+        'ml_analysis': ml_analysis,
     }
 
 
