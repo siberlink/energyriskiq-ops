@@ -243,7 +243,7 @@ def _validate_daily_stage(stage: str, response: dict) -> dict:
     if details.get('status') in {'error', 'failed'}:
         raise RuntimeError(f"{stage} failed: {details}")
     if (
-        stage == 'geri'
+        stage in {'geri', 'eeri', 'egsi_m', 'egsi_s'}
         and details.get('status') == 'skipped'
         and details.get('reason') == 'already_exists'
     ):
@@ -889,6 +889,8 @@ def run_eeri_compute(
     
     from datetime import date, timedelta
     from src.reri import ENABLE_EERI
+    from src.reri.repo import get_reri_for_date
+    from src.reri.types import EERI_INDEX_ID
     from src.reri.service import compute_eeri_for_date
     
     if not ENABLE_EERI:
@@ -906,9 +908,19 @@ def run_eeri_compute(
         compute_date = date.today() - timedelta(days=1)
     
     def eeri_job():
+        existing = get_reri_for_date(EERI_INDEX_ID, compute_date)
+        if existing and not force:
+            return {
+                'status': 'skipped',
+                'reason': 'already_exists',
+                'date': compute_date.isoformat(),
+                'message': f'EERI for {compute_date.isoformat()} already exists',
+            }
+
         result = compute_eeri_for_date(compute_date, save=True, force=force)
         if result:
             return {
+                'status': 'success',
                 'date': result.index_date.isoformat(),
                 'value': result.value,
                 'band': result.band.value,
@@ -917,9 +929,10 @@ def run_eeri_compute(
             }
         else:
             return {
+                'status': 'error',
+                'reason': 'no_result',
                 'date': compute_date.isoformat(),
-                'computed': False,
-                'message': 'Computation skipped or failed (already exists or no data)',
+                'message': f'EERI for {compute_date.isoformat()} could not be computed',
             }
     
     response, status_code = run_job_with_lock('eeri_compute', eeri_job)
@@ -952,6 +965,7 @@ def run_egsi_compute(
     
     from datetime import date, timedelta
     from src.egsi.types import ENABLE_EGSI
+    from src.egsi.repo import get_egsi_m_for_date
     from src.egsi.service import compute_egsi_m_for_date
     
     if not ENABLE_EGSI:
@@ -969,9 +983,19 @@ def run_egsi_compute(
         compute_date = date.today() - timedelta(days=1)
     
     def egsi_job():
+        existing = get_egsi_m_for_date(compute_date)
+        if existing and not force:
+            return {
+                'status': 'skipped',
+                'reason': 'already_exists',
+                'date': compute_date.isoformat(),
+                'message': f'EGSI-M for {compute_date.isoformat()} already exists',
+            }
+
         result = compute_egsi_m_for_date(compute_date, save=True, force=force)
         if result:
             return {
+                'status': 'success',
                 'date': result.index_date.isoformat(),
                 'value': round(result.value, 2),
                 'band': result.band.value,
@@ -980,9 +1004,13 @@ def run_egsi_compute(
             }
         else:
             return {
+                'status': 'error',
+                'reason': 'no_result',
                 'date': compute_date.isoformat(),
-                'computed': False,
-                'message': 'Computation skipped or failed (check if EERI exists for this date)',
+                'message': (
+                    f'EGSI-M for {compute_date.isoformat()} could not be computed '
+                    '(check if EERI exists for this date)'
+                ),
             }
     
     response, status_code = run_job_with_lock('egsi_compute', egsi_job)
@@ -1015,6 +1043,7 @@ def run_egsi_s_compute(
     
     from datetime import date, timedelta
     from src.egsi.types import ENABLE_EGSI
+    from src.egsi.repo import get_egsi_s_for_date
     from src.egsi.service_egsi_s import compute_egsi_s_for_date
     
     if not ENABLE_EGSI:
@@ -1032,9 +1061,19 @@ def run_egsi_s_compute(
         compute_date = date.today() - timedelta(days=1)
     
     def egsi_s_job():
+        existing = get_egsi_s_for_date(compute_date)
+        if existing and not force:
+            return {
+                'status': 'skipped',
+                'reason': 'already_exists',
+                'date': compute_date.isoformat(),
+                'message': f'EGSI-S for {compute_date.isoformat()} already exists',
+            }
+
         result = compute_egsi_s_for_date(compute_date, save=True, force=force)
         if result:
             return {
+                'status': 'success',
                 'date': result.index_date.isoformat(),
                 'value': round(result.value, 2),
                 'band': result.band.value,
@@ -1044,9 +1083,10 @@ def run_egsi_s_compute(
             }
         else:
             return {
+                'status': 'error',
+                'reason': 'no_result',
                 'date': compute_date.isoformat(),
-                'computed': False,
-                'message': 'Computation skipped or failed (check logs for details)',
+                'message': f'EGSI-S for {compute_date.isoformat()} could not be computed',
             }
     
     response, status_code = run_job_with_lock('egsi_s_compute', egsi_s_job)
