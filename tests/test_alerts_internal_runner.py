@@ -455,7 +455,20 @@ def test_daily_pipeline_allows_disabled_optional_indices(monkeypatch):
     assert response["details"]["delivery"]["status"] == "ok"
 
 
-def test_daily_stage_validation_rejects_embedded_no_result():
+def test_daily_stage_validation_allows_explicit_existing_geri_skip():
+    response = {
+        "status": "ok",
+        "details": {
+            "status": "skipped",
+            "reason": "already_exists",
+            "date": "2026-09-02",
+        },
+    }
+
+    assert internal_routes._validate_daily_stage("geri", response) is response
+
+
+def test_daily_stage_validation_rejects_ambiguous_geri_no_result():
     with pytest.raises(RuntimeError, match="geri did not produce"):
         internal_routes._validate_daily_stage(
             "geri",
@@ -478,3 +491,104 @@ def test_daily_stage_validation_rejects_embedded_no_result():
                 },
             },
         )
+
+
+def test_geri_compute_skips_existing_yesterday_without_writing(monkeypatch):
+    from src.geri import repo as geri_repo
+    from src.geri import service as geri_service
+
+    monkeypatch.setattr(internal_routes, "validate_runner_token", lambda token: True)
+    monkeypatch.setattr(geri_repo, "get_index_for_date", lambda _target_date: {"value": 42})
+    monkeypatch.setattr(
+        geri_service,
+        "compute_geri_for_date",
+        lambda *_args, **_kwargs: pytest.fail(
+            "existing GERI must not be recomputed or written"
+        ),
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_job_with_lock",
+        lambda name, job: ({"status": "ok", "details": job()}, 200),
+    )
+
+    response = internal_routes.run_geri_compute(
+        mode="yesterday",
+        force=False,
+        x_runner_token="valid",
+    )
+
+    assert response["details"]["status"] == "skipped"
+    assert response["details"]["reason"] == "already_exists"
+    assert response["details"]["date"] == (
+        internal_routes.date.today() - internal_routes.timedelta(days=1)
+    ).isoformat()
+
+
+def test_daily_pipeline_continues_after_optional_gas_storage_failure(monkeypatch):
+    calls = []
+    monkeypatch.setattr(internal_routes, "validate_runner_token", lambda token: True)
+    monkeypatch.setattr(internal_routes.time, "sleep", lambda _seconds: None)
+
+    stage_names = [
+        ("run_market_data_capture", "market_data"),
+        ("run_oil_price_capture", "oil_price"),
+        ("run_geri_compute", "geri"),
+        ("run_eeri_compute", "eeri"),
+        ("run_lng_price_capture", "lng_price"),
+        ("run_egsi_compute", "egsi_m"),
+        ("run_egsi_s_compute", "egsi_s"),
+        ("run_daily_report", "daily_report"),
+        ("run_pro_delivery", "delivery"),
+    ]
+    for function_name, stage_name in stage_names:
+        monkeypatch.setattr(
+            internal_routes,
+            function_name,
+            lambda stage=stage_name, **_kwargs: (
+                calls.append(stage)
+                or {
+                    "status": "ok",
+                    "details": {
+                        "status": "success",
+                        **({"value": 42.0} if stage == "geri" else {}),
+                    },
+                }
+            ),
+        )
+
+    monkeypatch.setattr(
+        internal_routes,
+        "run_gas_storage_capture",
+        lambda **_kwargs: calls.append("gas_storage") or {
+            "status": "ok",
+            "details": {
+                "status": "error",
+                "message": "invalid upstream storage value",
+            },
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_job_with_lock",
+        lambda name, job: ({"status": "ok", "details": job()}, 200),
+    )
+
+    response = internal_routes.run_daily_index_pipeline(
+        include_delivery=True,
+        x_runner_token="valid",
+    )
+
+    assert calls == [
+        "market_data",
+        "oil_price",
+        "gas_storage",
+        "geri",
+        "eeri",
+        "lng_price",
+        "egsi_m",
+        "egsi_s",
+        "daily_report",
+        "delivery",
+    ]
+    assert response["details"]["gas_storage"]["status"] == "degraded"

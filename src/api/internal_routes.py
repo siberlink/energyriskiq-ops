@@ -242,6 +242,12 @@ def _validate_daily_stage(stage: str, response: dict) -> dict:
 
     if details.get('status') in {'error', 'failed'}:
         raise RuntimeError(f"{stage} failed: {details}")
+    if (
+        stage == 'geri'
+        and details.get('status') == 'skipped'
+        and details.get('reason') == 'already_exists'
+    ):
+        return response
     if stage == 'gas_storage' and details.get('status') == 'skipped':
         raise RuntimeError(f"{stage} has no required source data: {details}")
     if details.get('errors', 0) or details.get('failed', 0):
@@ -287,17 +293,30 @@ def run_daily_index_pipeline(
     def daily_job():
         results = {}
 
-        def execute_stage(stage, operation, **kwargs):
+        def execute_stage(stage, operation, required=True, **kwargs):
             stage_response = operation(
                 x_runner_token=x_runner_token,
                 **kwargs,
             )
-            results[stage] = _validate_daily_stage(stage, stage_response)
+            try:
+                results[stage] = _validate_daily_stage(stage, stage_response)
+            except RuntimeError as error:
+                if required:
+                    raise
+                results[stage] = {
+                    'status': 'degraded',
+                    'message': str(error),
+                    'response': stage_response,
+                }
             return stage_response
 
         execute_stage('market_data', run_market_data_capture)
         execute_stage('oil_price', run_oil_price_capture)
-        execute_stage('gas_storage', run_gas_storage_capture)
+        execute_stage(
+            'gas_storage',
+            run_gas_storage_capture,
+            required=False,
+        )
         execute_stage(
             'geri',
             run_geri_compute,
@@ -778,6 +797,7 @@ def run_geri_compute(
     validate_runner_token(x_runner_token)
     
     from src.geri.service import compute_geri_for_date, auto_backfill
+    from src.geri.repo import get_index_for_date
     from src.geri.types import MODEL_VERSION
     
     def geri_job():
@@ -787,9 +807,19 @@ def run_geri_compute(
             return result
         else:
             yesterday = date.today() - timedelta(days=1)
+            existing = get_index_for_date(yesterday)
+            if existing and not force:
+                return {
+                    'status': 'skipped',
+                    'reason': 'already_exists',
+                    'date': yesterday.isoformat(),
+                    'message': f'GERI for {yesterday.isoformat()} already exists',
+                    'model_version': MODEL_VERSION,
+                }
             result = compute_geri_for_date(yesterday, force=force)
             if result:
                 return {
+                    'status': 'success',
                     'date': result.index_date.isoformat(),
                     'value': result.value,
                     'band': result.band.value,
@@ -797,7 +827,13 @@ def run_geri_compute(
                     'trend_1d': result.trend_1d,
                     'trend_7d': result.trend_7d,
                 }
-            return {'message': 'No computation needed (already exists or no data)', 'model_version': MODEL_VERSION}
+            return {
+                'status': 'error',
+                'reason': 'no_result',
+                'date': yesterday.isoformat(),
+                'message': f'GERI for {yesterday.isoformat()} could not be computed',
+                'model_version': MODEL_VERSION,
+            }
     
     response, status_code = run_job_with_lock('geri_compute', geri_job)
     
