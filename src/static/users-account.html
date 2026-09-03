@@ -11116,7 +11116,16 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         function routineProgressStorageKey() {
             const userKey = currentUser && (currentUser.id || currentUser.email);
-            return userKey ? 'energyriskiq:routine-progress:' + userKey : null;
+            if (!userKey) return null;
+
+            // Progress is a daily routine. Use the browser's local calendar date
+            // so a user's completed steps never carry over into the next day.
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const localDate = year + '-' + month + '-' + day;
+            return 'energyriskiq:routine-progress:' + userKey + ':' + localDate;
         }
 
         function renderRoutineProgress() {
