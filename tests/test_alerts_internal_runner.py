@@ -346,7 +346,7 @@ def test_daily_pipeline_runs_ordered_stages_under_one_lock(monkeypatch):
     assert response["status"] == "ok"
 
 
-def test_daily_pipeline_stops_after_failed_prerequisite(monkeypatch):
+def test_daily_pipeline_attempts_all_stages_after_a_stage_failure(monkeypatch):
     calls = []
     monkeypatch.setattr(internal_routes, "validate_runner_token", lambda token: True)
     monkeypatch.setattr(
@@ -365,7 +365,79 @@ def test_daily_pipeline_stops_after_failed_prerequisite(monkeypatch):
     monkeypatch.setattr(
         internal_routes,
         "run_oil_price_capture",
-        lambda **_kwargs: calls.append("oil_price") or {},
+        lambda **_kwargs: calls.append("oil_price") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_gas_storage_capture",
+        lambda **_kwargs: calls.append("gas_storage") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_geri_compute",
+        lambda **_kwargs: calls.append("geri") or {
+            "status": "ok",
+            "details": {"status": "success", "value": 42.0},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_eeri_compute",
+        lambda **_kwargs: calls.append("eeri") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_lng_price_capture",
+        lambda **_kwargs: calls.append("lng_price") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_egsi_compute",
+        lambda **_kwargs: calls.append("egsi_m") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_egsi_s_compute",
+        lambda **_kwargs: calls.append("egsi_s") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_daily_report",
+        lambda **_kwargs: calls.append("daily_report") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes,
+        "run_pro_delivery",
+        lambda **_kwargs: calls.append("delivery") or {
+            "status": "ok",
+            "details": {"status": "success"},
+        },
+    )
+    monkeypatch.setattr(
+        internal_routes.time,
+        "sleep",
+        lambda _seconds: None,
     )
     monkeypatch.setattr(
         internal_routes,
@@ -373,13 +445,25 @@ def test_daily_pipeline_stops_after_failed_prerequisite(monkeypatch):
         lambda name, job: ({"status": "ok", "details": job()}, 200),
     )
 
-    with pytest.raises(RuntimeError, match="failed sources: ttf"):
-        internal_routes.run_daily_index_pipeline(
-            include_delivery=False,
-            x_runner_token="valid",
-        )
+    response = internal_routes.run_daily_index_pipeline(
+        include_delivery=True,
+        x_runner_token="valid",
+    )
 
-    assert calls == ["market_data"]
+    assert calls == [
+        "market_data",
+        "oil_price",
+        "gas_storage",
+        "geri",
+        "eeri",
+        "lng_price",
+        "egsi_m",
+        "egsi_s",
+        "daily_report",
+        "delivery",
+    ]
+    assert response["details"]["pipeline_status"] == "degraded"
+    assert response["details"]["failed_stages"] == ["market_data"]
 
 
 def test_daily_pipeline_allows_disabled_optional_indices(monkeypatch):

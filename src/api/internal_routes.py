@@ -292,31 +292,34 @@ def run_daily_index_pipeline(
 
     def daily_job():
         results = {}
+        failed_stages = []
 
-        def execute_stage(stage, operation, required=True, **kwargs):
-            stage_response = operation(
-                x_runner_token=x_runner_token,
-                **kwargs,
-            )
+        def execute_stage(stage, operation, **kwargs):
             try:
+                stage_response = operation(
+                    x_runner_token=x_runner_token,
+                    **kwargs,
+                )
                 results[stage] = _validate_daily_stage(stage, stage_response)
-            except RuntimeError as error:
-                if required:
-                    raise
+            except Exception as error:
+                failed_stages.append(stage)
+                stage_response = {
+                    'status': 'error',
+                    'details': {
+                        'status': 'error',
+                        'message': str(error),
+                    },
+                }
                 results[stage] = {
                     'status': 'degraded',
                     'message': str(error),
-                    'response': stage_response,
+                    'stage': stage,
                 }
             return stage_response
 
         execute_stage('market_data', run_market_data_capture)
         execute_stage('oil_price', run_oil_price_capture)
-        execute_stage(
-            'gas_storage',
-            run_gas_storage_capture,
-            required=False,
-        )
+        execute_stage('gas_storage', run_gas_storage_capture)
         execute_stage(
             'geri',
             run_geri_compute,
@@ -339,15 +342,15 @@ def run_daily_index_pipeline(
 
         if include_delivery:
             time.sleep(30)
-            delivery_response = run_pro_delivery(
-                x_runner_token=x_runner_token,
-            )
-            results['delivery'] = _validate_daily_stage(
-                'delivery',
-                delivery_response,
-            )
+            execute_stage('delivery', run_pro_delivery)
         else:
             results['delivery'] = {'status': 'skipped'}
+
+        results['pipeline_status'] = (
+            'degraded' if failed_stages else 'success'
+        )
+        if failed_stages:
+            results['failed_stages'] = failed_stages
 
         return results
 

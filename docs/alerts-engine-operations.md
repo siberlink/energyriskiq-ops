@@ -75,9 +75,11 @@ duplicate provider calls and shortening the critical ingestion path.
 
 The daily workflow submits the complete ordered sequence as one protected
 request and does not retry it because the sequence includes user delivery.
-The application holds a pipeline-wide lock, validates required stage results,
-and stops dependent computation after a failed prerequisite. Its 40-minute job
-budget exceeds the bounded request plus setup margin.
+The application holds a pipeline-wide lock and attempts every stage once. A
+stage that fails is recorded as degraded while later independent stages still
+run; dependent stages report their own missing-input error instead of being
+silently omitted. Existing daily records are skipped without being rewritten.
+Its 40-minute job budget exceeds the bounded request plus setup margin.
 
 ## Diagnosing a missed run
 

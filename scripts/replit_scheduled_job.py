@@ -108,6 +108,13 @@ def _invoke(name: str, handler_name: str, token: str, **kwargs) -> int:
         raise RuntimeError(f"{name} returned HTTP {status}: {payload}")
     if payload.get("status") in {"error", "failed"}:
         raise RuntimeError(f"{name} reported failure: {payload}")
+    if name == "daily":
+        details = payload.get("details")
+        if isinstance(details, dict) and details.get("pipeline_status") == "degraded":
+            raise RuntimeError(
+                f"{name} completed with stage errors: "
+                f"{details.get('failed_stages', [])}"
+            )
     return status
 
 
