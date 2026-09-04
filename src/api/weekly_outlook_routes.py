@@ -21,13 +21,13 @@ import time
 import secrets
 import urllib.parse
 from datetime import date, timedelta, datetime, timezone
-from typing import Optional, List
+from typing import Optional, List, Dict
 from fastapi import APIRouter, HTTPException, Header, BackgroundTasks, Request
 from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel
 
 from src.db.db import get_cursor
-from src.api.admin_routes import verify_admin_token, _get_all_user_emails, _email_sender, _update_campaign
+from src.api.admin_routes import verify_admin_token, _email_sender, _update_campaign
 
 # ── Public router (no admin auth — used for email tracking redirects) ─────────
 public_router = APIRouter()
@@ -86,6 +86,42 @@ TEST_EMAIL = "emilconstantin22@gmail.com"
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin-weekly"])
+
+
+def _personalized_greeting(first_name: Optional[str]) -> str:
+    """Return an HTML-safe greeting with a no-name fallback."""
+    clean_name = (first_name or "").strip()
+    return f"Hi {_html.escape(clean_name)}," if clean_name else "Hi,"
+
+
+def _get_weekly_outlook_recipients() -> List[Dict[str, Optional[str]]]:
+    """Load one recipient per email, preferring a populated first name."""
+    with get_cursor(commit=False) as cur:
+        cur.execute("""
+            SELECT DISTINCT ON (LOWER(email))
+                   LOWER(email) AS email,
+                   NULLIF(TRIM(first_name), '') AS first_name
+            FROM users
+            WHERE email IS NOT NULL AND email LIKE '%@%'
+            ORDER BY LOWER(email), (NULLIF(TRIM(first_name), '') IS NOT NULL) DESC
+        """)
+        return [
+            {"email": row["email"], "first_name": row.get("first_name")}
+            for row in cur.fetchall()
+            if row.get("email")
+        ]
+
+
+def _first_name_for_email(email: str) -> Optional[str]:
+    with get_cursor(commit=False) as cur:
+        cur.execute(
+            "SELECT NULLIF(TRIM(first_name), '') AS first_name "
+            "FROM users WHERE LOWER(email) = LOWER(%s) "
+            "ORDER BY (NULLIF(TRIM(first_name), '') IS NOT NULL) DESC LIMIT 1",
+            (email,),
+        )
+        row = cur.fetchone()
+        return row.get("first_name") if row else None
 
 
 # ─────────────────────────────────────────────────────────────
@@ -1033,7 +1069,7 @@ def build_weekly_email_html(data: dict, ai: dict,
           <td style="padding:32px;">
 
             <!-- Greeting -->
-            <p style="margin:0 0 6px;font-size:16px;color:#0f172a;">Hello dear User of EnergyRiskIQ,</p>
+            <p style="margin:0 0 6px;font-size:16px;color:#0f172a;">{{{{params.greeting}}}}</p>
             <p style="margin:0 0 28px;font-size:14px;line-height:1.6;color:#475569;">
               Every Friday, we summarise the week's most important developments across global energy markets, geopolitical risks, and our proprietary EnergyRiskIQ indicators — so you know what deserves your attention before markets open next week.
             </p>
@@ -1497,13 +1533,19 @@ class WeeklyOutlookSendAllRequest(BaseModel):
 # ─────────────────────────────────────────────────────────────
 
 def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
-                         emails: List[str], chart_destination: str = "/geri"):
+                         recipients: List[Dict[str, Optional[str]]],
+                         chart_destination: str = "/geri"):
     brevo_api_key = os.environ.get("BREVO_API_KEY")
     if not brevo_api_key:
         _update_campaign(campaign_id, status="failed", error="BREVO_API_KEY not configured")
         return
 
     sender = _email_sender()
+    emails = [recipient["email"] for recipient in recipients]
+    recipient_names = {
+        recipient["email"]: recipient.get("first_name")
+        for recipient in recipients
+    }
     fallback_login_url  = f"{APP_URL}/users/account"
     fallback_chart_url  = f"{APP_URL}{chart_destination}"
     login_urls       = {}
@@ -1543,6 +1585,7 @@ def _run_weekly_send_all(campaign_id: int, subject: str, full_html: str,
                         "login_url":       login_urls.get(e, fallback_login_url),
                         "chart_login_url": chart_login_urls.get(e, fallback_chart_url),
                         "pixel_url":       pixel_urls.get(e, ""),
+                        "greeting":        _personalized_greeting(recipient_names.get(e)),
                     },
                 }
                 for e in chunk
@@ -1660,7 +1703,8 @@ def weekly_outlook_send_test(body: WeeklyOutlookSendRequest,
     final_html = (html_body
                   .replace("{{params.login_url}}", base_url)
                   .replace("{{params.chart_login_url}}", chart_url)
-                  .replace("{{params.pixel_url}}", pixel_url))
+                  .replace("{{params.pixel_url}}", pixel_url)
+                  .replace("{{params.greeting}}", _personalized_greeting(_first_name_for_email(to_email))))
 
     try:
         resp = requests.post(
@@ -1699,8 +1743,8 @@ def weekly_outlook_send_all(body: WeeklyOutlookSendAllRequest,
     if not os.environ.get("BREVO_API_KEY"):
         raise HTTPException(status_code=500, detail="BREVO_API_KEY not configured")
 
-    emails = _get_all_user_emails()
-    if not emails:
+    recipients = _get_weekly_outlook_recipients()
+    if not recipients:
         raise HTTPException(status_code=400, detail="No platform users found")
 
     try:
@@ -1708,12 +1752,12 @@ def weekly_outlook_send_all(body: WeeklyOutlookSendAllRequest,
             cur.execute(
                 "INSERT INTO admin_bulk_email_campaigns (subject, content_type, total, status) "
                 "VALUES (%s, %s, %s, 'sending') RETURNING id",
-                (subject, "weekly_outlook", len(emails)),
+                (subject, "weekly_outlook", len(recipients)),
             )
             campaign_id = cur.fetchone()["id"]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Could not create campaign: {exc}")
 
     chart_dest = (body.chart_destination or "/geri").strip()
-    background_tasks.add_task(_run_weekly_send_all, campaign_id, subject, html_body, emails, chart_dest)
-    return {"success": True, "campaign_id": campaign_id, "total": len(emails)}
+    background_tasks.add_task(_run_weekly_send_all, campaign_id, subject, html_body, recipients, chart_dest)
+    return {"success": True, "campaign_id": campaign_id, "total": len(recipients)}

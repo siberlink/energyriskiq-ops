@@ -6534,7 +6534,7 @@
             const frame = document.getElementById('woPreviewFrame');
             modal.style.display = 'block';
             const doc = frame.contentDocument || frame.contentWindow.document;
-            doc.open(); doc.write(_woHtml); doc.close();
+            doc.open(); doc.write(_woHtml.replaceAll('{{params.greeting}}', 'Hi,')); doc.close();
         }
 
         async function woSendTest() {
