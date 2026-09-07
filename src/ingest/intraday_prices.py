@@ -145,14 +145,14 @@ def _fetch_via_oilpriceapi(code: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def _cleanup_old_data(table: str, today: date):
-    with get_production_cursor(commit=True) as cursor:
-        cursor.execute(f"DELETE FROM {table} WHERE date < %s", (today,))
+def _replace_hourly_price(table: str, today: date, hour: int, price: float,
+                          change_24h: Optional[float], change_pct: Optional[float],
+                          source: str):
+    """Store a valid replacement before removing older market-day data.
 
-
-def _store_hourly_price(table: str, today: date, hour: int, price: float,
-                        change_24h: Optional[float], change_pct: Optional[float],
-                        source: str):
+    Both statements share one transaction, so a failed insert rolls back the
+    cleanup and preserves the last known valid prices.
+    """
     with get_production_cursor(commit=True) as cursor:
         cursor.execute(f"""
             INSERT INTO {table} (date, hour, price, change_24h, change_pct, source, captured_at)
@@ -164,6 +164,7 @@ def _store_hourly_price(table: str, today: date, hour: int, price: float,
                 source = EXCLUDED.source,
                 captured_at = NOW()
         """, (today, hour, price, change_24h, change_pct, source))
+        cursor.execute(f"DELETE FROM {table} WHERE date < %s", (today,))
 
 
 def capture_intraday_prices() -> Dict[str, Any]:
@@ -180,7 +181,6 @@ def capture_intraday_prices() -> Dict[str, Any]:
 
     for key, cfg in ASSET_CONFIGS.items():
         table = cfg['table']
-        _cleanup_old_data(table, today)
 
         price_data = _fetch_via_yfinance(cfg['yf_ticker'])
         if not price_data:
@@ -191,7 +191,7 @@ def capture_intraday_prices() -> Dict[str, Any]:
             results['assets'][key] = {'status': 'failed', 'error': 'all sources failed'}
             continue
 
-        _store_hourly_price(
+        _replace_hourly_price(
             table, today, current_hour,
             price_data['price'],
             price_data.get('change_24h'),
@@ -209,6 +209,12 @@ def capture_intraday_prices() -> Dict[str, Any]:
         }
         logger.info(f"Intraday {cfg['label']}: ${price_data['price']} at hour {current_hour} UTC (source={price_data['source']})")
 
+    failed_assets = [
+        key for key, asset_result in results['assets'].items()
+        if asset_result.get('status') != 'captured'
+    ]
+    results['status'] = 'failed' if failed_assets else 'ok'
+    results['failed_assets'] = failed_assets
     return results
 
 

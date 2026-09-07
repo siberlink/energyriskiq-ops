@@ -66,6 +66,34 @@ def test_daily_runner_fails_after_all_stages_report_degraded(monkeypatch):
         raise AssertionError("degraded daily work must remain visibly failed")
 
 
+def test_intraday_runner_fails_when_required_assets_fail(monkeypatch):
+    monkeypatch.setattr(
+        replit_scheduled_job,
+        "_handler",
+        lambda _handler_name: lambda **_kwargs: {
+            "status": "ok",
+            "details": {
+                "status": "failed",
+                "failed_assets": ["brent", "wti", "natgas"],
+            },
+        },
+    )
+
+    try:
+        replit_scheduled_job._invoke(
+            "intraday",
+            "run_intraday_price_capture",
+            "token",
+        )
+    except RuntimeError as error:
+        assert str(error) == (
+            "intraday completed with failed details: "
+            "['brent', 'wti', 'natgas']"
+        )
+    else:
+        raise AssertionError("failed intraday assets must fail the scheduled run")
+
+
 def test_named_job_uses_expected_endpoint(monkeypatch):
     calls = []
     monkeypatch.setattr(

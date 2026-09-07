@@ -186,7 +186,7 @@ deploy_job \
   "420s" \
   "--job,intraday" \
   "$COMMON_ENV" \
-  "$COMMON_SECRETS"
+  "${COMMON_SECRETS},OIL_PRICE_API_KEY=OIL_PRICE_API_KEY:latest"
 
 deploy_job \
   "energyriskiq-ingestion" \

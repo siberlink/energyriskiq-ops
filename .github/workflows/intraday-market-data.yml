@@ -14,6 +14,7 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
+      OIL_PRICE_API_KEY: ${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}
       PYTHONPATH: '.'
       SKIP_MIGRATIONS: 'true'
 

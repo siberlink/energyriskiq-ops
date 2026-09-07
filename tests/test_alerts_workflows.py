@@ -56,6 +56,10 @@ def test_intraday_capture_has_independent_direct_schedule():
     assert "cron: '*/10 * * * *'" in workflow
     assert "timeout-minutes: 7" in workflow
     assert "group: intraday-market-data" not in workflow
+    assert (
+        "OIL_PRICE_API_KEY: "
+        "${{ secrets.OIL_PRICE_API_KEY || secrets.OILPRICE_API_KEY }}"
+    ) in workflow
 
 
 def test_daily_workflow_uses_one_direct_locked_pipeline():
