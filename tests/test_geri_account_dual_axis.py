@@ -35,3 +35,41 @@ def test_geri_chart_allows_only_one_unit_specific_overlay_at_a_time():
 
     assert "toggles.forEach(otherToggle => otherToggle.classList.remove('active'));" in html
     assert "marketOverlays[key].active = false;" in html
+
+
+def test_geri_chart_exposes_three_analysis_modes():
+    html = ACCOUNT_HTML.read_text(encoding="utf-8")
+
+    assert 'data-mode="price"' in html
+    assert 'data-mode="change"' in html
+    assert 'data-mode="relationship"' in html
+    assert ">Price</button>" in html
+    assert ">% Change</button>" in html
+    assert ">Risk Relationship</button>" in html
+
+
+def test_geri_change_mode_compares_points_with_market_percent():
+    html = ACCOUNT_HTML.read_text(encoding="utf-8")
+
+    assert "function dailyPointChanges(values)" in html
+    assert "function dailyPercentChanges(values)" in html
+    assert "dailyPointChanges(geriHistoryData.map(point => point.value))" in html
+    assert "let previous = null;" in html
+    assert "GERI Daily Change — Points" in html
+    assert "Daily % Change" in html
+    assert "changeUnit: currentGeriAnalysisMode === 'price' ? null : 'points'" in html
+
+
+def test_geri_relationship_mode_classifies_all_direction_pairs():
+    html = ACCOUNT_HTML.read_text(encoding="utf-8")
+
+    for relationship in (
+        "GERI ↑ + Market ↑ — risk signal confirmed",
+        "GERI ↑ + Market ↓ — bearish divergence",
+        "GERI ↓ + Market ↑ — bullish divergence",
+        "GERI ↓ + Market ↓ — easing risk confirmed",
+    ):
+        assert relationship in html
+
+    assert "type: currentGeriAnalysisMode === 'relationship' ? 'bar' : 'line'" in html
+    assert "relationshipData: relationshipData" in html

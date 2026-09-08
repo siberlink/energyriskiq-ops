@@ -1962,6 +1962,50 @@
             flex-wrap: wrap;
         }
 
+        .geri-analysis-modes {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            margin: 0 0 14px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background: #0f172a;
+        }
+
+        .geri-analysis-mode-btn {
+            padding: 8px 14px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .geri-analysis-mode-btn:hover {
+            color: #e2e8f0;
+        }
+
+        .geri-analysis-mode-btn.active {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        @media (max-width: 640px) {
+            .geri-analysis-modes {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                width: 100%;
+            }
+
+            .geri-analysis-mode-btn {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+        }
+
         .chart-range-btn {
             padding: 8px 16px;
             border-radius: 6px;
@@ -12200,6 +12244,11 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     trendIndicatorsHtml +
                     overlaySection +
                     '<div class="geri-chart-card">' +
+                        '<div class="geri-analysis-modes" role="group" aria-label="GERI chart analysis mode">' +
+                            '<button class="geri-analysis-mode-btn active" data-mode="price" type="button">Price</button>' +
+                            '<button class="geri-analysis-mode-btn" data-mode="change" type="button">% Change</button>' +
+                            '<button class="geri-analysis-mode-btn" data-mode="relationship" type="button">Risk Relationship</button>' +
+                        '</div>' +
                         '<div class="geri-chart-container" style="position:relative;">' +
                             '<canvas id="geriHistoryChart"></canvas>' +
                             '<div class="geri-chart-axis-label" id="geriChartAxisLabel"></div>' +
@@ -12506,6 +12555,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         let geriChart = null;
         let geriHistoryData = [];
         let currentRangeFilter = 'all'; // Track current range
+        let currentGeriAnalysisMode = 'price';
         let marketOverlays = {
             brent: { active: false, data: [], rawData: [], unit: 'USD/barrel' },
             gas_storage: { active: false, data: [], rawData: [], unit: '%' },
@@ -12688,6 +12738,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 setupRangeButtons();
                 setupOverlayToggles();
                 setupSmoothingSelector();
+                setupGeriAnalysisModes();
 
                 if (plan === 'free') {
                     marketOverlays.brent.active = true;
@@ -12719,22 +12770,71 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
 
         function applySmoothing() {
             if (!geriChart || !geriHistoryData.length) return;
-            const rawValues = geriHistoryData.map(d => d.value);
-            let displayValues = rawValues;
+            updateMarketOverlays();
+        }
+
+        function setupGeriAnalysisModes() {
+            const buttons = document.querySelectorAll('.geri-analysis-mode-btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(item => item.classList.remove('active'));
+                    button.classList.add('active');
+                    currentGeriAnalysisMode = button.dataset.mode || 'price';
+                    updateMarketOverlays();
+                });
+            });
+        }
+
+        function getGeriDisplayValues() {
+            const rawValues = geriHistoryData.map(point => point.value);
+            let values = rawValues;
             if (currentGeriSmoothing === '3') {
-                displayValues = computeMovingAverage(rawValues, 3);
+                values = computeMovingAverage(rawValues, 3);
             } else if (currentGeriSmoothing === '7') {
-                displayValues = computeMovingAverage(rawValues, 7);
+                values = computeMovingAverage(rawValues, 7);
             }
+            return sliceGeriChartRange(values);
+        }
 
-            let filteredData = displayValues;
-            if (currentRangeFilter !== 'all') {
-                const rangeNum = parseInt(currentRangeFilter);
-                filteredData = displayValues.slice(-rangeNum);
+        function sliceGeriChartRange(values) {
+            return currentRangeFilter === 'all'
+                ? values
+                : values.slice(-parseInt(currentRangeFilter));
+        }
+
+        function dailyPointChanges(values) {
+            return values.map((value, index) => {
+                if (index === 0 || value === null || values[index - 1] === null) return null;
+                return Number((value - values[index - 1]).toFixed(2));
+            });
+        }
+
+        function dailyPercentChanges(values) {
+            let previous = null;
+            return values.map(value => {
+                if (value === null || value === undefined) return null;
+                const change = previous === null || previous === 0
+                    ? null
+                    : Number((((value - previous) / previous) * 100).toFixed(3));
+                previous = value;
+                return change;
+            });
+        }
+
+        function relationshipForChanges(geriChange, marketChange) {
+            if (geriChange === null || marketChange === null) {
+                return { label: 'Insufficient paired data', color: '#64748b' };
             }
-
-            geriChart.data.datasets[0].data = filteredData;
-            geriChart.update();
+            if (geriChange >= 0 && marketChange >= 0) {
+                return { label: 'GERI ↑ + Market ↑ — risk signal confirmed', color: '#ef4444' };
+            }
+            if (geriChange >= 0 && marketChange < 0) {
+                return { label: 'GERI ↑ + Market ↓ — bearish divergence', color: '#f59e0b' };
+            }
+            if (geriChange < 0 && marketChange >= 0) {
+                return { label: 'GERI ↓ + Market ↑ — bullish divergence', color: '#3b82f6' };
+            }
+            return { label: 'GERI ↓ + Market ↓ — easing risk confirmed', color: '#10b981' };
         }
         
         function updateTrendIndicators(currentGeri, historyData) {
@@ -12809,6 +12909,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const bandPlugin = {
                 id: 'bandShading',
                 beforeDraw: (chart) => {
+                    if (currentGeriAnalysisMode !== 'price') return;
                     const ctx = chart.ctx;
                     const chartArea = chart.chartArea;
                     const yScale = chart.scales.y;
@@ -12883,6 +12984,15 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                 label: (context) => {
                                     const val = context.parsed.y;
                                     const dsLabel = context.dataset.label;
+
+                                    if (currentGeriAnalysisMode !== 'price') {
+                                        if (val === null || val === undefined) return dsLabel + ': N/A';
+                                        const sign = val > 0 ? '+' : '';
+                                        if (context.dataset.changeUnit === 'points') {
+                                            return dsLabel + ': ' + sign + val.toFixed(1) + ' points';
+                                        }
+                                        return dsLabel + ': ' + sign + val.toFixed(2) + '%';
+                                    }
                                     
                                     // GERI shows band
                                     if (dsLabel === 'GERI') {
@@ -12912,6 +13022,12 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                         return dsLabel + ': ' + rawValue.toFixed(2) + ' ' + unit;
                                     }
                                     return dsLabel + ': ' + val.toFixed(1);
+                                },
+                                afterBody: (items) => {
+                                    if (currentGeriAnalysisMode !== 'relationship' || !items.length) return '';
+                                    const relationshipData = geriChart.data.datasets[0].relationshipData || [];
+                                    const relationship = relationshipData[items[0].dataIndex];
+                                    return relationship ? relationship.label : '';
                                 }
                             }
                         },
@@ -12980,6 +13096,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         var geriAnnotationPlugin = {
             id: 'geriAnnotations',
             afterDraw: function(chart) {
+                if (currentGeriAnalysisMode !== 'price') return;
                 var plan = currentUser?.plan || 'free';
                 var cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
                 if (!cfg.showChartAnnotations) return;
@@ -13042,9 +13159,17 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 }
             }
             if (activeOverlay) {
-                el.textContent = 'Left: GERI (0–100) • Right: ' + activeOverlay.axisTitle;
+                if (currentGeriAnalysisMode === 'price') {
+                    el.textContent = 'Left: GERI (0–100) • Right: ' + activeOverlay.axisTitle;
+                } else if (currentGeriAnalysisMode === 'change') {
+                    el.textContent = 'Left: GERI daily change (points) • Right: ' + activeOverlay.label + ' daily change (%)';
+                } else {
+                    el.textContent = 'Daily confirmation map: red/green = confirmation • amber/blue = divergence';
+                }
             } else {
-                el.textContent = 'Left: GERI Risk Index (0–100)';
+                el.textContent = currentGeriAnalysisMode === 'price'
+                    ? 'Left: GERI Risk Index (0–100)'
+                    : 'Select a market asset to compare daily reactions';
             }
         }
 
@@ -13073,15 +13198,6 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     
                     if (geriChart) {
                         geriChart.data.labels = filteredData.map(d => d.date);
-
-                        let values = filteredData.map(d => d.value);
-                        if (currentGeriSmoothing === '3') {
-                            values = computeMovingAverage(values, 3);
-                        } else if (currentGeriSmoothing === '7') {
-                            values = computeMovingAverage(values, 7);
-                        }
-                        geriChart.data.datasets[0].data = values;
-                        
                         updateMarketOverlays();
                     }
                 });
@@ -13538,55 +13654,99 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
         async function updateMarketOverlays() {
             if (!geriChart) return;
             
-            // Remove existing overlay datasets (keep only GERI)
-            geriChart.data.datasets = geriChart.data.datasets.filter(ds => ds.label === 'GERI');
-            
-            Object.entries(marketOverlays).forEach(([key, overlay]) => {
-                if (overlay.active && overlay.data.length > 0) {
-                    const config = overlayChartConfigs[key];
-                    
-                    // Plot actual market values on the unit-specific right axis.
-                    const slicedData = getSlicedOverlayData(key);
-                    const slicedRawData = getSlicedOverlayRawData(key);
-                    
-                    geriChart.data.datasets.push({
-                        label: config.label,
-                        data: slicedData,
-                        rawData: slicedRawData,  // Store raw values for tooltip display
-                        unit: overlay.unit,
-                        borderColor: config.color,
-                        backgroundColor: 'transparent',
-                        borderWidth: 1.5,
-                        borderDash: [5, 5],
-                        fill: false,
-                        tension: 0.3,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        yAxisID: 'y1',
-                        spanGaps: true  // Connect lines across missing data points
-                    });
-                }
-            });
-
             const activeKey = Object.keys(marketOverlays).find(
                 key => marketOverlays[key].active && marketOverlays[key].data.length > 0
             );
-            const rightAxis = geriChart.options.scales.y1;
+            const activeOverlay = activeKey ? marketOverlays[activeKey] : null;
             const rightConfig = activeKey ? overlayChartConfigs[activeKey] : null;
+            const geriValues = getGeriDisplayValues();
+            const marketValues = activeKey ? getSlicedOverlayData(activeKey) : [];
+            const geriChanges = sliceGeriChartRange(
+                dailyPointChanges(geriHistoryData.map(point => point.value))
+            );
+            const marketChanges = activeKey
+                ? sliceGeriChartRange(dailyPercentChanges(marketOverlays[activeKey].data))
+                : [];
+            const relationshipData = geriChanges.map(
+                (value, index) => relationshipForChanges(value, marketChanges[index])
+            );
+
+            const geriDataset = {
+                label: currentGeriAnalysisMode === 'price' ? 'GERI' : 'GERI Daily Change',
+                data: currentGeriAnalysisMode === 'price' ? geriValues : geriChanges,
+                borderColor: '#3b82f6',
+                backgroundColor: currentGeriAnalysisMode === 'relationship'
+                    ? relationshipData.map(item => item.color)
+                    : 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                fill: currentGeriAnalysisMode === 'price',
+                tension: 0.3,
+                pointRadius: currentGeriAnalysisMode === 'relationship' ? 0 : 3,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#1e293b',
+                pointBorderWidth: 2,
+                yAxisID: 'y',
+                type: currentGeriAnalysisMode === 'relationship' ? 'bar' : 'line',
+                changeUnit: currentGeriAnalysisMode === 'price' ? null : 'points',
+                relationshipData: relationshipData
+            };
+
+            geriChart.data.datasets = [geriDataset];
+
+            if (activeOverlay && rightConfig) {
+                geriChart.data.datasets.push({
+                    label: currentGeriAnalysisMode === 'price'
+                        ? rightConfig.label
+                        : rightConfig.label + ' Daily %',
+                    data: currentGeriAnalysisMode === 'price' ? marketValues : marketChanges,
+                    rawData: getSlicedOverlayRawData(activeKey),
+                    unit: activeOverlay.unit,
+                    borderColor: rightConfig.color,
+                    backgroundColor: 'transparent',
+                    borderWidth: currentGeriAnalysisMode === 'relationship' ? 2 : 1.5,
+                    borderDash: currentGeriAnalysisMode === 'relationship' ? [] : [5, 5],
+                    fill: false,
+                    tension: 0.3,
+                    pointRadius: currentGeriAnalysisMode === 'relationship' ? 3 : 0,
+                    pointHoverRadius: 5,
+                    yAxisID: 'y1',
+                    spanGaps: true,
+                    changeUnit: currentGeriAnalysisMode === 'price' ? null : 'percent'
+                });
+            }
+
+            const leftAxis = geriChart.options.scales.y;
+            const rightAxis = geriChart.options.scales.y1;
             rightAxis.display = Boolean(rightConfig);
-            rightAxis.title.text = rightConfig ? rightConfig.axisTitle : '';
-            rightAxis.ticks.callback = rightConfig ? rightConfig.tick : undefined;
-            if (rightConfig && rightConfig.min !== undefined) {
+            if (currentGeriAnalysisMode === 'price') {
+                leftAxis.min = 0;
+                leftAxis.max = 100;
+                leftAxis.ticks.stepSize = 25;
+                leftAxis.ticks.callback = value => value;
+                leftAxis.title.text = 'GERI — Risk Index (0–100)';
+                rightAxis.title.text = rightConfig ? rightConfig.axisTitle : '';
+                rightAxis.ticks.callback = rightConfig ? rightConfig.tick : undefined;
+            } else {
+                delete leftAxis.min;
+                delete leftAxis.max;
+                delete leftAxis.ticks.stepSize;
+                leftAxis.ticks.callback = value => (value > 0 ? '+' : '') + value;
+                leftAxis.title.text = 'GERI Daily Change — Points';
+                rightAxis.title.text = rightConfig ? rightConfig.label + ' — Daily % Change' : '';
+                rightAxis.ticks.callback = value => (value > 0 ? '+' : '') + Number(value).toFixed(1) + '%';
+            }
+            if (currentGeriAnalysisMode === 'price' && rightConfig && rightConfig.min !== undefined) {
                 rightAxis.min = rightConfig.min;
             } else {
                 delete rightAxis.min;
             }
-            if (rightConfig && rightConfig.max !== undefined) {
+            if (currentGeriAnalysisMode === 'price' && rightConfig && rightConfig.max !== undefined) {
                 rightAxis.max = rightConfig.max;
             } else {
                 delete rightAxis.max;
             }
-            
+
             geriChart.update();
             updateGeriChartAxisLabel();
 
