@@ -11837,6 +11837,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             if (b === 'LOW') return 'Low = Stable conditions, no significant structural risk';
             if (b === 'MODERATE') return 'Moderate = Rising structural stress, not crisis';
             if (b === 'ELEVATED') return 'Elevated = Active risk drivers requiring close monitoring';
+            if (b === 'SEVERE') return 'Severe = The energy system is under significant strain';
             if (b === 'CRITICAL') return 'Critical = Systemic stress, multiple risk factors converging';
             return '';
         }
@@ -12847,6 +12848,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             // Current band
             if (currentBandEl && currentGeri) {
                 const bandColor = currentGeri.band === 'CRITICAL' ? '#ef4444' :
+                                  currentGeri.band === 'SEVERE' ? '#f87171' :
                                   currentGeri.band === 'ELEVATED' ? '#f97316' :
                                   currentGeri.band === 'MODERATE' ? '#eab308' : '#22c55e';
                 currentBandEl.textContent = currentGeri.band || '--';
@@ -12905,7 +12907,17 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const labels = geriHistoryData.map(d => d.date);
             const values = geriHistoryData.map(d => d.value);
             
-            // Band colors for background shading
+            // Official GERI methodology bands. Continuous chart boundaries use
+            // 20/40/60/80; integer scores map to 0–20, 21–40, 41–60, 61–80, 81–100.
+            const geriRegimeBands = [
+                { min: 0, max: 20, label: 'LOW', color: 'rgba(34, 197, 94, 0.07)' },
+                { min: 20, max: 40, label: 'MODERATE', color: 'rgba(234, 179, 8, 0.065)' },
+                { min: 40, max: 60, label: 'ELEVATED', color: 'rgba(249, 115, 22, 0.065)' },
+                { min: 60, max: 80, label: 'SEVERE', color: 'rgba(239, 68, 68, 0.07)' },
+                { min: 80, max: 100, label: 'CRITICAL', color: 'rgba(127, 29, 29, 0.09)' }
+            ];
+
+            // Band colors and subtle regime labels for background shading
             const bandPlugin = {
                 id: 'bandShading',
                 beforeDraw: (chart) => {
@@ -12914,14 +12926,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     const chartArea = chart.chartArea;
                     const yScale = chart.scales.y;
                     
-                    const bands = [
-                        { min: 0, max: 25, color: 'rgba(34, 197, 94, 0.1)' },    // LOW - green
-                        { min: 25, max: 50, color: 'rgba(234, 179, 8, 0.1)' },   // MODERATE - yellow
-                        { min: 50, max: 75, color: 'rgba(249, 115, 22, 0.1)' },  // ELEVATED - orange
-                        { min: 75, max: 100, color: 'rgba(239, 68, 68, 0.1)' }   // CRITICAL - red
-                    ];
-                    
-                    bands.forEach(band => {
+                    geriRegimeBands.forEach(band => {
                         const top = yScale.getPixelForValue(band.max);
                         const bottom = yScale.getPixelForValue(band.min);
                         
@@ -12930,6 +12935,24 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         ctx.fillRect(chartArea.left, top, chartArea.right - chartArea.left, bottom - top);
                         ctx.restore();
                     });
+                },
+                beforeDatasetsDraw: (chart) => {
+                    if (currentGeriAnalysisMode !== 'price') return;
+                    const ctx = chart.ctx;
+                    const chartArea = chart.chartArea;
+                    const yScale = chart.scales.y;
+
+                    ctx.save();
+                    ctx.font = '600 9px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.fillStyle = 'rgba(226, 232, 240, 0.27)';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    geriRegimeBands.forEach(band => {
+                        const center = band.min + ((band.max - band.min) / 2);
+                        const y = yScale.getPixelForValue(center);
+                        ctx.fillText(band.label, chartArea.left + 8, y);
+                    });
+                    ctx.restore();
                 }
             };
             
@@ -12997,9 +13020,10 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                     // GERI shows band
                                     if (dsLabel === 'GERI') {
                                         let band = 'LOW';
-                                        if (val >= 76) band = 'CRITICAL';
-                                        else if (val >= 51) band = 'ELEVATED';
-                                        else if (val >= 26) band = 'MODERATE';
+                                        if (val >= 81) band = 'CRITICAL';
+                                        else if (val >= 61) band = 'SEVERE';
+                                        else if (val >= 41) band = 'ELEVATED';
+                                        else if (val >= 21) band = 'MODERATE';
                                         return dsLabel + ': ' + val.toFixed(0) + ' (' + band + ')';
                                     }
                                     
@@ -13122,7 +13146,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                         annotText = 'Risk spike';
                     } else if (delta <= -8) {
                         annotText = 'Risk drop';
-                    } else if (curr.value >= 75 && prev.value < 75) {
+                    } else if (curr.value >= 81 && prev.value < 81) {
                         annotText = 'Critical';
                     }
 

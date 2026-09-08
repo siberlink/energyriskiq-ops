@@ -73,3 +73,22 @@ def test_geri_relationship_mode_classifies_all_direction_pairs():
 
     assert "type: currentGeriAnalysisMode === 'relationship' ? 'bar' : 'line'" in html
     assert "relationshipData: relationshipData" in html
+
+
+def test_geri_price_chart_uses_official_five_regime_bands():
+    html = ACCOUNT_HTML.read_text(encoding="utf-8")
+
+    for definition in (
+        "{ min: 0, max: 20, label: 'LOW'",
+        "{ min: 20, max: 40, label: 'MODERATE'",
+        "{ min: 40, max: 60, label: 'ELEVATED'",
+        "{ min: 60, max: 80, label: 'SEVERE'",
+        "{ min: 80, max: 100, label: 'CRITICAL'",
+    ):
+        assert definition in html
+
+    assert "ctx.fillText(band.label, chartArea.left + 8, y);" in html
+    assert "if (val >= 81) band = 'CRITICAL';" in html
+    assert "else if (val >= 61) band = 'SEVERE';" in html
+    assert "else if (val >= 41) band = 'ELEVATED';" in html
+    assert "else if (val >= 21) band = 'MODERATE';" in html
