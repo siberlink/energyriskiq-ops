@@ -12837,6 +12837,64 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             }
             return { label: 'GERI ↓ + Market ↓ — easing risk confirmed', color: '#10b981' };
         }
+
+        function getGeriBandForValue(value) {
+            if (value >= 81) return 'CRITICAL';
+            if (value >= 61) return 'SEVERE';
+            if (value >= 41) return 'ELEVATED';
+            if (value >= 21) return 'MODERATE';
+            return 'LOW';
+        }
+
+        function getPrimaryGeriDriver(point) {
+            let components = point?.components || {};
+            if (typeof components === 'string') {
+                try { components = JSON.parse(components); } catch (error) { components = {}; }
+            }
+            const driver = (components.top_drivers || [])[0];
+            if (!driver) return '';
+            return typeof driver === 'string' ? driver : (driver.headline || driver.type || '');
+        }
+
+        function formatSignedChange(value, decimals) {
+            if (value === null || value === undefined) return 'N/A';
+            return (value > 0 ? '+' : '') + value.toFixed(decimals);
+        }
+
+        function buildGeriEventMetadata() {
+            const geriChanges = dailyPointChanges(geriHistoryData.map(point => point.value));
+            const marketChanges = {};
+            ['brent', 'ttf', 'vix'].forEach(key => {
+                marketChanges[key] = dailyPercentChanges(marketOverlays[key].data || []);
+            });
+
+            const events = geriHistoryData.map((point, index) => {
+                const delta = geriChanges[index];
+                if (delta === null || Math.abs(delta) < 8) return null;
+                return {
+                    date: point.date,
+                    geriValue: point.value,
+                    band: getGeriBandForValue(point.value),
+                    delta: delta,
+                    direction: delta > 0 ? 'up' : 'down',
+                    driver: getPrimaryGeriDriver(point),
+                    brentChange: marketChanges.brent[index],
+                    ttfChange: marketChanges.ttf[index],
+                    vixChange: marketChanges.vix[index]
+                };
+            });
+            return sliceGeriChartRange(events);
+        }
+
+        function formatGeriChartDate(value) {
+            const date = new Date(value + 'T00:00:00');
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
         
         function updateTrendIndicators(currentGeri, historyData) {
             const trend1dEl = document.getElementById('trend1d');
@@ -12991,7 +13049,8 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                 color: '#94a3b8',
                                 usePointStyle: true,
                                 padding: 20,
-                                font: { size: 12 }
+                                font: { size: 12 },
+                                filter: item => !item.text.includes('Significant GERI move')
                             }
                         },
                         tooltip: {
@@ -13003,10 +13062,32 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                             padding: 12,
                             displayColors: true,
                             callbacks: {
-                                title: (items) => 'Date: ' + items[0].label,
+                                title: (items) => formatGeriChartDate(items[0].label),
                                 label: (context) => {
                                     const val = context.parsed.y;
                                     const dsLabel = context.dataset.label;
+
+                                    if (context.dataset.isEventMarkers) {
+                                        const event = context.dataset.eventData?.[context.dataIndex];
+                                        if (!event) return '';
+                                        const arrow = event.direction === 'up' ? '▲' : '▼';
+                                        const details = [
+                                            'GERI ' + event.geriValue.toFixed(0) + ' — ' +
+                                                event.band.charAt(0) + event.band.slice(1).toLowerCase(),
+                                            arrow + ' ' + formatSignedChange(event.delta, 0) + ' points'
+                                        ];
+                                        if (event.driver) details.push('Primary driver: ' + event.driver);
+                                        if (event.brentChange !== null && event.brentChange !== undefined) {
+                                            details.push('Brent: ' + formatSignedChange(event.brentChange, 1) + '%');
+                                        }
+                                        if (event.ttfChange !== null && event.ttfChange !== undefined) {
+                                            details.push('TTF: ' + formatSignedChange(event.ttfChange, 1) + '%');
+                                        }
+                                        if (event.vixChange !== null && event.vixChange !== undefined) {
+                                            details.push('VIX: ' + formatSignedChange(event.vixChange, 1) + '%');
+                                        }
+                                        return details;
+                                    }
 
                                     if (currentGeriAnalysisMode !== 'price') {
                                         if (val === null || val === undefined) return dsLabel + ': N/A';
@@ -13019,11 +13100,7 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                                     
                                     // GERI shows band
                                     if (dsLabel === 'GERI') {
-                                        let band = 'LOW';
-                                        if (val >= 81) band = 'CRITICAL';
-                                        else if (val >= 61) band = 'SEVERE';
-                                        else if (val >= 41) band = 'ELEVATED';
-                                        else if (val >= 21) band = 'MODERATE';
+                                        const band = getGeriBandForValue(val);
                                         return dsLabel + ': ' + val.toFixed(0) + ' (' + band + ')';
                                     }
                                     
@@ -13124,50 +13201,60 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                 var plan = currentUser?.plan || 'free';
                 var cfg = GERI_PLAN_CONFIG[plan] || GERI_PLAN_CONFIG.free;
                 if (!cfg.showChartAnnotations) return;
-                if (!geriHistoryData || geriHistoryData.length < 3) return;
+                var markerDataset = chart.data.datasets.find(function(dataset) {
+                    return dataset.isEventMarkers;
+                });
+                if (!markerDataset || !markerDataset.eventData) return;
 
                 var ctx = chart.ctx;
                 var chartArea = chart.chartArea;
                 var xScale = chart.scales.x;
                 var yScale = chart.scales.y;
-                var labels = chart.data.labels;
+                var events = markerDataset.eventData
+                    .map(function(event, index) {
+                        return event ? Object.assign({ index: index }, event) : null;
+                    })
+                    .filter(Boolean);
+                if (!events.length) return;
 
-                for (var i = 1; i < geriHistoryData.length; i++) {
-                    var curr = geriHistoryData[i];
-                    var prev = geriHistoryData[i - 1];
-                    if (!curr || !prev) continue;
-
-                    var delta = curr.value - prev.value;
-                    var labelIdx = labels.indexOf(curr.date);
-                    if (labelIdx === -1) continue;
-
-                    var annotText = null;
-                    if (delta >= 8) {
-                        annotText = 'Risk spike';
-                    } else if (delta <= -8) {
-                        annotText = 'Risk drop';
-                    } else if (curr.value >= 81 && prev.value < 81) {
-                        annotText = 'Critical';
-                    }
-
-                    if (annotText) {
-                        var x = xScale.getPixelForValue(labelIdx);
-                        var y = yScale.getPixelForValue(curr.value);
-                        if (x < chartArea.left || x > chartArea.right) continue;
-
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.arc(x, y - 14, 3, 0, Math.PI * 2);
-                        ctx.fillStyle = delta > 0 ? 'rgba(239,68,68,0.7)' : 'rgba(34,197,94,0.7)';
-                        ctx.fill();
-
-                        ctx.font = '9px -apple-system, BlinkMacSystemFont, sans-serif';
-                        ctx.fillStyle = 'rgba(148,163,184,0.7)';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(annotText, x, y - 20);
-                        ctx.restore();
-                    }
+                var largestIncrease = events.filter(function(event) {
+                    return event.delta > 0;
+                }).sort(function(a, b) { return b.delta - a.delta; })[0];
+                var largestDecrease = events.filter(function(event) {
+                    return event.delta < 0;
+                }).sort(function(a, b) { return a.delta - b.delta; })[0];
+                var exceptional = [];
+                if (largestIncrease) {
+                    exceptional.push(Object.assign({ annotation: 'Largest GERI spike' }, largestIncrease));
                 }
+                if (largestDecrease) {
+                    exceptional.push(Object.assign({ annotation: 'Largest GERI drop' }, largestDecrease));
+                }
+                events
+                    .filter(function(event) {
+                        return Math.abs(event.delta) >= 15 &&
+                            event !== largestIncrease && event !== largestDecrease;
+                    })
+                    .sort(function(a, b) { return Math.abs(b.delta) - Math.abs(a.delta); })
+                    .slice(0, 3)
+                    .forEach(function(event) {
+                        exceptional.push(Object.assign({
+                            annotation: event.delta > 0 ? 'Major escalation' : 'Major de-escalation'
+                        }, event));
+                    });
+
+                exceptional.slice(0, 5).forEach(function(event) {
+                    var x = xScale.getPixelForValue(event.index);
+                    var y = yScale.getPixelForValue(event.geriValue);
+                    if (x < chartArea.left || x > chartArea.right) return;
+
+                    ctx.save();
+                    ctx.font = '600 9px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.fillStyle = 'rgba(226,232,240,0.68)';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(event.annotation, x, Math.max(chartArea.top + 10, y - 18));
+                    ctx.restore();
+                });
             }
         };
 
@@ -13694,6 +13781,9 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
             const relationshipData = geriChanges.map(
                 (value, index) => relationshipForChanges(value, marketChanges[index])
             );
+            const geriEventData = currentGeriAnalysisMode === 'price'
+                ? buildGeriEventMetadata()
+                : [];
 
             const geriDataset = {
                 label: currentGeriAnalysisMode === 'price' ? 'GERI' : 'GERI Daily Change',
@@ -13737,6 +13827,28 @@ Data source: EnergyRiskIQ proprietary risk pipeline (egsi_s_daily). Index scale:
                     yAxisID: 'y1',
                     spanGaps: true,
                     changeUnit: currentGeriAnalysisMode === 'price' ? null : 'percent'
+                });
+            }
+
+            if (currentGeriAnalysisMode === 'price') {
+                geriChart.data.datasets.push({
+                    label: 'Significant GERI move',
+                    data: geriEventData.map(event => event ? event.geriValue : null),
+                    eventData: geriEventData,
+                    isEventMarkers: true,
+                    type: 'line',
+                    showLine: false,
+                    pointStyle: 'triangle',
+                    pointRadius: geriEventData.map(event => event ? 6 : 0),
+                    pointHoverRadius: geriEventData.map(event => event ? 9 : 0),
+                    pointRotation: geriEventData.map(event => event && event.direction === 'down' ? 180 : 0),
+                    pointBackgroundColor: geriEventData.map(event =>
+                        event && event.direction === 'down' ? '#22c55e' : '#ef4444'
+                    ),
+                    pointBorderColor: '#0f172a',
+                    pointBorderWidth: 1,
+                    yAxisID: 'y',
+                    order: -10
                 });
             }
 

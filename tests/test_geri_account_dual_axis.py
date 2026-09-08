@@ -88,7 +88,33 @@ def test_geri_price_chart_uses_official_five_regime_bands():
         assert definition in html
 
     assert "ctx.fillText(band.label, chartArea.left + 8, y);" in html
-    assert "if (val >= 81) band = 'CRITICAL';" in html
-    assert "else if (val >= 61) band = 'SEVERE';" in html
-    assert "else if (val >= 41) band = 'ELEVATED';" in html
-    assert "else if (val >= 21) band = 'MODERATE';" in html
+    assert "if (value >= 81) return 'CRITICAL';" in html
+    assert "if (value >= 61) return 'SEVERE';" in html
+    assert "if (value >= 41) return 'ELEVATED';" in html
+    assert "if (value >= 21) return 'MODERATE';" in html
+    assert "const band = getGeriBandForValue(val);" in html
+
+
+def test_geri_significant_moves_use_hoverable_triangle_markers():
+    html = ACCOUNT_HTML.read_text(encoding="utf-8")
+
+    assert "Math.abs(delta) < 8" in html
+    assert "pointStyle: 'triangle'" in html
+    assert "event.direction === 'down' ? 180 : 0" in html
+    assert "arrow + ' ' + formatSignedChange(event.delta, 0) + ' points'" in html
+    assert "'Primary driver: ' + event.driver" in html
+    assert "'Brent: ' + formatSignedChange(event.brentChange, 1) + '%'" in html
+    assert "'TTF: ' + formatSignedChange(event.ttfChange, 1) + '%'" in html
+    assert "'VIX: ' + formatSignedChange(event.vixChange, 1) + '%'" in html
+
+
+def test_geri_direct_annotations_are_limited_to_exceptional_events():
+    html = ACCOUNT_HTML.read_text(encoding="utf-8")
+
+    assert "Largest GERI spike" in html
+    assert "Largest GERI drop" in html
+    assert "Major escalation" in html
+    assert "Major de-escalation" in html
+    assert "exceptional.slice(0, 5)" in html
+    assert "annotText = 'Risk spike'" not in html
+    assert "annotText = 'Risk drop'" not in html
