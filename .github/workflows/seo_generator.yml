@@ -19,54 +19,71 @@ on:
         required: false
         type: number
 
+concurrency:
+  group: seo-public-digest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
   generate-seo-pages:
     runs-on: ubuntu-latest
     
+    timeout-minutes: 15
     steps:
-      - name: Trigger SEO Generation on Replit
+      - name: Generate and verify public digest pages
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          SEO_RUNNER_TOKEN: ${{ secrets.SEO_RUNNER_TOKEN }}
+          TARGET_DATE: ${{ inputs.date }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          BACKFILL: ${{ inputs.backfill }}
         run: |
-          echo "============================================================"
-          echo "EnergyRiskIQ SEO Generator"
-          echo "============================================================"
-          echo "Trigger: ${{ github.event_name }}"
-          echo "Date: ${{ inputs.date || 'yesterday' }}"
-          echo "Dry Run: ${{ inputs.dry_run || false }}"
-          echo "Backfill: ${{ inputs.backfill || 'N/A' }}"
-          echo "============================================================"
-          
-          # Build query parameters
-          PARAMS=""
-          
-          if [ -n "${{ inputs.date }}" ]; then
-            PARAMS="date=${{ inputs.date }}"
-          fi
-          
-          if [ "${{ inputs.dry_run }}" == "true" ]; then
-            if [ -n "$PARAMS" ]; then PARAMS="$PARAMS&"; fi
-            PARAMS="${PARAMS}dry_run=true"
-          fi
-          
-          if [ -n "${{ inputs.backfill }}" ] && [ "${{ inputs.backfill }}" != "0" ]; then
-            if [ -n "$PARAMS" ]; then PARAMS="$PARAMS&"; fi
-            PARAMS="${PARAMS}backfill=${{ inputs.backfill }}"
-          fi
-          
-          URL="${{ secrets.APP_URL }}/internal/run/seo"
-          if [ -n "$PARAMS" ]; then
-            URL="$URL?$PARAMS"
-          fi
-          
-          echo "URL: $URL"
-          echo "============================================================"
-          
-          # Call Replit SEO generation endpoint
-          RESPONSE=$(curl -s -X POST \
-            -H "Content-Type: application/json" \
-            -H "x-internal-token: ${{ secrets.INTERNAL_RUNNER_TOKEN }}" \
-            "$URL" || echo '{"error": "curl failed"}')
-          
-          echo "Response: $RESPONSE"
+          python - <<'PY'
+          import datetime as dt
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          url = os.environ.get("APP_URL", "").rstrip("/")
+          token = os.environ.get("SEO_RUNNER_TOKEN", "")
+          if not url.startswith("https://") or not token:
+              raise SystemExit("APP_URL or dedicated SEO credential is not configured.")
+          yesterday = dt.datetime.now(dt.timezone.utc).date() - dt.timedelta(days=1)
+          supplied = os.environ.get("TARGET_DATE", "")
+          count = int(os.environ.get("BACKFILL") or 0)
+          if supplied and count:
+              raise SystemExit("Choose a date OR a backfill range, not both.")
+          if not 0 <= count <= 90:
+              raise SystemExit("Backfill must be between 1 and 90.")
+          targets = ([dt.date.fromisoformat(supplied)] if supplied else
+                     [yesterday - dt.timedelta(days=i) for i in range(count or 1)])
+          if any(day > yesterday for day in targets):
+              raise SystemExit("Only completed UTC dates can be generated.")
+          dry = os.environ.get("DRY_RUN") == "true"
+          for day in sorted(targets):
+              query = urllib.parse.urlencode({"date": day.isoformat(),
+                                               "dry_run": str(dry).lower()})
+              request = urllib.request.Request(
+                  url + "/internal/run/seo?" + query, method="POST",
+                  headers={"x-internal-token": token, "Content-Type": "application/json"})
+              try:
+                  # One date per call, never a long bulk request through Cloudflare.
+                  with urllib.request.urlopen(request, timeout=90) as response:
+                      payload = json.load(response)
+              except urllib.error.HTTPError as error:
+                  raise SystemExit(f"Digest generation rejected: HTTP {error.code}.")
+              except (urllib.error.URLError, TimeoutError, ValueError):
+                  raise SystemExit("Generation did not return valid successful JSON.")
+              digest = next((item for item in payload.get("digest_pages", [])
+                             if item.get("date") == day.isoformat()), None)
+              if not digest or digest.get("error") or (not dry and not digest.get("page_id")):
+                  raise SystemExit(f"Public digest {day.isoformat()} was not confirmed saved.")
+              print(f"Public digest {day.isoformat()}: {'previewed' if dry else 'saved'}.")
+          PY
           
       - name: Summary
         run: |
