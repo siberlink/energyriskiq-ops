@@ -30,7 +30,7 @@ jobs:
   generate-seo-pages:
     runs-on: ubuntu-latest
     
-    timeout-minutes: 15
+    timeout-minutes: 150
     steps:
       - name: Generate and verify public digest pages
         env:
@@ -44,9 +44,8 @@ jobs:
           import datetime as dt
           import json
           import os
-          import urllib.error
+          import subprocess
           import urllib.parse
-          import urllib.request
 
           url = os.environ.get("APP_URL", "").rstrip("/")
           token = os.environ.get("SEO_RUNNER_TOKEN", "")
@@ -67,21 +66,33 @@ jobs:
           for day in sorted(targets):
               query = urllib.parse.urlencode({"date": day.isoformat(),
                                                "dry_run": str(dry).lower()})
-              request = urllib.request.Request(
-                  url + "/internal/run/seo?" + query, method="POST",
-                  headers={"x-internal-token": token, "Content-Type": "application/json"})
+              # Keep the original curl transport, which is accepted by the site's
+              # edge protection; Python urllib requests can receive an HTML 403.
               try:
-                  # One date per call, never a long bulk request through Cloudflare.
-                  with urllib.request.urlopen(request, timeout=90) as response:
-                      payload = json.load(response)
-              except urllib.error.HTTPError as error:
-                  raise SystemExit(f"Digest generation rejected: HTTP {error.code}.")
-              except (urllib.error.URLError, TimeoutError, ValueError):
+                  result = subprocess.run(
+                      ["curl", "--silent", "--show-error", "--max-time", "90",
+                       "--request", "POST", "--header", "x-internal-token: " + token,
+                       "--header", "Content-Type: application/json",
+                       "--write-out", "\n%{http_code}",
+                       url + "/internal/run/seo?" + query],
+                      capture_output=True, text=True, timeout=95)
+              except subprocess.TimeoutExpired:
+                  raise SystemExit("Digest generation request timed out.")
+              body, _, status = result.stdout.rpartition("\n")
+              if result.returncode:
+                  raise SystemExit(f"Digest request transport failed (code {result.returncode}).")
+              if status != "200":
+                  raise SystemExit(f"Digest generation rejected: HTTP {status}.")
+              try:
+                  payload = json.loads(body)
+              except ValueError:
                   raise SystemExit("Generation did not return valid successful JSON.")
               digest = next((item for item in payload.get("digest_pages", [])
                              if item.get("date") == day.isoformat()), None)
               if not digest or digest.get("error") or (not dry and not digest.get("page_id")):
                   raise SystemExit(f"Public digest {day.isoformat()} was not confirmed saved.")
+              if dry and digest.get("dry_run") is not True:
+                  raise SystemExit("The public digest preview was not confirmed.")
               print(f"Public digest {day.isoformat()}: {'previewed' if dry else 'saved'}.")
           PY
           
