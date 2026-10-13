@@ -2,7 +2,8 @@ name: SEO Daily Page Generator
 
 on:
   schedule:
-    - cron: '30 01 * * *'  # 01:30 AM UTC daily
+    # Off-peak generation plus independent retries if GitHub delays/drops a run.
+    - cron: '17 2,5,8,11,14,17,20,23 * * *'
   workflow_dispatch:
     inputs:
       date:
@@ -39,6 +40,7 @@ jobs:
           TARGET_DATE: ${{ inputs.date }}
           DRY_RUN: ${{ inputs.dry_run }}
           BACKFILL: ${{ inputs.backfill }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           python - <<'PY'
           import datetime as dt
@@ -46,6 +48,38 @@ jobs:
           import os
           import subprocess
           import urllib.parse
+          from html.parser import HTMLParser
+
+          class CanonicalParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.urls = []
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag == "link" and attrs.get("rel") == "canonical":
+                      self.urls.append(attrs.get("href", ""))
+
+          def published(url, day):
+              path = "/daily-geo-energy-intelligence-digest/" + day.isoformat()
+              try:
+                  result = subprocess.run(
+                      ["curl", "--silent", "--show-error", "--max-time", "25",
+                       "--write-out", "\n%{http_code}", url + path],
+                      capture_output=True, text=True, timeout=30)
+              except subprocess.TimeoutExpired:
+                  raise SystemExit("Digest availability check timed out.")
+              body, _, status = result.stdout.rpartition("\n")
+              if result.returncode:
+                  raise SystemExit("Digest availability transport failed.")
+              if status in ("404", "302"):
+                  return False
+              if status != "200":
+                  raise SystemExit(f"Digest availability rejected: HTTP {status}.")
+              parser = CanonicalParser()
+              parser.feed(body)
+              if not any(urllib.parse.urlparse(href).path == path for href in parser.urls):
+                  raise SystemExit("Digest availability did not return the requested dated page.")
+              return True
 
           url = os.environ.get("APP_URL", "").rstrip("/")
           token = os.environ.get("SEO_RUNNER_TOKEN", "")
@@ -58,12 +92,16 @@ jobs:
               raise SystemExit("Choose a date OR a backfill range, not both.")
           if not 0 <= count <= 90:
               raise SystemExit("Backfill must be between 1 and 90.")
+          scheduled = os.environ.get("EVENT_NAME") == "schedule"
           targets = ([dt.date.fromisoformat(supplied)] if supplied else
-                     [yesterday - dt.timedelta(days=i) for i in range(count or 1)])
+                     [yesterday - dt.timedelta(days=i) for i in range(count or (3 if scheduled else 1))])
           if any(day > yesterday for day in targets):
               raise SystemExit("Only completed UTC dates can be generated.")
           dry = os.environ.get("DRY_RUN") == "true"
           for day in sorted(targets):
+              if scheduled and not dry and published(url, day):
+                  print(f"Public digest {day.isoformat()}: already published; skipped.")
+                  continue
               query = urllib.parse.urlencode({"date": day.isoformat(),
                                                "dry_run": str(dry).lower()})
               # Keep the original curl transport, which is accepted by the site's
