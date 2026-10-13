@@ -1,9 +1,7 @@
 name: SEO Daily Page Generator
 
 on:
-  schedule:
-    # Off-peak generation plus independent retries if GitHub delays/drops a run.
-    - cron: '17 2,5,8,11,14,17,20,23 * * *'
+  # Automated schedule retired: generation is controlled from /admin.
   workflow_dispatch:
     inputs:
       date:
