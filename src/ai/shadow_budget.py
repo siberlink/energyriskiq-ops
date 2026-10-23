@@ -86,3 +86,12 @@ def request(client, model, messages, max_tokens, purpose, item_id, response_form
     usage = response.usage.model_dump() if response.usage else None
     amount = settle(id_, model, bound, usage, raw_output=raw)
     return raw, usage, amount, response.choices[0].finish_reason
+
+
+def validation_failed(purpose,item_id,message):
+    """Retain paid usage/raw evidence while recording post-response failures."""
+    with get_cursor() as c:
+        c.execute("""UPDATE risk_pipeline_v2_usage SET status='error',error=%s
+            WHERE status='completed' AND id=(SELECT id FROM risk_pipeline_v2_usage
+                WHERE purpose=%s AND item_id=%s ORDER BY id DESC LIMIT 1)""",
+                  (message,purpose,item_id))

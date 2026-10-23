@@ -64,6 +64,7 @@ def snapshot():
     return {"installed": True, "activated": True, "mode": control["mode"],
             "activated_at": control["activated_at"], "start_date": control["start_date"],
             "runner": control["runner"], "elapsed_hours": elapsed,
+            "catchup_active": control.get("catchup_active"),
             **queue, "enriched_per_hour": queue["enriched_since_activation"]/elapsed,
             "usage": usage, "hourly": hourly,
             "today_committed_usd": today_committed, "daily_budget_usd": limit(),

@@ -75,6 +75,10 @@ def main():
         saved=c.fetchone()
         if saved["mode"]!="shadow" or saved["calibration"]["source_sha256"]!=calibration["source_sha256"]:
             raise RuntimeError("Existing activation differs; explicit review required")
+        c.execute("""UPDATE risk_pipeline_v2_control SET
+            catchup_max_event_id=(SELECT max(id) FROM events WHERE inserted_at<=activated_at),
+            catchup_floor=(activated_at AT TIME ZONE 'UTC')-interval '7 days'
+            WHERE singleton AND catchup_max_event_id IS NULL""")
     seeds=seed()
     from src.ai.shadow_enrichment import mark_stale
     stale=mark_stale()

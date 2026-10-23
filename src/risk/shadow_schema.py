@@ -41,6 +41,12 @@ def install():
                 observed_at timestamptz PRIMARY KEY DEFAULT now(),
                 checkpoint text NOT NULL, payload jsonb NOT NULL
             );
+            ALTER TABLE risk_pipeline_v2_control
+                ADD COLUMN IF NOT EXISTS catchup_active boolean NOT NULL DEFAULT true;
+            ALTER TABLE risk_pipeline_v2_control
+                ADD COLUMN IF NOT EXISTS catchup_max_event_id bigint;
+            ALTER TABLE risk_pipeline_v2_control
+                ADD COLUMN IF NOT EXISTS catchup_floor timestamp;
         """)
         for table in LEGACY_TABLES:
             # Do NOT copy serial defaults: shadow ids must never use legacy sequences.

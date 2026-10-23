@@ -42,11 +42,19 @@ def main():
         result=run()
     elif args.job=="ingestion":
         from src.ingest.ingest_runner import run_ingestion
-        from src.ai.shadow_enrichment import run
+        from src.ai.shadow_enrichment import run,catchup_remaining
         from src.risk.shadow_risk import run as risk
         with single_runner():
             inserted,skipped,errors=run_ingestion()
             good,bad=run()
+            # Same one approved catch-up can resume after midnight's budget reset.
+            # Keep the hourly job bounded so ingestion remains hourly.
+            stop=time.monotonic()+900
+            while catchup_remaining() and time.monotonic()<stop:
+                more,errors=run(batch_size=100)
+                good+=more;bad+=errors
+                if more+errors==0:
+                    break
             scored=risk()
             result={"inserted":inserted,"ingestion_errors":errors,
                     "enriched":good,"enrichment_errors":bad,"shadow_scored":scored}
@@ -58,7 +66,7 @@ def main():
         from src.risk.shadow_risk import run
         result={"scored":run()}
     else:
-        from src.ai.shadow_enrichment import run
+        from src.ai.shadow_enrichment import run,catchup_remaining
         from src.risk.shadow_risk import run as risk
         # Share the same overlap lock as scheduled ingestion. A process cannot
         # start a second independent enrichment stream while this holds the lock.
@@ -72,6 +80,7 @@ def main():
                 print(json.dumps({"successes":successes,"failures":failures}),flush=True)
                 if good+bad==0:
                     break
+                catchup_remaining()
             return {"successes":successes,"failures":failures}
         with single_runner():
             result=catchup()

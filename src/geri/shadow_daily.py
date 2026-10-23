@@ -17,12 +17,17 @@ from src.geri.types import HistoricalBaseline, get_region_cluster, get_regional_
 from scripts.geri_lab.replay import as_alert, RAW_FIELDS, NORMAL_FIELDS, PREFIXES
 from scripts.geri_lab.relevance import SYSTEM_PROMPT, RESPONSE_FORMAT, _validate_label
 from scripts.geri_lab.step5_data import opinion_text, label_key
-from scripts.geri_lab.storyline import rule_pass
-from src.ai.shadow_budget import request
+from src.ai.shadow_budget import request,validation_failed
 
 VARIANTS = ("prod", "integrity_v1", "rel41", "pillars_v2_continuous",
             "pillars_v2_continuous_rel41")
 RAW_NAMES = ("H", "R", "A", "C")
+
+
+def material_event(label):
+    """Byte-for-byte rule semantics of Step 5's r_material_events (no dedup)."""
+    return label["materiality"] in ("medium","high") and label["event_type"] in {
+        "kinetic_attack","threat","sanctions_policy","supply_outage","diplomacy_deescalation"}
 
 
 def code_sha():
@@ -60,9 +65,13 @@ def label(row, client, deadline):
         client, "gpt-4.1", [{"role":"system","content":SYSTEM_PROMPT},
                           {"role":"user","content":opinion_text(data)}],
         200, "relevance41", row["id"], RESPONSE_FORMAT)
-    if finish != "stop":
-        raise ValueError("Incomplete GPT-4.1 classification; usage retained")
-    labels = _validate_label(json.loads(raw))
+    try:
+        if finish != "stop":
+            raise ValueError("Incomplete GPT-4.1 classification; usage retained")
+        labels = _validate_label(json.loads(raw))
+    except (ValueError,TypeError,KeyError):
+        validation_failed("relevance41",row["id"],"Invalid or incomplete label; usage retained")
+        raise
     with get_cursor() as c:
         c.execute("""INSERT INTO risk_pipeline_v2_labels(cache_key,alert_id,labels,model,provenance)
             VALUES(%s,%s,%s::jsonb,'gpt-4.1',%s::jsonb) ON CONFLICT DO NOTHING""",
@@ -122,11 +131,9 @@ def run(day=None):
             if not health:
                 raise ValueError(f"Missing production health for {day}")
             c.execute("""SELECT ae.id,ae.alert_type,ae.scope_region AS region,ae.severity,
-                1.0 AS weight,NULL::float AS risk_score,ae.created_at,ae.headline,ae.body,ae.raw_input,
+                1.0 AS weight,ae.confidence AS risk_score,ae.created_at,ae.headline,ae.body,ae.raw_input,
                 e.title AS event_title,e.raw_text AS event_excerpt,e.ai_summary
-                FROM alert_events ae LEFT JOIN LATERAL (
-                    SELECT title,raw_text,ai_summary FROM events WHERE id=ANY(ae.driver_event_ids)
-                    ORDER BY id LIMIT 1) e ON true
+                FROM alert_events ae LEFT JOIN events e ON e.id=ae.driver_event_ids[1]
                 WHERE ae.created_at>=%s AND ae.created_at<%s
                 AND ae.alert_type IN ('HIGH_IMPACT_EVENT','REGIONAL_RISK_SPIKE','ASSET_RISK_ALERT')
                 ORDER BY ae.created_at,ae.id""", (day,day+timedelta(days=1)))
@@ -142,7 +149,7 @@ def run(day=None):
             if variant in existing:
                 continue
             selected = [r for r in rows if "rel41" not in variant or r["alert_type"]!="HIGH_IMPACT_EVENT"
-                        or rule_pass(labels[r["id"]],"r_material_events")]
+                        or material_event(labels[r["id"]])]
             components = compute_components([as_alert(r) for r in selected])
             if "pillars_v2" in variant:
                 components.regional_spike_score = regional

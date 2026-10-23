@@ -37,15 +37,30 @@ def main():
         by_variant.setdefault(r["variant"],[]).append(row)
     for name in ("prod","integrity_v1","rel41","pillars_v2_continuous","pillars_v2_continuous_rel41"):
         result["observations_by_variant"][name]=len(by_variant.get(name,[]))
-    if rows:
+    if by_variant.get("integrity_v1"):
         from .step7_markets import markets
+        from .step4_report import split_market
+        from . import step4_report
+        from datetime import timedelta
         data=markets(start)
+        # Retain Step 5 bootstrap math, but H1/H2 must split this prospective
+        # interval, not the historical January–October research interval.
+        dates=sorted(r["index_date"] for r in rows)
+        first,last=dates[0],dates[-1]
+        middle=first+(last-first)//2
+        original_splits=step4_report.SPLITS
+        step4_report.SPLITS={"full":(first,last),"H1":(first,middle),
+                             "H2":(middle+timedelta(days=1),last)}
         ref=scorecard(by_variant.get("integrity_v1",[]),data,get_variant("integrity_v1"))
+        ref["market_splits_step4"]=split_market(by_variant.get("integrity_v1",[]),data)
         for name,series in by_variant.items():
             if name in ("prod","integrity_v1"):
                 continue
             score=scorecard(series,data,get_variant("integrity_v1"))
+            score["variant"]=name
+            score["market_splits_step4"]=split_market(series,data)
             result["comparisons"][name]=compare_scorecards(ref,score)[0]
+        step4_report.SPLITS=original_splits
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,default=str,indent=2))
     print(json.dumps(result,default=str,indent=2))

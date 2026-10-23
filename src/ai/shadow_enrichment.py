@@ -8,7 +8,7 @@ from src.db.db import get_cursor
 from src.risk.pipeline_v2_core import mode, plan
 from src.risk.pipeline_v2 import metrics, internal_alert
 from .pipeline_v2_worker import rate_slot
-from .shadow_budget import BudgetStopped, request
+from .shadow_budget import BudgetStopped, request, validation_failed
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +72,7 @@ def run(batch_size=None):
             _admin_failure(str(exc))
             break
         except Exception as exc:
+            validation_failed("enrichment",row["id"],f"{type(exc).__name__}: enrichment did not commit")
             # Count failed paid attempts once, including network/provider failures.
             with get_cursor() as c:
                 c.execute("UPDATE events SET ai_attempts=GREATEST(ai_attempts,%s) WHERE id=%s",
@@ -112,3 +113,18 @@ def mark_stale():
             WHERE NOT processed AND ai_attempts<3 AND inserted_at<NOW()-interval '30 days'
             AND COALESCE(ai_impact_json->'_risk_pipeline_v2'->>'status','')<>'skipped_stale'""")
         return c.rowcount
+
+
+def catchup_remaining():
+    """Durable original-cohort progress; never widens to the older backlog."""
+    with get_cursor() as c:
+        c.execute("""SELECT count(*) AS remaining FROM events e
+            JOIN risk_pipeline_v2_control v ON v.singleton
+            WHERE v.catchup_active AND e.id<=v.catchup_max_event_id
+            AND e.inserted_at>=v.catchup_floor
+            AND e.inserted_at>=NOW()-interval '7 days'
+            AND NOT e.processed AND e.ai_attempts<3""")
+        remaining=c.fetchone()["remaining"]
+        if not remaining:
+            c.execute("UPDATE risk_pipeline_v2_control SET catchup_active=false WHERE singleton")
+        return remaining
