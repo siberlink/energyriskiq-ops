@@ -195,6 +195,10 @@ def process_event(client: OpenAI, event: dict, model: str) -> Tuple[bool, str]:
     return True, summary[:100]
 
 def run_ai_worker():
+    from src.risk.pipeline_v2_core import enabled
+    if enabled():
+        from src.ai.pipeline_v2_worker import run
+        return run()
     logger.info("=" * 60)
     logger.info("Starting EnergyRiskIQ AI Processing Worker")
     logger.info(f"Model: {OPENAI_MODEL}, Max events: {AI_MAX_EVENTS_PER_RUN}")

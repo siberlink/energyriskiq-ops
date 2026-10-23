@@ -5,6 +5,11 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
+      supervised_catchup:
+        description: 'Approved one-off trailing-seven-day shadow catch-up'
+        required: false
+        default: false
+        type: boolean
       skip_ai:
         description: 'Skip AI enrichment'
         required: false
@@ -20,18 +25,29 @@ on:
 
 # The direct runner invokes the protected application handler in this process.
 # PostgreSQL owns overlap prevention; no public HTTP request crosses Cloudflare.
+concurrency:
+  group: production-ingestion-single-runner
+  cancel-in-progress: false
+
 jobs:
   run-ingestion:
     runs-on: ubuntu-latest
-    timeout-minutes: 28
+    timeout-minutes: 330
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       SKIP_AI: ${{ github.event.inputs.skip_ai || 'false' }}
       SKIP_RISK: ${{ github.event.inputs.skip_risk || 'false' }}
+      SUPERVISED_CATCHUP: ${{ inputs.supervised_catchup || 'false' }}
       PYTHONPATH: '.'
       SKIP_MIGRATIONS: 'true'
+      # Explicit mode wins; old boolean is a live-only compatibility alias.
+      RISK_PIPELINE_V2_MODE: ${{ vars.RISK_PIPELINE_V2_MODE || 'off' }}
+      RISK_PIPELINE_V2_ENABLED: ${{ vars.RISK_PIPELINE_V2_ENABLED || 'false' }}
+      RISK_PIPELINE_V2_DAILY_BUDGET_USD: '5'
+      RISK_PIPELINE_V2_MAX_RPM: '20'
+      ALERTS_EMAIL_ENABLED: 'false'
 
     steps:
       - name: Checkout repository
@@ -53,8 +69,16 @@ jobs:
         id: pipeline
         run: |
           set -o pipefail
-          python scripts/replit_scheduled_job.py --job ingestion \
-            2>&1 | tee ingestion_output.txt
+          if [ "$SUPERVISED_CATCHUP" = "true" ]; then
+            python scripts/geri_shadow_job.py catchup --max-events 5000 \
+              2>&1 | tee ingestion_output.txt
+          elif [ "$RISK_PIPELINE_V2_MODE" = "shadow" ]; then
+            python scripts/geri_shadow_job.py ingestion \
+              2>&1 | tee ingestion_output.txt
+          else
+            python scripts/replit_scheduled_job.py --job ingestion \
+              2>&1 | tee ingestion_output.txt
+          fi
 
       - name: Upload logs
         uses: actions/upload-artifact@v4.6.2

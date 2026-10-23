@@ -1,0 +1,63 @@
+name: Private GERI Shadow and Operating Reports
+
+on:
+  # Run after production daily computation, with a fallback that still checks
+  # an exact closed-date published reference. Never creates the production GERI.
+  workflow_run:
+    workflows: ['Daily Index Computation (GERI + EERI + EGSI)']
+    types: [completed]
+  schedule:
+    - cron: '20 3 * * *'
+    - cron: '40 * * * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Private job'
+        type: choice
+        options: ['daily', 'monitor', 'risk']
+        default: 'daily'
+
+concurrency:
+  group: geri-private-shadow
+  cancel-in-progress: false
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      RISK_PIPELINE_V2_MODE: ${{ vars.RISK_PIPELINE_V2_MODE || 'off' }}
+      RISK_PIPELINE_V2_DAILY_BUDGET_USD: '5'
+      RISK_PIPELINE_V2_MAX_RPM: '20'
+      ALERTS_EMAIL_ENABLED: 'false'
+      PYTHONPATH: '.'
+      SKIP_MIGRATIONS: 'true'
+      SHADOW_JOB: ${{ inputs.job || 'daily' }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Private daily variants and operating checkpoints
+        run: |
+          set -o pipefail
+          if [ "$SHADOW_JOB" = "daily" ]; then
+            python scripts/geri_shadow_job.py daily
+          elif [ "$SHADOW_JOB" = "risk" ]; then
+            python scripts/geri_shadow_job.py risk
+          fi
+      - name: Capture operating checkpoints even if private daily computation failed
+        if: always()
+        run: |
+          set -o pipefail
+          python scripts/geri_shadow_job.py monitor | tee shadow-operating-report.json
+      - uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: private-shadow-report-${{ github.run_id }}
+          path: shadow-operating-report.json
+          retention-days: 30

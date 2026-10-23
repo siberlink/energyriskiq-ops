@@ -158,6 +158,10 @@ def get_asset_directions(region: str, window_days: int) -> Dict[str, Dict]:
       AND r.created_at >= NOW() - make_interval(days => %s)
       AND e.ai_impact_json IS NOT NULL
     """
+    from src.risk.pipeline_v2_core import enabled
+    if enabled():
+        query = query.replace("r.created_at", "e.inserted_at")
+        query += " AND e.inserted_at <= NOW()"
     rows = execute_query(query, (region, window_days))
     
     asset_votes = {asset: {'up': 0, 'down': 0, 'mixed': 0, 'unclear': 0, 'total_weight': 0} for asset in ASSETS}
@@ -268,6 +272,10 @@ def save_asset_risk(asset: str, region: str, window_days: int, risk_score: float
         )
 
 def run_risk_engine():
+    from src.risk.pipeline_v2_core import enabled
+    if enabled():
+        from src.risk.pipeline_v2 import run_risk
+        return run_risk()
     logger.info("=" * 60)
     logger.info("Starting EnergyRiskIQ Risk Scoring Engine")
     logger.info("=" * 60)
