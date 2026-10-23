@@ -5,8 +5,25 @@ import os
 from pathlib import Path
 import sys
 import time
+from contextlib import contextmanager
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+
+
+@contextmanager
+def single_runner(wait_seconds=1800):
+    """Wait for an already-running legacy ingestion; never steal its lock."""
+    from src.db.db import advisory_lock
+    deadline=time.monotonic()+wait_seconds
+    while True:
+        with advisory_lock(7001) as acquired:
+            if acquired:
+                yield
+                return
+        if time.monotonic()>=deadline:
+            raise RuntimeError("Single production runner still active after 30-minute wait")
+        print("Waiting for the existing ingestion runner; no paid calls started",flush=True)
+        time.sleep(30)
 
 
 def main():
@@ -27,10 +44,7 @@ def main():
         from src.ingest.ingest_runner import run_ingestion
         from src.ai.shadow_enrichment import run
         from src.risk.shadow_risk import run as risk
-        from src.db.db import advisory_lock
-        with advisory_lock(7001) as acquired:
-            if not acquired:
-                raise RuntimeError("Single production runner is already active")
+        with single_runner():
             inserted,skipped,errors=run_ingestion()
             good,bad=run()
             scored=risk()
@@ -48,7 +62,6 @@ def main():
         from src.risk.shadow_risk import run as risk
         # Share the same overlap lock as scheduled ingestion. A process cannot
         # start a second independent enrichment stream while this holds the lock.
-        from src.db.db import advisory_lock
         def catchup():
             successes=failures=0
             while successes+failures<args.max_events:
@@ -60,9 +73,7 @@ def main():
                 if good+bad==0:
                     break
             return {"successes":successes,"failures":failures}
-        with advisory_lock(7001) as acquired:
-            if not acquired:
-                raise RuntimeError("Single production runner is already active")
+        with single_runner():
             result=catchup()
     print(json.dumps(result,default=str,indent=2))
 
