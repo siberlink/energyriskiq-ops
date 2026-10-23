@@ -101,7 +101,7 @@ def continuous(c, day):
                             "asset_ids":[r["id"] for r in assets]}
 
 
-def run(day=None):
+def _run_existing(day=None):
     from src.risk.pipeline_v2_core import mode
     if mode() != "shadow":
         raise RuntimeError("Private GERI job requires shadow mode")
@@ -123,7 +123,7 @@ def run(day=None):
         with get_cursor(commit=False) as c:
             c.execute("SELECT variant FROM geri_shadow_daily WHERE index_date=%s", (day,))
             existing = {r["variant"] for r in c.fetchall()}
-            if existing == set(VARIANTS):
+            if set(VARIANTS).issubset(existing):
                 continue  # Immutable first observation; no retroactive selection.
             c.execute("""SELECT data_quality,alerts_ratio,events_ratio FROM geri_daily_health
                 WHERE index_date=%s""", (day,))
@@ -186,3 +186,12 @@ def run(day=None):
                           (day,variant,value,json.dumps(output),json.dumps(inputs),code_sha()))
             results.append({"date":str(day),"variant":variant,"value":value})
     return {"rows":results,"pending_first_closed_published_day":not published}
+
+
+def run(day=None):
+    result=_run_existing(day)
+    from src.geri.shadow_smoothing import run as extra_variants
+    extra=extra_variants(day)
+    result["rows"].extend(extra["rows"])
+    result["smoothing_pending"]=extra["pending"]
+    return result

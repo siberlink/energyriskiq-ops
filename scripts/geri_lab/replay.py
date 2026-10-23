@@ -49,7 +49,8 @@ def as_alert(row):
     )
 
 
-def replay(alert_rows, start, end, variant, warmup=None, health=None, filter_context=None):
+def replay(alert_rows, start, end, variant, warmup=None, health=None, filter_context=None,
+           diagnostics=False):
     variant.validate()
     if variant.pillar_mode in ("fixed_alerts", "fixed_alerts_sev4"):
         from .step5_pillars import prepare_alerts
@@ -74,10 +75,17 @@ def replay(alert_rows, start, end, variant, warmup=None, health=None, filter_con
                 if row["alert_type"] == "HIGH_IMPACT_EVENT":
                     kept_high[day] += 1
     history = deque()
+    original_history=deque()
+    smoothing_state=None
+    transforms=bool(variant.weekday_adjust or variant.carryover_half_life_days
+                    or variant.display_smoothing)
     output = []
     day = warmup
     while day <= end:
         cutoff = day - timedelta(days=variant.baseline_window_days)
+        previous_window=[r for d,r in history if
+                         day-timedelta(days=variant.baseline_window_days+1)<=d<day-timedelta(days=1)]
+        expired=[r for d,r in history if d<cutoff]
         while history and history[0][0] < cutoff:
             history.popleft()
         components = compute_components(daily_alerts[day])
@@ -92,6 +100,17 @@ def replay(alert_rows, start, end, variant, warmup=None, health=None, filter_con
             components = dedup_components(daily_alerts[day], components,
                                           context.get("assignments", {}),
                                           variant.dedup_mode, context.get("sources", {}))
+        quality=(health or {}).get(day,{}).get("data_quality","OK")
+        original_raw=tuple(getattr(components,key) for key in RAW_FIELDS)
+        if transforms:
+            from .smoothing import raw_transform
+            while original_history and original_history[0][0]<day-timedelta(days=56):
+                original_history.popleft()
+            adjusted,smoothing_state=raw_transform(
+                original_raw,day,quality,variant,original_history,smoothing_state)
+            for field,v in zip(RAW_FIELDS,adjusted):
+                setattr(components,field,v)
+            original_history.append((day,original_raw,quality))
         baseline = HistoricalBaseline(days_count=len(history))
         varying = []
         for index, prefix in enumerate(PREFIXES):
@@ -104,6 +123,10 @@ def replay(alert_rows, start, end, variant, warmup=None, health=None, filter_con
         raw = tuple(getattr(components, key) for key in RAW_FIELDS)
         normalize_components(components, baseline)
         value = calculate_geri_value(components)
+        unsmoothed_value=value
+        if transforms:
+            from .smoothing import display_transform
+            value=display_transform(value,variant,smoothing_state)
         flags = []
         if not daily_alerts[day]:
             flags.append("no_accepted_alerts_not_proof_of_outage")
@@ -130,6 +153,27 @@ def replay(alert_rows, start, end, variant, warmup=None, health=None, filter_con
         row.update({f"raw_{p}": v for p, v in zip(PILLARS, raw)})
         row.update({f"norm_{p}": getattr(components, field)
                     for p, field in zip(PILLARS, NORMAL_FIELDS)})
+        if diagnostics:
+            from copy import deepcopy
+            def rescore(vectors):
+                b=HistoricalBaseline(days_count=len(vectors))
+                for i,prefix in enumerate(PREFIXES):
+                    if vectors:
+                        setattr(b,prefix+"_min",min(r[i] for r in vectors))
+                        setattr(b,prefix+"_max",max(r[i] for r in vectors))
+                trial=deepcopy(components)
+                normalize_components(trial,b)
+                return calculate_geri_value(trial)
+            previous_value=rescore(previous_window)
+            no_exit_value=rescore([r for _,r in history]+expired)
+            row.update(original_raw=dict(zip(PILLARS,original_raw)),
+                       smoothing_state=smoothing_state,
+                       pre_display_value=unsmoothed_value,
+                       previous_window_rescore=previous_value,
+                       previous_window_delta=unsmoothed_value-previous_value,
+                       isolated_exit_rescore=no_exit_value,
+                       isolated_exit_delta=unsmoothed_value-no_exit_value,
+                       expired_healthy_rows=len(expired))
         if day >= start:
             output.append(row)
         # Never seed from published component rows; every raw vector is replayed.
