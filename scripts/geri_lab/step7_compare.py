@@ -7,6 +7,7 @@ from pathlib import Path
 from .data import readonly_snapshot
 from .scorecard import scorecard
 from .bootstrap import compare_scorecards
+from src.geri.types import get_band
 from .variants import get_variant
 
 
@@ -27,13 +28,17 @@ def main():
             "note":"Paired weekly bootstrap is unassessable until prospective forward returns mature."}
     by_variant={}
     for r in rows:
-        if r["inputs"].get("data_quality")!="OK":
+        if r["inputs"].get("data_quality")!="OK" or not r["inputs"].get("point_in_time"):
             continue
-        row={"date":str(r["index_date"]),"geri":r["value"],"data_quality":"OK",
+        row={"date":str(r["index_date"]),"geri":r["value"],"band":get_band(r["value"]).value,
+             "data_quality":"OK",
              **{f"raw_{p}":0. for p in "HRAC"}, **r["components"],
              "n_alerts":len(r["inputs"].get("alert_ids",[])),
              "n_by_type":{},"fallback_used":r["inputs"].get("normalization_rows",0)<14,
              "active_pillar_ceiling":100}
+        for p,long_name in {"H":"high_impact","R":"regional_spike",
+                            "A":"asset_risk","C":"region_concentration"}.items():
+            row.setdefault("norm_"+p,row.get("norm_"+long_name,0.))
         by_variant.setdefault(r["variant"],[]).append(row)
     for name in ("prod","integrity_v1","rel41","pillars_v2_continuous","pillars_v2_continuous_rel41"):
         result["observations_by_variant"][name]=len(by_variant.get(name,[]))

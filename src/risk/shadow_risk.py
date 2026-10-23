@@ -70,6 +70,12 @@ def saturation(scores, previous=None):
         "assumes_no_existing_daily_fingerprint":True,
         "created":0,
     }
+    result["simulated_alert_keys"] = [
+        "REGIONAL_RISK_SPIKE:"+k.split(":")[1] for k in region_keys
+        if scores[k]["score"]>=DEFAULT_THRESHOLD or
+        (previous.get(k,0)>0 and scores[k]["score"]>=previous[k]*1.2)
+    ]+["ASSET_RISK_SPIKE:Europe:"+k.split(":")[1] for k in asset_keys
+        if scores[k]["score"]>=DEFAULT_THRESHOLD]
     return result
 
 
@@ -113,8 +119,7 @@ def run():
         previous_day = {}
         latest_previous_time = None
         for record in c.fetchall():
-            if record["observed_at"].date() < now.date() and (
-                    latest_previous_time is None or record["observed_at"]>latest_previous_time):
+            if latest_previous_time is None or record["observed_at"]>latest_previous_time:
                 previous_day = {key: v["score"] for key,v in record["payload"].get("scores",{}).items()}
                 latest_previous_time = record["observed_at"]
             for key, value in record["payload"].get("scores", {}).items():

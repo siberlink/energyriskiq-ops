@@ -59,7 +59,7 @@ def label(row, client, deadline):
         cached = c.fetchone()
     if cached:
         return cached["labels"]
-    from src.ai.pipeline_v2_worker import rate_slot
+    from src.ai.shadow_budget import rate_slot
     rate_slot(float(os.environ.get("RISK_PIPELINE_V2_MAX_RPM", "20")), deadline)
     raw, usage, amount, finish = request(
         client, "gpt-4.1", [{"role":"system","content":SYSTEM_PROMPT},
@@ -167,6 +167,9 @@ def run(day=None):
                       "alert_ids":[r["id"] for r in selected],"normalization_rows":len(history),
                       "published_computed_at":str(source["computed_at"]),
                       "partial_activation_day":day==control["start_date"],
+                      "point_in_time":datetime.utcnow().date()==day+timedelta(days=1),
+                      "signal_available_at":datetime.utcnow().isoformat(),
+                      "fallback_used":components.insufficient_history,
                       "v2_inputs":pillar_inputs if "pillars_v2" in variant else None,
                       "label_model":"gpt-4.1" if "rel41" in variant else None}
             output = {f"raw_{p}":getattr(components,f) for p,f in zip(RAW_NAMES,RAW_FIELDS)}

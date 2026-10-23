@@ -24,7 +24,7 @@ class DriverDetail:
 @dataclass
 class GeriViewModel:
     """View model for GERI data display."""
-    value: int
+    value: Optional[int]
     band: str
     date: str
     trend_1d: Optional[float]
@@ -36,6 +36,7 @@ class GeriViewModel:
     delay_hours: int = 0
     interpretation: str = ""
     computed_at: str = ""
+    data_quality: str = "OK"
 
 
 def _parse_components(result: Dict[str, Any]) -> tuple:
@@ -98,7 +99,7 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
         computed_at_str = _format_date(result.get('date'))
     
     return GeriViewModel(
-        value=result.get('value', 0),
+        value=result.get('value'),
         band=result.get('band', 'UNKNOWN'),
         date=_format_date(result.get('date')),
         trend_1d=result.get('trend_1d'),
@@ -109,7 +110,8 @@ def get_geri_delayed() -> Optional[GeriViewModel]:
         is_delayed=True,
         delay_hours=24,
         interpretation=interpretation,
-        computed_at=computed_at_str
+        computed_at=computed_at_str,
+        data_quality=result.get("data_quality", "OK")
     )
 
 
@@ -137,7 +139,7 @@ def get_geri_latest() -> Optional[GeriViewModel]:
         computed_at_str = _format_date(result.get('date'))
     
     return GeriViewModel(
-        value=result.get('value', 0),
+        value=result.get('value'),
         band=result.get('band', 'UNKNOWN'),
         date=_format_date(result.get('date')),
         trend_1d=result.get('trend_1d'),
@@ -148,7 +150,8 @@ def get_geri_latest() -> Optional[GeriViewModel]:
         is_delayed=False,
         delay_hours=0,
         interpretation=interpretation,
-        computed_at=computed_at_str
+        computed_at=computed_at_str,
+        data_quality=result.get("data_quality", "OK")
     )
 
 

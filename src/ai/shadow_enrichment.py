@@ -7,8 +7,7 @@ import time
 from src.db.db import get_cursor
 from src.risk.pipeline_v2_core import mode, plan
 from src.risk.pipeline_v2 import metrics, internal_alert
-from .pipeline_v2_worker import rate_slot
-from .shadow_budget import BudgetStopped, request, validation_failed
+from .shadow_budget import BudgetStopped, request, validation_failed, rate_slot
 
 logger = logging.getLogger(__name__)
 

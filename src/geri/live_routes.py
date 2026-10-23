@@ -56,6 +56,9 @@ def _require_geri_live_access(token: str) -> dict:
     info = _get_user_plan(token)
     if info.get('plan') in ('pro', 'enterprise'):
         return info
+    from src.billing.intelligence_bundle import user_has_intelligence_bundle
+    if user_has_intelligence_bundle(info.get('user_id')):
+        return info
     try:
         from src.api.geri_live_sub_routes import user_has_geri_live
         if user_has_geri_live(info.get('user_id')):
@@ -63,6 +66,19 @@ def _require_geri_live_access(token: str) -> dict:
     except Exception as e:
         logger.error(f"GERI Live entitlement check failed: {e}")
     raise HTTPException(status_code=402, detail="GERI Live subscription required")
+
+
+@router.get("/sales-preview")
+def sales_preview(x_user_token: Optional[str] = Header(None)):
+    """Authenticated, fixed sales sample; all interactive/live tools stay gated."""
+    if not x_user_token:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    _get_user_plan(x_user_token)
+    from src.geri.sales_preview import get_sales_preview
+    return JSONResponse(
+        content=get_sales_preview(),
+        headers={"Cache-Control": "private, no-store"},
+    )
 
 
 @router.get("/latest")

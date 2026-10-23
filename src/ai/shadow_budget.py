@@ -6,7 +6,8 @@ No secrets or provider request headers are logged.
 """
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import time
 
 from src.db.db import get_cursor
 
@@ -15,6 +16,23 @@ RATES = {"gpt-4.1-mini": (.4, 1.6), "gpt-4.1": (2., 8.)}
 
 class BudgetStopped(RuntimeError):
     pass
+
+
+def rate_slot(rpm,deadline):
+    """Shared private rate ledger; the daily shadow job never writes job_runs."""
+    if rpm<=0:
+        raise ValueError("Positive request rate required")
+    rpm=min(20.,rpm)
+    with get_cursor() as c:
+        c.execute("SELECT pg_advisory_xact_lock(hashtext('risk_pipeline_v2_rate'))")
+        c.execute("SELECT max(slot_at) AS last FROM risk_pipeline_v2_rate_slot")
+        previous=c.fetchone()["last"]
+        now=datetime.utcnow()
+        slot=max(now,previous+timedelta(seconds=60/rpm)) if previous else now
+        if time.monotonic()+(slot-now).total_seconds()+60>deadline:
+            raise RuntimeError("Rate slot would exceed runtime deadline")
+        c.execute("INSERT INTO risk_pipeline_v2_rate_slot(slot_at) VALUES(%s)",(slot,))
+    time.sleep(max(0.,(slot-datetime.utcnow()).total_seconds()))
 
 
 def limit():

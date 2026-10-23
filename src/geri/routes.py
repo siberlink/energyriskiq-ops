@@ -6,7 +6,7 @@ Mounted under /api/v1/indices
 import csv
 import io
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from src.geri import ENABLE_GERI
 from src.geri.repo import get_latest_index, get_index_history, get_index_for_date, get_delayed_index
 from src.geri.service import compute_geri_for_date, compute_yesterday, backfill, auto_backfill
+from src.geri.types import INDEX_ID, MODEL_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +25,14 @@ router = APIRouter(prefix="/api/v1/indices", tags=["GERI Indices"])
 class ComputeRequest(BaseModel):
     date: str
     force: bool = False
+    reason: Optional[str] = None
 
 
 class BackfillRequest(BaseModel):
     from_date: str
     to_date: str
     force: bool = False
+    reason: Optional[str] = None
 
 
 def check_enabled():
@@ -117,7 +120,7 @@ async def get_geri_history(
         if to_date:
             end = datetime.strptime(to_date, "%Y-%m-%d").date()
         else:
-            end = date.today()
+            end = datetime.now(timezone.utc).date()
         
         if from_date:
             start = datetime.strptime(from_date, "%Y-%m-%d").date()
@@ -148,13 +151,15 @@ async def get_geri_history(
 
 
 @router.post("/geri/compute")
-async def compute_geri(request: ComputeRequest):
+async def compute_geri(request: ComputeRequest, x_runner_token: Optional[str] = Header(None)):
     """
     Compute GERI index for a specific date (admin-only).
     
     Reads from alert_events for that day and writes result to intel_indices_daily.
     """
     check_enabled()
+    from src.api.internal_routes import validate_runner_token
+    validate_runner_token(x_runner_token)
     
     try:
         target_date = datetime.strptime(request.date, "%Y-%m-%d").date()
@@ -164,19 +169,23 @@ async def compute_geri(request: ComputeRequest):
             detail="Invalid date format. Use YYYY-MM-DD."
         )
     
-    if target_date >= date.today():
+    if target_date >= datetime.now(timezone.utc).date():
         raise HTTPException(
             status_code=400,
             detail="Cannot compute index for today or future dates. Use yesterday or earlier."
         )
     
     try:
-        result = compute_geri_for_date(target_date, force=request.force)
+        if request.force and not request.reason:
+            raise HTTPException(400, "A revision reason is required; force is dry-run only.")
+        result = compute_geri_for_date(target_date, force=request.force, reason=request.reason)
         
         if result:
             return {
                 'success': True,
                 'message': f"GERI index computed for {target_date}",
+                'publication_status': getattr(result, "publication_status", None),
+                'revision_diff': getattr(result, "revision_diff", None),
                 'data': result.to_dict(),
             }
         else:
@@ -194,16 +203,18 @@ async def compute_geri(request: ComputeRequest):
 
 
 @router.post("/geri/compute-yesterday")
-async def compute_geri_yesterday():
+async def compute_geri_yesterday(x_runner_token: Optional[str] = Header(None)):
     """
     Compute GERI index for yesterday (scheduler endpoint).
     
     Called by GitHub Actions workflow at 01:10 UTC daily.
     """
     check_enabled()
+    from src.api.internal_routes import validate_runner_token
+    validate_runner_token(x_runner_token)
     
     from datetime import timedelta
-    yesterday = date.today() - timedelta(days=1)
+    yesterday = datetime.now(timezone.utc).date() - timedelta(days=1)
     
     try:
         result = compute_yesterday()
@@ -232,7 +243,7 @@ async def compute_geri_yesterday():
 
 
 @router.post("/geri/backfill")
-async def backfill_geri(request: BackfillRequest):
+async def backfill_geri(request: BackfillRequest, x_runner_token: Optional[str] = Header(None)):
     """
     Backfill GERI indices for a date range (admin-only).
     
@@ -240,6 +251,8 @@ async def backfill_geri(request: BackfillRequest):
     and storing results in intel_indices_daily.
     """
     check_enabled()
+    from src.api.internal_routes import validate_runner_token
+    validate_runner_token(x_runner_token)
     
     try:
         start = datetime.strptime(request.from_date, "%Y-%m-%d").date()
@@ -256,12 +269,14 @@ async def backfill_geri(request: BackfillRequest):
             detail="from_date must be before or equal to to_date"
         )
     
-    if end >= date.today():
+    if end >= datetime.now(timezone.utc).date():
         from datetime import timedelta
-        end = date.today() - timedelta(days=1)
+        end = datetime.now(timezone.utc).date() - timedelta(days=1)
     
     try:
-        summary = backfill(start, end, force=request.force)
+        if request.force and not request.reason:
+            raise ValueError("A reason is required for a forced dry-run revision.")
+        summary = backfill(start, end, force=request.force, reason=request.reason)
         return {
             'success': True,
             'summary': summary,
@@ -275,16 +290,23 @@ async def backfill_geri(request: BackfillRequest):
 
 
 @router.post("/geri/backfill-auto")
-async def auto_backfill_geri(force: bool = False):
+async def auto_backfill_geri(
+    force: bool = False, reason: Optional[str] = None,
+    x_runner_token: Optional[str] = Header(None),
+):
     """
     Automatically backfill all historical alerts (admin-only).
     
     Determines date range from alert_events and processes all days.
     """
     check_enabled()
+    from src.api.internal_routes import validate_runner_token
+    validate_runner_token(x_runner_token)
     
     try:
-        summary = auto_backfill(force=force)
+        if force and not (reason and reason.strip()):
+            raise ValueError("Forced backfill requires a revision reason (dry run).")
+        summary = auto_backfill(force=force, reason=reason)
         return {
             'success': True,
             'summary': summary,
@@ -340,11 +362,36 @@ async def get_geri_trader_intel_endpoint(
 
     try:
         from src.geri.trader_intel import get_geri_trader_intel
-        data = get_geri_trader_intel(plan_level=max(2, min(4, plan_level)))
-        return {
-            'success': True,
-            'data': data,
-        }
+        from src.db.db import get_production_cursor
+        from src.dashboard_response_cache import (
+            cached_response, coerce_intelligence_date, normalize_variant,
+            dashboard_current_state,
+        )
+        with get_production_cursor() as cur:
+            cur.execute(
+                """SELECT MAX(date) AS date
+                   FROM intel_indices_daily
+                   WHERE index_id=%s AND model_version=%s""",
+                (INDEX_ID, MODEL_VERSION),
+            )
+            intelligence_date = coerce_intelligence_date(cur.fetchone()["date"])
+        if intelligence_date is None:
+            raise RuntimeError("No exact persisted GERI date is available")
+        canonical_plan = max(2, min(4, plan_level))
+
+        async def build():
+            return {'success': True, 'data': get_geri_trader_intel(plan_level=canonical_plan)}
+
+        return await cached_response(
+            'geri.trader_intel', intelligence_date,
+            normalize_variant(plan_level=canonical_plan), build,
+            source_fingerprint=dashboard_current_state(
+                'geri.trader_intel', intelligence_date
+            ),
+            current_state=lambda target: dashboard_current_state(
+                'geri.trader_intel', target
+            ),
+        )
     except Exception as e:
         logger.error(f"Error computing GERI trader intel: {e}", exc_info=True)
         return {
@@ -418,6 +465,7 @@ async def get_geri_public():
         'delay_hours': 24,
         'data': {
             'date': index_date,
+            'data_quality': result.get('data_quality', 'OK'),
             'value': result.get('value'),
             'band': result.get('band'),
             'trend_1d': result.get('trend_1d'),
@@ -429,8 +477,7 @@ async def get_geri_public():
     }
 
 
-@router.get("/geri/market-overlays")
-async def get_geri_market_overlays(
+async def _build_geri_market_overlays(
     from_date: Optional[str] = Query(None, alias="from", description="Start date (YYYY-MM-DD)"),
     to_date: Optional[str] = Query(None, alias="to", description="End date (YYYY-MM-DD)")
 ):
@@ -526,6 +573,26 @@ async def get_geri_market_overlays(
             ORDER BY date ASC
         """, (start, end))
         eurusd_rows = cur.fetchall()
+
+        cur.execute("""
+            SELECT id, event_date, headline, severity, scope_region, scope_assets,
+                   category, body
+            FROM (
+                SELECT id, created_at::date AS event_date, headline, severity,
+                       scope_region, scope_assets, category, body,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY created_at::date
+                           ORDER BY severity DESC, created_at DESC
+                       ) AS day_rank
+                FROM alert_events
+                WHERE created_at::date >= %s AND created_at::date <= %s
+                  AND severity >= 4
+                  AND alert_type <> 'DAILY_DIGEST'
+            ) ranked
+            WHERE day_rank <= 3
+            ORDER BY event_date ASC, severity DESC, id DESC
+        """, (start, end))
+        event_rows = cur.fetchall()
     
     brent_data = []
     for row in oil_rows:
@@ -567,6 +634,20 @@ async def get_geri_market_overlays(
         eurusd_data.append({
             'date': row_date.isoformat() if isinstance(row_date, date) else row_date,
             'value': float(row['rate']) if row['rate'] else None
+        })
+
+    risk_events = []
+    for row in event_rows:
+        event_date = row['event_date']
+        risk_events.append({
+            'id': row['id'],
+            'date': event_date.isoformat() if isinstance(event_date, date) else str(event_date),
+            'headline': row['headline'],
+            'severity': row['severity'],
+            'region': row['scope_region'],
+            'assets': list(row['scope_assets'] or []),
+            'category': row['category'],
+            'body': row['body'],
         })
     
     available = ['brent', 'gas_storage']
@@ -624,8 +705,64 @@ async def get_geri_market_overlays(
         },
         'available': available,
         'unavailable': unavailable,
+        'risk_events': risk_events,
         'note': 'Freight (Baltic Dry Index) requires paid subscription - not available'
     }
+
+
+@router.get("/geri/market-overlays")
+async def get_geri_market_overlays(
+    from_date: Optional[str] = Query(None, alias="from", description="Start date (YYYY-MM-DD)"),
+    to_date: Optional[str] = Query(None, alias="to", description="End date (YYYY-MM-DD)"),
+):
+    """Cached date-stable market overlay response keyed by its exact end date."""
+    from src.dashboard_response_cache import (
+        cached_response, coerce_intelligence_date, normalize_variant,
+        dashboard_current_state,
+    )
+    from src.db.db import get_production_cursor
+    with get_production_cursor() as cur:
+        cur.execute(
+            """SELECT MAX(date) AS date
+               FROM intel_indices_daily
+               WHERE index_id=%s AND model_version=%s""",
+            (INDEX_ID, MODEL_VERSION),
+        )
+        target = coerce_intelligence_date(cur.fetchone()["date"])
+    if target is None:
+        return await _build_geri_market_overlays(from_date, to_date)
+    requested_end = (
+        min(datetime.strptime(to_date, "%Y-%m-%d").date(), target)
+        if to_date else target
+    )
+    # Historical ranges are immutable reads but are not the current daily page.
+    # Serve them directly instead of requiring the requested end to be latest.
+    if requested_end != target:
+        return await _build_geri_market_overlays(
+            from_date,
+            requested_end.isoformat(),
+        )
+    requested_start = from_date or ""
+    variant = normalize_variant(
+        from_date=requested_start,
+        to_date=requested_end.isoformat(),
+    )
+
+    async def build():
+        return await _build_geri_market_overlays(
+            from_date,
+            requested_end.isoformat(),
+        )
+
+    return await cached_response(
+        'geri.market_overlays', requested_end, variant, build,
+        source_fingerprint=dashboard_current_state(
+            'geri.market_overlays', requested_end
+        ),
+        current_state=lambda current: dashboard_current_state(
+            'geri.market_overlays', current
+        ),
+    )
 
 
 # ── GERI History Table (dashboard) ───────────────────────────────────────────

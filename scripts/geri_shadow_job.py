@@ -46,16 +46,18 @@ def main():
         from src.risk.shadow_risk import run as risk
         with single_runner():
             inserted,skipped,errors=run_ingestion()
-            good,bad=run()
+            skip_ai=os.environ.get("SKIP_AI","false").lower()=="true"
+            skip_risk=os.environ.get("SKIP_RISK","false").lower()=="true"
+            good,bad=run() if not skip_ai else (0,0)
             # Same one approved catch-up can resume after midnight's budget reset.
             # Keep the hourly job bounded so ingestion remains hourly.
             stop=time.monotonic()+900
-            while catchup_remaining() and time.monotonic()<stop:
+            while not skip_ai and catchup_remaining() and time.monotonic()<stop:
                 more,errors=run(batch_size=100)
                 good+=more;bad+=errors
                 if more+errors==0:
                     break
-            scored=risk()
+            scored=risk() if not skip_risk else 0
             result={"inserted":inserted,"ingestion_errors":errors,
                     "enriched":good,"enrichment_errors":bad,"shadow_scored":scored}
             capture()

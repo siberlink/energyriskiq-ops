@@ -10,13 +10,13 @@ import argparse
 import sys
 import os
 import logging
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.geri import ENABLE_GERI
 from src.geri.service import compute_geri_for_date, backfill, auto_backfill
-from src.db.migrations import run_migrations
+from src.geri.integrity_schema import migrate as run_migrations
 
 logging.basicConfig(
     level=os.environ.get('LOG_LEVEL', 'INFO'),
@@ -37,7 +37,7 @@ def cmd_compute(args):
         print(f"ERROR: Invalid date format '{args.date}'. Use YYYY-MM-DD.")
         sys.exit(1)
     
-    if target_date >= date.today():
+    if target_date >= datetime.now(timezone.utc).date():
         print("ERROR: Cannot compute index for today or future dates.")
         sys.exit(1)
     
@@ -45,7 +45,14 @@ def cmd_compute(args):
     
     run_migrations()
     
-    result = compute_geri_for_date(target_date, force=args.force)
+    result = compute_geri_for_date(target_date, force=args.force, reason=args.reason,
+                                   apply_revision=args.apply_revision)
+    if result and hasattr(result, "revision_diff"):
+        import json
+        print(json.dumps(result.revision_diff, indent=2))
+        if not args.apply_revision:
+            print("Dry run: published index is unchanged. Use --apply-revision to apply explicitly.")
+            return
     
     if result:
         print(f"\nGERI Index Computed:")
@@ -84,7 +91,12 @@ def cmd_backfill(args):
     
     run_migrations()
     
-    summary = backfill(from_date, to_date, force=args.force)
+    summary = backfill(from_date, to_date, force=args.force, reason=args.reason,
+                       apply_revision=args.apply_revision)
+    if args.force:
+        import json
+        print(json.dumps(summary.get("revision_diffs", []), indent=2))
+        print("Revisions applied." if args.apply_revision else "Dry run: no published index changed.")
     
     print(f"\nBackfill Complete:")
     print(f"  Date Range: {summary['from_date']} to {summary['to_date']}")
@@ -104,7 +116,11 @@ def cmd_backfill_auto(args):
     
     run_migrations()
     
-    summary = auto_backfill(force=args.force)
+    summary = auto_backfill(force=args.force, reason=args.reason, apply_revision=args.apply_revision)
+    if args.force:
+        import json
+        print(json.dumps(summary.get("revision_diffs", []), indent=2))
+        print("Revisions applied." if args.apply_revision else "Dry run: no published index changed.")
     
     if 'error' in summary:
         print(f"ERROR: {summary['error']}")
@@ -128,7 +144,7 @@ def main():
     
     compute_parser = subparsers.add_parser('compute', help='Compute GERI for a specific date')
     compute_parser.add_argument('--date', required=True, help='Date to compute (YYYY-MM-DD)')
-    compute_parser.add_argument('--force', action='store_true', help='Overwrite existing value')
+    compute_parser.add_argument('--force', action='store_true', help='Propose a revision (dry run by default)')
     
     backfill_parser = subparsers.add_parser('backfill', help='Backfill GERI for a date range')
     backfill_parser.add_argument('--from', dest='from_date', required=True, help='Start date (YYYY-MM-DD)')
@@ -137,8 +153,16 @@ def main():
     
     auto_parser = subparsers.add_parser('backfill-auto', help='Auto-backfill all historical alerts')
     auto_parser.add_argument('--force', action='store_true', help='Overwrite existing values')
+    for command in (compute_parser, backfill_parser, auto_parser):
+        command.add_argument('--reason', help='Required reason for a forced revision')
+        command.add_argument('--apply-revision', action='store_true',
+                             help='Explicitly apply the logged revision')
     
     args = parser.parse_args()
+    if getattr(args, "force", False) and not getattr(args, "reason", None):
+        parser.error("--force requires --reason; no publication changed")
+    if getattr(args, "apply_revision", False) and not getattr(args, "force", False):
+        parser.error("--apply-revision requires --force and --reason")
     
     if args.command == 'compute':
         cmd_compute(args)

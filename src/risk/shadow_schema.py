@@ -41,6 +41,9 @@ def install():
                 observed_at timestamptz PRIMARY KEY DEFAULT now(),
                 checkpoint text NOT NULL, payload jsonb NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS risk_pipeline_v2_rate_slot (
+                slot_at timestamp PRIMARY KEY
+            );
             ALTER TABLE risk_pipeline_v2_control
                 ADD COLUMN IF NOT EXISTS catchup_active boolean NOT NULL DEFAULT true;
             ALTER TABLE risk_pipeline_v2_control

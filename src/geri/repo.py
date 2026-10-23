@@ -6,7 +6,7 @@ WRITE to intel_indices_daily (OUTPUT ONLY)
 """
 import logging
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 
 from src.db.db import get_cursor, execute_one, get_production_cursor, execute_production_one
@@ -31,8 +31,8 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
     INPUT ONLY - does not modify alert_events.
     Extracts event category from raw_input JSON (driver_events[0].category).
     """
-    start_of_day = datetime.combine(target_date, datetime.min.time())
-    end_of_day = datetime.combine(target_date + timedelta(days=1), datetime.min.time())
+    from src.geri.health import utc_bounds
+    start_of_day, end_of_day = utc_bounds(target_date)
     
     sql = """
     SELECT 
@@ -48,8 +48,8 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
         raw_input
     FROM alert_events
     WHERE alert_type = ANY(%s)
-      AND created_at >= %s
-      AND created_at < %s
+      AND created_at >= (%s AT TIME ZONE 'UTC')
+      AND created_at < (%s AT TIME ZONE 'UTC')
     ORDER BY created_at
     """
     
@@ -102,9 +102,39 @@ def get_alerts_for_date(target_date: date) -> List[AlertRecord]:
 
 def _recalc_band(row_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Recalculate band from value to prevent stale label mismatches."""
-    if row_dict and row_dict.get('value') is not None:
+    if row_dict and row_dict.get("data_quality") == "UNAVAILABLE":
+        row_dict["stored_value"] = row_dict.get("value")
+        row_dict.update(value=None, band="UNAVAILABLE", trend_1d=None, trend_7d=None)
+    elif row_dict and row_dict.get('value') is not None:
         row_dict['band'] = get_band(int(row_dict['value'])).value
     return row_dict
+
+
+def attach_health(rows, start, end, include_missing=True):
+    """Read-time overlay: never rewrite historical scores."""
+    with get_production_cursor() as cursor:
+        cursor.execute("SELECT * FROM geri_daily_health WHERE index_date BETWEEN %s AND %s",
+                       (start, end))
+        health = {r["index_date"]: dict(r) for r in cursor.fetchall()}
+    seen = set()
+    output = []
+    for original in rows:
+        row = dict(original)
+        day = row["date"]
+        seen.add(day)
+        h = health.get(day, {})
+        row["data_quality"] = h.get("data_quality", "OK")
+        row["data_health"] = h
+        output.append(_recalc_band(row))
+    if include_missing:
+        for day, h in health.items():
+            if day not in seen and h["data_quality"] == "UNAVAILABLE":
+                output.append({
+                    "index_id": INDEX_ID, "date": day, "value": None, "band": "UNAVAILABLE",
+                    "data_quality": "UNAVAILABLE", "data_health": h, "components": {},
+                    "trend_1d": None, "trend_7d": None, "computed_at": None,
+                })
+    return sorted(output, key=lambda r: r["date"])
 
 
 def get_index_for_date(target_date: date) -> Optional[Dict[str, Any]]:
@@ -121,9 +151,10 @@ def get_index_for_date(target_date: date) -> Optional[Dict[str, Any]]:
         row = cursor.fetchone()
         
         if row:
-            return _recalc_band(dict(row))
+            return attach_health([dict(row)], target_date, target_date)[0]
     
-    return None
+    rows = attach_health([], target_date, target_date)
+    return rows[0] if rows else None
 
 
 def get_index_history(from_date: date, to_date: date) -> List[Dict[str, Any]]:
@@ -143,21 +174,20 @@ def get_index_history(from_date: date, to_date: date) -> List[Dict[str, Any]]:
         for row in rows:
             results.append(_recalc_band(dict(row)))
     
-    return results
+    return attach_health(results, from_date, to_date)
 
 
 def get_latest_index() -> Optional[Dict[str, Any]]:
     """Get the most recent index value.
     
-    Orders by computed_at DESC to ensure we get the most recently computed record,
-    which represents the latest available GERI data.
+    Orders by observation date; rebuilding an old date cannot make it latest.
     """
     sql = """
     SELECT id, index_id, date, value, band, trend_1d, trend_7d,
            components, model_version, computed_at
     FROM intel_indices_daily
     WHERE index_id = %s
-    ORDER BY computed_at DESC
+    ORDER BY date DESC
     LIMIT 1
     """
     
@@ -165,7 +195,8 @@ def get_latest_index() -> Optional[Dict[str, Any]]:
         cursor.execute(sql, (INDEX_ID,))
         row = cursor.fetchone()
         if row:
-            return _recalc_band(dict(row))
+            end = max(row["date"], datetime.now(timezone.utc).date() - timedelta(days=1))
+            return attach_health([dict(row)], row["date"], end)[-1]
     
     return None
 
@@ -179,22 +210,8 @@ def get_delayed_index(delay_days: int = 1) -> Optional[Dict[str, Any]]:
     
     Orders by computed_at DESC to ensure proper chronological ordering.
     """
-    sql = """
-    SELECT id, index_id, date, value, band, trend_1d, trend_7d,
-           components, model_version, computed_at
-    FROM intel_indices_daily
-    WHERE index_id = %s
-    ORDER BY computed_at DESC
-    LIMIT 1 OFFSET 1
-    """
-    
-    with get_production_cursor() as cursor:
-        cursor.execute(sql, (INDEX_ID,))
-        row = cursor.fetchone()
-        if row:
-            return _recalc_band(dict(row))
-    
-    return None
+    latest = get_latest_index()
+    return get_index_for_date(latest["date"] - timedelta(days=delay_days)) if latest else None
 
 
 def get_previous_values(target_date: date, days: int = 7) -> List[int]:
@@ -203,13 +220,16 @@ def get_previous_values(target_date: date, days: int = 7) -> List[int]:
     SELECT value
     FROM intel_indices_daily
     WHERE index_id = %s AND date < %s
+      AND NOT EXISTS (SELECT 1 FROM geri_daily_health h WHERE h.index_date=date
+                      AND h.data_quality = ANY(%s::text[]))
     ORDER BY date DESC
     LIMIT %s
     """
     
     values = []
     with get_cursor() as cursor:
-        cursor.execute(sql, (INDEX_ID, target_date, days))
+        from src.geri.health import excluded_history_statuses
+        cursor.execute(sql, (INDEX_ID, target_date, excluded_history_statuses(), days))
         rows = cursor.fetchall()
         for row in rows:
             values.append(row['value'])
@@ -225,13 +245,16 @@ def get_historical_baseline(target_date: date, lookback_days: int = 90) -> Histo
     start_date = target_date - timedelta(days=lookback_days)
     
     sql = """
-    SELECT components
+    SELECT date, components
     FROM intel_indices_daily
     WHERE index_id = %s AND date >= %s AND date < %s
+      AND NOT EXISTS (SELECT 1 FROM geri_daily_health h WHERE h.index_date=date
+                      AND h.data_quality = ANY(%s::text[]))
     ORDER BY date
     """
     
     baseline = HistoricalBaseline()
+    baseline.source_dates = []
     
     high_impact_scores = []
     regional_spike_scores = []
@@ -239,10 +262,12 @@ def get_historical_baseline(target_date: date, lookback_days: int = 90) -> Histo
     region_concentration_scores = []
     
     with get_cursor() as cursor:
-        cursor.execute(sql, (INDEX_ID, start_date, target_date))
+        from src.geri.health import excluded_history_statuses
+        cursor.execute(sql, (INDEX_ID, start_date, target_date, excluded_history_statuses()))
         rows = cursor.fetchall()
         
         for row in rows:
+            baseline.source_dates.append(row["date"].isoformat())
             components = row['components']
             if isinstance(components, str):
                 components = json.loads(components)
@@ -267,60 +292,13 @@ def get_historical_baseline(target_date: date, lookback_days: int = 90) -> Histo
     return baseline
 
 
-def save_index(result: GERIResult, force: bool = False) -> bool:
+def save_index(result: GERIResult, force: bool = False, reason=None, apply_revision=False) -> bool:
     """
     Save GERI result to intel_indices_daily.
     OUTPUT ONLY - writes only to intel_indices_daily.
     """
-    components_json = json.dumps(result.components.to_dict())
-    interpretation = getattr(result.components, 'interpretation', None) or ''
-    
-    if force:
-        sql = """
-        INSERT INTO intel_indices_daily 
-            (index_id, date, value, band, trend_1d, trend_7d, components, interpretation, model_version, computed_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-        ON CONFLICT (index_id, date) 
-        DO UPDATE SET 
-            value = EXCLUDED.value,
-            band = EXCLUDED.band,
-            trend_1d = EXCLUDED.trend_1d,
-            trend_7d = EXCLUDED.trend_7d,
-            components = EXCLUDED.components,
-            interpretation = EXCLUDED.interpretation,
-            model_version = EXCLUDED.model_version,
-            computed_at = NOW()
-        RETURNING id
-        """
-    else:
-        sql = """
-        INSERT INTO intel_indices_daily 
-            (index_id, date, value, band, trend_1d, trend_7d, components, interpretation, model_version, computed_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-        ON CONFLICT (index_id, date) DO NOTHING
-        RETURNING id
-        """
-    
-    with get_cursor() as cursor:
-        cursor.execute(sql, (
-            result.index_id,
-            result.index_date,
-            result.value,
-            result.band.value,
-            result.trend_1d,
-            result.trend_7d,
-            components_json,
-            interpretation,
-            result.model_version,
-        ))
-        row = cursor.fetchone()
-        
-        if row:
-            logger.info(f"Saved GERI index for {result.index_date}: value={result.value}, band={result.band.value}")
-            return True
-        else:
-            logger.info(f"GERI index for {result.index_date} already exists (skipped)")
-            return False
+    from src.geri.publication import publish
+    return publish(result, force=force, reason=reason, apply_revision=apply_revision)
 
 
 def get_date_range_with_alerts() -> tuple:
