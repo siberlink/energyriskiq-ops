@@ -25,6 +25,17 @@ def metrics(cursor, now):
                          AND inserted_at<date_trunc('day',%s::timestamp))/28.0 AS average_daily_inflow_28d
         FROM events""", (now, now, now, now))
     value = dict(cursor.fetchone())
+    # Actual delivered worker invocations, not the cron's intended 24/day.
+    # Historical observations are imported from verified Actions run metadata.
+    cursor.execute("""SELECT count(*) AS delivered_runs_3d FROM job_runs
+        WHERE job_name='shadow_enrichment_delivery'
+          AND started_at >= (%s::timestamp AT TIME ZONE 'UTC')-interval '3 days'
+          AND status IN ('running','success','error','observed_success')""", (now,))
+    value.update(dict(cursor.fetchone()))
+    cursor.execute("""SELECT count(*) AS fresh_waiting FROM events
+        WHERE NOT processed AND ai_attempts<3 AND inserted_at >=
+        (SELECT activated_at FROM risk_pipeline_v2_control WHERE singleton)""")
+    value.update(dict(cursor.fetchone()))
     cursor.execute("""SELECT percentile_cont(.5) WITHIN GROUP
         (ORDER BY EXTRACT(EPOCH FROM (r.created_at-e.inserted_at))/3600) AS median_scoring_delay_hours
         FROM risk_events r JOIN events e ON e.id=r.event_id WHERE r.created_at >= %s-interval '24 hours'""", (now,))

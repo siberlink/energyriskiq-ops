@@ -12,7 +12,24 @@ from .shadow_budget import BudgetStopped, request, validation_failed, rate_slot
 logger = logging.getLogger(__name__)
 
 
-def run(batch_size=None):
+def run(batch_size=None, available_seconds=None):
+    """Record delivered normal batches across both Cloud and GitHub runners."""
+    if mode() != "shadow":
+        raise RuntimeError("Shadow enrichment requires explicit shadow mode")
+    from src.geri.job_health import start_run, finish_run
+    import uuid
+    run_id = (start_run(datetime.utcnow().date(), "shadow_enrichment_delivery",
+                        "enrichment:"+str(uuid.uuid4())) if batch_size is None else None)
+    try:
+        result = _run(batch_size, available_seconds)
+        finish_run(run_id, "error" if result[1] else "success")
+        return result
+    except Exception as error:
+        finish_run(run_id, "error", type(error).__name__)
+        raise
+
+
+def _run(batch_size=None, available_seconds=None):
     if mode() != "shadow":
         raise RuntimeError("Shadow enrichment requires explicit shadow mode")
     from . import ai_worker as legacy
@@ -22,7 +39,12 @@ def run(batch_size=None):
     with get_cursor() as c:
         health = metrics(c, now)
     settings = plan(health)
+    if available_seconds is not None:
+        settings["runtime_seconds"] = min(settings["runtime_seconds"], max(0, available_seconds))
     target = min(batch_size or settings["batch_size"], settings["retry_slot_capacity"])
+    if settings.get("capacity_limited"):
+        logger.warning("Measured delivery cadence exceeds bounded batch capacity required=%s available=%s",
+                       settings["required_batch_size"], target)
     client = legacy.get_openai_client().with_options(timeout=60, max_retries=0)
     deadline = time.monotonic() + settings["runtime_seconds"]
     success = failed = 0

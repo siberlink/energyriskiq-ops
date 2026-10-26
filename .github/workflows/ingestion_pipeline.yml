@@ -32,7 +32,7 @@ concurrency:
 jobs:
   run-ingestion:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 50
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}

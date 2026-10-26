@@ -26,27 +26,38 @@ def enabled():
 
 def plan(metrics):
     inflow = float(metrics["average_daily_inflow_28d"])
-    required = max(1, math.ceil(1.2 * inflow / 24))
+    delivered = metrics.get("delivered_runs_3d")
+    # One measured delivery/three days is the conservative cold-start floor.
+    runs_per_day = max(1 / 3, float(delivered) / 3) if delivered is not None else 24
+    required = max(1, math.ceil((1.2 * inflow + metrics.get("fresh_waiting", 0)/3) / runs_per_day))
     configured_rpm = float(os.environ.get("RISK_PIPELINE_V2_MAX_RPM", "20"))
     rpm = min(60 / max(.5, float(os.environ.get("AI_SLEEP_BETWEEN_CALLS", ".5"))), configured_rpm)
-    seconds = float(os.environ.get("RISK_PIPELINE_V2_RUN_SECONDS", "1200"))
+    seconds = float(os.environ.get("RISK_PIPELINE_V2_RUN_SECONDS", "1800"))
     budget = min(5., float(os.environ.get("RISK_PIPELINE_V2_DAILY_BUDGET_USD", "5")))
     if not all(math.isfinite(x) and x > 0 for x in (configured_rpm, rpm, seconds, budget)):
         raise ValueError("Positive request rate and runtime required")
     # Three request slots per event allow both retries; normal one-call capacity is higher.
     slot_capacity = math.floor(rpm * seconds / 60 / 3)
-    if required > slot_capacity:
+    if slot_capacity < 1:
+        raise RuntimeError("No event fits the configured runtime/rate limit")
+    if delivered is None and required > slot_capacity:
+        # Preserve the legacy unmeasured planner's fail-closed contract.
+        # Measured delivery shortfalls instead do bounded useful work and emit
+        # an explicit capacity_limited warning; aborting would worsen backlog.
         raise RuntimeError(f"Insufficient configured capacity: {required} events/run required, "
                            f"{slot_capacity} fit retry-reserved rate slots")
-    daily_capacity = required * 24
+    batch = min(required, slot_capacity)
+    daily_capacity = batch * runs_per_day
     net = daily_capacity - inflow
-    return {"batch_size": required, "runs_per_day": 24, "planned_daily_capacity": daily_capacity,
+    return {"batch_size": batch, "required_batch_size": required,
+            "capacity_limited": batch < required, "delivered_runs_3d": delivered,
+            "runs_per_day": runs_per_day, "planned_daily_capacity": daily_capacity,
             "capacity_ratio": daily_capacity / inflow if inflow else None,
             "max_rpm": rpm, "runtime_seconds": seconds, "retry_slot_capacity": slot_capacity,
             "catch_up_last7d_days_at_net_capacity": (
                 metrics.get("waiting_last7d_retryable", metrics["waiting_last7d"]) / net if net > 0 else None),
             "daily_budget_usd": budget,
-            "guarantee_scope": "configured hourly capacity; outages, budget exhaustion and failures raise shortfall"}
+            "guarantee_scope": "observed 72h delivery cadence, runtime/rate bounded; outages and budget exhaustion remain explicit"}
 
 
 def event_weight(row, zero_age):

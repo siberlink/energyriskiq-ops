@@ -5,13 +5,14 @@ import os
 from pathlib import Path
 import sys
 import time
+from datetime import datetime
 from contextlib import contextmanager
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 
 
 @contextmanager
-def single_runner(wait_seconds=1800):
+def single_runner(wait_seconds=60):
     """Wait for an already-running legacy ingestion; never steal its lock."""
     from src.db.db import advisory_lock
     deadline=time.monotonic()+wait_seconds
@@ -21,7 +22,7 @@ def single_runner(wait_seconds=1800):
                 yield
                 return
         if time.monotonic()>=deadline:
-            raise RuntimeError("Single production runner still active after 30-minute wait")
+            raise RuntimeError("Single production runner busy after bounded 60-second wait; retry required")
         print("Waiting for the existing ingestion runner; no paid calls started",flush=True)
         time.sleep(30)
 
@@ -45,15 +46,15 @@ def main():
         from src.ai.shadow_enrichment import run,catchup_remaining
         from src.risk.shadow_risk import run as risk
         with single_runner():
+            stop=time.monotonic()+46*60
             inserted,skipped,errors=run_ingestion()
             skip_ai=os.environ.get("SKIP_AI","false").lower()=="true"
             skip_risk=os.environ.get("SKIP_RISK","false").lower()=="true"
-            good,bad=run() if not skip_ai else (0,0)
+            good,bad=run(available_seconds=stop-time.monotonic()) if not skip_ai else (0,0)
             # Same one approved catch-up can resume after midnight's budget reset.
             # Keep the hourly job bounded so ingestion remains hourly.
-            stop=time.monotonic()+900
             while not skip_ai and catchup_remaining() and time.monotonic()<stop:
-                more,errors=run(batch_size=100)
+                more,errors=run(batch_size=100,available_seconds=stop-time.monotonic())
                 good+=more;bad+=errors
                 if more+errors==0:
                     break
