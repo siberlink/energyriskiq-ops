@@ -1365,7 +1365,8 @@ def _upgrade_legacy_to_bundle(
                 proration_behavior="always_invoice",
                 metadata=metadata,
             )
-        period = subscription.get("current_period_end")
+        from src.billing.stripe_client import get_subscription_period_end
+        period = get_subscription_period_end(subscription)
         period_end = datetime.utcfromtimestamp(period) if period else None
         source_table = (
             "user_geri_live_subs" if source == "geri_live"
