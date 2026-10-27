@@ -31,6 +31,8 @@ def record_existing_skip(day):
     try:
         from src.geri.health import record_health
         record_health(day)
+        from src.geri.version12 import compute_day
+        compute_day(day)
         finish_run(run_id, "skipped")
     except Exception as error:
         finish_run(run_id, "error", str(error))

@@ -96,7 +96,8 @@ def test_ingestion_pipeline_uses_one_direct_locked_operation():
     workflow = _assert_direct_job("ingestion_pipeline.yml", "ingestion")
 
     assert "cron: '0 * * * *'" in workflow
-    assert "timeout-minutes: 28" in workflow
+    # Owner-approved 50-minute ingestion envelope, restored 26 October 2026.
+    assert "timeout-minutes: 50" in workflow
     assert "group: ingestion-pipeline" not in workflow
     assert "SKIP_AI: ${{ github.event.inputs.skip_ai || 'false' }}" in workflow
     assert "SKIP_RISK: ${{ github.event.inputs.skip_risk || 'false' }}" in workflow

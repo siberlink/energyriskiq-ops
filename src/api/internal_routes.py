@@ -809,18 +809,25 @@ def run_geri_compute(
             result['model_version'] = MODEL_VERSION
             return result
         else:
-            yesterday = date.today() - timedelta(days=1)
+            yesterday = datetime.utcnow().date() - timedelta(days=1)
             existing = get_index_for_date(yesterday)
             if existing and not force:
+                from src.geri.job_health import record_existing_skip
+                record_existing_skip(yesterday)
                 return {
                     'status': 'skipped',
                     'reason': 'already_exists',
+                    'health_and_private_computation': 'completed',
                     'date': yesterday.isoformat(),
                     'message': f'GERI for {yesterday.isoformat()} already exists',
                     'model_version': MODEL_VERSION,
                 }
             result = compute_geri_for_date(yesterday, force=force)
             if result:
+                # The existing Daily writer owns publication and health. Compute
+                # only the private methodology afterward; never force a revision.
+                from src.geri.version12 import compute_day
+                compute_day(yesterday)
                 return {
                     'status': 'success',
                     'date': result.index_date.isoformat(),

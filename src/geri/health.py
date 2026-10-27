@@ -108,6 +108,7 @@ def store_health(rows):
     import json
     from src.db.db import get_cursor
     with get_cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(12014,1)")
         for row in rows:
             cursor.execute(
                 """INSERT INTO geri_daily_health
@@ -118,15 +119,21 @@ def store_health(rows):
                    alerts_count=EXCLUDED.alerts_count, alerts_ratio=EXCLUDED.alerts_ratio,
                    events_count=EXCLUDED.events_count,events_ratio=EXCLUDED.events_ratio,
                    feeds_ok=EXCLUDED.feeds_ok,feeds_configured=EXCLUDED.feeds_configured,
-                   data_quality=EXCLUDED.data_quality,details=EXCLUDED.details,computed_at=NOW()""",
+                   data_quality=EXCLUDED.data_quality,details=EXCLUDED.details,computed_at=NOW()
+                   WHERE geri_daily_health.provisional""",
                 tuple(row.get(k) for k in ("index_date", "alerts_count", "alerts_ratio",
                       "events_count", "events_ratio", "feeds_ok", "feeds_configured", "data_quality"))
                 + (json.dumps(row["details"], default=str),))
 
 
 def record_health(day):
+    if day >= utc_today():
+        raise ValueError("Scheduled Daily health requires a closed UTC day")
     from src.db.db import get_production_cursor
     with get_production_cursor() as cursor:
         row = health_series(cursor, day, day)[day]
     store_health([row])
-    return row
+    # Return the immutable final actually stored, not a later re-evaluation.
+    with get_production_cursor() as cursor:
+        cursor.execute("SELECT * FROM geri_daily_health WHERE index_date=%s", (day,))
+        return dict(cursor.fetchone())
