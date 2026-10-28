@@ -47,6 +47,9 @@ def history_for(day):
         s=r["smoothing_state"]
         history.append({"index_date":r["date"],"components":s["normalized_raw"],
                         "inputs":{"original_raw":s["original_raw"],"data_quality":s["data_quality"]}})
+    from src.geri.v12_history import final_history
+    with get_cursor(commit=False) as c:
+        history=final_history(c,history)
     return rows,history
 
 
@@ -110,7 +113,8 @@ def store(row,backfilled=False,reason=None,apply_revision=False):
             VALUES(%s,%s,%s,%s,%s,%s,%s::jsonb,%s,%s,%s::jsonb,%s,%s)
             ON CONFLICT(index_id,date) """
         sql+=("DO UPDATE SET "+",".join(f"{f}=EXCLUDED.{f}" for f in fields[2:])+
-              ",computed_at=now()" if apply_revision else "DO NOTHING")
+              ",computed_at=now(),backfilled=EXCLUDED.backfilled,"
+              "backfilled_at=EXCLUDED.backfilled_at" if apply_revision else "DO NOTHING")
         c.execute(sql,params+[backfilled,datetime.now(timezone.utc) if backfilled else None])
     return True
 
@@ -136,9 +140,15 @@ def compute_day(day,force=False,reason=None,apply_revision=False):
         raise ValueError("Daily v1.2 requires a closed UTC day")
     if force and not (reason and reason.strip()):
         raise ValueError("Forced v1.2 computation requires a reason")
+    from src.geri.v12_history import final_health,utc,exclude_correction
     with get_cursor(commit=False) as c:
+        health=final_health(c,day)
         c.execute("SELECT * FROM intel_indices_daily_v12 WHERE index_id=%s AND date=%s",(INDEX_ID,day))
         old=c.fetchone()
+    if old and not force and utc(old["computed_at"]) < utc(health["computed_at"]):
+        force=True
+        apply_revision=True
+        reason="Private observation preceded final closed-day health; recompute once"
     if old and not force:
         parity_monitor(day)
         return dict(old)
@@ -147,7 +157,7 @@ def compute_day(day,force=False,reason=None,apply_revision=False):
     if not rows and day>date(2026,1,14):
         raise ValueError("Missing v1.2 historical seed; refusing cold restart")
     alerts=get_alerts_for_date(day)
-    row=calculate_day(day,alerts,health_for(day)["data_quality"],rows,history)
+    row=calculate_day(day,alerts,health["data_quality"],rows,history)
     from src.geri.model_selection import published_model
     if published_model()=="v1.2" and row["smoothing_state"]["data_quality"]!="UNAVAILABLE":
         from src.geri.interpretation import generate_interpretation
@@ -156,7 +166,15 @@ def compute_day(day,force=False,reason=None,apply_revision=False):
             top_regions=[r["region"] for r in row["components"].get("top_regions",[])[:3]],
             index_date=day.isoformat(),components=row["components"])
         row["components"]["interpretation"]=row["interpretation"]
-    store(row,reason=reason if force else None,apply_revision=apply_revision)
+    store(row,backfilled=bool(old and apply_revision),
+          reason=reason if force else None,apply_revision=apply_revision)
+    if old and apply_revision:
+        with get_cursor() as c:
+            exclude_correction(c,day,{"reason":reason,"table":"intel_indices_daily_v12",
+                "old_value":old["value"],"new_value":row["value"]})
+    if not force or apply_revision:
+        from src.geri.live_v12 import finalize_close
+        finalize_close(row)
     parity_monitor(day)
     return row
 

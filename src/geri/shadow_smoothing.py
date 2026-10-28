@@ -18,6 +18,11 @@ def base_name(variant):
 
 def calculate(variant,day,quality,original,history,previous):
     """Identical causal transform and normalization boundary to the lab replay."""
+    if variant.name=="wk_carry15":
+        # The release candidate shares the frozen production kernel. Experimental
+        # arms retain their original lab definitions.
+        from src.geri.v12_math import vector
+        return vector(day,quality,original,history,previous)
     from src.geri.shadow_daily import normalize
     components=compute_components([])
     preceding=[(r["index_date"],tuple(r["inputs"]["original_raw"]),r["inputs"]["data_quality"])
@@ -85,10 +90,21 @@ def run(day=None):
                           (when,name))
                 if c.fetchone():
                     continue
+                if name=="wk_carry15":
+                    from src.geri.v12_history import final_health,FinalHealthPending
+                    try:
+                        quality=final_health(c,when)["data_quality"]
+                    except FinalHealthPending:
+                        pending.append({"date":str(when),"variant":name,
+                                        "reason":"final_health_not_ready"})
+                        continue
                 c.execute("""SELECT * FROM geri_shadow_daily WHERE variant=%s
                     AND index_date>=%s AND index_date<%s ORDER BY index_date""",
                           (name,when-timedelta(days=max(variant.baseline_window_days,56)),when))
                 history=[dict(r) for r in c.fetchall()]
+                if name=="wk_carry15":
+                    from src.geri.v12_history import final_history
+                    history=final_history(c,history)
                 if not history or history[-1]["index_date"]!=when-timedelta(days=1):
                     raise ValueError(f"Missing preceding smoothing state: {name} {when}")
                 key=base_name(variant)
@@ -109,10 +125,12 @@ def run(day=None):
                         raw[2]=base["components"]["raw_A"]
                     originals[key]=raw
             original=originals[base_name(variant)]
-            quality=base["inputs"]["data_quality"]
+            if name!="wk_carry15":
+                quality=base["inputs"]["data_quality"]
             value,output,state,diagnostics=calculate(
                 variant,when,quality,original,history,history[-1]["inputs"]["smoothing_state"])
-            inputs={**base["inputs"],**diagnostics,"step8":True,"seed":False,
+            inputs={**base["inputs"],**diagnostics,"data_quality":quality,
+                    "step8":True,"seed":False,
                     "base_variant":base_name(variant),"original_raw":original,
                     "smoothing_state":state,
                     "point_in_time":bool(base["inputs"].get("point_in_time"))

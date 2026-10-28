@@ -44,9 +44,12 @@ def test_private_failure_marks_run_error_and_propagates():
 
 def test_existing_private_row_is_not_recalculated_or_revised():
     from src.geri import version12
-    row = {"date": date(2026, 10, 26), "value": 22}
+    row = {"date": date(2026, 10, 26), "value": 22,
+           "computed_at": datetime(2026, 10, 27, 1, 31)}
     cursor = MagicMock()
-    cursor.fetchone.return_value = row
+    cursor.fetchone.side_effect = [
+        {"data_quality": "OK", "provisional": False,
+         "computed_at": datetime(2026, 10, 27, 1, 30)}, row]
     @contextmanager
     def context(*a, **kw):
         yield cursor
@@ -114,7 +117,9 @@ def test_new_private_day_resolves_all_helpers_without_publication_or_llm():
     from src.geri import version12, repo, interpretation
     from src.geri.model_selection import published_model, live_model
     cursor = MagicMock()
-    cursor.fetchone.return_value = None
+    cursor.fetchone.side_effect = [
+        {"data_quality": "OK", "provisional": False,
+         "computed_at": datetime(2026, 10, 27, 1, 30)}, None]
     @contextmanager
     def context(*a, **kw):
         yield cursor
@@ -129,6 +134,7 @@ def test_new_private_day_resolves_all_helpers_without_publication_or_llm():
          patch.object(version12, "health_for", return_value={"data_quality": "OK"}), \
          patch.object(repo, "get_alerts_for_date", return_value=[]), \
          patch.object(version12, "store") as private_store, \
+         patch("src.geri.live_v12.finalize_close"), \
          patch.object(version12, "parity_monitor"), \
          patch.object(interpretation, "generate_interpretation") as llm:
         result = version12.compute_day(day)
