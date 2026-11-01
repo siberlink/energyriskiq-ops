@@ -32,9 +32,13 @@ def metrics(cursor, now):
           AND started_at >= (%s::timestamp AT TIME ZONE 'UTC')-interval '3 days'
           AND status IN ('running','success','error','observed_success')""", (now,))
     value.update(dict(cursor.fetchone()))
-    cursor.execute("""SELECT count(*) AS fresh_waiting FROM events
-        WHERE NOT processed AND ai_attempts<3 AND inserted_at >=
-        (SELECT activated_at FROM risk_pipeline_v2_control WHERE singleton)""")
+    from src.geri.enrichment_evidence import FRESH_QUEUE_SQL
+    cursor.execute(FRESH_QUEUE_SQL)
+    value["fresh_waiting"] = cursor.fetchone()["fresh_queue"]
+    # Identical denominator to G1: the preceding three closed UTC days.
+    cursor.execute("""SELECT count(*)/3.0 AS fresh_queue_limit FROM events
+        WHERE inserted_at>=date_trunc('day',%s::timestamp)-interval '3 days'
+          AND inserted_at<date_trunc('day',%s::timestamp)""", (now, now))
     value.update(dict(cursor.fetchone()))
     cursor.execute("""SELECT percentile_cont(.5) WITHIN GROUP
         (ORDER BY EXTRACT(EPOCH FROM (r.created_at-e.inserted_at))/3600) AS median_scoring_delay_hours
@@ -49,7 +53,7 @@ def warning_reasons(value):
     reasons = []
     if value.get("median_scoring_delay_hours") is not None and value["median_scoring_delay_hours"] > 6:
         reasons.append("median scoring delay exceeds 6 hours")
-    if value["waiting_all"] > float(value["average_daily_inflow_28d"]):
+    if value["fresh_waiting"] >= float(value["fresh_queue_limit"]):
         reasons.append("queue exceeds 24 hours of average inflow")
     return reasons
 

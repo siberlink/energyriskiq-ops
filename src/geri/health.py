@@ -1,7 +1,8 @@
 """GERI input completeness. Classification is pure and never changes a score."""
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from statistics import median
 
+SOURCE_COVERAGE_POLICY_FROM = date(2026, 11, 1)
 ALERT_RATIO_FLOOR = 0.40
 EVENT_RATIO_FLOOR = 0.40
 FEED_SUCCESS_FLOOR = 0.50
@@ -47,7 +48,10 @@ def evaluate_day(day, alert_counts, event_counts=None, first_day=None, feed=None
     configured = feed.get("feeds_configured") if feed else None
     success = feeds_ok / configured if feeds_ok is not None and configured else None
     quality = "OK"
-    if ((alerts_ratio is not None and alerts_ratio < ALERT_RATIO_FLOOR)
+    # Owner-approved prospective policy. Retain the old rule for earlier dates;
+    # sparse alerts on normally covered days are genuine quiet days, not outages.
+    if ((day < SOURCE_COVERAGE_POLICY_FROM
+         and alerts_ratio is not None and alerts_ratio < ALERT_RATIO_FLOOR)
             or (events_ratio is not None and events_ratio < EVENT_RATIO_FLOOR)
             or (success is not None and success < FEED_SUCCESS_FLOOR)):
         quality = "DEGRADED"
@@ -60,6 +64,8 @@ def evaluate_day(day, alert_counts, event_counts=None, first_day=None, feed=None
         "events_ratio": events_ratio, "feeds_ok": feeds_ok,
         "feeds_configured": configured, "data_quality": quality,
         "details": {
+            "health_policy": ("source_coverage" if day >= SOURCE_COVERAGE_POLICY_FROM
+                              else "legacy_alert_and_source_coverage"),
             "same_weekday_observations": len(prior),
             "alerts_median": alerts_median, "events_median": events_median,
             "feed_success": success,

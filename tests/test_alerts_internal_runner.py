@@ -582,6 +582,9 @@ def test_daily_stage_validation_rejects_ambiguous_geri_no_result():
 def test_geri_compute_skips_existing_yesterday_without_writing(monkeypatch):
     from src.geri import repo as geri_repo
     from src.geri import service as geri_service
+    from src.geri import job_health
+    metadata_runs = []
+    monkeypatch.setattr(job_health, "record_existing_skip", lambda day: metadata_runs.append(day))
 
     monkeypatch.setattr(internal_routes, "validate_runner_token", lambda token: True)
     monkeypatch.setattr(geri_repo, "get_index_for_date", lambda _target_date: {"value": 42})
@@ -605,6 +608,7 @@ def test_geri_compute_skips_existing_yesterday_without_writing(monkeypatch):
     )
 
     assert response["details"]["status"] == "skipped"
+    assert len(metadata_runs) == 1  # Additive metadata only, never a score recomputation.
     assert response["details"]["reason"] == "already_exists"
     assert response["details"]["date"] == (
         internal_routes.date.today() - internal_routes.timedelta(days=1)
