@@ -4,6 +4,7 @@ import stripe
 from typing import Optional
 from src.db.db import get_cursor
 from src.plans.plan_helpers import apply_plan_settings_to_user
+from src.billing.stripe_client import get_subscription_period_end
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +114,7 @@ def _handle_dashboard_v2_subscription(subscription: dict) -> bool:
                 logger.error("Rejected Dashboard V2 subscription with unrecognized product/price mapping")
                 return True
     from datetime import datetime
-    period = subscription.get("current_period_end")
+    period = get_subscription_period_end(subscription)
     period_end = datetime.utcfromtimestamp(period) if period else None
     with get_cursor() as cur:
         cur.execute(
@@ -269,7 +270,7 @@ async def handle_checkout_session_completed(session: dict):
                 user_id=user_id,
                 subscription_id=subscription_id,
                 status=subscription["status"],
-                current_period_end=subscription.get("current_period_end")
+                current_period_end=get_subscription_period_end(subscription)
             )
             
             apply_plan_settings_to_user(user_id, plan_code)
@@ -360,7 +361,7 @@ async def handle_subscription_updated(subscription: dict):
         user_id=user_id,
         subscription_id=subscription["id"],
         status=subscription["status"],
-        current_period_end=subscription.get("current_period_end")
+        current_period_end=get_subscription_period_end(subscription)
     )
     
     if plan_code and subscription["status"] in ("active", "trialing"):
