@@ -39,7 +39,35 @@ def compute_geri_for_date(target_date: date, force: bool = False, reason=None,
         return None
     run_id = start_run(target_date)
     try:
-        result = _compute_geri_for_date(target_date, force, reason, apply_revision)
+        from src.geri.model_selection import reader_model
+        # Global reader switches must never change legacy writer inputs, its
+        # immutable-existence check, or its publication destination.
+        with reader_model("v1.1", live="legacy"):
+            result = _compute_geri_for_date(target_date, force, reason, apply_revision)
+        try:
+            from src.geri.version12 import compute_day
+            staged = compute_day(target_date, force, reason, apply_revision)
+            from src.geri.model_selection import published_model
+            if published_model() == "v1.2":
+                if staged["smoothing_state"]["data_quality"] == "UNAVAILABLE":
+                    result = None
+                else:
+                    from src.geri.types import GERIComponents
+                    comp = GERIComponents()
+                    for key, value in staged["components"].items():
+                        if hasattr(comp, key):
+                            setattr(comp, key, value)
+                    for key, value in staged["components"].get("normalized", {}).items():
+                        setattr(comp, "norm_" + key, value)
+                    result = build_result(target_date, staged["value"], comp,
+                                          staged["trend_1d"], staged["trend_7d"])
+                    result.model_version = "geri_v1.2"
+                    result.publication_status = "stored_v12"
+        except Exception:
+            logger.exception("INTERNAL: staged GERI v1.2 computation failed for %s", target_date)
+            from src.geri.model_selection import published_model
+            if published_model() == "v1.2":
+                raise
         finish_run(run_id, getattr(result, "publication_status", "skipped"))
         return result
     except Exception as error:

@@ -810,8 +810,10 @@ def run_geri_compute(
             return result
         else:
             yesterday = datetime.utcnow().date() - timedelta(days=1)
-            existing = get_index_for_date(yesterday)
-            if existing and not force:
+            from src.geri.model_selection import reader_model, published_model
+            with reader_model("v1.1"):
+                existing = get_index_for_date(yesterday)
+            if existing and not force and published_model() != "v1.2":
                 from src.geri.job_health import record_existing_skip
                 record_existing_skip(yesterday)
                 return {
@@ -824,10 +826,8 @@ def run_geri_compute(
                 }
             result = compute_geri_for_date(yesterday, force=force)
             if result:
-                # The existing Daily writer owns publication and health. Compute
-                # only the private methodology afterward; never force a revision.
-                from src.geri.version12 import compute_day
-                compute_day(yesterday)
+                # The service finalizes health, keeps legacy writes isolated,
+                # and returns the selected model after private computation.
                 return {
                     'status': 'success',
                     'date': result.index_date.isoformat(),
