@@ -7,7 +7,7 @@ Each plan tier receives content matching their dashboard features:
 - Free: 24h delayed GERI (value + band + direction), basic EERI, executive snapshot
 - Personal: Real-time GERI + 7d trends, EERI with drivers, multi-index digest
 - Trader: Full GERI + regime + momentum, EERI + components, probability scoring
-- Pro: GERI decomposition + AI narrative, EERI + contagion, scenario forecasts
+- Pro: GERI observations + narrative, EERI + contagion, scenario forecasts
 - Enterprise: Full institutional package, multi-region spillover, strategic interpretation
 """
 
@@ -20,6 +20,7 @@ from collections import defaultdict
 
 from src.db.db import get_cursor, execute_one, execute_query
 from src.alerts.channel_adapters import send_email_v2, send_telegram_v2
+from src.geri.delivery_context import selected_query, methodology_note, prompt_context
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ def get_latest_geri(delayed: bool = False) -> Optional[Dict]:
             ORDER BY date DESC
             LIMIT 1
         """
-    row = execute_one(sql)
+    row = execute_one(selected_query(sql))
     if row:
         result = dict(row)
         if result.get('components') and isinstance(result['components'], str):
@@ -91,13 +92,13 @@ def get_latest_geri(delayed: bool = False) -> Optional[Dict]:
 
 
 def get_geri_history(days: int = 7) -> List[Dict]:
-    rows = execute_query("""
+    rows = execute_query(selected_query("""
         SELECT date, value, band, trend_1d
         FROM intel_indices_daily
         WHERE index_id = 'global:geo_energy_risk'
         ORDER BY date DESC
         LIMIT %s
-    """, (days,))
+    """), (days,))
     return [_recalc_band_from_value(dict(r)) for r in rows] if rows else []
 
 
@@ -222,6 +223,7 @@ def build_geri_section_email(geri: Dict, plan: str) -> str:
             <span style="background:{band_color}20;color:{band_color};padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;">{band}</span>
         </div>
         <div style="color:#94a3b8;font-size:13px;margin-bottom:12px;">Date: {geri_date}</div>
+        <div style="color:#94a3b8;font-size:12px;">{methodology_note()}</div>
     """
 
     if level >= 1 and trend_1d is not None:
@@ -245,16 +247,6 @@ def build_geri_section_email(geri: Dict, plan: str) -> str:
     if level >= 2:
         risk_tone = get_risk_tone(value, trend_1d)
         html += f'<div style="margin-top:12px;"><span style="color:#94a3b8;font-size:13px;">Risk Tone:</span> <span style="color:#e2e8f0;font-weight:600;">{risk_tone}</span></div>'
-
-    if level >= 2 and components:
-        drivers_html = ""
-        for key in ['high_impact_score', 'regional_spike_score', 'asset_risk_score']:
-            val = components.get(key)
-            if val is not None:
-                label = key.replace('_', ' ').title()
-                drivers_html += f'<div style="color:#cbd5e1;font-size:12px;padding-left:8px;">{label}: {val}</div>'
-        if drivers_html:
-            html += f'<div style="margin-top:12px;"><span style="color:#94a3b8;font-size:13px;font-weight:600;">Component Scores:</span>{drivers_html}</div>'
 
     if interpretation and level >= 1:
         max_len = 200 if level <= 1 else 500 if level <= 2 else 0
@@ -500,6 +492,7 @@ def build_geri_telegram(geri: Dict, plan: str) -> str:
     parts = []
     parts.append("*GERI Daily Update*")
     parts.append(f"Date: {geri_date}")
+    parts.append(methodology_note())
     parts.append(f"Value: *{value}/100* ({band})")
 
     if level >= 1 and trend_1d is not None:
@@ -698,7 +691,7 @@ def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[
         elif level == 3:
             section_instructions = """OUTPUT (PRO PLAN - max 800 words):
 1) EXECUTIVE RISK SNAPSHOT with regime classification
-2) INDEX DECOMPOSITION: GERI component drivers
+2) INDEX OBSERVATIONS: GERI level, direction and supplied event context
 3) CROSS-ASSET SENSITIVITY TABLE
 4) REGIME CLASSIFICATION + shift detection
 5) SCENARIO OUTLOOK: Base case, Escalation, De-escalation
@@ -706,7 +699,7 @@ def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[
         else:
             section_instructions = """OUTPUT (ENTERPRISE PLAN - max 1000 words):
 1) EXECUTIVE RISK SNAPSHOT with regime + contagion status
-2) FULL INDEX DECOMPOSITION with component attribution
+2) INDEX OBSERVATIONS: observed levels, trends and supplied event context
 3) MULTI-REGION SPILLOVER ANALYSIS
 4) CROSS-ASSET SENSITIVITY DASHBOARD
 5) REGIME CLASSIFICATION + transition probability
@@ -735,6 +728,7 @@ ASSET MOVES:
 
 {section_instructions}
 """
+        user_prompt += prompt_context(geri)
 
         max_tokens = 400 if level == 0 else 700 if level == 1 else 1000 if level == 2 else 1300
         response = client.chat.completions.create(
@@ -888,9 +882,12 @@ def run_index_delivery() -> Dict:
             needs_digest = ('daily_digest' in email_indices or 'daily_digest' in telegram_indices)
             ai_digest = None
             if needs_digest:
-                if plan not in digest_cache:
-                    digest_cache[plan] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
-                ai_digest = digest_cache[plan]
+                # Never share a batch narrative across selected observations.
+                from src.geri.model_selection import published_model
+                digest_key = (plan, published_model(), str(effective_date))
+                if digest_key not in digest_cache:
+                    digest_cache[digest_key] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
+                ai_digest = digest_cache[digest_key]
 
             if email_indices and email and not is_free:
                 if not has_been_delivered_today(user_id, 'email', effective_date):

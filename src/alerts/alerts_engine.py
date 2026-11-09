@@ -16,7 +16,7 @@ from src.alerts.templates import (
     format_high_impact_event,
     add_upgrade_hook_if_free
 )
-from src.alerts.channels import send_email, send_telegram, send_sms
+from src.alerts.channels import send_alert_email as send_email, send_telegram, send_sms
 from src.plans.plan_helpers import get_plan_settings, get_allowed_alert_types
 
 logging.basicConfig(

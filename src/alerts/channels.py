@@ -16,6 +16,13 @@ TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
 
 
+def send_alert_email(to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> tuple:
+    """Keep the owner's email-alert pause fail-closed; Telegram is independent."""
+    if os.environ.get('ALERTS_EMAIL_ENABLED', 'false').strip().lower() != 'true':
+        return False, "Email alerts disabled via ALERTS_EMAIL_ENABLED", None
+    return send_email(to_email, subject, body, html_body)
+
+
 def send_email(to_email: str, subject: str, body: str, html_body: Optional[str] = None) -> tuple:
     if not to_email:
         return False, "No email address provided", None

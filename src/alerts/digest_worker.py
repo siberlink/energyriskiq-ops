@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from src.db.db import get_cursor, execute_query, execute_one
 from src.db.migrations import run_migrations
-from src.alerts.channels import send_email
+from src.alerts.channels import send_alert_email as send_email
 from src.alerts.templates import format_daily_digest
 from src.plans.plan_helpers import get_plan_settings, get_allowed_alert_types
 

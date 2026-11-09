@@ -7,6 +7,7 @@ from typing import Optional
 
 from src.db.db import execute_query, execute_one, execute_production_query, execute_production_one
 from src.api.user_routes import verify_user_session
+from src.geri.delivery_context import selected_query, prompt_context, narrative_cache_key
 
 logger = logging.getLogger(__name__)
 
@@ -53,13 +54,13 @@ def get_alerts(limit: int = 20, is_delayed: bool = False):
 
 
 def get_index_snapshot(index_id: str, days: int = 2):
-    rows = execute_production_query("""
+    rows = execute_production_query(selected_query("""
         SELECT date, value, band, trend_1d, trend_7d, interpretation, components
         FROM intel_indices_daily
         WHERE index_id = %s
         ORDER BY date DESC
         LIMIT %s
-    """, (index_id, days))
+    """), (index_id, days))
     return [dict(r) for r in rows] if rows else []
 
 
@@ -649,7 +650,7 @@ Keep total output under 700 words."""
             section_instructions = f"""
 OUTPUT SECTIONS (PRO PLAN):
 1) EXECUTIVE RISK SNAPSHOT with regime classification
-2) INDEX DECOMPOSITION: GERI component drivers (supply, transit, freight, storage contributions)
+2) INDEX OBSERVATIONS: GERI level, direction and supplied event context
 3) TOP RISK EVENTS with cross-regional contagion analysis
 4) CROSS-ASSET SENSITIVITY TABLE: GERI beta vs Brent, TTF, VIX, EUR/USD
 5) MARKET REACTION vs RISK SIGNAL with divergence analysis
@@ -666,7 +667,7 @@ Keep total output under 900 words."""
             section_instructions = f"""
 OUTPUT SECTIONS (ENTERPRISE PLAN):
 1) EXECUTIVE RISK SNAPSHOT with regime + contagion status
-2) FULL INDEX DECOMPOSITION with component attribution
+2) INDEX OBSERVATIONS: observed levels, trends and supplied event context
 3) MULTI-REGION SPILLOVER ANALYSIS: How risk spreads between regions
 4) CROSS-ASSET SENSITIVITY DASHBOARD with beta table
 5) DIVERGENCE ANALYSIS: Risk signal vs market pricing gap
@@ -711,6 +712,7 @@ ASSET MOVES:
 
 {section_instructions}
 """
+        user_prompt += prompt_context(geri_current)
 
         response = client.chat.completions.create(
             model="gpt-4.1-mini",
@@ -730,6 +732,7 @@ ASSET MOVES:
 
 
 def get_cached_ai_narrative(cache_key: str):
+    cache_key = narrative_cache_key(cache_key)
     try:
         row = execute_one(
             "SELECT narrative FROM daily_digest_ai_cache WHERE cache_key = %s",
@@ -742,6 +745,7 @@ def get_cached_ai_narrative(cache_key: str):
 
 
 def set_cached_ai_narrative(cache_key: str, narrative: str):
+    cache_key = narrative_cache_key(cache_key)
     try:
         execute_query(
             """

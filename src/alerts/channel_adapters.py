@@ -23,7 +23,7 @@ ALERTS_RATE_LIMIT_EMAIL_PER_MINUTE = int(os.environ.get('ALERTS_RATE_LIMIT_EMAIL
 ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE = int(os.environ.get('ALERTS_RATE_LIMIT_TELEGRAM_PER_MINUTE', '0'))
 ALERTS_RATE_LIMIT_SMS_PER_MINUTE = int(os.environ.get('ALERTS_RATE_LIMIT_SMS_PER_MINUTE', '0'))
 ALERTS_FAIL_OPEN_ON_CHANNEL_MISSING = os.environ.get('ALERTS_FAIL_OPEN_ON_CHANNEL_MISSING', 'false').lower() == 'true'
-ALERTS_EMAIL_ENABLED = os.environ.get('ALERTS_EMAIL_ENABLED', 'true').lower() == 'true'
+ALERTS_EMAIL_ENABLED = os.environ.get('ALERTS_EMAIL_ENABLED', 'false').lower() == 'true'
 
 
 class FailureType(Enum):
@@ -242,7 +242,7 @@ def send_email_v2(
     
     _check_rate_limit('email')
     
-    from src.alerts.channels import send_email
+    from src.alerts.channels import send_alert_email as send_email
     success, error, message_id = send_email(to_email, subject, body)
     
     if success:
