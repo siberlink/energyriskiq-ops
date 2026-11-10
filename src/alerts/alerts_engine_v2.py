@@ -2,7 +2,7 @@ import logging
 import os
 import json
 from decimal import Decimal
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Dict, List, Tuple
 
 from src.db.db import get_cursor, execute_query, execute_one
@@ -12,7 +12,7 @@ def safe_json_serializer(obj):
     """Custom JSON serializer for types not serializable by default json encoder."""
     if isinstance(obj, Decimal):
         return float(obj)
-    if isinstance(obj, datetime):
+    if isinstance(obj, (date, datetime)):
         return obj.isoformat()
     if isinstance(obj, (set, frozenset)):
         return list(obj)
@@ -513,12 +513,21 @@ def generate_storage_risk_events() -> Dict:
     raw = row.get("raw_data") or {}
     if isinstance(raw, str):
         raw = json.loads(raw)
-    data_date = str(raw.get("gasDayStart") or raw.get("date") or row["date"])
+    data_date = raw.get("gasDayStart") or raw.get("date") or row["date"]
+    data_date = data_date.isoformat() if isinstance(data_date, (date, datetime)) else str(data_date)
+    # PostgreSQL NUMERIC is Decimal, unlike the old provider's float values.
+    # Normalize the read boundary, never the stored precision or scoring rules.
+    numeric_fields = (
+        "eu_storage_percent", "seasonal_norm", "deviation_from_norm",
+        "refill_speed_7d", "withdrawal_rate_7d",
+    )
+    numeric = {name: float(row[name]) if row[name] is not None else None
+               for name in numeric_fields}
     metrics = StorageMetrics(
         date=data_date,
+        **numeric,
         **{name: row[name] for name in (
-            "eu_storage_percent", "seasonal_norm", "deviation_from_norm", "refill_speed_7d",
-            "withdrawal_rate_7d", "winter_deviation_risk", "days_to_target", "risk_score",
+            "winter_deviation_risk", "days_to_target", "risk_score",
             "risk_band", "interpretation")}
     )
     logger.info("Storage alert reads persisted gas_day=%s; provider writes disabled", data_date)

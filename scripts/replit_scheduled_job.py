@@ -99,7 +99,9 @@ def _invoke(name: str, handler_name: str, token: str, **kwargs) -> int:
 
     if not isinstance(payload, dict):
         payload = {"detail": payload}
-    print(json.dumps({"job": name, "status": status, "response": payload}, sort_keys=True))
+    from src.alerts.alerts_engine_v2 import safe_json_serializer
+    print(json.dumps({"job": name, "status": status, "response": payload},
+                     sort_keys=True, default=safe_json_serializer))
 
     if status == 409:
         print(f"{name}: busy; the protected job is already running")

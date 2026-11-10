@@ -107,6 +107,7 @@ class EngineRunTracker:
         phase_item["error_summary"] = truncate_error(error)
         
         try:
+            from src.alerts.alerts_engine_v2 import safe_json_serializer
             if self._db_initialized:
                 with get_cursor() as cursor:
                     cursor.execute(
@@ -122,7 +123,7 @@ class EngineRunTracker:
                             phase_item["finished_at"],
                             phase_item["duration_ms"],
                             phase_item["status"],
-                            json.dumps(counts) if counts else None,
+                            json.dumps(counts, default=safe_json_serializer) if counts else None,
                             phase_item["error_summary"]
                         )
                     )
@@ -131,12 +132,12 @@ class EngineRunTracker:
     
     def finish(self, status: str, counts: Optional[Dict] = None, error: Optional[str] = None):
         """Finalize the run record."""
-        from src.ingest.gas_storage_revisions import runtime_identity
-        counts = {**(counts or {}), "storage_runtime": runtime_identity()}
-        finished_at = datetime.now(timezone.utc)
-        duration_ms = int((finished_at - self.started_at).total_seconds() * 1000)
-        
         try:
+            from src.alerts.alerts_engine_v2 import safe_json_serializer
+            from src.ingest.gas_storage_revisions import runtime_identity
+            counts = {**(counts or {}), "storage_runtime": runtime_identity()}
+            finished_at = datetime.now(timezone.utc)
+            duration_ms = int((finished_at - self.started_at).total_seconds() * 1000)
             if self._db_initialized:
                 with get_cursor() as cursor:
                     cursor.execute(
@@ -149,7 +150,7 @@ class EngineRunTracker:
                             finished_at,
                             duration_ms,
                             status,
-                            json.dumps(counts) if counts else None,
+                            json.dumps(counts, default=safe_json_serializer) if counts else None,
                             truncate_error(error),
                             self.run_id
                         )
