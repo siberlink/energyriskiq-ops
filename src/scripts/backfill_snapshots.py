@@ -64,17 +64,9 @@ def fetch_gas_storage_for_date(target_date: str) -> Optional[Dict[str, Any]]:
             logger.warning(f"No gas storage data for {target_date}")
             return None
         
-        entry = data["data"][0]
-        return {
-            "date": entry.get("gasDayStart", target_date),
-            "gas_in_storage_twh": float(entry.get("gasInStorage", 0) or 0),
-            "full_percent": float(entry.get("full", 0) or 0),
-            "injection_twh": float(entry.get("injection", 0) or 0),
-            "withdrawal_twh": float(entry.get("withdrawal", 0) or 0),
-            "working_gas_volume_twh": float(entry.get("workingGasVolume", 0) or 0),
-            "trend": float(entry.get("trend", 0) or 0),
-            "consumption_twh": float(entry.get("consumption", 0) or 0),
-        }
+        from src.ingest.gie_agsi import normalize_storage_entry, select_eu_entry
+        entry = select_eu_entry(data["data"])
+        return normalize_storage_entry(entry, "EU") if entry else None
     except Exception as e:
         logger.error(f"Failed to fetch gas storage for {target_date}: {e}")
         return None
@@ -119,9 +111,9 @@ def compute_gas_metrics(data: Dict, month: int) -> Dict[str, Any]:
         interpretation += "near seasonal average."
     
     return {
-        "eu_storage_percent": round(eu_storage_percent, 1),
+        "eu_storage_percent": eu_storage_percent,
         "seasonal_norm": seasonal_norm,
-        "deviation_from_norm": round(deviation, 1),
+        "deviation_from_norm": deviation,
         "refill_speed_7d": round(data.get("injection_twh", 0), 2),
         "withdrawal_rate_7d": round(data.get("withdrawal_twh", 0), 2),
         "winter_deviation_risk": winter_risk,
@@ -134,43 +126,14 @@ def compute_gas_metrics(data: Dict, month: int) -> Dict[str, Any]:
 
 
 def save_gas_storage_snapshot(conn, target_date: str, metrics: Dict) -> bool:
-    """Save gas storage snapshot to database."""
+    """Delegate provider writes; target_date never overrides provider gasDayStart."""
     try:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                INSERT INTO gas_storage_snapshots 
-                (date, eu_storage_percent, seasonal_norm, deviation_from_norm,
-                 refill_speed_7d, withdrawal_rate_7d, winter_deviation_risk,
-                 days_to_target, risk_score, risk_band, interpretation, raw_data)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (date) DO UPDATE SET
-                    eu_storage_percent = EXCLUDED.eu_storage_percent,
-                    seasonal_norm = EXCLUDED.seasonal_norm,
-                    deviation_from_norm = EXCLUDED.deviation_from_norm,
-                    refill_speed_7d = EXCLUDED.refill_speed_7d,
-                    withdrawal_rate_7d = EXCLUDED.withdrawal_rate_7d,
-                    winter_deviation_risk = EXCLUDED.winter_deviation_risk,
-                    days_to_target = EXCLUDED.days_to_target,
-                    risk_score = EXCLUDED.risk_score,
-                    risk_band = EXCLUDED.risk_band,
-                    interpretation = EXCLUDED.interpretation,
-                    raw_data = EXCLUDED.raw_data
-            """, (
-                target_date,
-                metrics["eu_storage_percent"],
-                metrics["seasonal_norm"],
-                metrics["deviation_from_norm"],
-                metrics["refill_speed_7d"],
-                metrics["withdrawal_rate_7d"],
-                metrics["winter_deviation_risk"],
-                metrics["days_to_target"],
-                metrics["risk_score"],
-                metrics["risk_band"],
-                metrics["interpretation"],
-                json.dumps(metrics["raw_data"])
-            ))
+        from src.ingest.gas_storage_revisions import write_eu_scoring_snapshot
+        result = write_eu_scoring_snapshot(conn, metrics)
         conn.commit()
-        return True
+        if isinstance(result, dict):
+            logger.info("AGSI_REVISION %s", json.dumps(result, default=str, sort_keys=True))
+        return bool(result)
     except Exception as e:
         logger.error(f"Failed to save gas storage: {e}")
         conn.rollback()
@@ -304,7 +267,7 @@ def backfill_date_range(start_date: date, end_date: date) -> Dict[str, Any]:
         
         gas_data = fetch_gas_storage_for_date(date_str)
         if gas_data:
-            month = current_date.month
+            month = date.fromisoformat(gas_data["date"]).month
             metrics = compute_gas_metrics(gas_data, month)
             if save_gas_storage_snapshot(conn, date_str, metrics):
                 logger.info(f"  Gas storage: {metrics['eu_storage_percent']}% ({metrics['risk_band']})")

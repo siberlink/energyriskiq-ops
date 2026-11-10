@@ -485,8 +485,8 @@ def generate_storage_risk_events() -> Dict:
     """
     Generate alert events from EU gas storage data.
     
-    Fetches current storage metrics from GIE AGSI+ API, persists snapshot,
-    and creates ASSET_RISK_SPIKE alert if storage conditions warrant.
+    Reads the persisted storage snapshot and creates ASSET_RISK_SPIKE alerts.
+    Never fetches provider data or writes provider storage tables.
     
     Note: GIE AGSI+ data is typically for yesterday (T-1) due to reporting lag.
     Idempotency is based on the actual data date from the API response.
@@ -495,97 +495,33 @@ def generate_storage_risk_events() -> Dict:
     skipped_count = 0
     
     try:
-        from src.ingest.gie_agsi import (
-            fetch_eu_storage_data,
-            fetch_historical_storage,
-            compute_storage_metrics,
-            generate_storage_alert
-        )
+        from src.ingest.gie_agsi import StorageMetrics, generate_storage_alert
     except ImportError as e:
         logger.warning(f"GIE AGSI+ module not available: {e}")
         return {'created': [], 'skipped': 0, 'error': 'module_not_available'}
     
-    gie_api_key = os.environ.get('GIE_API_KEY', '')
-    if not gie_api_key:
-        logger.info("GIE_API_KEY not configured - skipping storage check")
-        return {'created': [], 'skipped': 0, 'error': 'api_key_not_configured'}
-    
-    logger.info("Fetching EU gas storage data from GIE AGSI+...")
-    current_data = fetch_eu_storage_data()
-    if not current_data:
-        logger.warning("Failed to fetch current EU storage data")
-        return {'created': [], 'skipped': 0, 'error': 'fetch_failed'}
-    
-    data_date = current_data.get('date')
-    if not data_date:
-        logger.warning("No date in storage data response")
-        return {'created': [], 'skipped': 0, 'error': 'no_date_in_response'}
-    
-    # Per-country storage ingestion is independent of the EU-aggregate alert flow
-    # and idempotent (upsert), so run it up-front — before the EU duplicate-date
-    # early return below — so country data still ingests on EU re-runs/backfills.
-    try:
-        from src.ingest.gie_agsi import ingest_country_storage
-        country_result = ingest_country_storage(date_str=data_date)
-        logger.info(
-            f"Per-country storage ingested for {data_date}: "
-            f"{country_result.get('success', 0)} countries"
-        )
-    except Exception as e:
-        logger.error(f"Failed to ingest per-country storage: {e}")
-    
-    existing_check = execute_one(
-        "SELECT id FROM gas_storage_snapshots WHERE date = %s",
-        (data_date,)
+    row = execute_one("""
+        SELECT date,eu_storage_percent,seasonal_norm,deviation_from_norm,refill_speed_7d,
+               withdrawal_rate_7d,winter_deviation_risk,days_to_target,risk_score,risk_band,
+               interpretation,raw_data
+        FROM gas_storage_snapshots
+        ORDER BY COALESCE(NULLIF(raw_data->>'gasDayStart','')::date,
+                         NULLIF(raw_data->>'date','')::date,date) DESC,date DESC LIMIT 1
+    """)
+    if not row:
+        return {'created': [], 'skipped': 1, 'error': 'no_stored_storage'}
+    raw = row.get("raw_data") or {}
+    if isinstance(raw, str):
+        raw = json.loads(raw)
+    data_date = str(raw.get("gasDayStart") or raw.get("date") or row["date"])
+    metrics = StorageMetrics(
+        date=data_date,
+        **{name: row[name] for name in (
+            "eu_storage_percent", "seasonal_norm", "deviation_from_norm", "refill_speed_7d",
+            "withdrawal_rate_7d", "winter_deviation_risk", "days_to_target", "risk_score",
+            "risk_band", "interpretation")}
     )
-    if existing_check:
-        logger.debug(f"Storage snapshot already exists for {data_date} - skipping")
-        return {'created': [], 'skipped': 1, 'already_processed': True, 'data_date': data_date}
-    
-    historical_data = fetch_historical_storage(days=7)
-    
-    metrics = compute_storage_metrics(current_data, historical_data)
-    logger.info(f"Storage metrics: {metrics.eu_storage_percent}% full, "
-                f"deviation {metrics.deviation_from_norm:+.1f}%, "
-                f"risk score {metrics.risk_score} ({metrics.risk_band})")
-    
-    try:
-        with get_cursor() as cursor:
-            cursor.execute("""
-                INSERT INTO gas_storage_snapshots 
-                (date, eu_storage_percent, seasonal_norm, deviation_from_norm,
-                 refill_speed_7d, withdrawal_rate_7d, winter_deviation_risk,
-                 days_to_target, risk_score, risk_band, interpretation, raw_data)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (date) DO UPDATE SET
-                    eu_storage_percent = EXCLUDED.eu_storage_percent,
-                    seasonal_norm = EXCLUDED.seasonal_norm,
-                    deviation_from_norm = EXCLUDED.deviation_from_norm,
-                    refill_speed_7d = EXCLUDED.refill_speed_7d,
-                    withdrawal_rate_7d = EXCLUDED.withdrawal_rate_7d,
-                    winter_deviation_risk = EXCLUDED.winter_deviation_risk,
-                    days_to_target = EXCLUDED.days_to_target,
-                    risk_score = EXCLUDED.risk_score,
-                    risk_band = EXCLUDED.risk_band,
-                    interpretation = EXCLUDED.interpretation,
-                    raw_data = EXCLUDED.raw_data
-            """, (
-                metrics.date,
-                metrics.eu_storage_percent,
-                metrics.seasonal_norm,
-                metrics.deviation_from_norm,
-                metrics.refill_speed_7d,
-                metrics.withdrawal_rate_7d,
-                metrics.winter_deviation_risk,
-                metrics.days_to_target,
-                metrics.risk_score,
-                metrics.risk_band,
-                metrics.interpretation,
-                json.dumps(current_data, default=safe_json_serializer)
-            ))
-        logger.info(f"Persisted storage snapshot for {metrics.date}")
-    except Exception as e:
-        logger.error(f"Failed to persist storage snapshot: {e}")
+    logger.info("Storage alert reads persisted gas_day=%s; provider writes disabled", data_date)
     
     alert_data = generate_storage_alert(metrics)
     

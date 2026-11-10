@@ -12,47 +12,15 @@ Dates are inclusive, YYYY-MM-DD. The target database is whatever src/db/db.py
 resolves (PRODUCTION_DATABASE_URL first, then DATABASE_URL). To target the dev
 DB explicitly, run with `env -u PRODUCTION_DATABASE_URL ...`.
 """
-import json
 import sys
 import time
-
-from psycopg2.extras import execute_values
-
-from src.db.db import get_cursor
+from datetime import date
 from src.ingest.gie_agsi import (
     GIE_API_KEY,
     MAJOR_EU_COUNTRIES,
-    COUNTRY_NAMES,
     _make_api_request,
+    normalize_storage_entry,
 )
-
-UPSERT_SQL = """
-    INSERT INTO gas_storage_country_snapshots
-    (date, level, country_code, country_name, operator_code, facility_code,
-     storage_percent, gas_in_storage_twh, working_gas_volume_twh,
-     injection_twh, withdrawal_twh, trend, raw_data)
-    VALUES %s
-    ON CONFLICT (date, level, country_code, operator_code, facility_code)
-    DO UPDATE SET
-        country_name = EXCLUDED.country_name,
-        storage_percent = EXCLUDED.storage_percent,
-        gas_in_storage_twh = EXCLUDED.gas_in_storage_twh,
-        working_gas_volume_twh = EXCLUDED.working_gas_volume_twh,
-        injection_twh = EXCLUDED.injection_twh,
-        withdrawal_twh = EXCLUDED.withdrawal_twh,
-        trend = EXCLUDED.trend,
-        raw_data = EXCLUDED.raw_data
-"""
-
-ROW_TEMPLATE = "(%s, 'country', %s, %s, '', '', %s, %s, %s, %s, %s, %s, %s)"
-
-
-def _f(entry, key):
-    try:
-        return float(entry.get(key, 0) or 0)
-    except (TypeError, ValueError):
-        return 0.0
-
 
 def backfill_country(code: str, start: str, end: str) -> int:
     """Fetch one country's full range in a single request and upsert each day."""
@@ -63,45 +31,23 @@ def backfill_country(code: str, start: str, end: str) -> int:
         return 0
 
     entries = data.get("data", [])
-    name = COUNTRY_NAMES.get(code.upper(), code.upper())
-    values = []
+    from src.ingest.gas_storage_revisions import apply_revision_plan
+    observations = []
     for entry in entries:
-        date_str = entry.get("gasDayStart")
-        if not date_str:
+        row = normalize_storage_entry(entry, code.upper())
+        if not row or not start <= row["date"] <= end:
             continue
-        row = {
-            "country": code.upper(),
-            "date": date_str,
-            "gas_in_storage_twh": _f(entry, "gasInStorage"),
-            "full_percent": _f(entry, "full"),
-            "injection_twh": _f(entry, "injection"),
-            "withdrawal_twh": _f(entry, "withdrawal"),
-            "working_gas_volume_twh": _f(entry, "workingGasVolume"),
-            "trend": _f(entry, "trend"),
-        }
-        values.append((
-            row["date"],
-            code.upper(),
-            name,
-            row["full_percent"],
-            row["gas_in_storage_twh"],
-            row["working_gas_volume_twh"],
-            row["injection_twh"],
-            row["withdrawal_twh"],
-            row["trend"],
-            json.dumps(row),
-        ))
+        row["country"] = code.upper()
+        observations.append({"area": code.upper(), "data": row})
 
-    if not values:
+    if not observations:
         print(f"  {code}: 0 days")
         return 0
 
-    with get_cursor() as cursor:
-        execute_values(cursor, UPSERT_SQL, values, template=ROW_TEMPLATE)
-
-    print(f"  {code}: {len(values)} days upserted "
-          f"({entries[-1].get('gasDayStart')} -> {entries[0].get('gasDayStart')})")
-    return len(values)
+    result = apply_revision_plan({"start": str(date.fromisoformat(start)), "end": end,
+                                  "errors": [], "observations": observations})
+    print(f"  {code}: {result['success']} observations; {result['revision_count']} revisions")
+    return result["success"]
 
 
 def main():

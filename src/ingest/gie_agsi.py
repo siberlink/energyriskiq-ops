@@ -116,6 +116,18 @@ def _make_api_request(endpoint: str, params: Optional[Dict] = None) -> Optional[
         return None
 
 
+def select_eu_entry(entries):
+    """The /eu response can contain both EU and Non-EU aggregates."""
+    for entry in entries:
+        if str(entry.get("code","")).lower()=="eu" or entry.get("name")=="EU":
+            return entry
+    # Some legacy fixtures/providers omit identity fields altogether.
+    if entries and not any("code" in e or "name" in e for e in entries):
+        return entries[0]
+    logger.warning("AGSI rejected EU response: no EU aggregate entry")
+    return None
+
+
 def fetch_eu_storage_data(date_str: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Fetch EU-wide gas storage data for a specific date.
@@ -142,9 +154,24 @@ def fetch_eu_storage_data(date_str: Optional[str] = None) -> Optional[Dict[str, 
         logger.warning(f"No EU storage data for {date_str}")
         return None
     
-    entry = entries[0]
+    entry = select_eu_entry(entries)
+    return normalize_storage_entry(entry, "EU") if entry else None
+
+
+def normalize_storage_entry(entry, area):
+    """Preserve provider provenance; never substitute a request/run date."""
+    day = entry.get("gasDayStart")
+    if not day:
+        logger.warning("AGSI rejected area=%s: missing gasDayStart", area)
+        return None
+    try:
+        datetime.strptime(day, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        logger.warning("AGSI rejected area=%s: invalid gasDayStart=%r", area, day)
+        return None
     return {
-        "date": entry.get("gasDayStart", date_str),
+        "date": day, "gasDayStart": day, "status": entry.get("status"),
+        **({"updatedAt": entry["updatedAt"]} if "updatedAt" in entry else {}),
         "gas_in_storage_twh": float(entry.get("gasInStorage", 0) or 0),
         "full_percent": float(entry.get("full", 0) or 0),
         "injection_twh": float(entry.get("injection", 0) or 0),
@@ -177,16 +204,8 @@ def fetch_country_storage_data(country_code: str, date_str: Optional[str] = None
         return None
     
     entry = entries[0]
-    return {
-        "country": country_code.upper(),
-        "date": entry.get("gasDayStart", date_str),
-        "gas_in_storage_twh": float(entry.get("gasInStorage", 0) or 0),
-        "full_percent": float(entry.get("full", 0) or 0),
-        "injection_twh": float(entry.get("injection", 0) or 0),
-        "withdrawal_twh": float(entry.get("withdrawal", 0) or 0),
-        "working_gas_volume_twh": float(entry.get("workingGasVolume", 0) or 0),
-        "trend": float(entry.get("trend", 0) or 0),
-    }
+    normalized = normalize_storage_entry(entry, country_code.upper())
+    return {**normalized, "country": country_code.upper()} if normalized else None
 
 
 def fetch_historical_storage(days: int = 7) -> List[Dict]:
@@ -201,13 +220,10 @@ def fetch_historical_storage(days: int = 7) -> List[Dict]:
         data = _make_api_request("eu", {"date": date_str})
         
         if data and "data" in data and data["data"]:
-            entry = data["data"][0]
-            results.append({
-                "date": entry.get("gasDayStart", date_str),
-                "full_percent": float(entry.get("full", 0) or 0),
-                "injection_twh": float(entry.get("injection", 0) or 0),
-                "withdrawal_twh": float(entry.get("withdrawal", 0) or 0),
-            })
+            entry = select_eu_entry(data["data"])
+            observation = normalize_storage_entry(entry, "EU") if entry else None
+            if observation:
+                results.append(observation)
     
     return results
 
@@ -284,9 +300,9 @@ def compute_storage_metrics(current_data: Dict, historical_data: List[Dict]) -> 
     
     return StorageMetrics(
         date=date_str,
-        eu_storage_percent=round(eu_storage_percent, 1),
+        eu_storage_percent=eu_storage_percent,
         seasonal_norm=seasonal_norm,
-        deviation_from_norm=round(deviation_from_norm, 1),
+        deviation_from_norm=deviation_from_norm,
         refill_speed_7d=round(refill_speed_7d, 2),
         withdrawal_rate_7d=round(withdrawal_rate_7d, 2),
         winter_deviation_risk=winter_deviation_risk,
@@ -458,73 +474,10 @@ def ingest_country_storage(date_str: Optional[str] = None, countries: Optional[L
     Returns:
         Dict with success/failed/skipped counts and the resolved data date.
     """
-    import time as _time
-    from src.db.db import get_cursor
-
-    target_countries = countries or MAJOR_EU_COUNTRIES
-    results = {"success": 0, "failed": 0, "skipped": 0, "data_date": None, "countries": []}
-
-    if not GIE_API_KEY:
-        logger.info("GIE_API_KEY not configured - skipping per-country storage ingestion")
-        return {**results, "error": "api_key_not_configured"}
-
-    for code in target_countries:
-        try:
-            data = fetch_country_storage_data(code, date_str)
-            if not data:
-                logger.warning(f"No per-country storage data for {code} ({date_str or 'latest'})")
-                results["skipped"] += 1
-                continue
-
-            data_date = data.get("date")
-            if not data_date:
-                results["skipped"] += 1
-                continue
-            results["data_date"] = data_date
-
-            with get_cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO gas_storage_country_snapshots
-                    (date, level, country_code, country_name, operator_code, facility_code,
-                     storage_percent, gas_in_storage_twh, working_gas_volume_twh,
-                     injection_twh, withdrawal_twh, trend, raw_data)
-                    VALUES (%s, 'country', %s, %s, '', '', %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (date, level, country_code, operator_code, facility_code)
-                    DO UPDATE SET
-                        country_name = EXCLUDED.country_name,
-                        storage_percent = EXCLUDED.storage_percent,
-                        gas_in_storage_twh = EXCLUDED.gas_in_storage_twh,
-                        working_gas_volume_twh = EXCLUDED.working_gas_volume_twh,
-                        injection_twh = EXCLUDED.injection_twh,
-                        withdrawal_twh = EXCLUDED.withdrawal_twh,
-                        trend = EXCLUDED.trend,
-                        raw_data = EXCLUDED.raw_data
-                """, (
-                    data_date,
-                    code.upper(),
-                    COUNTRY_NAMES.get(code.upper(), code.upper()),
-                    data.get("full_percent"),
-                    data.get("gas_in_storage_twh"),
-                    data.get("working_gas_volume_twh"),
-                    data.get("injection_twh"),
-                    data.get("withdrawal_twh"),
-                    data.get("trend"),
-                    json.dumps(data),
-                ))
-
-            results["success"] += 1
-            results["countries"].append(code.upper())
-            logger.info(f"  {code}: {data.get('full_percent')}% full")
-            _time.sleep(0.3)
-        except Exception as e:
-            logger.error(f"Failed per-country storage ingest for {code}: {e}")
-            results["failed"] += 1
-
-    logger.info(
-        f"Per-country storage ingestion: {results['success']} ok, "
-        f"{results['failed']} failed, {results['skipped']} skipped"
-    )
-    return results
+    # Both existing EU ingestion paths call this before their duplicate-day
+    # short circuit. Revisions therefore run even when today is already stored.
+    from src.ingest.gas_storage_revisions import refresh_storage_revisions
+    return refresh_storage_revisions(countries=countries)
 
 
 def run_storage_check() -> Optional[Dict[str, Any]]:

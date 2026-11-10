@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 def get_triggered_by() -> str:
     """Determine how the run was triggered based on environment."""
+    if os.environ.get("CLOUD_RUN_JOB"):
+        return os.environ["CLOUD_RUN_JOB"]
     if os.environ.get("GITHUB_ACTIONS") == "true":
         event_name = os.environ.get("GITHUB_EVENT_NAME", "")
         if event_name == "schedule":
@@ -30,7 +32,8 @@ def get_triggered_by() -> str:
 
 def get_git_sha() -> Optional[str]:
     """Get git SHA from environment if available."""
-    return os.environ.get("GITHUB_SHA")
+    from src.ingest.gas_storage_revisions import runtime_identity
+    return runtime_identity()["git_sha"]
 
 
 def generate_run_id() -> str:
@@ -128,6 +131,8 @@ class EngineRunTracker:
     
     def finish(self, status: str, counts: Optional[Dict] = None, error: Optional[str] = None):
         """Finalize the run record."""
+        from src.ingest.gas_storage_revisions import runtime_identity
+        counts = {**(counts or {}), "storage_runtime": runtime_identity()}
         finished_at = datetime.now(timezone.utc)
         duration_ms = int((finished_at - self.started_at).total_seconds() * 1000)
         
