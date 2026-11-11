@@ -335,9 +335,7 @@ def test_daily_pipeline_runs_ordered_stages_under_one_lock(monkeypatch):
         "oil_price",
         "gas_storage",
         "geri",
-        "eeri",
         "lng_price",
-        "egsi_m",
         "egsi_s",
         "daily_report",
         "settle",
@@ -455,9 +453,7 @@ def test_daily_pipeline_attempts_all_stages_after_a_stage_failure(monkeypatch):
         "oil_price",
         "gas_storage",
         "geri",
-        "eeri",
         "lng_price",
-        "egsi_m",
         "egsi_s",
         "daily_report",
         "delivery",
@@ -530,13 +526,12 @@ def test_daily_pipeline_allows_disabled_optional_indices(monkeypatch):
         "oil_price",
         "gas_storage",
         "geri",
-        "eeri",
         "lng_price",
         "egsi_s",
         "daily_report",
         "delivery",
     ]
-    assert response["details"]["egsi_m"]["status"] == "skipped"
+    assert "egsi_m" not in response["details"]
     assert response["details"]["delivery"]["status"] == "ok"
 
 
@@ -678,6 +673,13 @@ def test_daily_index_routes_skip_existing_date_without_writing(
         lambda name, job: ({"status": "ok", "details": job()}, 200),
     )
 
+    if route_name in {"run_eeri_compute", "run_egsi_compute"}:
+        with pytest.raises(HTTPException) as error:
+            getattr(internal_routes, route_name)(
+                target_date="2026-09-02", force=False, x_runner_token="valid")
+        assert error.value.status_code == 410
+        return
+
     response = getattr(internal_routes, route_name)(
         target_date="2026-09-02",
         force=False,
@@ -751,9 +753,7 @@ def test_daily_pipeline_continues_after_optional_gas_storage_failure(monkeypatch
         "oil_price",
         "gas_storage",
         "geri",
-        "eeri",
         "lng_price",
-        "egsi_m",
         "egsi_s",
         "daily_report",
         "delivery",

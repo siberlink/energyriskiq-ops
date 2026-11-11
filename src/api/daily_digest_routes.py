@@ -1045,14 +1045,15 @@ def warm_daily_digest_cache() -> dict:
 
         try:
             digest = compute_daily_digest(plan_name, plan_level)
-            narrative = digest.get("ai_narrative") or ""
+            narrative = (digest.get("ai_narrative") or "").strip()
             results.append({
                 "plan_level": plan_level,
                 "cache_key": cache_key,
                 "was_cached": was_cached,
                 "generated": (not was_cached) and bool(narrative),
                 "narrative_chars": len(narrative),
-                "ok": True,
+                "ok": bool(narrative.strip()),
+                "ai_section_missing": not bool(narrative.strip()),
             })
         except Exception as e:
             logger.error(f"Daily digest warm failed for plan_level {plan_level}: {e}")
@@ -1064,13 +1065,9 @@ def warm_daily_digest_cache() -> dict:
             })
 
     failed = [r for r in results if not r.get("ok")]
-    if failed:
-        # Surface failures so the caller (run_job_with_lock -> 500) and the daily
-        # workflow step report a real failure instead of a false-green run.
-        levels = ", ".join(str(r.get("plan_level")) for r in failed)
-        raise RuntimeError(f"Daily digest warm failed for plan level(s): {levels}")
-
     return {
+        "status": "failed" if failed else "success",
+        "ai_section_missing": any(r.get("ai_section_missing") for r in failed),
         "levels_warmed": sorted(seen_levels),
         "generated": sum(1 for r in results if r.get("generated")),
         "reused": sum(1 for r in results if r.get("was_cached")),

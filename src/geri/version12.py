@@ -116,6 +116,17 @@ def store(row,backfilled=False,reason=None,apply_revision=False):
               ",computed_at=now(),backfilled=EXCLUDED.backfilled,"
               "backfilled_at=EXCLUDED.backfilled_at" if apply_revision else "DO NOTHING")
         c.execute(sql,params+[backfilled,datetime.now(timezone.utc) if backfilled else None])
+        if c.rowcount:
+            import os
+            c.execute("""INSERT INTO geri_v12_ops(index_date,kind,details)
+                VALUES(%s,'publication_writer',%s::jsonb)
+                ON CONFLICT(index_date,kind) DO UPDATE SET
+                details=EXCLUDED.details,observed_at=now()""",
+                (row["date"],json.dumps({
+                    "job":os.getenv("CLOUD_RUN_JOB") or "website_or_manual",
+                    "execution":os.getenv("CLOUD_RUN_EXECUTION"),
+                    "value":row["value"],"methodology":MODEL,
+                })))
     return True
 
 

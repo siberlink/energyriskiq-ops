@@ -763,7 +763,15 @@ def ensure_index_digest_unique_index():
 def record_index_delivery(user_id: int, channel: str, status: str,
                            delivery_kind: str = 'index_digest',
                            index_date: Optional[date] = None,
-                           error: Optional[str] = None):
+                           error: Optional[str] = None,
+                           ai_section_missing: bool = False,
+                           geri_value=None, methodology=None):
+    # Existing text column carries structured audit metadata; no schema change.
+    audit = json.dumps({
+        "error": error, "ai_section_missing": bool(ai_section_missing),
+        "geri_value": geri_value, "geri_methodology": methodology,
+        "geri_date": str(index_date),
+    }, sort_keys=True)
     with get_cursor(commit=True) as cursor:
         cursor.execute("""
             INSERT INTO user_alert_deliveries
@@ -774,7 +782,7 @@ def record_index_delivery(user_id: int, channel: str, status: str,
                 WHERE delivery_kind = 'index_digest' AND geri_date IS NOT NULL
             DO UPDATE SET status = EXCLUDED.status, sent_at = NOW(),
                          last_error = EXCLUDED.last_error
-        """, (user_id, channel, status, delivery_kind, index_date, error))
+        """, (user_id, channel, status, delivery_kind, index_date, audit))
 
 
 def has_been_delivered_today(user_id: int, channel: str, index_date: date) -> bool:
@@ -814,6 +822,8 @@ def run_index_delivery() -> Dict:
         "telegrams_sent": 0,
         "telegrams_skipped": 0,
         "errors": [],
+        "ai_section_missing": False,
+        "ai_sections_missing_count": 0,
         "plans": defaultdict(int),
     }
 
@@ -889,6 +899,17 @@ def run_index_delivery() -> Dict:
                     digest_cache[digest_key] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
                 ai_digest = digest_cache[digest_key]
 
+            missing = needs_digest and not (ai_digest or "").strip()
+            if missing:
+                stats["ai_section_missing"] = True
+                stats["ai_sections_missing_count"] += 1
+            from src.geri.model_selection import published_model
+            audit = {
+                "ai_section_missing": missing,
+                "geri_value": geri.get("value") if geri else None,
+                "methodology": published_model(),
+            }
+
             if email_indices and email and not is_free:
                 if not has_been_delivered_today(user_id, 'email', effective_date):
                     subject, html_body = build_full_email(
@@ -899,13 +920,13 @@ def run_index_delivery() -> Dict:
 
                     if result.success:
                         stats["emails_sent"] += 1
-                        record_index_delivery(user_id, 'email', 'sent', index_date=effective_date)
+                        record_index_delivery(user_id, 'email', 'sent', index_date=effective_date, **audit)
                     elif result.should_skip:
                         stats["emails_skipped"] += 1
-                        record_index_delivery(user_id, 'email', 'skipped', index_date=effective_date, error=result.skip_reason)
+                        record_index_delivery(user_id, 'email', 'skipped', index_date=effective_date, error=result.skip_reason, **audit)
                     else:
                         stats["errors"].append(f"Email to {email}: {result.error}")
-                        record_index_delivery(user_id, 'email', 'failed', index_date=effective_date, error=result.error)
+                        record_index_delivery(user_id, 'email', 'failed', index_date=effective_date, error=result.error, **audit)
                 else:
                     stats["emails_skipped"] += 1
 
@@ -919,12 +940,12 @@ def run_index_delivery() -> Dict:
 
                     if result.success:
                         stats["telegrams_sent"] += 1
-                        record_index_delivery(user_id, 'telegram', 'sent', index_date=effective_date)
+                        record_index_delivery(user_id, 'telegram', 'sent', index_date=effective_date, **audit)
                     elif result.should_skip:
                         stats["telegrams_skipped"] += 1
                     else:
                         stats["errors"].append(f"Telegram to {chat_id}: {result.error}")
-                        record_index_delivery(user_id, 'telegram', 'failed', index_date=effective_date, error=result.error)
+                        record_index_delivery(user_id, 'telegram', 'failed', index_date=effective_date, error=result.error, **audit)
                 else:
                     stats["telegrams_skipped"] += 1
 

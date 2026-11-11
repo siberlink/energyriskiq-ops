@@ -20,7 +20,8 @@ def generate_interpretation(
     band: str,
     top_drivers: List[Dict[str, Any]],
     top_regions: List[str],
-    index_date: str
+    index_date: str,
+    components: Optional[Dict[str, Any]] = None
 ) -> str:
     """
     Generate a rich, 2-3 paragraph interpretation for a GERI index.
@@ -101,6 +102,11 @@ TONE REQUIREMENTS - USE A HUMANIZING TONE WITH PROFESSIONAL LANGUAGE:
 7. Use varied sentence structure and avoid bullet points
 
 Generate the interpretation:"""
+
+        if components is not None:
+            import json
+            from src.geri.narrative_context import interpretation_context
+            prompt += "\n" + json.dumps(interpretation_context(components), default=str)
 
         messages = [
             {"role": "system", "content": "You are a senior energy market analyst at a respected global risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers. You provide detailed, substantive analysis that helps professionals make informed decisions."},

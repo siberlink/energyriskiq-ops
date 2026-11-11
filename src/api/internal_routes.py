@@ -250,6 +250,8 @@ def _validate_daily_stage(stage: str, response: dict) -> dict:
         return response
     if stage == 'gas_storage' and details.get('status') == 'skipped':
         raise RuntimeError(f"{stage} has no required source data: {details}")
+    if details.get('ai_section_missing'):
+        raise RuntimeError(f"{stage} ai_section_missing: true")
     if details.get('errors', 0) or details.get('failed', 0):
         raise RuntimeError(f"{stage} completed with errors: {details}")
 
@@ -295,11 +297,15 @@ def run_daily_index_pipeline(
         failed_stages = []
 
         def execute_stage(stage, operation, **kwargs):
+            ai_missing = False
             try:
                 stage_response = operation(
                     x_runner_token=x_runner_token,
                     **kwargs,
                 )
+                if isinstance(stage_response, dict):
+                    detail = stage_response.get('details', stage_response)
+                    ai_missing = bool(isinstance(detail, dict) and detail.get('ai_section_missing'))
                 results[stage] = _validate_daily_stage(stage, stage_response)
             except Exception as error:
                 failed_stages.append(stage)
@@ -314,6 +320,7 @@ def run_daily_index_pipeline(
                     'status': 'degraded',
                     'message': str(error),
                     'stage': stage,
+                    'ai_section_missing': ai_missing or 'ai_section_missing: true' in str(error),
                 }
             return stage_response
 
@@ -326,21 +333,23 @@ def run_daily_index_pipeline(
             mode='yesterday',
             force=False,
         )
-        eeri_response = execute_stage('eeri', run_eeri_compute)
         execute_stage('lng_price', run_lng_price_capture)
-
-        if eeri_response.get('status') == 'skipped':
-            results['egsi_m'] = {
-                'status': 'skipped',
-                'message': 'EGSI-M depends on disabled EERI',
-            }
-        else:
-            execute_stage('egsi_m', run_egsi_compute)
+        # Single writer: website EERI workflow owns EERI and same-day EGSI-M.
+        # Never invoke the obsolete eeri_v1 writer from Cloud Daily.
 
         execute_stage('egsi_s', run_egsi_s_compute)
-        execute_stage('daily_report', run_daily_report)
+        if 'geri' in failed_stages:
+            results['daily_report'] = {
+                'status': 'blocked', 'message': 'Closed-day GERI did not persist',
+            }
+        else:
+            execute_stage('daily_report', run_daily_report)
 
-        if include_delivery:
+        if include_delivery and 'geri' in failed_stages:
+            results['delivery'] = {
+                'status': 'blocked', 'message': 'Closed-day GERI did not persist',
+            }
+        elif include_delivery:
             time.sleep(30)
             execute_stage('delivery', run_pro_delivery)
         else:
@@ -896,6 +905,8 @@ def run_eeri_compute(
         force: Whether to recompute if already exists.
     """
     validate_runner_token(x_runner_token)
+    # Retain route compatibility but refuse all obsolete worker-side writes.
+    raise HTTPException(status_code=410, detail="EERI is owned by the website TTF-v3 workflow")
     
     from datetime import date, timedelta
     from src.reri import ENABLE_EERI
@@ -972,6 +983,7 @@ def run_egsi_compute(
         force: Whether to recompute if already exists.
     """
     validate_runner_token(x_runner_token)
+    raise HTTPException(status_code=410, detail="EGSI-M is owned by the website EERI workflow")
     
     from datetime import date, timedelta
     from src.egsi.types import ENABLE_EGSI
