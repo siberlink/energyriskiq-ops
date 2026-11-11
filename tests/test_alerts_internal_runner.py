@@ -691,6 +691,8 @@ def test_daily_index_routes_skip_existing_date_without_writing(
         "reason": "already_exists",
         "date": "2026-09-02",
         "message": f"{expected_stage} for 2026-09-02 already exists",
+        "ai_section_missing": False,
+        "interpretation_ai_status": {},
     }
 
 

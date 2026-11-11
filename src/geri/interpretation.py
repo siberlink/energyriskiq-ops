@@ -11,8 +11,7 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-AI_INTEGRATIONS_OPENAI_API_KEY = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY")
-AI_INTEGRATIONS_OPENAI_BASE_URL = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL")
+from src.ai.interpretation_client import client_options, record_status
 
 
 def generate_interpretation(
@@ -21,7 +20,8 @@ def generate_interpretation(
     top_drivers: List[Dict[str, Any]],
     top_regions: List[str],
     index_date: str,
-    components: Optional[Dict[str, Any]] = None
+    components: Optional[Dict[str, Any]] = None,
+    ai_status: Optional[Dict[str, Any]] = None
 ) -> str:
     """
     Generate a rich, 2-3 paragraph interpretation for a GERI index.
@@ -36,17 +36,16 @@ def generate_interpretation(
     Returns:
         A 2-3 paragraph interpretation with professional, humanizing tone.
     """
-    if not AI_INTEGRATIONS_OPENAI_API_KEY or not AI_INTEGRATIONS_OPENAI_BASE_URL:
+    options, source = client_options()
+    record_status(ai_status, missing=True, source=source, reason="no_credentials")
+    if options is None:
         logger.warning("OpenAI credentials not configured, using fallback interpretation")
         return _fallback_interpretation(value, band, top_regions)
     
     try:
         from openai import OpenAI
         
-        client = OpenAI(
-            api_key=AI_INTEGRATIONS_OPENAI_API_KEY,
-            base_url=AI_INTEGRATIONS_OPENAI_BASE_URL
-        )
+        client = OpenAI(**options)
         
         driver_summaries = []
         for i, d in enumerate(top_drivers[:5]):
@@ -121,8 +120,10 @@ Generate the interpretation:"""
                 temperature=0.5
             )
             
-            interpretation = response.choices[0].message.content.strip()
+            interpretation = (response.choices[0].message.content or "").strip()
             interpretation = interpretation.strip('"\'')
+            if not interpretation:
+                raise ValueError("Empty AI interpretation")
             
             word_count = len(interpretation.split())
             paragraph_count = len([p for p in interpretation.split('\n\n') if p.strip()])
@@ -140,10 +141,12 @@ Generate the interpretation:"""
                 interpretation = interpretation[:last_period + 1]
         
         logger.info(f"Generated GERI interpretation for {index_date} ({len(interpretation.split())} words): {interpretation[:80]}...")
+        record_status(ai_status, missing=False, source=source)
         return interpretation
         
     except Exception as e:
-        logger.error(f"Error generating AI interpretation for GERI: {e}")
+        record_status(ai_status, missing=True, source=source, reason=type(e).__name__)
+        logger.error("Error generating AI interpretation for GERI (%s); ai_section_missing=true", type(e).__name__)
         return _fallback_interpretation(value, band, top_regions)
 
 

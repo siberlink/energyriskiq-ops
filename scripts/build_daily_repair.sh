@@ -4,10 +4,10 @@ set -euo pipefail
 PROJECT=energyriskiq
 REGION=europe-west4
 COMMIT="${1:?Supply the full reviewed repair commit hash}"
-PARENT=6f2ca678abc677f732172a0d6dcf1ff3dbbd1c72
+PARENT=eccb528a1875c9bf9249328675b645883113b4c0
 BRANCH=storage/provider-writer-20261110
 [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
-IMAGE="europe-west4-docker.pkg.dev/$PROJECT/energyriskiq-jobs/scheduled-jobs:daily-repair-20261111-${COMMIT:0:12}"
+IMAGE="europe-west4-docker.pkg.dev/$PROJECT/energyriskiq-jobs/scheduled-jobs:cloud-ai-repair-20261111-${COMMIT:0:12}"
 read -r -p 'After reviewing the exact source diff, type build: ' APPROVAL
 [[ "$APPROVAL" == build ]] || exit 1
 SOURCE="$HOME/energyriskiq-ops"
@@ -30,4 +30,6 @@ BUILD_ID="$(gcloud builds submit . --project="$PROJECT" --tag="$IMAGE" --async -
 printf '%s\n' "$BUILD_ID" > "$HOME/storage-decimal-build-id.txt"
 printf 'Build submitted: %s\nImage: %s\n' "$BUILD_ID" "$IMAGE"
 printf 'gcloud builds describe "%s" --project=%s --format="value(status,results.images[0].digest)"\n' "$BUILD_ID" "$PROJECT"
-echo "No jobs updated. Wait for build SUCCESS, then Alerts -> 3 good executions -> Daily."
+echo "No jobs updated. Wait for SUCCESS. Alerts: image + remove both AI_INTEGRATIONS_* refs."
+echo "After 3 good scheduled Alerts runs, Daily: same image + remove both refs."
+echo "Keep OPENAI_API_KEY, selectors, email pause, Telegram and all other settings."

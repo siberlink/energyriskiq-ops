@@ -121,14 +121,20 @@ def _compute_geri_for_date(target_date, force=False, reason=None, apply_revision
     from src.geri.normalize import get_band
     band = get_band(value)
     top_regions = [r.get('region', '') for r in components.top_regions[:3] if r.get('region')]
+    ai_status = {}
     components.interpretation = (existing.get("components", {}).get("interpretation", "")
                                 if force and existing else generate_interpretation(
         value=value,
         band=band.value,
         top_drivers=components.top_drivers,
         top_regions=top_regions,
-        index_date=target_date.isoformat()
+        index_date=target_date.isoformat(),
+        ai_status=ai_status
     ))
+    if force and existing:
+        ai_status = existing.get("components", {}).get("interpretation_ai_status", {})
+    components.ai_section_missing = ai_status.get("ai_section_missing", False)
+    components.interpretation_ai_status = ai_status
     
     result = build_result(target_date, value, components, trend_1d, trend_7d)
     

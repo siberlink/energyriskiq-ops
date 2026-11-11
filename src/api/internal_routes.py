@@ -242,6 +242,9 @@ def _validate_daily_stage(stage: str, response: dict) -> dict:
 
     if details.get('status') in {'error', 'failed'}:
         raise RuntimeError(f"{stage} failed: {details}")
+    # A cached observation with known fallback provenance must not pass silently.
+    if details.get('ai_section_missing'):
+        raise RuntimeError(f"{stage} ai_section_missing: true")
     if (
         stage in {'geri', 'eeri', 'egsi_m', 'egsi_s'}
         and details.get('status') == 'skipped'
@@ -250,8 +253,6 @@ def _validate_daily_stage(stage: str, response: dict) -> dict:
         return response
     if stage == 'gas_storage' and details.get('status') == 'skipped':
         raise RuntimeError(f"{stage} has no required source data: {details}")
-    if details.get('ai_section_missing'):
-        raise RuntimeError(f"{stage} ai_section_missing: true")
     if details.get('errors', 0) or details.get('failed', 0):
         raise RuntimeError(f"{stage} completed with errors: {details}")
 
@@ -832,6 +833,8 @@ def run_geri_compute(
                     'date': yesterday.isoformat(),
                     'message': f'GERI for {yesterday.isoformat()} already exists',
                     'model_version': MODEL_VERSION,
+                    'ai_section_missing': (existing.get('components') or {}).get('ai_section_missing', False),
+                    'interpretation_ai_status': (existing.get('components') or {}).get('interpretation_ai_status', {}),
                 }
             result = compute_geri_for_date(yesterday, force=force)
             if result:
@@ -845,6 +848,8 @@ def run_geri_compute(
                     'model_version': result.model_version,
                     'trend_1d': result.trend_1d,
                     'trend_7d': result.trend_7d,
+                    'ai_section_missing': result.components.ai_section_missing,
+                    'interpretation_ai_status': result.components.interpretation_ai_status,
                 }
             return {
                 'status': 'error',
@@ -1090,6 +1095,8 @@ def run_egsi_s_compute(
                 'reason': 'already_exists',
                 'date': compute_date.isoformat(),
                 'message': f'EGSI-S for {compute_date.isoformat()} already exists',
+                'ai_section_missing': (existing.get('components') or {}).get('ai_section_missing', False),
+                'interpretation_ai_status': (existing.get('components') or {}).get('interpretation_ai_status', {}),
             }
 
         result = compute_egsi_s_for_date(compute_date, save=True, force=force)
@@ -1102,6 +1109,8 @@ def run_egsi_s_compute(
                 'trend_1d': result.trend_1d,
                 'data_source': result.components.data_sources[0] if result.components.data_sources else 'unknown',
                 'computed': True,
+                'ai_section_missing': result.components.ai_section_missing,
+                'interpretation_ai_status': result.components.interpretation_ai_status,
             }
         else:
             return {

@@ -81,6 +81,7 @@ def compute_egsi_s_for_date(
     band = get_egsi_band(value)
     
     # Generate AI-powered interpretation (unique per day)
+    ai_status = {}
     ai_interpretation = generate_egsi_interpretation(
         value=int(value),
         band=band.value,
@@ -93,9 +94,12 @@ def compute_egsi_s_for_date(
             'policy_risk': round(components.winter_readiness_norm * 100, 1),
         },
         index_date=target_date.isoformat(),
-        index_type="EGSI-S"
+        index_type="EGSI-S",
+        ai_status=ai_status
     )
     components.interpretation = ai_interpretation
+    components.ai_section_missing = ai_status.get("ai_section_missing", False)
+    components.interpretation_ai_status = ai_status
     
     trend_1d, trend_7d = compute_egsi_s_trends(value)
     

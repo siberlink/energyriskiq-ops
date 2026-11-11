@@ -75,13 +75,19 @@ def geri_database(postgres, monkeypatch):
     return postgres, day
 
 
-def test_real_daily_geri_stage_persists_selected_model_before_delivery(geri_database, monkeypatch):
+@pytest.mark.parametrize("has_key", [True, False])
+def test_real_daily_geri_stage_persists_selected_model_before_delivery(geri_database, monkeypatch, has_key):
     conn, day = geri_database
     from src.api.internal_routes import run_geri_compute
     from src.geri import interpretation
     calls = []
-    monkeypatch.setattr(interpretation, "AI_INTEGRATIONS_OPENAI_API_KEY", "offline")
-    monkeypatch.setattr(interpretation, "AI_INTEGRATIONS_OPENAI_BASE_URL", "https://offline.invalid/v1")
+    monkeypatch.delenv("AI_INTEGRATIONS_OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("AI_INTEGRATIONS_OPENAI_BASE_URL", raising=False)
+    if has_key:
+        monkeypatch.setenv("OPENAI_API_KEY", "offline")
+    else:
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://offline.invalid/v1")
 
     def transport(self, request):
         body = json.loads(request.content)
@@ -113,7 +119,15 @@ def test_real_daily_geri_stage_persists_selected_model_before_delivery(geri_data
     assert private["value"] == result["details"]["value"]
     assert private["computed_at"].replace(tzinfo=timezone.utc) >= health["computed_at"]
     assert not health["provisional"] and private["interpretation"]
-    assert any("inactive_component_note" in m["content"] for call in calls for m in call["messages"])
+    assert private["components"]["ai_section_missing"] is (not has_key)
+    assert result["details"]["ai_section_missing"] is (not has_key)
+    if has_key:
+        assert any("inactive_component_note" in m["content"] for call in calls for m in call["messages"])
+    else:
+        assert not calls
+        from src.api.internal_routes import _validate_daily_stage
+        with pytest.raises(RuntimeError, match="ai_section_missing"):
+            _validate_daily_stage("geri", result)
     run_geri_compute(mode="yesterday", force=False, x_runner_token="offline-only")
     with conn.cursor(cursor_factory=RealDictCursor) as c:
         c.execute("SELECT row_to_json(t) AS row FROM intel_indices_daily t WHERE date=%s", (day,))

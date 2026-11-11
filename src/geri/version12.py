@@ -172,11 +172,14 @@ def compute_day(day,force=False,reason=None,apply_revision=False):
     from src.geri.model_selection import published_model
     if published_model()=="v1.2" and row["smoothing_state"]["data_quality"]!="UNAVAILABLE":
         from src.geri.interpretation import generate_interpretation
+        ai_status = {}
         row["interpretation"]=generate_interpretation(
             value=row["value"],band=row["band"],top_drivers=row["components"].get("top_drivers",[]),
             top_regions=[r["region"] for r in row["components"].get("top_regions",[])[:3]],
-            index_date=day.isoformat(),components=row["components"])
+            index_date=day.isoformat(),components=row["components"],ai_status=ai_status)
         row["components"]["interpretation"]=row["interpretation"]
+        row["components"]["ai_section_missing"]=ai_status.get("ai_section_missing", False)
+        row["components"]["interpretation_ai_status"]=ai_status
     store(row,backfilled=bool(old and apply_revision),
           reason=reason if force else None,apply_revision=apply_revision)
     if old and apply_revision:

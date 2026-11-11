@@ -1,59 +1,105 @@
-# Daily repair: owner-approved sequence, 11 November 2026
+# Cloud AI routing repair — review before building
 
-Review the repair commit's diff against
-`6f2ca678abc677f732172a0d6dcf1ff3dbbd1c72` before building.
-Run `bash scripts/build_daily_repair.sh <full-reviewed-commit>` from Cloud Shell.
-It builds one image, on any day, and changes no jobs or settings.
-There is no DAILY_SUCCEEDED prompt and no 11-November calendar check.
-Do not rebuild blindly after disconnecting: inspect the saved Cloud Build ID.
+This repair is a direct child of
+`eccb528a1875c9bf9249328675b645883113b4c0` on
+`storage/provider-writer-20261110`. It retains all Daily/storage/Decimal fixes.
+No scoring, selector, dependency, schema, email-pause or Telegram-setting change.
+Website source and existing observations are not modified by this repair.
 
-## Website, separately
+## Review and build
 
-Review and publish the website-only EERI -> same-date EGSI-M orchestration and
-Live fill-only recovery diff. No selectors, scoring kernels or customer messages
-change. No historical EGSI-M backfill is authorized by publishing this change.
-The existing GitHub EERI workflow remains the website trigger.
-
-## Cloud sequence
-
-1. Build the reviewed repair commit; require SUCCESS and record image digest.
-2. Cloud Run > Jobs > energyriskiq-alerts > View and edit job configuration >
-   Container image URL: select the new tag, then Update (not Execute).
-3. First three scheduled executions STARTED on the new image must succeed,
-   exit 0, have finished successful phase A and final audits, correct image/source
-   provenance, no provider-storage writes and no duplicate storage events.
-   At most one ASSET_RISK_SPIKE storage event per provider gas day.
-4. Only then update energyriskiq-daily to the SAME new image via the same console path.
-5. Next Daily run: exit 0, no stage errors, Cloud stores closed-day v1.2 before
-   any delivery read, 77/77 E/C observations over the latest published seven
-   gas days (EU + 10 countries), EU provider precision retained, and the
-   Telegram audit records the new GERI date/value/methodology.
-6. Next morning after the GitHub EERI workflow: same-date website EERI TTF-v3
-   and EGSI-M must both exist. The workflow reports failure if EGSI-M save fails,
-   including when EERI already existed.
-
-Missing AI narratives are now explicit failures, not green warming results.
-Until the owner fixes the confirmed Cloud provider connection/configuration,
-Daily may continue to exit 1 for daily_report/delivery despite correct GERI.
-No Cloud environment configuration is changed by this repair.
-
-Only Alerts and Daily images change. Leave ingestion, intraday, metadata,
-schedules, timeouts, retries, service accounts, resources, delivery preferences,
-the email pause and all GERI selectors unchanged. Do not manually execute a
-delivery job to test it.
-
-## Image-only rollback: both jobs
-
-Console: repeat the image URL update for Alerts and Daily using
-`europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:1639c2d`.
+The delivery report gives the new full commit SHA. Review the parent-to-child
+diff before building. Never build the superseded eccb image for this rollout.
 
 ```bash
-gcloud run jobs update energyriskiq-alerts --project=energyriskiq --region=europe-west4 \
-  --image=europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:1639c2d
-gcloud run jobs update energyriskiq-daily --project=energyriskiq --region=europe-west4 \
-  --image=europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:1639c2d
+COMMIT='REPLACE_WITH_FULL_REVIEWED_CHILD_SHA'
+git fetch origin storage/provider-writer-20261110
+git diff eccb528a1875c9bf9249328675b645883113b4c0 "$COMMIT"
+git show "$COMMIT:scripts/build_daily_repair.sh" > /tmp/build-daily-repair.sh
+bash /tmp/build-daily-repair.sh "$COMMIT"
+gcloud builds describe "$(cat ~/storage-decimal-build-id.txt)" \
+  --project=energyriskiq --format='value(status,results.images[0].digest)'
 ```
 
-WARNING: this restores the known broken v1.2 interpretation interface and old
-storage-writing behavior. It is containment, not a healthy v1.2 rollback.
-No data is restored by an image rollback. No schema changes are part of this repair.
+The build script enforces the exact commit, direct parent, branch head and clean
+detached checkout. It tags one image `cloud-ai-repair-20261111-<first12sha>`.
+It does not update jobs. If Cloud Shell disconnects, inspect the existing build;
+do not submit another. Require build SUCCESS and record the digest.
+
+## One console edit per job: Alerts first, then Daily
+
+Cloud Console > project **energyriskiq** > Cloud Run > Jobs > region
+**europe-west4** > job > **View and edit job configuration**.
+
+1. Edit **energyriskiq-alerts**:
+   - In Container image URL, select the new image/digest.
+   - In Variables & Secrets, delete references named
+     `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL`.
+   - Keep the existing `OPENAI_API_KEY` Secret Manager reference.
+   - Keep `OPENAI_BASE_URL` unchanged if set; pre-check that it is an approved,
+     reachable direct-provider endpoint, not localhost or the internal service.
+     If it is wrong, STOP and report instead of silently routing paid traffic.
+   - Keep every other setting, including selectors, delivery switches, email
+     pause, Telegram, arguments, retries, timeout, resources, service account
+     and Scheduler configuration.
+   - Click Update once after BOTH the image and secret-reference edits.
+2. Observe the **first three scheduled Alerts executions started on the new
+   image**. Do not click Execute as a test. All three must finish successfully,
+   with finished Phase A/final audit, correct image provenance, no provider
+   storage writes, and no more than one ASSET_RISK_SPIKE storage event per
+   provider gas day. Check AI flags on any digest actually attempted, zero
+   alert emails sent, and unchanged Telegram settings.
+3. Only after those three pass, make the **same single edit** on
+   **energyriskiq-daily**: new image AND remove those two integration references,
+   keep the direct-key reference and everything else unchanged.
+
+No image changes to Ingestion, Intraday or Metadata in this rollout.
+No website republish is required for this ops-only patch. Never remove the
+Replit website's integration references as part of a Cloud configuration edit.
+
+## AI and next scheduled Daily acceptance
+
+GERI and EGSI-S choose the integration only when BOTH integration variables are
+present. Otherwise they use OPENAI_API_KEY and optional OPENAI_BASE_URL.
+Successful AI prose is stored normally. Missing credentials, transport errors
+and empty responses retain deterministic text, but persist
+`components.ai_section_missing=true` and sanitized interpretation diagnostics.
+The internal stage result exposes that flag; the Daily pipeline treats it as
+a failed stage, including an already-existing row bearing known fallback
+provenance. GERI persistence still completes; dependent report/delivery remain
+blocked when its stage fails. No automatic rewrite of older rows is authorized.
+Historical rows without provenance are unknown, not retrospective proof of AI.
+
+Next scheduled Daily must exit 0 with no failed stages: final health before
+private computation, selected v1.2 persisted before report/delivery, Live close
+consistent, publication_writer identifies the Cloud job/execution, last seven
+PUBLISHED storage gas days with retained E/C provenance, and fresh delivery
+audits identify GERI date/value/methodology and missing-AI flags.
+Website EERI -> same-date EGSI-M remains the sole writer of those indices.
+
+## Ingestion — configuration-only proposal, not applied
+
+First collect that job's actual env-reference names and Cloud execution logs.
+The shared database's successful enrichment ledger does not identify Cloud
+versus the website/GitHub shadow runner. Do not call all enrichment broken
+without per-execution evidence.
+
+The older ingestion client already uses OPENAI_API_KEY if either integration
+variable is absent; the OpenAI SDK honors OPENAI_BASE_URL. If Ingestion really
+has both bad integration references and connection errors, wait for a current
+run to finish and, without changing its image, remove just those two references
+in one console edit. Keep the direct key, endpoint if approved, 50m timeout,
+shadow mode, $5/day cap, 20 RPM, schedules and every other setting unchanged.
+Observe the next scheduled run; do not reset attempts, reopen exhausted events
+or trigger replay/spend. Any catch-up outside existing automatic retries needs
+separate approval.
+
+## Rollback
+
+Record the pre-change image and reference names/version numbers for each job.
+If the source must be rolled back, restore the previous image on both Alerts
+and Daily, but retain direct-key routing: restoring the unreachable integration
+references would deliberately restore the known connection failure.
+Image 1639c2d additionally restores known GERI compatibility and old storage
+writer bugs; it is not a healthy v1.2 fallback.
+No data, selector or customer-message rollback is performed by this procedure.

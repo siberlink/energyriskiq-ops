@@ -289,6 +289,8 @@ class EGSISComponents:
     top_drivers: List[Dict[str, Any]] = field(default_factory=list)
     interpretation: str = ""
     data_sources: List[str] = field(default_factory=list)
+    ai_section_missing: bool = False
+    interpretation_ai_status: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -325,6 +327,8 @@ class EGSISComponents:
             'top_drivers': self.top_drivers,
             'interpretation': self.interpretation,
             'data_sources': self.data_sources,
+            'ai_section_missing': self.ai_section_missing,
+            'interpretation_ai_status': self.interpretation_ai_status,
             'weights': EGSI_S_WEIGHTS,
         }
 
