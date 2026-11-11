@@ -126,8 +126,7 @@ def test_real_daily_geri_stage_persists_selected_model_before_delivery(geri_data
     else:
         assert not calls
         from src.api.internal_routes import _validate_daily_stage
-        with pytest.raises(RuntimeError, match="ai_section_missing"):
-            _validate_daily_stage("geri", result)
+        assert _validate_daily_stage("geri", result) == result
     run_geri_compute(mode="yesterday", force=False, x_runner_token="offline-only")
     with conn.cursor(cursor_factory=RealDictCursor) as c:
         c.execute("SELECT row_to_json(t) AS row FROM intel_indices_daily t WHERE date=%s", (day,))
@@ -154,3 +153,88 @@ def test_delivery_audit_persists_missing_ai_and_exact_geri_value(geri_database):
     audit = json.loads(raw)
     assert status == "sent" and audit["ai_section_missing"] is True
     assert audit["geri_value"] == 11 and audit["geri_methodology"] == "v1.2"
+
+
+def test_failed_ai_persists_geri_warms_fallback_delivers_and_exits_nonzero(
+    geri_database, monkeypatch, capsys
+):
+    """Real GERI/cache/audit writes to disposable PG; failed AI; mocked send."""
+    import sys
+    from types import SimpleNamespace
+    from scripts import replit_scheduled_job as runner
+    from src.api import internal_routes as routes, daily_digest_routes as digest
+    from src.delivery import pro_delivery_worker as delivery
+    conn, day = geri_database
+    monkeypatch.setenv("OPENAI_API_KEY", "offline")
+    monkeypatch.delenv("AI_INTEGRATIONS_OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("AI_INTEGRATIONS_OPENAI_BASE_URL", raising=False)
+    monkeypatch.setenv("INCLUDE_DELIVERY", "true")
+    monkeypatch.setattr(runner, "_configuration", lambda: "offline-only")
+    monkeypatch.setattr(sys, "argv", ["replit_scheduled_job.py", "--job", "daily"])
+    monkeypatch.setattr(routes.time, "sleep", lambda _: None)
+    attempts = []
+    def failed_transport(self, request):
+        attempts.append(request.url.host)
+        raise httpx.ConnectError("offline transport failure", request=request)
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", failed_transport)
+    for name in ("run_market_data_capture", "run_oil_price_capture",
+                 "run_gas_storage_capture", "run_lng_price_capture"):
+        monkeypatch.setattr(routes, name, lambda **kw: {"status": "success"})
+    monkeypatch.setattr(routes, "run_egsi_s_compute", lambda **kw: {
+        "status": "success", "value": 30, "ai_section_missing": True})
+    with conn.cursor() as c:
+        c.execute("""CREATE TABLE IF NOT EXISTS daily_digest_ai_cache(
+            cache_key TEXT PRIMARY KEY,narrative TEXT,created_at TIMESTAMP);
+            CREATE TABLE IF NOT EXISTS user_alert_deliveries(
+            user_id INTEGER,channel TEXT,status TEXT,delivery_kind TEXT,
+            created_at TIMESTAMP,sent_at TIMESTAMP,geri_date DATE,last_error TEXT);
+            CREATE UNIQUE INDEX IF NOT EXISTS fallback_test_delivery
+            ON user_alert_deliveries(user_id,channel,geri_date)
+            WHERE delivery_kind='index_digest' AND geri_date IS NOT NULL;
+            TRUNCATE daily_digest_ai_cache,user_alert_deliveries;""")
+    conn.commit()
+    def persisted_geri(**kw):
+        with conn.cursor(cursor_factory=RealDictCursor) as c:
+            c.execute("SELECT * FROM intel_indices_daily_v12 WHERE date=%s", (day,))
+            return dict(c.fetchone())
+    monkeypatch.setattr(digest, "PLAN_LEVELS", {"personal": 1})
+    def report(*args):
+        text, missing = digest.resolve_daily_narrative(
+            "offline-report", lambda: None, persisted_geri(), {}, {}, str(day))
+        return {"ai_narrative": text, "ai_section_missing": missing}
+    monkeypatch.setattr(digest, "compute_daily_digest", report)
+    monkeypatch.setattr(delivery, "ensure_index_digest_unique_index", lambda: None)
+    monkeypatch.setattr(delivery, "get_all_users_with_plans", lambda: [
+        {"id": 1, "email": None, "telegram_chat_id": "offline", "plan": "personal"}])
+    monkeypatch.setattr(delivery, "get_user_delivery_preferences",
+                        lambda _: {1: {"daily_digest": {"telegram": True}}})
+    monkeypatch.setattr(delivery, "get_latest_geri", persisted_geri)
+    for name in ("get_latest_eeri", "get_latest_egsi", "get_asset_snapshots"):
+        monkeypatch.setattr(delivery, name, lambda: {})
+    monkeypatch.setattr(delivery, "generate_ai_digest_for_plan", lambda *a: None)
+    monkeypatch.setattr(delivery, "has_been_delivered_today", lambda *a: False)
+    rendered = []
+    monkeypatch.setattr(delivery, "send_telegram_v2",
+                        lambda chat, text: rendered.append(text) or SimpleNamespace(success=True))
+    assert runner.main() == 1
+    output = capsys.readouterr()
+    assert attempts and "stage errors" in output.err
+    payload = json.loads(output.out.splitlines()[-1])["response"]["details"]
+    assert payload["pipeline_status"] == "degraded"
+    assert {"geri", "egsi_s", "daily_report", "delivery"} <= set(payload["failed_stages"])
+    for stage in ("geri", "egsi_s", "daily_report", "delivery"):
+        assert payload[stage]["ai_section_missing"] is True
+    row = persisted_geri()
+    assert row["interpretation"] and row["components"]["ai_section_missing"]
+    assert payload["daily_report"]["details"]["levels_warmed"] == [1]
+    assert payload["delivery"]["details"]["telegrams_sent"] == 1
+    assert rendered and "deterministic briefing" in rendered[0]
+    with conn.cursor(cursor_factory=RealDictCursor) as c:
+        c.execute("SELECT cache_key,narrative FROM daily_digest_ai_cache")
+        cached = dict(c.fetchone())
+        c.execute("SELECT status,last_error FROM user_alert_deliveries")
+        audit = dict(c.fetchone())
+    assert cached["cache_key"].endswith(":deterministic-fallback:geri_v1.2")
+    assert "deterministic briefing" in cached["narrative"]
+    assert audit["status"] == "sent"
+    assert json.loads(audit["last_error"])["ai_section_missing"] is True

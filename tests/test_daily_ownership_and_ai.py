@@ -81,8 +81,7 @@ def test_delivery_missing_ai_is_in_results_and_audit(monkeypatch):
     result = delivery.run_index_delivery()
     assert result["ai_section_missing"] and result["telegrams_sent"] == 1
     assert records[0]["ai_section_missing"] and records[0]["geri_value"] == 11
-    with pytest.raises(RuntimeError, match="ai_section_missing: true"):
-        routes._validate_daily_stage("delivery", result)
+    assert routes._validate_daily_stage("delivery", result)["ai_section_missing"]
 
 
 def test_revision_window_uses_latest_published_day_not_requested_yesterday(monkeypatch):

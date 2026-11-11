@@ -4,10 +4,10 @@ set -euo pipefail
 PROJECT=energyriskiq
 REGION=europe-west4
 COMMIT="${1:?Supply the full reviewed repair commit hash}"
-PARENT=eccb528a1875c9bf9249328675b645883113b4c0
+PARENT=3ac652ea8c4db9b9636ce382146101377df46aa8
 BRANCH=storage/provider-writer-20261110
 [[ "$COMMIT" =~ ^[0-9a-f]{40}$ ]] || exit 1
-IMAGE="europe-west4-docker.pkg.dev/$PROJECT/energyriskiq-jobs/scheduled-jobs:cloud-ai-repair-20261111-${COMMIT:0:12}"
+IMAGE="europe-west4-docker.pkg.dev/$PROJECT/energyriskiq-jobs/scheduled-jobs:cloud-ai-fallback-20261111-${COMMIT:0:12}"
 read -r -p 'After reviewing the exact source diff, type build: ' APPROVAL
 [[ "$APPROVAL" == build ]] || exit 1
 SOURCE="$HOME/energyriskiq-ops"

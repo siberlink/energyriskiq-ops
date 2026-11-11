@@ -128,17 +128,16 @@ def test_egsi_s_service_persists_status_and_stage_reports_it(has_key, transport,
     stage = routes.run_egsi_s_compute("2026-11-10", False, "offline")
     assert stage["details"]["ai_section_missing"] is (not has_key)
     if not has_key:
-        with pytest.raises(RuntimeError, match="ai_section_missing"):
-            routes._validate_daily_stage("egsi_s", stage)
+        assert routes._validate_daily_stage("egsi_s", stage) == stage
     else:
         assert routes._validate_daily_stage("egsi_s", stage) == stage
 
 
-def test_existing_fallback_does_not_bypass_stage_validation():
+def test_existing_fallback_is_usable_without_hiding_its_flag():
     from src.api.internal_routes import _validate_daily_stage
-    with pytest.raises(RuntimeError, match="ai_section_missing"):
-        _validate_daily_stage("egsi_s", {"status": "ok", "details": {
-            "status": "skipped", "reason": "already_exists", "ai_section_missing": True}})
+    stage = {"status": "ok", "details": {
+        "status": "skipped", "reason": "already_exists", "ai_section_missing": True}}
+    assert _validate_daily_stage("egsi_s", stage)["details"]["ai_section_missing"]
 
 
 def test_existing_ingestion_client_supports_direct_key_without_image_change(monkeypatch):
@@ -170,4 +169,4 @@ def test_daily_pipeline_records_missing_ai(failed_stage, monkeypatch):
     assert details["failed_stages"] == [failed_stage]
     assert details[failed_stage]["ai_section_missing"] is True
     if failed_stage == "geri":
-        assert details["daily_report"]["status"] == "blocked"
+        assert details["daily_report"]["status"] == "success"

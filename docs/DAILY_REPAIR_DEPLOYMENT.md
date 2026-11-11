@@ -1,7 +1,7 @@
 # Cloud AI routing repair — review before building
 
 This repair is a direct child of
-`eccb528a1875c9bf9249328675b645883113b4c0` on
+`3ac652ea8c4db9b9636ce382146101377df46aa8` on
 `storage/provider-writer-20261110`. It retains all Daily/storage/Decimal fixes.
 No scoring, selector, dependency, schema, email-pause or Telegram-setting change.
 Website source and existing observations are not modified by this repair.
@@ -9,12 +9,12 @@ Website source and existing observations are not modified by this repair.
 ## Review and build
 
 The delivery report gives the new full commit SHA. Review the parent-to-child
-diff before building. Never build the superseded eccb image for this rollout.
+diff before building. Never build the superseded eccb or 3ac652ea images for this rollout.
 
 ```bash
 COMMIT='REPLACE_WITH_FULL_REVIEWED_CHILD_SHA'
 git fetch origin storage/provider-writer-20261110
-git diff eccb528a1875c9bf9249328675b645883113b4c0 "$COMMIT"
+git diff 3ac652ea8c4db9b9636ce382146101377df46aa8 "$COMMIT"
 git show "$COMMIT:scripts/build_daily_repair.sh" > /tmp/build-daily-repair.sh
 bash /tmp/build-daily-repair.sh "$COMMIT"
 gcloud builds describe "$(cat ~/storage-decimal-build-id.txt)" \
@@ -22,7 +22,7 @@ gcloud builds describe "$(cat ~/storage-decimal-build-id.txt)" \
 ```
 
 The build script enforces the exact commit, direct parent, branch head and clean
-detached checkout. It tags one image `cloud-ai-repair-20261111-<first12sha>`.
+detached checkout. It tags one image `cloud-ai-fallback-20261111-<first12sha>`.
 It does not update jobs. If Cloud Shell disconnects, inspect the existing build;
 do not submit another. Require build SUCCESS and record the digest.
 
@@ -36,7 +36,8 @@ Cloud Console > project **energyriskiq** > Cloud Run > Jobs > region
    - In Variables & Secrets, delete references named
      `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL`.
    - Keep the existing `OPENAI_API_KEY` Secret Manager reference.
-   - Keep `OPENAI_BASE_URL` unchanged if set; pre-check that it is an approved,
+   - Daily has no `OPENAI_BASE_URL` (owner confirmed); it uses OpenAI's default.
+     On Alerts keep it unchanged if set; pre-check that it is an approved,
      reachable direct-provider endpoint, not localhost or the internal service.
      If it is wrong, STOP and report instead of silently routing paid traffic.
    - Keep every other setting, including selectors, delivery switches, email
@@ -64,10 +65,13 @@ present. Otherwise they use OPENAI_API_KEY and optional OPENAI_BASE_URL.
 Successful AI prose is stored normally. Missing credentials, transport errors
 and empty responses retain deterministic text, but persist
 `components.ai_section_missing=true` and sanitized interpretation diagnostics.
-The internal stage result exposes that flag; the Daily pipeline treats it as
-a failed stage, including an already-existing row bearing known fallback
-provenance. GERI persistence still completes; dependent report/delivery remain
-blocked when its stage fails. No automatic rewrite of older rows is authorized.
+The internal stage result exposes that flag; the Daily pipeline lists missing-AI
+stages as failed and ends non-zero, including existing flagged fallback rows.
+Missing AI does NOT block warming or delivery. Those are blocked only when the
+closed-day GERI stage did not establish persistence. Report fallbacks are cached
+under a distinct deterministic-fallback key, retaining provenance on cache hits.
+Delivery uses deterministic digest text and audits upstream/local missing-AI.
+No automatic rewrite of older index observations is authorized.
 Historical rows without provenance are unknown, not retrospective proof of AI.
 
 Next scheduled Daily must exit 0 with no failed stages: final health before
@@ -77,7 +81,14 @@ PUBLISHED storage gas days with retained E/C provenance, and fresh delivery
 audits identify GERI date/value/methodology and missing-AI flags.
 Website EERI -> same-date EGSI-M remains the sole writer of those indices.
 
-## Ingestion — configuration-only proposal, not applied
+## Requested models and Ingestion decision
+
+- GERI and EGSI-S interpretations: `gpt-4.1`.
+- Daily report narratives and Pro-delivery digests, all plans: `gpt-4.1-mini`.
+- Model identifiers are unchanged; confirm direct-key project access to both.
+- Ingestion: NO CHANGE, per owner decision. Keep its image, references and limits.
+
+## Ingestion — earlier conditional proposal, not authorized for this rollout
 
 First collect that job's actual env-reference names and Cloud execution logs.
 The shared database's successful enrichment ledger does not identify Cloud

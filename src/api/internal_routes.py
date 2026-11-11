@@ -242,9 +242,6 @@ def _validate_daily_stage(stage: str, response: dict) -> dict:
 
     if details.get('status') in {'error', 'failed'}:
         raise RuntimeError(f"{stage} failed: {details}")
-    # A cached observation with known fallback provenance must not pass silently.
-    if details.get('ai_section_missing'):
-        raise RuntimeError(f"{stage} ai_section_missing: true")
     if (
         stage in {'geri', 'eeri', 'egsi_m', 'egsi_s'}
         and details.get('status') == 'skipped'
@@ -296,6 +293,7 @@ def run_daily_index_pipeline(
     def daily_job():
         results = {}
         failed_stages = []
+        completed_stages = set()
 
         def execute_stage(stage, operation, **kwargs):
             ai_missing = False
@@ -308,6 +306,10 @@ def run_daily_index_pipeline(
                     detail = stage_response.get('details', stage_response)
                     ai_missing = bool(isinstance(detail, dict) and detail.get('ai_section_missing'))
                 results[stage] = _validate_daily_stage(stage, stage_response)
+                completed_stages.add(stage)
+                if ai_missing:
+                    failed_stages.append(stage)
+                    results[stage] = {**stage_response, 'ai_section_missing': True}
             except Exception as error:
                 failed_stages.append(stage)
                 stage_response = {
@@ -339,20 +341,23 @@ def run_daily_index_pipeline(
         # Never invoke the obsolete eeri_v1 writer from Cloud Daily.
 
         execute_stage('egsi_s', run_egsi_s_compute)
-        if 'geri' in failed_stages:
+        if 'geri' not in completed_stages:
             results['daily_report'] = {
                 'status': 'blocked', 'message': 'Closed-day GERI did not persist',
             }
         else:
             execute_stage('daily_report', run_daily_report)
 
-        if include_delivery and 'geri' in failed_stages:
+        if include_delivery and 'geri' not in completed_stages:
             results['delivery'] = {
                 'status': 'blocked', 'message': 'Closed-day GERI did not persist',
             }
         elif include_delivery:
             time.sleep(30)
-            execute_stage('delivery', run_pro_delivery)
+            execute_stage('delivery', run_pro_delivery,
+                          ai_section_missing=any(
+                              r.get('ai_section_missing') for r in results.values()
+                              if isinstance(r, dict)))
         else:
             results['delivery'] = {'status': 'skipped'}
 
@@ -748,7 +753,8 @@ def backfill_alert_metadata_endpoint(
 
 @router.post("/run/pro-delivery")
 def run_pro_delivery(
-    x_runner_token: Optional[str] = Header(None)
+    x_runner_token: Optional[str] = Header(None),
+    ai_section_missing: bool = False
 ):
     """
     Trigger Index & Digest delivery to ALL user plans.
@@ -765,7 +771,8 @@ def run_pro_delivery(
     
     from src.delivery.pro_delivery_worker import run_index_delivery
     
-    response, status_code = run_job_with_lock('pro_delivery', run_index_delivery)
+    response, status_code = run_job_with_lock(
+        'pro_delivery', lambda: run_index_delivery(ai_section_missing=ai_section_missing))
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))

@@ -761,6 +761,25 @@ def set_cached_ai_narrative(cache_key: str, narrative: str):
         logger.error(f"AI narrative cache write failed: {e}")
 
 
+def resolve_daily_narrative(cache_key, generate, geri, eeri, egsi, digest_day):
+    """Persist fallback separately so a cache hit retains missing-AI provenance."""
+    narrative = get_cached_ai_narrative(cache_key)
+    if narrative and narrative.strip():
+        return narrative, False
+    fallback_key = cache_key + ":deterministic-fallback"
+    narrative = get_cached_ai_narrative(fallback_key)
+    if narrative and narrative.strip():
+        return narrative, True
+    narrative = generate()
+    if narrative and narrative.strip():
+        set_cached_ai_narrative(cache_key, narrative)
+        return narrative, False
+    from src.ai.deterministic_digest import fallback_digest
+    narrative = fallback_digest(geri, eeri, egsi, digest_day)
+    set_cached_ai_narrative(fallback_key, narrative)
+    return narrative, True
+
+
 def compute_daily_digest(plan: str, plan_level: int) -> dict:
     is_delayed = plan_level == 0
     alerts = get_alerts(limit=20, is_delayed=is_delayed)
@@ -794,11 +813,11 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
     # it for every subsequent view that day instead of regenerating each load.
     digest_day = (date.today() - timedelta(days=2)).isoformat() if is_delayed else (date.today() - timedelta(days=1)).isoformat()
     ai_cache_key = f"v1:{plan_level}:{digest_day}:{'d' if is_delayed else 'l'}"
-    ai_narrative = get_cached_ai_narrative(ai_cache_key)
-    if ai_narrative is None:
-        ai_narrative = generate_ai_digest(plan, alerts, geri, eeri, egsi, asset_changes, correlations, betas, risk_tone, regime)
-        if ai_narrative:
-            set_cached_ai_narrative(ai_cache_key, ai_narrative)
+    ai_narrative, ai_section_missing = resolve_daily_narrative(
+        ai_cache_key,
+        lambda: generate_ai_digest(plan, alerts, geri, eeri, egsi, asset_changes,
+                                   correlations, betas, risk_tone, regime),
+        geri, eeri, egsi, digest_day)
 
     alert_limit = 2 if plan_level == 0 else 5 if plan_level <= 2 else 10
     visible_alerts = []
@@ -965,6 +984,7 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
         "alerts": visible_alerts,
         "total_alerts_yesterday": len(alerts),
         "ai_narrative": ai_narrative,
+        "ai_section_missing": ai_section_missing,
         "correlations": correlations if plan_level >= 1 else None,
         "betas": betas if plan_level >= 3 else None,
         "geri_history": geri_history,
@@ -1050,10 +1070,10 @@ def warm_daily_digest_cache() -> dict:
                 "plan_level": plan_level,
                 "cache_key": cache_key,
                 "was_cached": was_cached,
-                "generated": (not was_cached) and bool(narrative),
+                "generated": (not was_cached) and bool(narrative) and not digest.get("ai_section_missing"),
                 "narrative_chars": len(narrative),
                 "ok": bool(narrative.strip()),
-                "ai_section_missing": not bool(narrative.strip()),
+                "ai_section_missing": bool(digest.get("ai_section_missing")) or not bool(narrative.strip()),
             })
         except Exception as e:
             logger.error(f"Daily digest warm failed for plan_level {plan_level}: {e}")
@@ -1067,7 +1087,7 @@ def warm_daily_digest_cache() -> dict:
     failed = [r for r in results if not r.get("ok")]
     return {
         "status": "failed" if failed else "success",
-        "ai_section_missing": any(r.get("ai_section_missing") for r in failed),
+        "ai_section_missing": any(r.get("ai_section_missing") for r in results),
         "levels_warmed": sorted(seen_levels),
         "generated": sum(1 for r in results if r.get("generated")),
         "reused": sum(1 for r in results if r.get("was_cached")),

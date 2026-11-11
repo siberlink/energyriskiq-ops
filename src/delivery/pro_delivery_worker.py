@@ -798,7 +798,7 @@ def has_been_delivered_today(user_id: int, channel: str, index_date: date) -> bo
     return row is not None
 
 
-def run_index_delivery() -> Dict:
+def run_index_delivery(ai_section_missing: bool = False) -> Dict:
     """
     Preference-aware delivery for all plans.
 
@@ -822,7 +822,7 @@ def run_index_delivery() -> Dict:
         "telegrams_sent": 0,
         "telegrams_skipped": 0,
         "errors": [],
-        "ai_section_missing": False,
+        "ai_section_missing": ai_section_missing,
         "ai_sections_missing_count": 0,
         "plans": defaultdict(int),
     }
@@ -899,10 +899,15 @@ def run_index_delivery() -> Dict:
                     digest_cache[digest_key] = generate_ai_digest_for_plan(plan, geri, eeri, assets)
                 ai_digest = digest_cache[digest_key]
 
-            missing = needs_digest and not (ai_digest or "").strip()
+            digest_missing = needs_digest and not (ai_digest or "").strip()
+            missing = bool(ai_section_missing or digest_missing
+                           or (geri.get("components") or {}).get("ai_section_missing"))
             if missing:
                 stats["ai_section_missing"] = True
                 stats["ai_sections_missing_count"] += 1
+            if digest_missing:
+                from src.ai.deterministic_digest import fallback_digest
+                ai_digest = fallback_digest(geri, eeri, egsi)
             from src.geri.model_selection import published_model
             audit = {
                 "ai_section_missing": missing,
