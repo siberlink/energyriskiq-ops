@@ -640,6 +640,9 @@ def generate_global_alert_events() -> Dict:
 
 
 def get_eligible_users() -> List[Dict]:
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().users
     query = """
     SELECT u.id, u.email, u.telegram_chat_id, u.phone_number, 
            COALESCE(up.plan, 'free') as plan
@@ -652,6 +655,9 @@ def get_eligible_users() -> List[Dict]:
 
 
 def get_user_regions(user_id: int) -> List[str]:
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().values(user_id, "region", ["Europe"])
     query = """
     SELECT DISTINCT region FROM user_alert_prefs
     WHERE user_id = %s AND enabled = TRUE AND region IS NOT NULL
@@ -665,6 +671,9 @@ def get_user_regions(user_id: int) -> List[str]:
 
 
 def get_user_enabled_alert_types(user_id: int) -> List[str]:
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().values(user_id, "alert_type", ["HIGH_IMPACT_EVENT"])
     query = """
     SELECT DISTINCT alert_type FROM user_alert_prefs
     WHERE user_id = %s AND enabled = TRUE AND alert_type IS NOT NULL
@@ -678,6 +687,9 @@ def get_user_enabled_alert_types(user_id: int) -> List[str]:
 
 
 def get_user_enabled_assets(user_id: int) -> List[str]:
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().values(user_id, "asset", ["oil", "gas"])
     query = """
     SELECT DISTINCT asset FROM user_alert_prefs
     WHERE user_id = %s AND enabled = TRUE AND asset IS NOT NULL
@@ -719,6 +731,9 @@ def create_delivery(
     reason: Optional[str] = None,
     delivery_kind: str = 'instant'
 ) -> Optional[int]:
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().insert(user_id, alert_event_id, channel, status, reason, delivery_kind)
     with get_cursor() as cursor:
         cursor.execute(
             """INSERT INTO user_alert_deliveries
@@ -756,6 +771,9 @@ def get_unsent_alert_events(lookback_hours: int = 24) -> List[Dict]:
     Get alert events that haven't been fanned out yet.
     Uses fanout_completed_at marker for idempotency.
     """
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().events
     query = """
     SELECT id, alert_type, scope_region, scope_assets, severity, headline, body, driver_event_ids, cooldown_key, created_at
     FROM alert_events
@@ -769,6 +787,9 @@ def get_unsent_alert_events(lookback_hours: int = 24) -> List[Dict]:
 
 def mark_fanout_completed(alert_event_id: int):
     """Mark an alert event as having completed fanout."""
+    from src.alerts.fanout_context import current
+    if current.get() is not None:
+        return current.get().mark_completed(alert_event_id)
     with get_cursor() as cursor:
         cursor.execute(
             "UPDATE alert_events SET fanout_completed_at = NOW() WHERE id = %s",
@@ -778,6 +799,20 @@ def mark_fanout_completed(alert_event_id: int):
 
 
 def fanout_alert_events_to_users() -> Dict:
+    import time
+    from src.alerts.fanout_snapshot import FanoutSnapshot
+    with FanoutSnapshot() as state:
+        result = _fanout_alert_events_to_users(state)
+        result.setdefault("fanout_budget_exhausted", False)
+        result.setdefault("events_remaining", len(state.events) if not state.users else 0)
+        result.setdefault("user_checks_remaining", 0)
+        result.setdefault("fanout_budget_seconds", 1200)
+        result.update(query_count=state.queries, connection_count=1,
+                      elapsed_seconds=round(time.monotonic() - state.started, 6))
+        return result
+
+
+def _fanout_alert_events_to_users(state=None) -> Dict:
     """
     Phase B: Fanout alert events to eligible users.
     
@@ -844,6 +879,8 @@ def fanout_alert_events_to_users() -> Dict:
     skipped_already_exists = 0
     skipped_filter = 0
     users_considered = 0
+    completed_events = 0
+    budget_exhausted = False
     
     for ae in alert_events:
         alert_event_id = ae['id']
@@ -854,6 +891,9 @@ def fanout_alert_events_to_users() -> Dict:
         logger.info(f"Processing alert_event {alert_event_id}: type={alert_type}, region={scope_region}")
         
         for user in users:
+            if state is not None and state.expired():
+                budget_exhausted = True
+                break
             user_id = user['id']
             plan = user['plan'] or 'free'
             users_considered += 1
@@ -929,11 +969,16 @@ def fanout_alert_events_to_users() -> Dict:
                     deliveries_created += 1
                 else:
                     logger.info(f"User {user_id}: failed to create {channel} delivery (already exists?)")
+                    if state is not None and state.last_reason == "quota_exceeded":
+                        skipped_quota += 1
+        if budget_exhausted:
+            break
         
         mark_fanout_completed(alert_event_id)
+        completed_events += 1
     
     result = {
-        'events_processed': len(alert_events),
+        'events_processed': completed_events,
         'users_considered': users_considered,
         'deliveries_created': deliveries_created,
         'deliveries_skipped_quota': skipped_quota,
@@ -943,6 +988,13 @@ def fanout_alert_events_to_users() -> Dict:
         'deliveries_skipped_filter': skipped_filter,
         'allowlist_active': allowlist is not None
     }
+    if state is not None:
+        result.update(
+            fanout_budget_exhausted=budget_exhausted,
+            events_remaining=len(alert_events) - completed_events,
+            user_checks_remaining=len(alert_events) * len(users) - users_considered,
+            fanout_budget_seconds=1200,
+        )
     
     logger.info(f"Phase B complete: {deliveries_created} created, skipped: quota={skipped_quota}, prefs={skipped_prefs}, missing={skipped_missing_dest}, exists={skipped_already_exists}, filter={skipped_filter}")
     return result
@@ -1059,10 +1111,18 @@ def send_queued_deliveries(batch_size: int = 100, max_per_run: int = None) -> Di
         plan = d['plan']
         attempts = (d['attempts'] or 0) + 1
         
-        if plan == 'free':
-            body = add_upgrade_hook_if_free(body, plan)
-        
         try:
+            from src.alerts.send_policy import current_send_permission
+            current_user, denied = current_send_permission(
+                d["user_id"], channel, [d["alert_event_id"]], claim_id=delivery_id)
+            if denied:
+                _mark_delivery_skipped(delivery_id, denied)
+                counts["skipped_current_policy"] = counts.get("skipped_current_policy", 0) + 1
+                continue
+            d.update(current_user)
+            plan = current_user["plan"]
+            if plan == 'free':
+                body = add_upgrade_hook_if_free(body, plan)
             if channel == 'email':
                 result = send_email_v2(d['email'], headline, body, delivery_id)
             elif channel == 'telegram':
@@ -1287,6 +1347,15 @@ def send_queued_digests(batch_size: int = 50, max_per_run: int = None) -> Dict:
             continue
         
         try:
+            from src.alerts.send_policy import current_send_permission
+            current_user, denied = current_send_permission(
+                d["user_id"], channel, [event["id"] for event in events],
+                kind="digest", claim_id=digest_id)
+            if denied:
+                _mark_digest_skipped(digest_id, denied)
+                counts["digests_skipped_current_policy"] = counts.get("digests_skipped_current_policy", 0) + 1
+                continue
+            d.update(current_user)
             if channel == 'email':
                 if not d['email']:
                     _mark_digest_skipped(digest_id, "missing_destination")

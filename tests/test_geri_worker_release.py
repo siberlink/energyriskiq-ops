@@ -91,7 +91,9 @@ def test_real_handler_uses_legacy_existence_check_and_selected_service(monkeypat
     monkeypatch.setattr(repo, "get_index_for_date", existing)
     result = SimpleNamespace(index_date=date(2026, 11, 9), value=11,
                              band=SimpleNamespace(value="LOW"),
-                             model_version="geri_v1.2", trend_1d=1, trend_7d=2)
+                             model_version="geri_v1.2", trend_1d=1, trend_7d=2,
+                             components=SimpleNamespace(ai_section_missing=False,
+                                                        interpretation_ai_status={}))
     selected = Mock(return_value=result)
     monkeypatch.setattr(service, "compute_geri_for_date", selected)
     monkeypatch.setattr(job_health, "record_existing_skip",

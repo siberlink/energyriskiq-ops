@@ -1,5 +1,10 @@
 # Cloud AI routing repair — review before building
 
+**12 November follow-up:** the current build helper now prepares the separately
+reviewed EERI-trigger/fanout image, directly on `a313fb380665`. Follow
+`EERI_FANOUT_DEPLOYMENT.md` for that rollout. The notes below describe the
+already-completed 11 November AI-routing repair, not new secret-removal work.
+
 This repair is a direct child of
 `3ac652ea8c4db9b9636ce382146101377df46aa8` on
 `storage/provider-writer-20261110`. It retains all Daily/storage/Decimal fixes.

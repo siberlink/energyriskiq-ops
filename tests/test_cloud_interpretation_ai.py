@@ -6,6 +6,12 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def website_pair_offline(monkeypatch):
+    monkeypatch.setattr("src.reri.website_trigger.run_website_pair",
+                        lambda **kw: {"status": "success"})
+
 from src.ai.interpretation_client import client_options
 from src.geri.interpretation import generate_interpretation
 from src.egsi.interpretation import generate_egsi_interpretation

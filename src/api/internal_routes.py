@@ -336,6 +336,8 @@ def run_daily_index_pipeline(
             mode='yesterday',
             force=False,
         )
+        from src.reri.website_trigger import run_website_pair
+        execute_stage('eeri_egsi_m', run_website_pair)
         execute_stage('lng_price', run_lng_price_capture)
         # Single writer: website EERI workflow owns EERI and same-day EGSI-M.
         # Never invoke the obsolete eeri_v1 writer from Cloud Daily.

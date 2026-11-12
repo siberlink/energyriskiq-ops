@@ -773,14 +773,21 @@ def resolve_daily_narrative(cache_key, generate, geri, eeri, egsi, digest_day):
     narrative = generate()
     if narrative and narrative.strip():
         set_cached_ai_narrative(cache_key, narrative)
+        from src.delivery.index_dates import index_observations
+        set_cached_ai_narrative(cache_key + ":input-indices",
+                               json.dumps(index_observations(geri, eeri, egsi), default=str))
         return narrative, False
     from src.ai.deterministic_digest import fallback_digest
     narrative = fallback_digest(geri, eeri, egsi, digest_day)
     set_cached_ai_narrative(fallback_key, narrative)
+    from src.delivery.index_dates import index_observations
+    set_cached_ai_narrative(fallback_key + ":input-indices",
+                           json.dumps(index_observations(geri, eeri, egsi), default=str))
     return narrative, True
 
 
 def compute_daily_digest(plan: str, plan_level: int) -> dict:
+    from src.delivery.index_dates import index_observations
     is_delayed = plan_level == 0
     alerts = get_alerts(limit=20, is_delayed=is_delayed)
 
@@ -818,6 +825,11 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
         lambda: generate_ai_digest(plan, alerts, geri, eeri, egsi, asset_changes,
                                    correlations, betas, risk_tone, regime),
         geri, eeri, egsi, digest_day)
+    provenance_key = ai_cache_key + (":deterministic-fallback" if ai_section_missing else "") + ":input-indices"
+    try:
+        narrative_observations = json.loads(get_cached_ai_narrative(provenance_key) or "null")
+    except (TypeError, ValueError):
+        narrative_observations = None
 
     alert_limit = 2 if plan_level == 0 else 5 if plan_level <= 2 else 10
     visible_alerts = []
@@ -985,6 +997,8 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
         "total_alerts_yesterday": len(alerts),
         "ai_narrative": ai_narrative,
         "ai_section_missing": ai_section_missing,
+        "index_observations": index_observations(geri, eeri, egsi),
+        "narrative_index_observations": narrative_observations,
         "correlations": correlations if plan_level >= 1 else None,
         "betas": betas if plan_level >= 3 else None,
         "geri_history": geri_history,
@@ -1074,6 +1088,8 @@ def warm_daily_digest_cache() -> dict:
                 "narrative_chars": len(narrative),
                 "ok": bool(narrative.strip()),
                 "ai_section_missing": bool(digest.get("ai_section_missing")) or not bool(narrative.strip()),
+                "index_observations": digest.get("index_observations"),
+                "narrative_index_observations": digest.get("narrative_index_observations"),
             })
         except Exception as e:
             logger.error(f"Daily digest warm failed for plan_level {plan_level}: {e}")

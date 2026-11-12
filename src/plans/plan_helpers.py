@@ -11,6 +11,10 @@ VALID_PLAN_CODES = ["free", "personal", "trader", "pro", "enterprise"]
 
 
 def get_plan_settings(plan_code: str) -> Dict:
+    from src.alerts.fanout_context import current
+    state = current.get()
+    if state is not None:
+        return state.settings(plan_code)
     if plan_code not in VALID_PLAN_CODES:
         raise ValueError(f"Invalid plan_code: {plan_code}. Must be one of: {VALID_PLAN_CODES}")
     

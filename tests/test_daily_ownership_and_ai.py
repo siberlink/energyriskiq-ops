@@ -17,6 +17,9 @@ def test_retired_cloud_write_endpoints_refuse_execution(monkeypatch, name):
 
 @pytest.mark.parametrize("geri_fails", [False, True])
 def test_daily_never_calls_eeri_or_egsi_and_gates_delivery(monkeypatch, geri_fails):
+    from src.reri import website_trigger
+    monkeypatch.setattr(website_trigger, "run_website_pair",
+                        lambda **kw: {"status": "success"})
     calls = []
     monkeypatch.setattr(routes, "validate_runner_token", lambda token: True)
     monkeypatch.setattr(routes, "run_job_with_lock",

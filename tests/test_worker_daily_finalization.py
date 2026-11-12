@@ -68,7 +68,7 @@ def test_endpoint_existing_publication_calls_helper_not_public_writer():
     with patch.object(routes, "validate_runner_token"), \
          patch.object(routes, "run_job_with_lock",
                       side_effect=lambda n, fn: (fn(), 200)), \
-         patch.object(repo, "get_index_for_date", return_value=object()), \
+         patch.object(repo, "get_index_for_date", return_value={"components": {}}), \
          patch.object(service, "compute_geri_for_date") as public, \
          patch.object(job_health, "record_existing_skip") as final:
         result = routes.run_geri_compute(x_runner_token="offline-test")

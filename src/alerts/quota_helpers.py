@@ -104,6 +104,10 @@ def get_plan_quotas(plan: str) -> Dict:
     
     if plan_lower not in ['free', 'personal', 'trader', 'pro', 'enterprise']:
         plan_lower = 'free'
+    from src.alerts.fanout_context import current
+    state = current.get()
+    if state is not None:
+        return _parse_delivery_config_to_quotas(state.settings(plan_lower))
     
     now = time.time()
     if plan_lower in _quota_cache:
@@ -138,6 +142,10 @@ def count_user_deliveries_today(user_id: int, channel: str, delivery_kind: str =
     Counts both queued and sent deliveries in the current UTC day.
     """
     start_of_day = get_start_of_day_utc()
+    from src.alerts.fanout_context import current
+    state = current.get()
+    if state is not None:
+        return state.count(user_id, channel, delivery_kind)
     
     result = execute_one(
         """
@@ -228,6 +236,10 @@ def get_user_alert_prefs(user_id: int) -> Optional[Dict]:
     The user_alert_prefs table stores per-alert-type preferences,
     not per-channel preferences. This returns aggregated preferences.
     """
+    from src.alerts.fanout_context import current
+    state = current.get()
+    if state is not None:
+        return state.aggregate_preferences(user_id)
     results = execute_query(
         """
         SELECT region, alert_type, asset, threshold, enabled, cooldown_minutes
@@ -325,7 +337,12 @@ def check_delivery_eligibility(
     if not quota_ok:
         return DeliveryEligibility(False, delivery_kind=delivery_kind, skip_reason=quota_reason)
     
-    existing = execute_one(
+    from src.alerts.fanout_context import current
+    state = current.get()
+    if state is not None:
+        existing = (user_id, alert_event_id, channel) in state.existing
+    else:
+        existing = execute_one(
         """
         SELECT id FROM user_alert_deliveries
         WHERE user_id = %s AND alert_event_id = %s AND channel = %s

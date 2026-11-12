@@ -22,6 +22,8 @@ def configure(monkeypatch, conn, job):
     from src.ingest import gas_storage_revisions as rev
     from src.api import internal_routes as routes
     from src.scripts.backfill_snapshots import compute_gas_metrics
+    monkeypatch.setattr("src.reri.website_trigger.run_website_pair",
+                        lambda **kw: {"status": "success"})
 
     @contextmanager
     def cursor(commit=True, **kwargs):

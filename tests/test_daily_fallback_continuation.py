@@ -2,6 +2,12 @@
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def website_pair_offline(monkeypatch):
+    monkeypatch.setattr("src.reri.website_trigger.run_website_pair",
+                        lambda **kw: {"status": "success"})
+
+
 def test_report_fallback_is_persisted_and_cache_hit_retains_provenance(monkeypatch):
     from src.api import daily_digest_routes as digest
     cache, calls = {}, []

@@ -2,6 +2,12 @@ from types import SimpleNamespace
 import importlib
 
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def website_pair_offline(monkeypatch):
+    monkeypatch.setattr("src.reri.website_trigger.run_website_pair",
+                        lambda **kw: {"status": "success"})
 from fastapi import HTTPException
 
 from src.alerts import runner

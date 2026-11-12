@@ -765,12 +765,13 @@ def record_index_delivery(user_id: int, channel: str, status: str,
                            index_date: Optional[date] = None,
                            error: Optional[str] = None,
                            ai_section_missing: bool = False,
-                           geri_value=None, methodology=None):
+                           geri_value=None, methodology=None, index_observations=None):
     # Existing text column carries structured audit metadata; no schema change.
     audit = json.dumps({
         "error": error, "ai_section_missing": bool(ai_section_missing),
         "geri_value": geri_value, "geri_methodology": methodology,
         "geri_date": str(index_date),
+        "index_observations": index_observations,
     }, sort_keys=True)
     with get_cursor(commit=True) as cursor:
         cursor.execute("""
@@ -914,6 +915,8 @@ def run_index_delivery(ai_section_missing: bool = False) -> Dict:
                 "geri_value": geri.get("value") if geri else None,
                 "methodology": published_model(),
             }
+            from src.delivery.index_dates import index_observations
+            audit["index_observations"] = index_observations(geri, eeri, egsi)
 
             if email_indices and email and not is_free:
                 if not has_been_delivered_today(user_id, 'email', effective_date):
