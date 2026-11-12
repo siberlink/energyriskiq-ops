@@ -2,7 +2,7 @@ name: Daily EERI Computation
 
 on:
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,17 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Compute EERI for yesterday
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          INTERNAL_RUNNER_TOKEN: ${{ secrets.INTERNAL_RUNNER_TOKEN }}
         run: |
-          echo "Computing EERI index for yesterday at 01:00 UTC..."
-          response=$(curl -s -X POST "${{ secrets.APP_URL }}/api/v1/indices/eeri/compute-yesterday" \
+          set -euo pipefail
+          # Never echo the header, enable xtrace, or print the complete response.
+          status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' \
+            --connect-timeout 10 --max-time 20 \
+            "${APP_URL%/}/internal/alerts/engine/runs?limit=1" \
+            -H "X-Internal-Token: $INTERNAL_RUNNER_TOKEN")
+          echo "Runner binding HTTP $status"
+          [[ "$status" == 200 ]] || exit 1
+          response=$(curl --silent --show-error --fail --connect-timeout 10 --max-time 100 \
+            -X POST "${APP_URL%/}/api/v1/indices/eeri/compute-yesterday" \
+            -H "X-Runner-Token: $INTERNAL_RUNNER_TOKEN" \
             -H "Content-Type: application/json")
-          echo "Response: $response"
-          
-          if echo "$response" | grep -q '"success":true'; then
-            echo "EERI computation successful"
-          elif echo "$response" | grep -q '"skipped":true'; then
-            echo "EERI computation skipped (already exists)"
-          else
-            echo "EERI computation may have failed"
-            exit 1
-          fi
+          RESPONSE="$response" python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone, timedelta
+          result = json.loads(os.environ["RESPONSE"])
+          day = str(datetime.now(timezone.utc).date() - timedelta(days=1))
+          assert result.get("success") is True, "Website pair failed"
+          for name in ("eeri", "egsi_m"):
+              stage = result["stages"][name]
+              assert stage["date"] == day and stage["status"] in ("stored", "existing", "repaired")
+              print(name, stage["date"], stage["status"], stage["value"])
+          PY
