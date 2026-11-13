@@ -9,6 +9,7 @@ import stripe
 from src.db.db import get_cursor
 from src.billing.stripe_client import (
     init_stripe,
+    get_subscription_period_end,
     ensure_stripe_initialized,
     get_stripe_publishable_key,
     create_customer,
@@ -313,7 +314,7 @@ async def get_user_subscription(x_user_token: Optional[str] = Header(None)):
             subscription_info = {
                 "id": sub["id"],
                 "status": sub["status"],
-                "current_period_end": sub["current_period_end"],
+                "current_period_end": get_subscription_period_end(sub),
                 "cancel_at_period_end": sub.get("cancel_at_period_end", False)
             }
         except Exception as e:
@@ -355,7 +356,7 @@ async def cancel_user_subscription(x_user_token: Optional[str] = Header(None)):
         
         return {
             "message": "Subscription will be cancelled at period end",
-            "cancel_at": subscription.get("current_period_end")
+            "cancel_at": get_subscription_period_end(subscription)
         }
         
     except Exception as e:

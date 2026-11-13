@@ -351,6 +351,19 @@ def get_subscription(subscription_id: str) -> Dict[str, Any]:
     return stripe.Subscription.retrieve(subscription_id)
 
 
+def get_subscription_period_end(subscription) -> Optional[int]:
+    """Subscription current_period_end; newer API versions only report it per item."""
+    period = subscription.get("current_period_end")
+    if period:
+        return period
+    ends = [
+        item.get("current_period_end")
+        for item in ((subscription.get("items") or {}).get("data") or [])
+        if item.get("current_period_end")
+    ]
+    return min(ends) if ends else None
+
+
 def get_customer(customer_id: str) -> Dict[str, Any]:
     ensure_stripe_initialized()
     return stripe.Customer.retrieve(customer_id)

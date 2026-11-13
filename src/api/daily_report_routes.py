@@ -20,6 +20,7 @@ from fastapi import APIRouter, Header, HTTPException
 
 from src.db.db import get_cursor
 from src.billing.stripe_client import (
+    get_subscription_period_end,
     init_stripe,
     ensure_stripe_initialized,
     get_stripe_mode,
@@ -391,7 +392,7 @@ async def confirm(x_user_token: Optional[str] = Header(None)):
         return {"active": False, "status": row["status"]}
 
     subscription_id = matched.get("id")
-    period_end = matched.get("current_period_end")
+    period_end = get_subscription_period_end(matched)
     period_end_dt = datetime.utcfromtimestamp(period_end) if period_end else None
     cancel_at_end = matched.get("cancel_at_period_end")
     stripe_status = matched.get("status", "active")
@@ -441,7 +442,7 @@ async def cancel(x_user_token: Optional[str] = Header(None)):
                 (row["id"],)
             )
         return {"canceled_at_period_end": True,
-                "current_period_end": sub.get("current_period_end")}
+                "current_period_end": get_subscription_period_end(sub)}
     except Exception as e:
         logger.error(f"Daily report cancel error: {e}", exc_info=True)
         raise HTTPException(500, "Failed to cancel subscription")
@@ -468,7 +469,7 @@ def handle_daily_report_checkout_completed(session: dict) -> bool:
     except Exception as e:
         logger.error(f"Could not retrieve daily report subscription {subscription_id}: {e}")
         return True
-    period_end = sub.get("current_period_end")
+    period_end = get_subscription_period_end(sub)
     period_end_dt = datetime.utcfromtimestamp(period_end) if period_end else None
     status_val = sub.get("status", "active")
     mode = "live" if sub.get("livemode") else "sandbox"
@@ -520,7 +521,7 @@ def handle_daily_report_subscription_event(subscription: dict) -> bool:
         return False
     if not row:
         return True
-    period_end = subscription.get("current_period_end")
+    period_end = get_subscription_period_end(subscription)
     period_end_dt = datetime.utcfromtimestamp(period_end) if period_end else None
     cancel_at_end = subscription.get("cancel_at_period_end")
     stripe_status = subscription.get("status", "inactive")
