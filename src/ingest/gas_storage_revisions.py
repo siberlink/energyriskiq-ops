@@ -320,8 +320,9 @@ def write_eu_scoring_snapshot(conn, metrics):
             if not _write_observation(cur, "EU", data, row):
                 return False
         else:
-            # This table's existing publication-date key is gas day + 1 (verified
-            # against the last 30 rows). Keep it, never shift historical keys.
+            # OWNER CONTRACT: EU physical date is the legacy publication day
+            # (provider gasDayStart + 1); countries are keyed by gas day.
+            # Keep historical EU keys: no re-key/migration is authorized.
             # All provenance, deduplication and scoring use provider gasDayStart.
             cur.execute("""
                 INSERT INTO gas_storage_snapshots

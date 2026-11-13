@@ -356,10 +356,12 @@ def run_daily_index_pipeline(
             }
         elif include_delivery:
             time.sleep(30)
-            execute_stage('delivery', run_pro_delivery,
-                          ai_section_missing=any(
-                              r.get('ai_section_missing') for r in results.values()
-                              if isinstance(r, dict)))
+            from src.delivery.guarded_index_digest import delivery_origin
+            with delivery_origin("daily.delivery"):
+                execute_stage('delivery', run_pro_delivery, send=True,
+                              ai_section_missing=any(
+                                  r.get('ai_section_missing') for r in results.values()
+                                  if isinstance(r, dict)))
         else:
             results['delivery'] = {'status': 'skipped'}
 
@@ -756,25 +758,21 @@ def backfill_alert_metadata_endpoint(
 @router.post("/run/pro-delivery")
 def run_pro_delivery(
     x_runner_token: Optional[str] = Header(None),
-    ai_section_missing: bool = False
+    ai_section_missing: bool = False,
+    send: bool = False
 ):
     """
-    Trigger Index & Digest delivery to ALL user plans.
-    
-    Delivers GERI, EERI, and Daily AI Digest via Email and Telegram.
-    Each plan tier receives content matching their dashboard features:
-    - Free: 24h delayed GERI, basic EERI, executive snapshot
-    - Personal: Real-time GERI + trends, EERI with drivers, multi-index digest
-    - Trader: Full GERI + regime, probability scoring, forward watchlist
-    - Pro: GERI decomposition + AI narrative, scenario forecasts
-    - Enterprise: Full institutional package, strategic interpretation
+    Render yesterday's guarded index digest. Only explicit send=true can send.
+    The same exact-day snapshot, opt-ins, plan rules, email pause and date-level
+    idempotency apply to manual sends and Daily delivery.
     """
     validate_runner_token(x_runner_token)
     
     from src.delivery.pro_delivery_worker import run_index_delivery
     
     response, status_code = run_job_with_lock(
-        'pro_delivery', lambda: run_index_delivery(ai_section_missing=ai_section_missing))
+        'pro_delivery', lambda: run_index_delivery(
+            send=send, caller="pro-delivery", ai_section_missing=ai_section_missing))
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
@@ -783,7 +781,7 @@ def run_pro_delivery(
 
 
 @router.post("/run/geri-delivery")
-def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
+def run_geri_delivery(x_runner_token: Optional[str] = Header(None), send: bool = False):
     """
     Trigger Index & Digest delivery (alias for /run/pro-delivery).
     Kept for backward compatibility.
@@ -792,7 +790,8 @@ def run_geri_delivery(x_runner_token: Optional[str] = Header(None)):
     
     from src.delivery.pro_delivery_worker import run_index_delivery
     
-    response, status_code = run_job_with_lock('pro_delivery', run_index_delivery)
+    response, status_code = run_job_with_lock(
+        'pro_delivery', lambda: run_index_delivery(send=send, caller="geri-delivery"))
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))

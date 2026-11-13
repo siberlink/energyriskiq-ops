@@ -240,7 +240,7 @@ def test_full_scheduled_script_exit_zero_with_real_numeric(configured, tmp_path,
     assert '"status": 200' in completed.stdout
     assert "Error in sitecustomize" not in completed.stderr
     if job == "alerts":
-        assert '"job": "pro_delivery"' in completed.stdout
+        assert '"job": "pro_delivery"' not in completed.stdout
         assert '"job": "trader_delivery"' in completed.stdout
     if audit_failure:
         assert "Failed to create run record" in completed.stderr

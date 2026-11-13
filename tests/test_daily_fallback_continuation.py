@@ -1,5 +1,6 @@
 """Missing AI is observable but does not block persisted-index delivery."""
 import pytest
+from tests.test_guarded_index_digest import harness
 
 
 @pytest.fixture(autouse=True)
@@ -54,7 +55,8 @@ def test_fallback_stage_does_not_block_warming_or_delivery(stage, monkeypatch):
     assert details[stage]["ai_section_missing"]
 
 
-def test_stored_geri_fallback_flags_standalone_delivery_audit(monkeypatch):
+def test_stored_geri_fallback_flags_standalone_delivery_audit(monkeypatch, harness):
+    harness.rows["geri"]["components"]["ai_section_missing"] = True
     from types import SimpleNamespace
     from src.delivery import pro_delivery_worker as delivery
     monkeypatch.setattr(delivery, "ensure_index_digest_unique_index", lambda: None)
@@ -71,5 +73,5 @@ def test_stored_geri_fallback_flags_standalone_delivery_audit(monkeypatch):
     monkeypatch.setattr(delivery, "send_telegram_v2", lambda *a: SimpleNamespace(success=True))
     audits = []
     monkeypatch.setattr(delivery, "record_index_delivery", lambda *a, **kw: audits.append(kw))
-    result = delivery.run_index_delivery()
+    result = delivery.run_index_delivery(send=True)
     assert result["ai_section_missing"] and audits[0]["ai_section_missing"]

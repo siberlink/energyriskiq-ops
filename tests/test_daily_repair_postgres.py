@@ -171,6 +171,27 @@ def test_failed_ai_persists_geri_warms_fallback_delivers_and_exits_nonzero(
     from src.api import internal_routes as routes, daily_digest_routes as digest
     from src.delivery import pro_delivery_worker as delivery
     conn, day = geri_database
+    # New exact-day boundary and append-only ledger are exercised on this
+    # disposable database too; no mock bypasses the real snapshot SQL.
+    from pathlib import Path
+    with conn.cursor() as c:
+        c.execute((Path(__file__).parents[1] /
+                   "migrations/20261113_index_digest_attempts.sql").read_text())
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS reri_indices_daily(
+              date DATE PRIMARY KEY,index_id TEXT,value NUMERIC,band TEXT,
+              trend_1d INT,trend_7d INT,components JSONB,drivers JSONB,
+              interpretation TEXT,model_version TEXT);
+            CREATE TABLE IF NOT EXISTS egsi_m_daily(
+              index_date DATE PRIMARY KEY,index_value NUMERIC,band TEXT,
+              trend_1d INT,trend_7d INT,components_json JSONB,interpretation TEXT);
+            TRUNCATE reri_indices_daily,egsi_m_daily;
+        """)
+        c.execute("""INSERT INTO reri_indices_daily VALUES
+            (%s,'europe:eeri',60,'ELEVATED',1,1,'{}','{}','text','eeri_ttf_v3')""", (day,))
+        c.execute("""INSERT INTO egsi_m_daily VALUES
+            (%s,22.4,'LOW',1,1,'{}','text')""", (day,))
+    conn.commit()
     monkeypatch.setenv("OPENAI_API_KEY", "offline")
     monkeypatch.delenv("AI_INTEGRATIONS_OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("AI_INTEGRATIONS_OPENAI_BASE_URL", raising=False)
@@ -234,7 +255,7 @@ def test_failed_ai_persists_geri_warms_fallback_delivers_and_exits_nonzero(
     assert row["interpretation"] and row["components"]["ai_section_missing"]
     assert payload["daily_report"]["details"]["levels_warmed"] == [1]
     assert payload["delivery"]["details"]["telegrams_sent"] == 1
-    assert rendered and "deterministic briefing" in rendered[0]
+    assert rendered and f"Stored observations for {day}" in rendered[0]
     with conn.cursor(cursor_factory=RealDictCursor) as c:
         c.execute("SELECT cache_key,narrative FROM daily_digest_ai_cache")
         cached = dict(c.fetchone())

@@ -799,7 +799,16 @@ def has_been_delivered_today(user_id: int, channel: str, index_date: date) -> bo
     return row is not None
 
 
-def run_index_delivery(ai_section_missing: bool = False) -> Dict:
+def run_index_delivery(ai_section_missing: bool = False, *, send: bool = False,
+                       caller: str = "manual") -> Dict:
+    """Guard every caller; manual invocation is render-only unless opted in."""
+    import sys
+    from src.delivery.guarded_index_digest import deliver
+    return deliver(sys.modules[__name__], send=send, caller=caller,
+                   ai_section_missing=ai_section_missing)
+
+
+def _legacy_index_delivery_unused(ai_section_missing: bool = False) -> Dict:
     """
     Preference-aware delivery for all plans.
 

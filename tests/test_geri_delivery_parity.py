@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
+from tests.test_guarded_index_digest import harness
 
 
 @pytest.fixture(autouse=True)
@@ -151,7 +152,7 @@ def test_transactional_email_transport_is_not_paused(monkeypatch):
 
 
 @pytest.mark.parametrize("version", ["v1.1", "v1.2"])
-def test_real_delivery_loop_preserves_opt_ins_and_email_pause(monkeypatch, version):
+def test_real_delivery_loop_preserves_opt_ins_and_email_pause(monkeypatch, version, harness):
     from src.delivery import pro_delivery_worker as worker
     from src.alerts import channel_adapters as adapters
     monkeypatch.setenv("GERI_PUBLISHED_MODEL", version)
@@ -164,6 +165,7 @@ def test_real_delivery_loop_preserves_opt_ins_and_email_pause(monkeypatch, versi
     monkeypatch.setattr(worker, "get_user_delivery_preferences", lambda ids: prefs)
     observation = {"value": 11 if version == "v1.2" else 9,
                    "date": date(2026, 11, 8), "band": "LOW", "trend_1d": -1}
+    harness.rows["geri"]["value"] = observation["value"]
     monkeypatch.setattr(worker, "get_latest_geri", lambda **kwargs: observation)
     for name in ("get_latest_eeri", "get_latest_egsi", "get_asset_snapshots"):
         monkeypatch.setattr(worker, name, lambda: {})
@@ -173,12 +175,12 @@ def test_real_delivery_loop_preserves_opt_ins_and_email_pause(monkeypatch, versi
     record = Mock()
     monkeypatch.setattr(worker, "send_telegram_v2", telegram)
     monkeypatch.setattr(worker, "record_index_delivery", record)
-    result = worker.run_index_delivery()
+    result = worker.run_index_delivery(send=True)
     assert result["emails_sent"] == 0 and result["emails_skipped"] == 1
     assert result["telegrams_sent"] == 1
     assert f"GERI methodology {version}" in telegram.call_args.args[1]
     assert str(observation["value"]) in telegram.call_args.args[1]
     assert prefs == {1: {"geri": {"email": True, "telegram": True}}}
-    assert record.call_args_list[0].args == (1, "email", "skipped")
-    assert record.call_args_list[0].kwargs["error"] == "email_disabled"
-    assert record.call_args_list[1].args == (1, "telegram", "sent")
+    assert any(e[2] == "email" and e[3] == "skipped"
+               and e[4].get("reason") == "email_disabled" for e in harness.events)
+    assert record.call_args_list[0].args == (1, "telegram", "sent")

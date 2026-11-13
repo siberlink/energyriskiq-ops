@@ -17,7 +17,7 @@ def test_alerts_run_once_before_deliveries(monkeypatch):
 
     replit_scheduled_job.run_job("alerts")
 
-    assert calls == ["alerts", "pro_delivery", "trader_delivery"]
+    assert calls == ["alerts", "trader_delivery"]
 
 
 def test_busy_alerts_do_not_launch_deliveries(monkeypatch):

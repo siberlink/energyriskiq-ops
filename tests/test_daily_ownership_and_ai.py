@@ -4,6 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from src.api import internal_routes as routes
+from tests.test_guarded_index_digest import harness
 
 
 @pytest.mark.parametrize("name", ["run_eeri_compute", "run_egsi_compute"])
@@ -62,7 +63,8 @@ def test_warm_empty_narrative_is_not_success(monkeypatch):
         routes._validate_daily_stage("daily_report", result)
 
 
-def test_delivery_missing_ai_is_in_results_and_audit(monkeypatch):
+def test_delivery_missing_ai_is_in_results_and_audit(monkeypatch, harness):
+    harness.rows["geri"]["value"] = 11
     from src.delivery import pro_delivery_worker as delivery
     monkeypatch.setattr(delivery, "ensure_index_digest_unique_index", lambda: None)
     monkeypatch.setattr(delivery, "get_all_users_with_plans", lambda: [
@@ -81,7 +83,7 @@ def test_delivery_missing_ai_is_in_results_and_audit(monkeypatch):
     records = []
     monkeypatch.setattr(delivery, "record_index_delivery",
                         lambda *a, **kw: records.append(kw))
-    result = delivery.run_index_delivery()
+    result = delivery.run_index_delivery(send=True)
     assert result["ai_section_missing"] and result["telegrams_sent"] == 1
     assert records[0]["ai_section_missing"] and records[0]["geri_value"] == 11
     assert routes._validate_daily_stage("delivery", result)["ai_section_missing"]

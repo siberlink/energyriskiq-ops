@@ -148,12 +148,8 @@ def run_job(name: str) -> None:
         if alert_status == 409:
             return
         if not _env_bool("DRY_RUN", False):
-            if _env_bool("INCLUDE_PRO_DELIVERY", True):
-                _invoke(
-                    "pro_delivery",
-                    "run_pro_delivery",
-                    token,
-                )
+            # Daily owns the closed-day index digest. Engine phase C still
+            # sends queued alert batches; the independent Trader path stays.
             if _env_bool("INCLUDE_TRADER_DELIVERY", True):
                 _invoke(
                     "trader_delivery",
