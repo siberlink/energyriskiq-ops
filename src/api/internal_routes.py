@@ -1225,39 +1225,11 @@ def run_gas_storage_capture(
     target_date: Optional[str] = None,
     x_runner_token: Optional[str] = Header(None)
 ):
-    """
-    Capture daily EU gas storage data from GIE AGSI+.
-    
-    Stores snapshot in gas_storage_snapshots table for EGSI-S calculations.
-    Defaults to yesterday's date (end-of-day data).
-    
-    Args:
-        target_date: Date to capture (YYYY-MM-DD format). Defaults to yesterday.
-    """
+    """Website owns storage writes; Cloud must not acquire its global lock."""
     validate_runner_token(x_runner_token)
-    
-    from datetime import date, timedelta
-    from src.ingest.gas_storage_revisions import capture_storage
-    
-    if target_date:
-        try:
-            capture_date = date.fromisoformat(target_date)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
-    else:
-        capture_date = date.today() - timedelta(days=1)
-    
-    def gas_storage_job():
-        return capture_storage(capture_date.isoformat())
-    
-    response, status_code = run_job_with_lock('gas_storage_capture', gas_storage_job)
-    
-    if status_code == 409:
-        raise HTTPException(status_code=409, detail=response)
-    if status_code == 500:
-        raise HTTPException(status_code=500, detail=response)
-    
-    return response
+    from src.storage.cloud_trigger import run_website_storage
+    result = run_website_storage(x_runner_token, target_date)
+    return {"status": "ok", "job": "gas_storage_capture", "details": result}
 
 
 @router.post("/run/market-data")
