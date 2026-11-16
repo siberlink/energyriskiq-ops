@@ -102,15 +102,19 @@ TONE REQUIREMENTS - USE A HUMANIZING TONE WITH PROFESSIONAL LANGUAGE:
 
 Generate the interpretation:"""
 
+        methodology_constraint = ""
         if components is not None:
             import json
-            from src.geri.narrative_context import interpretation_context
+            from src.geri.narrative_context import interpretation_context, INACTIVE_NOTE
             prompt += "\n" + json.dumps(interpretation_context(components), default=str)
+            methodology_constraint = INACTIVE_NOTE
 
         messages = [
             {"role": "system", "content": "You are a senior energy market analyst at a respected global risk intelligence firm. Your writing is professional, insightful, and accessible to informed readers. You provide detailed, substantive analysis that helps professionals make informed decisions."},
             {"role": "user", "content": prompt}
         ]
+        if methodology_constraint:
+            messages[0]["content"] += "\n" + methodology_constraint
         
         for attempt in range(2):
             response = client.chat.completions.create(
@@ -134,6 +138,8 @@ Generate the interpretation:"""
                 logger.warning(f"GERI interpretation too short ({word_count} words, {paragraph_count} paragraphs), retrying with stronger prompt")
                 messages.append({"role": "assistant", "content": interpretation})
                 messages.append({"role": "user", "content": "This is too brief. Please expand to 2-3 full paragraphs with 250-400 words total. Provide more detailed analysis of the drivers and forward-looking context."})
+                if methodology_constraint:
+                    messages[-1]["content"] += "\n" + methodology_constraint
         
         if len(interpretation) > 2500:
             last_period = interpretation[:2500].rfind('.')
