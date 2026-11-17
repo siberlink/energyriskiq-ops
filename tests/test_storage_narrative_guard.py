@@ -68,6 +68,130 @@ def test_exact_egsi_m_supportive_backdrop():
     assert sanitize(text, context()) == sentence(context())
 
 
+NOV16_INACTIVE = (
+    "Importantly, the inactive status of regional and asset-specific risk components "
+    "means that, for now, volatility is contained and localized events have not "
+    "cascaded into broader systemic threats."
+)
+NOV16_REPORT_CLAIMS = [
+    "stable storage levels (70.39%) mitigate immediate price shocks",
+    "Near steady EU gas storage levels indicate resilience, limiting price spikes from supply interruptions",
+    "supported by stable EU gas storage",
+]
+
+
+@pytest.mark.parametrize("text", NOV16_REPORT_CLAIMS + [
+    "Inventories remain resilient.",
+    "EU stocks mitigate price shocks.",
+    "Stable storage is protecting buyers.",
+    "Storage stability limits volatility.",
+    "Steady storage reduces supply exposure.",
+    "Storage buffer capacity mitigates price shocks.",
+    "Storage provides a buffer against supply shocks.",
+    "Inventories provide buffer capacity.",
+])
+def test_nov16_storage_assurances(text):
+    assert violations(text, context())
+    assert sanitize(text, context()) == sentence(context())
+
+
+@pytest.mark.parametrize("text", [
+    "Resilient electricity grids mitigate outages.",
+    "A stable power network provides a buffer.",
+    "Storage continues to draw down.",
+    "A cold spell could tighten balances.",
+    "Storage could provide a buffer if weather is mild.",
+    "Storage provides a buffer if weather is mild.",
+    "A cold spell could undermine storage resilience.",
+    "Storage does not provide a buffer against supply shocks.",
+    "Storage stability cannot be inferred from a low index.",
+])
+def test_assurance_scope_and_conditional_statements(text):
+    assert not violations(text, context())
+
+
+@pytest.mark.parametrize("prefix", ["Storage: ", "- **Storage:** ", "- **Power:** "])
+def test_report_claim_is_replaced_without_deleting_its_line(prefix):
+    line = prefix + NOV16_REPORT_CLAIMS[1] + ".  "
+    text = "## Forecast\n" + line + "\n- **Industrial:** Monitor shipping delays.\n\nUnchanged outlook."
+    expected = ("## Forecast\n" + prefix + sentence(context())
+                + "  \n- **Industrial:** Monitor shipping delays.\n\nUnchanged outlook.")
+    assert sanitize(text, context(), True) == expected
+    assert sanitize(expected, context(), True) == expected
+    assert repaired_payload({"narrative": "untouched", "interpretation": text},
+                            context(), True)["interpretation"] == expected
+
+
+def test_report_table_keeps_numeric_cells_and_headings():
+    text = ("## Cross-asset\n| Asset | Move | Interpretation |\n|---|---|---|\n"
+            "| TTF | -6.76 | Gas prices falling amid storage stability. |  \n\n"
+            "## Outlook\nNo change.")
+    expected = text.replace("Gas prices falling amid storage stability.", sentence(context()))
+    assert sanitize(text, context(), True) == expected
+    assert not violations(expected, context(), True)
+
+
+@pytest.mark.parametrize("text", [NOV16_INACTIVE] + [
+    f"Inactive regional and asset risk components indicate {state} markets."
+    for state in ["contained", "stable", "muted", "low", "calm", "resilient"]
+] + [
+    "Inactive regional components signal no spillover.",
+    "Inactive asset-risk components are muted.",
+    "Contained volatility is explained by inactive regional components.",
+    "Market events could reactivate the inactive regional components.",
+    "Inactive regional components keep markets calm.",
+    "Inactive asset-risk components lead to low volatility.",
+    "Calm markets result from inactive regional components.",
+    "Inactive regional components: stable markets.",
+])
+def test_methodology_link_is_removed_without_storage_replacement(text):
+    assert violations(text, context(), True)
+    source = "Retain this independent observation. " + text + "\n\nKeep this paragraph."
+    expected = "Retain this independent observation.\n\nKeep this paragraph."
+    assert sanitize(source, context(), True) == expected
+    old = {"value": 4, "interpretation": source,
+           "components": {"score": 10, "interpretation": source}}
+    fixed = repaired_payload(old, context(), True)
+    assert fixed["interpretation"] == fixed["components"]["interpretation"] == expected
+    assert fixed["value"] == 4 and fixed["components"]["score"] == 10
+    assert sentence(context()) not in fixed["interpretation"]
+
+
+@pytest.mark.parametrize("text", [
+    "Regional and asset components are inactive methodology components.",
+    "Their inactive component status is not evidence of stable markets.",
+    "Inactive regional components do not indicate calm markets.",
+    "Inactive asset-risk components cannot reactivate because of market events.",
+    "Inactive components are a methodology limitation, not evidence of low risk.",
+    "Market conditions are calm while regional methodology components remain inactive.",
+])
+def test_methodology_limitations_and_unlinked_conditions_remain_allowed(text):
+    assert not violations(text, context(), True)
+    assert sanitize(text, context(), True) == text
+
+
+def test_approved_methodology_constraint_is_not_a_market_inference():
+    from src.geri.narrative_context import INACTIVE_NOTE
+    assert not violations(INACTIVE_NOTE, context(), True)
+    assert sanitize(INACTIVE_NOTE, context(), True) == INACTIVE_NOTE
+
+
+@pytest.mark.parametrize("second", [NOV16_INACTIVE, "Use event evidence only."])
+def test_methodology_generation_uses_same_check_and_retry_without_filler(second):
+    create = Mock(side_effect=[response(NOV16_INACTIVE), response(second)])
+    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    @producer("geri")
+    def generate(index_date, components):
+        return completion(client, messages=[{"role": "user", "content": "Write."}]).choices[0].message.content
+    status = {}
+    result = generate("2026-11-16", {}, storage_narrative_context=context(), narrative_status=status)
+    assert create.call_count == 2
+    assert status["ai_section_missing"] is False
+    assert status["narrative_check_failed"] is (second == NOV16_INACTIVE)
+    assert result == ("" if second == NOV16_INACTIVE else second)
+    assert "EU gas storage" not in result
+
+
 @pytest.mark.parametrize("text", [
     "Storage adequacy cannot be inferred from a low risk score.",
     "The index does not establish storage adequacy.",

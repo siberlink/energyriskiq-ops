@@ -10,7 +10,7 @@ import re
 
 log = logging.getLogger(__name__)
 _scope = ContextVar("storage_narrative_scope", default=None)
-_storage = re.compile(r"\bstorage\b|\binventor(?:y|ies)\b|\bunderground reserves\b", re.I)
+_storage = re.compile(r"\bstorage\b|\binventor(?:y|ies)\b|\bstocks?\b|\bunderground reserves\b", re.I)
 _comparison = re.compile(
     r"(?:above|below|in line with|near|around|normal|surplus|deficit).{0,45}"
     r"(?:norm|average)|(?:norm|average).{0,45}(?:above|below)|"
@@ -26,11 +26,28 @@ _adequate = re.compile(
 _scarce = re.compile(
     r"\b(?:tight\w*|deficit\w*|shortfall\w*)\b|"
     r"\bbelow[-\s]+(?:(?:seasonal|the)\s+)?(?:normal\w*|norm\w*|average\w*)", re.I)
-_inactive = re.compile(
-    r"(?:inactive|regional.spike|asset.risk).{0,180}"
-    r"(?:means?|indicat\w*|reflect\w*|evidence|suggest\w*).{0,120}"
-    r"(?:contain\w*|stabl\w*|resilien\w*|absen\w*|low risk)|"
-    r"\breactivat\w*|\btemporarily inactive\b", re.I)
+_storage_assurance = re.compile(
+    r"\b(?:resilien\w*|mitigat\w*)\b|"
+    r"\b(?:stable|steady)\s+(?:\w+\s+){0,4}(?:storage|inventor(?:y|ies)|stocks?)\b|"
+    r"\b(?:storage|inventor(?:y|ies)|stocks?)\s*[:*-]*\s*"
+    r"(?:(?:levels?|is|are|remain\w*)\s+){0,3}(?:stability|stable|steady)\b|"
+    r"\bnear[-\s]+steady\b|\bbuffer\s+capacity\s+mitigat\w*\b|"
+    r"\bprovid\w*\s+(?:an?\s+)?buffer\b", re.I)
+_components = re.compile(r"\bcomponent\w*\b|\bregional[-_\s]+spike\b|\basset[-_\s]+risk\b", re.I)
+_inactive_status = re.compile(r"\binactiv\w*\b|\bregional[-_\s]+spike\b|\basset[-_\s]+risk\b", re.I)
+_market_state = re.compile(
+    r"\b(?:contain\w*|stabl\w*|muted|low|calm|resilien\w*)\b|"
+    r"\b(?:no|without|absent)\s+spillover\b", re.I)
+_causal = re.compile(
+    r"\b(?:mean\w*|indicat\w*|reflect\w*|evidence|suggest\w*|signal\w*|show\w*|"
+    r"impl(?:y|i\w*)|demonstrat\w*|confirm\w*|explain\w*|ensur\w*|"
+    r"support\w*|keep\w*|kept|leav\w*|left|lead\w*|led|result\w*|"
+    r"contribut\w*|prevent\w*|underpin\w*|attribut\w*|because|therefore|hence|thus|given)\b|"
+    r"\bdue\s+to\b|\bsigns?\s+of\b|\bconsistent\s+with\b", re.I)
+_reactivation = re.compile(r"\breactivat\w*|\btemporarily inactive\b", re.I)
+_component_state = re.compile(
+    r"\b(?:components?|status)\s+(?:is|are|remain\w*)\s+"
+    r"(?:contained|stable|muted|low|calm|resilient)\b", re.I)
 
 
 def as_day(value):
@@ -110,7 +127,10 @@ def rules(context, methodology=False):
             "all storage adequacy word stems: comfort*, ampl*, robust*, health*, "
             "well-stock*, well-pad*, well-prepar*, well-suppl*, adequa*, sufficien*, "
             "reassur*, plentiful, abundant, cushion*, supportive backdrop for storage, "
+            "resilien*, mitigat*, stable/steady storage, storage stability, near steady, "
+            "supported by stable storage, buffer capacity mitigates, provides a buffer, "
             "above seasonal norms/average and highly effective refill claims. "
+            "Apply these only to sentences mentioning storage, inventories or stocks. "
             "Beyond +5 pp, forbid tight*, deficit*, shortfall* and below-normal/average "
             "storage claims. Neutral drawdown statements, negated adequacy claims and "
             "conditional weather-driven withdrawals remain allowed. Beyond either threshold never say "
@@ -123,7 +143,10 @@ def rules(context, methodology=False):
             "deficit inventories. " + sentence(context))
     if methodology:
         from src.geri.narrative_context import INACTIVE_NOTE
-        result += "\n" + INACTIVE_NOTE
+        result += ("\n" + INACTIVE_NOTE +
+                   " Remove any sentence linking inactive regional/asset components to "
+                   "contained, stable, muted, low, calm or resilient markets, no spillover, "
+                   "or reactivation. Negation in an unrelated clause is not an exemption.")
     return result
 
 
@@ -131,6 +154,12 @@ _paragraph_break = re.compile(r"(\r?\n[ \t]*\r?\n(?:[ \t]*\r?\n)*)")
 _sentence_break = re.compile(r"""[.!?](?:["'”’)])?(\s+)(?=[A-Z0-9*#\-\[])""")
 _abbreviation = re.compile(
     r"(?:\b(?:[A-Za-z]\.){2,}|\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|vs|etc)\.)$", re.I)
+_report_prefix = re.compile(
+    r"^(?P<prefix>[ \t]*(?:(?:[-*+]|\d+[.)])\s+)?"
+    r"(?:\*\*[^*\r\n]{1,100}:\*\*|\*\*[^*\r\n]{1,100}\*\*:|"
+    r"__[^\r\n]{1,100}:__|[A-Za-z][A-Za-z0-9 /&()–—-]{0,99}:)[ \t]*)"
+    r"(?P<claim>.*?)(?P<tail>[ \t]*)$")
+_line_marker = re.compile(r"^(?P<prefix>[ \t]*(?:#{1,6}|[-*+]|\d+[.)])\s+)")
 
 
 def _sentence_units(paragraph):
@@ -147,9 +176,25 @@ def _sentence_units(paragraph):
     return units
 
 
+def _blocks(paragraph):
+    """Keep report labels, bullets and table rows separate from adjacent prose."""
+    prose = []
+    for line in paragraph.splitlines(keepends=True):
+        if _report_prefix.match(line.rstrip("\r\n")) or _line_marker.match(line) or line.lstrip().startswith("|"):
+            if prose:
+                yield "prose", "".join(prose)
+                prose = []
+            yield "line", line
+        else:
+            prose.append(line)
+    if prose:
+        yield "prose", "".join(prose)
+
+
 def parts(text):
     return [body for paragraph in _paragraph_break.split(text or "")[::2]
-            for body, _ in _sentence_units(paragraph) if body.strip()]
+            for _, block in _blocks(paragraph)
+            for body, _ in _sentence_units(block) if body.strip()]
 
 
 def _affirmed(pattern, text, *, hypothetical=False):
@@ -166,14 +211,29 @@ def _affirmed(pattern, text, *, hypothetical=False):
         clause = re.split(r"[;.!?]|\bbut\b|\bhowever\b", before, flags=re.I)[-1]
         if hypothetical and re.search(r"\b(?:would|could|may|might|if|risk of)\b", clause, re.I):
             continue
+        if hypothetical and re.search(r"\bif\b", re.split(
+                r"[;.!?]|\bbut\b|\bhowever\b", after, flags=re.I)[0], re.I):
+            continue
         return True
     return False
 
 
-def bad_sentence(text, context, methodology=False):
-    if methodology and _inactive.search(text) and not re.search(
-            r"\b(?:not|never|cannot|limitation)\b", text, re.I):
+def methodology_violation(text):
+    if not _components.search(text):
+        return False
+    if _affirmed(_reactivation, text):
         return True
+    if not (_inactive_status.search(text) and _market_state.search(text)):
+        return False
+    if ":" in text:
+        left, right = text.split(":", 1)
+        if (_components.search(left) and _inactive_status.search(left)
+                and _affirmed(_market_state, right)):
+            return True
+    return _affirmed(_causal, text) or _affirmed(_component_state, text)
+
+
+def storage_violation(text, context):
     if not _storage.search(text):
         return False
     if re.search(r"90\s*%.*(?:seasonal norm|seasonal average)|"
@@ -181,7 +241,8 @@ def bad_sentence(text, context, methodology=False):
         return True
     if not context or not context.get("verified"):
         return bool(_affirmed(_comparison, text) or _affirmed(_adequate, text)
-                    or _affirmed(_scarce, text, hypothetical=True))
+                    or _affirmed(_scarce, text, hypothetical=True)
+                    or _affirmed(_storage_assurance, text, hypothetical=True))
     delta = context["deviation_pp"]
     if delta < 0 and _affirmed(re.compile(r"\babove\b.{0,35}(?:average|norm)", re.I), text):
         return True
@@ -190,10 +251,15 @@ def bad_sentence(text, context, methodology=False):
     if abs(delta) > 5 and re.search(r"\bin line\b", text, re.I):
         return True
     if delta < -5:
-        return _affirmed(_adequate, text)
+        return (_affirmed(_adequate, text)
+                or _affirmed(_storage_assurance, text, hypothetical=True))
     if delta > 5:
         return _affirmed(_scarce, text, hypothetical=True)
     return False
+
+
+def bad_sentence(text, context, methodology=False):
+    return (methodology and methodology_violation(text)) or storage_violation(text, context)
 
 
 def violations(text, context, methodology=False):
@@ -207,19 +273,53 @@ def sanitize(text, context, methodology=False):
     inserted = bool(replacement and replacement in (text or ""))
     changed = False
     for index in range(0, len(chunks), 2):
-        units = _sentence_units(chunks[index])
-        bad = [bad_sentence(body, context, methodology) for body, _ in units]
-        if not any(bad):
+        output = []
+        storage_removed = False
+        paragraph_changed = False
+        for kind, block in _blocks(chunks[index]):
+            raw_line = block.rstrip("\r\n")
+            ending = block[len(raw_line):]
+            if kind == "line" and storage_violation(raw_line, context) and not (
+                    methodology and methodology_violation(raw_line)):
+                label = _report_prefix.match(raw_line)
+                marker = _line_marker.match(raw_line)
+                if raw_line.lstrip().startswith("|"):
+                    cells = raw_line.split("|")
+                    for cell_index, cell in enumerate(cells):
+                        if not storage_violation("Storage " + cell, context):
+                            continue
+                        leading = re.match(r"[ \t]*", cell).group()
+                        trailing = re.search(r"[ \t]*$", cell).group()
+                        cells[cell_index] = leading + replacement + trailing
+                    rewritten = "|".join(cells)
+                else:
+                    prefix = label["prefix"] if label else marker["prefix"] if marker else ""
+                    tail = label["tail"] if label else re.search(r"[ \t]*$", raw_line).group()
+                    rewritten = prefix + replacement + tail
+                output.append(rewritten + ending)
+                inserted = inserted or bool(replacement)
+                paragraph_changed = True
+                continue
+            units = _sentence_units(block)
+            kept = []
+            for body, space in units:
+                method_bad = methodology and methodology_violation(body)
+                storage_bad = storage_violation(body, context)
+                if method_bad or storage_bad:
+                    paragraph_changed = True
+                    storage_removed = storage_removed or (storage_bad and not method_bad)
+                else:
+                    kept.append(body + space)
+            output.append("".join(kept))
+        if not paragraph_changed:
             continue
         changed = True
-        retained = "".join(body + space for (body, space), reject in zip(units, bad)
-                           if not reject)
-        if replacement and not inserted:
+        trailing = re.search(r"[ \t\r\n]*$", chunks[index]).group()
+        retained = "".join(output).rstrip(" \t\r\n")
+        if storage_removed and replacement and not inserted:
             retained = retained.rstrip(" \t\r\n") + (" " if retained.strip() else "") + replacement
             inserted = True
-        else:
-            retained = retained.rstrip(" \t\r\n")
-        chunks[index] = retained
+        chunks[index] = retained + trailing
     if not changed:
         return text
     result = "".join(chunks)
@@ -254,8 +354,7 @@ def completion(client, **kwargs):
         if violations(text, scope["context"], scope["methodology"]):
             scope["status"]["narrative_check_failed"] = True
             response.choices[0].message.content = sanitize(
-                text, scope["context"], scope["methodology"]) or sentence(scope["context"]) or (
-                    "No verified storage comparison is available.")
+                text, scope["context"], scope["methodology"])
     return response
 
 
