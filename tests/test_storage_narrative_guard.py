@@ -209,6 +209,29 @@ def test_latest_repair_dry_run_and_wrong_target_guard():
             main()
 
 
+def test_repair_dry_run_selects_only_latest_v12_day_and_never_writes():
+    from src.ai.repair_storage_narratives import run
+    from contextlib import nullcontext
+    day = date(2026, 11, 16)
+    storage = {"id": 8080, "date": day, "eu_storage_percent": 70.39,
+               "seasonal_norm": 88.36, "norm_method": "agsi_5y_2021_2025",
+               "raw_data": {"gasDayStart": "2026-11-15"}}
+    index = {"id": 1, "value": 4, "interpretation": BAD[0]}
+    cache = {"cache_key": "v1:4:2026-11-16:l:geri_v1.2", "narrative": BAD[0]}
+    cur = Mock()
+    cur.fetchone.side_effect = [{"day": day}, {"day": day}, storage,
+                                {"day": day}, storage, {"day": day}, storage, storage]
+    cur.fetchall.side_effect = [[index], [index], [index], [cache]]
+    conn = Mock()
+    conn.cursor.return_value = nullcontext(cur)
+    report = run(conn)
+    assert report["index_day"] == "2026-11-16" and report["apply"] is False
+    assert len(report["changes"]) == 4
+    sql = "\n".join(c.args[0] for c in cur.execute.call_args_list)
+    assert "UPDATE " not in sql and "DELETE " not in sql
+    assert "index_id='global:geo_energy_risk'" in sql and ":geri_v1.2" in sql
+
+
 def test_delivery_and_report_storage_queries_are_pinned(monkeypatch):
     from src.delivery import pro_delivery_worker as delivery
     from src.api import daily_digest_routes as report

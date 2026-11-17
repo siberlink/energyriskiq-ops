@@ -41,11 +41,13 @@ def run(connection, *, apply=False):
             ("egsi_m_daily", "index_date", False),
         )
         for table, column, methodology in tables:
-            cur.execute(f"SELECT max({column}) AS day FROM {table}")
+            identity = (" AND index_id='global:geo_energy_risk'"
+                        if table == "intel_indices_daily_v12" else "")
+            cur.execute(f"SELECT max({column}) AS day FROM {table} WHERE true" + identity)
             if cur.fetchone()["day"] != day:
                 report["changes"].append({"table": table, "skipped": "latest day differs"})
                 continue
-            cur.execute(f"SELECT * FROM {table} WHERE {column}=%s" +
+            cur.execute(f"SELECT * FROM {table} WHERE {column}=%s" + identity +
                         (" FOR UPDATE" if apply else ""), (day,))
             rows = cur.fetchall()
             cur.execute(
@@ -82,7 +84,8 @@ def run(connection, *, apply=False):
                     "ORDER BY date DESC LIMIT 1", (day,))
         storage = cur.fetchone()
         context = context_from_row(dict(storage)) if storage else None
-        cur.execute("SELECT * FROM daily_digest_ai_cache WHERE cache_key LIKE %s" +
+        cur.execute("SELECT * FROM daily_digest_ai_cache WHERE cache_key LIKE %s "
+                    "AND cache_key LIKE '%%:geri_v1.2%%' AND cache_key ~ '^v1:[0-9]+:'" +
                     (" FOR UPDATE" if apply else ""), (f"%:{day}:%",))
         for row in cur.fetchall():
             key = row["cache_key"]
