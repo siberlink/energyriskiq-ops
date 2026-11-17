@@ -17,11 +17,15 @@ _comparison = re.compile(
     r"\bseasonal (?:buffer|adequacy)\b|"
     r"(?:5[- ]year|five[- ]year|seasonal)\s+(?:norm|average)|\bversus\b", re.I)
 _adequate = re.compile(
-    r"\bcomfortabl\w*|\bample\b|\brobust\b|\bhealthy\b|"
-    r"\bwell[- ](?:stocked|padded|prepared)\b|\badequate (?:supply )?buffer\b|"
+    r"\b(?:comfort\w*|ampl(?!if)\w*|robust\w*|health\w*|"
+    r"well[-\s]+(?:stock|pad|prepar|suppl)\w*|adequa\w*|sufficien\w*|"
+    r"reassur\w*|plentiful\w*|abundan\w*|cushion\w*)\b|"
+    r"\bsupportive\s+backdrop\s+for\s+storage\b|"
     r"\bhighly effective\b.{0,30}\brefill\b|\brefill\b.{0,60}\bhighly effective\b|"
     r"\breasonable seasonal buffer\b", re.I)
-_scarce = re.compile(r"\btight(?:ness)?\b|\bdeficit\b|\bbelow (?:seasonal |the )?(?:normal|norm|average)", re.I)
+_scarce = re.compile(
+    r"\b(?:tight\w*|deficit\w*|shortfall\w*)\b|"
+    r"\bbelow[-\s]+(?:(?:seasonal|the)\s+)?(?:normal\w*|norm\w*|average\w*)", re.I)
 _inactive = re.compile(
     r"(?:inactive|regional.spike|asset.risk).{0,180}"
     r"(?:means?|indicat\w*|reflect\w*|evidence|suggest\w*).{0,120}"
@@ -103,10 +107,13 @@ def rules(context, methodology=False):
     if context and context.get("verified"):
         result += sentence(context) + (
             " Never state or imply the opposite direction. Beyond -5 pp, forbid "
-            "comfortable, comfortably, ample, robust, healthy, well-stocked, well-padded, "
-            "well-prepared, adequate buffer, above seasonal norms/average and highly "
-            "effective refill claims about storage. Beyond +5 pp, forbid tight, deficit "
-            "and below-normal storage claims. Beyond either threshold never say "
+            "all storage adequacy word stems: comfort*, ampl*, robust*, health*, "
+            "well-stock*, well-pad*, well-prepar*, well-suppl*, adequa*, sufficien*, "
+            "reassur*, plentiful, abundant, cushion*, supportive backdrop for storage, "
+            "above seasonal norms/average and highly effective refill claims. "
+            "Beyond +5 pp, forbid tight*, deficit*, shortfall* and below-normal/average "
+            "storage claims. Neutral drawdown statements, negated adequacy claims and "
+            "conditional weather-driven withdrawals remain allowed. Beyond either threshold never say "
             "'in line' with the average."
         )
     else:
@@ -120,9 +127,47 @@ def rules(context, methodology=False):
     return result
 
 
+_paragraph_break = re.compile(r"(\r?\n[ \t]*\r?\n(?:[ \t]*\r?\n)*)")
+_sentence_break = re.compile(r"""[.!?](?:["'”’)])?(\s+)(?=[A-Z0-9*#\-\[])""")
+_abbreviation = re.compile(
+    r"(?:\b(?:[A-Za-z]\.){2,}|\b(?:Mr|Mrs|Ms|Dr|Prof|Sr|Jr|vs|etc)\.)$", re.I)
+
+
+def _sentence_units(paragraph):
+    """Return (sentence, original following whitespace), preserving offsets."""
+    start = 0
+    units = []
+    for boundary in _sentence_break.finditer(paragraph):
+        end = boundary.start(1)
+        if _abbreviation.search(paragraph[:end]):
+            continue
+        units.append((paragraph[start:end], boundary.group(1)))
+        start = boundary.end(1)
+    units.append((paragraph[start:], ""))
+    return units
+
+
 def parts(text):
-    # Do not split decimal prices/percentages.
-    return re.split(r"(?<=[.!?])\s+(?=[A-Z*#\-\[])|\n+", text or "")
+    return [body for paragraph in _paragraph_break.split(text or "")[::2]
+            for body, _ in _sentence_units(paragraph) if body.strip()]
+
+
+def _affirmed(pattern, text, *, hypothetical=False):
+    """Negating a claim or describing a possible future drawdown is not adequacy."""
+    for match in pattern.finditer(text):
+        before, after = text[:match.start()], text[match.end():]
+        if re.search(r"\b(?:not|never|no|without|cannot|can't)\s+(?!only\b)"
+                     r"(?:(?!(?:but|and|or|yet|however)\b)[\w'-]+\s+){0,5}$", before, re.I):
+            continue
+        if re.match(r"\s+(?:cannot|can't|must not|should not|is not|are not)\s+"
+                    r"(?:be\s+)?(?:infer|assum|establish|conclud|determin|claim|guarantee)\w*",
+                    after, re.I):
+            continue
+        clause = re.split(r"[;.!?]|\bbut\b|\bhowever\b", before, flags=re.I)[-1]
+        if hypothetical and re.search(r"\b(?:would|could|may|might|if|risk of)\b", clause, re.I):
+            continue
+        return True
+    return False
 
 
 def bad_sentence(text, context, methodology=False):
@@ -135,19 +180,19 @@ def bad_sentence(text, context, methodology=False):
                  r"(?:seasonal norm|seasonal average).*90\s*%", text, re.I):
         return True
     if not context or not context.get("verified"):
-        return bool(_comparison.search(text) or _adequate.search(text) or _scarce.search(text))
+        return bool(_affirmed(_comparison, text) or _affirmed(_adequate, text)
+                    or _affirmed(_scarce, text, hypothetical=True))
     delta = context["deviation_pp"]
-    if delta < 0 and re.search(r"\babove\b.{0,35}(?:average|norm)", text, re.I):
+    if delta < 0 and _affirmed(re.compile(r"\babove\b.{0,35}(?:average|norm)", re.I), text):
         return True
-    if delta > 0 and re.search(r"\bbelow\b.{0,35}(?:average|norm)", text, re.I):
+    if delta > 0 and _affirmed(re.compile(r"\bbelow\b.{0,35}(?:average|norm)", re.I), text):
         return True
     if abs(delta) > 5 and re.search(r"\bin line\b", text, re.I):
         return True
     if delta < -5:
-        return bool(_adequate.search(text))
+        return _affirmed(_adequate, text)
     if delta > 5:
-        return bool(_scarce.search(text)) and not re.search(
-            r"\b(?:would|could|if|may|risk of)\b", text, re.I)
+        return _affirmed(_scarce, text, hypothetical=True)
     return False
 
 
@@ -156,12 +201,29 @@ def violations(text, context, methodology=False):
 
 
 def sanitize(text, context, methodology=False):
-    """Replace only rejected sentences, retaining unrelated analysis."""
-    chunks = parts(text)
-    clean = [p for p in chunks if not bad_sentence(p, context, methodology)]
-    if len(clean) != len(chunks) and sentence(context):
-        clean.append(sentence(context))
-    return "\n".join(clean).strip()
+    """Retain paragraph delimiters; append once in the first affected paragraph."""
+    chunks = _paragraph_break.split(text or "")
+    replacement = sentence(context)
+    inserted = bool(replacement and replacement in (text or ""))
+    changed = False
+    for index in range(0, len(chunks), 2):
+        units = _sentence_units(chunks[index])
+        bad = [bad_sentence(body, context, methodology) for body, _ in units]
+        if not any(bad):
+            continue
+        changed = True
+        retained = "".join(body + space for (body, space), reject in zip(units, bad)
+                           if not reject)
+        if replacement and not inserted:
+            retained = retained.rstrip(" \t\r\n") + (" " if retained.strip() else "") + replacement
+            inserted = True
+        else:
+            retained = retained.rstrip(" \t\r\n")
+        chunks[index] = retained
+    if not changed:
+        return text
+    result = "".join(chunks)
+    return result if result.strip() else ""
 
 
 def completion(client, **kwargs):

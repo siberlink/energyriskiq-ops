@@ -49,6 +49,76 @@ def test_neutral_and_correct_negative(text):
     assert not violations(text, context())
 
 
+@pytest.mark.parametrize("stem", [
+    "comfort", "comfortable", "comfortably", "ample", "ampleness", "robustness",
+    "healthier", "healthily", "healthy", "well-stocked", "well-stocking",
+    "well-padded", "well-prepared", "well-supplied", "adequate", "adequacy",
+    "sufficient", "sufficiency", "reassuring", "reassurance", "plentiful",
+    "abundant", "abundance", "cushion", "cushioning",
+])
+def test_storage_adequacy_stems(stem):
+    assert violations(f"EU storage provides {stem} conditions.", context())
+
+
+def test_exact_egsi_m_supportive_backdrop():
+    text = ("For traders and industrial buyers, this translates into muted volatility "
+            "for TTF pricing and a supportive backdrop for storage adequacy as the "
+            "continent moves deeper into the heating season.")
+    assert violations(text, context()) == [text]
+    assert sanitize(text, context()) == sentence(context())
+
+
+@pytest.mark.parametrize("text", [
+    "Storage adequacy cannot be inferred from a low risk score.",
+    "The index does not establish storage adequacy.",
+    "Storage is not comfortably above average.",
+    "Continued drawdown is reducing storage.",
+    "Weather could amplify storage withdrawals.",
+    "Supply disruption could tighten storage balances.",
+])
+def test_neutral_and_negated_claims_stay_allowed(text):
+    assert not violations(text, context())
+
+
+@pytest.mark.parametrize("word", [
+    "tight", "tighter", "tightness", "deficit", "deficits", "shortfall", "shortfalls",
+    "below-normal", "below seasonal average", "below average",
+])
+def test_mirror_word_stems(word):
+    assert violations(f"Storage is {word}.", context(95, 80))
+
+
+def test_hypothetical_does_not_hide_actual_mirror_claim():
+    assert not violations("Cold weather could tighten storage balances.", context(95, 80))
+    assert violations("Storage is tight, but withdrawals could slow.", context(95, 80))
+
+
+def test_sanitizer_preserves_paragraphs_and_adds_to_first_affected_only():
+    first = "Neutral opening. Storage inventories are ample. Retain this sentence."
+    second = "Record-breaking U.S. LNG flows reached 3.21 units. No disruption was reported."
+    third = "Storage levels remain robust. Monitor future flows."
+    text = first + "\n\n" + second + "\n\n\n" + third
+    expected = ("Neutral opening. Retain this sentence. " + sentence(context())
+                + "\n\n" + second + "\n\n\nMonitor future flows.")
+    result = sanitize(text, context())
+    assert result == expected
+    assert result.count(sentence(context())) == 1
+    assert sanitize(result, context()) == result
+    payload = {"value": 4, "components_json": {"interpretation": text}, "explanation": text}
+    fixed = repaired_payload(payload, context())
+    assert fixed["explanation"] == fixed["components_json"]["interpretation"] == expected
+    assert fixed["value"] == 4
+
+
+def test_untouched_paragraphs_keep_original_whitespace_and_abbreviations():
+    text = ("  Neutral opening.\r\n\r\nStorage levels are robust.  Preserve  this line."
+            "\r\n\r\nU.S. LNG flows rose to 3.21 units.\nThe price remains unchanged.  ")
+    expected = ("  Neutral opening.\r\n\r\nPreserve  this line. " + sentence(context())
+                + "\r\n\r\nU.S. LNG flows rose to 3.21 units.\nThe price remains unchanged.  ")
+    assert sanitize(text, context()) == expected
+    assert sanitize(expected, context()) == expected
+
+
 @pytest.mark.parametrize("text", [
     "Storage is below normal.", "Storage inventories are tight.",
     "EU storage has a deficit.", "Storage is in line with the average.",
