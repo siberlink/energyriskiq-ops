@@ -12,8 +12,10 @@ from typing import List, Dict, Any, Optional
 logger = logging.getLogger(__name__)
 
 from src.ai.interpretation_client import client_options, record_status
+from src.ai.storage_narrative import producer, completion, terminal_fallback
 
 
+@producer("egsi")
 def generate_egsi_interpretation(
     value: int,
     band: str,
@@ -133,7 +135,7 @@ Generate the interpretation:"""
         ]
         
         for attempt in range(2):
-            response = client.chat.completions.create(
+            response = completion(client,
                 model="gpt-4.1",
                 messages=messages,
                 max_tokens=800,
@@ -142,6 +144,8 @@ Generate the interpretation:"""
             
             interpretation = (response.choices[0].message.content or "").strip()
             interpretation = interpretation.strip('"\'')
+            if terminal_fallback():
+                break
             if not interpretation:
                 raise ValueError("Empty AI interpretation")
             
@@ -176,16 +180,16 @@ def _fallback_interpretation(value: int, band: str, index_type: str, components:
     band_templates = {
         'LOW': (
             "Europe's gas markets are operating under stable conditions, with stress indicators remaining well within normal parameters. "
-            "Current infrastructure capacity and storage levels provide a comfortable operational buffer for market participants."
+            "The index reading alone does not establish storage adequacy."
             "\n\n"
-            "Supply flows through established transit routes continue without significant disruption, and storage facilities are performing as expected. "
+            "Compare the dated storage observation with a verified historical reference where available. "
             "The overall market environment suggests limited near-term concern, though standard seasonal monitoring remains prudent."
         ),
         'NORMAL': (
             "European gas markets are functioning within normal parameters today, with stress indicators showing typical operational patterns. "
             "Market fundamentals remain balanced, with supply adequately meeting current demand requirements."
             "\n\n"
-            "Transit flows and storage dynamics are performing as expected for this period. While no immediate concerns are evident, "
+            "Storage adequacy cannot be inferred from this band alone. "
             "market participants should maintain awareness of evolving supply-demand dynamics as seasonal factors develop."
         ),
         'ELEVATED': (

@@ -328,6 +328,8 @@ class EGSISComponents:
             'interpretation': self.interpretation,
             'data_sources': self.data_sources,
             'ai_section_missing': self.ai_section_missing,
+            'narrative_check_failed': getattr(self, 'narrative_check_failed', False),
+            'storage_narrative_context': getattr(self, 'storage_narrative_context', None),
             'interpretation_ai_status': self.interpretation_ai_status,
             'weights': EGSI_S_WEIGHTS,
         }

@@ -198,7 +198,8 @@ def render(worker, snapshot, target, methodology, plan, enabled, narrative=None,
     return subject, body, telegram
 
 
-def deliver(worker, *, send=False, caller="manual", ai_section_missing=False):
+def deliver(worker, *, send=False, caller="manual", ai_section_missing=False,
+            narrative_check_failed=False):
     """One digest per recipient/channel/UTC day; no correction/resend mechanism."""
     methodology, target = published_model(), closed_day()
     # Manual renders are immediate and deterministic: no wait, AI or sends.
@@ -214,7 +215,13 @@ def deliver(worker, *, send=False, caller="manual", ai_section_missing=False):
     append_attempt(uuid4(), None, "run", "started", {**audit, "send": send})
     users = worker.get_all_users_with_plans()
     prefs = worker.get_user_delivery_preferences([u["id"] for u in users]) if users else {}
-    assets = worker.get_asset_snapshots() if users else {}
+    assets = worker.get_asset_snapshots(target_date=target) if users else {}
+    from src.ai.storage_narrative import context_from_row
+    storage_context = context_from_row(assets["storage"]) if assets.get("storage") else None
+    upstream_check_failed = narrative_check_failed or any(
+        bool((row.get("components") or {}).get("narrative_check_failed"))
+        for row in snapshot.values() if row)
+    stats["narrative_check_failed"] = upstream_check_failed
     digest_cache = {}
     for user in users:
         uid, plan = user["id"], user.get("plan", "free")
@@ -270,18 +277,25 @@ def deliver(worker, *, send=False, caller="manual", ai_section_missing=False):
                     if "daily_digest" in enabled:
                         if plan not in digest_cache:
                             text = None
+                            text_status = {}
                             if send and not audit["freshness_pending"]:
                                 # Only the pinned exact-day rows enter the model.
                                 text = worker.generate_ai_digest_for_plan(
-                                    plan, snapshot["geri"], snapshot["eeri"], assets)
+                                    plan, snapshot["geri"], snapshot["eeri"], assets,
+                                    storage_narrative_context=storage_context,
+                                    narrative_status=text_status)
+                                stats["narrative_check_failed"] |= text_status.get(
+                                    "narrative_check_failed", False)
                             digest_cache[plan] = (text or deterministic_text(snapshot, target),
-                                                  not bool(text))
-                        narrative, fallback = digest_cache[plan]
+                                                  not bool(text), text_status.get("narrative_check_failed", False))
+                        narrative, fallback, plan_check_failed = digest_cache[plan]
                         metadata["ai_section_missing"] |= fallback
+                        metadata["narrative_check_failed"] = upstream_check_failed or plan_check_failed
                     geri = snapshot.get("geri") or {}
                     metadata["ai_section_missing"] |= bool(
                         (geri.get("components") or {}).get("ai_section_missing"))
                     stats["ai_section_missing"] |= metadata["ai_section_missing"]
+                    metadata.setdefault("narrative_check_failed", upstream_check_failed)
                     subject, body, telegram = render(
                         worker, snapshot, target, methodology, plan, enabled, narrative, assets)
                     if not send:
@@ -299,6 +313,7 @@ def deliver(worker, *, send=False, caller="manual", ai_section_missing=False):
                         worker.record_index_delivery(
                             uid, channel, "sent", index_date=target,
                             ai_section_missing=metadata["ai_section_missing"],
+                            narrative_check_failed=metadata["narrative_check_failed"],
                             geri_value=audit["index_observations"]["geri"]["value"],
                             methodology=methodology,
                             index_observations=audit["index_observations"])
@@ -321,7 +336,8 @@ def deliver(worker, *, send=False, caller="manual", ai_section_missing=False):
     append_attempt(uuid4(), None, "run",
                    "failed" if stats["errors"] else "pending" if audit["freshness_pending"] else
                    "rendered" if not send else "completed",
-                   {**audit, "send": send, "ai_section_missing": stats["ai_section_missing"]})
+                   {**audit, "send": send, "ai_section_missing": stats["ai_section_missing"],
+                    "narrative_check_failed": stats["narrative_check_failed"]})
     return stats
 
 

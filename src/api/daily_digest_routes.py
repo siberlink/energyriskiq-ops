@@ -7,6 +7,9 @@ from typing import Optional
 
 from src.db.db import execute_query, execute_one, execute_production_query, execute_production_one
 from src.api.user_routes import verify_user_session
+from src.ai.storage_narrative import (
+    producer, completion, context_from_row, sentence as storage_reference_sentence,
+)
 from src.geri.delivery_context import selected_query, prompt_context, narrative_cache_key
 
 logger = logging.getLogger(__name__)
@@ -85,7 +88,7 @@ def get_egsi_snapshot(days: int = 2):
     return [dict(r) for r in rows] if rows else []
 
 
-def get_asset_snapshots(days: int = 7):
+def get_asset_snapshots(days: int = 7, target_date=None):
     brent = execute_production_query(
         "SELECT date, brent_price, brent_change_pct FROM oil_price_snapshots ORDER BY date DESC LIMIT %s",
         (days,)
@@ -103,8 +106,9 @@ def get_asset_snapshots(days: int = 7):
         (days,)
     )
     storage = execute_production_query(
-        "SELECT date, eu_storage_percent, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT %s",
-        (days,)
+        """SELECT id,date,eu_storage_percent,risk_band,seasonal_norm,norm_method,raw_data
+           FROM gas_storage_snapshots WHERE date <= %s ORDER BY date DESC LIMIT %s""",
+        (target_date or date.today() - timedelta(days=1), days)
     )
 
     def to_list(rows):
@@ -426,7 +430,7 @@ def build_actionable_takeaways(geri, eeri, egsi, asset_changes, alerts, regime,
     if storage_pct < 45:
         gas_points.append(f"EU storage near {storage_pct:.0f}% keeps the supply buffer in focus.")
     else:
-        gas_points.append(f"EU storage around {storage_pct:.0f}% offers a reasonable seasonal buffer.")
+        gas_points.append("Assess storage against its dated, verified reference; the fill level alone does not establish adequacy.")
     gas_points.append("Monitor EU gas storage, Ukraine grid risk and cold-weather demand.")
 
     # ── LNG ──
@@ -573,6 +577,7 @@ def build_forward_watchlist(geri, eeri, egsi, asset_changes, alerts,
     return items[:5]
 
 
+@producer("report")
 def generate_ai_digest(plan: str, alerts, geri, eeri, egsi, asset_changes, correlations, betas, risk_tone, regime):
     try:
         import os
@@ -714,7 +719,7 @@ ASSET MOVES:
 """
         user_prompt += prompt_context(geri_current)
 
-        response = client.chat.completions.create(
+        response = completion(client,
             model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -796,7 +801,9 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
     geri = get_index_snapshot("global:geo_energy_risk", days=geri_days)
     eeri = get_eeri_snapshot(days=geri_days)
     egsi = get_egsi_snapshot(days=geri_days)
-    assets = get_asset_snapshots(days=days_for_assets)
+    digest_day = (date.today() - timedelta(days=2 if is_delayed else 1)).isoformat()
+    assets = get_asset_snapshots(days=days_for_assets, target_date=digest_day)
+    storage_reference = context_from_row(assets["storage"][0]) if assets.get("storage") else None
 
     asset_changes = compute_asset_changes(assets)
 
@@ -820,11 +827,22 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
     # it for every subsequent view that day instead of regenerating each load.
     digest_day = (date.today() - timedelta(days=2)).isoformat() if is_delayed else (date.today() - timedelta(days=1)).isoformat()
     ai_cache_key = f"v1:{plan_level}:{digest_day}:{'d' if is_delayed else 'l'}"
+    narrative_status = {}
     ai_narrative, ai_section_missing = resolve_daily_narrative(
         ai_cache_key,
         lambda: generate_ai_digest(plan, alerts, geri, eeri, egsi, asset_changes,
-                                   correlations, betas, risk_tone, regime),
+                                   correlations, betas, risk_tone, regime,
+                                   storage_narrative_context=storage_reference,
+                                   narrative_status=narrative_status),
         geri, eeri, egsi, digest_day)
+    if narrative_status:
+        set_cached_ai_narrative(ai_cache_key + ":narrative-status", json.dumps(narrative_status))
+    else:
+        try:
+            narrative_status = json.loads(get_cached_ai_narrative(
+                ai_cache_key + ":narrative-status") or "{}")
+        except (TypeError, ValueError):
+            narrative_status = {}
     provenance_key = ai_cache_key + (":deterministic-fallback" if ai_section_missing else "") + ":input-indices"
     try:
         narrative_observations = json.loads(get_cached_ai_narrative(provenance_key) or "null")
@@ -936,6 +954,16 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
     actionable_takeaways = build_actionable_takeaways(
         geri, eeri, egsi, asset_changes, alerts, regime, storage_pct, esc_prob, de_esc_prob
     )
+    verified_storage_text = storage_reference_sentence(storage_reference)
+    for takeaway in (actionable_takeaways.values() if isinstance(actionable_takeaways, dict)
+                     else actionable_takeaways):
+        if isinstance(takeaway, dict):
+            for key, value in takeaway.items():
+                if isinstance(value, list):
+                    takeaway[key] = [
+                        verified_storage_text or "No verified storage comparison is available."
+                        if isinstance(line, str) and line.startswith("Assess storage against")
+                        else line for line in value]
 
     # ── Forward watchlist: deterministic, prioritised 3-5 items (title/priority/reason) ──
     forward_watchlist = build_forward_watchlist(
@@ -996,6 +1024,7 @@ def compute_daily_digest(plan: str, plan_level: int) -> dict:
         "alerts": visible_alerts,
         "total_alerts_yesterday": len(alerts),
         "ai_narrative": ai_narrative,
+        "narrative_check_failed": bool(narrative_status.get("narrative_check_failed")),
         "ai_section_missing": ai_section_missing,
         "index_observations": index_observations(geri, eeri, egsi),
         "narrative_index_observations": narrative_observations,
@@ -1086,6 +1115,7 @@ def warm_daily_digest_cache() -> dict:
                 "was_cached": was_cached,
                 "generated": (not was_cached) and bool(narrative) and not digest.get("ai_section_missing"),
                 "narrative_chars": len(narrative),
+                "narrative_check_failed": digest.get("narrative_check_failed", False),
                 "ok": bool(narrative.strip()),
                 "ai_section_missing": bool(digest.get("ai_section_missing")) or not bool(narrative.strip()),
                 "index_observations": digest.get("index_observations"),
@@ -1104,6 +1134,7 @@ def warm_daily_digest_cache() -> dict:
     return {
         "status": "failed" if failed else "success",
         "ai_section_missing": any(r.get("ai_section_missing") for r in results),
+        "narrative_check_failed": any(r.get("narrative_check_failed") for r in results),
         "levels_warmed": sorted(seen_levels),
         "generated": sum(1 for r in results if r.get("generated")),
         "reused": sum(1 for r in results if r.get("was_cached")),

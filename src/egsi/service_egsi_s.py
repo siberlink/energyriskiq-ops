@@ -82,6 +82,7 @@ def compute_egsi_s_for_date(
     
     # Generate AI-powered interpretation (unique per day)
     ai_status = {}
+    narrative_status = {}
     ai_interpretation = generate_egsi_interpretation(
         value=int(value),
         band=band.value,
@@ -95,11 +96,14 @@ def compute_egsi_s_for_date(
         },
         index_date=target_date.isoformat(),
         index_type="EGSI-S",
-        ai_status=ai_status
+        ai_status=ai_status,
+        narrative_status=narrative_status,
     )
     components.interpretation = ai_interpretation
     components.ai_section_missing = ai_status.get("ai_section_missing", False)
     components.interpretation_ai_status = ai_status
+    components.narrative_check_failed = narrative_status.get("narrative_check_failed", False)
+    components.storage_narrative_context = narrative_status.get("storage_context")
     
     trend_1d, trend_7d = compute_egsi_s_trends(value)
     

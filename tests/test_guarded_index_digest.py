@@ -21,6 +21,20 @@ def snapshot():
             for name, value in (("geri", 7), ("eeri", 60), ("egsi", 22.4))}
 
 
+def test_failed_narrative_check_does_not_block_delivery_and_is_audited(harness, monkeypatch):
+    def generate(*args, **kwargs):
+        kwargs["narrative_status"].update(
+            ai_section_missing=False, narrative_check_failed=True)
+        return "Deterministic storage correction."
+    monkeypatch.setattr(harness.worker, "generate_ai_digest_for_plan", generate)
+    result = guard.deliver(harness.worker, send=True, caller="offline")
+    assert result["narrative_check_failed"] is True
+    assert result["ai_section_missing"] is False
+    assert result["telegrams_sent"] == 1
+    assert harness.worker.record_index_delivery.call_args.kwargs["narrative_check_failed"] is True
+    assert any(e[3] == "sent" and e[4]["narrative_check_failed"] for e in harness.events)
+
+
 @pytest.fixture
 def harness(monkeypatch):
     from src.delivery import pro_delivery_worker as worker
@@ -45,7 +59,7 @@ def harness(monkeypatch):
     monkeypatch.setattr(worker, "get_all_users_with_plans",
                         lambda: [{"id": 1, "email": "offline@example.invalid",
                                   "telegram_chat_id": "offline", "plan": "free"}])
-    monkeypatch.setattr(worker, "get_asset_snapshots", lambda: {})
+    monkeypatch.setattr(worker, "get_asset_snapshots", lambda **kwargs: {})
     monkeypatch.setattr(worker, "get_user_delivery_preferences",
                         lambda ids: {1: {"geri": {"telegram": True},
                                          "eeri": {"telegram": True},

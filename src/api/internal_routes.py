@@ -305,6 +305,8 @@ def run_daily_index_pipeline(
                 if isinstance(stage_response, dict):
                     detail = stage_response.get('details', stage_response)
                     ai_missing = bool(isinstance(detail, dict) and detail.get('ai_section_missing'))
+                    stage_response = {**stage_response, 'narrative_check_failed': bool(
+                        isinstance(detail, dict) and detail.get('narrative_check_failed'))}
                 results[stage] = _validate_daily_stage(stage, stage_response)
                 completed_stages.add(stage)
                 if ai_missing:
@@ -359,6 +361,9 @@ def run_daily_index_pipeline(
             from src.delivery.guarded_index_digest import delivery_origin
             with delivery_origin("daily.delivery"):
                 execute_stage('delivery', run_pro_delivery, send=True,
+                              narrative_check_failed=any(
+                                  r.get('narrative_check_failed') for r in results.values()
+                              ),
                               ai_section_missing=any(
                                   r.get('ai_section_missing') for r in results.values()
                                   if isinstance(r, dict)))
@@ -759,6 +764,7 @@ def backfill_alert_metadata_endpoint(
 def run_pro_delivery(
     x_runner_token: Optional[str] = Header(None),
     ai_section_missing: bool = False,
+    narrative_check_failed: bool = False,
     send: bool = False
 ):
     """
@@ -772,7 +778,8 @@ def run_pro_delivery(
     
     response, status_code = run_job_with_lock(
         'pro_delivery', lambda: run_index_delivery(
-            send=send, caller="pro-delivery", ai_section_missing=ai_section_missing))
+            send=send, caller="pro-delivery", ai_section_missing=ai_section_missing,
+            narrative_check_failed=narrative_check_failed))
     
     if status_code != 200:
         raise HTTPException(status_code=status_code, detail=response.get('message', 'Error'))
@@ -842,6 +849,7 @@ def run_geri_compute(
                     'message': f'GERI for {yesterday.isoformat()} already exists',
                     'model_version': MODEL_VERSION,
                     'ai_section_missing': (existing.get('components') or {}).get('ai_section_missing', False),
+                    'narrative_check_failed': (existing.get('components') or {}).get('narrative_check_failed', False),
                     'interpretation_ai_status': (existing.get('components') or {}).get('interpretation_ai_status', {}),
                 }
             result = compute_geri_for_date(yesterday, force=force)
@@ -857,6 +865,7 @@ def run_geri_compute(
                     'trend_1d': result.trend_1d,
                     'trend_7d': result.trend_7d,
                     'ai_section_missing': result.components.ai_section_missing,
+                    'narrative_check_failed': getattr(result.components, 'narrative_check_failed', False),
                     'interpretation_ai_status': result.components.interpretation_ai_status,
                 }
             return {
@@ -1104,6 +1113,7 @@ def run_egsi_s_compute(
                 'date': compute_date.isoformat(),
                 'message': f'EGSI-S for {compute_date.isoformat()} already exists',
                 'ai_section_missing': (existing.get('components') or {}).get('ai_section_missing', False),
+                'narrative_check_failed': (existing.get('components') or {}).get('narrative_check_failed', False),
                 'interpretation_ai_status': (existing.get('components') or {}).get('interpretation_ai_status', {}),
             }
 
@@ -1118,6 +1128,7 @@ def run_egsi_s_compute(
                 'data_source': result.components.data_sources[0] if result.components.data_sources else 'unknown',
                 'computed': True,
                 'ai_section_missing': result.components.ai_section_missing,
+                'narrative_check_failed': getattr(result.components, 'narrative_check_failed', False),
                 'interpretation_ai_status': result.components.interpretation_ai_status,
             }
         else:

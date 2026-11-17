@@ -20,6 +20,7 @@ from collections import defaultdict
 
 from src.db.db import get_cursor, execute_one, execute_query
 from src.alerts.channel_adapters import send_email_v2, send_telegram_v2
+from src.ai.storage_narrative import producer, completion
 from src.geri.delivery_context import selected_query, methodology_note, prompt_context
 
 logger = logging.getLogger(__name__)
@@ -120,7 +121,7 @@ def get_latest_eeri() -> Optional[Dict]:
     return None
 
 
-def get_asset_snapshots() -> Dict:
+def get_asset_snapshots(target_date=None) -> Dict:
     result = {}
     brent = execute_one("SELECT date, brent_price, brent_change_pct FROM oil_price_snapshots ORDER BY date DESC LIMIT 1")
     if brent:
@@ -128,7 +129,10 @@ def get_asset_snapshots() -> Dict:
     ttf = execute_one("SELECT date, ttf_price FROM ttf_gas_snapshots ORDER BY date DESC LIMIT 1")
     if ttf:
         result['ttf'] = dict(ttf)
-    storage = execute_one("SELECT date, eu_storage_percent, risk_band FROM gas_storage_snapshots ORDER BY date DESC LIMIT 1")
+    storage = execute_one(
+        """SELECT id,date,eu_storage_percent,risk_band,seasonal_norm,norm_method,raw_data
+           FROM gas_storage_snapshots WHERE date <= %s ORDER BY date DESC LIMIT 1""",
+        (target_date or date.today() - timedelta(days=1),))
     if storage:
         result['storage'] = dict(storage)
     return result
@@ -639,6 +643,7 @@ def build_full_telegram(geri: Optional[Dict], eeri: Optional[Dict],
     return "\n".join(parts)
 
 
+@producer("delivery")
 def generate_ai_digest_for_plan(plan: str, geri: Optional[Dict], eeri: Optional[Dict],
                                   assets: Dict) -> Optional[str]:
     try:
@@ -731,7 +736,7 @@ ASSET MOVES:
         user_prompt += prompt_context(geri)
 
         max_tokens = 400 if level == 0 else 700 if level == 1 else 1000 if level == 2 else 1300
-        response = client.chat.completions.create(
+        response = completion(client,
             model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -765,10 +770,12 @@ def record_index_delivery(user_id: int, channel: str, status: str,
                            index_date: Optional[date] = None,
                            error: Optional[str] = None,
                            ai_section_missing: bool = False,
-                           geri_value=None, methodology=None, index_observations=None):
+                           geri_value=None, methodology=None, index_observations=None,
+                           narrative_check_failed: bool = False):
     # Existing text column carries structured audit metadata; no schema change.
     audit = json.dumps({
         "error": error, "ai_section_missing": bool(ai_section_missing),
+        "narrative_check_failed": bool(narrative_check_failed),
         "geri_value": geri_value, "geri_methodology": methodology,
         "geri_date": str(index_date),
         "index_observations": index_observations,
@@ -800,12 +807,12 @@ def has_been_delivered_today(user_id: int, channel: str, index_date: date) -> bo
 
 
 def run_index_delivery(ai_section_missing: bool = False, *, send: bool = False,
-                       caller: str = "manual") -> Dict:
+                       caller: str = "manual", narrative_check_failed: bool = False) -> Dict:
     """Guard every caller; manual invocation is render-only unless opted in."""
     import sys
     from src.delivery.guarded_index_digest import deliver
     return deliver(sys.modules[__name__], send=send, caller=caller,
-                   ai_section_missing=ai_section_missing)
+                   ai_section_missing=ai_section_missing, narrative_check_failed=narrative_check_failed)
 
 
 def _legacy_index_delivery_unused(ai_section_missing: bool = False) -> Dict:

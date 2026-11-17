@@ -12,8 +12,10 @@ from typing import List, Dict, Any, Optional
 logger = logging.getLogger(__name__)
 
 from src.ai.interpretation_client import client_options, record_status
+from src.ai.storage_narrative import producer, completion, terminal_fallback
 
 
+@producer("geri")
 def generate_interpretation(
     value: int,
     band: str,
@@ -117,7 +119,7 @@ Generate the interpretation:"""
             messages[0]["content"] += "\n" + methodology_constraint
         
         for attempt in range(2):
-            response = client.chat.completions.create(
+            response = completion(client,
                 model="gpt-4.1",
                 messages=messages,
                 max_tokens=800,
@@ -126,6 +128,8 @@ Generate the interpretation:"""
             
             interpretation = (response.choices[0].message.content or "").strip()
             interpretation = interpretation.strip('"\'')
+            if terminal_fallback():
+                break
             if not interpretation:
                 raise ValueError("Empty AI interpretation")
             

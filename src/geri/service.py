@@ -59,6 +59,7 @@ def compute_geri_for_date(target_date: date, force: bool = False, reason=None,
                             setattr(comp, key, value)
                     for key, value in staged["components"].get("normalized", {}).items():
                         setattr(comp, "norm_" + key, value)
+                    comp.narrative_check_failed = staged["components"].get("narrative_check_failed", False)
                     result = build_result(target_date, staged["value"], comp,
                                           staged["trend_1d"], staged["trend_7d"])
                     result.model_version = "geri_v1.2"

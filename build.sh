@@ -4,7 +4,7 @@ set -euo pipefail
 test -f Dockerfile
 test -f requirements.lock
 COMMIT="$(git rev-parse HEAD)"
-TAG="storage-history-20261115-${COMMIT:0:12}"
+TAG="narrative-guard-20261117-${COMMIT:0:12}"
 IMAGE="europe-west4-docker.pkg.dev/energyriskiq/energyriskiq-jobs/scheduled-jobs:${TAG}"
 python - "$COMMIT" "$IMAGE" <<'PY'
 import json,sys

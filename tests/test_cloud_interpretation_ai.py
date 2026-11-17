@@ -55,7 +55,8 @@ def test_direct_key_uses_ai_transport(kind, custom_url, transport, monkeypatch):
         monkeypatch.setenv("OPENAI_BASE_URL", "https://offline.invalid/v1")
     status = {}
     assert generate(kind, status).startswith("AI supplied")
-    assert status == {"ai_section_missing": False, "ai_source": "direct"}
+    assert status == {"ai_section_missing": False, "ai_source": "direct",
+                      "narrative_check_failed": False, "storage_context": None}
     assert transport[0][0] == ("offline.invalid" if custom_url else "api.openai.com")
 
 
@@ -64,7 +65,8 @@ def test_missing_key_falls_back_and_flags(kind, transport):
     status = {}
     assert generate(kind, status)
     assert status == {"ai_section_missing": True, "ai_source": "none",
-                      "ai_fallback_reason": "no_credentials"}
+                      "ai_fallback_reason": "no_credentials",
+                      "narrative_check_failed": False, "storage_context": None}
     assert not transport
 
 
